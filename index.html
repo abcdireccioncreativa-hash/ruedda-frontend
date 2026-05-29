@@ -1045,7 +1045,7 @@ input[type=number]{-moz-appearance:textfield}
       <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
       <div class="mkt-cond-track">
         <div class="mkt-cond-tab active" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
-        <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')">nuevos</div>
+        <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')" style="padding-left:20px">nuevos</div>
       </div>
     </div>
     <span class="section-link" id="section-como-funciona-link" onclick="showView('como-funciona')">como funciona</span>
@@ -2121,8 +2121,8 @@ input[type=number]{-moz-appearance:textfield}
         <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:22px;height:22px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.45);font-family:var(--font)">mensajes</span>
       </button>
-      <div style="position:relative">
-        <button onclick="_toggleRueddaExtra(this)" style="width:100%;background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .2s;font-family:var(--font)" onmousedown="this.style.background='rgba(255,255,255,0.09)'" onmouseup="this.style.background='rgba(255,255,255,0.05)'" ontouchstart="this.style.background='rgba(255,255,255,0.09)'" ontouchend="this.style.background='rgba(255,255,255,0.05)'">
+      <div style="position:relative;display:flex;flex-direction:column">
+        <button onclick="_toggleRueddaExtra(this)" style="width:100%;height:100%;background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.08);border-radius:18px;padding:18px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .2s;font-family:var(--font);box-sizing:border-box" onmousedown="this.style.background='rgba(255,255,255,0.09)'" onmouseup="this.style.background='rgba(255,255,255,0.05)'" ontouchstart="this.style.background='rgba(255,255,255,0.09)'" ontouchend="this.style.background='rgba(255,255,255,0.05)'">
           <span style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-.3px">Ruedda<span style="color:#e6f03b">Extra.</span></span>
           <svg id="extra-arrow" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.35)" stroke-width="2" style="width:16px;height:16px;transition:transform .2s"><path d="M7 17 17 7M7 7h10v10"/></svg>
         </button>
@@ -2764,6 +2764,8 @@ function showView(name){
   if(name==='home'){
     clearTimers();
     currentSection='subastas';
+    const _tog=document.getElementById('mkt-cond-toggle');if(_tog)_tog.className='mkt-cond-toggle';
+    const _cl=document.getElementById('section-como-funciona-link');if(_cl)_cl.style.display='inline';
     document.getElementById('section-title-text').textContent='subastas';
     document.querySelectorAll('.dropdown-item').forEach((i,idx)=>i.classList.toggle('active',idx===0));
     renderCurrentSection();
@@ -5925,7 +5927,7 @@ function updateHamburgerAdmin(){
 function _cuentaSliderTap(tab){
   const role=USER_STATE.role;
   if(tab==='consesionario'){
-    if(role==='particular'||role==='guest') showView('se-parte-ruedda');
+    if(role==='particular'||role==='guest') showView('afiliate');
     // si ya es concesionario, no hace nada (ya está activo)
   }
   // si toca 'particular' siendo concesionario → sin acción
