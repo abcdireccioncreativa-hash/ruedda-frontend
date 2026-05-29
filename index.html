@@ -4712,21 +4712,17 @@ function openMisPublicaciones(){
         <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px">mis publicaciones</div>
         <div style="width:32px"></div>
       </div>
-      <div style="padding:0 16px 36px;display:flex;flex-direction:column;gap:10px">
+      <div style="padding:0 12px 36px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
         ${MOCK_MY_LISTINGS.map(l=>`
-          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px 16px">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
-              <div>
-                <div style="font-size:14px;font-weight:700;margin-bottom:2px">${l.title}</div>
-                <div style="font-size:12px;color:rgba(255,255,255,.4)">${l.km} km · ${l.fotos} fotos</div>
-              </div>
-              <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:100px;background:${l.status==='activa'?'rgba(230,240,59,.12)':l.status==='en revisión'?'rgba(255,170,0,.12)':l.status==='rechazada'?'rgba(255,60,60,.1)':'rgba(255,255,255,.06)'};color:${l.status==='activa'?'#e6f03b':l.status==='en revisión'?'#ffaa00':l.status==='rechazada'?'rgba(255,80,80,.9)':'rgba(255,255,255,.4)'}">${l.status==='activa'?'activa · '+l.daysLeft+'d':l.status==='en revisión'?'en revisión':l.status==='rechazada'?'rechazada':'vencida'}</span>
+          <div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
+            <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative">
+              <svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>
+              <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${l.status==='activa'?'rgba(100,220,100,.9)':l.status==='en revisión'?'rgba(255,170,0,.9)':'rgba(255,80,80,.8)'}">${l.status==='activa'?'activa':l.status==='en revisión'?'revisión':'vencida'}</span>
             </div>
-            <div style="font-size:15px;font-weight:800;letter-spacing:-.3px;color:#e6f03b;margin-bottom:12px">${l.price}</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button onclick="editListing('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:600;color:rgba(255,255,255,.7);cursor:pointer">editar fotos</button>
-              ${l.status==='vencida'?`<button onclick="republishListing('${l.id}')" style="flex:1;background:rgba(230,240,59,.1);border:1px solid rgba(230,240,59,.25);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:#e6f03b;cursor:pointer">republicar</button>`:''}
-              <button onclick="deleteListing('${l.id}')" style="width:38px;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.18);border-radius:10px;padding:9px;font-family:var(--font);font-size:15px;color:rgba(255,80,80,.8);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
+            <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
+              <div style="font-size:11px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
+              <div style="font-size:12px;font-weight:800;color:#e6f03b">${l.price}</div>
+              <button onclick="event.stopPropagation();deleteListing('${l.id}')" style="margin-top:4px;width:100%;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,80,80,.8);cursor:pointer">eliminar</button>
             </div>
           </div>`).join('')}
       </div>
@@ -4746,10 +4742,57 @@ function closeMisPub(){
   setTimeout(()=>s.remove(),280);
 }
 
-function editListing(id){
-  closeMisPub();
-  showToast('edición de fotos próximamente',true);
+function openEditListingModal(id){
+  const l=MOCK_MY_LISTINGS.find(x=>x.id===id);
+  if(!l) return;
+  let modal=document.getElementById('edit-listing-modal');
+  if(modal) modal.remove();
+  modal=document.createElement('div');
+  modal.id='edit-listing-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:9995;display:flex;align-items:flex-end;justify-content:center';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML=`
+    <div style="background:#111;border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px 18px 44px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div style="font-size:15px;font-weight:700">editar publicación</div>
+        <button onclick="document.getElementById('edit-listing-modal').remove()" style="background:rgba(255,255,255,.07);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(255,255,255,.5)">×</button>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">precio (USD)</div>
+      <input id="edit-precio" type="number" value="${String(l.price).replace(/[^0-9.]/g,'')}" placeholder="ej. 12000" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box;margin-bottom:14px" onfocus="this.style.borderColor='rgba(255,255,255,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">descripción</div>
+      <textarea id="edit-desc" placeholder="describe tu vehículo..." rows="4" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;resize:none;box-sizing:border-box;margin-bottom:14px;line-height:1.5" onfocus="this.style.borderColor='rgba(255,255,255,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">${l.desc||''}</textarea>
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">fotos</div>
+      <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.12);border-radius:12px;padding:14px;cursor:pointer;margin-bottom:18px;transition:border-color .15s" onmouseover="this.style.borderColor='rgba(230,240,59,.35)'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)'">
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.5" style="width:22px;height:22px;flex-shrink:0"><path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+        <span style="font-size:13px;color:rgba(255,255,255,.4)">reemplazar fotos del vehículo</span>
+        <input type="file" accept="image/*" multiple style="display:none" onchange="handleEditPhotos(this,'${id}')">
+      </label>
+      <button onclick="saveListingEdit('${id}')" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer">guardar cambios</button>
+    </div>`;
+  document.body.appendChild(modal);
 }
+function handleEditPhotos(input, id){
+  if(!input.files?.length) return;
+  showToast(input.files.length+' foto(s) seleccionada(s) — se subirán al guardar',true);
+  window._editPhotosFiles=input.files;
+}
+async function saveListingEdit(id){
+  const precio=document.getElementById('edit-precio')?.value.trim();
+  const desc=document.getElementById('edit-desc')?.value.trim();
+  const l=MOCK_MY_LISTINGS.find(x=>x.id===id);
+  if(l){
+    if(precio) l.price='$'+Number(precio).toLocaleString();
+    if(desc!==undefined) l.desc=desc;
+  }
+  if(_supa && precio){
+    const tabla=isConcesionario()?'listings':'listings';
+    await _supa.from(tabla).update({precio_usd:Number(precio),descripcion:desc||null}).eq('id',id).catch(e=>console.error('[ruedda] saveListingEdit:',e.message));
+  }
+  document.getElementById('edit-listing-modal')?.remove();
+  showToast('publicación actualizada ✓',true);
+  openMisPublicaciones();
+}
+function editListing(id){ openEditListingModal(id); }
 
 function republishListing(id){
   closeMisPub();
@@ -5820,7 +5863,7 @@ function renderDhPubs(){
         <div style="font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
         <div style="font-size:12px;font-weight:700;color:#e6f03b;margin-top:2px">${fmtBid(l.price)}</div>
         <div style="display:flex;gap:5px;margin-top:4px">
-          <button onclick="event.stopPropagation();dhRepublicar(${i})" style="flex:1;background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.2);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:10px;font-weight:700;color:#e6f03b;cursor:pointer">republicar</button>
+          <button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>
           <button onclick="event.stopPropagation();dhEliminar(${i})" style="flex:1;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.18);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,80,80,.8);cursor:pointer">eliminar</button>
         </div>
       </div>
