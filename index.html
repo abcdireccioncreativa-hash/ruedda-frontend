@@ -376,6 +376,12 @@ input[type=number]{-moz-appearance:textfield}
 .cuenta-menu-item svg{width:16px;height:16px;color:var(--muted)}
 .cuenta-menu-item.muted{color:var(--muted)}
 
+/* CARD LOADING INDICATOR */
+@keyframes cardSpin{to{transform:rotate(360deg)}}
+@keyframes cardPulse{0%,100%{opacity:.5}50%{opacity:1}}
+.card-loading-pill{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;pointer-events:none}
+.card-loading-ring{width:22px;height:22px;border:2px solid rgba(255,255,255,0.15);border-top-color:rgba(255,255,255,0.85);border-radius:50%;animation:cardSpin .8s linear infinite;flex-shrink:0}
+.card-loading-text{font-size:10px;font-weight:600;color:rgba(255,255,255,0.45);letter-spacing:.2px;font-family:var(--font);animation:cardPulse 1.8s ease infinite}
 /* SPINNER GUARDAR */
 @keyframes spin{to{transform:rotate(360deg)}}
 .save-spinner{width:20px;height:20px;border:2px solid rgba(0,0,0,0.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
@@ -1043,6 +1049,8 @@ input[type=number]{-moz-appearance:textfield}
         </div>
       </div>
     </div>
+    <!-- LISTADO BTN — solo market -->
+    <span id="mkt-listado-btn" class="section-link" onclick="openMktListado()" style="display:none;margin-left:10px">listado</span>
     <!-- MARKET CONDITION TOGGLE -->
     <div class="mkt-cond-toggle" id="mkt-cond-toggle" role="switch" aria-label="filtrar por condición">
       <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
@@ -2774,6 +2782,7 @@ function showView(name){
     currentSection='subastas';
     const _tog=document.getElementById('mkt-cond-toggle');if(_tog)_tog.className='mkt-cond-toggle';
     const _cl=document.getElementById('section-como-funciona-link');if(_cl)_cl.style.display='inline';
+    const _lb=document.getElementById('mkt-listado-btn');if(_lb)_lb.style.display='none';
     document.getElementById('section-title-text').textContent='subastas';
     document.querySelectorAll('.dropdown-item').forEach((i,idx)=>i.classList.toggle('active',idx===0));
     renderCurrentSection();
@@ -2830,8 +2839,10 @@ function selectSection(s){
   // show/hide market condition toggle
   const tog=document.getElementById('mkt-cond-toggle');
   const cl=document.getElementById('section-como-funciona-link');
+  const lb=document.getElementById('mkt-listado-btn');
   if(tog){tog.className='mkt-cond-toggle'+(s==='market'?' show':'');}
   if(cl){cl.style.display=s==='market'?'none':'inline';}
+  if(lb){lb.style.display=s==='market'?'inline':'none';}
   currentSection=s;
   document.getElementById('section-title-text').textContent=s==='consesionarios'?'concesionarios':s;
   document.getElementById('section-dropdown').classList.remove('open');
@@ -2855,9 +2866,9 @@ const grads=[
 ];
 
 function carPlaceholder(id,size='large'){
-  const g=grads[id%grads.length];
-  if(size==='small')return `<svg fill="none" viewBox="0 0 60 60" stroke="currentColor" stroke-width="1" style="width:52px;height:52px;color:#2a2a2a"><rect x="1" y="16" width="58" height="28" rx="5" fill="#1e1e1e" stroke="#2a2a2a"/><path d="M7 24L13 16L25 16L29 24" stroke="#333" stroke-width="1.5" fill="none"/><path d="M31 24L37 16L47 16L53 24" stroke="#333" stroke-width="1.5" fill="none"/><circle cx="13" cy="42" r="4" fill="#222" stroke="#333" stroke-width="1.5"/><circle cx="47" cy="42" r="4" fill="#222" stroke="#333" stroke-width="1.5"/></svg>`;
-  return `<svg fill="none" viewBox="0 0 100 62" stroke="currentColor" stroke-width="1" style="width:90px;height:56px;color:#2a2a2a"><rect x="1" y="15" width="98" height="36" rx="7" fill="#1c1c1c" stroke="#2a2a2a"/><path d="M10 26L20 14L38 14L46 26" stroke="#333" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M52 26L62 14L78 14L86 26" stroke="#333" stroke-width="1.5" fill="none" stroke-linejoin="round"/><circle cx="21" cy="50" r="7" fill="#222" stroke="#333" stroke-width="1.5"/><circle cx="79" cy="50" r="7" fill="#222" stroke="#333" stroke-width="1.5"/><line x1="1" y1="31" x2="99" y2="31" stroke="#252525" stroke-width="1"/></svg>`;
+  const pill='<div class="card-loading-pill"><div class="card-loading-ring"></div></div>';
+  if(size==='small')return `<svg fill="none" viewBox="0 0 60 60" stroke="currentColor" stroke-width="1" style="width:52px;height:52px;color:#2a2a2a"><rect x="1" y="16" width="58" height="28" rx="5" fill="#1e1e1e" stroke="#2a2a2a"/><path d="M7 24L13 16L25 16L29 24" stroke="#333" stroke-width="1.5" fill="none"/><path d="M31 24L37 16L47 16L53 24" stroke="#333" stroke-width="1.5" fill="none"/><circle cx="13" cy="42" r="4" fill="#222" stroke="#333" stroke-width="1.5"/><circle cx="47" cy="42" r="4" fill="#222" stroke="#333" stroke-width="1.5"/></svg>${pill}`;
+  return `<svg fill="none" viewBox="0 0 100 62" stroke="currentColor" stroke-width="1" style="width:90px;height:56px;color:#2a2a2a"><rect x="1" y="15" width="98" height="36" rx="7" fill="#1c1c1c" stroke="#2a2a2a"/><path d="M10 26L20 14L38 14L46 26" stroke="#333" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M52 26L62 14L78 14L86 26" stroke="#333" stroke-width="1.5" fill="none" stroke-linejoin="round"/><circle cx="21" cy="50" r="7" fill="#222" stroke="#333" stroke-width="1.5"/><circle cx="79" cy="50" r="7" fill="#222" stroke="#333" stroke-width="1.5"/><line x1="1" y1="31" x2="99" y2="31" stroke="#252525" stroke-width="1"/></svg>${pill}`;
 }
 
 function renderCards(filter){
@@ -3289,6 +3300,71 @@ function setMFilter(key,value,label){
   document.getElementById('mfd-'+key).classList.remove('open');
   btn.classList.remove('open');
   renderMarket();
+}
+// ── MARKET LISTADO GRID ──
+function openMktListado(){
+  let ov=document.getElementById('mkt-listado-overlay');
+  if(ov) ov.remove();
+  ov=document.createElement('div');
+  ov.id='mkt-listado-overlay';
+  ov.style.cssText='position:fixed;inset:0;background:#0a0a0a;z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94)';
+  ov.innerHTML=`
+    <div style="position:sticky;top:0;z-index:10;background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);padding:14px 16px;display:flex;align-items:center;gap:14px">
+      <button onclick="closeMktListado()" style="background:none;border:none;padding:4px;cursor:pointer;display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.6);font-family:var(--font);font-size:14px;font-weight:500;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.6)'">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="m15 18-6-6 6-6"/></svg>
+        volver
+      </button>
+      <div style="font-size:15px;font-weight:700;color:#fff">listado de vehículos</div>
+    </div>
+    <div id="mkt-listado-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 12px 100px"></div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>{ov.style.opacity='1';ov.style.transform='translateY(0)';});
+  _renderMktListadoGrid();
+}
+function closeMktListado(){
+  const ov=document.getElementById('mkt-listado-overlay');
+  if(!ov) return;
+  ov.style.opacity='0';ov.style.transform='translateY(18px)';
+  setTimeout(()=>ov.remove(),260);
+}
+function _renderMktListadoGrid(){
+  const grid=document.getElementById('mkt-listado-grid');
+  if(!grid) return;
+  const data=MARKET_LISTINGS.length?MARKET_LISTINGS:[
+    {id:101,title:'2019 Chevrolet Camaro SS',location:'Caracas',km:61300,price:38000,year:2019,category:'deportivo',condicion:'usado'},
+    {id:102,title:'2015 Ford Mustang GT',location:'Maracay',km:112000,price:26500,year:2015,category:'deportivo',condicion:'usado'},
+    {id:103,title:'2021 Toyota Hilux',location:'Valencia',km:44000,price:55000,year:2021,category:'pickup',condicion:'nuevo'},
+  ];
+  grid.innerHTML=data.map((l,idx)=>{
+    const esNuevo=l.condicion==='nuevo'||l.condicion==='0km';
+    const badge=esNuevo?'Nuevo':'Usado';
+    const badgeColor=esNuevo?'rgba(100,200,255,.9)':'rgba(255,255,255,.75)';
+    const isFav=watchlist.has(l.id)||watchlist.has(String(l.id));
+    return `<div onclick="closeMktListado();setTimeout(()=>openMarketDetail('${l.id}'),260)" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .25s ease both;animation-delay:${idx*30}ms">
+      <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(${grads[l.id%grads.length]});position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        ${carPlaceholder(l.id,'small')}
+        <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
+        <button onclick="event.stopPropagation();toggleWatchlist('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
+          <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'rgba(255,255,255,.8)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
+        </button>
+      </div>
+      <div style="padding:10px 11px 12px;flex:1">
+        <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35);margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px">${l.category||'—'}</div>
+        <div style="font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px">${l.title}</div>
+        <div style="font-size:13px;font-weight:800;color:#e6f03b">${fmtBid(l.price)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleWatchlist(id,btn){
+  const _id=isNaN(id)?id:Number(id);
+  if(watchlist.has(_id)||watchlist.has(String(_id))){
+    watchlist.delete(_id);watchlist.delete(String(_id));
+    if(btn){btn.querySelector('svg').setAttribute('fill','none');btn.querySelector('svg').setAttribute('stroke','rgba(255,255,255,.8)');}
+  } else {
+    watchlist.add(_id);
+    if(btn){btn.querySelector('svg').setAttribute('fill','#e6f03b');btn.querySelector('svg').setAttribute('stroke','#e6f03b');}
+  }
 }
 // ── MARKET CONDITION FILTER ──
 let mktCond='usados';
