@@ -3264,10 +3264,11 @@ function openMktListado(){
   if(ov){ov.style.opacity='1';ov.style.transform='translateY(0)';return;}
   ov=document.createElement('div');
   ov.id='mkt-listado-overlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(18,18,20,0.97);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94);border-radius:20px 20px 0 0';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(12,12,14,0.55);backdrop-filter:blur(48px) saturate(200%);-webkit-backdrop-filter:blur(48px) saturate(200%);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94);border-radius:20px 20px 0 0';
+  document.body.style.overflow='hidden';
   ov.innerHTML=`
     <!-- HEADER STICKY -->
-    <div style="position:sticky;top:0;z-index:10;background:rgba(18,18,20,0.6);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-bottom:1px solid rgba(255,255,255,0.06);padding:14px 16px 0">
+    <div style="position:sticky;top:0;z-index:10;background:rgba(10,10,12,0.55);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border-bottom:1px solid rgba(255,255,255,0.05);padding:14px 16px 0">
       <div style="display:flex;align-items:center;margin-bottom:14px;position:relative">
         <button onclick="closeMktListado()" style="background:none;border:none;padding:4px;cursor:pointer;color:rgba(255,255,255,.5);font-family:var(--font);font-size:14px;font-weight:500;display:flex;align-items:center;gap:5px;transition:color .15s;flex-shrink:0" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:17px;height:17px"><path d="m15 18-6-6 6-6"/></svg>
@@ -3322,6 +3323,7 @@ function closeMktListado(){
   const ov=document.getElementById('mkt-listado-overlay');
   if(!ov) return;
   ov.style.opacity='0';ov.style.transform='translateY(18px)';
+  document.body.style.overflow='';
   setTimeout(()=>ov.remove(),260);
 }
 function _renderMktListadoGrid(){
