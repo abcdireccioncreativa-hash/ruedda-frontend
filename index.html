@@ -3242,19 +3242,59 @@ function openMktListado(){
   if(ov){ov.style.opacity='1';ov.style.transform='translateY(0)';return;}
   ov=document.createElement('div');
   ov.id='mkt-listado-overlay';
-  ov.style.cssText='position:fixed;inset:0;background:#0a0a0a;z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94)';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(18,18,20,0.97);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94)';
   ov.innerHTML=`
-    <div style="position:sticky;top:0;z-index:10;background:rgba(10,10,10,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,0.06);padding:14px 16px;display:flex;align-items:center;gap:14px">
-      <button onclick="closeMktListado()" style="background:none;border:none;padding:4px;cursor:pointer;display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.6);font-family:var(--font);font-size:14px;font-weight:500;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.6)'">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="m15 18-6-6 6-6"/></svg>
-        volver
-      </button>
-      <div style="font-size:15px;font-weight:700;color:#fff">listado de vehículos</div>
+    <!-- HEADER STICKY -->
+    <div style="position:sticky;top:0;z-index:10;background:rgba(18,18,20,0.6);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-bottom:1px solid rgba(255,255,255,0.06);padding:14px 16px 0">
+      <div style="display:flex;align-items:center;margin-bottom:14px;position:relative">
+        <button onclick="closeMktListado()" style="background:none;border:none;padding:4px;cursor:pointer;color:rgba(255,255,255,.5);font-family:var(--font);font-size:14px;font-weight:500;display:flex;align-items:center;gap:5px;transition:color .15s;flex-shrink:0" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:17px;height:17px"><path d="m15 18-6-6 6-6"/></svg>
+          volver
+        </button>
+        <div style="position:absolute;left:0;right:0;text-align:center;font-size:16px;font-weight:300;letter-spacing:-.2px;pointer-events:none">listado de <span style="color:#e6f03b;font-weight:800">vehículos</span></div>
+      </div>
+      <!-- SEARCH -->
+      <div style="display:flex;align-items:center;gap:10px;background:#000;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:11px 14px;margin-bottom:12px;transition:border-color .2s" onclick="this.querySelector('input').focus()" style="cursor:text">
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.35)" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="listado-search" type="text" placeholder="buscar marca, modelo, ciudad…" oninput="_filterListadoGrid(this.value)" style="flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:14px;color:#fff;caret-color:#e6f03b" onfocus="this.parentElement.style.borderColor='rgba(255,255,255,.2)'" onblur="this.parentElement.style.borderColor='rgba(255,255,255,.08)'">
+        <button id="listado-clear" onclick="document.getElementById('listado-search').value='';_filterListadoGrid('')" style="display:none;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);font-size:16px;padding:0;line-height:1;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.3)'">×</button>
+      </div>
     </div>
-    <div id="mkt-listado-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 12px 100px"></div>`;
+    <div id="mkt-listado-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px 100px"></div>`;
   document.body.appendChild(ov);
   requestAnimationFrame(()=>{ov.style.opacity='1';ov.style.transform='translateY(0)';});
   _renderMktListadoGrid();
+}
+function _filterListadoGrid(q){
+  const clear=document.getElementById('listado-clear');
+  if(clear) clear.style.display=q?'block':'none';
+  const data=q.trim()
+    ? MARKET_LISTINGS.filter(l=>(l.title+' '+(l.location||'')+' '+(l.category||'')).toLowerCase().includes(q.toLowerCase()))
+    : MARKET_LISTINGS;
+  const grid=document.getElementById('mkt-listado-grid');
+  if(!grid) return;
+  if(!data.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:rgba(255,255,255,.3);font-size:14px">sin resultados</div>'; return; }
+  const grads2=typeof grads!=='undefined'?grads:['135deg,#1a1a2e,#16213e'];
+  grid.innerHTML=data.map((l,idx)=>{
+    const esNuevo=l.condicion==='nuevo'||l.condicion==='0km';
+    const badge=esNuevo?'Nuevo':'Usado';
+    const badgeColor=esNuevo?'rgba(100,200,255,.9)':'rgba(255,255,255,.75)';
+    const isFav=watchlist.has(l.id)||watchlist.has(String(l.id));
+    return `<div onclick="openMarketDetail('${l.id}','listado')" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .22s ease both;animation-delay:${idx*25}ms">
+      <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(${grads2[l.id%grads2.length]});position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
+        ${typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):''}
+        <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
+        <button onclick="event.stopPropagation();toggleWatchlist('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
+          <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'rgba(255,255,255,.8)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
+        </button>
+      </div>
+      <div style="padding:10px 11px 12px;flex:1">
+        <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35);margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px">${l.category||'—'}</div>
+        <div style="font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px">${l.title}</div>
+        <div style="font-size:13px;font-weight:800;color:#e6f03b">${typeof fmtBid==='function'?fmtBid(l.price):('$'+l.price)}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 function closeMktListado(){
   const ov=document.getElementById('mkt-listado-overlay');
@@ -3263,6 +3303,8 @@ function closeMktListado(){
   setTimeout(()=>ov.remove(),260);
 }
 function _renderMktListadoGrid(){
+  _filterListadoGrid('');
+  return;
   const grid=document.getElementById('mkt-listado-grid');
   if(!grid) return;
   const data=MARKET_LISTINGS;
