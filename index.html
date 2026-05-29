@@ -4743,8 +4743,9 @@ function closeMisPub(){
 }
 
 function openEditListingModal(id){
-  const l=MOCK_MY_LISTINGS.find(x=>x.id===id);
-  if(!l) return;
+  const _idStr=String(id);
+  const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===_idStr)||DEALER_LISTINGS_OWN.find(x=>String(x.id)===_idStr);
+  if(!l){ console.warn('[ruedda] openEditListingModal: id no encontrado',id); showToast('publicación no encontrada'); return; }
   let modal=document.getElementById('edit-listing-modal');
   if(modal) modal.remove();
   modal=document.createElement('div');
@@ -4777,20 +4778,23 @@ function handleEditPhotos(input, id){
   window._editPhotosFiles=input.files;
 }
 async function saveListingEdit(id){
+  const _idStr=String(id);
   const precio=document.getElementById('edit-precio')?.value.trim();
   const desc=document.getElementById('edit-desc')?.value.trim();
-  const l=MOCK_MY_LISTINGS.find(x=>x.id===id);
-  if(l){
-    if(precio) l.price='$'+Number(precio).toLocaleString();
-    if(desc!==undefined) l.desc=desc;
-  }
+  // actualizar mock local — buscar en ambos arrays
+  const lMock=MOCK_MY_LISTINGS.find(x=>String(x.id)===_idStr);
+  const lDealer=DEALER_LISTINGS_OWN.find(x=>String(x.id)===_idStr);
+  if(lMock){ if(precio) lMock.price='$'+Number(precio).toLocaleString(); if(desc!==undefined) lMock.desc=desc; }
+  if(lDealer){ if(precio) lDealer.price=Number(precio); if(desc!==undefined) lDealer.desc=desc; }
+  // actualizar en Supabase
   if(_supa && precio){
-    const tabla=isConcesionario()?'listings':'listings';
-    await _supa.from(tabla).update({precio_usd:Number(precio),descripcion:desc||null}).eq('id',id).catch(e=>console.error('[ruedda] saveListingEdit:',e.message));
+    await _supa.from('listings').update({precio_usd:Number(precio),descripcion:desc||null}).eq('id',_idStr).catch(e=>console.error('[ruedda] saveListingEdit:',e.message));
   }
   document.getElementById('edit-listing-modal')?.remove();
   showToast('publicación actualizada ✓',true);
-  openMisPublicaciones();
+  // refrescar la vista correcta
+  if(lDealer){ renderDhPubs(); }
+  else { openMisPublicaciones(); }
 }
 function editListing(id){ openEditListingModal(id); }
 
