@@ -164,7 +164,7 @@ input[type=number]{-moz-appearance:textfield}
 .detail-back svg{width:20px;height:20px;flex-shrink:0}
 .detail-back:hover{opacity:.7}
 .photo-gallery{position:relative;width:100%;aspect-ratio:16/10;background:#111;overflow:hidden}
-.photo-gallery-inner{display:flex;height:100%;transition:transform .32s cubic-bezier(.25,.46,.45,.94)}
+.photo-gallery-inner{display:flex;height:100%;transition:transform .22s cubic-bezier(.4,0,.2,1);will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}
 .photo-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center}
 .photo-counter{position:absolute;bottom:12px;right:12px;background:var(--badge);backdrop-filter:blur(8px);padding:5px 12px;border-radius:100px;font-size:12px;font-weight:500}
 .gallery-dots{display:flex;justify-content:center;gap:5px;padding:10px 0 4px}
@@ -3304,7 +3304,7 @@ function _filterListadoGrid(q){
     const isFav=watchlist.has(l.id)||watchlist.has(String(l.id));
     return `<div onclick="openMarketDetail('${l.id}','listado')" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .22s ease both;animation-delay:${idx*25}ms">
       <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(${grads2[l.id%grads2.length]});position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
-        ${typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):''}
+        ${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" loading="lazy" onload="const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onerror="this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'')}
         <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
         <button onclick="event.stopPropagation();toggleWatchlist('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
           <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'rgba(255,255,255,.8)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
@@ -3407,7 +3407,7 @@ function renderMarket(){
     el.style.animationDelay=(idx*40)+'ms';
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.style.display='none'">`:carPlaceholder(l.id,'small')}</div>
+      <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onload="const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}</div>
       <div class="market-card-body">
         <div class="market-card-title">${l.title}</div>
         <div class="market-card-meta">${l.location.toLowerCase()}</div>
@@ -3433,7 +3433,7 @@ function openMarketDetail(id, origin){
     s.className='photo-slide';
     s.style.background='linear-gradient('+grads[l.id%grads.length]+')';
     if(hasPhotos){
-      s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.style.display='none'">`;
+      s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onload="const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
     } else {
       s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'</div>';
     }
@@ -3499,17 +3499,41 @@ function openMarketDetail(id, origin){
 let mktPhotoIdx=0,currentMarketListing=null;
 function goToMktSlide(i){
   if(!currentMarketListing)return;
-  const slides=currentMarketListing.photos||3;
+  const slides=(currentMarketListing.photoUrls?.length)||currentMarketListing.photos||1;
   mktPhotoIdx=Math.max(0,Math.min(i,slides-1));
-  document.getElementById('mkt-gallery-inner').style.transform='translateX(-'+mktPhotoIdx*100+'%)';
+  const inner=document.getElementById('mkt-gallery-inner');
+  if(inner) inner.style.transform='translateX(-'+mktPhotoIdx*100+'%)';
   document.querySelectorAll('#mkt-gallery-dots .gallery-dot').forEach((d,idx)=>d.classList.toggle('active',idx===mktPhotoIdx));
-  document.getElementById('mkt-photo-counter').textContent=(mktPhotoIdx+1)+' / '+slides;
+  const ctr=document.getElementById('mkt-photo-counter');
+  if(ctr) ctr.textContent=(mktPhotoIdx+1)+' / '+slides;
 }
 function setupMktSwipe(){
   const g=document.getElementById('mkt-gallery');
-  let sx=0;
-  g.ontouchstart=e=>{sx=e.touches[0].clientX};
-  g.ontouchend=e=>{const dx=e.changedTouches[0].clientX-sx;if(dx<-45)goToMktSlide(mktPhotoIdx+1);else if(dx>45)goToMktSlide(mktPhotoIdx-1)};
+  const inner=document.getElementById('mkt-gallery-inner');
+  let sx=0,dragging=false,startT=0;
+  g.ontouchstart=e=>{
+    sx=e.touches[0].clientX;startT=Date.now();dragging=true;
+    if(inner) inner.style.transition='none';
+  };
+  g.ontouchmove=e=>{
+    if(!dragging||!inner)return;
+    const dx=e.touches[0].clientX-sx;
+    const slides=(currentMarketListing?.photoUrls?.length)||currentMarketListing?.photos||1;
+    const base=-mktPhotoIdx*100;
+    const pct=base+(dx/g.offsetWidth*100);
+    inner.style.transform='translateX('+pct+'%)';
+  };
+  g.ontouchend=e=>{
+    if(!dragging)return;dragging=false;
+    if(inner) inner.style.transition='transform .22s cubic-bezier(.4,0,.2,1)';
+    const dx=e.changedTouches[0].clientX-sx;
+    const dt=Date.now()-startT;
+    const threshold=dt<200?20:45;
+    if(dx<-threshold)goToMktSlide(mktPhotoIdx+1);
+    else if(dx>threshold)goToMktSlide(mktPhotoIdx-1);
+    else goToMktSlide(mktPhotoIdx);
+  };
+  g.ontouchcancel=()=>{dragging=false;if(inner){inner.style.transition='transform .22s cubic-bezier(.4,0,.2,1)';}goToMktSlide(mktPhotoIdx);};
 }
 function contactSeller(){
   if(!currentMarketListing)return;
