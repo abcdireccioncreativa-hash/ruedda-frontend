@@ -4717,11 +4717,7 @@ function initCardSwipe(el, total){
   wrap.addEventListener('click',e=>{ if(moved){moved=false;e.stopPropagation();return;} if(e.offsetX>wrap.offsetWidth*.5)go(idx+1);else go(idx-1); e.stopPropagation(); });
 }
 
-const MOCK_MY_LISTINGS = [
-  {id:'pub1', title:'2019 Toyota Corolla XLI', price:'$12.000', km:'61.300', status:'activa', daysLeft:22, fotos:5, type:'market'},
-  {id:'pub2', title:'2015 Honda Civic EX', price:'$9.500', km:'84.200', status:'activa', daysLeft:8, fotos:12, type:'market'},
-  {id:'pub3', title:'2012 Chevrolet Aveo', price:'$5.800', km:'102.000', status:'vencida', daysLeft:0, fotos:7, type:'market'},
-];
+const MOCK_MY_LISTINGS = []; // se carga desde Supabase en _loadMyListings()
 
 function openMisPublicaciones(){
   let sheet=document.getElementById('mis-pub-sheet');
@@ -4739,28 +4735,49 @@ function openMisPublicaciones(){
         <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px">mis publicaciones</div>
         <div style="width:32px"></div>
       </div>
-      <div style="padding:0 12px 36px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        ${MOCK_MY_LISTINGS.map(l=>`
-          <div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
-            <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative">
-              <svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>
-              <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${l.status==='activa'?'rgba(100,220,100,.9)':l.status==='en revisión'?'rgba(255,170,0,.9)':'rgba(255,80,80,.8)'}">${l.status==='activa'?'activa':l.status==='en revisión'?'revisión':'vencida'}</span>
-            </div>
-            <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
-              <div style="font-size:11px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
-              <div style="font-size:12px;font-weight:800;color:#e6f03b">${l.price}</div>
-              <div style="display:flex;gap:5px;margin-top:4px">
-                <button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>
-                <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,80,80,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
-              </div>
-            </div>
-          </div>`).join('')}
+      <div id="mis-pub-grid" style="padding:0 12px 36px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:20px"><div class="save-spinner" style="border-top-color:rgba(255,255,255,.6)"></div></div>
       </div>
     </div>`;
   requestAnimationFrame(()=>{
     sheet.style.opacity='1';
     document.getElementById('mis-pub-inner').style.transform='translateY(0)';
   });
+  _loadMyListings();
+}
+
+async function _loadMyListings(){
+  const grid=document.getElementById('mis-pub-grid');
+  if(!grid) return;
+  if(!_supa||!USER_STATE.id){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
+  try{
+    const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado').eq('user_id',USER_STATE.id).order('created_at',{ascending:false});
+    if(error){ console.error('[ruedda] _loadMyListings:',error.message); grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,80,80,.5);font-size:13px">error al cargar publicaciones</div>'; return; }
+    if(!data?.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
+    MOCK_MY_LISTINGS.splice(0,MOCK_MY_LISTINGS.length,...data.map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.estado,daysLeft:0,fotos:0,type:'market',desc:''})));
+    _renderMisPubGrid();
+  }catch(e){ console.error('[ruedda] _loadMyListings catch:',String(e?.message||e)); }
+}
+
+function _renderMisPubGrid(){
+  const grid=document.getElementById('mis-pub-grid');
+  if(!grid) return;
+  if(!MOCK_MY_LISTINGS.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
+  grid.innerHTML=MOCK_MY_LISTINGS.map(l=>`
+    <div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
+      <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative">
+        <svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>
+        <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${l.status==='activa'?'rgba(100,220,100,.9)':l.status==='en revisión'||l.status==='revision'?'rgba(255,170,0,.9)':'rgba(255,80,80,.8)'}">${l.status==='activa'?'activa':l.status==='en revisión'||l.status==='revision'?'revisión':'vencida'}</span>
+      </div>
+      <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
+        <div style="font-size:11px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
+        <div style="font-size:12px;font-weight:800;color:#e6f03b">${l.price}</div>
+        <div style="display:flex;gap:5px;margin-top:4px">
+          <button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>
+          <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,80,80,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
+        </div>
+      </div>
+    </div>`).join('');
 }
 
 function closeMisPub(){
@@ -4853,17 +4870,23 @@ function confirmDeleteListing(id){
     </div>`;
   document.body.appendChild(overlay);
 }
-function executeDeleteListing(id){
+async function executeDeleteListing(id){
   const _idStr=String(id);
-  document.getElementById('confirm-delete-overlay')?.remove();
-  // eliminar de ambos arrays
+  const overlay=document.getElementById('confirm-delete-overlay');
+  // loading state en el overlay
+  const card=overlay?.querySelector('div');
+  if(card) card.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 24px"><div class="save-spinner" style="width:28px;height:28px;border-width:2.5px;border-top-color:rgba(255,80,80,.8)"></div><div style="font-size:14px;font-weight:600;color:rgba(255,255,255,.5)">eliminando...</div></div>`;
   const mi=MOCK_MY_LISTINGS.findIndex(x=>String(x.id)===_idStr);
-  if(mi>-1) MOCK_MY_LISTINGS.splice(mi,1);
   const di=DEALER_LISTINGS_OWN.findIndex(x=>String(x.id)===_idStr);
+  if(_supa){
+    const{error}=await _supa.from('listings').update({estado:'eliminada'}).eq('id',_idStr);
+    if(error) console.error('[ruedda] delete:',error.message);
+  }
+  if(mi>-1) MOCK_MY_LISTINGS.splice(mi,1);
   if(di>-1) DEALER_LISTINGS_OWN.splice(di,1);
-  if(_supa) _supa.from('listings').update({estado:'eliminada'}).eq('id',_idStr).catch(e=>console.error('[ruedda] delete:',e.message));
-  showToast('publicación eliminada');
-  if(di>-1){ renderDhPubs(); } else { openMisPublicaciones(); }
+  // feedback final
+  if(card) card.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 24px;text-align:center"><div style="font-size:28px">🗑️</div><div style="font-size:15px;font-weight:700">publicación eliminada</div><button onclick="document.getElementById('confirm-delete-overlay').remove()" style="margin-top:4px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 22px;font-family:var(--font);font-size:13px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer">volver</button></div>`;
+  if(di>-1){ renderDhPubs(); } else { _renderMisPubGrid(); }
 }
 
 function republishListing(id){
@@ -5911,14 +5934,18 @@ function startDealerListing(){
 }
 
 // mock dealer listings store
-const DEALER_LISTINGS_OWN = [
-  {id:201, title:'2021 Toyota Hilux GR Sport', price:55000, km:44000, status:'activa'},
-  {id:202, title:'2019 Chevrolet Camaro SS', price:38000, km:61300, status:'activa'},
-];
+const DEALER_LISTINGS_OWN = []; // se carga desde Supabase en _loadDealerListings()
 
-function renderDhPubs(){
+async function renderDhPubs(){
   const el = document.getElementById('dh-pubs-list');
   if(!el) return;
+  if(_supa && USER_STATE.concesionarioId){
+    el.innerHTML='<div style="grid-column:1/-1;display:flex;justify-content:center;padding:30px"><div class="save-spinner" style="border-top-color:rgba(255,255,255,.6)"></div></div>';
+    try{
+      const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado').eq('concesionario_id',USER_STATE.concesionarioId).order('created_at',{ascending:false});
+      if(!error&&data?.length) DEALER_LISTINGS_OWN.splice(0,DEALER_LISTINGS_OWN.length,...data.map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:Number(l.precio_usd||0),km:'—',status:l.estado})));
+    }catch(e){ console.error('[ruedda] renderDhPubs:',String(e?.message||e)); }
+  }
   if(!DEALER_LISTINGS_OWN.length){
     el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px">sin publicaciones aún</div>';
     return;
