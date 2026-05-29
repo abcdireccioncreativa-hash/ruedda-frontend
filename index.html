@@ -376,6 +376,13 @@ input[type=number]{-moz-appearance:textfield}
 .cuenta-menu-item svg{width:16px;height:16px;color:var(--muted)}
 .cuenta-menu-item.muted{color:var(--muted)}
 
+/* MARKET CONDITION TOGGLE */
+.mkt-cond-toggle{display:none;position:relative;background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:3px;width:148px;flex-shrink:0}
+.mkt-cond-track{display:grid;grid-template-columns:1fr 1fr;position:relative;z-index:1}
+.mkt-cond-tab{font-size:12px;font-weight:700;padding:7px 10px;text-align:center;border-radius:100px;cursor:pointer;transition:color .25s;color:rgba(255,255,255,0.35);letter-spacing:-.1px;position:relative;z-index:2;user-select:none}
+.mkt-cond-tab.active{color:#000}
+.mkt-cond-thumb{position:absolute;top:0;left:0;width:50%;height:100%;background:#fff;border-radius:100px;transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:1}
+.mkt-cond-toggle.show{display:flex}
 /* CUENTA NEO-FINTECH */
 .cnt-menu-item{display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,0.05);position:relative}
 .cnt-menu-item:active{background:rgba(255,255,255,0.04)}
@@ -1033,7 +1040,15 @@ input[type=number]{-moz-appearance:textfield}
         </div>
       </div>
     </div>
-    <span class="section-link" onclick="showView('como-funciona')">como funciona</span>
+    <!-- MARKET CONDITION TOGGLE -->
+    <div class="mkt-cond-toggle" id="mkt-cond-toggle" role="switch" aria-label="filtrar por condición">
+      <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
+      <div class="mkt-cond-track">
+        <div class="mkt-cond-tab active" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
+        <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')">nuevos</div>
+      </div>
+    </div>
+    <span class="section-link" id="section-como-funciona-link" onclick="showView('como-funciona')">como funciona</span>
   </div>
 
   <!-- AUCTIONS SECTION -->
@@ -2802,6 +2817,11 @@ function toggleDropdown(){
 }
 
 function selectSection(s){
+  // show/hide market condition toggle
+  const tog=document.getElementById('mkt-cond-toggle');
+  const cl=document.getElementById('section-como-funciona-link');
+  if(tog){tog.className='mkt-cond-toggle'+(s==='market'?' show':'');}
+  if(cl){cl.style.display=s==='market'?'none':'inline';}
   currentSection=s;
   document.getElementById('section-title-text').textContent=s==='consesionarios'?'concesionarios':s;
   document.getElementById('section-dropdown').classList.remove('open');
@@ -3260,8 +3280,30 @@ function setMFilter(key,value,label){
   btn.classList.remove('open');
   renderMarket();
 }
+// ── MARKET CONDITION FILTER ──
+let mktCond='usados';
+function setMktCond(cond){
+  if(mktCond===cond) return;
+  mktCond=cond;
+  const thumb=document.getElementById('mkt-cond-thumb');
+  const tabU=document.getElementById('mkt-tab-usados');
+  const tabN=document.getElementById('mkt-tab-nuevos');
+  if(cond==='nuevos'){
+    if(thumb) thumb.style.transform='translateX(100%)';
+    if(tabU){tabU.classList.remove('active');}
+    if(tabN){tabN.classList.add('active');}
+  } else {
+    if(thumb) thumb.style.transform='translateX(0)';
+    if(tabU){tabU.classList.add('active');}
+    if(tabN){tabN.classList.remove('active');}
+  }
+  renderMarket();
+}
 function renderMarket(){
   let data=[...MARKET_LISTINGS];
+  // filtro condicion (usados/nuevos) — campo condicion en listings
+  if(mktCond==='usados') data=data.filter(l=>!l.condicion||l.condicion!=='nuevo'&&l.condicion!=='0km');
+  else data=data.filter(l=>l.condicion==='nuevo'||l.condicion==='0km');
   if(mFilters.cat&&mFilters.cat!=='todos'){
     if(mFilters.cat==='comercial')data=data.filter(l=>['sedán','camioneta','pickup','comercial'].includes(l.category));
     else data=data.filter(l=>l.category===mFilters.cat);
