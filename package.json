@@ -1,0 +1,12 @@
+{
+  "name": "ruedda-frontend",
+  "version": "1.0.0",
+  "description": "Ruedda — marketplace automotriz venezolano con subastas en tiempo real",
+  "main": "index.html",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

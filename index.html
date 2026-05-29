@@ -3119,38 +3119,27 @@ async function renderPendingRefs(){
 }
 
 async function confirmRefSupa(refId, userId, linkedId, linkedTabla){
-  if(!_supa) return;
-  const{data:refRow}=await _supa.from('payment_refs').select('tipo').eq('id',refId).maybeSingle();
-  await _supa.from('payment_refs').update({status:'confirmado'}).eq('id',refId);
-  if(refRow?.tipo==='vitrina'){
-    const planExp=new Date(Date.now()+30*86400000).toISOString();
-    const{error:ve}=await _supa.from('concesionarios').update({activo:true,plan_expiry:planExp}).eq('user_id',userId);
-    if(ve) console.error('[ruedda] activar vitrina:',ve?.message);
-    if(userId) await (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'ganador',titulo:'\u00a1vitrina activada!',body:'Tu vitrina en Ruedda est\u00e1 activa. Ya puedes publicar tu inventario.',icon:'lime'}).catch(()=>{});
-    showToast('vitrina activada \u2713',true);
-  } else {
-    if(linkedId && linkedId!=='null' && linkedId!==''){
-      const t=linkedTabla||'auctions';
-      await _supa.from(t).update({estado:'revision'}).eq('id',linkedId).catch(e=>console.error('[ruedda] confirmRef update '+t+':',e));
-    }
-    if(userId) await (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'ganador',titulo:'\u00a1pago confirmado!',body:'Tu pago fue verificado. Tu publicaci\u00f3n est\u00e1 en revisi\u00f3n y ser\u00e1 aprobada pronto.',icon:'lime'}).catch(()=>{});
-    showToast('pago confirmado \u2713',true);
+  try{
+    await _apiPost('/api/verify-payment',{ref_id:refId,action:'confirmar'});
+    showToast('pago confirmado ✓',true);
+  }catch(e){
+    console.error('[ruedda confirmRefSupa]',e.message);
+    showToast('error al confirmar: '+e.message);
+    return;
   }
   renderPendingRefs();
   setTimeout(()=>renderModQueue('particular'),500);
 }
 
 async function rejectRefSupa(refId, userId, linkedId, linkedTabla){
-  if(!_supa) return;
-  await _supa.from('payment_refs').update({status:'rechazado'}).eq('id',refId);
-  if(linkedId && linkedId!=='null' && linkedId!==''){
-    const t=linkedTabla||'auctions';
-    await _supa.from(t).update({estado:'rechazada'}).eq('id',linkedId).catch(e=>console.error('[ruedda] rejectRef update '+t+':',e));
+  try{
+    await _apiPost('/api/verify-payment',{ref_id:refId,action:'rechazar'});
+    showToast('referencia rechazada');
+  }catch(e){
+    console.error('[ruedda rejectRefSupa]',e.message);
+    showToast('error al rechazar: '+e.message);
+    return;
   }
-  if(userId){
-    await (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'system',titulo:'pago rechazado',body:'Tu referencia de pago no pudo ser verificada. Cont\u00e1ctanos por soporte.',icon:''}).catch(()=>{});
-  }
-  showToast('referencia rechazada');
   renderPendingRefs();
 }
 
@@ -3251,6 +3240,23 @@ function setMFilter(key,value,label){
   document.getElementById('mfd-'+key).classList.remove('open');
   btn.classList.remove('open');
   renderMarket();
+}
+// ── API HELPER ──
+async function _apiPost(endpoint, body){
+  let token='';
+  try{ const{data:{session}}=await _supa.auth.getSession(); token=session?.access_token||''; }catch(_){}
+  const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)});
+  const json=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(json.error||'error '+r.status);
+  return json;
+}
+async function _apiGet(endpoint){
+  let token='';
+  try{ const{data:{session}}=await _supa.auth.getSession(); token=session?.access_token||''; }catch(_){}
+  const r=await fetch(endpoint,{headers:{'Authorization':'Bearer '+token}});
+  const json=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(json.error||'error '+r.status);
+  return json;
 }
 // ── MARKET LISTADO GRID ──
 function openMktListado(){
@@ -3830,16 +3836,13 @@ function confirmBidCheck(){
   document.body.appendChild(overlay);
 }
 
-function confirmBid(){
-  if(isGuest()){
-    closeModal('bid-modal');
-    triggerGuestBlock('oferta');
-    return;
-  }
+async function confirmBid(){
+  if(isGuest()){closeModal('bid-modal');triggerGuestBlock('oferta');return;}
   if(!currentAuction)return;
   const val=parseFloat(document.getElementById('bid-input-field').value);
   const min=currentAuction.currentBid+500;
-  if(!val||val<min){showToast('mínimo: '+fmtBid(min));return}
+  if(!val||val<min){showToast('mínimo: '+fmtBid(min));return;}
+  // optimistic UI
   currentAuction.currentBid=val;currentAuction.bidCount++;
   currentAuction.bids.unshift({user:'tú ★',time:'ahora mismo',amount:val,top:true});
   currentAuction.bids.forEach((b,i)=>b.top=i===0);
@@ -3848,6 +3851,19 @@ function confirmBid(){
   showToast('oferta de '+fmtBid(val)+' registrada',true);
   NOTIFICATIONS.unshift({id:Date.now(),type:'offer',title:'Oferta registrada',body:'Tu oferta de '+fmtBid(val)+' en '+currentAuction.title+' fue registrada',time:'ahora mismo',read:false,icon:'lime'});
   document.getElementById('notif-dot').style.display='block';
+  // persistir en servidor
+  try{
+    const res=await _apiPost('/api/place-bid',{auction_id:currentAuction.id,monto:val});
+    if(res.current_bid) currentAuction.currentBid=res.current_bid;
+  }catch(e){
+    console.error('[ruedda confirmBid]',e.message);
+    if(e.message==='puja superada — intenta de nuevo'||e.message?.includes('retry')){
+      showToast('alguien más pujó — recarga la subasta');
+      currentAuction.currentBid-=val; // revertir optimistic
+    } else {
+      console.warn('[ruedda confirmBid] no crítico:',e.message);
+    }
+  }
 }
 
 // ===================== NOTIFICATIONS =====================
@@ -5705,14 +5721,15 @@ function openModReview(id){
 }
 async function modApprove(id){
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
-  if(!_supa){showToast('publicación aprobada ✓ (demo)',true);return;}
   const item=(window._modQueueData||[]).find(x=>x.id===id);
-  const tabla=item?._table||'auctions';
-  const{error}=await _supa.from(tabla).update({estado:'activa'}).eq('id',id);
-  if(error){showToast('error al aprobar: '+error.message);console.error('[ruedda modApprove]',error);return;}
-  showToast('publicación aprobada ✓',true);
-  if(item?.user_id){
-    _supa.from('notifications').insert({user_id:item.user_id,tipo:'ganador',titulo:'¡publicación aprobada!',body:`Tu ${item.marca||''} ${item.modelo||''} ya está activa en Ruedda.`,icon:'lime'}).catch(e=>console.warn('[ruedda] notif approve:',e.message));
+  const itemType=item?._table==='listings'?'listing':'auction';
+  try{
+    await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'aprobar'});
+    showToast('publicación aprobada ✓',true);
+  }catch(e){
+    console.error('[ruedda modApprove]',e.message);
+    showToast('error al aprobar: '+e.message);
+    return;
   }
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
@@ -5721,14 +5738,15 @@ async function modApprove(id){
 
 async function modReject(id){
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
-  if(!_supa){showToast('publicación rechazada');return;}
   const item=(window._modQueueData||[]).find(x=>x.id===id);
-  const tabla=item?._table||'auctions';
-  const{error}=await _supa.from(tabla).update({estado:'rechazada'}).eq('id',id);
-  if(error){showToast('error al rechazar: '+error.message);console.error('[ruedda modReject]',error);return;}
-  showToast('publicación rechazada');
-  if(item?.user_id){
-    _supa.from('notifications').insert({user_id:item.user_id,tipo:'system',titulo:'publicación rechazada',body:'Tu publicación no cumplió los estándares de Ruedda. Contáctanos por soporte.',icon:''}).catch(e=>console.warn('[ruedda] notif reject:',e.message));
+  const itemType=item?._table==='listings'?'listing':'auction';
+  try{
+    await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'rechazar'});
+    showToast('publicación rechazada');
+  }catch(e){
+    console.error('[ruedda modReject]',e.message);
+    showToast('error al rechazar: '+e.message);
+    return;
   }
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
