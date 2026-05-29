@@ -376,6 +376,9 @@ input[type=number]{-moz-appearance:textfield}
 .cuenta-menu-item svg{width:16px;height:16px;color:var(--muted)}
 .cuenta-menu-item.muted{color:var(--muted)}
 
+/* SPINNER GUARDAR */
+@keyframes spin{to{transform:rotate(360deg)}}
+.save-spinner{width:20px;height:20px;border:2px solid rgba(0,0,0,0.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
 /* MARKET CONDITION TOGGLE */
 .mkt-cond-toggle{display:none;position:relative;background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:3px;width:148px;flex-shrink:0}
 .mkt-cond-track{display:grid;grid-template-columns:1fr 1fr;position:relative;z-index:1}
@@ -4722,7 +4725,10 @@ function openMisPublicaciones(){
             <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
               <div style="font-size:11px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
               <div style="font-size:12px;font-weight:800;color:#e6f03b">${l.price}</div>
-              <button onclick="event.stopPropagation();deleteListing('${l.id}')" style="margin-top:4px;width:100%;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,80,80,.8);cursor:pointer">eliminar</button>
+              <div style="display:flex;gap:5px;margin-top:4px">
+                <button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>
+                <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,80,80,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
+              </div>
             </div>
           </div>`).join('')}
       </div>
@@ -4768,7 +4774,7 @@ function openEditListingModal(id){
         <span style="font-size:13px;color:rgba(255,255,255,.4)">reemplazar fotos del vehículo</span>
         <input type="file" accept="image/*" multiple style="display:none" onchange="handleEditPhotos(this,'${id}')">
       </label>
-      <button onclick="saveListingEdit('${id}')" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer">guardar cambios</button>
+      <button id="save-listing-btn" onclick="saveListingEdit('${id}')" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s">guardar cambios</button>
     </div>`;
   document.body.appendChild(modal);
 }
@@ -4779,24 +4785,62 @@ function handleEditPhotos(input, id){
 }
 async function saveListingEdit(id){
   const _idStr=String(id);
+  // mostrar spinner en el botón
+  const btn=document.getElementById('save-listing-btn');
+  if(btn){btn.innerHTML='<div class="save-spinner"></div>';btn.disabled=true;btn.style.opacity='.7';}
   const precio=document.getElementById('edit-precio')?.value.trim();
   const desc=document.getElementById('edit-desc')?.value.trim();
-  // actualizar mock local — buscar en ambos arrays
   const lMock=MOCK_MY_LISTINGS.find(x=>String(x.id)===_idStr);
   const lDealer=DEALER_LISTINGS_OWN.find(x=>String(x.id)===_idStr);
   if(lMock){ if(precio) lMock.price='$'+Number(precio).toLocaleString(); if(desc!==undefined) lMock.desc=desc; }
   if(lDealer){ if(precio) lDealer.price=Number(precio); if(desc!==undefined) lDealer.desc=desc; }
-  // actualizar en Supabase
   if(_supa && precio){
     await _supa.from('listings').update({precio_usd:Number(precio),descripcion:desc||null}).eq('id',_idStr).catch(e=>console.error('[ruedda] saveListingEdit:',e.message));
   }
-  document.getElementById('edit-listing-modal')?.remove();
+  // slide down del modal con animación
+  const modal=document.getElementById('edit-listing-modal');
+  const inner=modal?.querySelector('div');
+  if(inner){inner.style.transition='transform .3s cubic-bezier(.4,0,.2,1)';inner.style.transform='translateY(100%)';}
+  if(modal){modal.style.transition='opacity .3s';modal.style.opacity='0';}
+  await new Promise(r=>setTimeout(r,280));
+  modal?.remove();
   showToast('publicación actualizada ✓',true);
-  // refrescar la vista correcta
   if(lDealer){ renderDhPubs(); }
   else { openMisPublicaciones(); }
 }
 function editListing(id){ openEditListingModal(id); }
+function confirmDeleteListing(id){
+  const _idStr=String(id);
+  let overlay=document.getElementById('confirm-delete-overlay');
+  if(overlay) overlay.remove();
+  overlay=document.createElement('div');
+  overlay.id='confirm-delete-overlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.4);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);animation:fadeIn .2s ease';
+  overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+  overlay.innerHTML=`
+    <div style="background:rgba(18,18,20,0.75);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:28px 24px;max-width:320px;width:100%;text-align:center;animation:fadeInUp .25s cubic-bezier(.25,.46,.45,.94)">
+      <div style="font-size:32px;margin-bottom:12px">🗑️</div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:8px;letter-spacing:-.2px">¿Eliminarás tu publicación? <span style="color:rgba(255,255,255,.5)">:(</span></div>
+      <div style="font-size:13px;color:rgba(255,255,255,.4);line-height:1.6;margin-bottom:24px">Esta acción no se puede deshacer. Tu publicación desaparecerá del market.</div>
+      <div style="display:flex;gap:10px">
+        <button onclick="document.getElementById('confirm-delete-overlay').remove()" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:13px;font-family:var(--font);font-size:14px;font-weight:600;color:rgba(255,255,255,.7);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">cancelar</button>
+        <button onclick="executeDeleteListing('${_idStr}')" style="flex:1;background:rgba(255,40,40,.12);border:1px solid rgba(255,60,60,.25);border-radius:13px;padding:13px;font-family:var(--font);font-size:14px;font-weight:700;color:rgba(255,80,80,.9);cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,40,40,.2)'" onmouseout="this.style.background='rgba(255,40,40,.12)'">eliminar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+function executeDeleteListing(id){
+  const _idStr=String(id);
+  document.getElementById('confirm-delete-overlay')?.remove();
+  // eliminar de ambos arrays
+  const mi=MOCK_MY_LISTINGS.findIndex(x=>String(x.id)===_idStr);
+  if(mi>-1) MOCK_MY_LISTINGS.splice(mi,1);
+  const di=DEALER_LISTINGS_OWN.findIndex(x=>String(x.id)===_idStr);
+  if(di>-1) DEALER_LISTINGS_OWN.splice(di,1);
+  if(_supa) _supa.from('listings').update({estado:'eliminada'}).eq('id',_idStr).catch(e=>console.error('[ruedda] delete:',e.message));
+  showToast('publicación eliminada');
+  if(di>-1){ renderDhPubs(); } else { openMisPublicaciones(); }
+}
 
 function republishListing(id){
   closeMisPub();
@@ -5868,7 +5912,7 @@ function renderDhPubs(){
         <div style="font-size:12px;font-weight:700;color:#e6f03b;margin-top:2px">${fmtBid(l.price)}</div>
         <div style="display:flex;gap:5px;margin-top:4px">
           <button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>
-          <button onclick="event.stopPropagation();dhEliminar(${i})" style="flex:1;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.18);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,80,80,.8);cursor:pointer">eliminar</button>
+          <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,80,80,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
         </div>
       </div>
     </div>`).join('');
