@@ -4591,6 +4591,7 @@ async function publishListing(){
     showToast('publicación enviada ✓ en revisión',true);
     showDealerFab(false);
     window._venderPhotos=[];
+    photoItems=[];
     // reset form
     document.querySelectorAll('.vender-form input,.vender-form textarea,.vender-form select').forEach(el=>{
       if(el.tagName==='SELECT') el.selectedIndex=0;
@@ -4615,17 +4616,33 @@ async function publishListing(){
 }
 
 async function _uploadVenderPhotos(recordId,userId,isListing=false){
-  if(!_supa||!window._venderPhotos?.length) return;
-  await Promise.allSettled(window._venderPhotos.map(async(file,i)=>{
-    const ext=file.name.split('.').pop()||'jpg';
-    const path=`${userId}/${recordId}/${Date.now()}_${i}.${ext}`;
-    const{data,error}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true});
-    if(error||!data) return;
-    const{data:{publicUrl}}=_supa.storage.from('car-photos').getPublicUrl(path);
-    const photoTable=isListing?'listing_photos':'auction_photos';
-    const photoPayload=isListing?{listing_id:recordId,url:publicUrl,orden:i}:{auction_id:recordId,url:publicUrl,orden:i};
-    await (_supaWrite||_supa).from(photoTable).insert(photoPayload);
-  }));
+  if(!_supa) return;
+  // fuente de verdad: photoItems (UI) con fallback a _venderPhotos
+  const files=photoItems.length>0
+    ? await Promise.all(photoItems.map(item=>{
+        // photoItems puede tener {src, name, file} o ser File directamente
+        if(item.file) return Promise.resolve(item.file);
+        // si solo tenemos base64, convertir a blob
+        return fetch(item.src).then(r=>r.blob()).then(b=>new File([b],item.name||'foto.jpg',{type:b.type||'image/jpeg'}));
+      }))
+    : (window._venderPhotos||[]);
+  if(!files.length) return;
+  const photoTable=isListing?'listing_photos':'auction_photos';
+  // upload secuencial para evitar colisiones de timestamp
+  for(let i=0;i<files.length;i++){
+    const file=files[i];
+    if(!file) continue;
+    const ext=(file.name||'jpg').split('.').pop()||'jpg';
+    const path=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`;
+    try{
+      const{data,error}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true});
+      if(error){console.error('[ruedda] foto upload',i,error.message);continue;}
+      const{data:{publicUrl}}=_supa.storage.from('car-photos').getPublicUrl(path);
+      const photoPayload=isListing?{listing_id:recordId,url:publicUrl,orden:i}:{auction_id:recordId,url:publicUrl,orden:i};
+      await (_supaWrite||_supa).from(photoTable).insert(photoPayload);
+    }catch(e){console.error('[ruedda] foto',i,'catch:',e.message);}
+  }
+  console.log('[ruedda] fotos subidas:',files.length);
 }
 
 function validateForm(){ return true; } // full validation on Supabase integration
@@ -5069,7 +5086,8 @@ function handleFiles(input){
   window._venderPhotos=[...(window._venderPhotos||[]),...newFiles];
   Array.from(input.files).forEach(file=>{
     const reader=new FileReader();
-    reader.onload=e=>{ photoItems.push({src:e.target.result,name:file.name}); renderPhotoGrid(); };
+    // guardar File object en photoItems para que _uploadVenderPhotos lo use directo
+    reader.onload=e=>{ photoItems.push({src:e.target.result,name:file.name,file:file}); renderPhotoGrid(); };
     reader.readAsDataURL(file);
   });
   input.value='';
