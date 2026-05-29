@@ -3407,7 +3407,7 @@ function renderMarket(){
     el.style.animationDelay=(idx*40)+'ms';
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden">${carPlaceholder(l.id,'small')}</div>
+      <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.style.display='none'">`:carPlaceholder(l.id,'small')}</div>
       <div class="market-card-body">
         <div class="market-card-title">${l.title}</div>
         <div class="market-card-meta">${l.location.toLowerCase()}</div>
@@ -3426,12 +3426,17 @@ function openMarketDetail(id, origin){
   const inner=document.getElementById('mkt-gallery-inner');
   const dots=document.getElementById('mkt-gallery-dots');
   inner.innerHTML='';dots.innerHTML='';
-  const slides=l.photos||3;
+  const hasPhotos=l.photoUrls&&l.photoUrls.length>0;
+  const slides=hasPhotos?l.photoUrls.length:(l.photos||1);
   for(let i=0;i<slides;i++){
     const s=document.createElement('div');
     s.className='photo-slide';
     s.style.background='linear-gradient('+grads[l.id%grads.length]+')';
-    s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'<div style="font-size:12px;color:#555">foto '+(i+1)+' de '+slides+'</div></div>';
+    if(hasPhotos){
+      s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onerror="this.style.display='none'">`;
+    } else {
+      s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'</div>';
+    }
     inner.appendChild(s);
     const d=document.createElement('div');
     d.className='gallery-dot'+(i===0?' active':'');
@@ -4258,22 +4263,36 @@ async function redeemCheckoutCode(){
 
 async function processPayment(){
   const btn=document.getElementById('checkout-pay-btn');
+  // ── helper uid ──
+  async function _getUid(){
+    if(!_supa) return USER_STATE.id||null;
+    const{data:{session}}=await _supa.auth.getSession();
+    return session?.user?.id||window._rueddaUser?.id||USER_STATE.id||null;
+  }
   const freeCode=btn.dataset.freeCode;
   if(freeCode){
     _consumeCode(freeCode);
     delete btn.dataset.freeCode;
     PAID_TYPES[pendingVenderType]=true;
     closeCheckout();
+    // ── si es concesionario, activar vitrina — no abrir form de publicación ──
+    if(pendingVenderType==='consesionario'&&isConcesionario()){
+      const uid=await _getUid();
+      USER_STATE.dealerActive=true;
+      const exp=new Date(Date.now()+30*86400000).toISOString();
+      USER_STATE.dealerExpiry=exp;
+      if(_supa&&USER_STATE.concesionarioId){
+        _supa.from('concesionarios').update({activo:true,plan_expiry:exp}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] activar vitrina código:',e.message));
+      }
+      showToast('vitrina activada — 30 días ✓',true);
+      return;
+    }
+    // particular o subasta — abrir form de publicación
     showToast('código aplicado — publicando',true);
     setTimeout(openVenderForm,600);
     return;
   }
-  // ── helper: obtiene uid con sesión activa ──
-  async function _getUid(){
-    if(!_supa) return USER_STATE.id||null;
-    const{data:{session}}=await _supa.auth.getSession();
-    return session?.user?.id||window._rueddaUser?.id||USER_STATE.id||null;
-  }
+  // _getUid definida arriba
   // ── VITRINA ACTIVATION PATH: pago por activar vitrina (no por publicación) ──
   if(pendingVenderType==='consesionario'&&isConcesionario()&&!USER_STATE.dealerActive){
     const uid=await _getUid();
@@ -6552,10 +6571,10 @@ async function _loadAuctions(){
 async function _loadMarket(){
   if(!_supa) return;
   try{
-    const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,ciudad,descripcion,condicion,concesionario_id').eq('estado','activa').order('created_at',{ascending:false});
+    const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden)').eq('estado','activa').order('created_at',{ascending:false});
     if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));return;}
     if(!data?.length) return;
-    const mapped=data.map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',transmission:l.transmision,fuel:l.combustible,photos:3,desc:l.descripcion||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null}));
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',transmission:l.transmision,fuel:l.combustible,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
   }catch(e){console.error('[ruedda] _loadMarket catch:',String(e?.message||e));}
