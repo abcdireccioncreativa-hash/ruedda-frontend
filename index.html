@@ -384,6 +384,9 @@ input[type=number]{-moz-appearance:textfield}
 .card-loading-text{font-size:10px;font-weight:600;color:rgba(255,255,255,0.45);letter-spacing:.2px;font-family:var(--font);animation:cardPulse 1.8s ease infinite}
 /* SPINNER GUARDAR */
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes splashFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes splashRing{from{stroke-dashoffset:145}to{stroke-dashoffset:0}}
+@keyframes splashCheck{from{opacity:0}to{opacity:1}}
 .save-spinner{width:20px;height:20px;border:2px solid rgba(0,0,0,0.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
 /* MARKET CONDITION TOGGLE */
 .mkt-cond-toggle{display:none;position:relative;background:#1a1a1a;border:1px solid rgba(255,255,255,0.12);border-radius:100px;padding:3px;width:148px;flex-shrink:0}
@@ -967,9 +970,15 @@ input[type=number]{-moz-appearance:textfield}
       </div>
 
       <!-- 5. CONTRASEÑA -->
-      <input class="form-input" type="password" placeholder="contraseña" id="auth-pass">
+<div style="position:relative;display:flex;align-items:center">
+        <input class="form-input" type="password" placeholder="contraseña" id="auth-pass" style="width:100%;padding-right:42px">
+        <button type="button" onclick="_togglePwd('auth-pass',this)" tabindex="-1" style="position:absolute;right:12px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);padding:4px;display:flex;align-items:center;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.3)'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
       <div id="auth-confirm-wrap">
-        <input class="form-input" type="password" placeholder="confirmar contraseña" style="width:100%">
+        <div style="position:relative;display:flex;align-items:center">
+          <input class="form-input" type="password" placeholder="confirmar contraseña" id="auth-pass-confirm" style="width:100%;padding-right:42px">
+          <button type="button" onclick="_togglePwd('auth-pass-confirm',this)" tabindex="-1" style="position:absolute;right:12px;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);padding:4px;display:flex;align-items:center;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.7)'" onmouseout="this.style.color='rgba(255,255,255,.3)'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
       </div>
 
       <!-- 6. USUARIO -->
@@ -998,7 +1007,14 @@ input[type=number]{-moz-appearance:textfield}
 
     <!-- CTA BLOCK -->
     <div style="padding:0 24px">
-      <button onclick="completeAuth()" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:13px;padding:16px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:16px;transition:all .15s;letter-spacing:-.1px" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'" id="auth-cta">crear cuenta y entrar</button>
+      <!-- RECORDAR -->
+      <div id="auth-remember-wrap" style="display:none;align-items:center;gap:10px;margin-top:16px;cursor:pointer" onclick="_toggleRemember()">
+        <div id="auth-remember-ui" style="width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.18);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s">
+          <svg id="auth-remember-icon" fill="none" viewBox="0 0 14 14" stroke="#000" stroke-width="2.5" style="width:10px;height:10px;display:none"><path d="m2 7 3.5 3.5 6.5-7"/></svg>
+        </div>
+        <span style="font-size:11px;color:rgba(255,255,255,.35);font-weight:500;user-select:none">recordar sesión</span>
+      </div>
+      <button onclick="completeAuth()" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:13px;padding:16px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:14px;transition:all .15s;letter-spacing:-.1px" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'" id="auth-cta">crear cuenta y entrar</button>
 
       <!-- DIVIDER -->
       <div style="display:flex;align-items:center;gap:12px;margin:16px 0">
@@ -3242,7 +3258,7 @@ function openMktListado(){
   if(ov){ov.style.opacity='1';ov.style.transform='translateY(0)';return;}
   ov=document.createElement('div');
   ov.id='mkt-listado-overlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(18,18,20,0.97);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94)';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(18,18,20,0.97);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94);border-radius:20px 20px 0 0';
   ov.innerHTML=`
     <!-- HEADER STICKY -->
     <div style="position:sticky;top:0;z-index:10;background:rgba(18,18,20,0.6);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-bottom:1px solid rgba(255,255,255,0.06);padding:14px 16px 0">
@@ -6257,6 +6273,7 @@ function showLandingAuth(mode){
   });
   if(!isLogin){ authUserType='particular'; }
   document.getElementById('auth-cta').textContent=isLogin?'entrar':'crear cuenta y entrar';
+  const rw=document.getElementById('auth-remember-wrap');if(rw)rw.style.display=isLogin?'flex':'none';
   document.getElementById('auth-toggle-text').textContent=isLogin?'¿no tienes cuenta?':'¿ya tienes cuenta?';
   document.getElementById('auth-toggle-btn').textContent=isLogin?'registrate':'iniciar sesión';
   document.getElementById('auth-sheet').classList.add('open');
@@ -6369,6 +6386,36 @@ function closeModal(id){ const el=document.getElementById(id); if(el) el.classLi
 
 function toggleAuthMode(){showLandingAuth(authMode==='register'?'login':'register')}
 function closeAuthSheet(){document.getElementById('auth-sheet').classList.remove('open')}
+let _rememberChecked=false;
+function _toggleRemember(){
+  _rememberChecked=!_rememberChecked;
+  const ui=document.getElementById('auth-remember-ui');
+  const icon=document.getElementById('auth-remember-icon');
+  if(ui){ ui.style.background=_rememberChecked?'#e6f03b':'transparent'; ui.style.borderColor=_rememberChecked?'#e6f03b':'rgba(255,255,255,.18)'; }
+  if(icon){ icon.style.display=_rememberChecked?'block':'none'; }
+}
+function _showLoginSplash(nombre){
+  let sp=document.getElementById('login-splash');
+  if(sp) sp.remove();
+  sp=document.createElement('div');
+  sp.id='login-splash';
+  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#000;opacity:0;transition:opacity .35s ease';
+  sp.innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke="rgba(230,240,59,0.15)" stroke-width="1.5"/><circle cx="24" cy="24" r="23" stroke="#e6f03b" stroke-width="1.5" stroke-dasharray="145" stroke-dashoffset="145" style="animation:splashRing .8s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"><animate attributeName="stroke-dashoffset" from="145" to="0" dur=".8s" begin=".1s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"/></circle><path d="M16 24l5 5 11-11" stroke="#e6f03b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .75s forwards"><animate attributeName="opacity" from="0" to="1" dur=".3s" begin=".75s" fill="freeze"/></path></svg>
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:#fff;opacity:0;animation:splashFade .4s ease .5s forwards">bienvenido${nombre?', <span style="color:#e6f03b">'+nombre+'</span>':''}</div>
+    </div>`;
+  document.body.appendChild(sp);
+  requestAnimationFrame(()=>{ sp.style.opacity='1'; });
+  setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>sp.remove(),350); },1100);
+}
+function _togglePwd(id,btn){
+  const inp=document.getElementById(id);
+  if(!inp) return;
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.innerHTML=show?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+}
 async function completeAuth(){
   const email=(document.getElementById('auth-email')?.value||'').trim();
   const pass=(document.getElementById('auth-pass')?.value||'').trim();
@@ -6424,9 +6471,10 @@ async function _rueddaLogin(email,pass){
     }
   }
   closeAuthSheet();
-  showToast('bienvenido'+(profile.nombre?', '+profile.nombre:'')+' ✓',true);
-  if(profile.role==='superadmin'){updateHamburgerAdmin();setTimeout(()=>showView('superadmin'),400);}
-  else if(isDesktop()) enterApp();
+  // splash de bienvenida fintech
+  _showLoginSplash(profile.nombre||'');
+  if(profile.role==='superadmin'){updateHamburgerAdmin();setTimeout(()=>showView('superadmin'),1200);}
+  else if(isDesktop()) setTimeout(()=>enterApp(),1200);
   _rueddaLoadUserData(data.user.id,profile.role);
 }
 
