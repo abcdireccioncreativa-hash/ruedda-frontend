@@ -1209,7 +1209,7 @@ input[type=number]{-moz-appearance:textfield}
 
 <!-- MARKET DETAIL VIEW -->
 <div id="view-market-detail" class="view">
-  <div class="detail-back" onclick="mktDetailOrigin==='vitrina'?openVitrina(currentMarketListing&&currentMarketListing.dealerId?currentMarketListing.dealerId:currentDealer&&currentDealer.id):(showView('home'),selectSection('market'))">
+  <div class="detail-back" onclick="mktDetailOrigin==='vitrina'?openVitrina(currentMarketListing&&currentMarketListing.dealerId?currentMarketListing.dealerId:currentDealer&&currentDealer.id):mktDetailOrigin==='listado'?openMktListado():(showView('home'),selectSection('market'))">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>volver</span>
   </div>
@@ -2623,93 +2623,13 @@ input[type=number]{-moz-appearance:textfield}
 
 <script>
 // ===================== DATA =====================
-const AUCTIONS = [
-  {
-    id:1, title:'2007 BMW M5 E60', location:'Caracas', km:294435, owners:2, seller:'Alejandro G.',
-    currentBid:43000, bidCount:7,
-    endTime: Date.now() + (22*3600+32*60+57)*1000,
-    sinReserva:false, transmission:'manual', fuel:'gasolina',
-    year:2007, category:'sedán', photos:6, type:'subasta',
-    desc:'Espectacular BMW M5 E60 con motor V10 SMG. Unidad importada, toda la documentación en regla. Mantenimiento realizado en taller especializado BMW. Tren de rodaje en perfecto estado. Sin accidentes registrados. Ideal para coleccionistas y entusiastas.',
-    specs:{'Motor':'V10 5.0L 507cv','Transmisión':'Manual SMG','Kilometraje':'294.435 km','Color':'Negro Individual','Dueños':'2','Tracción':'Trasera RWD','Condición':'usado'},
-    bids:[{user:'C***2',time:'hace 14 min',amount:43000,top:true},{user:'R***7',time:'hace 38 min',amount:41500,top:false},{user:'M***4',time:'hace 1h',amount:40000,top:false}],
-    comments:[{id:1,user:'J***1',avatar:'J',text:'¿Tiene todos los documentos de importación?',time:'hace 2h',isSeller:false,reply:{user:'Vendedor',text:'Sí, todo en regla. Puedo enviar copia por WhatsApp.',time:'hace 1h 30min'}}]
-  },
-  {
-    id:2, title:'2020 Toyota GR Supra A90', location:'Caracas', km:28400, owners:1, seller:'Marco V.',
-    currentBid:65000, bidCount:12,
-    endTime: Date.now() + (3*3600+14*60+22)*1000,
-    sinReserva:true, transmission:'automática', fuel:'gasolina',
-    year:2020, category:'deportivo', photos:8, type:'subasta',
-    desc:'GR Supra A90 primer dueño, importada directamente de EE.UU. en 2021. Perfecto estado de conservación, sin modificaciones. Todos los servicios en concesionario Toyota. Asientos calefaccionados, Head-Up Display, sistema JBL 12 parlantes.',
-    specs:{'Motor':'I6 3.0L 382cv','Transmisión':'Automática 8vel','Kilometraje':'28.400 km','Color':'Gris Matte','Dueños':'1','Tracción':'Trasera RWD','Condición':'excelente'},
-    bids:[{user:'F***6',time:'hace 5 min',amount:65000,top:true},{user:'C***2',time:'hace 22 min',amount:63000,top:false},{user:'P***8',time:'hace 44 min',amount:61500,top:false}],
-    comments:[]
-  },
-  {
-    id:3, title:'2018 Jeep Wrangler Rubicon', location:'Valencia', km:87200, owners:1,
-    currentBid:32000, bidCount:4,
-    endTime: Date.now() + (45*3600+8*60+11)*1000,
-    sinReserva:false, transmission:'manual', fuel:'gasolina',
-    year:2018, category:'suv', photos:5, type:'subasta',
-    desc:'Wrangler Rubicon JK 4 puertas. Diferencial Dana 44, control de tracción en roca, protección inferior de fábrica. Llantas 35" BFGoodrich. Techo duro y blando incluidos. Excelente estado mecánico.',
-    specs:{'Motor':'V6 3.6L 285cv','Transmisión':'Manual 6vel','Kilometraje':'87.200 km','Color':'Naranja Crush','Dueños':'1','Tracción':'4x4','Condición':'bueno'},
-    bids:[{user:'G***5',time:'hace 2h',amount:32000,top:true},{user:'H***1',time:'hace 4h',amount:31000,top:false}],
-    comments:[{id:1,user:'A***9',avatar:'A',text:'¿Las llantas están incluidas en la venta?',time:'hace 5h',isSeller:false,reply:null}]
-  },
-  {
-    id:4, title:'2022 Toyota Land Cruiser 300', location:'Maracaibo', km:18700, owners:1,
-    currentBid:118000, bidCount:3,
-    endTime: Date.now() + (5*24*3600+3*3600)*1000,
-    sinReserva:false, transmission:'automática', fuel:'diesel',
-    year:2022, category:'suv', photos:9, type:'subasta',
-    desc:'Land Cruiser 300 Serie ZX Full, la versión tope de gama. Importado de Medio Oriente. Pantallas dual 12", asientos de cuero ventilados y calefaccionados, techo panorámico, sistema de sonido Mark Levinson. Estado impecable.',
-    specs:{'Motor':'V6 3.3L TT Diesel','Transmisión':'Automática 10vel','Kilometraje':'18.700 km','Color':'Blanco Perla','Dueños':'1','Tracción':'4x4 KDSS','Condición':'impecable'},
-    bids:[{user:'Z***4',time:'hace 6h',amount:118000,top:true},{user:'K***8',time:'hace 12h',amount:115000,top:false}],
-    comments:[]
-  },
-];
+const AUCTIONS = []; // se carga desde Supabase en _loadAuctions()
 
-const AUCTIONS_CHOCADOS = [
-  {
-    id:51, title:'2018 Toyota Hilux (chocado)', location:'Caracas', km:98000, owners:2,
-    currentBid:8500, bidCount:3,
-    endTime: Date.now() + (18*3600+12*60)*1000,
-    sinReserva:true, transmission:'automática', fuel:'gasolina',
-    year:2018, category:'pickup', photos:5, type:'subasta', chocado:true,
-    desc:'Toyota Hilux con daño frontal moderado. Motor y caja en perfecto estado. Ideal para reparación o repuestos. Documentos al día.',
-    specs:{'Motor':'2.7L 4cyl','Transmisión':'Automática','Kilometraje':'98.000 km','Color':'Blanco','Dueños':'2','Tracción':'4x4','Daño':'Frontal moderado','Condición':'chocado'},
-    bids:[{user:'R***3',time:'hace 20 min',amount:8500,top:true},{user:'M***1',time:'hace 1h',amount:8000,top:false}],
-    comments:[]
-  },
-  {
-    id:52, title:'2016 Ford Mustang GT (chocado)', location:'Valencia', km:61000, owners:1,
-    currentBid:14000, bidCount:5,
-    endTime: Date.now() + (2*3600+44*60)*1000,
-    sinReserva:false, transmission:'manual', fuel:'gasolina',
-    year:2016, category:'deportivo', photos:6, type:'subasta', chocado:true,
-    desc:'Mustang GT con impacto lateral derecho. Estructura del chasis intacta. Motor V8 5.0L funcionando perfectamente. Documentación completa.',
-    specs:{'Motor':'V8 5.0L 435cv','Transmisión':'Manual 6vel','Kilometraje':'61.000 km','Color':'Rojo Racing','Dueños':'1','Tracción':'RWD','Daño':'Lateral derecho','Condición':'chocado'},
-    bids:[{user:'K***7',time:'hace 8 min',amount:14000,top:true},{user:'A***2',time:'hace 30 min',amount:13500,top:false}],
-    comments:[]
-  },
-];
+const AUCTIONS_CHOCADOS = []; // se carga desde Supabase en _loadChocados()
 
-const MARKET_LISTINGS = [
-  {id:101, title:'2019 Chevrolet Camaro SS', location:'Caracas', km:61300, price:38000, year:2019, category:'deportivo', type:'market', dealerId:1, seller:'AutoClub Caracas', sellerType:'concesionario verificado'},
-  {id:102, title:'2015 Ford Mustang GT', location:'Maracay', km:112000, price:26500, year:2015, category:'deportivo', type:'market'},
-  {id:103, title:'2021 Toyota Hilux', location:'Valencia', km:44000, price:55000, year:2021, category:'pickup', type:'market'},
-  {id:104, title:'2017 Honda CR-V', location:'Caracas', km:88000, price:22000, year:2017, category:'suv', type:'market'},
-  {id:105, title:'2020 Kia Sportage', location:'Barquisimeto', km:52000, price:19000, year:2020, category:'suv', type:'market'},
-  {id:106, title:'2016 BMW 320i', location:'Caracas', km:97000, price:24000, year:2016, category:'sedán', type:'market', dealerId:1, seller:'AutoClub Caracas', sellerType:'concesionario verificado'},
-];
+const MARKET_LISTINGS = []; // se carga desde Supabase en _loadMarket()
 
-const NOTIFICATIONS = [
-  {id:1, type:'offer', title:'Nueva oferta en tu subasta', body:'Alguien hizo una oferta de $44.000 en tu BMW M5 E60', time:'hace 5 min', read:false, icon:'lime'},
-  {id:2, type:'question', title:'Pregunta en tu publicación', body:'J***1 preguntó sobre los documentos de importación del BMW M5', time:'hace 2h', read:false, icon:'lime'},
-  {id:3, type:'ending', title:'Subasta terminando', body:'El Toyota GR Supra que sigues termina en menos de 3 horas', time:'hace 4h', read:true, icon:'default'},
-  {id:4, type:'sold', title:'Vehículo vendido', body:'El Ford Mustang GT de tus favoritos fue vendido por $27.000', time:'hace 1 día', read:true, icon:'default'},
-];
+const NOTIFICATIONS = []; // se carga desde Supabase en _rueddaLoadUserData()
 
 // ===================== STATE =====================
 let currentView='home', currentTab='pronto', currentSection='subastas';
@@ -3004,6 +2924,20 @@ function switchNotifTab(tab){
 function renderMensajesList(){
   const list=document.getElementById('mensajes-list');
   if(!list) return;
+  if(isGuest()){
+    list.innerHTML=`
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 28px;text-align:center;gap:20px">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(230,240,59,0.08);border:1px solid rgba(230,240,59,0.15);display:flex;align-items:center;justify-content:center">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:28px;height:28px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div>
+          <div style="font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:10px;line-height:1.3">Estás a un mensaje de distancia.</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.35);line-height:1.6">Haz preguntas, cotiza o responde a compradores en tiempo real.</div>
+        </div>
+        <button onclick="showMobileAuth('login')" style="background:#e6f03b;color:#000;border:none;border-radius:14px;padding:14px 28px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;letter-spacing:-.2px;transition:opacity .15s" onmousedown="this.style.opacity='.8'" onmouseup="this.style.opacity='1'">iniciar sesión</button>
+      </div>`;
+    return;
+  }
   if(!THREADS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:14px">sin mensajes aún</div>';return;}
   list.innerHTML=THREADS.map(t=>{
     const last=t.messages[t.messages.length-1];
@@ -3304,7 +3238,7 @@ function setMFilter(key,value,label){
 // ── MARKET LISTADO GRID ──
 function openMktListado(){
   let ov=document.getElementById('mkt-listado-overlay');
-  if(ov) ov.remove();
+  if(ov){ov.style.opacity='1';ov.style.transform='translateY(0)';return;}
   ov=document.createElement('div');
   ov.id='mkt-listado-overlay';
   ov.style.cssText='position:fixed;inset:0;background:#0a0a0a;z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94)';
@@ -3330,17 +3264,17 @@ function closeMktListado(){
 function _renderMktListadoGrid(){
   const grid=document.getElementById('mkt-listado-grid');
   if(!grid) return;
-  const data=MARKET_LISTINGS.length?MARKET_LISTINGS:[
-    {id:101,title:'2019 Chevrolet Camaro SS',location:'Caracas',km:61300,price:38000,year:2019,category:'deportivo',condicion:'usado'},
-    {id:102,title:'2015 Ford Mustang GT',location:'Maracay',km:112000,price:26500,year:2015,category:'deportivo',condicion:'usado'},
-    {id:103,title:'2021 Toyota Hilux',location:'Valencia',km:44000,price:55000,year:2021,category:'pickup',condicion:'nuevo'},
-  ];
+  const data=MARKET_LISTINGS;
+  if(!data.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:rgba(255,255,255,.3);font-size:14px">sin publicaciones aún</div>';
+    return;
+  }
   grid.innerHTML=data.map((l,idx)=>{
     const esNuevo=l.condicion==='nuevo'||l.condicion==='0km';
     const badge=esNuevo?'Nuevo':'Usado';
     const badgeColor=esNuevo?'rgba(100,200,255,.9)':'rgba(255,255,255,.75)';
     const isFav=watchlist.has(l.id)||watchlist.has(String(l.id));
-    return `<div onclick="closeMktListado();setTimeout(()=>openMarketDetail('${l.id}'),260)" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .25s ease both;animation-delay:${idx*30}ms">
+    return `<div onclick="openMarketDetail('${l.id}','listado')" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .25s ease both;animation-delay:${idx*30}ms">
       <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(${grads[l.id%grads.length]});position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
         ${carPlaceholder(l.id,'small')}
         <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
@@ -3473,8 +3407,8 @@ function openMarketDetail(id, origin){
   const initials=(dealerName||'V').charAt(0).toUpperCase();
   document.getElementById('mkt-seller-avatar-bid').textContent=initials;
   const _av=document.getElementById('mkt-seller-avatar');if(_av){_av.textContent=initials;_av.style.background=`hsl(${(initials.charCodeAt(0)*47)%360},40%,28%)`;}
-  document.getElementById('mkt-seller-name-bid').textContent=dealerName||'Vendedor particular';
-  const _nm=document.getElementById('mkt-seller-name');if(_nm)_nm.textContent=dealerName||'Vendedor particular';
+  document.getElementById('mkt-seller-name-bid').innerHTML=(dealerName||'Vendedor particular')+(dealerId?'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'');
+  const _nm=document.getElementById('mkt-seller-name');if(_nm)_nm.innerHTML=(dealerName||'Vendedor particular')+(dealerId?'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'');
   document.getElementById('mkt-seller-type-bid').textContent=dealerId?(l.sellerType||'concesionario · ruedda'):('particular · miembro de ruedda');
   // dealer vitrina link
   const _card=document.getElementById('mkt-seller-card');
@@ -3860,6 +3794,20 @@ function confirmBid(){
 // ===================== NOTIFICATIONS =====================
 function renderNotifications(){
   const list=document.getElementById('notif-list');
+  if(isGuest()){
+    list.innerHTML=`
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 28px;text-align:center;gap:20px">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(230,240,59,0.08);border:1px solid rgba(230,240,59,0.15);display:flex;align-items:center;justify-content:center">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:28px;height:28px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div>
+          <div style="font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:10px;line-height:1.3">Compra, vende o subasta tu carro en el mercado más avanzado de Venezuela.</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.35);line-height:1.6">Recibirás alertas de tus subastas, ofertas y publicaciones en tiempo real.</div>
+        </div>
+        <button onclick="showMobileAuth('login')" style="background:#e6f03b;color:#000;border:none;border-radius:14px;padding:14px 28px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;letter-spacing:-.2px;transition:opacity .15s" onmousedown="this.style.opacity='.8'" onmouseup="this.style.opacity='1'">iniciar sesión</button>
+      </div>`;
+    return;
+  }
   if(!NOTIFICATIONS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:15px">sin notificaciones</div>';return;}
   list.innerHTML=NOTIFICATIONS.map(n=>`
     <div class="notif-item ${n.read?'':' unread'}" onclick="${n.type==='question'?`openNotifThread(${n.auction_id||n.auctionId||1})`:`n.read=true;renderNotifications()`}" style="${n.type==='question'?'cursor:pointer':''}">
@@ -5234,7 +5182,7 @@ function renderDealerFiltered(){
   grid.innerHTML = dealers.length
     ? dealers.map((d,i)=>`<div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina(${d.id})">
         <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.initial}</div>
-        <div class="dealer-info"><div class="dealer-name">${d.nombre}</div><div class="dealer-meta">${d.ciudad.toLowerCase()}</div><div class="dealer-count">${d.autos} vehículos</div></div>
+        <div class="dealer-info"><div class="dealer-name" style="display:flex;align-items:center;gap:0">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="dealer-meta">${d.ciudad.toLowerCase()}</div><div class="dealer-count">${d.autos} vehículos</div></div>
       </div>`).join('')
     : '<div class="empty-state" style="grid-column:1/-1"><p>sin concesionarios con estos filtros</p></div>';
 }
@@ -5259,7 +5207,7 @@ function renderDealerGrid(){
     <div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina(${d.id})">
       <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.initial}</div>
       <div class="dealer-info">
-        <div class="dealer-name">${d.nombre}</div>
+        <div class="dealer-name" style="display:flex;align-items:center">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="dealer-meta">${d.ciudad.toLowerCase()}</div>
         <div class="dealer-count">${d.autos} vehículos</div>
       </div>
@@ -5288,7 +5236,7 @@ function openVitrina(id){
       <text x="40" y="200" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,.35)">${d.ciudad.toLowerCase()} · ${d.autos} vehículos disponibles</text>
       <text x="750" y="110" font-family="-apple-system,sans-serif" font-size="56" font-weight="800" fill="rgba(255,255,255,.06)" text-anchor="end">${d.initial}</text>
     </svg>`;
-  document.getElementById('vitrina-nombre').textContent = d.nombre;
+  document.getElementById('vitrina-nombre').innerHTML = d.nombre+'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   document.getElementById('vitrina-meta').textContent = d.ciudad.toLowerCase() + ' · ' + d.tag;
   renderVitrinavGrid('todos'); // async — no await para no bloquear la animación
   // reset pills
@@ -6448,23 +6396,27 @@ async function supabaseLogout(){
 
 async function _loadAuctions(){
   if(!_supa) return;
-  const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,transmision,combustible,ciudad,descripcion,auction_photos(url,orden)').eq('tipo','subasta').eq('estado','activa').order('end_time',{ascending:true});
-  if(ae){console.error('[ruedda] _loadAuctions error: '+String(ae?.message||ae?.code||ae?.error_description||'supabase_error')+' | hint: '+String(ae?.hint||'—'));return;}
-  if(!data?.length) return;
-  const mapped=data.map(a=>({id:a.id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:(a.auction_photos||[]).length||3,type:'subasta',desc:a.descripcion||'',seller:'Vendedor Ruedda',bids:[],comments:[],specs:{'transmisión':a.transmision,'combustible':a.combustible}}));
-  AUCTIONS.splice(0,AUCTIONS.length,...mapped);
-  if(typeof renderAuctions==='function') renderAuctions();
-  _subscribeToAuctions();
+  try{
+    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,transmision,combustible,ciudad,descripcion,auction_photos(url,orden)').eq('tipo','subasta').eq('estado','activa').order('end_time',{ascending:true});
+    if(ae){console.error('[ruedda] _loadAuctions:',String(ae?.message||ae?.code||'error'));return;}
+    if(!data?.length) return;
+    const mapped=data.map(a=>({id:a.id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:(a.auction_photos||[]).length||3,type:'subasta',desc:a.descripcion||'',seller:'Vendedor Ruedda',bids:[],comments:[],specs:{'transmisión':a.transmision,'combustible':a.combustible}}));
+    AUCTIONS.splice(0,AUCTIONS.length,...mapped);
+    if(typeof renderAuctions==='function') renderAuctions();
+    _subscribeToAuctions();
+  }catch(e){console.error('[ruedda] _loadAuctions catch:',String(e?.message||e));}
 }
 
 async function _loadMarket(){
   if(!_supa) return;
-  const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,ciudad,descripcion,condicion,concesionario_id').eq('estado','activa').order('created_at',{ascending:false});
-  if(error){console.error('[ruedda] _loadMarket error: '+String(error?.message||error?.code||error?.error_description||'supabase_error')+' | hint: '+String(error?.hint||'—'));return;}
-  if(!data?.length) return;
-  const mapped=data.map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',transmission:l.transmision,fuel:l.combustible,photos:3,desc:l.descripcion||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null}));
-  MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
-  if(typeof renderMarket==='function') renderMarket();
+  try{
+    const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,ciudad,descripcion,condicion,concesionario_id').eq('estado','activa').order('created_at',{ascending:false});
+    if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));return;}
+    if(!data?.length) return;
+    const mapped=data.map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',transmission:l.transmision,fuel:l.combustible,photos:3,desc:l.descripcion||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null}));
+    MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
+    if(typeof renderMarket==='function') renderMarket();
+  }catch(e){console.error('[ruedda] _loadMarket catch:',String(e?.message||e));}
 }
 
 async function _loadChocados(){
