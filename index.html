@@ -5584,6 +5584,10 @@ const MOD_ITEMS=[
 
 // ── PANTALLA PAGO EN REVISIÓN ─────────────────────────────────
 function showRevisionScreen(){
+  // cerrar el form y el modal de tipo de venta
+  try{document.getElementById('vender-modal').classList.remove('open');}catch(_){}
+  try{document.getElementById('checkout-modal')?.remove();}catch(_){}
+  window._venderPhotos=[];
   const existing = document.getElementById('revision-screen-overlay');
   if(existing) existing.remove();
 

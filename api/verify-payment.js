@@ -16,13 +16,18 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
 
   try {
+    // Parse body
+    let body = req.body;
+    if (typeof body === 'string') { try{ body=JSON.parse(body); }catch(_){ body={}; } }
+    if (!body) body = {};
+
     // 1. Auth + rol
     const user = await getUserFromToken(req);
     if (!user) return res.status(401).json({ error: 'no autenticado' });
     const admin = await isSuperadmin(user.id);
     if (!admin) return res.status(403).json({ error: 'acceso denegado' });
 
-    const { ref_id, action } = req.body;
+    const { ref_id, action } = body;
     if (!ref_id || !['confirmar', 'rechazar'].includes(action)) {
       return res.status(400).json({ error: 'parámetros inválidos' });
     }
