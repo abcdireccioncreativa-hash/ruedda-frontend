@@ -1823,6 +1823,11 @@ input[type=number]{-moz-appearance:textfield}
     </div>
     <input id="dh-banner-file" type="file" accept="image/*" style="display:none" onchange="dhUpload(this,'banner')">
 
+    <!-- NOMBRE -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">nombre del concesionario</div>
+    <input id="dh-nombre-input" type="text" placeholder="ej. AutoElite Caracas" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:13px 15px;font-family:var(--font);font-size:15px;color:#fff;outline:none;transition:border-color .15s;box-sizing:border-box" onfocus="this.style.borderColor='rgba(255,255,255,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" oninput="dhNombrePreview(this.value)">
+    <div style="font-size:11px;color:var(--muted);margin-top:-8px">este nombre aparece en la vitrina y en el market.</div>
+
     <!-- LOGO -->
     <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">logo del concesionario</div>
     <div style="display:flex;align-items:center;gap:14px">
@@ -1847,8 +1852,8 @@ input[type=number]{-moz-appearance:textfield}
   </div>
 
   <!-- PUBLICACIONES -->
-  <div id="dh-content-pubs" style="display:none;padding:14px 18px 100px;flex-direction:column;gap:10px">
-    <div id="dh-pubs-list"></div>
+  <div id="dh-content-pubs" style="display:none;padding:14px 14px 100px;flex-direction:column;gap:12px">
+    <div id="dh-pubs-list" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
   </div>
 </div>
 
@@ -5738,6 +5743,10 @@ function handleEditarVitrina(){
   if(!USER_STATE.dealerActive){ showToast('activa tu vitrina primero'); return; }
   dhTab('vitrina');
   renderDhPubs();
+  // prellenar nombre actual
+  const inp=document.getElementById('dh-nombre-input');
+  if(inp && currentDealer?.nombre) inp.value=currentDealer.nombre;
+  else if(inp && USER_STATE.nombre) inp.value=USER_STATE.nombre;
   showView('dealer-hub');
 }
 
@@ -5763,8 +5772,22 @@ function dhUpload(input, type){
   showToast(type+' actualizado — guarda los cambios', true);
 }
 
-function saveDealerProfile(){
-  showToast('perfil de vitrina guardado', true);
+function dhNombrePreview(val){
+  // preview en tiempo real — actualiza USER_STATE si quieres reflejar en header
+  if(currentDealer && val.trim()) currentDealer.nombre = val.trim();
+}
+async function saveDealerProfile(){
+  const nombre=document.getElementById('dh-nombre-input')?.value.trim();
+  if(_supa && USER_STATE.concesionarioId){
+    const payload={};
+    if(nombre) payload.nombre=nombre;
+    if(Object.keys(payload).length){
+      const{error}=await _supa.from('concesionarios').update(payload).eq('id',USER_STATE.concesionarioId);
+      if(error){console.error('[ruedda] saveDealerProfile:',error.message);showToast('error al guardar: '+error.message);return;}
+      if(nombre && currentDealer) currentDealer.nombre=nombre;
+    }
+  }
+  showToast('perfil de vitrina guardado ✓', true);
 }
 
 function startDealerListing(){
@@ -5786,14 +5809,20 @@ function renderDhPubs(){
     return;
   }
   el.innerHTML = DEALER_LISTINGS_OWN.map((l,i)=>`
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 15px;display:flex;align-items:center;gap:12px">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.title}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:3px">${fmtBid(l.price)} · ${fmtNum(l.km)} km · <span style="color:rgba(100,220,100,.8)">${l.status}</span></div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer" onclick="openMarketDetail(${l.id},'vitrina')">
+      <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(${grads[l.id%grads.length]});display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
+        ${carPlaceholder(l.id,'small')}
+        <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:100px;padding:3px 8px;font-size:10px;font-weight:700;color:${l.status==='activa'?'rgba(100,220,100,.9)':'rgba(255,170,0,.9)'}">
+          ${l.status}
+        </div>
       </div>
-      <div style="display:flex;gap:7px;flex-shrink:0">
-        <button onclick="dhRepublicar(${i})" style="background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.2);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;color:#e6f03b;cursor:pointer;transition:all .15s">republicar</button>
-        <button onclick="dhEliminar(${i})" style="background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.18);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,80,80,.8);cursor:pointer;transition:all .15s">eliminar</button>
+      <div style="padding:10px 11px 12px;flex:1;display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
+        <div style="font-size:12px;font-weight:700;color:#e6f03b;margin-top:2px">${fmtBid(l.price)}</div>
+        <div style="display:flex;gap:5px;margin-top:4px">
+          <button onclick="event.stopPropagation();dhRepublicar(${i})" style="flex:1;background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.2);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:10px;font-weight:700;color:#e6f03b;cursor:pointer">republicar</button>
+          <button onclick="event.stopPropagation();dhEliminar(${i})" style="flex:1;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.18);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,80,80,.8);cursor:pointer">eliminar</button>
+        </div>
       </div>
     </div>`).join('');
 }
