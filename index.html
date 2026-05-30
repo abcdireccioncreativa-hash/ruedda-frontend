@@ -3790,11 +3790,17 @@ function openDetail(id){
   const inner=document.getElementById('gallery-inner');
   const dots=document.getElementById('gallery-dots');
   inner.innerHTML='';dots.innerHTML='';
-  for(let i=0;i<a.photos;i++){
+  const _hasPhotos=a.photoUrls&&a.photoUrls.length>0;
+  const _slideCount=_hasPhotos?a.photoUrls.length:(a.photos||1);
+  for(let i=0;i<_slideCount;i++){
     const slide=document.createElement('div');
     slide.className='photo-slide';
     slide.style.background=`linear-gradient(${grads[a.id%grads.length]})`;
-    slide.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.4"><div>${carPlaceholder(a.id)}</div><div style="font-size:12px;color:#555">foto ${i+1} de ${a.photos}</div></div>`;
+    if(_hasPhotos){
+      slide.innerHTML=`<img src="${a.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`;
+    } else {
+      slide.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.4"><div>${carPlaceholder(a.id)}</div><div style="font-size:12px;color:#555">foto ${i+1} de ${_slideCount}</div></div>`;
+    }
     inner.appendChild(slide);
     const dot=document.createElement('div');
     dot.className='gallery-dot'+(i===0?' active':'');
@@ -7271,7 +7277,7 @@ async function _loadAuctions(){
       return {id:a.id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs:{'transmisión':a.transmision,'combustible':a.combustible}};
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
-    if(typeof renderAuctions==='function') renderAuctions();
+    if(typeof renderCards==='function') renderCards();
     _subscribeToAuctions();
   }catch(e){console.error('[ruedda] _loadAuctions catch:',String(e?.message||e));}
 }
@@ -7321,7 +7327,7 @@ function _subscribeToAuctions(){
   _supa.channel('ruedda-bids').on('postgres_changes',{event:'INSERT',schema:'public',table:'bids'},payload=>{
     const bid=payload.new;
     const a=AUCTIONS.find(x=>x.id===bid.auction_id);
-    if(a){a.currentBid=bid.amount;a.bidCount=(a.bidCount||0)+1;if(typeof renderAuctions==='function')renderAuctions();if(currentAuction?.id===bid.auction_id&&typeof renderDetailBid==='function')renderDetailBid();}
+    if(a){a.currentBid=bid.amount;a.bidCount=(a.bidCount||0)+1;if(typeof renderCards==='function')renderCards();if(currentAuction?.id===bid.auction_id&&typeof renderDetailBid==='function')renderDetailBid();}
   }).subscribe();
 }
 
