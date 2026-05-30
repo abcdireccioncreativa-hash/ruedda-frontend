@@ -4465,7 +4465,7 @@ function confirmPayment(){
   const code = cta?.dataset?.inviteCode;
   if(code){
     _consumeCode(code); // async - fire and forget, already validated at redeemInviteCode
-    if(pendingVenderType==='consesionario'&&isConcesionario()&&!isParticular()){
+    if(pendingVenderType==='consesionario'&&(isConcesionario()||USER_STATE.role==='concesionario')&&!isParticular()){
       // activar vitrina en DB
       const exp=new Date();exp.setDate(exp.getDate()+30);
       USER_STATE.dealerActive=true;USER_STATE.dealerExpiry=exp.toISOString();
@@ -4723,7 +4723,7 @@ async function processPayment(){
     PAID_TYPES[pendingVenderType]=true;
     closeCheckout();
     // ── si es concesionario, activar vitrina — no abrir form de publicación ──
-    if(pendingVenderType==='consesionario'&&isConcesionario()){
+    if(pendingVenderType==='consesionario'&&(isConcesionario()||USER_STATE.role==='concesionario')){
       const uid=await _getUid();
       USER_STATE.dealerActive=true;
       const exp=new Date(Date.now()+30*86400000).toISOString();
@@ -4841,7 +4841,7 @@ function _showVitrinaActivadaSplash(){
       <div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.6;font-weight:400">En la sección <span style="color:#e6f03b;font-weight:600">Cuenta</span> encontrarás<br>Administrar vitrina digital.</div>
     </div>`;
   document.body.appendChild(sp);
-  requestAnimationFrame(()=>{ sp.style.opacity='1'; });
+  requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ sp.style.opacity='1'; }); });
   setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>{ sp.remove(); showView('cuenta'); },320); },2600);
 }
 
