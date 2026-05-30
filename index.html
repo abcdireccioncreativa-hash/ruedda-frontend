@@ -6326,20 +6326,32 @@ function updateCuentaView(){
 }
 
 function logOut(){
-  window._rueddaUser = null;
-  if(_supa) _supa.auth.signOut().catch(()=>{});
-  USER_STATE.role='guest';
-  USER_STATE.id=null;
-  USER_STATE.nombre=null;
-  USER_STATE.email=null;
-  USER_STATE.username=null;
-  USER_STATE.dealerActive=false;
-  USER_STATE.dealerExpiry=null;
-  Object.keys(PAID_TYPES).forEach(k=>delete PAID_TYPES[k]);
-  isLoggedIn=false;
-  updateHamburgerAdmin();
-  updateCuentaView();
-  showToast('sesión cerrada');
+  const nombre=USER_STATE.nombre||USER_STATE.username||'';
+  // splash de despedida
+  const sp=document.createElement('div');
+  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#000;opacity:0;transition:opacity .3s ease;pointer-events:none';
+  sp.innerHTML=`
+    <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:#fff;opacity:0;animation:splashFade .4s ease .15s forwards">
+      nos vemos${nombre?', <span style="color:#e6f03b">'+nombre+'</span>':''}
+    </div>
+    <div style="font-size:13px;color:rgba(255,255,255,.3);opacity:0;animation:splashFade .4s ease .3s forwards;font-weight:400">hasta pronto · ruedda</div>`;
+  document.body.appendChild(sp);
+  requestAnimationFrame(()=>{ sp.style.opacity='1'; });
+  setTimeout(()=>{
+    window._rueddaUser=null;
+    if(_supa) _supa.auth.signOut().catch(()=>{});
+    USER_STATE.role='guest';USER_STATE.id=null;USER_STATE.nombre=null;
+    USER_STATE.email=null;USER_STATE.username=null;
+    USER_STATE.dealerActive=false;USER_STATE.dealerExpiry=null;
+    USER_STATE.concesionarioId=null;
+    Object.keys(PAID_TYPES).forEach(k=>delete PAID_TYPES[k]);
+    isLoggedIn=false;
+    updateHamburgerAdmin();
+    updateCuentaView();
+    showView('home');
+    sp.style.opacity='0';
+    setTimeout(()=>sp.remove(),320);
+  },1100);
 }
 
 
