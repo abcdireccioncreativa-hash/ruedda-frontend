@@ -89,8 +89,8 @@ input[type=number]{-moz-appearance:textfield}
 
 /* LIQUID GLASS DROPDOWN */
 .dropdown-wrap{position:relative}
-.dropdown-menu{display:none;position:absolute;top:calc(100% + 12px);left:0;z-index:50;min-width:200px;animation:slideDown .22s ease}
-.dropdown-menu.open{display:block}
+.dropdown-menu{position:absolute;top:calc(100% + 12px);left:0;z-index:50;min-width:200px;opacity:0;transform:translateY(-8px);transition:opacity .28s cubic-bezier(.32,.72,0,1),transform .28s cubic-bezier(.32,.72,0,1);pointer-events:none}
+.dropdown-menu.open{opacity:1;transform:translateY(0);pointer-events:all}
 .dropdown-glass{background:rgba(20,20,22,0.85);backdrop-filter:blur(32px) saturate(180%);-webkit-backdrop-filter:blur(32px) saturate(180%);border:1px solid rgba(255,255,255,0.1);border-radius:18px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,0.06)}
 .dropdown-item{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;letter-spacing:-.2px}
 .dropdown-item:hover{background:rgba(255,255,255,.05)}
@@ -425,7 +425,8 @@ input[type=number]{-moz-appearance:textfield}
 .search-cat-item:hover{color:var(--lime)}
 
 /* BID MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end;opacity:0;transition:opacity .32s ease}
+.modal-overlay.open{opacity:1}
 .modal-overlay.open{display:flex}
 .modal-sheet{background:rgba(14,14,14,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:24px 24px 0 0;padding:22px 18px 44px;width:100%;border:1px solid rgba(255,255,255,.1);border-bottom:none;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)}
 .modal-handle{width:36px;height:4px;background:var(--muted2);border-radius:2px;margin:0 auto 20px}
@@ -6220,7 +6221,7 @@ async function secretAdminBypass(){
   updateCuentaView();
   showToast('bienvenido, SuperAdmin ✓',true);
   const ov=document.getElementById('auth-overlay');if(ov)ov.classList.remove('open');
-  const authSheet=document.getElementById('auth-sheet');if(authSheet)authSheet.classList.remove('open');
+  closeAuthSheet();
   setTimeout(()=>showView('superadmin'),400);
 }
 function checkSuperAdminLogin(){
@@ -6313,7 +6314,7 @@ function _toggleRueddaExtra(){
   requestAnimationFrame(()=>ld.classList.add('show'));
   setTimeout(()=>{
     showView('ruedda-extra');
-    document.getElementById('view-ruedda-extra').scrollTop=0;
+    window.scrollTo(0,0);
     ld.classList.remove('show');
     setTimeout(()=>{ld.style.display='none';},380);
   },1800);
@@ -6415,7 +6416,9 @@ function showLandingAuth(mode){
   const rw=document.getElementById('auth-remember-wrap');if(rw)rw.style.display=isLogin?'flex':'none';
   document.getElementById('auth-toggle-text').textContent=isLogin?'¿no tienes cuenta?':'¿ya tienes cuenta?';
   document.getElementById('auth-toggle-btn').textContent=isLogin?'registrate':'iniciar sesión';
-  document.getElementById('auth-sheet').classList.add('open');
+  const _as=document.getElementById('auth-sheet');
+  _as.style.display='flex';
+  requestAnimationFrame(()=>_as.classList.add('open'));
 }
 
 function setAuthType(type){
@@ -6523,7 +6526,12 @@ function triggerGuestBlock(accion){
 function closeModal(id){ const el=document.getElementById(id); if(el) el.classList.remove('open'); }
 
 function toggleAuthMode(){showLandingAuth(authMode==='register'?'login':'register')}
-function closeAuthSheet(){document.getElementById('auth-sheet').classList.remove('open')}
+function closeAuthSheet(){
+  const el=document.getElementById('auth-sheet');
+  if(!el)return;
+  el.style.opacity='0';
+  setTimeout(()=>{el.classList.remove('open');el.style.opacity='';},320);
+}
 let _rememberChecked=false;
 function _toggleRemember(){
   _rememberChecked=!_rememberChecked;
@@ -6532,20 +6540,44 @@ function _toggleRemember(){
   if(ui){ ui.style.background=_rememberChecked?'#e6f03b':'transparent'; ui.style.borderColor=_rememberChecked?'#e6f03b':'rgba(255,255,255,.18)'; }
   if(icon){ icon.style.display=_rememberChecked?'block':'none'; }
 }
-function _showLoginSplash(nombre){
+function _showLoadingSplash(){
   let sp=document.getElementById('login-splash');
   if(sp) sp.remove();
   sp=document.createElement('div');
   sp.id='login-splash';
-  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#000;opacity:0;transition:opacity .35s ease';
+  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#000;opacity:0;transition:opacity .25s ease';
+  sp.innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;width:100%">
+      <div style="font-size:20px;font-weight:800;letter-spacing:-.4px;color:#fff;opacity:0;animation:splashFade .3s ease .1s forwards">Iniciando sesión</div>
+      <div style="width:160px;height:3px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden">
+        <div id="login-progress-bar" style="height:100%;width:0%;background:#e6f03b;border-radius:99px;transition:width 2.2s cubic-bezier(.22,1,.36,1)"></div>
+      </div>
+    </div>`;
+  document.body.appendChild(sp);
+  requestAnimationFrame(()=>{
+    sp.style.opacity='1';
+    requestAnimationFrame(()=>{
+      const bar=document.getElementById('login-progress-bar');
+      if(bar) bar.style.width='85%';
+    });
+  });
+}
+function _showLoginSplash(nombre){
+  let sp=document.getElementById('login-splash');
+  if(!sp){
+    sp=document.createElement('div');
+    sp.id='login-splash';
+    sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#000;opacity:1;transition:opacity .35s ease';
+    document.body.appendChild(sp);
+  }
+  // muta el contenido sin sacar el div del DOM — sin gap
+  sp.style.opacity='1';
   sp.innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke="rgba(230,240,59,0.15)" stroke-width="1.5"/><circle cx="24" cy="24" r="23" stroke="#e6f03b" stroke-width="1.5" stroke-dasharray="145" stroke-dashoffset="145" style="animation:splashRing .8s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"><animate attributeName="stroke-dashoffset" from="145" to="0" dur=".8s" begin=".1s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"/></circle><path d="M16 24l5 5 11-11" stroke="#e6f03b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .75s forwards"><animate attributeName="opacity" from="0" to="1" dur=".3s" begin=".75s" fill="freeze"/></path></svg>
-      <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:#fff;opacity:0;animation:splashFade .4s ease .5s forwards">bienvenido${nombre?', <span style="color:#e6f03b">'+nombre+'</span>':''}</div>
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:#fff;opacity:0;animation:splashFade .4s ease .1s forwards">bienvenido${nombre?', <span style="color:#e6f03b">'+nombre+'</span>':''}</div>
     </div>`;
-  document.body.appendChild(sp);
-  requestAnimationFrame(()=>{ sp.style.opacity='1'; });
-  setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>sp.remove(),350); },1100);
+  setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>sp.remove(),350); },1300);
 }
 function _togglePwd(id,btn){
   const inp=document.getElementById(id);
@@ -6567,11 +6599,15 @@ async function completeAuth(){
 
   const btn=document.getElementById('auth-cta');
   if(btn){btn.textContent='cargando...';btn.disabled=true;}
+  if(authMode!=='register') _showLoadingSplash();
   try{
     if(authMode==='register') await _rueddaRegister(email,pass);
     else await _rueddaLogin(email,pass);
   }catch(e){
     console.error('[ruedda auth]',e);
+    // remueve loading splash si falla
+    const sp=document.getElementById('login-splash');
+    if(sp){sp.style.opacity='0';setTimeout(()=>sp.remove(),250);}
     showToast(e.message||'credenciales incorrectas');
   }finally{
     if(btn){btn.textContent=authMode==='register'?'crear cuenta y entrar':'entrar';btn.disabled=false;}
@@ -6598,7 +6634,6 @@ async function _rueddaLogin(email,pass){
   if(error) throw new Error(error.message==='Invalid login credentials'?'correo o contraseña incorrectos':error.message);
   const{data:profile,error:pe}=await _supa.from('users').select('*').eq('id',data.user.id).single();
   if(pe||!profile) throw new Error('perfil no encontrado');
-  _rueddaApplySession(profile);
   // si es concesionario, cargar su perfil de vitrina
   if(profile.role==='concesionario'){
     const{data:dealer}=await _supa.from('concesionarios').select('id,activo,plan_expiry').eq('user_id',data.user.id).maybeSingle();
@@ -6608,9 +6643,12 @@ async function _rueddaLogin(email,pass){
       USER_STATE.dealerExpiry=dealer.plan_expiry||null;
     }
   }
+  _rueddaApplySession(profile);
   closeAuthSheet();
-  // splash de bienvenida fintech
-  _showLoginSplash(profile.nombre||'');
+  // completa la barra al 100% con spring, luego crossfade al splash de bienvenido
+  const bar=document.getElementById('login-progress-bar');
+  if(bar){bar.style.transition='width .4s cubic-bezier(.22,1,.36,1)';bar.style.width='100%';}
+  setTimeout(()=>_showLoginSplash(profile.nombre||''),50);
   if(profile.role==='superadmin'){updateHamburgerAdmin();setTimeout(()=>showView('superadmin'),1200);}
   else if(isDesktop()) setTimeout(()=>enterApp(),1200);
   _rueddaLoadUserData(data.user.id,profile.role);
