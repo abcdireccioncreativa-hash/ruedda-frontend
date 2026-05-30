@@ -6453,7 +6453,7 @@ async function saCrearConcesionario(){
     // 2. crear fila en users
     await _supa.from('users').upsert({id:uid,nombre:rep||nombre,email,username:username||nombre.toLowerCase().replace(/\s+/g,'_'),role:'concesionario'},{onConflict:'id'});
     // 3. crear fila en concesionarios (inactiva — se activa cuando paga o usa código)
-    const{error:dealerErr}=await _supa.from('concesionarios').insert({user_id:uid,nombre,tag:'',ciudad:ciudad||'',activo:true});
+    const{error:dealerErr}=await _supa.from('concesionarios').insert({user_id:uid,nombre,tag:'',ciudad:ciudad||'',activo:false});
     if(dealerErr) throw new Error('Concesionario: '+dealerErr.message);
     showToast('concesionario creado: '+nombre+' ✓',true);
     ['sa-d-nombre','sa-d-rep','sa-d-email','sa-d-username','sa-d-ubicacion','sa-d-cedula','sa-d-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -6671,9 +6671,9 @@ function dhNombrePreview(val){
 async function saveDealerProfile(){
   const nombre=document.getElementById('dh-nombre-input')?.value.trim();
   if(_supa && USER_STATE.concesionarioId){
-    const payload={activo:true};
+    const payload={};
     if(nombre) payload.nombre=nombre;
-    if(Object.keys(payload).length){
+    if(Object.keys(payload).length && USER_STATE.concesionarioId){
       const{error}=await _supa.from('concesionarios').update(payload).eq('id',USER_STATE.concesionarioId);
       if(error){console.error('[ruedda] saveDealerProfile:',error.message);showToast('error al guardar: '+error.message);return;}
       if(nombre && currentDealer) currentDealer.nombre=nombre;
