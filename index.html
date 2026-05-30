@@ -64,9 +64,10 @@ input[type=number]{-moz-appearance:textfield}
 .btn-vender:active{transform:scale(.97);background:var(--lime-dark)}
 
 /* VENDER TYPE MODAL */
-.vender-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;align-items:flex-end}
-.vender-modal.open{display:flex;animation:fadeIn .2s ease}
-.vender-sheet{background:#141414;border-radius:26px 26px 0 0;padding:24px 20px 48px;width:100%;border:1px solid var(--border);border-bottom:none;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)}
+.vender-modal{display:none;position:fixed;inset:0;z-index:300;align-items:flex-end;background:rgba(0,0,0,.55);opacity:0;transition:opacity .42s cubic-bezier(.32,.72,0,1)}
+.vender-modal.open{display:flex;opacity:1}
+.vender-sheet{background:#141414;border-radius:26px 26px 0 0;padding:24px 20px 48px;width:100%;border:1px solid var(--border);border-bottom:none;transform:translateY(100%);transition:transform .42s cubic-bezier(.32,.72,0,1)}
+.vender-modal.open .vender-sheet{transform:translateY(0)}
 .vender-handle{width:36px;height:4px;background:var(--muted2);border-radius:2px;margin:0 auto 24px}
 .vender-sheet-title{font-size:22px;font-weight:700;margin-bottom:6px;letter-spacing:-.4px}
 .vender-sheet-sub{font-size:14px;color:var(--muted);margin-bottom:24px}
@@ -3979,8 +3980,8 @@ function doSearch(q){
 function applySearch(q){document.getElementById('search-input').value=q;doSearch(q)}
 
 // ===================== VENDER =====================
-function openVenderModal(){updateVenderModal();document.getElementById('vender-modal').classList.add('open');}
-function closeVenderModal(){document.getElementById('vender-modal').classList.remove('open')}
+function openVenderModal(){updateVenderModal();const m=document.getElementById('vender-modal');m.style.display='flex';requestAnimationFrame(()=>m.classList.add('open'));}
+function closeVenderModal(){const m=document.getElementById('vender-modal');m.classList.remove('open');setTimeout(()=>{m.style.display='none';},420);}
 function closeVenderModalOutside(e){if(e.target.id==='vender-modal')closeVenderModal()}
 const PLANS = {
   particular: {
