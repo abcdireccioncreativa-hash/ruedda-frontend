@@ -382,14 +382,6 @@ input[type=number]{-moz-appearance:textfield}
 .card-loading-pill{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;pointer-events:none}
 .card-loading-ring{width:22px;height:22px;border:2px solid rgba(255,255,255,0.15);border-top-color:rgba(255,255,255,0.85);border-radius:50%;animation:cardSpin .8s linear infinite;flex-shrink:0}
 .card-loading-text{font-size:10px;font-weight:600;color:rgba(255,255,255,0.45);letter-spacing:.2px;font-family:var(--font);animation:cardPulse 1.8s ease infinite}
-/* RUEDDEANDO OVERLAY */
-@keyframes ruedSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-@keyframes ruedPulse{0%,100%{opacity:.35}50%{opacity:.9}}
-.rued-overlay{position:fixed;inset:0;z-index:9990;background:rgba(18,18,20,0.38);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;pointer-events:none;opacity:0;transition:opacity .2s ease}
-.rued-overlay.in{opacity:1}
-.rued-overlay.out{opacity:0;transition:opacity .1s ease}
-.rued-ring{width:34px;height:34px;border:2px solid rgba(255,255,255,0.1);border-top-color:rgba(255,255,255,0.75);border-radius:50%;animation:ruedSpin .9s cubic-bezier(.4,0,.6,1) infinite}
-.rued-text{font-size:12px;font-weight:600;color:rgba(255,255,255,0.45);letter-spacing:.8px;font-family:var(--font);animation:ruedPulse 1.6s ease infinite}
 /* SPINNER GUARDAR */
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes splashFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -2767,12 +2759,6 @@ function renderCurrentSection(){
     document.getElementById('tab-chocados').classList.toggle('active', currentTab==='chocados');
     renderCards();
   } else if(s==='market'){
-    // forzar re-animación de cards al cambiar sección
-    document.querySelectorAll('#market-grid .market-card').forEach(c=>{
-      c.style.animation='none';
-      c.offsetHeight; // reflow
-      c.style.animation='';
-    });
     renderMarket();
   } else if(s==='consesionarios'){
     renderDealerGrid();
@@ -3414,6 +3400,10 @@ function renderMarket(){
     el.className='market-card';
     el.style.animationDelay=(idx*40)+'ms';
     el.onclick=()=>openMarketDetail(l.id);
+    el.addEventListener('touchstart',()=>{el.style.transition='transform .1s ease';el.style.transform='scale(.97)';},{passive:true});
+    el.addEventListener('touchend',()=>{el.style.transform='scale(1)';setTimeout(()=>{el.style.transition='';},150);},{passive:true});
+    el.addEventListener('mousedown',()=>{el.style.transition='transform .1s ease';el.style.transform='scale(.97)';});
+    el.addEventListener('mouseup',()=>{el.style.transform='scale(1)';});
     el.innerHTML=`
       <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden">${carPlaceholder(l.id,'small')}</div>
       <div class="market-card-body">
@@ -3425,26 +3415,9 @@ function renderMarket(){
   });
 }
 let mktDetailOrigin='market';
-function _showRueddeando(cb){
-  let ov=document.getElementById('rued-overlay');
-  if(!ov){
-    ov=document.createElement('div');
-    ov.id='rued-overlay';
-    ov.className='rued-overlay';
-    ov.innerHTML='<div class="rued-ring"></div><div class="rued-text">rueddeando...</div>';
-    document.body.appendChild(ov);
-  }
-  ov.classList.remove('out');
-  requestAnimationFrame(()=>ov.classList.add('in'));
-  setTimeout(()=>{
-    if(cb) cb();
-    setTimeout(()=>{ov.classList.add('out');ov.classList.remove('in');},100);
-  },460);
-}
 function openMarketDetail(id, origin){
   const l=MARKET_LISTINGS.find(x=>x.id===id);
   if(!l)return;
-  _showRueddeando(()=>{
   mktDetailOrigin=origin||'market';
   currentMarketListing=l;
   // gallery
@@ -3514,7 +3487,6 @@ function openMarketDetail(id, origin){
   document.getElementById('mkt-comment-list').innerHTML='<div class="comment-empty">sé el primero en preguntar</div>';
   updateMktWatchlist();
   showView('market-detail');
-  }); // _showRueddeando
 }
 
 let mktPhotoIdx=0,currentMarketListing=null;
