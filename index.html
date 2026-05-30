@@ -1744,7 +1744,7 @@ html{scrollbar-width:none}
         <button type="button" id="cond-btn-usado" onclick="setListingCond('usado')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;background:var(--lime);color:#000;border-radius:13px 0 0 13px">usado</button>
         <button type="button" id="cond-btn-nuevo" onclick="setListingCond('nuevo')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;background:none;color:rgba(255,255,255,.45);border-radius:0 13px 13px 0">nuevo</button>
       </div>
-      <select class="form-select">
+      <select class="form-select" id="estado-fisico-select">
         <option value="">seleccionar</option>
         <option>impecable</option>
         <option>excelente</option>
@@ -2925,7 +2925,7 @@ function showView(name,param){
     if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados()]);
   } else {}
   if(name==='vender')populateYears();
-  if(name==='cuenta'){document.getElementById('stat-guardadas').textContent=watchlist.size;updateCuentaView();}
+  if(name==='cuenta'){document.getElementById('stat-guardadas').textContent=watchlist.size;updateCuentaView();showDealerFab(false);}
   if(name==='notificaciones'){renderNotifications();document.getElementById('notif-dot').style.display='none';}
   if(name==='favoritos')renderFavoritos();
   if(name==='carspotting')loadCarspotting();
@@ -4464,7 +4464,9 @@ function confirmPayment(){
       if(_supa&&USER_STATE.concesionarioId){
         _supa.from('concesionarios').update({activo:true,plan_expiry:exp.toISOString()}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] activar vitrina:',e.message));
       }
-      showToast('vitrina activada — 30 días ✓',true);
+      document.getElementById('payment-sheet').classList.remove('open');
+      _showVitrinaActivadaSplash();
+      return;
     } else { showToast('código aplicado — acceso sin cargo',true); }
     delete cta.dataset.inviteCode;
     const msgEl=document.getElementById('invite-code-msg');
@@ -4721,7 +4723,8 @@ async function processPayment(){
       if(_supa&&USER_STATE.concesionarioId){
         _supa.from('concesionarios').update({activo:true,plan_expiry:exp}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] activar vitrina código:',e.message));
       }
-      showToast('vitrina activada — 30 días ✓',true);
+      closeCheckout();
+      _showVitrinaActivadaSplash();
       return;
     }
     // particular o subasta — abrir form de publicación
@@ -4814,6 +4817,24 @@ async function processPayment(){
       showToast('error al publicar: '+(e?.message||'intenta de nuevo'));
     }
   }
+}
+
+function _showVitrinaActivadaSplash(){
+  const sp=document.createElement('div');
+  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#000;opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
+  sp.innerHTML=`
+    <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+      <circle cx="26" cy="26" r="25" stroke="rgba(230,240,59,.15)" stroke-width="1.5"/>
+      <circle cx="26" cy="26" r="25" stroke="#e6f03b" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
+      <path d="M17 26l6 6 12-12" stroke="#e6f03b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:8px;opacity:0;animation:splashFade .4s ease .15s forwards">
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:#fff">Vitrina activada.</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.6;font-weight:400">En la sección <span style="color:#e6f03b;font-weight:600">Cuenta</span> encontrarás<br>Administrar vitrina digital.</div>
+    </div>`;
+  document.body.appendChild(sp);
+  requestAnimationFrame(()=>{ sp.style.opacity='1'; });
+  setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>{ sp.remove(); showView('cuenta'); },320); },2600);
 }
 
 function openDealerVitrina(){
@@ -4971,6 +4992,7 @@ async function publishListing(){
   const transmision=getSelByLabel('transmisión');
   const combustible=getSelByLabel('combustible');
   const condicion=window._listingCondNuevo?'nuevo':'usado';
+  const estadoFisico=document.getElementById('estado-fisico-select')?.value||'';
   const esChocado=document.getElementById('chocado-toggle')?.checked||false;
   const tipoDano=document.querySelector('.dano-pill.active')?.textContent?.trim()||'';
   const estChocado=document.querySelector('.estado-pill.active')?.textContent?.trim()||'';
@@ -5009,7 +5031,7 @@ async function publishListing(){
       const{data:cd}=await _supa.from('concesionarios').select('id').eq('user_id',userId).maybeSingle();
       concesionarioId = cd?.id||null;
     }
-    const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,ciudad,descripcion,precio_usd:precioFijo||null,condicion,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
+    const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
     const payload = esListing
       ? {...payloadBase, concesionario_id:concesionarioId}
       : {...payloadBase, tipo, sin_reserva:precioRes===0&&tipo==='subasta', duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null};
@@ -5306,10 +5328,17 @@ async function _loadMyListings(){
   if(!grid) return;
   if(!_supa||!USER_STATE.id){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
   try{
-    const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado').eq('user_id',USER_STATE.id).order('created_at',{ascending:false});
-    if(error){ console.error('[ruedda] _loadMyListings:',error.message); grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,80,80,.5);font-size:13px">error al cargar publicaciones</div>'; return; }
-    if(!data?.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
-    MOCK_MY_LISTINGS.splice(0,MOCK_MY_LISTINGS.length,...data.map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.estado,daysLeft:0,fotos:0,type:'market',desc:''})));
+    const[resListings,resAuctions]=await Promise.all([
+      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}),
+      _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo').eq('user_id',USER_STATE.id).order('created_at',{ascending:false})
+    ]);
+    if(resListings.error) console.error('[ruedda] _loadMyListings listings:',resListings.error.message);
+    if(resAuctions.error) console.error('[ruedda] _loadMyListings auctions:',resAuctions.error.message);
+    const listings=(resListings.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.estado,daysLeft:0,fotos:0,type:'market',desc:''}));
+    const auctions=(resAuctions.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status:l.estado,daysLeft:0,fotos:0,type:'subasta',desc:''}));
+    const all=[...listings,...auctions];
+    if(!all.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
+    MOCK_MY_LISTINGS.splice(0,MOCK_MY_LISTINGS.length,...all);
     _renderMisPubGrid();
   }catch(e){ console.error('[ruedda] _loadMyListings catch:',String(e?.message||e)); }
 }
@@ -5318,7 +5347,10 @@ function _renderMisPubGrid(){
   const grid=document.getElementById('mis-pub-grid');
   if(!grid) return;
   if(!MOCK_MY_LISTINGS.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
-  grid.innerHTML=MOCK_MY_LISTINGS.map(l=>`
+  const markets=MOCK_MY_LISTINGS.filter(l=>l.type==='market');
+  const subastas=MOCK_MY_LISTINGS.filter(l=>l.type==='subasta');
+  const sep=(label)=>`<div style="grid-column:1/-1;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px">${label}</div>`;
+  const renderCard=(l)=>`
     <div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative">
         <svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>
@@ -5332,7 +5364,11 @@ function _renderMisPubGrid(){
           <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,80,80,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  const parts=[];
+  if(markets.length){parts.push(sep('market'));parts.push(...markets.map(renderCard));}
+  if(subastas.length){parts.push(sep('subastas'));parts.push(...subastas.map(renderCard));}
+  grid.innerHTML=parts.join('');
 }
 
 function closeMisPub(){
@@ -6251,7 +6287,7 @@ async function renderModQueue(type){
   let data=[], modError=null;
   if(type==='subasta'){
     const res=await _supa.from('auctions')
-      .select('id,titulo,marca,modelo,year,km,tipo,estado,ciudad,descripcion,created_at,user_id,concesionario_id')
+      .select('id,titulo,marca,modelo,year,km,tipo,estado,ciudad,descripcion,created_at,user_id,concesionario_id,users(nombre,email)')
       .in('estado',['revision','pendiente_pago'])
       .in('tipo',['subasta','chocado'])
       .order('created_at',{ascending:true});
@@ -6298,7 +6334,7 @@ async function openModReview(id){
   if(!item){ showToast('error: publicación no encontrada'); return; }
   // convert to legacy format for modal
   item.title=`${item.year||''} ${item.marca||''} ${item.modelo||''}`.trim();
-  item.user=item.users?.nombre||item.users?.email||'usuario';
+  item.user=item.users?.nombre||item.users?.[0]?.nombre||item.users?.email||'usuario';
   item.km=item.km?item.km.toLocaleString()+' km':'—';
   item.ciudad=item.ciudad||'—';
   item.desc=item.descripcion||'Sin descripción';
@@ -6407,7 +6443,7 @@ async function saCrearConcesionario(){
     // 2. crear fila en users
     await _supa.from('users').upsert({id:uid,nombre:rep||nombre,email,username:username||nombre.toLowerCase().replace(/\s+/g,'_'),role:'concesionario'},{onConflict:'id'});
     // 3. crear fila en concesionarios (inactiva — se activa cuando paga o usa código)
-    const{error:dealerErr}=await _supa.from('concesionarios').insert({user_id:uid,nombre,tag:'',ciudad:ciudad||'',activo:false});
+    const{error:dealerErr}=await _supa.from('concesionarios').insert({user_id:uid,nombre,tag:'',ciudad:ciudad||'',activo:true});
     if(dealerErr) throw new Error('Concesionario: '+dealerErr.message);
     showToast('concesionario creado: '+nombre+' ✓',true);
     ['sa-d-nombre','sa-d-rep','sa-d-email','sa-d-username','sa-d-ubicacion','sa-d-cedula','sa-d-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -6625,7 +6661,7 @@ function dhNombrePreview(val){
 async function saveDealerProfile(){
   const nombre=document.getElementById('dh-nombre-input')?.value.trim();
   if(_supa && USER_STATE.concesionarioId){
-    const payload={};
+    const payload={activo:true};
     if(nombre) payload.nombre=nombre;
     if(Object.keys(payload).length){
       const{error}=await _supa.from('concesionarios').update(payload).eq('id',USER_STATE.concesionarioId);
@@ -7193,7 +7229,9 @@ async function _rueddaRegister(email,pass){
 }
 
 function _rueddaApplySession(p){
-  setUserRole(p.role||'particular',{id:p.id||null,nombre:p.nombre||'',email:p.email||'',username:p.username||'',telefono:p.telefono||''});
+  // normalizar 'concesionario' (DB) → 'consesionario' (app-internal)
+  const role=p.role==='concesionario'?'consesionario':(p.role||'particular');
+  setUserRole(role,{id:p.id||null,nombre:p.nombre||'',email:p.email||'',username:p.username||'',telefono:p.telefono||''});
   updateHamburgerAdmin();
   updateCuentaView();
 }
