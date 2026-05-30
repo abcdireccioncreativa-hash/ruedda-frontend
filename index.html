@@ -4444,7 +4444,7 @@ function selectVenderType(type){
     return;
   }
   pendingVenderType = type;
-  if(type==='consesionario' && isConcesionario()){
+  if(type==='consesionario' && (isConcesionario()||USER_STATE.role==='concesionario')){
     closeVenderModal();
     if(USER_STATE.dealerActive){ handleEditarVitrina(); return; }
     openPaymentSheetForType('consesionario');
@@ -4624,6 +4624,35 @@ function confirmPlan(id, type, e){
   const priceMap={'full':4.95,'plus':type==='subasta'?23.95:9.93,'normal':7.99};
   PLAN_PRICE[pendingVenderType] = priceMap[id]||4.95;
   openCheckout();
+}
+
+async function processPlanPayment(){
+  // Lee el código del pds-code-input (plan-detail-sheet)
+  const input=document.getElementById('pds-code-input');
+  const btn=document.getElementById('pds-pay-btn');
+  const val=(input?.value||'').trim().toUpperCase();
+  if(!val){showToast('ingresa un código de invitación');return;}
+  if(btn){btn.textContent='validando...';btn.disabled=true;}
+  const found=_supa?await _validateCode(val):null;
+  if(btn){btn.textContent='pagar y publicar';btn.disabled=false;}
+  if(!found){showToast('código inválido o agotado');return;}
+  _consumeCode(val);
+  PAID_TYPES[pendingVenderType]=true;
+  // cerrar el sheet
+  document.querySelectorAll('.modal-overlay.open').forEach(el=>el.classList.remove('open'));
+  if(pendingVenderType==='consesionario'&&(isConcesionario()||USER_STATE.role==='concesionario')){
+    USER_STATE.dealerActive=true;
+    const exp=new Date(Date.now()+30*86400000).toISOString();
+    USER_STATE.dealerExpiry=exp;
+    if(_supa&&USER_STATE.concesionarioId){
+      _supa.from('concesionarios').update({activo:true,plan_expiry:exp}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] processPlanPayment:',e.message));
+    }
+    if(_supa) _loadConcesionarios();
+    _showVitrinaActivadaSplash();
+    return;
+  }
+  showToast('código aplicado — publicando',true);
+  setTimeout(openVenderForm,600);
 }
 
 function closePricingSheet(){
