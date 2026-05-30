@@ -151,7 +151,7 @@ input[type=number]{-moz-appearance:textfield}
 
 /* VIEWS */
 .view{display:none}
-.view.active{display:block;animation:fadeIn .2s ease}
+.view.active{display:block}
 
 /* DETAIL LAYOUT — mobile first */
 .detail-header-block{padding:16px 0 4px}
@@ -164,7 +164,7 @@ input[type=number]{-moz-appearance:textfield}
 .detail-back svg{width:20px;height:20px;flex-shrink:0}
 .detail-back:hover{opacity:.7}
 .photo-gallery{position:relative;width:100%;aspect-ratio:16/10;background:#111;overflow:hidden}
-.photo-gallery-inner{display:flex;height:100%;transition:transform .32s cubic-bezier(.25,.46,.45,.94)}
+.photo-gallery-inner{display:flex;height:100%;transition:transform .22s cubic-bezier(.4,0,.2,1);will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}
 .photo-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center}
 .photo-counter{position:absolute;bottom:12px;right:12px;background:var(--badge);backdrop-filter:blur(8px);padding:5px 12px;border-radius:100px;font-size:12px;font-weight:500}
 .gallery-dots{display:flex;justify-content:center;gap:5px;padding:10px 0 4px}
@@ -377,10 +377,10 @@ input[type=number]{-moz-appearance:textfield}
 .cuenta-menu-item.muted{color:var(--muted)}
 
 /* CARD LOADING INDICATOR */
-@keyframes cardSpin{to{transform:rotate(360deg)}}
+@keyframes cardSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 @keyframes cardPulse{0%,100%{opacity:.5}50%{opacity:1}}
 .card-loading-pill{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;pointer-events:none}
-.card-loading-ring{width:22px;height:22px;border:2px solid rgba(255,255,255,0.15);border-top-color:rgba(255,255,255,0.85);border-radius:50%;animation:cardSpin .8s linear infinite;flex-shrink:0}
+.card-loading-ring{width:22px;height:22px;border:1.5px solid rgba(255,255,255,0.1);border-top-color:rgba(255,255,255,0.7);border-radius:50%;animation:cardSpin 1s cubic-bezier(.4,0,.6,1) infinite;flex-shrink:0;opacity:.85}
 .card-loading-text{font-size:10px;font-weight:600;color:rgba(255,255,255,0.45);letter-spacing:.2px;font-family:var(--font);animation:cardPulse 1.8s ease infinite}
 /* SPINNER GUARDAR */
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -1283,7 +1283,7 @@ input[type=number]{-moz-appearance:textfield}
             <div class="seller-card-info">
               <span class="seller-card-label">publicado por</span>
               <span class="seller-card-name" id="mkt-seller-name">vendedor</span>
-              <span id="mkt-seller-dealer-badge" style="display:none;font-size:10px;font-weight:700;color:rgba(230,240,59,.7);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">ver vitrina ›</span>
+              <span id="mkt-seller-dealer-badge" style="display:none;font-size:10px;font-weight:700;color:rgba(230,240,59,.7);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">ir a vitrina ›</span>
             </div>
           </div>
           <div class="detail-section-title">preguntas al vendedor</div>
@@ -3119,38 +3119,27 @@ async function renderPendingRefs(){
 }
 
 async function confirmRefSupa(refId, userId, linkedId, linkedTabla){
-  if(!_supa) return;
-  const{data:refRow}=await _supa.from('payment_refs').select('tipo').eq('id',refId).maybeSingle();
-  await _supa.from('payment_refs').update({status:'confirmado'}).eq('id',refId);
-  if(refRow?.tipo==='vitrina'){
-    const planExp=new Date(Date.now()+30*86400000).toISOString();
-    const{error:ve}=await _supa.from('concesionarios').update({activo:true,plan_expiry:planExp}).eq('user_id',userId);
-    if(ve) console.error('[ruedda] activar vitrina:',ve?.message);
-    if(userId) await (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'ganador',titulo:'\u00a1vitrina activada!',body:'Tu vitrina en Ruedda est\u00e1 activa. Ya puedes publicar tu inventario.',icon:'lime'}).catch(()=>{});
-    showToast('vitrina activada \u2713',true);
-  } else {
-    if(linkedId && linkedId!=='null' && linkedId!==''){
-      const t=linkedTabla||'auctions';
-      await _supa.from(t).update({estado:'revision'}).eq('id',linkedId).catch(e=>console.error('[ruedda] confirmRef update '+t+':',e));
-    }
-    if(userId) await (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'ganador',titulo:'\u00a1pago confirmado!',body:'Tu pago fue verificado. Tu publicaci\u00f3n est\u00e1 en revisi\u00f3n y ser\u00e1 aprobada pronto.',icon:'lime'}).catch(()=>{});
-    showToast('pago confirmado \u2713',true);
+  try{
+    await _apiPost('/api/verify-payment',{ref_id:refId,action:'confirmar'});
+    showToast('pago confirmado ✓',true);
+  }catch(e){
+    console.error('[ruedda confirmRefSupa]',e.message);
+    showToast('error al confirmar: '+e.message);
+    return;
   }
   renderPendingRefs();
   setTimeout(()=>renderModQueue('particular'),500);
 }
 
 async function rejectRefSupa(refId, userId, linkedId, linkedTabla){
-  if(!_supa) return;
-  await _supa.from('payment_refs').update({status:'rechazado'}).eq('id',refId);
-  if(linkedId && linkedId!=='null' && linkedId!==''){
-    const t=linkedTabla||'auctions';
-    await _supa.from(t).update({estado:'rechazada'}).eq('id',linkedId).catch(e=>console.error('[ruedda] rejectRef update '+t+':',e));
+  try{
+    await _apiPost('/api/verify-payment',{ref_id:refId,action:'rechazar'});
+    showToast('referencia rechazada');
+  }catch(e){
+    console.error('[ruedda rejectRefSupa]',e.message);
+    showToast('error al rechazar: '+e.message);
+    return;
   }
-  if(userId){
-    await (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'system',titulo:'pago rechazado',body:'Tu referencia de pago no pudo ser verificada. Cont\u00e1ctanos por soporte.',icon:''}).catch(()=>{});
-  }
-  showToast('referencia rechazada');
   renderPendingRefs();
 }
 
@@ -3252,16 +3241,34 @@ function setMFilter(key,value,label){
   btn.classList.remove('open');
   renderMarket();
 }
+// ── API HELPER ──
+async function _apiPost(endpoint, body){
+  let token='';
+  try{ const{data:{session}}=await _supa.auth.getSession(); token=session?.access_token||''; }catch(_){}
+  const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)});
+  const json=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(json.error||'error '+r.status);
+  return json;
+}
+async function _apiGet(endpoint){
+  let token='';
+  try{ const{data:{session}}=await _supa.auth.getSession(); token=session?.access_token||''; }catch(_){}
+  const r=await fetch(endpoint,{headers:{'Authorization':'Bearer '+token}});
+  const json=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(json.error||'error '+r.status);
+  return json;
+}
 // ── MARKET LISTADO GRID ──
 function openMktListado(){
   let ov=document.getElementById('mkt-listado-overlay');
   if(ov){ov.style.opacity='1';ov.style.transform='translateY(0)';return;}
   ov=document.createElement('div');
   ov.id='mkt-listado-overlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(18,18,20,0.97);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);z-index:500;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94);border-radius:20px 20px 0 0';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(12,12,14,0.55);backdrop-filter:blur(48px) saturate(200%);-webkit-backdrop-filter:blur(48px) saturate(200%);z-index:500;display:flex;flex-direction:column;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94);border-radius:20px 20px 0 0';
+  document.body.style.overflow='hidden';
   ov.innerHTML=`
-    <!-- HEADER STICKY -->
-    <div style="position:sticky;top:0;z-index:10;background:rgba(18,18,20,0.6);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-bottom:1px solid rgba(255,255,255,0.06);padding:14px 16px 0">
+    <!-- HEADER FIJO — fuera del scroll container -->
+    <div style="flex-shrink:0;z-index:10;background:rgba(10,10,12,0.72);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border-bottom:1px solid rgba(255,255,255,0.05);padding:14px 16px 0">
       <div style="display:flex;align-items:center;margin-bottom:14px;position:relative">
         <button onclick="closeMktListado()" style="background:none;border:none;padding:4px;cursor:pointer;color:rgba(255,255,255,.5);font-family:var(--font);font-size:14px;font-weight:500;display:flex;align-items:center;gap:5px;transition:color .15s;flex-shrink:0" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:17px;height:17px"><path d="m15 18-6-6 6-6"/></svg>
@@ -3270,13 +3277,16 @@ function openMktListado(){
         <div style="position:absolute;left:0;right:0;text-align:center;font-size:16px;font-weight:300;letter-spacing:-.2px;pointer-events:none">listado de <span style="color:#e6f03b;font-weight:800">vehículos</span></div>
       </div>
       <!-- SEARCH -->
-      <div style="display:flex;align-items:center;gap:10px;background:#000;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:11px 14px;margin-bottom:12px;transition:border-color .2s" onclick="this.querySelector('input').focus()" style="cursor:text">
+      <div style="display:flex;align-items:center;gap:10px;background:#000;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:11px 14px;margin-bottom:12px;transition:border-color .2s;cursor:text" onclick="this.querySelector('input').focus()">
         <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.35)" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input id="listado-search" type="text" placeholder="buscar marca, modelo, ciudad…" oninput="_filterListadoGrid(this.value)" style="flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:14px;color:#fff;caret-color:#e6f03b" onfocus="this.parentElement.style.borderColor='rgba(255,255,255,.2)'" onblur="this.parentElement.style.borderColor='rgba(255,255,255,.08)'">
         <button id="listado-clear" onclick="document.getElementById('listado-search').value='';_filterListadoGrid('')" style="display:none;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);font-size:16px;padding:0;line-height:1;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.3)'">×</button>
       </div>
     </div>
-    <div id="mkt-listado-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px 100px"></div>`;
+    <!-- SCROLL CONTAINER independiente — no hereda backdrop-filter -->
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y">
+      <div id="mkt-listado-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px 100px"></div>
+    </div>`;
   document.body.appendChild(ov);
   requestAnimationFrame(()=>{ov.style.opacity='1';ov.style.transform='translateY(0)';});
   _renderMktListadoGrid();
@@ -3298,7 +3308,7 @@ function _filterListadoGrid(q){
     const isFav=watchlist.has(l.id)||watchlist.has(String(l.id));
     return `<div onclick="openMarketDetail('${l.id}','listado')" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .22s ease both;animation-delay:${idx*25}ms">
       <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(${grads2[l.id%grads2.length]});position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
-        ${typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):''}
+        ${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'')}
         <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
         <button onclick="event.stopPropagation();toggleWatchlist('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
           <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'rgba(255,255,255,.8)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
@@ -3316,6 +3326,7 @@ function closeMktListado(){
   const ov=document.getElementById('mkt-listado-overlay');
   if(!ov) return;
   ov.style.opacity='0';ov.style.transform='translateY(18px)';
+  document.body.style.overflow='';
   setTimeout(()=>ov.remove(),260);
 }
 function _renderMktListadoGrid(){
@@ -3400,12 +3411,8 @@ function renderMarket(){
     el.className='market-card';
     el.style.animationDelay=(idx*40)+'ms';
     el.onclick=()=>openMarketDetail(l.id);
-    el.addEventListener('touchstart',()=>{el.style.transition='transform .1s ease';el.style.transform='scale(.97)';},{passive:true});
-    el.addEventListener('touchend',()=>{el.style.transform='scale(1)';setTimeout(()=>{el.style.transition='';},150);},{passive:true});
-    el.addEventListener('mousedown',()=>{el.style.transition='transform .1s ease';el.style.transform='scale(.97)';});
-    el.addEventListener('mouseup',()=>{el.style.transform='scale(1)';});
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden">${carPlaceholder(l.id,'small')}</div>
+      <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}</div>
       <div class="market-card-body">
         <div class="market-card-title">${l.title}</div>
         <div class="market-card-meta">${l.location.toLowerCase()}</div>
@@ -3424,12 +3431,17 @@ function openMarketDetail(id, origin){
   const inner=document.getElementById('mkt-gallery-inner');
   const dots=document.getElementById('mkt-gallery-dots');
   inner.innerHTML='';dots.innerHTML='';
-  const slides=l.photos||3;
+  const hasPhotos=l.photoUrls&&l.photoUrls.length>0;
+  const slides=hasPhotos?l.photoUrls.length:(l.photos||1);
   for(let i=0;i<slides;i++){
     const s=document.createElement('div');
     s.className='photo-slide';
     s.style.background='linear-gradient('+grads[l.id%grads.length]+')';
-    s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'<div style="font-size:12px;color:#555">foto '+(i+1)+' de '+slides+'</div></div>';
+    if(hasPhotos){
+      s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
+    } else {
+      s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'</div>';
+    }
     inner.appendChild(s);
     const d=document.createElement('div');
     d.className='gallery-dot'+(i===0?' active':'');
@@ -3455,6 +3467,24 @@ function openMarketDetail(id, origin){
   },0);
 
   document.getElementById('mkt-city').textContent=l.location;
+  // seller real desde Supabase si no hay nombre
+  if(_supa && l.user_id && !l.seller){
+    _supa.from('users').select('nombre,username').eq('id',l.user_id).maybeSingle().then(({data:u})=>{
+      if(u){
+        const nm=u.nombre||u.username||'Vendedor';
+        const ini=nm.charAt(0).toUpperCase();
+        const _av=document.getElementById('mkt-seller-avatar');
+        const _av2=document.getElementById('mkt-seller-avatar-bid');
+        const _nm=document.getElementById('mkt-seller-name');
+        const _nm2=document.getElementById('mkt-seller-name-bid');
+        if(_av){_av.textContent=ini;_av.style.background=`hsl(${(ini.charCodeAt(0)*47)%360},40%,28%)`;}
+        if(_av2) _av2.textContent=ini;
+        if(_nm) _nm.innerHTML=nm;
+        if(_nm2) _nm2.innerHTML=nm;
+        l.seller=nm;
+      }
+    }).catch(()=>{});
+  }
   // specs
   const sg=document.getElementById('mkt-specs');
   sg.innerHTML='<div class="spec-item"><div class="spec-label">año</div><div class="spec-value">'+l.year+'</div></div>'
@@ -3492,17 +3522,41 @@ function openMarketDetail(id, origin){
 let mktPhotoIdx=0,currentMarketListing=null;
 function goToMktSlide(i){
   if(!currentMarketListing)return;
-  const slides=currentMarketListing.photos||3;
+  const slides=(currentMarketListing.photoUrls?.length)||currentMarketListing.photos||1;
   mktPhotoIdx=Math.max(0,Math.min(i,slides-1));
-  document.getElementById('mkt-gallery-inner').style.transform='translateX(-'+mktPhotoIdx*100+'%)';
+  const inner=document.getElementById('mkt-gallery-inner');
+  if(inner) inner.style.transform='translateX(-'+mktPhotoIdx*100+'%)';
   document.querySelectorAll('#mkt-gallery-dots .gallery-dot').forEach((d,idx)=>d.classList.toggle('active',idx===mktPhotoIdx));
-  document.getElementById('mkt-photo-counter').textContent=(mktPhotoIdx+1)+' / '+slides;
+  const ctr=document.getElementById('mkt-photo-counter');
+  if(ctr) ctr.textContent=(mktPhotoIdx+1)+' / '+slides;
 }
 function setupMktSwipe(){
   const g=document.getElementById('mkt-gallery');
-  let sx=0;
-  g.ontouchstart=e=>{sx=e.touches[0].clientX};
-  g.ontouchend=e=>{const dx=e.changedTouches[0].clientX-sx;if(dx<-45)goToMktSlide(mktPhotoIdx+1);else if(dx>45)goToMktSlide(mktPhotoIdx-1)};
+  const inner=document.getElementById('mkt-gallery-inner');
+  let sx=0,dragging=false,startT=0;
+  g.ontouchstart=e=>{
+    sx=e.touches[0].clientX;startT=Date.now();dragging=true;
+    if(inner) inner.style.transition='none';
+  };
+  g.ontouchmove=e=>{
+    if(!dragging||!inner)return;
+    const dx=e.touches[0].clientX-sx;
+    const slides=(currentMarketListing?.photoUrls?.length)||currentMarketListing?.photos||1;
+    const base=-mktPhotoIdx*100;
+    const pct=base+(dx/g.offsetWidth*100);
+    inner.style.transform='translateX('+pct+'%)';
+  };
+  g.ontouchend=e=>{
+    if(!dragging)return;dragging=false;
+    if(inner) inner.style.transition='transform .22s cubic-bezier(.4,0,.2,1)';
+    const dx=e.changedTouches[0].clientX-sx;
+    const dt=Date.now()-startT;
+    const threshold=dt<200?20:45;
+    if(dx<-threshold)goToMktSlide(mktPhotoIdx+1);
+    else if(dx>threshold)goToMktSlide(mktPhotoIdx-1);
+    else goToMktSlide(mktPhotoIdx);
+  };
+  g.ontouchcancel=()=>{dragging=false;if(inner){inner.style.transition='transform .22s cubic-bezier(.4,0,.2,1)';}goToMktSlide(mktPhotoIdx);};
 }
 function contactSeller(){
   if(!currentMarketListing)return;
@@ -3834,16 +3888,13 @@ function confirmBidCheck(){
   document.body.appendChild(overlay);
 }
 
-function confirmBid(){
-  if(isGuest()){
-    closeModal('bid-modal');
-    triggerGuestBlock('oferta');
-    return;
-  }
+async function confirmBid(){
+  if(isGuest()){closeModal('bid-modal');triggerGuestBlock('oferta');return;}
   if(!currentAuction)return;
   const val=parseFloat(document.getElementById('bid-input-field').value);
   const min=currentAuction.currentBid+500;
-  if(!val||val<min){showToast('mínimo: '+fmtBid(min));return}
+  if(!val||val<min){showToast('mínimo: '+fmtBid(min));return;}
+  // optimistic UI
   currentAuction.currentBid=val;currentAuction.bidCount++;
   currentAuction.bids.unshift({user:'tú ★',time:'ahora mismo',amount:val,top:true});
   currentAuction.bids.forEach((b,i)=>b.top=i===0);
@@ -3852,6 +3903,19 @@ function confirmBid(){
   showToast('oferta de '+fmtBid(val)+' registrada',true);
   NOTIFICATIONS.unshift({id:Date.now(),type:'offer',title:'Oferta registrada',body:'Tu oferta de '+fmtBid(val)+' en '+currentAuction.title+' fue registrada',time:'ahora mismo',read:false,icon:'lime'});
   document.getElementById('notif-dot').style.display='block';
+  // persistir en servidor
+  try{
+    const res=await _apiPost('/api/place-bid',{auction_id:currentAuction.id,monto:val});
+    if(res.current_bid) currentAuction.currentBid=res.current_bid;
+  }catch(e){
+    console.error('[ruedda confirmBid]',e.message);
+    if(e.message==='puja superada — intenta de nuevo'||e.message?.includes('retry')){
+      showToast('alguien más pujó — recarga la subasta');
+      currentAuction.currentBid-=val; // revertir optimistic
+    } else {
+      console.warn('[ruedda confirmBid] no crítico:',e.message);
+    }
+  }
 }
 
 // ===================== NOTIFICATIONS =====================
@@ -4246,22 +4310,36 @@ async function redeemCheckoutCode(){
 
 async function processPayment(){
   const btn=document.getElementById('checkout-pay-btn');
+  // ── helper uid ──
+  async function _getUid(){
+    if(!_supa) return USER_STATE.id||null;
+    const{data:{session}}=await _supa.auth.getSession();
+    return session?.user?.id||window._rueddaUser?.id||USER_STATE.id||null;
+  }
   const freeCode=btn.dataset.freeCode;
   if(freeCode){
     _consumeCode(freeCode);
     delete btn.dataset.freeCode;
     PAID_TYPES[pendingVenderType]=true;
     closeCheckout();
+    // ── si es concesionario, activar vitrina — no abrir form de publicación ──
+    if(pendingVenderType==='consesionario'&&isConcesionario()){
+      const uid=await _getUid();
+      USER_STATE.dealerActive=true;
+      const exp=new Date(Date.now()+30*86400000).toISOString();
+      USER_STATE.dealerExpiry=exp;
+      if(_supa&&USER_STATE.concesionarioId){
+        _supa.from('concesionarios').update({activo:true,plan_expiry:exp}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] activar vitrina código:',e.message));
+      }
+      showToast('vitrina activada — 30 días ✓',true);
+      return;
+    }
+    // particular o subasta — abrir form de publicación
     showToast('código aplicado — publicando',true);
     setTimeout(openVenderForm,600);
     return;
   }
-  // ── helper: obtiene uid con sesión activa ──
-  async function _getUid(){
-    if(!_supa) return USER_STATE.id||null;
-    const{data:{session}}=await _supa.auth.getSession();
-    return session?.user?.id||window._rueddaUser?.id||USER_STATE.id||null;
-  }
+  // _getUid definida arriba
   // ── VITRINA ACTIVATION PATH: pago por activar vitrina (no por publicación) ──
   if(pendingVenderType==='consesionario'&&isConcesionario()&&!USER_STATE.dealerActive){
     const uid=await _getUid();
@@ -4560,6 +4638,7 @@ async function publishListing(){
     showToast('publicación enviada ✓ en revisión',true);
     showDealerFab(false);
     window._venderPhotos=[];
+    photoItems=[];
     // reset form
     document.querySelectorAll('.vender-form input,.vender-form textarea,.vender-form select').forEach(el=>{
       if(el.tagName==='SELECT') el.selectedIndex=0;
@@ -4584,17 +4663,33 @@ async function publishListing(){
 }
 
 async function _uploadVenderPhotos(recordId,userId,isListing=false){
-  if(!_supa||!window._venderPhotos?.length) return;
-  await Promise.allSettled(window._venderPhotos.map(async(file,i)=>{
-    const ext=file.name.split('.').pop()||'jpg';
-    const path=`${userId}/${recordId}/${Date.now()}_${i}.${ext}`;
-    const{data,error}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true});
-    if(error||!data) return;
-    const{data:{publicUrl}}=_supa.storage.from('car-photos').getPublicUrl(path);
-    const photoTable=isListing?'listing_photos':'auction_photos';
-    const photoPayload=isListing?{listing_id:recordId,url:publicUrl,orden:i}:{auction_id:recordId,url:publicUrl,orden:i};
-    await (_supaWrite||_supa).from(photoTable).insert(photoPayload);
-  }));
+  if(!_supa) return;
+  // fuente de verdad: photoItems (UI) con fallback a _venderPhotos
+  const files=photoItems.length>0
+    ? await Promise.all(photoItems.map(item=>{
+        // photoItems puede tener {src, name, file} o ser File directamente
+        if(item.file) return Promise.resolve(item.file);
+        // si solo tenemos base64, convertir a blob
+        return fetch(item.src).then(r=>r.blob()).then(b=>new File([b],item.name||'foto.jpg',{type:b.type||'image/jpeg'}));
+      }))
+    : (window._venderPhotos||[]);
+  if(!files.length) return;
+  const photoTable=isListing?'listing_photos':'auction_photos';
+  // upload secuencial para evitar colisiones de timestamp
+  for(let i=0;i<files.length;i++){
+    const file=files[i];
+    if(!file) continue;
+    const ext=(file.name||'jpg').split('.').pop()||'jpg';
+    const path=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`;
+    try{
+      const{data,error}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true});
+      if(error){console.error('[ruedda] foto upload',i,error.message);continue;}
+      const{data:{publicUrl}}=_supa.storage.from('car-photos').getPublicUrl(path);
+      const photoPayload=isListing?{listing_id:recordId,url:publicUrl,orden:i}:{auction_id:recordId,url:publicUrl,orden:i};
+      await (_supaWrite||_supa).from(photoTable).insert(photoPayload);
+    }catch(e){console.error('[ruedda] foto',i,'catch:',e.message);}
+  }
+  console.log('[ruedda] fotos subidas:',files.length);
 }
 
 function validateForm(){ return true; } // full validation on Supabase integration
@@ -5038,7 +5133,8 @@ function handleFiles(input){
   window._venderPhotos=[...(window._venderPhotos||[]),...newFiles];
   Array.from(input.files).forEach(file=>{
     const reader=new FileReader();
-    reader.onload=e=>{ photoItems.push({src:e.target.result,name:file.name}); renderPhotoGrid(); };
+    // guardar File object en photoItems para que _uploadVenderPhotos lo use directo
+    reader.onload=e=>{ photoItems.push({src:e.target.result,name:file.name,file:file}); renderPhotoGrid(); };
     reader.readAsDataURL(file);
   });
   input.value='';
@@ -5385,13 +5481,7 @@ function contactDealer(){
 }
 
 
-const FOTOGRAFOS = [
-  {id:1, nombre:'Lewis De Jong', ciudad:'Caracas', especialidad:'autos deportivos y exóticos', rating:4.9, trabajos:38},
-  {id:2, nombre:'Valentina Ríos', ciudad:'Caracas', especialidad:'suv, pickups y 4x4', rating:4.8, trabajos:51},
-  {id:3, nombre:'Miguel Herrera', ciudad:'Maracay', especialidad:'clásicos y muscle cars', rating:5.0, trabajos:22},
-  {id:4, nombre:'Andrea Castillo', ciudad:'Valencia', especialidad:'fotografía editorial automotriz', rating:4.9, trabajos:44},
-  {id:5, nombre:'Rafael Díaz', ciudad:'Maracaibo', especialidad:'autos deportivos y sedanes', rating:4.7, trabajos:29},
-];
+const FOTOGRAFOS = []; // se carga desde Supabase en _loadFotografos()
 
 let fotoFilter='todas';
 
@@ -5572,6 +5662,10 @@ const MOD_ITEMS=[
 
 // ── PANTALLA PAGO EN REVISIÓN ─────────────────────────────────
 function showRevisionScreen(){
+  // cerrar el form y el modal de tipo de venta
+  try{document.getElementById('vender-modal').classList.remove('open');}catch(_){}
+  try{document.getElementById('checkout-modal')?.remove();}catch(_){}
+  window._venderPhotos=[];
   const existing = document.getElementById('revision-screen-overlay');
   if(existing) existing.remove();
 
@@ -5709,14 +5803,15 @@ function openModReview(id){
 }
 async function modApprove(id){
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
-  if(!_supa){showToast('publicación aprobada ✓ (demo)',true);return;}
   const item=(window._modQueueData||[]).find(x=>x.id===id);
-  const tabla=item?._table||'auctions';
-  const{error}=await _supa.from(tabla).update({estado:'activa'}).eq('id',id);
-  if(error){showToast('error al aprobar: '+error.message);console.error('[ruedda modApprove]',error);return;}
-  showToast('publicación aprobada ✓',true);
-  if(item?.user_id){
-    _supa.from('notifications').insert({user_id:item.user_id,tipo:'ganador',titulo:'¡publicación aprobada!',body:`Tu ${item.marca||''} ${item.modelo||''} ya está activa en Ruedda.`,icon:'lime'}).catch(e=>console.warn('[ruedda] notif approve:',e.message));
+  const itemType=item?._table==='listings'?'listing':'auction';
+  try{
+    await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'aprobar'});
+    showToast('publicación aprobada ✓',true);
+  }catch(e){
+    console.error('[ruedda modApprove]',e.message);
+    showToast('error al aprobar: '+e.message);
+    return;
   }
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
@@ -5725,14 +5820,15 @@ async function modApprove(id){
 
 async function modReject(id){
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
-  if(!_supa){showToast('publicación rechazada');return;}
   const item=(window._modQueueData||[]).find(x=>x.id===id);
-  const tabla=item?._table||'auctions';
-  const{error}=await _supa.from(tabla).update({estado:'rechazada'}).eq('id',id);
-  if(error){showToast('error al rechazar: '+error.message);console.error('[ruedda modReject]',error);return;}
-  showToast('publicación rechazada');
-  if(item?.user_id){
-    _supa.from('notifications').insert({user_id:item.user_id,tipo:'system',titulo:'publicación rechazada',body:'Tu publicación no cumplió los estándares de Ruedda. Contáctanos por soporte.',icon:''}).catch(e=>console.warn('[ruedda] notif reject:',e.message));
+  const itemType=item?._table==='listings'?'listing':'auction';
+  try{
+    await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'rechazar'});
+    showToast('publicación rechazada');
+  }catch(e){
+    console.error('[ruedda modReject]',e.message);
+    showToast('error al rechazar: '+e.message);
+    return;
   }
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
@@ -6233,20 +6329,32 @@ function updateCuentaView(){
 }
 
 function logOut(){
-  window._rueddaUser = null;
-  if(_supa) _supa.auth.signOut().catch(()=>{});
-  USER_STATE.role='guest';
-  USER_STATE.id=null;
-  USER_STATE.nombre=null;
-  USER_STATE.email=null;
-  USER_STATE.username=null;
-  USER_STATE.dealerActive=false;
-  USER_STATE.dealerExpiry=null;
-  Object.keys(PAID_TYPES).forEach(k=>delete PAID_TYPES[k]);
-  isLoggedIn=false;
-  updateHamburgerAdmin();
-  updateCuentaView();
-  showToast('sesión cerrada');
+  const nombre=USER_STATE.nombre||USER_STATE.username||'';
+  // splash de despedida
+  const sp=document.createElement('div');
+  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#000;opacity:0;transition:opacity .3s ease;pointer-events:none';
+  sp.innerHTML=`
+    <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:#fff;opacity:0;animation:splashFade .4s ease .15s forwards">
+      nos vemos${nombre?', <span style="color:#e6f03b">'+nombre+'</span>':''}
+    </div>
+    <div style="font-size:13px;color:rgba(255,255,255,.3);opacity:0;animation:splashFade .4s ease .3s forwards;font-weight:400">hasta pronto · ruedda</div>`;
+  document.body.appendChild(sp);
+  requestAnimationFrame(()=>{ sp.style.opacity='1'; });
+  setTimeout(()=>{
+    window._rueddaUser=null;
+    if(_supa) _supa.auth.signOut().catch(()=>{});
+    USER_STATE.role='guest';USER_STATE.id=null;USER_STATE.nombre=null;
+    USER_STATE.email=null;USER_STATE.username=null;
+    USER_STATE.dealerActive=false;USER_STATE.dealerExpiry=null;
+    USER_STATE.concesionarioId=null;
+    Object.keys(PAID_TYPES).forEach(k=>delete PAID_TYPES[k]);
+    isLoggedIn=false;
+    updateHamburgerAdmin();
+    updateCuentaView();
+    showView('home');
+    sp.style.opacity='0';
+    setTimeout(()=>sp.remove(),320);
+  },1100);
 }
 
 
@@ -6534,10 +6642,10 @@ async function _loadAuctions(){
 async function _loadMarket(){
   if(!_supa) return;
   try{
-    const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,ciudad,descripcion,condicion,concesionario_id').eq('estado','activa').order('created_at',{ascending:false});
+    const{data,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden)').eq('estado','activa').order('created_at',{ascending:false});
     if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));return;}
     if(!data?.length) return;
-    const mapped=data.map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',transmission:l.transmision,fuel:l.combustible,photos:3,desc:l.descripcion||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null}));
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',transmission:l.transmision,fuel:l.combustible,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
   }catch(e){console.error('[ruedda] _loadMarket catch:',String(e?.message||e));}
