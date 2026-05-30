@@ -3282,7 +3282,6 @@ async function _apiGet(endpoint){
 function openMktListado(){
   document.getElementById('listado-bg').classList.add('open');
   document.getElementById('mkt-listado-overlay').classList.add('open');
-  lockScroll();
   _renderMktListadoGrid();
 }
 function _filterListadoGrid(q){
@@ -3320,7 +3319,6 @@ function _filterListadoGrid(q){
 function closeMktListado(){
   document.getElementById('listado-bg').classList.remove('open');
   document.getElementById('mkt-listado-overlay').classList.remove('open');
-  unlockScroll();
 }
 function _renderMktListadoGrid(){
   _filterListadoGrid('');
