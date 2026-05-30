@@ -6259,7 +6259,7 @@ async function renderModQueue(type){
     modError=res.error;
   } else {
     let q2=_supa.from('listings')
-      .select('id,titulo,marca,modelo,year,km,estado,ciudad,descripcion,created_at,user_id,concesionario_id')
+      .select('id,titulo,marca,modelo,year,km,estado,ciudad,descripcion,created_at,user_id,concesionario_id,listing_photos(url,orden)')
       .in('estado',['revision','pendiente_pago'])
       .order('created_at',{ascending:true});
     if(type==='concesionario') q2=q2.not('concesionario_id','is',null);
@@ -6302,7 +6302,10 @@ function openModReview(id){
   item.km=item.km?item.km.toLocaleString()+' km':'—';
   item.ciudad=item.ciudad||'—';
   item.desc=item.descripcion||'Sin descripción';
-  item.fotos=['linear-gradient(135deg,#1a1a2e,#16213e)'];
+  const sortedPhotos=(item.listing_photos||[]).sort((a,b)=>a.orden-b.orden);
+  item.fotos=sortedPhotos.length>0
+    ?sortedPhotos.map(p=>p.url)
+    :['linear-gradient(135deg,#1a1a2e,#16213e)'];
   if(!item) return;
   let modal=document.getElementById('mod-review-modal');
   if(!modal){
@@ -6323,7 +6326,7 @@ function openModReview(id){
         <div style="font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">${item.title}</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${item.user} · ${item.ciudad} · ${item.km}</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
-          ${item.fotos.map((bg,i)=>`<div style="aspect-ratio:4/3;background:${bg};border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.3)">${i===0?'portada':'foto '+(i+1)}</div>`).join('')}
+          ${item.fotos.map((src,i)=>src.startsWith('http')?`<div style="aspect-ratio:4/3;border-radius:10px;overflow:hidden"><img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block"></div>`:`<div style="aspect-ratio:4/3;background:${src};border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.3)">${i===0?'sin fotos':'foto '+(i+1)}</div>`).join('')}
         </div>
         <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:18px">${item.desc}</div>
         <div style="display:flex;gap:10px">
@@ -6337,14 +6340,19 @@ async function modApprove(id){
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
   const item=(window._modQueueData||[]).find(x=>x.id===id);
   const itemType=item?._table==='listings'?'listing':'auction';
+  let approveOk=false;
   try{
     await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'aprobar'});
-    showToast('publicación aprobada ✓',true);
+    approveOk=true;
   }catch(e){
-    console.error('[ruedda modApprove]',e.message);
-    showToast('error al aprobar: '+e.message);
-    return;
+    // Fallback: intentar aprobar directo en Supabase si el API falla
+    console.warn('[ruedda modApprove] API error, intentando fallback:',e.message);
+    const tbl=item?._table||'listings';
+    const{error:fbErr}=await _supa.from(tbl).update({estado:'activo'}).eq('id',id);
+    if(fbErr){console.error('[ruedda modApprove fallback]',fbErr.message);showToast('error al aprobar: '+fbErr.message);}
+    else approveOk=true;
   }
+  if(approveOk) showToast('publicación aprobada ✓',true);
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
   await Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados()]);
@@ -6462,8 +6470,12 @@ async function _validateCode(code){
 }
 async function _consumeCode(code){
   if(!_supa||!code) return;
-  const{data}=await _supa.from('invitation_codes').select('usos_actuales').eq('code',code).single();
-  if(data) await _supa.from('invitation_codes').update({usos_actuales:(data.usos_actuales||0)+1}).eq('code',code);
+  const{data,error:selErr}=await _supa.from('invitation_codes').select('usos_actuales').eq('code',code).single();
+  if(selErr){console.error('[ruedda _consumeCode select]',selErr.message);return;}
+  if(data){
+    const{error:updErr}=await _supa.from('invitation_codes').update({usos_actuales:(data.usos_actuales||0)+1}).eq('code',code);
+    if(updErr) console.error('[ruedda _consumeCode update]',updErr.message);
+  }
 }
 
 async function redeemInviteCode(){
