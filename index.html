@@ -1227,7 +1227,7 @@ input[type=number]{-moz-appearance:textfield}
 
 <!-- MARKET DETAIL VIEW -->
 <div id="view-market-detail" class="view">
-  <div class="detail-back" onclick="mktDetailOrigin==='vitrina'?openVitrina(currentMarketListing&&currentMarketListing.dealerId?currentMarketListing.dealerId:currentDealer&&currentDealer.id):mktDetailOrigin==='listado'?openMktListado():(showView('home'),selectSection('market'))">
+  <div class="detail-back" onclick="mktDetailOrigin==='vitrina'?openVitrina(currentMarketListing&&currentMarketListing.dealerId?currentMarketListing.dealerId:currentDealer&&currentDealer.id):mktDetailOrigin==='listado'?(showView('home'),selectSection('market'),requestAnimationFrame(()=>{const _lov=document.getElementById('mkt-listado-overlay');if(_lov){_lov.style.opacity='1';_lov.style.transform='translateY(0)';_lov.style.pointerEvents='';document.body.style.overflow='hidden';}else{openMktListado();}})):(showView('home'),selectSection('market'))">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>volver</span>
   </div>
@@ -3266,11 +3266,13 @@ function openMktListado(){
   if(ov){ov.style.opacity='1';ov.style.transform='translateY(0)';return;}
   ov=document.createElement('div');
   ov.id='mkt-listado-overlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(12,12,14,0.55);backdrop-filter:blur(48px) saturate(200%);-webkit-backdrop-filter:blur(48px) saturate(200%);z-index:500;display:flex;flex-direction:column;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94);border-radius:20px 20px 0 0';
+  ov.style.cssText='position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94);border-radius:20px 20px 0 0;overflow:hidden';
   document.body.style.overflow='hidden';
   ov.innerHTML=`
-    <!-- HEADER FIJO — fuera del scroll container -->
-    <div style="flex-shrink:0;z-index:10;background:rgba(10,10,12,0.72);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border-bottom:1px solid rgba(255,255,255,0.05);padding:14px 16px 0">
+    <!-- BLUR LAYER — separado del scroll para no romper touch en iOS -->
+    <div style="position:absolute;inset:0;background:rgba(12,12,14,0.55);backdrop-filter:blur(48px) saturate(200%);-webkit-backdrop-filter:blur(48px) saturate(200%);z-index:0;pointer-events:none"></div>
+    <!-- HEADER FIJO -->
+    <div style="flex:0 0 auto;z-index:1;position:relative;background:rgba(10,10,12,0.72);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border-bottom:1px solid rgba(255,255,255,0.05);padding:14px 16px 0">
       <div style="display:flex;align-items:center;margin-bottom:14px;position:relative">
         <button onclick="closeMktListado()" style="background:none;border:none;padding:4px;cursor:pointer;color:rgba(255,255,255,.5);font-family:var(--font);font-size:14px;font-weight:500;display:flex;align-items:center;gap:5px;transition:color .15s;flex-shrink:0" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.5)'">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:17px;height:17px"><path d="m15 18-6-6 6-6"/></svg>
@@ -3278,26 +3280,23 @@ function openMktListado(){
         </button>
         <div style="position:absolute;left:0;right:0;text-align:center;font-size:16px;font-weight:300;letter-spacing:-.2px;pointer-events:none">listado de <span style="color:#e6f03b;font-weight:800">vehículos</span></div>
       </div>
-      <!-- SEARCH -->
       <div style="display:flex;align-items:center;gap:10px;background:#000;border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:11px 14px;margin-bottom:12px;transition:border-color .2s;cursor:text" onclick="this.querySelector('input').focus()">
         <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.35)" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input id="listado-search" type="text" placeholder="buscar marca, modelo, ciudad…" oninput="_filterListadoGrid(this.value)" style="flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:14px;color:#fff;caret-color:#e6f03b" onfocus="this.parentElement.style.borderColor='rgba(255,255,255,.2)'" onblur="this.parentElement.style.borderColor='rgba(255,255,255,.08)'">
         <button id="listado-clear" onclick="document.getElementById('listado-search').value='';_filterListadoGrid('')" style="display:none;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);font-size:16px;padding:0;line-height:1;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.3)'">×</button>
       </div>
     </div>
-    <!-- SCROLL CONTAINER independiente — no hereda backdrop-filter -->
-    <div data-listado-scroll style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y">
+    <!-- SCROLL CONTAINER — dueño exclusivo del touch vertical -->
+    <div id="listado-scroll-wrap" style="flex:1 1 0%;height:0;overflow-y:scroll;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;position:relative;z-index:1">
       <div id="mkt-listado-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px 100px"></div>
     </div>`;
   document.body.appendChild(ov);
-  // bloquea scroll del fondo en móvil iOS — touchstart + touchmove
-  function _listadoTouchGuard(e){
-    const sc=ov.querySelector('[data-listado-scroll]');
-    if(sc&&sc.contains(e.target)) return;
-    e.preventDefault();
-  }
-  ov.addEventListener('touchstart',_listadoTouchGuard,{passive:false});
-  ov.addEventListener('touchmove',_listadoTouchGuard,{passive:false});
+  // iOS Safari: el scroll container intercepta sus propios touches antes que el overlay
+  const scrollWrap=ov.querySelector('#listado-scroll-wrap');
+  scrollWrap.addEventListener('touchstart',function(e){e.stopPropagation();},{passive:true});
+  scrollWrap.addEventListener('touchmove',function(e){e.stopPropagation();},{passive:true});
+  // bloquea todo touch en el overlay que NO sea el scroll container
+  ov.addEventListener('touchmove',function(e){e.preventDefault();},{passive:false});
   requestAnimationFrame(()=>{ov.style.opacity='1';ov.style.transform='translateY(0)';});
   _renderMktListadoGrid();
 }
@@ -3526,9 +3525,9 @@ function openMarketDetail(id, origin){
   // comments reset
   document.getElementById('mkt-comment-list').innerHTML='<div class="comment-empty">sé el primero en preguntar</div>';
   updateMktWatchlist();
-  // cierra el overlay de listados si está abierto
+  // cierra el overlay de listados si está abierto — lo oculta sin remover para que volver funcione
   const _lov=document.getElementById('mkt-listado-overlay');
-  if(_lov){_lov.style.opacity='0';_lov.style.transform='translateY(18px)';document.body.style.overflow='';setTimeout(()=>{if(_lov.parentNode)_lov.remove();},260);}
+  if(_lov){_lov.style.opacity='0';_lov.style.transform='translateY(18px)';_lov.style.pointerEvents='none';}
   showView('market-detail');
 }
 
