@@ -3242,7 +3242,7 @@ function submitRef(userId,refNum,amountUSD,extra){
 async function loadSAQueue(){
   if(!_supa) return;
   const{data}=await _supa.from('auctions')
-    .select('id,titulo,marca,modelo,year,tipo,estado,created_at,users(nombre,email)')
+    .select('id,titulo,marca,modelo,year,tipo,estado,created_at,user_id')
     .eq('estado','revision')
     .order('created_at',{ascending:false});
   if(!data?.length) return;
@@ -4438,7 +4438,7 @@ function selectVenderType(type){
   pendingVenderType = type;
   if(type==='consesionario' && isConcesionario()){
     closeVenderModal();
-    if(USER_STATE.dealerActive){ openDealerVitrina(); return; }
+    if(USER_STATE.dealerActive){ handleEditarVitrina(); return; }
     openPaymentSheetForType('consesionario');
     return;
   }
@@ -4457,7 +4457,7 @@ function confirmPayment(){
   const code = cta?.dataset?.inviteCode;
   if(code){
     _consumeCode(code); // async - fire and forget, already validated at redeemInviteCode
-    if(pendingVenderType==='consesionario'&&isConcesionario()){
+    if(pendingVenderType==='consesionario'&&isConcesionario()&&!isParticular()){
       // activar vitrina en DB
       const exp=new Date();exp.setDate(exp.getDate()+30);
       USER_STATE.dealerActive=true;USER_STATE.dealerExpiry=exp.toISOString();
@@ -4844,10 +4844,8 @@ function openDealerVitrina(){
     openPaymentSheetForType('consesionario');
     return;
   }
-  const d=CONCESIONARIOS.find(c=>c.id===1)||CONCESIONARIOS[0];
+  const d=CONCESIONARIOS.find(c=>c.id===USER_STATE.concesionarioId)||CONCESIONARIOS[0];
   if(d) openVitrina(d.id);
-  // show floating + button
-  showDealerFab(true);
 }
 
 function showDealerFab(show){
@@ -5795,7 +5793,7 @@ function renderDealerFiltered(){
   let dealers = [...CONCESIONARIOS];
   if(f.tipo !== 'todos') dealers = dealers.filter(d=>(d.tag||'').includes(f.tipo));
   grid.innerHTML = dealers.length
-    ? dealers.map((d,i)=>`<div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina(${d.id})">
+    ? dealers.map((d,i)=>`<div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
         <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.initial}</div>
         <div class="dealer-info"><div class="dealer-name" style="display:flex;align-items:center;gap:0">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="dealer-meta">${d.ciudad.toLowerCase()}</div><div class="dealer-count">${d.autos} vehículos</div></div>
       </div>`).join('')
@@ -5819,7 +5817,7 @@ function renderDealerGrid(){
     return;
   }
   grid.innerHTML = data.map((d,i) => `
-    <div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina(${d.id})">
+    <div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
       <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.initial}</div>
       <div class="dealer-info">
         <div class="dealer-name" style="display:flex;align-items:center">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -6287,7 +6285,7 @@ async function renderModQueue(type){
   let data=[], modError=null;
   if(type==='subasta'){
     const res=await _supa.from('auctions')
-      .select('id,titulo,marca,modelo,year,km,tipo,estado,ciudad,descripcion,created_at,user_id,concesionario_id,users(nombre,email)')
+      .select('id,titulo,marca,modelo,year,km,tipo,estado,ciudad,descripcion,created_at,user_id,concesionario_id')
       .in('estado',['revision','pendiente_pago'])
       .in('tipo',['subasta','chocado'])
       .order('created_at',{ascending:true});
@@ -6334,7 +6332,11 @@ async function openModReview(id){
   if(!item){ showToast('error: publicación no encontrada'); return; }
   // convert to legacy format for modal
   item.title=`${item.year||''} ${item.marca||''} ${item.modelo||''}`.trim();
-  item.user=item.users?.nombre||item.users?.[0]?.nombre||item.users?.email||'usuario';
+  item.user='usuario';
+  if(_supa && item.user_id){
+    const{data:uData}=await _supa.from('users').select('nombre,email').eq('id',item.user_id).maybeSingle();
+    if(uData) item.user=uData.nombre||uData.email||'usuario';
+  }
   item.km=item.km?item.km.toLocaleString()+' km':'—';
   item.ciudad=item.ciudad||'—';
   item.desc=item.descripcion||'Sin descripción';
@@ -6389,7 +6391,7 @@ async function modApprove(id){
     // Fallback: intentar aprobar directo en Supabase si el API falla
     console.warn('[ruedda modApprove] API error, intentando fallback:',e.message);
     const tbl=item?._table||'listings';
-    const{error:fbErr}=await _supa.from(tbl).update({estado:'activo'}).eq('id',id);
+    const{error:fbErr}=await _supa.from(tbl).update({estado:'activa'}).eq('id',id);
     if(fbErr){console.error('[ruedda modApprove fallback]',fbErr.message);showToast('error al aprobar: '+fbErr.message);}
     else approveOk=true;
   }
