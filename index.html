@@ -769,16 +769,16 @@ input[type=number]{-moz-appearance:textfield}
 .mkt-pill.active{background:#fff;color:#000;border-color:#fff;font-weight:600}
 .mkt-pill:hover:not(.active){border-color:rgba(255,255,255,.45);color:#fff}
 /* LISTADO OVERLAY — misma lógica que .drawer */
-.listado-ov{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;background:rgba(18,18,20,0.38);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);transform:translateY(100%);transition:transform .38s cubic-bezier(.32,.72,0,1);border-radius:20px 20px 0 0}
+.listado-ov{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;background:rgba(18,18,20,0.38);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);transform:translateY(100%);transition:transform .38s cubic-bezier(.32,.72,0,1);border-radius:20px 20px 0 0;touch-action:none}
 .listado-ov.open{transform:translateY(0)}
-.listado-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:499}
+.listado-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:499;touch-action:none}
 .listado-bg.open{display:block}
 .listado-hdr{flex-shrink:0;background:rgba(10,10,12,0.72);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border-bottom:1px solid rgba(255,255,255,0.06);padding:14px 16px 12px}
 .listado-hdr-row{display:flex;align-items:center;margin-bottom:12px;position:relative}
 .listado-back{background:none;border:none;padding:4px;cursor:pointer;color:rgba(255,255,255,.5);font-family:var(--font);font-size:14px;font-weight:500;display:flex;align-items:center;gap:5px;transition:color .15s;flex-shrink:0}
 .listado-back:hover{color:#fff}
 .listado-title{position:absolute;left:0;right:0;text-align:center;font-size:16px;font-weight:300;letter-spacing:-.2px;pointer-events:none}
-.listado-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.listado-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}
 .listado-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px 100px}
 .listado-card{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .22s ease both}
 .listado-card-img{width:100%;aspect-ratio:16/9;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
