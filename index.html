@@ -4465,7 +4465,7 @@ function confirmPayment(){
   const code = cta?.dataset?.inviteCode;
   if(code){
     _consumeCode(code); // async - fire and forget, already validated at redeemInviteCode
-    if(pendingVenderType==='consesionario'&&(isConcesionario()||USER_STATE.role==='concesionario')&&!isParticular()){
+    if(pendingVenderType==='consesionario'&&USER_STATE.role!=='particular'&&USER_STATE.role!=='guest'){
       // activar vitrina en DB
       const exp=new Date();exp.setDate(exp.getDate()+30);
       USER_STATE.dealerActive=true;USER_STATE.dealerExpiry=exp.toISOString();
