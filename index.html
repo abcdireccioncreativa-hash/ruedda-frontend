@@ -3288,12 +3288,14 @@ function openMktListado(){
       <div id="mkt-listado-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px 100px"></div>
     </div>`;
   document.body.appendChild(ov);
-  // bloquea scroll del fondo en móvil — permite solo dentro del scroll container
-  ov.addEventListener('touchmove',function(e){
+  // bloquea scroll del fondo en móvil iOS — touchstart + touchmove
+  function _listadoTouchGuard(e){
     const sc=ov.querySelector('[data-listado-scroll]');
     if(sc&&sc.contains(e.target)) return;
     e.preventDefault();
-  },{passive:false});
+  }
+  ov.addEventListener('touchstart',_listadoTouchGuard,{passive:false});
+  ov.addEventListener('touchmove',_listadoTouchGuard,{passive:false});
   requestAnimationFrame(()=>{ov.style.opacity='1';ov.style.transform='translateY(0)';});
   _renderMktListadoGrid();
 }
