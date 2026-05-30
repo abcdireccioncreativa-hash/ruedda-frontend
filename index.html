@@ -3971,10 +3971,16 @@ async function renderComunidad(){
         clipsRow.innerHTML='<div class="com-empty">sin clips por ahora</div>';
       } else {
         clipsRow.innerHTML=clips.map((c,i)=>{
+          if(c.thumbnail_url){
+            return `<div class="clip-card" style="animation-delay:${i*60}ms;background:url('${c.thumbnail_url}') center/cover no-repeat" onclick="openClipModal('${c.url_video}')">
+              <div style="position:absolute;inset:0;background:rgba(0,0,0,.15)"></div>
+              <div class="clip-play-icon" style="position:relative;z-index:1"><svg fill="white" viewBox="0 0 24 24" style="width:22px;height:22px"><polygon points="5,3 19,12 5,21"/></svg></div>
+            </div>`;
+          }
           const embedUrl=getClipEmbedUrl(c.url_video);
           return `<div class="clip-card" style="animation-delay:${i*60}ms" onclick="openClipModal('${c.url_video}')">
             <iframe src="${embedUrl}" frameborder="0" scrolling="no"
-              style="width:320px;height:568px;border:none;pointer-events:none;transform:scale(0.375);transform-origin:top left;position:absolute;top:0;left:0"
+              style="width:320px;height:760px;border:none;pointer-events:none;transform:scale(0.375);transform-origin:top left;position:absolute;top:-22px;left:0"
               allowtransparency="true"></iframe>
             <div style="position:absolute;inset:0;z-index:10"></div>
           </div>`;
@@ -5930,11 +5936,14 @@ async function saLoadComunidadAdmin(){
 
 async function saAddClip(){
   const input=document.getElementById('sa-clip-url');
+  const thumbInput=document.getElementById('sa-clip-thumb');
   const url=(input?.value||'').trim();
+  const thumb=(thumbInput?.value||'').trim()||null;
   if(!url){showToast('pega un link válido');return;}
-  const{error}=await _supa.from('ruedda_clips').insert({url_video:url});
+  const{error}=await _supa.from('ruedda_clips').insert({url_video:url,thumbnail_url:thumb});
   if(error){console.error('[sa-clips]',error);showToast('error: '+error.message);return;}
   input.value='';
+  thumbInput.value='';
   showToast('clip añadido',true);
   saLoadClipsList();
 }
@@ -7411,9 +7420,10 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
     <!-- CLIPS -->
     <div>
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:14px">Ruedda Clips</div>
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
-        <input class="form-input" id="sa-clip-url" type="url" placeholder="https://www.instagram.com/reel/... o YouTube" style="flex:1">
-        <button onclick="saAddClip()" style="flex-shrink:0;background:var(--lime);color:#000;border:none;border-radius:12px;font-size:13px;font-weight:800;padding:12px 18px;cursor:pointer;font-family:var(--font)">añadir</button>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+        <input class="form-input" id="sa-clip-url" type="url" placeholder="link del reel (Instagram o YouTube)">
+        <input class="form-input" id="sa-clip-thumb" type="url" placeholder="URL de portada (imagen del reel)">
+        <button onclick="saAddClip()" style="background:var(--lime);color:#000;border:none;border-radius:12px;font-size:13px;font-weight:800;padding:12px 18px;cursor:pointer;font-family:var(--font)">añadir clip</button>
       </div>
       <div id="sa-clips-list" style="display:flex;flex-direction:column;gap:8px">
         <div style="font-size:13px;color:var(--muted)">cargando clips...</div>
