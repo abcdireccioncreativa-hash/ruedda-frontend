@@ -3060,7 +3060,9 @@ function renderCards(filter){
     const days=getDaysLeft(a.endTime);
     el.innerHTML=`
       <div class="card-img-wrap" style="background:linear-gradient(${grads[a.id%grads.length]})">
-        <div class="car-placeholder" style="background:linear-gradient(${grads[a.id%grads.length]})">${carPlaceholder(a.id)}</div>
+        ${a.photoUrls&&a.photoUrls[0]
+          ?`<img src="${a.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+          :`<div class="car-placeholder" style="background:linear-gradient(${grads[a.id%grads.length]})">${carPlaceholder(a.id)}</div>`}
         ${a.sinReserva?'<div class="badge-sinreserva">sin reserva</div>':''}
         ${urgent?'<div class="badge-ending">terminando</div>':''}
         <div class="badge-timer ${urgent?'urgent':days>=1?'days':''}" id="timer-card-${a.id}">--:--:--</div>
