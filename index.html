@@ -1687,6 +1687,11 @@ input[type=number]{-moz-appearance:textfield}
     <!-- CONDICIÓN: solo en particular -->
     <div class="form-group" id="field-condicion">
       <label class="form-label">condición</label>
+      <!-- SLIDER NUEVO / USADO -->
+      <div style="display:flex;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;margin-bottom:14px">
+        <button type="button" id="cond-btn-usado" onclick="setListingCond('usado')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;background:var(--lime);color:#000;border-radius:13px 0 0 13px">usado</button>
+        <button type="button" id="cond-btn-nuevo" onclick="setListingCond('nuevo')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;background:none;color:rgba(255,255,255,.45);border-radius:0 13px 13px 0">nuevo</button>
+      </div>
       <select class="form-select">
         <option value="">seleccionar</option>
         <option>impecable</option>
@@ -3405,7 +3410,9 @@ function renderMarket(){
     el.style.animationDelay=(idx*40)+'ms';
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}</div>
+      <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+        <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span>
+      </div>
       <div class="market-card-body">
         <div class="market-card-title">${l.title}</div>
         <div class="market-card-meta">${l.location.toLowerCase()}</div>
@@ -4577,7 +4584,7 @@ async function publishListing(){
   const ciudad=getSelByLabel('ciudad');
   const transmision=getSelByLabel('transmisión');
   const combustible=getSelByLabel('combustible');
-  const condicion=getSelByLabel('condición');
+  const condicion=window._listingCondNuevo?'nuevo':'usado';
   const esChocado=document.getElementById('chocado-toggle')?.checked||false;
   const tipoDano=document.querySelector('.dano-pill.active')?.textContent?.trim()||'';
   const estChocado=document.querySelector('.estado-pill.active')?.textContent?.trim()||'';
@@ -4691,6 +4698,13 @@ async function _uploadVenderPhotos(recordId,userId,isListing=false){
 
 function validateForm(){ return true; } // full validation on Supabase integration
 
+function setListingCond(val){
+  window._listingCondNuevo=(val==='nuevo');
+  const btnU=document.getElementById('cond-btn-usado');
+  const btnN=document.getElementById('cond-btn-nuevo');
+  if(btnU){btnU.style.background=val==='usado'?'var(--lime)':'none';btnU.style.color=val==='usado'?'#000':'rgba(255,255,255,.45)';}
+  if(btnN){btnN.style.background=val==='nuevo'?'var(--lime)':'none';btnN.style.color=val==='nuevo'?'#000':'rgba(255,255,255,.45)';}
+}
 function openVenderForm(){
   const cfg={
     particular:{title:'Cuéntanos de tu vehículo.',sub:'Publica tu vehículo como clasificado en el marketplace automotriz más avanzado del país.',btn:'publicar en el market',precioFijo:true,reserva:false,duracion:false,condicion:true,contacto:true,chocado:false},
@@ -6641,7 +6655,7 @@ async function _loadMarket(){
     const{data,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden)').eq('estado','activa').order('created_at',{ascending:false});
     if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));return;}
     if(!data?.length) return;
-    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',transmission:l.transmision,fuel:l.combustible,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
   }catch(e){console.error('[ruedda] _loadMarket catch:',String(e?.message||e));}
