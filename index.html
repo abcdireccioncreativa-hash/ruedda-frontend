@@ -5904,8 +5904,114 @@ function openFotografos(origin){
 // ===================== SUPERADMIN =====================
 const MOCK_CODES = [];
 
+// ── SA COMUNIDAD ──
+async function saLoadComunidadAdmin(){
+  saLoadClipsList();
+  saLoadNoticiasList();
+  saLoadSugerencias();
+}
+
+async function saAddClip(){
+  const input=document.getElementById('sa-clip-url');
+  const url=(input?.value||'').trim();
+  if(!url){showToast('pega un link válido');return;}
+  const{error}=await _supa.from('ruedda_clips').insert({url_video:url});
+  if(error){showToast('error guardando clip');return;}
+  input.value='';
+  showToast('clip añadido',true);
+  saLoadClipsList();
+}
+
+async function saLoadClipsList(){
+  const list=document.getElementById('sa-clips-list');
+  if(!list)return;
+  const{data,error}=await _supa.from('ruedda_clips').select('*').order('created_at',{ascending:false});
+  if(error||!data||data.length===0){list.innerHTML='<div style="font-size:13px;color:var(--muted)">sin clips aún</div>';return;}
+  list.innerHTML=data.map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 13px">
+      <span style="flex:1;font-size:12px;color:rgba(255,255,255,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.url_video}</span>
+      <button onclick="saDeleteClip('${c.id}')" style="flex-shrink:0;background:rgba(255,60,60,.08);border:1px solid rgba(255,80,80,.2);border-radius:9px;padding:7px 10px;cursor:pointer;display:flex;align-items:center">
+        <svg fill="none" viewBox="0 0 16 16" stroke="rgba(255,80,80,.8)" stroke-width="2" style="width:12px;height:12px"><path d="m3 3 10 10M13 3 3 13"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+async function saDeleteClip(id){
+  const{error}=await _supa.from('ruedda_clips').delete().eq('id',id);
+  if(error){showToast('error eliminando');return;}
+  showToast('clip eliminado');
+  saLoadClipsList();
+}
+
+function previewNoticiaImg(input){
+  const file=input.files[0];
+  if(!file)return;
+  const preview=document.getElementById('sa-noticia-preview');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    preview.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saAddNoticia(){
+  const fileInput=document.getElementById('sa-noticia-img-input');
+  const contentVal=document.getElementById('sa-noticia-content')?.value.trim()||'';
+  if(!fileInput?.files[0]){showToast('selecciona un banner');return;}
+  const file=fileInput.files[0];
+  const ext=file.name.split('.').pop();
+  const path=`noticia_${Date.now()}.${ext}`;
+  showToast('subiendo imagen...');
+  const{error:upErr}=await _supa.storage.from('noticias').upload(path,file,{upsert:false});
+  if(upErr){showToast('error subiendo imagen');return;}
+  const{data:urlData}=_supa.storage.from('noticias').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('noticias').insert({banner_image_url:urlData.publicUrl,content:contentVal||null});
+  if(dbErr){showToast('error publicando noticia');return;}
+  fileInput.value='';
+  document.getElementById('sa-noticia-preview').innerHTML='<span style="font-size:13px;color:var(--muted)">toca para subir banner</span>';
+  document.getElementById('sa-noticia-content').value='';
+  showToast('noticia publicada',true);
+  saLoadNoticiasList();
+}
+
+async function saLoadNoticiasList(){
+  const list=document.getElementById('sa-noticias-list');
+  if(!list)return;
+  const{data,error}=await _supa.from('noticias').select('*').order('created_at',{ascending:false}).limit(20);
+  if(error||!data||data.length===0){list.innerHTML='<div style="font-size:13px;color:var(--muted)">sin noticias aún</div>';return;}
+  list.innerHTML=data.map(n=>`
+    <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
+      <div style="width:52px;height:34px;border-radius:8px;background:var(--bg);overflow:hidden;flex-shrink:0">
+        <img src="${n.banner_image_url}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+      </div>
+      <span style="flex:1;font-size:12px;color:rgba(255,255,255,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.content?n.content.substring(0,60)+'...':'sin contenido'}</span>
+      <button onclick="saDeleteNoticia('${n.id}')" style="flex-shrink:0;background:rgba(255,60,60,.08);border:1px solid rgba(255,80,80,.2);border-radius:9px;padding:7px 10px;cursor:pointer;display:flex;align-items:center">
+        <svg fill="none" viewBox="0 0 16 16" stroke="rgba(255,80,80,.8)" stroke-width="2" style="width:12px;height:12px"><path d="m3 3 10 10M13 3 3 13"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+async function saDeleteNoticia(id){
+  const{error}=await _supa.from('noticias').delete().eq('id',id);
+  if(error){showToast('error eliminando');return;}
+  showToast('noticia eliminada');
+  saLoadNoticiasList();
+}
+
+async function saLoadSugerencias(){
+  const list=document.getElementById('sa-sugerencias-list');
+  if(!list)return;
+  const{data,error}=await _supa.from('sugerencias').select('*').order('created_at',{ascending:false}).limit(50);
+  if(error||!data||data.length===0){list.innerHTML='<div style="font-size:13px;color:var(--muted)">buzón vacío</div>';return;}
+  list.innerHTML=data.map(s=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px 14px">
+      <div style="font-size:14px;color:var(--white);line-height:1.55;margin-bottom:6px">${s.content}</div>
+      <div style="font-size:11px;color:var(--muted)">${new Date(s.created_at).toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'numeric'})}</div>
+    </div>`).join('');
+}
+
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -5916,6 +6022,7 @@ function saTab(tab){
   if(tab==='fotografos') renderSAFotografosList();
   if(tab==='usuarios') renderSAUsuarios();
   if(tab==='pagos') renderPendingRefs();
+  if(tab==='comunidad') saLoadComunidadAdmin();
 }
 
 let saCatalogoLinks = [];
@@ -7124,6 +7231,7 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
     <div class="tab" id="sa-tab-fotografos" onclick="saTab('fotografos')" style="white-space:nowrap;flex-shrink:0">fotógrafos</div>
     <div class="tab" id="sa-tab-pagos" onclick="saTab('pagos')" style="white-space:nowrap;flex-shrink:0">pagos</div>
     <div class="tab" id="sa-tab-bypass" onclick="saTab('bypass')" style="white-space:nowrap;flex-shrink:0">bypass</div>
+    <div class="tab" id="sa-tab-comunidad" onclick="saTab('comunidad')" style="white-space:nowrap;flex-shrink:0">comunidad</div>
   </div>
 
   <!-- USUARIOS TAB -->
@@ -7279,6 +7387,48 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
       test: insertar publicación de prueba
     </button>
     <div id="sa-diag-output" style="background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:14px;font-family:monospace;font-size:11px;color:rgba(255,255,255,.7);white-space:pre-wrap;word-break:break-all;display:none;max-height:300px;overflow-y:auto;line-height:1.5"></div>
+  <!-- COMUNIDAD TAB -->
+  <div id="sa-comunidad" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:28px">
+
+    <!-- CLIPS -->
+    <div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:14px">Ruedda Clips</div>
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+        <input class="form-input" id="sa-clip-url" type="url" placeholder="https://www.instagram.com/reel/... o YouTube" style="flex:1">
+        <button onclick="saAddClip()" style="flex-shrink:0;background:var(--lime);color:#000;border:none;border-radius:12px;font-size:13px;font-weight:800;padding:12px 18px;cursor:pointer;font-family:var(--font)">añadir</button>
+      </div>
+      <div id="sa-clips-list" style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:13px;color:var(--muted)">cargando clips...</div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--border)"></div>
+
+    <!-- NOTICIAS -->
+    <div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:14px">Nueva noticia</div>
+      <input type="file" id="sa-noticia-img-input" accept="image/*" style="display:none" onchange="previewNoticiaImg(this)">
+      <div id="sa-noticia-preview" onclick="document.getElementById('sa-noticia-img-input').click()" style="width:100%;aspect-ratio:16/9;background:var(--card);border:1.5px dashed var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;margin-bottom:12px">
+        <span style="font-size:13px;color:var(--muted)">toca para subir banner</span>
+      </div>
+      <textarea id="sa-noticia-content" placeholder="cuerpo de la noticia..." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--white);font-size:14px;padding:14px;resize:none;font-family:var(--font);box-sizing:border-box;height:120px;line-height:1.6;margin-bottom:10px"></textarea>
+      <button onclick="saAddNoticia()" style="width:100%;background:var(--lime);color:#000;border:none;border-radius:13px;font-size:14px;font-weight:800;padding:14px;cursor:pointer;font-family:var(--font)">publicar noticia</button>
+      <div id="sa-noticias-list" style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+        <div style="font-size:13px;color:var(--muted)">cargando noticias...</div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--border)"></div>
+
+    <!-- SUGERENCIAS -->
+    <div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:14px">Buzón de sugerencias</div>
+      <div id="sa-sugerencias-list" style="display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:13px;color:var(--muted)">cargando...</div>
+      </div>
+    </div>
+
+  </div>
   </div>
 </div>
 
