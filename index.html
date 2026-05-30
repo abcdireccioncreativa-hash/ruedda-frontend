@@ -3944,6 +3944,18 @@ function renderFavoritos(){
   renderComunidad();
 }
 
+function getClipEmbedUrl(url){
+  if(url.includes('instagram.com')){
+    const m=url.match(/\/(reel|p)\/([^/?]+)/);
+    if(m) return `https://www.instagram.com/${m[1]}/${m[2]}/embed/`;
+  }
+  if(url.includes('youtu')){
+    const m=url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
+    if(m) return `https://www.youtube.com/embed/${m[1]}`;
+  }
+  return url;
+}
+
 // ===================== COMUNIDAD =====================
 async function renderComunidad(){
   const container=document.getElementById('comunidad-section');
@@ -3958,10 +3970,15 @@ async function renderComunidad(){
       if(!clips||clips.length===0){
         clipsRow.innerHTML='<div class="com-empty">sin clips por ahora</div>';
       } else {
-        clipsRow.innerHTML=clips.map((c,i)=>`
-          <div class="clip-card" style="animation-delay:${i*60}ms" onclick="openClipModal('${c.url_video}')">
-            <div class="clip-play-icon"><svg fill="white" viewBox="0 0 24 24" style="width:22px;height:22px"><polygon points="5,3 19,12 5,21"/></svg></div>
-          </div>`).join('');
+        clipsRow.innerHTML=clips.map((c,i)=>{
+          const embedUrl=getClipEmbedUrl(c.url_video);
+          return `<div class="clip-card" style="animation-delay:${i*60}ms" onclick="openClipModal('${c.url_video}')">
+            <iframe src="${embedUrl}" frameborder="0" scrolling="no"
+              style="width:320px;height:568px;border:none;pointer-events:none;transform:scale(0.375);transform-origin:top left;position:absolute;top:0;left:0"
+              allowtransparency="true"></iframe>
+            <div style="position:absolute;inset:0;z-index:10"></div>
+          </div>`;
+        }).join('');
       }
     }
   } catch(e){ if(clipsRow) clipsRow.innerHTML='<div class="com-empty">sin clips</div>'; }
@@ -5916,7 +5933,7 @@ async function saAddClip(){
   const url=(input?.value||'').trim();
   if(!url){showToast('pega un link válido');return;}
   const{error}=await _supa.from('ruedda_clips').insert({url_video:url});
-  if(error){showToast('error guardando clip');return;}
+  if(error){console.error('[sa-clips]',error);showToast('error: '+error.message);return;}
   input.value='';
   showToast('clip añadido',true);
   saLoadClipsList();
@@ -5963,10 +5980,10 @@ async function saAddNoticia(){
   const path=`noticia_${Date.now()}.${ext}`;
   showToast('subiendo imagen...');
   const{error:upErr}=await _supa.storage.from('noticias').upload(path,file,{upsert:false});
-  if(upErr){showToast('error subiendo imagen');return;}
+  if(upErr){console.error('[sa-noticias-upload]',upErr);showToast('error: '+upErr.message);return;}
   const{data:urlData}=_supa.storage.from('noticias').getPublicUrl(path);
   const{error:dbErr}=await _supa.from('noticias').insert({banner_image_url:urlData.publicUrl,content:contentVal||null});
-  if(dbErr){showToast('error publicando noticia');return;}
+  if(dbErr){console.error('[sa-noticias-db]',dbErr);showToast('error: '+dbErr.message);return;}
   fileInput.value='';
   document.getElementById('sa-noticia-preview').innerHTML='<span style="font-size:13px;color:var(--muted)">toca para subir banner</span>';
   document.getElementById('sa-noticia-content').value='';
