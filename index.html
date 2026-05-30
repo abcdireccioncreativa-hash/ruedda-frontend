@@ -7247,18 +7247,25 @@ async function supabaseLogout(){
 async function _loadAuctions(){
   if(!_supa) return;
   try{
-    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,transmision,combustible,ciudad,descripcion,user_id,auction_photos(url,orden)').eq('tipo','subasta').eq('estado','activa').order('end_time',{ascending:true});
+    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,transmision,combustible,ciudad,descripcion,user_id').eq('tipo','subasta').eq('estado','activa').order('end_time',{ascending:true});
     if(ae){console.error('[ruedda] _loadAuctions:',String(ae?.message||ae?.code||'error'));return;}
     if(!data?.length) return;
-    // fetch nombres de vendedores en batch
+    // batch fetch fotos y nombres — evita RLS del nested select
+    const auctionIds=data.map(a=>a.id);
     const userIds=[...new Set(data.map(a=>a.user_id).filter(Boolean))];
+    const[photosRes,usersRes]=await Promise.all([
+      _supa.from('auction_photos').select('auction_id,url,orden').in('auction_id',auctionIds),
+      userIds.length?_supa.from('users').select('id,nombre').in('id',userIds):Promise.resolve({data:[]})
+    ]);
+    const photosMap={};
+    (photosRes.data||[]).forEach(p=>{
+      if(!photosMap[p.auction_id]) photosMap[p.auction_id]=[];
+      photosMap[p.auction_id].push(p);
+    });
     const sellerMap={};
-    if(userIds.length){
-      const{data:uData}=await _supa.from('users').select('id,nombre').in('id',userIds);
-      (uData||[]).forEach(u=>{ sellerMap[u.id]=u.nombre||'Vendedor'; });
-    }
+    (usersRes.data||[]).forEach(u=>{ sellerMap[u.id]=u.nombre||'Vendedor'; });
     const mapped=data.map(a=>{
-      const sortedPhotos=(a.auction_photos||[]).sort((x,y)=>x.orden-y.orden);
+      const sortedPhotos=(photosMap[a.id]||[]).sort((x,y)=>x.orden-y.orden);
       return {id:a.id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs:{'transmisión':a.transmision,'combustible':a.combustible}};
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
