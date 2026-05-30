@@ -3282,11 +3282,6 @@ async function _apiGet(endpoint){
 function openMktListado(){
   document.getElementById('listado-bg').classList.add('open');
   document.getElementById('mkt-listado-overlay').classList.add('open');
-  const scrollY=window.scrollY;
-  document.body.dataset.scrollY=scrollY;
-  document.body.style.position='fixed';
-  document.body.style.top=-scrollY+'px';
-  document.body.style.width='100%';
   document.body.style.overflow='hidden';
   _renderMktListadoGrid();
 }
@@ -3325,12 +3320,7 @@ function _filterListadoGrid(q){
 function closeMktListado(){
   document.getElementById('listado-bg').classList.remove('open');
   document.getElementById('mkt-listado-overlay').classList.remove('open');
-  const scrollY=parseInt(document.body.dataset.scrollY||'0',10);
-  document.body.style.position='';
-  document.body.style.top='';
-  document.body.style.width='';
   document.body.style.overflow='';
-  window.scrollTo(0,scrollY);
 }
 function _renderMktListadoGrid(){
   _filterListadoGrid('');
