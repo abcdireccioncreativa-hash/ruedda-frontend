@@ -801,11 +801,11 @@ input[type=number]{-moz-appearance:textfield}
 .rx-empty-title{font-size:18px;font-weight:700;letter-spacing:-.3px;color:#fff;line-height:1.3}
 .rx-empty-sub{font-size:14px;font-weight:400;color:rgba(255,255,255,.3);line-height:1.6;max-width:260px}
 /* Loading overlay RueddaExtra */
-#rx-loading{position:fixed;inset:0;background:#000;z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px}
-#rx-loading.show{display:flex}
-.rx-loader-ring{width:44px;height:44px;border:2.5px solid rgba(255,255,255,0.08);border-top-color:#fff;border-radius:50%;animation:rxSpin .7s linear infinite}
+#rx-loading{position:fixed;inset:0;background:#000;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;opacity:0;pointer-events:none;transition:opacity .35s ease}
+#rx-loading.show{opacity:1;pointer-events:all}
+.rx-loader-ring{width:40px;height:40px;border:2.5px solid rgba(230,240,59,0.15);border-top-color:#e6f03b;border-radius:50%;animation:rxSpin .75s linear infinite}
 @keyframes rxSpin{to{transform:rotate(360deg)}}
-.rx-loader-text{font-size:14px;font-weight:600;color:rgba(255,255,255,.5);font-family:var(--font);letter-spacing:.2px}
+.rx-loader-text{font-size:14px;font-weight:600;color:rgba(255,255,255,.55);font-family:var(--font);letter-spacing:.1px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -6309,15 +6309,10 @@ function _updateCuentaSlider(){
 function _toggleRueddaExtra(){
   const ld=document.getElementById('rx-loading');
   if(!ld)return;
-  // dots animation
-  let d=0;
-  const dotsEl=document.getElementById('rx-dots');
-  const dotsInt=setInterval(()=>{d=(d+1)%4;if(dotsEl)dotsEl.textContent='.'.repeat(d);},400);
-  ld.classList.add('show');
+  requestAnimationFrame(()=>ld.classList.add('show'));
   setTimeout(()=>{
-    clearInterval(dotsInt);
     ld.classList.remove('show');
-    showView('ruedda-extra');
+    setTimeout(()=>showView('ruedda-extra'),350);
   },1800);
 }
 function updateCuentaView(){
@@ -7066,7 +7061,7 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
 <!-- RUEDDA EXTRA LOADING -->
 <div id="rx-loading">
   <div class="rx-loader-ring"></div>
-  <div class="rx-loader-text">Cargando RueddaExtra<span id="rx-dots"></span></div>
+  <div class="rx-loader-text">Cargando RueddaExtra.</div>
 </div>
 
 <!-- RUEDDA EXTRA VIEW -->
