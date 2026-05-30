@@ -425,8 +425,7 @@ input[type=number]{-moz-appearance:textfield}
 .search-cat-item:hover{color:var(--lime)}
 
 /* BID MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end;opacity:0;transition:opacity .32s ease}
-.modal-overlay.open{opacity:1}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end}
 .modal-overlay.open{display:flex}
 .modal-sheet{background:rgba(14,14,14,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:24px 24px 0 0;padding:22px 18px 44px;width:100%;border:1px solid rgba(255,255,255,.1);border-bottom:none;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)}
 .modal-handle{width:36px;height:4px;background:var(--muted2);border-radius:2px;margin:0 auto 20px}
@@ -6221,7 +6220,7 @@ async function secretAdminBypass(){
   updateCuentaView();
   showToast('bienvenido, SuperAdmin ✓',true);
   const ov=document.getElementById('auth-overlay');if(ov)ov.classList.remove('open');
-  closeAuthSheet();
+  const authSheet=document.getElementById('auth-sheet');if(authSheet)authSheet.classList.remove('open');
   setTimeout(()=>showView('superadmin'),400);
 }
 function checkSuperAdminLogin(){
@@ -6416,9 +6415,7 @@ function showLandingAuth(mode){
   const rw=document.getElementById('auth-remember-wrap');if(rw)rw.style.display=isLogin?'flex':'none';
   document.getElementById('auth-toggle-text').textContent=isLogin?'¿no tienes cuenta?':'¿ya tienes cuenta?';
   document.getElementById('auth-toggle-btn').textContent=isLogin?'registrate':'iniciar sesión';
-  const _as=document.getElementById('auth-sheet');
-  _as.style.display='flex';
-  requestAnimationFrame(()=>_as.classList.add('open'));
+  document.getElementById('auth-sheet').classList.add('open');
 }
 
 function setAuthType(type){
@@ -6526,12 +6523,7 @@ function triggerGuestBlock(accion){
 function closeModal(id){ const el=document.getElementById(id); if(el) el.classList.remove('open'); }
 
 function toggleAuthMode(){showLandingAuth(authMode==='register'?'login':'register')}
-function closeAuthSheet(){
-  const el=document.getElementById('auth-sheet');
-  if(!el)return;
-  el.style.opacity='0';
-  setTimeout(()=>{el.classList.remove('open');el.style.opacity='';},320);
-}
+function closeAuthSheet(){document.getElementById('auth-sheet').classList.remove('open')}
 let _rememberChecked=false;
 function _toggleRemember(){
   _rememberChecked=!_rememberChecked;
