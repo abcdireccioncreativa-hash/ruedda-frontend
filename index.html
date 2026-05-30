@@ -3981,9 +3981,9 @@ async function renderComunidad(){
           const embedUrl=getClipEmbedUrl(c.url_video);
           return `<div class="clip-card" style="animation-delay:${i*60}ms" onclick="openClipModal('${c.url_video}')">
             <iframe src="${embedUrl}" frameborder="0" scrolling="no"
-              style="width:320px;height:760px;border:none;pointer-events:none;transform:scale(0.375);transform-origin:top left;position:absolute;top:-22px;left:0"
+              style="width:320px;height:760px;border:none;pointer-events:none;touch-action:none;transform:scale(0.375);transform-origin:top left;position:absolute;top:-22px;left:0"
               allowtransparency="true"></iframe>
-            <div style="position:absolute;inset:0;z-index:10"></div>
+            <div style="position:absolute;inset:0;z-index:10;touch-action:pan-y"></div>
           </div>`;
         }).join('');
       }
