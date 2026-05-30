@@ -3287,8 +3287,9 @@ function openMktListado(){
       <div id="mkt-listado-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px 100px"></div>
     </div>`;
   document.body.appendChild(ov);
-  // única forma que bloquea scroll del body en iOS Safari real
-  function _lock(e){e.preventDefault();}
+  // bloquea touchmove del body EXCEPTO dentro del scroll container
+  const sc=ov.querySelector('#listado-scroll-wrap');
+  function _lock(e){if(sc&&sc.contains(e.target))return;e.preventDefault();}
   ov._lock=_lock;
   document.body.addEventListener('touchmove',_lock,{passive:false});
   requestAnimationFrame(()=>{ov.style.opacity='1';ov.style.transform='translateY(0)';});
