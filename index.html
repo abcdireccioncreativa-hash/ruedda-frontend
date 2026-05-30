@@ -801,11 +801,10 @@ input[type=number]{-moz-appearance:textfield}
 .rx-empty-title{font-size:18px;font-weight:700;letter-spacing:-.3px;color:#fff;line-height:1.3}
 .rx-empty-sub{font-size:14px;font-weight:400;color:rgba(255,255,255,.3);line-height:1.6;max-width:260px}
 /* Loading overlay RueddaExtra */
-#rx-loading{position:fixed;inset:0;background:#000;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;opacity:0;pointer-events:none;transition:opacity .35s ease}
+#rx-loading{position:fixed;inset:0;background:#000;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;pointer-events:none;transition:opacity .4s ease}
 #rx-loading.show{opacity:1;pointer-events:all}
-.rx-loader-ring{width:40px;height:40px;border:2.5px solid rgba(230,240,59,0.15);border-top-color:#e6f03b;border-radius:50%;animation:rxSpin .75s linear infinite}
-@keyframes rxSpin{to{transform:rotate(360deg)}}
-.rx-loader-text{font-size:14px;font-weight:600;color:rgba(255,255,255,.55);font-family:var(--font);letter-spacing:.1px}
+.rx-loader-text{font-size:22px;font-weight:800;letter-spacing:-.4px;color:#fff;font-family:var(--font);opacity:0;transform:translateY(6px);transition:opacity .35s ease .15s,transform .35s ease .15s}
+#rx-loading.show .rx-loader-text{opacity:1;transform:translateY(0)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -6315,8 +6314,8 @@ function _toggleRueddaExtra(){
     showView('ruedda-extra');
     window.scrollTo(0,0);
     ld.classList.remove('show');
-    setTimeout(()=>{ld.style.display='none';},380);
-  },1800);
+    setTimeout(()=>{ld.style.display='none';},400);
+  },1400);
 }
 function updateCuentaView(){
   const guest = document.getElementById('cuenta-guest');
@@ -7093,8 +7092,7 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
 
 <!-- RUEDDA EXTRA LOADING -->
 <div id="rx-loading">
-  <div class="rx-loader-ring"></div>
-  <div class="rx-loader-text">Cargando RueddaExtra.</div>
+  <div class="rx-loader-text">Bienvenido a RueddaExtra<span style="color:#e6f03b">.</span></div>
 </div>
 
 <!-- RUEDDA EXTRA VIEW -->
