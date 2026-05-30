@@ -6162,48 +6162,56 @@ function saPublicarFotografo(){
   showToast('fotógrafo publicado: '+nombre,true);
 }
 // ── SA USUARIOS ──
-const SA_USERS = [
-  {id:1, nombre:'Carlos Mendoza', username:'carlosm', email:'carlos@gmail.com', role:'particular', banned:false},
-  {id:2, nombre:'Valentina Ríos', username:'vale_rios', email:'vale@outlook.com', role:'particular', banned:false},
-  {id:3, nombre:'AutoElite Caracas', username:'autoelite', email:'autoelite@gmail.com', role:'consesionario', banned:false},
-  {id:4, nombre:'Miguel Herrera', username:'mherrera', email:'miguel@gmail.com', role:'particular', banned:false},
-  {id:5, nombre:'Premium Motors', username:'premiummotors', email:'pm@pm.com', role:'consesionario', banned:false},
-];
-
-function renderSAUsuarios(query=''){
+async function renderSAUsuarios(query=''){
   const list = document.getElementById('sa-user-list');
   if(!list) return;
-  const q = query.toLowerCase().trim();
-  const filtered = SA_USERS.filter(u =>
-    !q || u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.username.toLowerCase().includes(q)
+  list.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">cargando...</div>';
+  if(!_supa){list.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">sin conexión</div>';return;}
+  const{data,error}=await _supa.from('users').select('id,nombre,username,email,role').order('created_at',{ascending:false}).limit(100);
+  if(error){list.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:rgba(255,80,80,.7)">error: '+error.message+'</div>';return;}
+  const q=(query||'').toLowerCase().trim();
+  const filtered=(data||[]).filter(u=>!q||
+    (u.nombre||'').toLowerCase().includes(q)||
+    (u.email||'').toLowerCase().includes(q)||
+    (u.username||'').toLowerCase().includes(q)
   );
   if(!filtered.length){
     list.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">sin resultados</div>';
     return;
   }
-  list.innerHTML = filtered.map(u=>`
-    <div style="background:var(--card);border:1px solid ${u.banned?'rgba(255,60,60,.2)':' var(--border)'};border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;opacity:${u.banned?.5:1}">
+  const roleColor=r=>r==='concesionario'||r==='consesionario'?'rgba(230,240,59,.1)':'rgba(255,255,255,.06)';
+  const roleText=r=>r==='concesionario'||r==='consesionario'?'#e6f03b':'rgba(255,255,255,.4)';
+  const roleLabel=r=>{
+    if(r==='superadmin') return 'superadmin';
+    if(r==='concesionario'||r==='consesionario') return 'concesionario';
+    return 'particular';
+  };
+  list.innerHTML=filtered.map(u=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
       <div style="min-width:0">
         <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
-          <span style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.nombre}</span>
-          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:${u.role==='consesionario'?'rgba(230,240,59,.1)':'rgba(255,255,255,.06)'};color:${u.role==='consesionario'?'#e6f03b':'rgba(255,255,255,.4)'};flex-shrink:0">${u.role}</span>
-          ${u.banned?'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(255,60,60,.1);color:rgba(255,80,80,.8)">baneado</span>':''}
+          <span style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.nombre||'sin nombre'}</span>
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:${roleColor(u.role)};color:${roleText(u.role)};flex-shrink:0">${roleLabel(u.role)}</span>
         </div>
-        <div style="font-size:12px;color:var(--muted)">@${u.username} · ${u.email}</div>
+        <div style="font-size:12px;color:var(--muted)">@${u.username||'—'} · ${u.email||'—'}</div>
       </div>
-      <button onclick="saBanUser(${u.id})" style="flex-shrink:0;background:${u.banned?'rgba(255,255,255,.04)':'rgba(255,40,40,.07)'};border:1px solid ${u.banned?'rgba(255,255,255,.1)':'rgba(255,60,60,.25)'};border-radius:10px;padding:8px 14px;font-family:var(--font);font-size:12px;font-weight:700;color:${u.banned?'rgba(255,255,255,.4)':'rgba(255,80,80,.85)'};cursor:pointer;transition:all .15s;white-space:nowrap" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-        ${u.banned?'desbanear':'banear'}
+      <button onclick="saDeleteUser('${u.id}','${(u.username||u.email||'').replace(/'/g,'')}')" style="flex-shrink:0;background:rgba(255,40,40,.07);border:1px solid rgba(255,60,60,.25);border-radius:10px;padding:8px 14px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,80,80,.85);cursor:pointer;transition:all .15s;white-space:nowrap" onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+        eliminar
       </button>
     </div>`).join('');
 }
 
-function saBanUser(id){
-  const u = SA_USERS.find(u=>u.id===id);
-  if(!u) return;
-  u.banned = !u.banned;
-  const q = document.getElementById('sa-user-search')?.value||'';
+async function saDeleteUser(id, label){
+  if(!confirm('¿Eliminar usuario '+label+'? Esta acción no se puede deshacer.')) return;
+  if(!_supa) return;
+  // 1. Eliminar de tabla users
+  await _supa.from('users').delete().eq('id',id);
+  // 2. Eliminar de Auth (requiere service_role)
+  const{error}=await _supa.auth.admin.deleteUser(id);
+  if(error) console.warn('[ruedda] auth delete:',error.message);
+  showToast('usuario eliminado',true);
+  const q=document.getElementById('sa-user-search')?.value||'';
   renderSAUsuarios(q);
-  showToast(u.banned?`@${u.username} baneado`:`@${u.username} desbaneado`, !u.banned);
 }
 
 function renderSAFotografosList(){
@@ -7355,7 +7363,18 @@ async function _rueddaLoadUserData(userId,role){
   const{data:{session}}=await _supa.auth.getSession();
   if(session?.user){
     const{data:profile}=await _supa.from('users').select('*').eq('id',session.user.id).single();
-    if(profile){_rueddaApplySession(profile);_rueddaLoadUserData(session.user.id,profile.role);}
+    if(profile){
+      if(profile.role==='concesionario'){
+        const{data:dealer}=await _supa.from('concesionarios').select('id,activo,plan_expiry').eq('user_id',session.user.id).maybeSingle();
+        if(dealer){
+          USER_STATE.concesionarioId=dealer.id;
+          USER_STATE.dealerActive=dealer.activo===true;
+          USER_STATE.dealerExpiry=dealer.plan_expiry||null;
+        }
+      }
+      _rueddaApplySession(profile);
+      _rueddaLoadUserData(session.user.id,profile.role);
+    }
   }
   await Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadConcesionarios(),_loadFotografos()]);
 })();
