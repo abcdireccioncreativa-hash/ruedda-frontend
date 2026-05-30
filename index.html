@@ -6309,10 +6309,12 @@ function _updateCuentaSlider(){
 function _toggleRueddaExtra(){
   const ld=document.getElementById('rx-loading');
   if(!ld)return;
+  ld.style.display='flex';
   requestAnimationFrame(()=>ld.classList.add('show'));
   setTimeout(()=>{
+    showView('ruedda-extra');
     ld.classList.remove('show');
-    setTimeout(()=>showView('ruedda-extra'),350);
+    setTimeout(()=>{ld.style.display='none';},380);
   },1800);
 }
 function updateCuentaView(){
