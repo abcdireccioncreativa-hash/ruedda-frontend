@@ -790,9 +790,9 @@ input[type=number]{-moz-appearance:textfield}
 .listado-card-title{font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px}
 .listado-card-price{font-size:13px;font-weight:800;color:#e6f03b}
 /* ── RUEDDA EXTRA ── */
-#view-ruedda-extra{background:#000;min-height:100dvh;position:relative;overflow:hidden;padding-top:58px}
+#view-ruedda-extra{background:#000;min-height:100dvh;position:relative;overflow:hidden}
 .rx-spark{position:absolute;border-radius:50%;background:rgba(255,255,255,0.055);pointer-events:none}
-.rx-hdr{position:relative;z-index:1;display:flex;align-items:center;padding:28px 16px 0;gap:12px}
+.rx-hdr{position:relative;z-index:1;display:flex;align-items:center;padding:18px 16px 0;gap:12px}
 .rx-back{background:rgba(255,255,255,0.06);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:10px 14px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;color:rgba(255,255,255,.55);display:flex;align-items:center;gap:6px;transition:background .18s,color .18s}
 .rx-back:hover{background:rgba(255,255,255,0.1);color:#fff}
 .rx-logo{font-size:17px;font-weight:800;letter-spacing:-.3px;color:#fff}
@@ -6313,6 +6313,7 @@ function _toggleRueddaExtra(){
   requestAnimationFrame(()=>ld.classList.add('show'));
   setTimeout(()=>{
     showView('ruedda-extra');
+    document.getElementById('view-ruedda-extra').scrollTop=0;
     ld.classList.remove('show');
     setTimeout(()=>{ld.style.display='none';},380);
   },1800);
