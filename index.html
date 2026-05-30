@@ -6293,7 +6293,7 @@ async function renderModQueue(type){
 
   window._modQueueData = data;
 }
-function openModReview(id){
+async function openModReview(id){
   const item=(window._modQueueData||[]).find(x=>x.id===id);
   if(!item){ showToast('error: publicación no encontrada'); return; }
   // convert to legacy format for modal
@@ -6302,10 +6302,15 @@ function openModReview(id){
   item.km=item.km?item.km.toLocaleString()+' km':'—';
   item.ciudad=item.ciudad||'—';
   item.desc=item.descripcion||'Sin descripción';
-  const sortedPhotos=(item.listing_photos||[]).sort((a,b)=>a.orden-b.orden);
-  item.fotos=sortedPhotos.length>0
-    ?sortedPhotos.map(p=>p.url)
-    :['linear-gradient(135deg,#1a1a2e,#16213e)'];
+  // Fetch fotos separado — evita RLS del join nested
+  item.fotos=['linear-gradient(135deg,#1a1a2e,#16213e)'];
+  if(_supa && item._table==='listings'){
+    const{data:fData}=await _supa.from('listing_photos').select('url,orden').eq('listing_id',id).order('orden',{ascending:true});
+    if(fData&&fData.length>0) item.fotos=fData.map(p=>p.url);
+  } else if(_supa && item._table==='auctions'){
+    const{data:fData}=await _supa.from('auction_photos').select('url,orden').eq('auction_id',id).order('orden',{ascending:true});
+    if(fData&&fData.length>0) item.fotos=fData.map(p=>p.url);
+  }
   if(!item) return;
   let modal=document.getElementById('mod-review-modal');
   if(!modal){
