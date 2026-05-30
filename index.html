@@ -151,7 +151,7 @@ input[type=number]{-moz-appearance:textfield}
 
 /* VIEWS */
 .view{display:none}
-.view.active{display:block;animation:fadeIn .2s ease}
+.view.active{display:block}
 
 /* DETAIL LAYOUT — mobile first */
 .detail-header-block{padding:16px 0 4px}
@@ -377,10 +377,10 @@ input[type=number]{-moz-appearance:textfield}
 .cuenta-menu-item.muted{color:var(--muted)}
 
 /* CARD LOADING INDICATOR */
-@keyframes cardSpin{to{transform:rotate(360deg)}}
+@keyframes cardSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 @keyframes cardPulse{0%,100%{opacity:.5}50%{opacity:1}}
 .card-loading-pill{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;pointer-events:none}
-.card-loading-ring{width:22px;height:22px;border:2px solid rgba(255,255,255,0.15);border-top-color:rgba(255,255,255,0.85);border-radius:50%;animation:cardSpin .8s linear infinite;flex-shrink:0}
+.card-loading-ring{width:22px;height:22px;border:1.5px solid rgba(255,255,255,0.1);border-top-color:rgba(255,255,255,0.7);border-radius:50%;animation:cardSpin 1s cubic-bezier(.4,0,.6,1) infinite;flex-shrink:0;opacity:.85}
 .card-loading-text{font-size:10px;font-weight:600;color:rgba(255,255,255,0.45);letter-spacing:.2px;font-family:var(--font);animation:cardPulse 1.8s ease infinite}
 /* SPINNER GUARDAR */
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -1283,7 +1283,7 @@ input[type=number]{-moz-appearance:textfield}
             <div class="seller-card-info">
               <span class="seller-card-label">publicado por</span>
               <span class="seller-card-name" id="mkt-seller-name">vendedor</span>
-              <span id="mkt-seller-dealer-badge" style="display:none;font-size:10px;font-weight:700;color:rgba(230,240,59,.7);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">ver vitrina ›</span>
+              <span id="mkt-seller-dealer-badge" style="display:none;font-size:10px;font-weight:700;color:rgba(230,240,59,.7);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">ir a vitrina ›</span>
             </div>
           </div>
           <div class="detail-section-title">preguntas al vendedor</div>
@@ -3464,6 +3464,24 @@ function openMarketDetail(id, origin){
   },0);
 
   document.getElementById('mkt-city').textContent=l.location;
+  // seller real desde Supabase si no hay nombre
+  if(_supa && l.user_id && !l.seller){
+    _supa.from('users').select('nombre,username').eq('id',l.user_id).maybeSingle().then(({data:u})=>{
+      if(u){
+        const nm=u.nombre||u.username||'Vendedor';
+        const ini=nm.charAt(0).toUpperCase();
+        const _av=document.getElementById('mkt-seller-avatar');
+        const _av2=document.getElementById('mkt-seller-avatar-bid');
+        const _nm=document.getElementById('mkt-seller-name');
+        const _nm2=document.getElementById('mkt-seller-name-bid');
+        if(_av){_av.textContent=ini;_av.style.background=`hsl(${(ini.charCodeAt(0)*47)%360},40%,28%)`;}
+        if(_av2) _av2.textContent=ini;
+        if(_nm) _nm.innerHTML=nm;
+        if(_nm2) _nm2.innerHTML=nm;
+        l.seller=nm;
+      }
+    }).catch(()=>{});
+  }
   // specs
   const sg=document.getElementById('mkt-specs');
   sg.innerHTML='<div class="spec-item"><div class="spec-label">año</div><div class="spec-value">'+l.year+'</div></div>'
@@ -5460,13 +5478,7 @@ function contactDealer(){
 }
 
 
-const FOTOGRAFOS = [
-  {id:1, nombre:'Lewis De Jong', ciudad:'Caracas', especialidad:'autos deportivos y exóticos', rating:4.9, trabajos:38},
-  {id:2, nombre:'Valentina Ríos', ciudad:'Caracas', especialidad:'suv, pickups y 4x4', rating:4.8, trabajos:51},
-  {id:3, nombre:'Miguel Herrera', ciudad:'Maracay', especialidad:'clásicos y muscle cars', rating:5.0, trabajos:22},
-  {id:4, nombre:'Andrea Castillo', ciudad:'Valencia', especialidad:'fotografía editorial automotriz', rating:4.9, trabajos:44},
-  {id:5, nombre:'Rafael Díaz', ciudad:'Maracaibo', especialidad:'autos deportivos y sedanes', rating:4.7, trabajos:29},
-];
+const FOTOGRAFOS = []; // se carga desde Supabase en _loadFotografos()
 
 let fotoFilter='todas';
 
@@ -6615,10 +6627,10 @@ async function _loadAuctions(){
 async function _loadMarket(){
   if(!_supa) return;
   try{
-    const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden)').eq('estado','activa').order('created_at',{ascending:false});
+    const{data,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden)').eq('estado','activa').order('created_at',{ascending:false});
     if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));return;}
     if(!data?.length) return;
-    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',transmission:l.transmision,fuel:l.combustible,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',transmission:l.transmision,fuel:l.combustible,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
   }catch(e){console.error('[ruedda] _loadMarket catch:',String(e?.message||e));}
