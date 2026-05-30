@@ -4473,6 +4473,7 @@ function confirmPayment(){
         _supa.from('concesionarios').update({activo:true,plan_expiry:exp.toISOString()}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] activar vitrina:',e.message));
       }
       document.getElementById('payment-sheet').classList.remove('open');
+      if(_supa) _loadConcesionarios();
       _showVitrinaActivadaSplash();
       return;
     } else { showToast('código aplicado — acceso sin cargo',true); }
@@ -4732,6 +4733,7 @@ async function processPayment(){
         _supa.from('concesionarios').update({activo:true,plan_expiry:exp}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] activar vitrina código:',e.message));
       }
       closeCheckout();
+      if(_supa) _loadConcesionarios();
       _showVitrinaActivadaSplash();
       return;
     }
