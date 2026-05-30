@@ -118,6 +118,17 @@ input[type=number]{-moz-appearance:textfield}
 
 /* MARKET GRID */
 .market-grid{display:flex;flex-direction:column;gap:12px;padding:10px 14px 100px}
+/* MARKET GRID 4x4 MODE */
+#market-grid{transition:gap .25s ease}
+#market-grid .market-card{transition:border-radius .25s ease,margin .25s ease}
+.market-grid--4x4{display:grid!important;flex-direction:unset!important;grid-template-columns:1fr 1fr!important;gap:8px!important;padding:10px 10px 100px!important}
+.market-grid--4x4 .market-card{border-radius:14px!important}
+.market-grid--4x4 .market-card-img{width:100%!important;margin:0!important;border-radius:0!important;aspect-ratio:16/9!important}
+.market-grid--4x4 .market-card-body{padding:7px 9px 10px!important;gap:2px!important}
+.market-grid--4x4 .market-card-title{font-size:11px!important;letter-spacing:-.1px!important}
+.market-grid--4x4 .market-card-price{font-size:12px!important}
+.market-grid--4x4 .market-card-meta{display:none!important}
+#mkt-grid-toggle.active{color:var(--lime)}
 .market-card{background:var(--card);border-radius:20px;overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:transform .18s,border-color .2s;animation:fadeUp .3s ease both;display:flex;flex-direction:column;text-align:left}
 .market-card:active{transform:scale(.97)}
 .market-card-img{position:relative;width:calc(100% - 14px);margin:7px 7px 0;aspect-ratio:16/10;border-radius:12px;overflow:hidden;background:#1a1a1a;display:flex;align-items:center;justify-content:center;flex-shrink:0}.market-card-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,.45));pointer-events:none}
@@ -1085,8 +1096,10 @@ input[type=number]{-moz-appearance:textfield}
         </div>
       </div>
     </div>
-    <!-- LISTADO BTN — solo market -->
-    <span id="mkt-listado-btn" class="section-link" onclick="openMktListado()" style="display:none;margin-left:10px">listado</span>
+    <!-- GRID TOGGLE BTN — cambia market a 4x4 -->
+    <button id="mkt-grid-toggle" onclick="toggleMktGrid()" style="display:none;background:none;border:none;padding:4px 6px;cursor:pointer;color:rgba(255,255,255,.45);margin-left:6px;transition:color .18s;flex-shrink:0" title="cambiar vista">
+      <svg id="mkt-grid-icon" width="18" height="18" viewBox="0 0 18 18" fill="currentColor"><rect x="1" y="1" width="7" height="7" rx="1.5"/><rect x="10" y="1" width="7" height="7" rx="1.5"/><rect x="1" y="10" width="7" height="7" rx="1.5"/><rect x="10" y="10" width="7" height="7" rx="1.5"/></svg>
+    </button>
     <!-- MARKET CONDITION TOGGLE -->
     <div class="mkt-cond-toggle" id="mkt-cond-toggle" role="switch" aria-label="filtrar por condición">
       <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
@@ -2739,7 +2752,7 @@ function showView(name){
     currentSection='subastas';
     const _tog=document.getElementById('mkt-cond-toggle');if(_tog)_tog.className='mkt-cond-toggle';
     const _cl=document.getElementById('section-como-funciona-link');if(_cl)_cl.style.display='inline';
-    const _lb=document.getElementById('mkt-listado-btn');if(_lb)_lb.style.display='none';
+    const _lb=document.getElementById('mkt-grid-toggle');if(_lb){_lb.style.display='none';_lb.classList.remove('active');document.getElementById('market-grid')?.classList.remove('market-grid--4x4');}
     document.getElementById('section-title-text').textContent='subastas';
     document.querySelectorAll('.dropdown-item').forEach((i,idx)=>i.classList.toggle('active',idx===0));
     renderCurrentSection();
@@ -2796,10 +2809,10 @@ function selectSection(s){
   // show/hide market condition toggle
   const tog=document.getElementById('mkt-cond-toggle');
   const cl=document.getElementById('section-como-funciona-link');
-  const lb=document.getElementById('mkt-listado-btn');
+  const lb=document.getElementById('mkt-grid-toggle');
   if(tog){tog.className='mkt-cond-toggle'+(s==='market'?' show':'');}
   if(cl){cl.style.display=s==='market'?'none':'inline';}
-  if(lb){lb.style.display=s==='market'?'inline':'none';}
+  if(lb){lb.style.display=s==='market'?'flex':'none';}
   currentSection=s;
   document.getElementById('section-title-text').textContent=s==='consesionarios'?'concesionarios':s;
   document.getElementById('section-dropdown').classList.remove('open');
@@ -3951,6 +3964,13 @@ function markAllRead(){
 }
 
 // ===================== SEARCH =====================
+function toggleMktGrid(){
+  const grid=document.getElementById('market-grid');
+  const btn=document.getElementById('mkt-grid-toggle');
+  if(!grid||!btn)return;
+  const on=grid.classList.toggle('market-grid--4x4');
+  btn.classList.toggle('active',on);
+}
 // ── SCROLL LOCK GLOBAL — iOS Safari definitivo ──
 let _scrollLockCount=0;
 function lockScroll(){
