@@ -350,6 +350,36 @@ html{scrollbar-width:none}
 .fav-empty svg{width:46px;height:46px;opacity:.4}
 .fav-empty h3{font-size:17px;font-weight:700;color:var(--white);margin-bottom:2px}
 .fav-empty p{font-size:14px;text-align:center;line-height:1.6}
+.fav-section-label{font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);padding:0 16px;margin-bottom:10px}
+.fav-thumb-row{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;padding:0 16px 4px;scrollbar-width:none}
+.fav-thumb-row::-webkit-scrollbar{display:none}
+.fav-thumb-card{flex-shrink:0;width:148px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;scroll-snap-align:start;cursor:pointer;transition:transform .18s,border-color .18s;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
+.fav-thumb-card:active{transform:scale(.96)}
+.fav-thumb-img{width:100%;aspect-ratio:4/3;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.fav-thumb-badge-timer{position:absolute;bottom:6px;left:6px;font-size:10px;font-weight:700;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:3px 7px;letter-spacing:.2px}
+.fav-thumb-badge-timer.urgent{color:var(--lime);border-color:rgba(230,240,59,.35)}
+.fav-thumb-body{padding:9px 10px 11px}
+.fav-thumb-title{font-size:12px;font-weight:700;line-height:1.35;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.fav-thumb-meta{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* COMUNIDAD */
+.clips-row{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;padding:0 16px 4px;scrollbar-width:none}
+.clips-row::-webkit-scrollbar{display:none}
+.clip-card{flex-shrink:0;width:120px;aspect-ratio:9/16;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;scroll-snap-align:start;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .18s;position:relative;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
+.clip-card:active{transform:scale(.95)}
+.clip-play-icon{width:40px;height:40px;background:rgba(255,255,255,.1);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.noticias-row{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;padding:0 16px 4px;scrollbar-width:none}
+.noticias-row::-webkit-scrollbar{display:none}
+.noticia-card{flex-shrink:0;width:200px;height:130px;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;scroll-snap-align:start;cursor:pointer;transition:transform .18s;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
+.noticia-card:active{transform:scale(.97)}
+.noticia-card-wide{width:240px}
+.feedback-grid{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
+.feedback-grid::-webkit-scrollbar{display:none}
+.feedback-btn{flex-shrink:0;width:150px;height:150px;background:var(--card);border:1px solid var(--border);border-radius:22px;display:flex;align-items:flex-end;justify-content:flex-start;padding:14px;cursor:pointer;transition:transform .18s,border-color .18s;position:relative;overflow:hidden;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
+.feedback-btn:active{transform:scale(.95)}
+.feedback-btn-sm{width:100px}
+.feedback-btn-label{font-size:13px;font-weight:700;color:var(--white);writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);letter-spacing:.5px}
+.com-empty{padding:20px 0;font-size:13px;color:var(--muted);text-align:center}
+.com-loading{padding:20px 0;font-size:13px;color:var(--muted);text-align:center}
 
 /* NOTIFICACIONES */
 .notif-list{display:flex;flex-direction:column;padding:0 0 100px}
@@ -2017,7 +2047,129 @@ html{scrollbar-width:none}
   <div class="notif-header">
     <h2>favoritos</h2>
   </div>
-  <div id="favoritos-content" style="padding-bottom:100px"></div>
+  <div id="favoritos-content"></div>
+
+  <!-- COMUNIDAD SECTION -->
+  <div id="comunidad-section" style="padding-bottom:100px">
+    <!-- Divider -->
+    <div style="height:1px;background:var(--border);margin:8px 0 24px"></div>
+
+    <!-- Header Comunidad -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:20px">
+      <span style="font-size:14px;font-weight:600;color:var(--muted);letter-spacing:.3px">Comunidad</span>
+      <svg fill="white" viewBox="0 0 24 24" style="width:22px;height:22px;opacity:.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    </div>
+
+    <!-- Ruedda Clips -->
+    <div style="padding:0 16px;margin-bottom:6px">
+      <div style="font-size:28px;font-weight:800;line-height:1.1;margin-bottom:4px">
+        Ruedda <span style="color:var(--lime)">Clips</span>
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">conoce nuestros últimos videos</div>
+    </div>
+    <div id="clips-row" class="clips-row"></div>
+
+    <!-- Artículos y Noticias -->
+    <div style="padding:0 16px;margin-top:28px;margin-bottom:6px">
+      <div style="font-size:28px;font-weight:800;line-height:1.1;margin-bottom:6px">Artículos y noticias</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">noticias y artículos redactados sin IA.<br>Por petrolheads y personas reales.</div>
+    </div>
+    <div id="noticias-row" class="noticias-row"></div>
+
+    <!-- Feedback y más -->
+    <div style="padding:0 16px;margin-top:28px;margin-bottom:14px">
+      <div style="font-size:28px;font-weight:800;line-height:1.1">Feedback y más</div>
+    </div>
+    <div class="feedback-grid" style="padding:0 16px">
+      <div class="feedback-btn" style="animation-delay:0ms" onclick="showView('carspotting')">
+        <span class="feedback-btn-label">carspotting</span>
+      </div>
+      <div class="feedback-btn" style="animation-delay:70ms" onclick="showView('sugerencias')">
+        <span class="feedback-btn-label">sugerencias</span>
+      </div>
+      <div class="feedback-btn" style="animation-delay:140ms" onclick="showView('historia')">
+        <span class="feedback-btn-label">historia</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CARSPOTTING VIEW -->
+<div id="view-carspotting" class="view">
+  <div class="notif-header" style="display:flex;align-items:center;gap:10px">
+    <button onclick="showView('favoritos')" style="background:none;border:none;color:var(--white);cursor:pointer;padding:0;display:flex;align-items:center">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:22px;height:22px"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h2 style="margin:0">carspotting</h2>
+    <button onclick="openCarspottingUpload()" style="margin-left:auto;background:var(--lime);color:#000;border:none;border-radius:100px;font-size:13px;font-weight:800;padding:7px 18px;cursor:pointer;display:flex;align-items:center;gap:5px">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M12 5v14M5 12h14"/></svg>
+      subir
+    </button>
+  </div>
+  <!-- Upload panel (oculto por defecto) -->
+  <div id="cs-upload-panel" style="display:none;margin:0 16px 20px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px">
+    <div style="font-size:14px;font-weight:700;margin-bottom:12px">nueva foto</div>
+    <input type="file" id="cs-file-input" accept="image/*" style="display:none" onchange="previewCsFile(this)">
+    <div id="cs-preview" onclick="document.getElementById('cs-file-input').click()" style="width:100%;aspect-ratio:4/3;background:rgba(255,255,255,.04);border:1.5px dashed var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;margin-bottom:12px">
+      <span style="font-size:13px;color:var(--muted)">toca para seleccionar foto</span>
+    </div>
+    <textarea id="cs-desc-input" maxlength="100" placeholder="descripción (max 100 caracteres)" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;color:var(--white);font-size:14px;padding:10px 12px;resize:none;font-family:inherit;box-sizing:border-box;height:72px"></textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <span id="cs-char-count" style="font-size:11px;color:var(--muted)">0/100</span>
+    </div>
+    <button onclick="submitCarspotting()" style="width:100%;margin-top:12px;background:var(--lime);color:#000;border:none;border-radius:14px;font-size:14px;font-weight:800;padding:13px;cursor:pointer">publicar</button>
+  </div>
+  <div id="cs-feed" style="padding:0 16px 100px;display:flex;flex-direction:column;gap:14px">
+    <div class="com-loading">cargando...</div>
+  </div>
+</div>
+
+<!-- SUGERENCIAS VIEW -->
+<div id="view-sugerencias" class="view">
+  <div class="notif-header" style="display:flex;align-items:center;gap:10px">
+    <button onclick="showView('favoritos')" style="background:none;border:none;color:var(--white);cursor:pointer;padding:0;display:flex;align-items:center">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:22px;height:22px"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h2 style="margin:0">sugerencias</h2>
+  </div>
+  <div style="padding:24px 16px">
+    <div style="font-size:15px;color:var(--muted);line-height:1.6;margin-bottom:28px">¿Qué le agregarías a Ruedda? Todo feedback suma.</div>
+    <textarea id="sug-input" placeholder="escribe tu sugerencia..." maxlength="600" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:18px;color:var(--white);font-size:15px;padding:16px;resize:none;font-family:inherit;box-sizing:border-box;height:160px;line-height:1.6"></textarea>
+    <button onclick="submitSugerencia()" style="width:100%;margin-top:14px;background:var(--lime);color:#000;border:none;border-radius:16px;font-size:15px;font-weight:800;padding:15px;cursor:pointer">enviar sugerencia</button>
+  </div>
+</div>
+
+<!-- HISTORIA VIEW -->
+<div id="view-historia" class="view">
+  <div class="notif-header" style="display:flex;align-items:center;gap:10px">
+    <button onclick="showView('favoritos')" style="background:none;border:none;color:var(--white);cursor:pointer;padding:0;display:flex;align-items:center">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:22px;height:22px"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h2 style="margin:0">historia</h2>
+  </div>
+  <div id="historia-content" style="padding:8px 16px 100px;font-size:15px;color:rgba(255,255,255,.8);line-height:1.8">
+    <div class="com-loading">cargando...</div>
+  </div>
+  <!-- Botón editar solo para superadmin -->
+  <div id="historia-edit-btn" style="display:none;position:fixed;bottom:90px;right:20px">
+    <button onclick="openHistoriaEdit()" style="background:var(--lime);color:#000;border:none;border-radius:100px;font-size:13px;font-weight:800;padding:11px 22px;cursor:pointer;box-shadow:0 4px 20px rgba(230,240,59,.3)">editar</button>
+  </div>
+  <!-- Panel edición (oculto) -->
+  <div id="historia-edit-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:16px;z-index:200">
+    <textarea id="historia-edit-input" style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:14px;color:var(--white);font-size:14px;padding:14px;resize:none;font-family:inherit;box-sizing:border-box;height:160px"></textarea>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button onclick="closeHistoriaEdit()" style="flex:1;background:var(--card);color:var(--white);border:1px solid var(--border);border-radius:12px;font-size:14px;padding:12px;cursor:pointer">cancelar</button>
+      <button onclick="saveHistoria()" style="flex:1;background:var(--lime);color:#000;border:none;border-radius:12px;font-size:14px;font-weight:800;padding:12px;cursor:pointer">guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIP MODAL -->
+<div id="clip-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;flex-direction:column">
+  <div style="position:relative;width:min(360px,90vw);aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#111">
+    <iframe id="clip-iframe" src="" frameborder="0" allowfullscreen allow="autoplay;encrypted-media" style="width:100%;height:100%;border:none"></iframe>
+  </div>
+  <button onclick="closeClipModal()" style="margin-top:20px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:white;font-size:14px;font-weight:600;padding:10px 28px;border-radius:100px;cursor:pointer">cerrar</button>
 </div>
 
 <!-- CUENTA VIEW -->
@@ -2776,6 +2928,9 @@ function showView(name){
   if(name==='cuenta'){document.getElementById('stat-guardadas').textContent=watchlist.size;updateCuentaView();}
   if(name==='notificaciones'){renderNotifications();document.getElementById('notif-dot').style.display='none';}
   if(name==='favoritos')renderFavoritos();
+  if(name==='carspotting')loadCarspotting();
+  if(name==='sugerencias'){/* nada que cargar */}
+  if(name==='historia')loadHistoria();
   if(name==='superadmin'){
     setTimeout(async()=>{
       // diagnóstico de conexión rápido
@@ -3770,21 +3925,190 @@ function renderFavoritos(){
   const el=document.getElementById('favoritos-content');
   if(watchlist.size===0){
     el.innerHTML='<div class="fav-empty"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg><h3>sin favoritos aún</h3><p>Guarda subastas que te interesen para seguirlas de cerca.</p></div>';
-    return;
+    renderComunidad();return;
   }
   const allAuctions=[...AUCTIONS,...AUCTIONS_CHOCADOS];
   const favAuctions=allAuctions.filter(a=>watchlist.has(a.id));
-  el.innerHTML='<div class="card-list">'+favAuctions.map(a=>`
-    <div class="auction-card" onclick="openDetail(${a.id})" style="cursor:pointer">
-      <div class="card-img-wrap" style="background:linear-gradient(${grads[a.id%grads.length]})">${carPlaceholder(a.id)}
-        ${a.chocado?'<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>':''}
-        <div class="badge-timer ${isUrgent(a.endTime)?'urgent':''}">${fmtCountdown(a.endTime-Date.now())}</div>
-        <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
+  const cards=favAuctions.map((a,i)=>`
+    <div class="fav-thumb-card" style="animation-delay:${i*55}ms" onclick="openDetail(${a.id})">
+      <div class="fav-thumb-img" style="background:linear-gradient(${grads[a.id%grads.length]})">
+        ${carPlaceholder(a.id,'small')}
+        <div class="fav-thumb-badge-timer${isUrgent(a.endTime)?' urgent':''}">${fmtCountdown(a.endTime-Date.now())}</div>
       </div>
-      <div class="card-body"><div class="card-title">${a.title}</div>
-        <div class="card-meta">${a.location} · ${fmtNum(a.km)} km</div>
+      <div class="fav-thumb-body">
+        <div class="fav-thumb-title">${a.title}</div>
+        <div class="fav-thumb-meta">${fmtBid(a.currentBid)} · ${a.bidCount} ofertas</div>
       </div>
-    </div>`).join('')+'</div>';
+    </div>`).join('');
+  el.innerHTML=`<div class="fav-thumb-row">${cards}</div>`;
+  renderComunidad();
+}
+
+// ===================== COMUNIDAD =====================
+async function renderComunidad(){
+  const container=document.getElementById('comunidad-section');
+  if(!container)return;
+  const clipsRow=document.getElementById('clips-row');
+  const noticiasRow=document.getElementById('noticias-row');
+  if(clipsRow) clipsRow.innerHTML='<div class="com-loading">...</div>';
+  if(noticiasRow) noticiasRow.innerHTML='<div class="com-loading">...</div>';
+  try{
+    const{data:clips}=await _supa.from('ruedda_clips').select('*').order('created_at',{ascending:false}).limit(10);
+    if(clipsRow){
+      if(!clips||clips.length===0){
+        clipsRow.innerHTML='<div class="com-empty">sin clips por ahora</div>';
+      } else {
+        clipsRow.innerHTML=clips.map((c,i)=>`
+          <div class="clip-card" style="animation-delay:${i*60}ms" onclick="openClipModal('${c.url_video}')">
+            <div class="clip-play-icon"><svg fill="white" viewBox="0 0 24 24" style="width:22px;height:22px"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>`).join('');
+      }
+    }
+  } catch(e){ if(clipsRow) clipsRow.innerHTML='<div class="com-empty">sin clips</div>'; }
+  try{
+    const{data:noticias}=await _supa.from('noticias').select('*').order('created_at',{ascending:false}).limit(8);
+    if(noticiasRow){
+      if(!noticias||noticias.length===0){
+        noticiasRow.innerHTML='<div class="com-empty">sin noticias por ahora</div>';
+      } else {
+        noticiasRow.innerHTML=noticias.map((n,i)=>`
+          <div class="noticia-card${i===0?' noticia-card-wide':''}" onclick="showView('noticia-detail','${n.id}')" style="background-image:url('${n.banner_image_url}');background-size:cover;background-position:center;animation-delay:${i*70}ms"></div>`).join('');
+      }
+    }
+  } catch(e){ if(noticiasRow) noticiasRow.innerHTML='<div class="com-empty">sin noticias</div>'; }
+}
+
+function openClipModal(url){
+  let embedUrl='';
+  if(url.includes('instagram.com')){
+    const m=url.match(/\/(reel|p)\/([^/?]+)/);
+    if(m) embedUrl=`https://www.instagram.com/${m[1]}/${m[2]}/embed/`;
+    else embedUrl=url;
+  } else if(url.includes('youtu')){
+    const m=url.match(/(?:v=|youtu\.be\/)([^&?/]+)/);
+    if(m) embedUrl=`https://www.youtube.com/embed/${m[1]}?autoplay=1`;
+    else embedUrl=url;
+  } else { embedUrl=url; }
+  const modal=document.getElementById('clip-modal');
+  const iframe=document.getElementById('clip-iframe');
+  iframe.src=embedUrl;
+  modal.style.display='flex';
+}
+
+function closeClipModal(){
+  document.getElementById('clip-iframe').src='';
+  document.getElementById('clip-modal').style.display='none';
+}
+
+// ===================== CARSPOTTING =====================
+async function loadCarspotting(){
+  const feed=document.getElementById('cs-feed');
+  if(!feed)return;
+  feed.innerHTML='<div class="com-loading">cargando...</div>';
+  try{
+    const{data,error}=await _supa.from('carspotting').select('*').order('created_at',{ascending:false}).limit(30);
+    if(error||!data||data.length===0){feed.innerHTML='<div class="com-empty">sin spots aún. ¡sé el primero!</div>';return;}
+    feed.innerHTML=data.map(s=>`
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden">
+        <img src="${s.image_url}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">
+        ${s.description?`<div style="padding:12px 14px;font-size:13px;color:rgba(255,255,255,.75);line-height:1.5">${s.description}</div>`:''}
+      </div>`).join('');
+  } catch(e){ feed.innerHTML='<div class="com-empty">error cargando spots</div>'; }
+}
+
+function openCarspottingUpload(){
+  const panel=document.getElementById('cs-upload-panel');
+  if(!panel)return;
+  panel.style.display=panel.style.display==='none'?'block':'none';
+}
+
+function previewCsFile(input){
+  const file=input.files[0];
+  if(!file)return;
+  const preview=document.getElementById('cs-preview');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    preview.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const descInput=document.getElementById('cs-desc-input');
+  const counter=document.getElementById('cs-char-count');
+  if(descInput&&counter){
+    descInput.addEventListener('input',()=>{ counter.textContent=descInput.value.length+'/100'; });
+  }
+});
+
+async function submitCarspotting(){
+  if(isGuest()){triggerGuestBlock('carspotting');return;}
+  const fileInput=document.getElementById('cs-file-input');
+  const desc=document.getElementById('cs-desc-input').value.trim();
+  if(!fileInput.files[0]){showToast('selecciona una foto');return;}
+  const file=fileInput.files[0];
+  const ext=file.name.split('.').pop();
+  const path=`${USER_STATE.id}/${Date.now()}.${ext}`;
+  showToast('subiendo...');
+  const{error:upErr}=await _supa.storage.from('carspotting').upload(path,file,{upsert:false});
+  if(upErr){showToast('error subiendo foto');return;}
+  const{data:urlData}=_supa.storage.from('carspotting').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('carspotting').insert({user_id:USER_STATE.id,image_url:urlData.publicUrl,description:desc||null});
+  if(dbErr){showToast('error guardando');return;}
+  showToast('spot publicado',true);
+  document.getElementById('cs-upload-panel').style.display='none';
+  document.getElementById('cs-file-input').value='';
+  document.getElementById('cs-preview').innerHTML='<span style="font-size:13px;color:var(--muted)">toca para seleccionar foto</span>';
+  document.getElementById('cs-desc-input').value='';
+  loadCarspotting();
+}
+
+// ===================== SUGERENCIAS =====================
+async function submitSugerencia(){
+  if(isGuest()){triggerGuestBlock('sugerencias');return;}
+  const input=document.getElementById('sug-input');
+  const text=input.value.trim();
+  if(text.length<10){showToast('escribe al menos 10 caracteres');return;}
+  const{error}=await _supa.from('sugerencias').insert({user_id:USER_STATE.id,content:text});
+  if(error){showToast('error enviando');return;}
+  input.value='';
+  showToast('sugerencia enviada, gracias',true);
+}
+
+// ===================== HISTORIA =====================
+async function loadHistoria(){
+  const el=document.getElementById('historia-content');
+  const editBtn=document.getElementById('historia-edit-btn');
+  if(!el)return;
+  if(isSuperAdmin()&&editBtn) editBtn.style.display='block';
+  try{
+    const{data}=await _supa.from('historia_app').select('*').order('updated_at',{ascending:false}).limit(1);
+    if(!data||data.length===0){el.innerHTML='<p style="color:var(--muted)">la historia de Ruedda está siendo escrita.</p>';return;}
+    el.innerHTML=`<p>${data[0].content.replace(/\n/g,'</p><p style=margin-top:14px>')}</p>`;
+    document.getElementById('historia-edit-input').value=data[0].content;
+  } catch(e){ el.innerHTML='<div class="com-empty">error cargando</div>'; }
+}
+
+function openHistoriaEdit(){
+  document.getElementById('historia-edit-panel').style.display='block';
+}
+function closeHistoriaEdit(){
+  document.getElementById('historia-edit-panel').style.display='none';
+}
+async function saveHistoria(){
+  const text=document.getElementById('historia-edit-input').value.trim();
+  if(!text)return;
+  const{data:existing}=await _supa.from('historia_app').select('id').limit(1);
+  let err;
+  if(existing&&existing.length>0){
+    ({error:err}=await _supa.from('historia_app').update({content:text,updated_at:new Date().toISOString()}).eq('id',existing[0].id));
+  } else {
+    ({error:err}=await _supa.from('historia_app').insert({content:text}));
+  }
+  if(err){showToast('error guardando');return;}
+  showToast('historia actualizada',true);
+  closeHistoriaEdit();
+  loadHistoria();
 }
 
 // ===================== COMMENTS =====================
