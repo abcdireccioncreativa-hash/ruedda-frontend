@@ -3282,7 +3282,7 @@ async function _apiGet(endpoint){
 function openMktListado(){
   document.getElementById('listado-bg').classList.add('open');
   document.getElementById('mkt-listado-overlay').classList.add('open');
-  document.body.style.overflow='hidden';
+  lockScroll();
   _renderMktListadoGrid();
 }
 function _filterListadoGrid(q){
@@ -3320,7 +3320,7 @@ function _filterListadoGrid(q){
 function closeMktListado(){
   document.getElementById('listado-bg').classList.remove('open');
   document.getElementById('mkt-listado-overlay').classList.remove('open');
-  document.body.style.overflow='';
+  unlockScroll();
 }
 function _renderMktListadoGrid(){
   _filterListadoGrid('');
@@ -3826,6 +3826,7 @@ function openBidModal(){
   const chk=document.getElementById('bid-terms-check');
   if(chk){chk.checked=false;updateBidTerms(chk);}
   document.getElementById('bid-modal').classList.add('open');
+  lockScroll();
 }
 
 function updateBidTerms(input){
@@ -3847,7 +3848,7 @@ function acceptBidTerms(){
   document.getElementById('bid-step-input').style.display='block';
   setTimeout(()=>document.getElementById('bid-input-field').focus(),150);
 }
-function closeBidModal(){document.getElementById('bid-modal').classList.remove('open')}
+function closeBidModal(){document.getElementById('bid-modal').classList.remove('open');unlockScroll()}
 function closeBidModalOutside(e){if(e.target.id==='bid-modal')closeBidModal()}
 
 function adjustBid(delta){
@@ -3952,8 +3953,29 @@ function markAllRead(){
 }
 
 // ===================== SEARCH =====================
-function openSearch(){document.getElementById('search-overlay').classList.add('open');setTimeout(()=>document.getElementById('search-input').focus(),150)}
-function closeSearch(){document.getElementById('search-overlay').classList.remove('open');document.getElementById('search-input').value='';resetSearchResults()}
+// ── SCROLL LOCK GLOBAL — iOS Safari definitivo ──
+let _scrollLockCount=0;
+function lockScroll(){
+  if(_scrollLockCount===0){
+    const y=window.scrollY;
+    document.body.dataset.slY=y;
+    document.body.style.cssText+=';position:fixed;top:-'+y+'px;width:100%;overflow:hidden';
+  }
+  _scrollLockCount++;
+}
+function unlockScroll(){
+  _scrollLockCount=Math.max(0,_scrollLockCount-1);
+  if(_scrollLockCount===0){
+    const y=parseInt(document.body.dataset.slY||'0',10);
+    document.body.style.position='';
+    document.body.style.top='';
+    document.body.style.width='';
+    document.body.style.overflow='';
+    window.scrollTo(0,y);
+  }
+}
+function openSearch(){document.getElementById('search-overlay').classList.add('open');lockScroll();setTimeout(()=>document.getElementById('search-input').focus(),150)}
+function closeSearch(){document.getElementById('search-overlay').classList.remove('open');unlockScroll();document.getElementById('search-input').value='';resetSearchResults()}
 function resetSearchResults(){
   document.getElementById('search-results').innerHTML=`<div class="search-cat-label">búsquedas recientes</div>
     <div class="search-cat-item" onclick="applySearch('BMW M5')">BMW M5</div>
@@ -3970,8 +3992,8 @@ function doSearch(q){
 function applySearch(q){document.getElementById('search-input').value=q;doSearch(q)}
 
 // ===================== VENDER =====================
-function openVenderModal(){updateVenderModal();document.getElementById('vender-modal').classList.add('open');}
-function closeVenderModal(){document.getElementById('vender-modal').classList.remove('open')}
+function openVenderModal(){updateVenderModal();document.getElementById('vender-modal').classList.add('open');lockScroll();}
+function closeVenderModal(){document.getElementById('vender-modal').classList.remove('open');unlockScroll()}
 function closeVenderModalOutside(e){if(e.target.id==='vender-modal')closeVenderModal()}
 const PLANS = {
   particular: {
@@ -5181,8 +5203,8 @@ function removePhoto(idx){
 function submitVender(){showToast('publicación enviada para revisión',true);setTimeout(()=>showView('home'),1400)}
 
 // ===================== DRAWER =====================
-function openDrawer(){document.getElementById('drawer-overlay').classList.add('open');document.getElementById('drawer').classList.add('open')}
-function closeDrawer(){document.getElementById('drawer-overlay').classList.remove('open');document.getElementById('drawer').classList.remove('open')}
+function openDrawer(){document.getElementById('drawer-overlay').classList.add('open');document.getElementById('drawer').classList.add('open');lockScroll()}
+function closeDrawer(){document.getElementById('drawer-overlay').classList.remove('open');document.getElementById('drawer').classList.remove('open');unlockScroll()}
 
 // ===================== TOAST =====================
 let toastTimer;
@@ -5206,6 +5228,7 @@ function toggleFilterPanel(ctx){
   if(isOpen){ closeFilterPanel(); return; }
   panel.style.display = 'block';
   overlay.style.display = 'block';
+  lockScroll();
   // sync UI to current filters
   syncFilterUI();
 }
@@ -5213,6 +5236,7 @@ function toggleFilterPanel(ctx){
 function closeFilterPanel(){
   document.getElementById('filter-panel').style.display = 'none';
   document.getElementById('filter-overlay').style.display = 'none';
+  unlockScroll();
 }
 
 function syncFilterUI(){
@@ -6385,8 +6409,8 @@ function showLandingAuth(mode){
   document.getElementById('auth-toggle-text').textContent=isLogin?'¿no tienes cuenta?':'¿ya tienes cuenta?';
   document.getElementById('auth-toggle-btn').textContent=isLogin?'registrate':'iniciar sesión';
   document.getElementById('auth-sheet').classList.add('open');
+  lockScroll();
 }
-let authUserType = 'particular';
 
 function setAuthType(type){
   authUserType = type;
@@ -6493,7 +6517,7 @@ function triggerGuestBlock(accion){
 function closeModal(id){ const el=document.getElementById(id); if(el) el.classList.remove('open'); }
 
 function toggleAuthMode(){showLandingAuth(authMode==='register'?'login':'register')}
-function closeAuthSheet(){document.getElementById('auth-sheet').classList.remove('open')}
+function closeAuthSheet(){document.getElementById('auth-sheet').classList.remove('open');unlockScroll()}
 let _rememberChecked=false;
 function _toggleRemember(){
   _rememberChecked=!_rememberChecked;
