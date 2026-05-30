@@ -3264,7 +3264,7 @@ function openMktListado(){
   if(ov){ov.style.opacity='1';ov.style.transform='translateY(0)';return;}
   ov=document.createElement('div');
   ov.id='mkt-listado-overlay';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(12,12,14,0.55);backdrop-filter:blur(48px) saturate(200%);-webkit-backdrop-filter:blur(48px) saturate(200%);z-index:500;display:flex;flex-direction:column;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94);border-radius:20px 20px 0 0;touch-action:none;overscroll-behavior:contain;';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(12,12,14,0.55);backdrop-filter:blur(48px) saturate(200%);-webkit-backdrop-filter:blur(48px) saturate(200%);z-index:500;display:flex;flex-direction:column;opacity:0;transform:translateY(18px);transition:opacity .28s ease,transform .28s cubic-bezier(.25,.46,.45,.94);border-radius:20px 20px 0 0';
   document.body.style.overflow='hidden';
   ov.innerHTML=`
     <!-- HEADER FIJO — fuera del scroll container -->
@@ -3284,10 +3284,16 @@ function openMktListado(){
       </div>
     </div>
     <!-- SCROLL CONTAINER independiente — no hereda backdrop-filter -->
-    <div style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y">
+    <div data-listado-scroll style="flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y">
       <div id="mkt-listado-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 12px 100px"></div>
     </div>`;
   document.body.appendChild(ov);
+  // bloquea scroll del fondo en móvil — permite solo dentro del scroll container
+  ov.addEventListener('touchmove',function(e){
+    const sc=ov.querySelector('[data-listado-scroll]');
+    if(sc&&sc.contains(e.target)) return;
+    e.preventDefault();
+  },{passive:false});
   requestAnimationFrame(()=>{ov.style.opacity='1';ov.style.transform='translateY(0)';});
   _renderMktListadoGrid();
 }
@@ -3516,6 +3522,9 @@ function openMarketDetail(id, origin){
   // comments reset
   document.getElementById('mkt-comment-list').innerHTML='<div class="comment-empty">sé el primero en preguntar</div>';
   updateMktWatchlist();
+  // cierra el overlay de listados si está abierto
+  const _lov=document.getElementById('mkt-listado-overlay');
+  if(_lov){_lov.style.opacity='0';_lov.style.transform='translateY(18px)';document.body.style.overflow='';setTimeout(()=>{if(_lov.parentNode)_lov.remove();},260);}
   showView('market-detail');
 }
 
