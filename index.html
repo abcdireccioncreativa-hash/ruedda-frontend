@@ -6714,6 +6714,7 @@ async function dhCrearConcesionario(){
   const{data,error}=await _supa.from('concesionarios').insert({user_id:USER_STATE.id,nombre,tag:'',ciudad:'',activo:true}).select('id').single();
   if(error){ showToast('error creando concesionario'); console.error(error); return; }
   USER_STATE.concesionarioId=data.id;
+  updateCuentaView();
   showToast('concesionario creado',true);
   handleEditarVitrina();
   if(_supa) _loadConcesionarios();
