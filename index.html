@@ -6485,25 +6485,17 @@ async function openModReview(id){
 async function modApprove(id){
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
   const item=(window._modQueueData||[]).find(x=>x.id===id);
-  const itemType=item?._table==='listings'?'listing':'auction';
-  let approveOk=false;
-  try{
-    await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'aprobar'});
-    approveOk=true;
-  }catch(e){
-    // Fallback: intentar aprobar directo en Supabase si el API falla
-    console.warn('[ruedda modApprove] API error, intentando fallback:',e.message);
-    const tbl=item?._table||'listings';
-    // dealers (con concesionario_id) → activa directo; particulares → aprobada
-    const nuevoEstado=item?.concesionario_id?'activa':'aprobada';
-    const{error:fbErr}=await _supa.from(tbl).update({estado:nuevoEstado}).eq('id',id);
-    if(fbErr){console.error('[ruedda modApprove fallback]',fbErr.message);showToast('error al aprobar: '+fbErr.message);}
-    else approveOk=true;
-  }
-  if(approveOk) showToast('publicación aprobada ✓',true);
+  const tbl=item?._table||'listings';
+  const esDealer=!!(item?.concesionario_id);
+  // dealers → activa (va al market directo); particulares → aprobada (espera pago del usuario)
+  const nuevoEstado=esDealer?'activa':'aprobada';
+  const{error}=await _supa.from(tbl).update({estado:nuevoEstado}).eq('id',id);
+  if(error){showToast('error al aprobar: '+error.message);return;}
+  showToast('publicación aprobada ✓',true);
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
-  await Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados()]);
+  // solo recargar market si es dealer (ya está activa)
+  if(esDealer) await Promise.allSettled([_loadMarket(),_loadChocados()]);
 }
 
 async function modReject(id){
@@ -7559,16 +7551,36 @@ async function _activarTrasSubir(){
   const id=window._pendingSubirId;
   if(!id) return;
   window._pendingSubirId=null;
-  // Actualizar badge a publicando en UI
+  // badge publicando
   const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===id);
   if(l){ l.status='publicando'; _renderMisPubGrid(); }
-  // Actualizar en Supabase
+  // Supabase
   if(_supa){
     await _supa.from('listings').update({estado:'activa'}).eq('id',id).catch(e=>console.error('[ruedda] activarTrasSubir:',e.message));
   }
-  // Recargar y actualizar badge a activa
+  // splash éxito
+  _showSubidaAlMarketSplash();
+  // recargar
   await _loadMyListings();
   _renderMisPubGrid();
+}
+
+function _showSubidaAlMarketSplash(){
+  const sp=document.createElement('div');
+  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#000;opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
+  sp.innerHTML=`
+    <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+      <circle cx="26" cy="26" r="25" stroke="rgba(230,240,59,.15)" stroke-width="1.5"/>
+      <circle cx="26" cy="26" r="25" stroke="#e6f03b" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
+      <path d="M17 26l6 6 12-12" stroke="#e6f03b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:10px;opacity:0;animation:splashFade .4s ease .15s forwards">
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:#fff">¡Publicación subida al market!</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7">Tu vehículo ya está visible<br>para todos en Ruedda.</div>
+    </div>
+    <button onclick="this.closest('[style*=fixed]').remove();showView('cuenta');" style="margin-top:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:white;font-size:14px;font-weight:700;padding:12px 32px;border-radius:100px;cursor:pointer;font-family:var(--font)">ver mis publicaciones</button>`;
+  document.body.appendChild(sp);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ sp.style.opacity='1'; }));
 }
 
 // ── RUEDDA EXTRA ACCORDION ──
