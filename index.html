@@ -351,9 +351,9 @@ html{scrollbar-width:none}
 .fav-empty h3{font-size:17px;font-weight:700;color:var(--white);margin-bottom:2px}
 .fav-empty p{font-size:14px;text-align:center;line-height:1.6}
 .fav-section-label{font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);padding:0 16px;margin-bottom:10px}
-.fav-thumb-row{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;padding:0 16px 4px;scrollbar-width:none}
+.fav-thumb-row{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;padding:12px 16px 4px;scrollbar-width:none}
 .fav-thumb-row::-webkit-scrollbar{display:none}
-.fav-thumb-card{flex-shrink:0;width:calc(100vw - 80px);max-width:320px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;scroll-snap-align:start;cursor:pointer;transition:transform .18s,border-color .18s;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
+.fav-thumb-card{flex-shrink:0;width:72vw;max-width:280px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;scroll-snap-align:start;cursor:pointer;transition:transform .18s,border-color .18s;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
 .fav-thumb-card:active{transform:scale(.96)}
 .fav-thumb-img{width:100%;aspect-ratio:16/10;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .fav-thumb-badge-timer{position:absolute;bottom:6px;left:6px;font-size:10px;font-weight:700;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:var(--white);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:3px 7px;letter-spacing:.2px}
@@ -3964,17 +3964,19 @@ function renderFavoritos(){
   }
   const allAuctions=[...AUCTIONS,...AUCTIONS_CHOCADOS];
   const favAuctions=allAuctions.filter(a=>watchlist.has(a.id));
-  const cards=favAuctions.map((a,i)=>`
-    <div class="fav-thumb-card" style="animation-delay:${i*55}ms" onclick="openDetail(${a.id})">
+  const cards=favAuctions.map((a,i)=>{
+    const imgUrl=a.photoUrls&&a.photoUrls[0];
+    return `<div class="fav-thumb-card" style="animation-delay:${i*55}ms" onclick="openDetail(${a.id})">
       <div class="fav-thumb-img" style="background:linear-gradient(${grads[a.id%grads.length]})">
-        ${carPlaceholder(a.id,'small')}
+        ${imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
         <div class="fav-thumb-badge-timer${isUrgent(a.endTime)?' urgent':''}">${fmtCountdown(a.endTime-Date.now())}</div>
       </div>
       <div class="fav-thumb-body">
         <div class="fav-thumb-title">${a.title}</div>
         <div class="fav-thumb-meta">${fmtBid(a.currentBid)} · ${a.bidCount} ofertas</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   el.innerHTML=`<div class="fav-thumb-row">${cards}</div>`;
   renderComunidad();
 }
