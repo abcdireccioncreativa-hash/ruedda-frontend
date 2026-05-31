@@ -6497,10 +6497,8 @@ async function saCrearConcesionario(){
     const uid=authData.user.id;
     // 2. crear fila en users
     await _supa.from('users').upsert({id:uid,nombre:rep||nombre,email,username:username||nombre.toLowerCase().replace(/\s+/g,'_'),role:'concesionario'},{onConflict:'id'});
-    // 3. crear fila en concesionarios (inactiva — se activa cuando paga o usa código)
-    const{error:dealerErr}=await _supa.from('concesionarios').insert({user_id:uid,nombre,tag:'',ciudad:ciudad||'',activo:true});
-    if(dealerErr) throw new Error('Concesionario: '+dealerErr.message);
-    showToast('concesionario creado: '+nombre+' ✓',true);
+    // fila en concesionarios la crea el dealer desde su panel
+    showToast('cuenta concesionario creada: '+nombre+' ✓',true);
     ['sa-d-nombre','sa-d-rep','sa-d-email','sa-d-username','sa-d-ubicacion','sa-d-cedula','sa-d-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }catch(e){
     console.error('[ruedda] saCrearConcesionario:',e.message);
