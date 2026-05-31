@@ -6349,8 +6349,8 @@ async function renderModQueue(type){
       .select('id,titulo,marca,modelo,year,km,estado,ciudad,descripcion,created_at,user_id,concesionario_id,listing_photos(url,orden)')
       .in('estado',['revision','pendiente_pago'])
       .order('created_at',{ascending:true});
-    if(type==='concesionario') q2=q2.not('concesionario_id','is',null);
-    else q2=q2.is('concesionario_id',null);
+    if(type==='concesionario'||type==='consesionario') q2=q2.not('concesionario_id','is',null);
+    else if(type==='particular') q2=q2.is('concesionario_id',null);
     const res=await q2;
     data=(res.data||[]).map(i=>({...i,_table:'listings',tipo:'market'}));
     modError=res.error;
