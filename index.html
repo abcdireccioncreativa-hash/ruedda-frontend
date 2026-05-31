@@ -4795,8 +4795,13 @@ async function processPayment(){
       return;
     }
     // particular o subasta — abrir form de publicación
-    showToast('código aplicado — publicando',true);
-    setTimeout(openVenderForm,600);
+    if(window._pendingSubirId){
+      showToast('código aplicado — subiendo publicación',true);
+      setTimeout(_activarTrasSubir,400);
+    } else {
+      showToast('código aplicado — publicando',true);
+      setTimeout(openVenderForm,600);
+    }
     return;
   }
   // _getUid definida arriba
@@ -5417,11 +5422,13 @@ function _renderMisPubGrid(){
     const isAprobada=l.status==='aprobada';
     const isNegada=l.status==='negada'||l.status==='rechazada';
     const badgeColor=isAprobada?'rgba(230,240,59,.9)':isRevision?'rgba(255,170,0,.8)':isNegada?'rgba(255,70,70,.9)':'rgba(100,220,100,.9)';
-    const badgeLabel=isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':'activa';
+    const isPublicando=l.status==='publicando';
+    const badgeLabel=isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':isPublicando?'publicando...':'activa';
+    const badgeColor2=isPublicando?'rgba(255,170,0,.8)':badgeColor;
     return `<div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative">
         <svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>
-        <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${badgeColor}">${badgeLabel}</span>
+        <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${badgeColor2||badgeColor}">${badgeLabel}</span>
       </div>
       <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
         <div style="font-size:11px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
@@ -6487,7 +6494,9 @@ async function modApprove(id){
     // Fallback: intentar aprobar directo en Supabase si el API falla
     console.warn('[ruedda modApprove] API error, intentando fallback:',e.message);
     const tbl=item?._table||'listings';
-    const{error:fbErr}=await _supa.from(tbl).update({estado:'activa'}).eq('id',id);
+    // dealers (con concesionario_id) → activa directo; particulares → aprobada
+    const nuevoEstado=item?.concesionario_id?'activa':'aprobada';
+    const{error:fbErr}=await _supa.from(tbl).update({estado:nuevoEstado}).eq('id',id);
     if(fbErr){console.error('[ruedda modApprove fallback]',fbErr.message);showToast('error al aprobar: '+fbErr.message);}
     else approveOk=true;
   }
@@ -7538,11 +7547,28 @@ function _showPublicacionRevisionSplash(isDealer=false){
 }
 
 function _subirPublicacion(id){
-  // Solo disponible cuando estado=aprobada — abre pasarela de pago
   const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===String(id));
   if(!l){ showToast('publicación no encontrada'); return; }
   pendingVenderType='market';
+  // guardar id para actualizar tras pago
+  window._pendingSubirId=String(id);
   openPaymentSheetForType('market');
+}
+
+async function _activarTrasSubir(){
+  const id=window._pendingSubirId;
+  if(!id) return;
+  window._pendingSubirId=null;
+  // Actualizar badge a publicando en UI
+  const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===id);
+  if(l){ l.status='publicando'; _renderMisPubGrid(); }
+  // Actualizar en Supabase
+  if(_supa){
+    await _supa.from('listings').update({estado:'activa'}).eq('id',id).catch(e=>console.error('[ruedda] activarTrasSubir:',e.message));
+  }
+  // Recargar y actualizar badge a activa
+  await _loadMyListings();
+  _renderMisPubGrid();
 }
 
 // ── RUEDDA EXTRA ACCORDION ──
