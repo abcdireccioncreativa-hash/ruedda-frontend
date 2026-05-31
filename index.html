@@ -5070,9 +5070,8 @@ async function publishListing(){
     const endTime = (!esListing) ? new Date(Date.now()+duracion*86400000).toISOString() : null;
     // concesionario_id: intentar vincular si es publicación de concesionario
     let concesionarioId = null;
-    if(esListing && pendingVenderType==='consesionario' && _supa){
-      const{data:cd}=await _supa.from('concesionarios').select('id').eq('user_id',userId).maybeSingle();
-      concesionarioId = cd?.id||null;
+    if(esListing && pendingVenderType==='consesionario'){
+      concesionarioId = USER_STATE.concesionarioId||null;
     }
     const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
     const payload = esListing
