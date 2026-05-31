@@ -5912,7 +5912,7 @@ async function renderVitrinavGrid(filter){
   grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><p style="color:rgba(255,255,255,.3)">cargando...</p></div>';
   if(_supa){
     let q=_supa.from('listings')
-      .select('id,titulo,marca,modelo,year,km,precio_usd,condicion,ciudad')
+      .select('id,titulo,marca,modelo,year,km,precio_usd,condicion,ciudad,listing_photos(url,orden)')
       .eq('concesionario_id',currentDealer.id)
       .eq('estado','activa')
       .order('created_at',{ascending:false});
@@ -5925,15 +5925,28 @@ async function renderVitrinavGrid(filter){
         const mapped={id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',type:'market',photos:(l.listing_photos||[]).length||3,desc:'',dealerId:currentDealer.id,seller:currentDealer.nombre,sellerType:'concesionario · ruedda'};
         if(!MARKET_LISTINGS.find(x=>x.id===l.id)) MARKET_LISTINGS.push(mapped);
       });
-      grid.innerHTML=data.map((l,i)=>`
-        <div class="vitrina-car-card" style="animation-delay:${i*50}ms" onclick="openMarketDetail('${l.id}','vitrina')">
-          <div class="vitrina-car-img" style="background:linear-gradient(${grads[i%grads.length]})">${carPlaceholder(i,'small')}</div>
-          <div class="vitrina-car-body">
-            <div class="vitrina-car-title">${l.year} ${l.marca} ${l.modelo}</div>
-            <div class="vitrina-car-price">${fmtBid(l.precio_usd)}</div>
-            <div class="vitrina-car-meta">${(l.ciudad||'').toLowerCase()} · ${fmtNum(l.km)} km</div>
+      grid.innerHTML=data.map((l,i)=>{
+        const photos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);
+        const imgUrl=photos[0]?.url;
+        const esNuevo=(l.condicion==='nuevo'||l.condicion==='0km');
+        const badge=esNuevo?'nuevo':'usado';
+        const badgeColor=esNuevo?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)';
+        const img=imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
+        return `<div class="listado-card" onclick="openMarketDetail('${l.id}','vitrina')" style="animation-delay:${i*40}ms">
+          <div class="listado-card-img" style="background:linear-gradient(${grads[l.id%grads.length]})">
+            ${img}
+            <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
+            <button onclick="event.stopPropagation()" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0">
+              <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
+            </button>
           </div>
-        </div>`).join('');
+          <div class="listado-card-body">
+            <div class="listado-card-cat">${l.condicion||'—'}</div>
+            <div class="listado-card-title">${l.year} ${l.marca} ${l.modelo}</div>
+            <div class="listado-card-price">${fmtBid(l.precio_usd)}</div>
+          </div>
+        </div>`;
+      }).join('');
       return;
     }
   }
@@ -7393,10 +7406,17 @@ async function _loadConcesionarios(){
   if(!_supa) return;
   const{data,error}=await _supa.from('concesionarios').select('id,nombre,tag,ciudad,color,logo_url,banner_url,telefono,instagram,whatsapp,user_id,activo,plan_expiry').eq('activo',true).order('created_at',{ascending:false});
   if(error){console.error('[ruedda] _loadConcesionarios: '+String(error?.message||'error'));return;}
+  // contar vehículos activos por concesionario
+  const ids=(data||[]).map(d=>d.id);
+  let countMap={};
+  if(ids.length){
+    const{data:counts}=await _supa.from('listings').select('concesionario_id').eq('estado','activa').in('concesionario_id',ids);
+    (counts||[]).forEach(r=>{ countMap[r.concesionario_id]=(countMap[r.concesionario_id]||0)+1; });
+  }
   CONCESIONARIOS.splice(0,CONCESIONARIOS.length,...(data||[]).map(d=>({
     id:d.id,nombre:d.nombre,tag:d.tag||'',ciudad:d.ciudad||'',
     color:d.color||'135deg,#1a1a2e,#16213e',initial:(d.nombre||'C')[0].toUpperCase(),
-    autos:0,autos_ids:[],logo:d.logo_url,banner:d.banner_url,
+    autos:countMap[d.id]||0,autos_ids:[],logo:d.logo_url,banner:d.banner_url,
     telefono:d.telefono,instagram:d.instagram,whatsapp:d.whatsapp,user_id:d.user_id
   })));
   if(typeof renderDealerGrid==='function') renderDealerGrid();
