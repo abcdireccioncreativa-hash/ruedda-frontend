@@ -2277,6 +2277,16 @@ html{scrollbar-width:none}
           <span class="cnt-menu-label">Administrar publicaciones</span>
           <svg class="cnt-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
         </div>
+        <!-- PANEL ACTIVAR VITRINA -->
+        <div id="vitrina-activate-panel" style="display:none;padding:14px 16px;border-top:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Ingresa tu código de acceso</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <input id="vitrina-code-input" type="text" placeholder="código" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:14px;padding:10px 12px;font-family:var(--font);text-transform:uppercase;outline:none">
+            <button onclick="_vitrinaApplyCode()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;font-family:var(--font);white-space:nowrap">aplicar</button>
+          </div>
+          <div id="vitrina-code-msg" style="display:none;font-size:12px;margin-bottom:10px"></div>
+          <button id="vitrina-activate-btn" onclick="_vitrinaActivate()" disabled style="width:100%;background:rgba(230,240,59,.15);border:1px solid rgba(230,240,59,.2);border-radius:12px;color:rgba(230,240,59,.4);font-size:14px;font-weight:800;padding:13px;cursor:not-allowed;font-family:var(--font);transition:all .2s">activar vitrina</button>
+        </div>
         <div class="cnt-menu-item" onclick="showView('soporte-ruedda')">
           <div class="cnt-menu-icon" style="background:rgba(255,255,255,0.06)"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.6)" stroke-width="2" style="width:16px;height:16px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
           <span class="cnt-menu-label">Soporte</span>
@@ -2303,7 +2313,7 @@ html{scrollbar-width:none}
           <span class="cnt-menu-label">Subastar vehículo</span>
           <svg class="cnt-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
         </div>
-        <div class="cnt-menu-item" id="item-editar-vitrina" onclick="handleEditarVitrina()">
+        <div class="cnt-menu-item" id="item-editar-vitrina" onclick="_handleVitrinaMenuTap()">
           <div class="cnt-menu-icon" style="background:rgba(255,255,255,0.06)"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.6)" stroke-width="2" style="width:16px;height:16px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
           <span class="cnt-menu-label">Administrar vitrina digital</span>
           <div style="display:flex;align-items:center;gap:8px">
@@ -4446,8 +4456,7 @@ function selectVenderType(type){
   pendingVenderType = type;
   if(type==='consesionario' && (isConcesionario()||USER_STATE.role==='concesionario')){
     closeVenderModal();
-    if(USER_STATE.dealerActive){ handleEditarVitrina(); return; }
-    openPaymentSheetForType('consesionario');
+    handleEditarVitrina();
     return;
   }
   // go directly to form — pricing shown AFTER form is filled
@@ -4465,10 +4474,11 @@ function confirmPayment(){
   const code = cta?.dataset?.inviteCode;
   if(code){
     _consumeCode(code); // async - fire and forget, already validated at redeemInviteCode
-    if(pendingVenderType==='consesionario'&&USER_STATE.role!=='particular'&&USER_STATE.role!=='guest'){
+    if(pendingVenderType==='consesionario'){
       // activar vitrina en DB
       const exp=new Date();exp.setDate(exp.getDate()+30);
       USER_STATE.dealerActive=true;USER_STATE.dealerExpiry=exp.toISOString();
+      updateCuentaView();
       if(_supa&&USER_STATE.concesionarioId){
         _supa.from('concesionarios').update({activo:true,plan_expiry:exp.toISOString()}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] activar vitrina:',e.message));
       }
@@ -4874,6 +4884,48 @@ function _showVitrinaActivadaSplash(){
   document.body.appendChild(sp);
   requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ sp.style.opacity='1'; }); });
   setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>{ sp.remove(); showView('cuenta'); },320); },2600);
+}
+
+function _handleVitrinaMenuTap(){
+  if(dealerVitrinaActive()){ handleEditarVitrina(); return; }
+  const panel=document.getElementById('vitrina-activate-panel');
+  if(!panel) return;
+  const open=panel.style.display!=='none';
+  panel.style.display=open?'none':'block';
+}
+
+async function _vitrinaApplyCode(){
+  const input=document.getElementById('vitrina-code-input');
+  const msg=document.getElementById('vitrina-code-msg');
+  const btn=document.getElementById('vitrina-activate-btn');
+  const code=(input?.value||'').trim().toUpperCase();
+  if(!code||!msg||!btn) return;
+  const found=await _validateCode(code);
+  if(found){
+    msg.style.display='block';msg.style.color='#e6f03b';msg.textContent='código válido — listo para activar';
+    btn.disabled=false;btn.style.background='#e6f03b';btn.style.color='#000';btn.style.cursor='pointer';btn.style.borderColor='transparent';
+    btn.dataset.code=code;
+  } else {
+    msg.style.display='block';msg.style.color='rgba(255,80,80,.8)';msg.textContent='código inválido o agotado';
+    btn.disabled=true;btn.style.background='rgba(230,240,59,.15)';btn.style.color='rgba(230,240,59,.4)';btn.style.cursor='not-allowed';
+  }
+}
+
+async function _vitrinaActivate(){
+  const btn=document.getElementById('vitrina-activate-btn');
+  const code=btn?.dataset?.code;
+  if(!code) return;
+  _consumeCode(code);
+  const exp=new Date();exp.setDate(exp.getDate()+30);
+  USER_STATE.dealerActive=true;USER_STATE.dealerExpiry=exp.toISOString();
+  if(_supa&&USER_STATE.concesionarioId){
+    _supa.from('concesionarios').update({activo:true,plan_expiry:exp.toISOString()}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] _vitrinaActivate:',e.message));
+  }
+  const panel=document.getElementById('vitrina-activate-panel');
+  if(panel) panel.style.display='none';
+  updateCuentaView();
+  if(_supa) _loadConcesionarios();
+  _showVitrinaActivadaSplash();
 }
 
 function openDealerVitrina(){
