@@ -5027,9 +5027,8 @@ function validateVenderForm(){
 function handlePublicar(){
   const errors = validateVenderForm();
   if(errors.length){ showValidationPopup(errors); return; }
-  if(isSuperAdmin()||(isConcesionario()&&USER_STATE.dealerActive)){publishListing();return;}
-  if(PAID_TYPES[pendingVenderType]){publishListing();return;}
-  openPricingSheet();
+  // Todos van directo a publicar — el pago se pide DESPUÉS cuando sea aprobada
+  publishListing();
 }
 
 async function publishListing(){
@@ -5111,7 +5110,6 @@ async function publishListing(){
       window._pendingPaymentRef=null;
     }
     await (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'system',titulo:'publicación en revisión',body:`Tu ${year} ${marca} ${modelo} está en revisión. Te notificaremos cuando sea aprobado.`,icon:'lime'}).catch(e=>console.warn('[ruedda] notif:',e.message));
-    showToast('publicación enviada ✓ en revisión',true);
     showDealerFab(false);
     window._venderPhotos=[];
     photoItems=[];
@@ -5127,7 +5125,7 @@ async function publishListing(){
       photoGrid.innerHTML='';
       if(addBtn) photoGrid.appendChild(addBtn);
     }
-    setTimeout(()=>showView('home'),900);
+    _showPublicacionRevisionSplash(isConcesionario()||USER_STATE.role==='concesionario');
   }catch(e){
     console.error('[ruedda publish] ERROR COMPLETO:',e);
     console.error('[ruedda publish] user:', window._rueddaUser);
@@ -5414,21 +5412,31 @@ function _renderMisPubGrid(){
   const markets=MOCK_MY_LISTINGS.filter(l=>l.type==='market');
   const subastas=MOCK_MY_LISTINGS.filter(l=>l.type==='subasta');
   const sep=(label)=>`<div style="grid-column:1/-1;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px">${label}</div>`;
-  const renderCard=(l)=>`
-    <div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
+  const renderCard=(l)=>{
+    const isRevision=l.status==='revision'||l.status==='en revisión';
+    const isAprobada=l.status==='aprobada';
+    const isNegada=l.status==='negada'||l.status==='rechazada';
+    const badgeColor=isAprobada?'rgba(230,240,59,.9)':isRevision?'rgba(255,170,0,.8)':isNegada?'rgba(255,70,70,.9)':'rgba(100,220,100,.9)';
+    const badgeLabel=isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':'activa';
+    return `<div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative">
         <svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>
-        <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${l.status==='activa'?'rgba(100,220,100,.9)':l.status==='en revisión'||l.status==='revision'?'rgba(255,170,0,.9)':'rgba(255,80,80,.8)'}">${l.status==='activa'?'activa':l.status==='en revisión'||l.status==='revision'?'revisión':'vencida'}</span>
+        <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${badgeColor}">${badgeLabel}</span>
       </div>
       <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
         <div style="font-size:11px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
         <div style="font-size:12px;font-weight:800;color:#e6f03b">${l.price}</div>
         <div style="display:flex;gap:5px;margin-top:4px">
-          <button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>
+          ${isAprobada
+            ?`<button onclick="event.stopPropagation();_subirPublicacion('${l.id}')" style="flex:1;background:#e6f03b;border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:#000;cursor:pointer">subir</button>`
+            :isNegada
+            ?''
+            :`<button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>`}
           <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,80,80,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
         </div>
       </div>
     </div>`;
+  };
   const parts=[];
   if(markets.length){parts.push(sep('market'));parts.push(...markets.map(renderCard));}
   if(subastas.length){parts.push(sep('subastas'));parts.push(...subastas.map(renderCard));}
@@ -6826,23 +6834,29 @@ async function renderDhPubs(){
     el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:14px">sin publicaciones aún</div>';
     return;
   }
-  el.innerHTML = DEALER_LISTINGS_OWN.map((l,i)=>`
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer" onclick="openMarketDetail(${l.id},'vitrina')">
+  el.innerHTML = DEALER_LISTINGS_OWN.map((l,i)=>{
+    const isRevision=l.status==='revision'||l.status==='en revisión';
+    const isActiva=l.status==='activa';
+    const isNegada=l.status==='negada'||l.status==='rechazada';
+    const badgeColor=isActiva?'rgba(100,220,100,.9)':isRevision?'rgba(255,170,0,.8)':isNegada?'rgba(255,70,70,.9)':'rgba(255,170,0,.8)';
+    const badgeLabel=isActiva?'activa':isRevision?'en revisión':isNegada?'negada':l.status;
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer" onclick="openMarketDetail('${l.id}','vitrina')">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(${grads[l.id%grads.length]});display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
         ${carPlaceholder(l.id,'small')}
-        <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:100px;padding:3px 8px;font-size:10px;font-weight:700;color:${l.status==='activa'?'rgba(100,220,100,.9)':'rgba(255,170,0,.9)'}">
-          ${l.status}
-        </div>
+        <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:100px;padding:3px 8px;font-size:10px;font-weight:700;color:${badgeColor}">${badgeLabel}</div>
       </div>
       <div style="padding:10px 11px 12px;flex:1;display:flex;flex-direction:column;gap:4px">
         <div style="font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
         <div style="font-size:12px;font-weight:700;color:#e6f03b;margin-top:2px">${fmtBid(l.price)}</div>
         <div style="display:flex;gap:5px;margin-top:4px">
-          <button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>
+          ${isNegada
+            ?''
+            :`<button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>`}
           <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px 4px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,80,80,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function dhEliminar(i){
@@ -7503,6 +7517,33 @@ async function _rueddaLoadUserData(userId,role){
 
 initLanding();
 const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_pbi.style.display='flex';
+
+// ── PUBLICACIÓN REVISIÓN SPLASH ──
+function _showPublicacionRevisionSplash(isDealer=false){
+  const sp=document.createElement('div');
+  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#000;opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
+  sp.innerHTML=`
+    <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+      <circle cx="26" cy="26" r="25" stroke="rgba(230,240,59,.15)" stroke-width="1.5"/>
+      <circle cx="26" cy="26" r="25" stroke="#e6f03b" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
+      <path d="M17 26l6 6 12-12" stroke="#e6f03b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
+    </svg>
+    <div style="display:flex;flex-direction:column;gap:10px;opacity:0;animation:splashFade .4s ease .15s forwards">
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:#fff">Publicación en revisión.</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7;font-weight:400">Te notificaremos cuando sea aprobada<br>para que puedas subirla.</div>
+    </div>
+    <button onclick="this.closest('[style*=fixed]').remove();showView(${isDealer?"'cuenta'":"'cuenta'"});" style="margin-top:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:white;font-size:14px;font-weight:700;padding:12px 32px;border-radius:100px;cursor:pointer;font-family:var(--font)">volver al inicio</button>`;
+  document.body.appendChild(sp);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ sp.style.opacity='1'; }));
+}
+
+function _subirPublicacion(id){
+  // Solo disponible cuando estado=aprobada — abre pasarela de pago
+  const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===String(id));
+  if(!l){ showToast('publicación no encontrada'); return; }
+  pendingVenderType='market';
+  openPaymentSheetForType('market');
+}
 
 // ── RUEDDA EXTRA ACCORDION ──
 function _rxToggle(id){
