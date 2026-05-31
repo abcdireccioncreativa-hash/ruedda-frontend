@@ -839,6 +839,26 @@ html{scrollbar-width:none}
 #rx-loading.show{opacity:1;pointer-events:all}
 .rx-loader-text{font-size:22px;font-weight:800;letter-spacing:-.4px;color:#fff;font-family:var(--font);opacity:0;transform:translateY(6px);transition:opacity .35s ease .15s,transform .35s ease .15s}
 #rx-loading.show .rx-loader-text{opacity:1;transform:translateY(0)}
+
+/* ── RUEDDA EXTRA MENU ── */
+.rx-menu{display:flex;flex-direction:column;gap:10px;padding:0 16px 100px}
+.rx-menu-card{background:#1c1c1e;border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;transition:border-color .2s}
+.rx-menu-card:active{border-color:rgba(230,240,59,.2)}
+.rx-menu-card-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:none;border:none;cursor:pointer;font-family:var(--font);text-align:left;gap:12px}
+.rx-menu-card-text{flex:1;min-width:0}
+.rx-menu-card-title{font-size:18px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:3px}
+.rx-menu-card-sub{font-size:13px;color:rgba(255,255,255,.45);line-height:1.4}
+.rx-menu-card-icon{flex-shrink:0;color:#e6f03b;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.rx-menu-card-icon svg{width:32px;height:32px}
+.rx-menu-card.darkened{opacity:.4;pointer-events:none}
+.rx-menu-card.darkened .rx-menu-card-title::after{content:' (próximamente)';font-size:11px;font-weight:600;color:rgba(255,255,255,.3)}
+.rx-accordion-body{display:none;padding:0 20px 20px}
+.rx-accordion-body.open{display:block;animation:rxFadeIn .22s ease}
+.rx-accordion-placeholder{min-height:60px;border:1.5px dashed rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.rx-accordion-placeholder span{font-size:12px;color:rgba(255,255,255,.2)}
+.rx-chevron{transition:transform .22s cubic-bezier(.32,.72,0,1);color:rgba(255,255,255,.3)}
+.rx-chevron.open{transform:rotate(180deg)}
+@keyframes rxFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -7480,6 +7500,16 @@ async function _rueddaLoadUserData(userId,role){
 
 initLanding();
 const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_pbi.style.display='flex';
+
+// ── RUEDDA EXTRA ACCORDION ──
+function _rxToggle(id){
+  const body=document.getElementById('rxb-'+id);
+  const chev=document.getElementById('rxchev-'+id);
+  if(!body) return;
+  const open=body.classList.contains('open');
+  body.classList.toggle('open',!open);
+  if(chev) chev.classList.toggle('open',!open);
+}
 </script>
 
 <!-- SUPERADMIN PANEL -->
@@ -7873,13 +7903,204 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
     </button>
     <span class="rx-logo">Ruedda<span style="color:#e6f03b">Extra.</span></span>
   </div>
-  <!-- cuerpo vacío -->
-  <div class="rx-body">
-    <div class="rx-empty-icon">
-      <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.5" style="width:24px;height:24px"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+  <div class="rx-menu">
+
+    <!-- Comunidad — link directo -->
+    <div class="rx-menu-card" onclick="showView('favoritos')">
+      <div class="rx-menu-card-btn">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Comunidad</div>
+          <div class="rx-menu-card-sub">Ve clips, noticias y comparte en Ruedda.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="#e6f03b" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+      </div>
     </div>
-    <div class="rx-empty-title">Todo está por venir</div>
-    <div class="rx-empty-sub">Encuentra acá herramientas, personas para conectar y servicios Ruedda.</div>
+
+    <!-- Acordeón items -->
+    <div class="rx-menu-card" id="rxc-gestoria">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('gestoria')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Gestoría de documentos</div>
+          <div class="rx-menu-card-sub">Gestores autorizados por Ruedda para agilizar la compra y venta.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-gestoria" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-gestoria"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-inspeccion">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('inspeccion')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Inspección pre-compra</div>
+          <div class="rx-menu-card-sub">No te confíes de la labia. Busca profesionales.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-inspeccion" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-inspeccion"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-aseguradoras">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('aseguradoras')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Aseguradoras</div>
+          <div class="rx-menu-card-sub">Asegura tu patrimonio hoy mismo.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-aseguradoras" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-aseguradoras"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-asistencia">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('asistencia')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Asistencia vial</div>
+          <div class="rx-menu-card-sub">Las mejores grúas de tu zona.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M1 3h15v13H1zm15 5h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-asistencia" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-asistencia"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-detailing">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('detailing')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Detailing</div>
+          <div class="rx-menu-card-sub">Estética profesional para tu vehículo.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-detailing" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-detailing"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-mecanicos">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('mecanicos')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Mecánicos especializados</div>
+          <div class="rx-menu-card-sub">Taller de confianza cerca de ti.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-mecanicos" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-mecanicos"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-socios">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('socios')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Socios petrolhead</div>
+          <div class="rx-menu-card-sub">Conecta con la comunidad car enthusiast de Venezuela.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-socios" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-socios"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card darkened" id="rxc-scanner">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('scanner')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Scanner OBD2</div>
+          <div class="rx-menu-card-sub">Diagnóstico profesional de tu vehículo.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-scanner" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-scanner"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-vins">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('vins')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Verificación de VINs</div>
+          <div class="rx-menu-card-sub">Valida el historial y procedencia del vehículo.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-vins" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-vins"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-movilidad">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('movilidad')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Movilidad por el país</div>
+          <div class="rx-menu-card-sub">Traslados y logística automotriz a nivel nacional.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-movilidad" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-movilidad"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-financiamientos">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('financiamientos')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Financiamientos</div>
+          <div class="rx-menu-card-sub">Opciones de crédito y financiamiento vehicular.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-financiamientos" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-financiamientos"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-fotografos">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('fotografos')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Fotógrafos</div>
+          <div class="rx-menu-card-sub">Profesionales para publicar tu vehículo con impacto.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-fotografos" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-fotografos"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
+    <div class="rx-menu-card" id="rxc-empresa">
+      <button class="rx-menu-card-btn" onclick="_rxToggle('empresa')">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Empresa</div>
+          <div class="rx-menu-card-sub">Soluciones para flotas y negocios automotrices.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <svg class="rx-chevron" id="rxchev-empresa" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="rx-accordion-body" id="rxb-empresa"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
+    </div>
+
   </div>
 </div>
 
