@@ -1919,6 +1919,12 @@ html{scrollbar-width:none}
   <!-- EDITAR VITRINA -->
   <div id="dh-content-vitrina" style="padding:18px 18px 100px;display:flex;flex-direction:column;gap:14px">
 
+    <!-- CREAR CONCESIONARIO -->
+    <div id="dh-crear-btn-wrap" style="display:none">
+      <button onclick="dhCrearConcesionario()" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:14px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:transform .15s" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'">crear concesionario</button>
+      <div style="font-size:12px;color:var(--muted);text-align:center;margin-top:8px">crea tu perfil para poder editar banner, logo y nombre</div>
+    </div>
+
     <!-- BANNER -->
     <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">banner</div>
     <div id="dh-banner-preview" onclick="document.getElementById('dh-banner-file').click()" style="width:100%;height:120px;border-radius:var(--radius);border:1.5px dashed rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#111;transition:border-color .15s;position:relative" onmouseover="this.style.borderColor='rgba(255,255,255,.35)'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)'">
@@ -2303,23 +2309,13 @@ html{scrollbar-width:none}
           <span class="cnt-menu-label">Subastar vehículo</span>
           <svg class="cnt-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
         </div>
-        <div class="cnt-menu-item" id="item-editar-vitrina" onclick="_handleVitrinaMenuTap()">
+        <div class="cnt-menu-item" id="item-editar-vitrina" onclick="handleEditarVitrina()">
           <div class="cnt-menu-icon" style="background:rgba(255,255,255,0.06)"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.6)" stroke-width="2" style="width:16px;height:16px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
           <span class="cnt-menu-label">Administrar vitrina digital</span>
           <div style="display:flex;align-items:center;gap:8px">
             <span id="vitrina-lock-label" style="font-size:10px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(255,255,255,.06);color:var(--muted)">bloqueado</span>
             <svg class="cnt-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
           </div>
-        </div>
-        <!-- PANEL ACTIVAR VITRINA -->
-        <div id="vitrina-activate-panel" style="display:none;padding:14px 16px;border-top:1px solid rgba(255,255,255,.05)">
-          <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Ingresa tu código de acceso</div>
-          <div style="display:flex;gap:8px;margin-bottom:10px">
-            <input id="vitrina-code-input" type="text" placeholder="código" style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:14px;padding:10px 12px;font-family:var(--font);text-transform:uppercase;outline:none">
-            <button onclick="_vitrinaApplyCode()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#fff;font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;font-family:var(--font);white-space:nowrap">aplicar</button>
-          </div>
-          <div id="vitrina-code-msg" style="display:none;font-size:12px;margin-bottom:10px"></div>
-          <button id="vitrina-activate-btn" onclick="_vitrinaActivate()" disabled style="width:100%;background:rgba(230,240,59,.15);border:1px solid rgba(230,240,59,.2);border-radius:12px;color:rgba(230,240,59,.4);font-size:14px;font-weight:800;padding:13px;cursor:not-allowed;font-family:var(--font);transition:all .2s">activar vitrina</button>
         </div>
         <div class="cnt-menu-item" onclick="showView('soporte-ruedda')">
           <div class="cnt-menu-icon" style="background:rgba(255,255,255,0.06)"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.6)" stroke-width="2" style="width:16px;height:16px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
@@ -4886,48 +4882,6 @@ function _showVitrinaActivadaSplash(){
   setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>{ sp.remove(); showView('cuenta'); },320); },2600);
 }
 
-function _handleVitrinaMenuTap(){
-  if(dealerVitrinaActive()){ handleEditarVitrina(); return; }
-  const panel=document.getElementById('vitrina-activate-panel');
-  if(!panel) return;
-  const open=panel.style.display!=='none';
-  panel.style.display=open?'none':'block';
-}
-
-async function _vitrinaApplyCode(){
-  const input=document.getElementById('vitrina-code-input');
-  const msg=document.getElementById('vitrina-code-msg');
-  const btn=document.getElementById('vitrina-activate-btn');
-  const code=(input?.value||'').trim().toUpperCase();
-  if(!code||!msg||!btn) return;
-  const found=await _validateCode(code);
-  if(found){
-    msg.style.display='block';msg.style.color='#e6f03b';msg.textContent='código válido — listo para activar';
-    btn.disabled=false;btn.style.background='#e6f03b';btn.style.color='#000';btn.style.cursor='pointer';btn.style.borderColor='transparent';
-    btn.dataset.code=code;
-  } else {
-    msg.style.display='block';msg.style.color='rgba(255,80,80,.8)';msg.textContent='código inválido o agotado';
-    btn.disabled=true;btn.style.background='rgba(230,240,59,.15)';btn.style.color='rgba(230,240,59,.4)';btn.style.cursor='not-allowed';
-  }
-}
-
-async function _vitrinaActivate(){
-  const btn=document.getElementById('vitrina-activate-btn');
-  const code=btn?.dataset?.code;
-  if(!code) return;
-  _consumeCode(code);
-  const exp=new Date();exp.setDate(exp.getDate()+30);
-  USER_STATE.dealerActive=true;USER_STATE.dealerExpiry=exp.toISOString();
-  if(_supa&&USER_STATE.concesionarioId){
-    _supa.from('concesionarios').update({activo:true,plan_expiry:exp.toISOString()}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] _vitrinaActivate:',e.message));
-  }
-  const panel=document.getElementById('vitrina-activate-panel');
-  if(panel) panel.style.display='none';
-  updateCuentaView();
-  if(_supa) _loadConcesionarios();
-  _showVitrinaActivadaSplash();
-}
-
 function openDealerVitrina(){
   // check expiry
   if(USER_STATE.dealerExpiry && new Date(USER_STATE.dealerExpiry)<new Date()){
@@ -6544,7 +6498,7 @@ async function saCrearConcesionario(){
     // 2. crear fila en users
     await _supa.from('users').upsert({id:uid,nombre:rep||nombre,email,username:username||nombre.toLowerCase().replace(/\s+/g,'_'),role:'concesionario'},{onConflict:'id'});
     // 3. crear fila en concesionarios (inactiva — se activa cuando paga o usa código)
-    const{error:dealerErr}=await _supa.from('concesionarios').insert({user_id:uid,nombre,tag:'',ciudad:ciudad||'',activo:false});
+    const{error:dealerErr}=await _supa.from('concesionarios').insert({user_id:uid,nombre,tag:'',ciudad:ciudad||'',activo:true});
     if(dealerErr) throw new Error('Concesionario: '+dealerErr.message);
     showToast('concesionario creado: '+nombre+' ✓',true);
     ['sa-d-nombre','sa-d-rep','sa-d-email','sa-d-username','sa-d-ubicacion','sa-d-cedula','sa-d-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -6723,13 +6677,23 @@ async function dbTestInsert(){
   setTimeout(()=>{renderModQueue('particular');renderPendingRefs();},500);
 }
 function handleEditarVitrina(){
-  if(!USER_STATE.dealerActive){ showToast('activa tu vitrina primero'); return; }
   dhTab('vitrina');
   renderDhPubs();
-  // prellenar nombre actual
   const inp=document.getElementById('dh-nombre-input');
   if(inp && currentDealer?.nombre) inp.value=currentDealer.nombre;
   else if(inp && USER_STATE.nombre) inp.value=USER_STATE.nombre;
+  // mostrar/ocultar botón crear según si ya tiene concesionario
+  const crearWrap=document.getElementById('dh-crear-btn-wrap');
+  const tieneDealer=!!USER_STATE.concesionarioId;
+  if(crearWrap) crearWrap.style.display=tieneDealer?'none':'block';
+  // bloquear campos si no tiene concesionario
+  const fields=['dh-banner-preview','dh-logo-preview','dh-nombre-input'];
+  fields.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.opacity=tieneDealer?'1':'0.35';
+  });
+  const saveBtn=document.querySelector('#dh-content-vitrina button[onclick="saveDealerProfile()"]');
+  if(saveBtn) saveBtn.style.display=tieneDealer?'block':'none';
   showView('dealer-hub');
 }
 
@@ -6746,7 +6710,19 @@ function dhTab(tab){
   if(!isVitrina) renderDhPubs();
 }
 
+async function dhCrearConcesionario(){
+  if(!_supa||!USER_STATE.id){ showToast('error: sin sesión'); return; }
+  const nombre=USER_STATE.nombre||'Mi Concesionario';
+  const{data,error}=await _supa.from('concesionarios').insert({user_id:USER_STATE.id,nombre,tag:'',ciudad:'',activo:true}).select('id').single();
+  if(error){ showToast('error creando concesionario'); console.error(error); return; }
+  USER_STATE.concesionarioId=data.id;
+  showToast('concesionario creado',true);
+  handleEditarVitrina();
+  if(_supa) _loadConcesionarios();
+}
+
 function dhUpload(input, type){
+  if(!USER_STATE.concesionarioId){ showToast('crea tu concesionario primero'); input.value=''; return; }
   if(!input.files||!input.files[0]) return;
   const url = URL.createObjectURL(input.files[0]);
   const el = document.getElementById('dh-'+type+'-preview');
@@ -6760,6 +6736,7 @@ function dhNombrePreview(val){
   if(currentDealer && val.trim()) currentDealer.nombre = val.trim();
 }
 async function saveDealerProfile(){
+  if(!USER_STATE.concesionarioId){ showToast('crea tu concesionario primero'); return; }
   const nombre=document.getElementById('dh-nombre-input')?.value.trim();
   if(_supa && USER_STATE.concesionarioId){
     const payload={};
@@ -7290,7 +7267,7 @@ async function _rueddaLogin(email,pass){
     const{data:dealer}=await _supa.from('concesionarios').select('id,activo,plan_expiry').eq('user_id',data.user.id).maybeSingle();
     if(dealer){
       USER_STATE.concesionarioId=dealer.id;
-      USER_STATE.dealerActive=dealer.activo===true;
+      USER_STATE.dealerActive=true;
       USER_STATE.dealerExpiry=dealer.plan_expiry||null;
     }
   }
@@ -7451,7 +7428,7 @@ async function _rueddaLoadUserData(userId,role){
         const{data:dealer}=await _supa.from('concesionarios').select('id,activo,plan_expiry').eq('user_id',session.user.id).maybeSingle();
         if(dealer){
           USER_STATE.concesionarioId=dealer.id;
-          USER_STATE.dealerActive=dealer.activo===true;
+          USER_STATE.dealerActive=true;
           USER_STATE.dealerExpiry=dealer.plan_expiry||null;
         }
       }
