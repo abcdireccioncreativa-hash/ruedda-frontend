@@ -3779,9 +3779,9 @@ function contactSeller(){
 }
 function toggleWatchlistMarket(id){
   if(isGuest()){showView('cuenta');return;}
-  const key='mkt-'+id;
-  if(watchlist.has(key)){watchlist.delete(key);showToast('eliminado de favoritos');}
-  else{watchlist.add(key);showToast('guardado en favoritos',true);}
+  const key='mkt-'+String(id);
+  if(watchlist.has(key)){watchlist.delete(key);showToast('eliminado de favoritos');_persistFav(key,false);}
+  else{watchlist.add(key);showToast('guardado en favoritos',true);_persistFav(key,true);}
 }
 
 function toggleMktWatchlist(){
@@ -3791,8 +3791,8 @@ function toggleMktWatchlist(){
   }
   if(!currentMarketListing)return;
   const key='mkt-'+currentMarketListing.id;
-  if(watchlist.has(key)){watchlist.delete(key);showToast('eliminado de favoritos');}
-  else{watchlist.add(key);showToast('guardado en favoritos',true);}
+  if(watchlist.has(key)){watchlist.delete(key);showToast('eliminado de favoritos');_persistFav(key,false);}
+  else{watchlist.add(key);showToast('guardado en favoritos',true);_persistFav(key,true);}
   updateMktWatchlist();
 }
 function updateMktWatchlist(){
@@ -6026,7 +6026,7 @@ async function renderVitrinavGrid(filter){
           <div class="listado-card-img" style="background:linear-gradient(${grads[l.id%grads.length]})">
             ${img}
             <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
-            <button onclick="event.stopPropagation()" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0">
+            <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}')" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0">
               <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
             </button>
           </div>
@@ -7538,8 +7538,20 @@ function _subscribeNotifs(userId){
   }).subscribe();
 }
 
+async function _persistFav(itemId,add){
+  if(!_supa||!USER_STATE.id) return;
+  if(add){
+    await _supa.from('user_favorites').upsert({user_id:USER_STATE.id,item_id:String(itemId)},{onConflict:'user_id,item_id'}).catch(e=>console.error('[fav insert]',e.message));
+  } else {
+    await _supa.from('user_favorites').delete().eq('user_id',USER_STATE.id).eq('item_id',String(itemId)).catch(e=>console.error('[fav delete]',e.message));
+  }
+}
+
 async function _rueddaLoadUserData(userId,role){
   if(!_supa) return;
+  // cargar favoritos persistidos
+  const{data:favs}=await _supa.from('user_favorites').select('item_id').eq('user_id',userId);
+  if(favs?.length) favs.forEach(f=>watchlist.add(f.item_id));
   const{data:notifs}=await _supa.from('notifications').select('*').eq('user_id',userId).eq('read',false).order('created_at',{ascending:false}).limit(20);
   if(notifs?.length){
     notifs.forEach(n=>NOTIFICATIONS.unshift({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'reciente',read:false,icon:n.icon||'default'}));
