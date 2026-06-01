@@ -3508,7 +3508,7 @@ function _filterListadoGrid(q){
     const esNuevo=l.condicion==='nuevo'||l.condicion==='0km';
     const badge=esNuevo?'Nuevo':'Usado';
     const badgeColor=esNuevo?'rgba(100,200,255,.9)':'rgba(255,255,255,.75)';
-    const isFav=watchlist.has(l.id)||watchlist.has(String(l.id));
+    const isFav=watchlist.has('mkt-'+String(l.id))||watchlist.has(l.id)||watchlist.has(String(l.id));
     const img=l.photoUrls&&l.photoUrls[0]
       ?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
       :(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
@@ -3516,7 +3516,7 @@ function _filterListadoGrid(q){
       <div class="listado-card-img" style="background:linear-gradient(${grads2[l.id%grads2.length]})">
         ${img}
         <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
-        <button onclick="event.stopPropagation();toggleWatchlist('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
+        <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
           <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'rgba(255,255,255,.8)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
         </button>
       </div>
@@ -3546,12 +3546,12 @@ function _renderMktListadoGrid(){
     const esNuevo=l.condicion==='nuevo'||l.condicion==='0km';
     const badge=esNuevo?'Nuevo':'Usado';
     const badgeColor=esNuevo?'rgba(100,200,255,.9)':'rgba(255,255,255,.75)';
-    const isFav=watchlist.has(l.id)||watchlist.has(String(l.id));
+    const isFav=watchlist.has('mkt-'+String(l.id))||watchlist.has(l.id)||watchlist.has(String(l.id));
     return `<div onclick="openMarketDetail('${l.id}','listado')" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .25s ease both;animation-delay:${idx*30}ms">
       <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(${grads[l.id%grads.length]});position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
         ${carPlaceholder(l.id,'small')}
         <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
-        <button onclick="event.stopPropagation();toggleWatchlist('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
+        <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
           <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'rgba(255,255,255,.8)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
         </button>
       </div>
@@ -3563,18 +3563,27 @@ function _renderMktListadoGrid(){
     </div>`;
   }).join('');
 }
-function toggleWatchlist(id,btn){
-  // market items (UUID strings) se guardan con prefijo mkt-
-  const _id=isNaN(id)||String(id).includes('-')?'mkt-'+id:Number(id);
-  const _idAlt=String(_id);
-  if(watchlist.has(_id)||watchlist.has(_idAlt)){
-    watchlist.delete(_id);watchlist.delete(_idAlt);
+async function toggleWatchlist(id,btn){
+  if(isGuest()){showView('cuenta');return;}
+  const key=String(id).includes('-')?'mkt-'+id:Number(id);
+  const keyStr=String(key);
+  const isStored=watchlist.has(key)||watchlist.has(keyStr);
+  if(isStored){
+    watchlist.delete(key);watchlist.delete(keyStr);
+    if(_supa&&USER_STATE.id){
+      const{error}=await _supa.from('user_favorites').delete().eq('user_id',USER_STATE.id).eq('item_id',keyStr);
+      if(error){watchlist.add(key);console.error('[fav delete]',error.message);showToast('error eliminando favorito');return;}
+    }
     if(btn){btn.querySelector('svg').setAttribute('fill','none');btn.querySelector('svg').setAttribute('stroke','rgba(255,255,255,.8)');}
     showToast('eliminado de favoritos');
   } else {
-    watchlist.add(_id);
+    watchlist.add(key);
+    if(_supa&&USER_STATE.id){
+      const{error}=await _supa.from('user_favorites').upsert({user_id:USER_STATE.id,item_id:keyStr},{onConflict:'user_id,item_id'});
+      if(error){watchlist.delete(key);console.error('[fav insert]',error.message,{item_id:keyStr});showToast('error guardando favorito');return;}
+    }
     if(btn){btn.querySelector('svg').setAttribute('fill','#e6f03b');btn.querySelector('svg').setAttribute('stroke','#e6f03b');}
-    showToast('guardado en favoritos',true);
+    showToast('vehículo guardado en favoritos',true);
   }
 }
 // ── MARKET CONDITION FILTER ──
@@ -3777,11 +3786,21 @@ function contactSeller(){
   if(num)window.open('https://wa.me/'+num+'?text='+msg,'_blank');
   else showToast('contacto disponible al conectar backend');
 }
-function toggleWatchlistMarket(id){
+async function toggleWatchlistMarket(id,btn){
   if(isGuest()){showView('cuenta');return;}
   const key='mkt-'+String(id);
-  if(watchlist.has(key)){watchlist.delete(key);showToast('eliminado de favoritos');_persistFav(key,false);}
-  else{watchlist.add(key);showToast('guardado en favoritos',true);_persistFav(key,true);}
+  const svg=btn?btn.querySelector('svg'):null;
+  if(watchlist.has(key)){
+    watchlist.delete(key);
+    await _persistFav(key,false);
+    if(svg){svg.setAttribute('fill','none');svg.setAttribute('stroke','rgba(255,255,255,.8)');}
+    showToast('eliminado de favoritos');
+  } else {
+    watchlist.add(key);
+    await _persistFav(key,true);
+    if(svg){svg.setAttribute('fill','#e6f03b');svg.setAttribute('stroke','#e6f03b');}
+    showToast('vehículo guardado en favoritos',true);
+  }
 }
 
 function toggleMktWatchlist(){
@@ -3986,45 +4005,61 @@ function updateWatchlistBtn(){
   lbl.textContent=saved?'en favoritos':'guardar en favoritos';
   document.getElementById('watchlist-btn').style.color=saved?'var(--lime)':'';
 }
+// hash seguro para cualquier tipo de id (number o UUID string)
+function _favGradIdx(id){
+  const s=String(id);
+  let h=0;for(let i=0;i<s.length;i++){h=(Math.imul(31,h)+s.charCodeAt(i))|0;}
+  return Math.abs(h)%grads.length;
+}
+
 function renderFavoritos(){
   const el=document.getElementById('favoritos-content');
-  if(watchlist.size===0){
-    el.innerHTML='<div class="fav-empty"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg><h3>sin favoritos aún</h3><p>Guarda subastas que te interesen para seguirlas de cerca.</p></div>';
-    renderComunidad();return;
-  }
+  const emptyHtml='<div class="fav-empty"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg><h3>sin favoritos aún</h3><p>Guarda vehículos que te interesen para seguirlos de cerca.</p></div>';
+  if(watchlist.size===0){el.innerHTML=emptyHtml;renderComunidad();return;}
+
+  // subastas
   const allAuctions=[...AUCTIONS,...AUCTIONS_CHOCADOS];
   const favAuctions=allAuctions.filter(a=>watchlist.has(a.id));
   const cards=favAuctions.map((a,i)=>{
-    const imgUrl=a.photoUrls&&a.photoUrls[0];
-    return `<div class="fav-thumb-card" style="animation-delay:${i*55}ms" onclick="openDetail(${a.id})">
-      <div class="fav-thumb-img" style="background:linear-gradient(${grads[a.id%grads.length]})">
-        ${imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
-        <div class="fav-thumb-badge-timer${isUrgent(a.endTime)?' urgent':''}">${fmtCountdown(a.endTime-Date.now())}</div>
-      </div>
-      <div class="fav-thumb-body">
-        <div class="fav-thumb-title">${a.title}</div>
-        <div class="fav-thumb-meta">${fmtBid(a.currentBid)} · ${a.bidCount} ofertas</div>
-      </div>
-    </div>`;
+    try{
+      const imgUrl=a?.photoUrls?.[0]||null;
+      const endTime=a?.endTime||Date.now();
+      return `<div class="fav-thumb-card" style="animation-delay:${i*55}ms" onclick="openDetail(${a.id})">
+        <div class="fav-thumb-img" style="background:linear-gradient(${grads[_favGradIdx(a.id)]})">
+          ${imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
+          <div class="fav-thumb-badge-timer${isUrgent(endTime)?' urgent':''}">${fmtCountdown(endTime-Date.now())}</div>
+        </div>
+        <div class="fav-thumb-body">
+          <div class="fav-thumb-title">${a?.title||'—'}</div>
+          <div class="fav-thumb-meta">${fmtBid(a?.currentBid||0)} · ${a?.bidCount||0} ofertas</div>
+        </div>
+      </div>`;
+    }catch(e){console.error('[fav render auction]',e);return '';}
   }).join('');
-  // market listings guardados
-  const mktFavs=MARKET_LISTINGS.filter(l=>watchlist.has('mkt-'+l.id)||watchlist.has('mkt-'+String(l.id))||watchlist.has(l.id)||watchlist.has(String(l.id)));
+
+  // market y concesionarios
+  const mktFavs=MARKET_LISTINGS.filter(l=>watchlist.has('mkt-'+String(l.id))||watchlist.has(String(l.id)));
   const mktCards=mktFavs.map((l,i)=>{
-    const photos=(l.photoUrls||[]);
-    const imgUrl=photos[0];
-    const idx=favAuctions.length+i;
-    return `<div class="fav-thumb-card" style="animation-delay:${idx*55}ms" onclick="openMarketDetail('${l.id}','market')">
-      <div class="fav-thumb-img" style="background:linear-gradient(${grads[l.id%grads.length]})">
-        ${imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(l.id,'small'))}
-      </div>
-      <div class="fav-thumb-body">
-        <div class="fav-thumb-title">${l.year} ${l.marca||''} ${l.modelo||''}</div>
-        <div class="fav-thumb-meta">${fmtBid(l.precio_usd)} · ${(l.ciudad||'').toLowerCase()}</div>
-      </div>
-    </div>`;
+    try{
+      const imgUrl=l?.photoUrls?.[0]||null;
+      const titulo=`${l?.year||''} ${l?.marca||''} ${l?.modelo||''}`.trim()||'Vehículo';
+      const precio=fmtBid(l?.precio_usd||l?.price||0);
+      const ciudad=(l?.ciudad||l?.location||'').toLowerCase();
+      const lid=String(l?.id||i);
+      return `<div class="fav-thumb-card" style="animation-delay:${(favAuctions.length+i)*55}ms" onclick="openMarketDetail('${lid}','market')">
+        <div class="fav-thumb-img" style="background:linear-gradient(${grads[_favGradIdx(lid)]})">
+          ${imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(i,'small'))}
+        </div>
+        <div class="fav-thumb-body">
+          <div class="fav-thumb-title">${titulo}</div>
+          <div class="fav-thumb-meta">${precio}${ciudad?' · '+ciudad:''}</div>
+        </div>
+      </div>`;
+    }catch(e){console.error('[fav render market]',e);return '';}
   }).join('');
+
   const allCards=cards+mktCards;
-  if(!allCards&&watchlist.size>0){el.innerHTML='<div class="fav-empty"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg><h3>sin favoritos aún</h3><p>Guarda subastas que te interesen para seguirlas de cerca.</p></div>';renderComunidad();return;}
+  if(!allCards){el.innerHTML=emptyHtml;renderComunidad();return;}
   el.innerHTML=`<div class="fav-thumb-row">${allCards}</div>`;
   renderComunidad();
 }
@@ -7540,10 +7575,13 @@ function _subscribeNotifs(userId){
 
 async function _persistFav(itemId,add){
   if(!_supa||!USER_STATE.id) return;
+  const key=String(itemId);
   if(add){
-    await _supa.from('user_favorites').upsert({user_id:USER_STATE.id,item_id:String(itemId)},{onConflict:'user_id,item_id'}).catch(e=>console.error('[fav insert]',e.message));
+    const{error}=await _supa.from('user_favorites').upsert({user_id:USER_STATE.id,item_id:key},{onConflict:'user_id,item_id'});
+    if(error) console.error('[fav insert]',error.message,{item_id:key,user_id:USER_STATE.id});
   } else {
-    await _supa.from('user_favorites').delete().eq('user_id',USER_STATE.id).eq('item_id',String(itemId)).catch(e=>console.error('[fav delete]',e.message));
+    const{error}=await _supa.from('user_favorites').delete().eq('user_id',USER_STATE.id).eq('item_id',key);
+    if(error) console.error('[fav delete]',error.message,{item_id:key});
   }
 }
 
