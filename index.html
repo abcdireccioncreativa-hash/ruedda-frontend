@@ -4336,12 +4336,14 @@ async function confirmBid(){
     const{error:bidErr}=await _supa.from('bids').insert({
       auction_id:currentAuction.id,
       user_id:USER_STATE.id,
-      monto:val
+      amount:val
     });
     if(bidErr){
       console.error('[ruedda confirmBid supabase]',bidErr.message);
+      showToast('error bid: '+bidErr.message);
     } else {
-      await _supa.from('auctions').update({current_bid:val,bid_count:currentAuction.bidCount}).eq('id',currentAuction.id).catch(e2=>console.error('[ruedda bid update]',e2.message));
+      const{error:updErr}=await _supa.from('auctions').update({current_bid:val,bid_count:currentAuction.bidCount}).eq('id',currentAuction.id);
+      if(updErr) showToast('error update: '+updErr.message);
     }
   }
   // API como secundario — fire and forget
