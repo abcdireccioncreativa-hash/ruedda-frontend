@@ -5471,10 +5471,10 @@ function openMisPublicaciones(){
         <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:20px"><div class="save-spinner" style="border-top-color:rgba(255,255,255,.6)"></div></div>
       </div>
     </div>`;
-  requestAnimationFrame(()=>{
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
     sheet.style.opacity='1';
     document.getElementById('mis-pub-inner').style.transform='translateY(0)';
-  });
+  }));
   _loadMyListings();
 }
 
@@ -5484,13 +5484,13 @@ async function _loadMyListings(){
   if(!_supa||!USER_STATE.id){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
   try{
     const[resListings,resAuctions]=await Promise.all([
-      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}),
-      _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo').eq('user_id',USER_STATE.id).order('created_at',{ascending:false})
+      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado,listing_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}),
+      _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo,auction_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false})
     ]);
     if(resListings.error) console.error('[ruedda] _loadMyListings listings:',resListings.error.message);
     if(resAuctions.error) console.error('[ruedda] _loadMyListings auctions:',resAuctions.error.message);
-    const listings=(resListings.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.estado,daysLeft:0,fotos:0,type:'market',desc:''}));
-    const auctions=(resAuctions.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status:l.estado,daysLeft:0,fotos:0,type:'subasta',desc:''}));
+    const listings=(resListings.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.estado,daysLeft:0,fotos:0,type:'market',desc:'',photoUrl:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null}));
+    const auctions=(resAuctions.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status:l.estado,daysLeft:0,fotos:0,type:'subasta',desc:'',photoUrl:(l.auction_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null}));
     const all=[...listings,...auctions];
     if(!all.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
     MOCK_MY_LISTINGS.splice(0,MOCK_MY_LISTINGS.length,...all);
@@ -5514,8 +5514,11 @@ function _renderMisPubGrid(){
     const badgeLabel=isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':isPublicando?'publicando...':'activa';
     const badgeColor2=isPublicando?'rgba(255,170,0,.8)':badgeColor;
     return `<div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
-      <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative">
-        <svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>
+      <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+        ${l.photoUrl
+          ?`<img src="${l.photoUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.06) 25%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.06) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
+          :`<svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
         <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${badgeColor2||badgeColor}">${badgeLabel}</span>
       </div>
       <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
@@ -5527,7 +5530,7 @@ function _renderMisPubGrid(){
             :isNegada
             ?''
             :`<button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>`}
-          <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.15);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,80,80,.7);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
+          <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
         </div>
       </div>
     </div>`;
@@ -5637,8 +5640,9 @@ async function executeDeleteListing(id){
   const mi=MOCK_MY_LISTINGS.findIndex(x=>String(x.id)===_idStr);
   const di=DEALER_LISTINGS_OWN.findIndex(x=>String(x.id)===_idStr);
   if(_supa){
-    const{error}=await _supa.from('listings').update({estado:'eliminada'}).eq('id',_idStr);
-    if(error) console.error('[ruedda] delete:',error.message);
+    const tbl=MOCK_MY_LISTINGS.find(x=>String(x.id)===_idStr)?.type==='subasta'?'auctions':'listings';
+    const{error}=await _supa.from(tbl).delete().eq('id',_idStr);
+    if(error){console.error('[ruedda] delete:',error.message);showToast('error eliminando');return;}
   }
   if(mi>-1) MOCK_MY_LISTINGS.splice(mi,1);
   if(di>-1) DEALER_LISTINGS_OWN.splice(di,1);
