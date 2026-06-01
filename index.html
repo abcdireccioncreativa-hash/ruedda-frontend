@@ -3564,13 +3564,17 @@ function _renderMktListadoGrid(){
   }).join('');
 }
 function toggleWatchlist(id,btn){
-  const _id=isNaN(id)?id:Number(id);
-  if(watchlist.has(_id)||watchlist.has(String(_id))){
-    watchlist.delete(_id);watchlist.delete(String(_id));
+  // market items (UUID strings) se guardan con prefijo mkt-
+  const _id=isNaN(id)||String(id).includes('-')?'mkt-'+id:Number(id);
+  const _idAlt=String(_id);
+  if(watchlist.has(_id)||watchlist.has(_idAlt)){
+    watchlist.delete(_id);watchlist.delete(_idAlt);
     if(btn){btn.querySelector('svg').setAttribute('fill','none');btn.querySelector('svg').setAttribute('stroke','rgba(255,255,255,.8)');}
+    showToast('eliminado de favoritos');
   } else {
     watchlist.add(_id);
     if(btn){btn.querySelector('svg').setAttribute('fill','#e6f03b');btn.querySelector('svg').setAttribute('stroke','#e6f03b');}
+    showToast('guardado en favoritos',true);
   }
 }
 // ── MARKET CONDITION FILTER ──
@@ -3963,8 +3967,8 @@ function toggleWatchlist(){
   }
   if(!currentAuction)return;
   const id=currentAuction.id;
-  if(watchlist.has(id)){watchlist.delete(id);showToast('eliminado de favoritos')}
-  else{watchlist.add(id);showToast('guardado en favoritos',true)}
+  if(watchlist.has(id)){watchlist.delete(id);showToast('eliminado de favoritos');_persistFav(id,false);}
+  else{watchlist.add(id);showToast('guardado en favoritos',true);_persistFav(id,true);}
   updateWatchlistBtn();
   // Add notification
   if(watchlist.has(id)){
@@ -4004,7 +4008,7 @@ function renderFavoritos(){
     </div>`;
   }).join('');
   // market listings guardados
-  const mktFavs=MARKET_LISTINGS.filter(l=>watchlist.has('mkt-'+l.id)||watchlist.has('mkt-'+String(l.id)));
+  const mktFavs=MARKET_LISTINGS.filter(l=>watchlist.has('mkt-'+l.id)||watchlist.has('mkt-'+String(l.id))||watchlist.has(l.id)||watchlist.has(String(l.id)));
   const mktCards=mktFavs.map((l,i)=>{
     const photos=(l.photoUrls||[]);
     const imgUrl=photos[0];
