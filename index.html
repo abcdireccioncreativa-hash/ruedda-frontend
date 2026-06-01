@@ -93,9 +93,11 @@ html{scrollbar-width:none}
 
 /* LIQUID GLASS DROPDOWN */
 .dropdown-wrap{position:relative}
-.dropdown-menu{position:absolute;top:calc(100% + 12px);left:0;z-index:50;min-width:200px;opacity:0;transform:translateY(-8px);transition:opacity .28s cubic-bezier(.32,.72,0,1),transform .28s cubic-bezier(.32,.72,0,1);pointer-events:none}
-.dropdown-menu.open{opacity:1;transform:translateY(0);pointer-events:all}
-.dropdown-glass{background:rgba(20,20,22,0.85);backdrop-filter:blur(32px) saturate(180%);-webkit-backdrop-filter:blur(32px) saturate(180%);border:1px solid rgba(255,255,255,0.1);border-radius:18px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,0.06)}
+.dropdown-menu{position:absolute;top:calc(100% + 12px);left:0;z-index:50;min-width:200px;pointer-events:none}
+.dropdown-menu.open{pointer-events:all}
+.dropdown-menu .dropdown-glass{opacity:0;transform:translateY(-8px);transition:opacity .28s cubic-bezier(.32,.72,0,1),transform .28s cubic-bezier(.32,.72,0,1)}
+.dropdown-menu.open .dropdown-glass{opacity:1;transform:translateY(0)}
+.dropdown-glass{background:rgba(14,14,16,1);backdrop-filter:blur(120px) saturate(180%);-webkit-backdrop-filter:blur(120px) saturate(180%);border:1px solid rgba(255,255,255,0.1);border-radius:18px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,0.06)}
 .dropdown-item{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;letter-spacing:-.2px}
 .dropdown-item:hover{background:rgba(255,255,255,.05)}
 .dropdown-item:not(:last-child){border-bottom:1px solid rgba(255,255,255,0.05)}
