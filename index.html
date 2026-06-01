@@ -3803,15 +3803,15 @@ async function toggleWatchlistMarket(id,btn){
   }
 }
 
-function toggleMktWatchlist(){
+async function toggleMktWatchlist(){
   if(isGuest()){
     showView('cuenta');
     return;
   }
   if(!currentMarketListing)return;
   const key='mkt-'+currentMarketListing.id;
-  if(watchlist.has(key)){watchlist.delete(key);showToast('eliminado de favoritos');_persistFav(key,false);}
-  else{watchlist.add(key);showToast('guardado en favoritos',true);_persistFav(key,true);}
+  if(watchlist.has(key)){watchlist.delete(key);await _persistFav(key,false);showToast('eliminado de favoritos');}
+  else{watchlist.add(key);await _persistFav(key,true);showToast('guardado en favoritos',true);}
   updateMktWatchlist();
 }
 function updateMktWatchlist(){
@@ -3838,7 +3838,7 @@ function sendMktComment(){
 
 // ===================== DETAIL =====================
 function openDetail(id){
-  currentAuction=AUCTIONS.find(a=>a.id===id)||AUCTIONS_CHOCADOS.find(a=>a.id===id);
+  currentAuction=AUCTIONS.find(a=>a.id==id||String(a.id)===String(id))||AUCTIONS_CHOCADOS.find(a=>a.id==id||String(a.id)===String(id));
   if(!currentAuction)return;
   const a=currentAuction;
   clearTimers();
@@ -4019,15 +4019,15 @@ function renderFavoritos(){
 
   // subastas
   const allAuctions=[...AUCTIONS,...AUCTIONS_CHOCADOS];
-  const favAuctions=allAuctions.filter(a=>watchlist.has(a.id));
+  const favAuctions=allAuctions.filter(a=>watchlist.has(a.id)||watchlist.has(String(a.id)));
   const cards=favAuctions.map((a,i)=>{
     try{
       const imgUrl=a?.photoUrls?.[0]||null;
       const endTime=a?.endTime||Date.now();
-      return `<div class="fav-thumb-card" style="animation-delay:${i*55}ms" onclick="openDetail(${a.id})">
+      return `<div class="fav-thumb-card" style="animation-delay:${i*55}ms;cursor:pointer" onclick="openDetail('${a.id}')">
         <div class="fav-thumb-img" style="background:linear-gradient(${grads[_favGradIdx(a.id)]})">
           ${imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
-          <div class="fav-thumb-badge-timer${isUrgent(endTime)?' urgent':''}">${fmtCountdown(endTime-Date.now())}</div>
+          <div class="fav-thumb-badge-timer${isUrgent(endTime)?' urgent':''}" style="pointer-events:none">${fmtCountdown(endTime-Date.now())}</div>
         </div>
         <div class="fav-thumb-body">
           <div class="fav-thumb-title">${a?.title||'—'}</div>
