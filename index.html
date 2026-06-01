@@ -3850,6 +3850,23 @@ function openDetail(id){
   sg.innerHTML='';
   Object.entries(a.specs).filter(([k])=>k!=='VIN').forEach(([k,v])=>{sg.innerHTML+=`<div class="spec-item"><div class="spec-label">${k}</div><div class="spec-value">${v}</div></div>`;});
   renderBidHistory();
+  // Cargar historial real desde Supabase
+  if(_supa){
+    _supa.from('bids').select('amount,user_id,created_at,users(nombre,username)').eq('auction_id',id).order('amount',{ascending:false}).then(({data})=>{
+      if(data&&data.length){
+        currentAuction.bids=data.map((b,i)=>({
+          user:b.users?.nombre||b.users?.username||'usuario',
+          time:new Date(b.created_at).toLocaleDateString('es-VE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}),
+          amount:b.amount,
+          top:i===0
+        }));
+        currentAuction.bidCount=data.length;
+        if(data[0]?.amount>currentAuction.currentBid){currentAuction.currentBid=data[0].amount;}
+        renderBidHistory();
+        renderDetailBid();
+      }
+    });
+  }
   document.getElementById('detail-desc').textContent=a.desc;
   const upd=()=>{
     const el=document.getElementById('detail-timer');
