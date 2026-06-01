@@ -1707,8 +1707,8 @@ html{scrollbar-width:none}
       <input class="form-input" type="number" placeholder="precio de venta">
     </div>
     <div class="form-group" id="field-precio-reserva" style="display:none">
-      <label class="form-label">precio de reserva (USD)</label>
-      <input class="form-input" type="number" placeholder="0 = sin reserva">
+      <label class="form-label">precio base de subasta (USD)</label>
+      <input class="form-input" type="number" id="precio-base-input" placeholder="ej: 5000 — arranca en 0 si se deja vacío" min="0">
     </div>
 
     <!-- DURACIÓN: solo aparece en subasta -->
@@ -5061,7 +5061,7 @@ async function publishListing(){
   const km=parseInt(getByPH('km')||'0');
   const color=getByPH('ej. negro mate');
   const precioFijo=parseFloat(getByPH('precio de venta')||'0');
-  const precioRes=parseFloat(getByPH('0 = sin reserva')||'0');
+  const precioRes=parseFloat(document.getElementById('precio-base-input')?.value||getByPH('arranca en 0 si se deja vacío')||'0');
   const whatsapp=getByPH('+58 412 000 0000');
   const descripcion=getByPH('estado del vehículo, equipamiento, historial de mantenimiento...');
   const ciudad=getSelByLabel('ciudad');
@@ -5109,7 +5109,7 @@ async function publishListing(){
     const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
     const payload = esListing
       ? {...payloadBase, concesionario_id:concesionarioId}
-      : {...payloadBase, tipo, sin_reserva:precioRes===0&&tipo==='subasta', duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null};
+      : {...payloadBase, tipo, sin_reserva:precioRes===0&&tipo==='subasta', duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioRes||0};
     console.log('[ruedda publish] tabla:', tabla, '| payload:', JSON.stringify(payload));
     const{error}=await (_supaWrite||_supa).from(tabla).insert(payload);
     if(error) console.error('[ruedda publish] insert error:', error);
