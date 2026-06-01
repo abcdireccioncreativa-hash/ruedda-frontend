@@ -4331,18 +4331,21 @@ async function confirmBid(){
   NOTIFICATIONS.unshift({id:Date.now(),type:'offer',title:'Oferta registrada',body:'Tu oferta de '+fmtBid(val)+' en '+currentAuction.title+' fue registrada',time:'ahora mismo',read:false,icon:'lime'});
   document.getElementById('notif-dot').style.display='block';
   // persistir en servidor
-  try{
-    const res=await _apiPost('/api/place-bid',{auction_id:currentAuction.id,monto:val});
-    if(res.current_bid) currentAuction.currentBid=res.current_bid;
-  }catch(e){
-    console.error('[ruedda confirmBid]',e.message);
-    if(e.message==='puja superada — intenta de nuevo'||e.message?.includes('retry')){
-      showToast('alguien más pujó — recarga la subasta');
-      currentAuction.currentBid-=val; // revertir optimistic
+  // Guardar en Supabase directo — fuente de verdad
+  if(_supa){
+    const{error:bidErr}=await _supa.from('bids').insert({
+      auction_id:currentAuction.id,
+      user_id:USER_STATE.id,
+      monto:val
+    });
+    if(bidErr){
+      console.error('[ruedda confirmBid supabase]',bidErr.message);
     } else {
-      console.warn('[ruedda confirmBid] no crítico:',e.message);
+      await _supa.from('auctions').update({current_bid:val,bid_count:currentAuction.bidCount}).eq('id',currentAuction.id).catch(e2=>console.error('[ruedda bid update]',e2.message));
     }
   }
+  // API como secundario — fire and forget
+  _apiPost('/api/place-bid',{auction_id:currentAuction.id,monto:val}).catch(e=>console.warn('[ruedda confirmBid API]',e.message));
 }
 
 // ===================== NOTIFICATIONS =====================
