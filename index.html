@@ -1280,7 +1280,7 @@ html{scrollbar-width:none}
           </div>
         </div>
         <div class="detail-section comments-section">
-          <div class="seller-card">
+          <div class="seller-card" id="detail-seller-card">
             <div class="seller-card-avatar" id="detail-seller-avatar">V</div>
             <div class="seller-card-info">
               <span class="seller-card-label">publicado por</span>
@@ -3700,6 +3700,19 @@ function openMarketDetail(id, origin){
         if(_nm) _nm.innerHTML=nm;
         if(_nm2) _nm2.innerHTML=nm;
         l.seller=nm;
+        // inyectar botón PM solo si no es el dueño
+        const card=document.getElementById('mkt-seller-card');
+        if(card&&!card.querySelector('.pm-icon-btn')&&l.user_id!==USER_STATE.id){
+          const _btn=document.createElement('button');
+          _btn.className='pm-icon-btn';
+          _btn.style.cssText='background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0';
+          _btn.innerHTML='<svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.5" style="width:17px;height:17px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+          _btn.onmouseenter=()=>_btn.querySelector('svg').setAttribute('stroke','rgba(255,255,255,.75)');
+          _btn.onmouseleave=()=>_btn.querySelector('svg').setAttribute('stroke','rgba(255,255,255,.4)');
+          const isDealer=!!(l.dealerId);
+          _btn.onclick=e=>{e.stopPropagation();if(isGuest()){showToast('inicia sesión para enviar mensajes');return;}_openPmPanel(l.user_id,nm,l.id,'listing',l.title||'publicación',isDealer);};
+          card.appendChild(_btn);
+        }
       }
     }).catch(()=>{});
   }
@@ -7504,7 +7517,7 @@ async function _loadAuctions(){
     (usersRes.data||[]).forEach(u=>{ sellerMap[u.id]=u.nombre||'Vendedor'; });
     const mapped=data.map(a=>{
       const sortedPhotos=(photosMap[a.id]||[]).sort((x,y)=>x.orden-y.orden);
-      return {id:a.id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs:{'transmisión':a.transmision,'combustible':a.combustible}};
+      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs:{'transmisión':a.transmision,'combustible':a.combustible}};
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
     if(typeof renderCards==='function') renderCards();
@@ -7706,6 +7719,468 @@ function _rxAnimateCards(){
     setTimeout(()=>c.classList.add('rx-visible'),60+i*55);
   });
 }
+
+// ═══════════════════════════════════════════════════════════
+// SISTEMA DE COMENTARIOS + MENSAJES PRIVADOS — RUEDDA
+// ═══════════════════════════════════════════════════════════
+
+// ── helpers ──
+function _fmtTimeAgo(ts){
+  const diff=(Date.now()-new Date(ts).getTime())/1000;
+  if(diff<60) return 'ahora mismo';
+  if(diff<3600) return Math.floor(diff/60)+'min';
+  if(diff<86400) return Math.floor(diff/3600)+'h';
+  return Math.floor(diff/86400)+'d';
+}
+function _masked(nombre){
+  if(!nombre) return 'usuario';
+  const p=nombre.split(' ')[0];
+  return p[0].toUpperCase()+'***'+p[p.length-1].toLowerCase();
+}
+
+// ─────────────────────────────────────────────
+// COMENTARIOS PÚBLICOS
+// ─────────────────────────────────────────────
+async function _loadComments(sourceType,sourceId,listId){
+  const list=document.getElementById(listId);
+  if(!list||!_supa) return;
+  list.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">cargando...</div>';
+  const{data,error}=await _supa.from('comments')
+    .select('id,body,created_at,parent_id,user_id,users(nombre,role)')
+    .eq(sourceType==='listing'?'listing_id':'auction_id',sourceId)
+    .is('parent_id',null)
+    .order('created_at',{ascending:false});
+  if(error){list.innerHTML='';console.error('[comments]',error.message);return;}
+  if(!data?.length){list.innerHTML='<div class="comment-empty" style="color:var(--muted);font-size:13px;padding:8px 0">sé el primero en preguntar</div>';return;}
+  // cargar replies
+  const ids=data.map(c=>c.id);
+  const{data:replies}=await _supa.from('comments')
+    .select('id,body,created_at,parent_id,user_id,users(nombre,role)')
+    .in('parent_id',ids)
+    .order('created_at',{ascending:true});
+  const replyMap={};
+  (replies||[]).forEach(r=>{if(!replyMap[r.parent_id])replyMap[r.parent_id]=[];replyMap[r.parent_id].push(r);});
+  // owner id
+  const ownerId=sourceType==='listing'
+    ?(window.currentMarketListing?.user_id||null)
+    :(window.currentAuction?.ownerId||null);
+  list.innerHTML=data.map(c=>{
+    const isOwner=c.user_id===ownerId;
+    const isMe=c.user_id===USER_STATE.id;
+    const isDealer=c.users?.role==='concesionario'||c.users?.role==='consesionario';
+    const nombre=c.users?.nombre||'usuario';
+    const av=nombre[0].toUpperCase();
+    const badge=isOwner?`<span style="font-size:9px;font-weight:700;background:rgba(230,240,59,.12);color:#e6f03b;padding:2px 6px;border-radius:100px;letter-spacing:.3px">creador</span>`
+      :isDealer?`<span style="font-size:9px;font-weight:700;background:rgba(100,220,150,.1);color:rgba(100,220,150,.9);padding:2px 6px;border-radius:100px;">✦ verificado</span>`:'';
+    const replyBtns=!isMe?`<button onclick="_openReplyBox('${c.id}','${sourceType}','${sourceId}','${listId}')" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;margin-top:4px">responder</button>`:'';
+    const cReplies=(replyMap[c.id]||[]).map(r=>{
+      const rOwner=r.user_id===ownerId;
+      const rDealer=r.users?.role==='concesionario'||r.users?.role==='consesionario';
+      const rNombre=r.users?.nombre||'usuario';
+      const rBadge=rOwner?`<span style="font-size:9px;font-weight:700;background:rgba(230,240,59,.12);color:#e6f03b;padding:2px 6px;border-radius:100px;letter-spacing:.3px">creador</span>`
+        :rDealer?`<span style="font-size:9px;font-weight:700;background:rgba(100,220,150,.1);color:rgba(100,220,150,.9);padding:2px 6px;border-radius:100px;">✦ verificado</span>`:'';
+      return `<div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:10px;border-left:2px solid rgba(230,240,59,.2)">
+        <div class="comment-header"><div class="comment-avatar" style="width:22px;height:22px;font-size:10px">${rNombre[0].toUpperCase()}</div>
+        <span class="comment-name">${r.user_id===USER_STATE.id?'tú':_masked(rNombre)}</span>${rBadge}<span class="comment-time">${_fmtTimeAgo(r.created_at)}</span></div>
+        <div class="comment-text" style="margin-top:4px">${r.body}</div></div>`;
+    }).join('');
+    return `<div class="comment-item" id="cmt-${c.id}">
+      <div class="comment-header">
+        <div class="comment-avatar">${av}</div>
+        <span class="comment-name">${isMe?'tú':_masked(nombre)}</span>${badge}
+        <span class="comment-time">${_fmtTimeAgo(c.created_at)}</span>
+      </div>
+      <div class="comment-text">${c.body}</div>
+      ${cReplies}
+      <div id="reply-box-${c.id}" style="display:none;margin-top:8px;display:none">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <textarea id="reply-input-${c.id}" class="comment-input" placeholder="escribe una respuesta..." rows="1" style="flex:1;min-height:36px" oninput="autoResizeComment(this)"></textarea>
+          <button onclick="_submitReply('${c.id}','${sourceType}','${sourceId}','${listId}')" class="comment-send-btn" style="align-self:flex-end">enviar</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;margin-top:6px">${replyBtns}</div>
+    </div>`;
+  }).join('');
+}
+
+function _openReplyBox(commentId,sourceType,sourceId,listId){
+  const box=document.getElementById('reply-box-'+commentId);
+  if(!box) return;
+  const visible=box.style.display==='block';
+  box.style.display=visible?'none':'block';
+  if(!visible) setTimeout(()=>document.getElementById('reply-input-'+commentId)?.focus(),50);
+}
+
+async function _submitReply(parentId,sourceType,sourceId,listId){
+  if(isGuest()){showToast('inicia sesión para responder');return;}
+  const inp=document.getElementById('reply-input-'+parentId);
+  const text=inp?.value.trim();
+  if(!text) return;
+  const payload={
+    body:text,
+    user_id:USER_STATE.id,
+    parent_id:parentId,
+    [sourceType==='listing'?'listing_id':'auction_id']:sourceId
+  };
+  const{error}=await _supa.from('comments').insert(payload);
+  if(error){showToast('error enviando respuesta');console.error('[reply]',error);return;}
+  inp.value='';
+  showToast('respuesta enviada',true);
+  _loadComments(sourceType,sourceId,listId);
+}
+
+async function sendComment(){
+  if(isGuest()){triggerGuestBlock('comentario');return;}
+  if(!currentAuction) return;
+  const input=document.getElementById('comment-input');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';input.style.height='auto';
+  const payload={body:text,user_id:USER_STATE.id,auction_id:String(currentAuction.id)};
+  const{error}=await _supa.from('comments').insert(payload);
+  if(error){showToast('error enviando');console.error('[comment]',error);return;}
+  // notif local
+  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentAuction.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime',sourceId:currentAuction.id,sourceType:'auction'});
+  const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
+  showToast('pregunta enviada',true);
+  _loadComments('auction',String(currentAuction.id),'comment-list');
+}
+
+async function sendMktComment(){
+  if(isGuest()){showToast('inicia sesión para preguntar');setTimeout(()=>showView('cuenta'),700);return;}
+  if(!currentMarketListing) return;
+  const input=document.getElementById('mkt-comment-input');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';input.style.height='auto';
+  const payload={body:text,user_id:USER_STATE.id,listing_id:String(currentMarketListing.id)};
+  const{error}=await _supa.from('comments').insert(payload);
+  if(error){showToast('error enviando');console.error('[mkt-comment]',error);return;}
+  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentMarketListing.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime',sourceId:currentMarketListing.id,sourceType:'listing'});
+  const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
+  showToast('pregunta enviada',true);
+  _loadComments('listing',String(currentMarketListing.id),'mkt-comment-list');
+}
+
+// ─────────────────────────────────────────────
+// MENSAJES PRIVADOS
+// ─────────────────────────────────────────────
+async function _sendPrivateMessage(receiverId,sourceId,sourceType,sourceTitle){
+  if(isGuest()){showToast('inicia sesión para enviar mensajes');return;}
+  const inp=document.getElementById('pm-input');
+  const text=inp?.value.trim();
+  if(!text){showToast('escribe un mensaje');return;}
+  if(receiverId===USER_STATE.id){showToast('no puedes enviarte un mensaje a ti mismo');return;}
+  const{error}=await _supa.from('private_messages').insert({
+    sender_id:USER_STATE.id,
+    receiver_id:receiverId,
+    source_id:String(sourceId),
+    source_type:sourceType,
+    source_title:sourceTitle,
+    text
+  });
+  if(error){showToast('error enviando mensaje');console.error('[pm]',error);return;}
+  inp.value='';
+  // cerrar el panel
+  const panel=document.getElementById('pm-panel');
+  if(panel) panel.style.display='none';
+  showToast('mensaje enviado',true);
+  // notif local para el sender
+  NOTIFICATIONS.unshift({id:Date.now(),type:'pm',title:'Mensaje enviado',body:'Tu mensaje sobre '+sourceTitle+' fue enviado',time:'ahora mismo',read:false,icon:'lime'});
+  const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
+  // recargar mensajes
+  _loadPrivateMessages();
+}
+
+function _closePmPanel(){
+  const panel=document.getElementById('pm-panel');
+  if(!panel) return;
+  const inner=panel.querySelector('div');
+  if(inner) inner.style.transform='translateY(100%)';
+  panel.style.opacity='0';
+  panel.style.background='rgba(0,0,0,0)';
+  setTimeout(()=>{panel.style.display='none';},320);
+}
+
+function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,isDealer){
+  let panel=document.getElementById('pm-panel');
+  if(!panel){
+    panel=document.createElement('div');
+    panel.id='pm-panel';
+    panel.style.cssText='position:fixed;inset:0;z-index:9000;display:none;align-items:flex-end;background:rgba(0,0,0,0);backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px);opacity:0;transition:opacity .28s cubic-bezier(.32,.72,0,1)';
+    panel.onclick=e=>{if(e.target===panel)_closePmPanel();};
+    document.body.appendChild(panel);
+  }
+  const dealerBadge=isDealer?`<span style="font-size:9px;font-weight:700;color:rgba(100,220,150,.9);margin-left:6px">✦ verificado</span>`:'';
+  panel.innerHTML=`<div style="width:100%;max-width:560px;margin:0 auto;background:rgba(14,14,16,1);border-radius:24px 24px 0 0;padding:24px 20px 36px;border-top:1px solid rgba(255,255,255,.08);transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)">
+    <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin:0 auto 20px"></div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">mensaje privado</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:2px">${receiverName}${dealerBadge}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:18px">sobre ${sourceTitle}</div>
+    <textarea id="pm-input" placeholder="escribe tu mensaje..." style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:13px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;resize:none;min-height:90px;line-height:1.6" onfocus="this.style.borderColor='rgba(230,240,59,.35)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'"></textarea>
+    <button onclick="_sendPrivateMessage('${receiverId}','${sourceId}','${sourceType}','${sourceTitle.replace(/'/g,"\'")}');event.stopPropagation()" style="margin-top:12px;width:100%;background:#e6f03b;color:#000;border:none;border-radius:14px;padding:14px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s" onmousedown="this.style.opacity='.8'" onmouseup="this.style.opacity='1'">enviar mensaje</button>
+    <button onclick="_closePmPanel()" style="margin-top:8px;width:100%;background:none;border:none;color:var(--muted);font-family:var(--font);font-size:13px;cursor:pointer;padding:8px">cancelar</button>
+  </div>`;
+  panel.style.opacity='0';
+  panel.style.background='rgba(0,0,0,0)';
+  panel.style.transition='opacity .28s cubic-bezier(.32,.72,0,1),background .28s cubic-bezier(.32,.72,0,1)';
+  panel.style.display='flex';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    panel.style.opacity='1';
+    panel.style.background='rgba(0,0,0,.5)';
+    const inner=panel.querySelector('div');
+    if(inner) inner.style.transform='translateY(0)';
+  }));
+  setTimeout(()=>document.getElementById('pm-input')?.focus(),380);
+}
+
+async function _loadPrivateMessages(){
+  if(!_supa||!USER_STATE.id||isGuest()) return;
+  const{data,error}=await _supa.from('private_messages')
+    .select('id,sender_id,receiver_id,source_id,source_title,text,read,created_at,sender:users!private_messages_sender_id_fkey(nombre,role),receiver:users!private_messages_receiver_id_fkey(nombre,role)')
+    .or(`sender_id.eq.${USER_STATE.id},receiver_id.eq.${USER_STATE.id}`)
+    .order('created_at',{ascending:false});
+  if(error){console.error('[pm load]',error.message);return;}
+  // agrupar por conversación (source_id + counterpart)
+  const threads={};
+  (data||[]).forEach(m=>{
+    const isMe=m.sender_id===USER_STATE.id;
+    const otherId=isMe?m.receiver_id:m.sender_id;
+    const key=`${m.source_id||'direct'}_${otherId}`;
+    if(!threads[key]) threads[key]={
+      key,otherId,
+      otherName:(isMe?m.receiver?.nombre:m.sender?.nombre)||'usuario',
+      otherRole:(isMe?m.receiver?.role:m.sender?.role)||'',
+      sourceTitle:m.source_title||'publicación',
+      messages:[],unread:0
+    };
+    threads[key].messages.push({...m,mine:isMe});
+    if(!isMe&&!m.read) threads[key].unread++;
+  });
+  // marcar como leídos los recibidos
+  const unreadIds=(data||[]).filter(m=>m.receiver_id===USER_STATE.id&&!m.read).map(m=>m.id);
+  if(unreadIds.length) _supa.from('private_messages').update({read:true}).in('id',unreadIds).catch(()=>{});
+  // guardar en THREADS
+  const pmThreads=Object.values(threads).map((t,i)=>({
+    id:'pm_'+t.key,
+    carTitle:t.sourceTitle,
+    isPM:true,
+    otherId:t.otherId,
+    otherName:t.otherName,
+    otherRole:t.otherRole,
+    unread:t.unread>0,
+    messages:t.messages.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).map(m=>({
+      from:m.mine?'tú':_masked(t.otherName),
+      text:m.text,
+      time:_fmtTimeAgo(m.created_at),
+      mine:m.mine,
+      role:m.mine?'':t.otherRole
+    }))
+  }));
+  // reemplazar threads de PM en THREADS
+  const nonPM=THREADS.filter(t=>!t.isPM);
+  THREADS.splice(0,THREADS.length,...nonPM,...pmThreads);
+  renderMensajesList();
+}
+
+// ─────────────────────────────────────────────
+// SOBREESCRIBIR renderMensajesList con badges PM
+// ─────────────────────────────────────────────
+function renderMensajesList(){
+  const list=document.getElementById('mensajes-list');
+  if(!list) return;
+  if(isGuest()){
+    list.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 28px;text-align:center;gap:20px">
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(230,240,59,0.08);border:1px solid rgba(230,240,59,0.15);display:flex;align-items:center;justify-content:center">
+        <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:28px;height:28px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div>
+        <div style="font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:10px;line-height:1.3">Estás a un mensaje de distancia.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.35);line-height:1.6">Haz preguntas, cotiza o responde a compradores en tiempo real.</div>
+      </div>
+      <button onclick="showMobileAuth('login')" style="background:#e6f03b;color:#000;border:none;border-radius:14px;padding:14px 28px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer">iniciar sesión</button>
+    </div>`;
+    return;
+  }
+  if(!THREADS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:14px">sin mensajes aún</div>';return;}
+  list.innerHTML=THREADS.map(t=>{
+    const last=t.messages[t.messages.length-1];
+    const isDealer=t.otherRole==='concesionario'||t.otherRole==='consesionario';
+    const otherDisplay=t.isPM?t.otherName:((t.participants||[]).find(p=>!p.isSeller)||{user:'?'}).user;
+    const av=(otherDisplay||'?')[0].toUpperCase();
+    const dealerBadge=isDealer?`<span style="font-size:9px;color:rgba(100,220,150,.8);margin-left:4px">✦</span>`:'';
+    const pmTag=t.isPM?`<span style="font-size:9px;font-weight:600;background:rgba(255,255,255,.06);color:var(--muted);padding:1px 5px;border-radius:4px;margin-left:4px">privado</span>`:'';
+    return `<div class="msg-item${t.unread?' unread':''}" onclick="openThread('${t.id}')">
+      <div class="msg-avatar">${av}</div>
+      <div style="flex:1;min-width:0">
+        <div class="msg-car-tag">${t.carTitle||'—'}</div>
+        <div style="font-size:14px;font-weight:${t.unread?700:500};display:flex;align-items:center">${t.isPM?t.otherName:otherDisplay}${dealerBadge}${pmTag}</div>
+        <div class="msg-preview">${last?.from||'—'}: ${last?.text||'—'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+        <div class="msg-time">${last?.time||'—'}</div>
+        ${t.unread?'<div style="width:8px;height:8px;border-radius:50%;background:#e6f03b"></div>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// SOBREESCRIBIR openThread para PM + threads normales
+// ─────────────────────────────────────────────
+function openThread(id){
+  currentThread=THREADS.find(t=>String(t.id)===String(id));
+  if(!currentThread) return;
+  currentThread.unread=false;
+  document.getElementById('thread-car-title').textContent=currentThread.carTitle||'mensaje';
+  const otherName=currentThread.isPM?currentThread.otherName:((currentThread.participants||[]).find(p=>!p.isSeller)||{user:'usuario'}).user;
+  const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
+  const dealerBadge=isDealer?' <span style="font-size:10px;color:rgba(100,220,150,.9)">✦ verificado</span>':'';
+  document.getElementById('thread-meta').innerHTML='conversación con '+otherName+dealerBadge;
+  renderThreadMessages();
+  showView('thread');
+}
+
+function renderThreadMessages(){
+  if(!currentThread) return;
+  const el=document.getElementById('thread-messages');
+  const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
+  el.innerHTML=currentThread.messages.map(m=>{
+    const mDealer=(!m.mine)&&isDealer;
+    const badge=mDealer?'<span style="font-size:9px;color:rgba(100,220,150,.9);margin-left:4px">✦ verificado</span>':'';
+    return `<div class="thread-bubble ${m.mine?'mine':'theirs'}">
+      <div class="bubble-name">${m.mine?'tú':m.from}${badge}</div>
+      <div class="bubble-body">${m.text}</div>
+      <div class="bubble-time">${m.time}</div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{el.scrollTop=el.scrollHeight;},50);
+}
+
+async function sendThreadReply(){
+  if(!currentThread) return;
+  const input=document.getElementById('thread-input');
+  const text=input.value.trim();
+  if(!text) return;
+  if(currentThread.isPM){
+    const{error}=await _supa.from('private_messages').insert({
+      sender_id:USER_STATE.id,
+      receiver_id:currentThread.otherId,
+      source_id:null,
+      source_title:currentThread.carTitle,
+      text
+    });
+    if(error){showToast('error enviando');return;}
+  }
+  currentThread.messages.push({from:'tú',text,time:'ahora mismo',mine:true});
+  input.value='';input.style.height='44px';
+  renderThreadMessages();
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICACIONES: render con link a publicación
+// ─────────────────────────────────────────────
+function _renderNotifItem(n){
+  const linkBtn=n.sourceId?`<button onclick="event.stopPropagation();_goToSource('${n.sourceId}','${n.sourceType||''}');document.getElementById('notif-action-btn')&&(document.getElementById('notif-action-btn').style.display='none')" style="background:none;border:none;color:rgba(230,240,59,.7);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;font-weight:600;margin-top:4px;display:block">ver publicación</button>`:'';
+  const icon=n.icon==='lime'?`<div style="width:42px;height:42px;border-radius:12px;background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:18px;height:18px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>`
+    :`<div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.5" style="width:18px;height:18px"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg></div>`;
+  return `<div class="notif-item${n.read?'':' unread'}" style="display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--border);cursor:default">
+    ${icon}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:${n.read?500:700};line-height:1.3">${n.title}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5">${n.body}</div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:4px">${n.time}</div>
+      ${linkBtn}
+    </div>
+    ${!n.read?'<div style="width:7px;height:7px;border-radius:50%;background:#e6f03b;flex-shrink:0;margin-top:4px"></div>':''}
+  </div>`;
+}
+
+function _goToSource(sourceId,sourceType){
+  showView('home');
+  setTimeout(()=>{
+    if(sourceType==='auction'||sourceType==='subasta'){
+      const a=AUCTIONS.find(x=>String(x.id)===String(sourceId))||AUCTIONS_CHOCADOS.find(x=>String(x.id)===String(sourceId));
+      if(a) openDetail(a.id);
+    } else {
+      const l=MARKET_LISTINGS.find(x=>String(x.id)===String(sourceId));
+      if(l) openMarketDetail(l.id,'market');
+    }
+  },150);
+}
+
+// ─────────────────────────────────────────────
+// HOOK: cargar comentarios al abrir publicaciones
+// ─────────────────────────────────────────────
+const _origOpenDetail=openDetail;
+openDetail=function(id){
+  _origOpenDetail(id);
+  setTimeout(()=>{
+    if(currentAuction) _loadComments('auction',String(currentAuction.id),'comment-list');
+  },200);
+};
+
+const _origOpenMarketDetail=openMarketDetail;
+openMarketDetail=function(id,from){
+  _origOpenMarketDetail(id,from);
+  setTimeout(()=>{
+    if(currentMarketListing) _loadComments('listing',String(currentMarketListing.id),'mkt-comment-list');
+  },200);
+};
+
+// ─────────────────────────────────────────────
+// HOOK: añadir botón de mensaje en seller-card
+// ─────────────────────────────────────────────
+function _injectPmButton(sellerCardId,receiverId,receiverName,sourceId,sourceType,sourceTitle,isDealer){
+  const card=document.getElementById(sellerCardId);
+  if(!card||card.querySelector('.pm-icon-btn')) return;
+  if(!receiverId||receiverId===USER_STATE.id) return;
+  const btn=document.createElement('button');
+  btn.className='pm-icon-btn';
+  btn.title='Enviar mensaje privado';
+  btn.style.cssText='background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;margin-left:auto;opacity:.6;transition:opacity .2s;flex-shrink:0';
+  btn.innerHTML='<svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.5)" stroke-width="1.5" style="width:16px;height:16px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  btn.onmouseenter=()=>btn.style.opacity='1';
+  btn.onmouseleave=()=>btn.style.opacity='.6';
+  btn.onclick=e=>{e.stopPropagation();if(isGuest()){showToast('inicia sesión para enviar mensajes');return;}_openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,isDealer);};
+  card.appendChild(btn);
+}
+
+// ─────────────────────────────────────────────
+// HOOK carga PM en tab mensajes
+// ─────────────────────────────────────────────
+const _origSwitchNotifTab=switchNotifTab;
+switchNotifTab=function(tab){
+  _origSwitchNotifTab(tab);
+  if(tab==='mensajes'&&!isGuest()) _loadPrivateMessages();
+};
+
+// ─────────────────────────────────────────────
+// HOOK: inyectar botón PM cuando se popula seller-card
+// ─────────────────────────────────────────────
+const _origMktDetail=openMarketDetail;
+// ya wrapeado arriba — usamos MutationObserver para seller-card market
+const _pmObserver=new MutationObserver(()=>{
+  const name=document.getElementById('mkt-seller-name')?.textContent;
+  if(!name||name==='vendedor') return;
+  if(!currentMarketListing?.user_id) return;
+  const isDealer=!!(currentMarketListing.dealerId);
+  _injectPmButton('mkt-seller-card',currentMarketListing.user_id,name,currentMarketListing.id,'listing',currentMarketListing.title||'publicación',isDealer);
+});
+const _mktSellerCard=document.getElementById('mkt-seller-card');
+if(_mktSellerCard) _pmObserver.observe(_mktSellerCard,{childList:true,subtree:true,characterData:true});
+
+// Para subastas (detail-seller-card)
+const _auctionObserver=new MutationObserver(()=>{
+  const name=document.getElementById('detail-seller-name')?.textContent;
+  if(!name||name==='vendedor') return;
+  if(!currentAuction) return;
+  const isDealer=false;
+  _injectPmButton('detail-seller-card',currentAuction.ownerId,name,currentAuction.id,'auction',currentAuction.title||'subasta',isDealer);
+});
+const _detailSellerCard=document.querySelector('.seller-card');
+if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true,subtree:true,characterData:true});
+
 </script>
 
 <!-- SUPERADMIN PANEL -->
