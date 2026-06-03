@@ -3144,10 +3144,7 @@ function filterChip(el){
 }
 
 // ===================== MENSAJES / THREADS =====================
-const THREADS = [
-  {id:1,auctionId:1,carTitle:'2007 BMW M5 E60',participants:[{user:'J***1',avatar:'J'},{user:'Vendedor',avatar:'V',isSeller:true}],unread:true,messages:[{from:'J***1',text:'¿Tiene todos los documentos de importación?',time:'hace 2h',mine:false},{from:'Vendedor',text:'Sí, todo en regla. Puedo enviar copia por WhatsApp.',time:'hace 1h 30min',mine:true}]},
-  {id:2,auctionId:3,carTitle:'2018 Jeep Wrangler Rubicon',participants:[{user:'A***9',avatar:'A'},{user:'Vendedor',avatar:'V',isSeller:true}],unread:false,messages:[{from:'A***9',text:'¿Las llantas están incluidas en la venta?',time:'hace 5h',mine:false}]},
-];
+const THREADS = [];
 let currentThread=null;
 
 function switchNotifTab(tab){
@@ -7613,6 +7610,7 @@ async function _rueddaLoadUserData(userId,role){
     const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
   }
   _subscribeNotifs(userId);
+  _loadPrivateMessages();
 }
 
 (async function _rueddaInit(){
