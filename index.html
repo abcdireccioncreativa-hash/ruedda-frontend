@@ -7935,20 +7935,32 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
 async function _loadPrivateMessages(){
   if(!_supa||!USER_STATE.id||isGuest()) return;
   const{data,error}=await _supa.from('private_messages')
-    .select('id,sender_id,receiver_id,source_id,source_title,text,read,created_at,sender:users!private_messages_sender_id_fkey(nombre,role),receiver:users!private_messages_receiver_id_fkey(nombre,role)')
+    .select('id,sender_id,receiver_id,source_id,source_title,text,read,created_at')
     .or(`sender_id.eq.${USER_STATE.id},receiver_id.eq.${USER_STATE.id}`)
     .order('created_at',{ascending:false});
   if(error){console.error('[pm load]',error.message);return;}
-  // agrupar por conversación (source_id + counterpart)
+  if(!data?.length){
+    const nonPM=THREADS.filter(t=>!t.isPM);
+    THREADS.splice(0,THREADS.length,...nonPM);
+    renderMensajesList();
+    return;
+  }
+  // fetch usuarios relacionados en un solo query
+  const allIds=[...new Set(data.flatMap(m=>[m.sender_id,m.receiver_id]).filter(Boolean))];
+  const{data:usersData}=await _supa.from('users').select('id,nombre,role').in('id',allIds);
+  const usersMap={};
+  (usersData||[]).forEach(u=>{usersMap[u.id]=u;});
+  // agrupar por conversación
   const threads={};
-  (data||[]).forEach(m=>{
+  data.forEach(m=>{
     const isMe=m.sender_id===USER_STATE.id;
     const otherId=isMe?m.receiver_id:m.sender_id;
     const key=`${m.source_id||'direct'}_${otherId}`;
+    const otherUser=usersMap[otherId]||{};
     if(!threads[key]) threads[key]={
       key,otherId,
-      otherName:(isMe?m.receiver?.nombre:m.sender?.nombre)||'usuario',
-      otherRole:(isMe?m.receiver?.role:m.sender?.role)||'',
+      otherName:otherUser.nombre||'usuario',
+      otherRole:otherUser.role||'',
       sourceTitle:m.source_title||'publicación',
       messages:[],unread:0
     };
