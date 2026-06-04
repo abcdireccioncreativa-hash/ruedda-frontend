@@ -858,7 +858,7 @@ html{scrollbar-width:none}
 .rx-menu-card-text{flex:1;min-width:0}
 .rx-menu-card-title{font-size:18px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:3px}
 .rx-menu-card-sub{font-size:13px;color:rgba(255,255,255,.45);line-height:1.4}
-.rx-menu-card-icon{flex-shrink:0;color:#e6f03b;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+.rx-menu-card-icon{flex-shrink:0;color:#fff;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
 .rx-menu-card-icon svg{width:32px;height:32px}
 .rx-menu-card.darkened{opacity:.4;pointer-events:none}
 .rx-menu-card.darkened .rx-menu-card-title::after{content:' (próximamente)';font-size:11px;font-weight:600;color:rgba(255,255,255,.3)}
@@ -8849,7 +8849,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Ve clips, noticias y comparte en Ruedda.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" stroke="#e6f03b" stroke-width="1.2" stroke-opacity=".4"/><path d="M10.5 17.5L17.5 10.5M17.5 10.5H11.5M17.5 10.5V16.5" stroke="#e6f03b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" stroke="white" stroke-width="1.2" stroke-opacity=".4"/><path d="M10.5 17.5L17.5 10.5M17.5 10.5H11.5M17.5 10.5V16.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
     </div>
@@ -8862,7 +8862,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Diagnóstico profesional de tu vehículo.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <svg fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
         </div>
       </div>
     </div>
@@ -8872,25 +8872,250 @@ async function _saDeletePat(id,cat){
       <div class="rx-menu-card-btn">
         <div class="rx-menu-card-text">
           <div class="rx-menu-card-title">Medidor de decibeles</div>
-          <div class="rx-menu-card-sub">Mide los decibeles de tu tubo de escape. <span style="color:#e6f03b;font-weight:700">by STXX</span></div>
+          <div class="rx-menu-card-sub">Mide los decibeles de tu tubo de escape. by STXX</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <svg fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </div>
       </div>
     </div>
 
-    <!-- 4. Legal (ex Empresa) — clickeable -->
+    <!-- 4. Legal — clickeable, sin icono -->
     <div class="rx-menu-card" onclick="window.location.href='ruedda_legal.html'" style="cursor:pointer">
       <div class="rx-menu-card-btn">
         <div class="rx-menu-card-text">
           <div class="rx-menu-card-title">Legal</div>
           <div class="rx-menu-card-sub">Soluciones legales para transacciones automotrices.</div>
         </div>
-        <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+    </div>
+
+    <!-- separador entre clickeables y desplegables -->
+    <div style="display:flex;align-items:center;gap:14px;padding:6px 4px">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.08)"></div>
+    </div>
+
+    </div>
+</div>
+
+
+<!-- NOTICIA DETAIL VIEW -->l" class="view">
+  <div class="detail-back" onclick="showView('favoritos')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>comunidad</span>
+  </div>
+  <div id="noticia-detail-content" style="padding-bottom:100px"></div>
+</div>
+
+<!-- SÉ PARTE DE RUEDDA -->
+<div id="view-se-parte-ruedda" class="view">
+  <div class="detail-back" onclick="showView('cuenta')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>volver</span>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px;text-align:center;gap:16px">
+    <div style="font-size:32px;font-weight:800;letter-spacing:-.6px">sé parte de<br>Ruedda.</div>
+    <p style="font-size:15px;color:var(--muted);line-height:1.7;max-width:280px">¿quieres colaborar, invertir o trabajar con nosotros? escríbenos.</p>
+    <a href="mailto:empresa@ruedda.info" style="margin-top:8px;font-size:17px;font-weight:700;color:#e6f03b;text-decoration:none;letter-spacing:-.2px">empresa@ruedda.info</a>
+  </div>
+</div>
+
+<!-- SOPORTE RUEDDA -->
+<div id="view-soporte-ruedda" class="view">
+  <div class="detail-back" onclick="showView('home')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>volver</span>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px;text-align:center;gap:16px">
+    <div style="font-size:28px;font-weight:800;letter-spacing:-.5px">soporte Ruedda</div>
+    <p style="font-size:15px;color:var(--muted);line-height:1.7;max-width:280px">estamos aquí para ayudarte. escríbenos y te respondemos a la brevedad.</p>
+    <a href="mailto:empresa@ruedda.info" style="font-size:16px;font-weight:700;color:#e6f03b;text-decoration:none">empresa@ruedda.info</a>
+    <a href="https://wa.me/584120000000" target="_blank" style="background:#e6f03b;color:#000;border:none;border-radius:13px;padding:14px 28px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;margin-top:6px">contactar por WhatsApp</a>
+  </div>
+</div>
+
+
+<div id="view-configuracion" class="view">
+  <div class="detail-back" onclick="showView('cuenta')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>volver</span>
+  </div>
+  <div style="padding:4px 16px 20px">
+    <div style="font-size:24px;font-weight:800;letter-spacing:-.5px">configuración</div>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="config-section">
+    <div class="config-card">
+      <div class="config-row" onclick="toggleEditPerfil()" style="cursor:pointer">
+        <div class="config-row-left">
+          <div class="config-row-icon" style="background:rgba(230,240,59,.1)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div>
+            <div class="config-row-title">datos de perfil</div>
+            <div class="config-row-sub" id="config-perfil-sub">nombre, email, teléfono</div>
+          </div>
+        </div>
+        <div class="config-chevron" id="config-perfil-chevron">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- EDIT PANEL -->
+  <div class="config-edit-panel" id="config-edit-panel">
+    <div class="config-edit-row">
+      <div class="config-edit-label">nombre</div>
+      <input class="config-edit-input" id="cfg-nombre" type="text" placeholder="tu nombre">
+    </div>
+    <div class="config-edit-row">
+      <div class="config-edit-label">email</div>
+      <input class="config-edit-input" id="cfg-email" type="email" placeholder="tu email">
+    </div>
+    <div class="config-edit-row">
+      <div class="config-edit-label">teléfono / WhatsApp</div>
+      <input class="config-edit-input" id="cfg-telefono" type="tel" placeholder="+58 412 0000000">
+    </div>
+    <div class="config-edit-row">
+      <div class="config-edit-label">usuario</div>
+      <input class="config-edit-input" id="cfg-username" type="text" placeholder="@usuario">
+    </div>
+    <button class="config-save-btn" onclick="savePerfilConfig()">guardar cambios</button>
+  </div>
+
+  <!-- APARIENCIA -->
+  <div class="config-section" style="margin-top:8px">
+    <div class="config-card">
+      <div class="config-row">
+        <div class="config-row-left">
+          <div class="config-row-icon" style="background:rgba(255,255,255,.07)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          </div>
+          <div>
+            <div class="config-row-title">modo claro</div>
+            <div class="config-row-sub">próximamente disponible</div>
+          </div>
+        </div>
+        <label class="toggle-switch" style="pointer-events:none;opacity:.35">
+          <input type="checkbox" disabled>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="config-section" style="margin-top:8px">
+    <div class="config-card">
+      <div class="config-danger-row" onclick="confirmDeleteAccount()">
+        <div class="config-danger-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </div>
+        <div>
+          <div class="config-danger-title">eliminar cuenta</div>
+          <div class="config-danger-sub">esta acción no se puede deshacer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<div class="drawer-soon" id="drawer-soon-toast">
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4l3 3"/></svg>
+  próximamente disponible
+</div>
+<div class="listado-bg" id="listado-bg" onclick="closeMktListado()"></div>
+<div class="listado-ov" id="mkt-listado-overlay">
+  <div class="listado-hdr">
+    <div class="listado-hdr-row">
+      <button class="listado-back" onclick="closeMktListado()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:17px;height:17px"><path d="m15 18-6-6 6-6"/></svg>
+        volver
+      </button>
+      <div class="listado-title">listado de <span style="color:#e6f03b;font-weight:800">vehículos</span></div>
+    </div>
+  </div>
+  <div class="listado-scroll">
+    <div class="listado-grid" id="mkt-listado-grid"></div>
+  </div>
+</div>
+
+<!-- RUEDDA EXTRA LOADING -->
+<div id="rx-loading">
+  <div class="rx-loader-text">Bienvenido a RueddaExtra<span style="color:#e6f03b">.</span></div>
+</div>
+
+<!-- RUEDDA EXTRA VIEW -->
+<div class="view" id="view-ruedda-extra">
+  <!-- destellos estéticos -->
+  <div class="rx-spark" style="width:320px;height:320px;top:-80px;right:-100px;filter:blur(80px)"></div>
+  <div class="rx-spark" style="width:200px;height:200px;bottom:20%;left:-60px;filter:blur(60px)"></div>
+  <div class="rx-spark" style="width:140px;height:140px;bottom:10%;right:10%;filter:blur(50px)"></div>
+  <!-- header -->
+  <div class="rx-hdr">
+    <button class="rx-back" onclick="showView('cuenta')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><path d="m15 18-6-6 6-6"/></svg>
+      volver
+    </button>
+    <span class="rx-logo">Ruedda<span style="color:#e6f03b">Extra.</span></span>
+  </div>
+  <div class="rx-menu">
+
+    <!-- 1. Comunidad — link directo -->
+    <div class="rx-menu-card" onclick="showView('favoritos')" style="cursor:pointer">
+      <div class="rx-menu-card-btn">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Comunidad</div>
+          <div class="rx-menu-card-sub">Ve clips, noticias y comparte en Ruedda.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" stroke="white" stroke-width="1.2" stroke-opacity=".4"/><path d="M10.5 17.5L17.5 10.5M17.5 10.5H11.5M17.5 10.5V16.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. OBD2 Scanner — click directo, sin acordeón -->
+    <div class="rx-menu-card" onclick="window.location.href='ruedda_ob2_scanner.html'" style="cursor:pointer">
+      <div class="rx-menu-card-btn">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Scanner OBD2</div>
+          <div class="rx-menu-card-sub">Diagnóstico profesional de tu vehículo.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Medidor de decibeles — clickeable -->
+    <div class="rx-menu-card" onclick="window.location.href='ruedda_exhaust_analyzer_3.html'" style="cursor:pointer">
+      <div class="rx-menu-card-btn">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Medidor de decibeles</div>
+          <div class="rx-menu-card-sub">Mide los decibeles de tu tubo de escape. by STXX</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Legal — clickeable, sin icono -->
+    <div class="rx-menu-card" onclick="window.location.href='ruedda_legal.html'" style="cursor:pointer">
+      <div class="rx-menu-card-btn">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Legal</div>
+          <div class="rx-menu-card-sub">Soluciones legales para transacciones automotrices.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- separador entre clickeables y desplegables -->
+    <div style="display:flex;align-items:center;gap:14px;padding:6px 4px">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.08)"></div>
     </div>
 
     <!-- 5. Gestoría -->
