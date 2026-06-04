@@ -8054,104 +8054,77 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
 async function _loadPrivateMessages(){
   if(!_supa||!USER_STATE.id||isGuest()) return;
 
-  // [FIX v63] query robusta: trae ambos lados (sender + receiver)
-  // Los joins usan el nombre correcto de la FK — si falla el join nominal,
-  // caemos a resolver el nombre desde el array de data en el agrupador
+  // QUERY 1: mensajes sin join — evita el problema cross-schema FK alias
   const{data,error}=await _supa.from('private_messages')
-    .select([
-      'id','sender_id','receiver_id','source_id','source_title',
-      'source_type','text','read','created_at',
-      'sender:users!private_messages_sender_id_fkey(id,nombre,username,role)',
-      'receiver:users!private_messages_receiver_id_fkey(id,nombre,username,role)'
-    ].join(','))
+    .select('id,sender_id,receiver_id,source_id,source_type,source_title,text,read,created_at')
     .or(`sender_id.eq.${USER_STATE.id},receiver_id.eq.${USER_STATE.id}`)
     .order('created_at',{ascending:false})
     .limit(200);
-
   if(error){console.error('[pm load]',error.message);return;}
   if(!data?.length){
-    // sin mensajes — limpiar threads PM y renderizar vacío
     const nonPM=THREADS.filter(t=>!t.isPM);
     THREADS.splice(0,THREADS.length,...nonPM);
     renderMensajesList();
     return;
   }
 
-  // ── agrupador ────────────────────────────────────────────────────────────
-  // key = source_id (o 'direct') + '_' + otherId
-  // "otra persona" = quien NO soy yo — se evalúa por mensaje, no por posición
+  // QUERY 2: resolver nombres/roles de los interlocutores en un solo fetch
+  const otherIds=[...new Set(
+    data.map(m=>m.sender_id===USER_STATE.id?m.receiver_id:m.sender_id)
+  )];
+  const{data:usersData}=await _supa.from('users')
+    .select('id,nombre,username,role')
+    .in('id',otherIds);
+  const usersMap=Object.fromEntries((usersData||[]).map(u=>[u.id,u]));
+
+  // agrupar por conversación (source_id + counterpart)
   const threads={};
-
-  (data||[]).forEach(m=>{
-    const iAmSender = m.sender_id === USER_STATE.id;
-    const otherId   = iAmSender ? m.receiver_id : m.sender_id;
-
-    // [FIX v63] resolver nombre con fallback en cadena:
-    // 1. join FK  2. username  3. id enmascarado
-    const otherProfile = iAmSender ? m.receiver : m.sender;
-    const otherName = otherProfile?.nombre
-      || otherProfile?.username
-      || (otherId ? otherId.slice(0,6)+'...' : 'usuario');
-    const otherRole = otherProfile?.role || '';
-
-    // agrupar: misma conversación = mismo source + mismo par de usuarios
-    const key = `${m.source_id||'direct'}_${otherId}`;
-
+  data.forEach(m=>{
+    const isMe=m.sender_id===USER_STATE.id;
+    const otherId=isMe?m.receiver_id:m.sender_id;
+    const key=`${m.source_id||'direct'}_${otherId}`;
     if(!threads[key]){
+      const u=usersMap[otherId]||{};
       threads[key]={
-        key,
-        otherId,
-        otherName,
-        otherRole,
-        sourceTitle : m.source_title || 'publicación',
-        sourceId    : m.source_id || null,
-        sourceType  : m.source_type || '',
-        messages    : [],
-        unread      : 0
+        key,otherId,
+        otherName:u.nombre||u.username||(otherId.slice(0,6)+'...'),
+        otherRole:u.role||'',
+        sourceTitle:m.source_title||'publicación',
+        sourceId:m.source_id||null,
+        sourceType:m.source_type||'',
+        messages:[],unread:0
       };
     }
-
-    threads[key].messages.push({...m, mine: iAmSender});
-    if(!iAmSender && !m.read) threads[key].unread++;
+    threads[key].messages.push({...m,mine:isMe});
+    if(!isMe&&!m.read) threads[key].unread++;
   });
 
-  // marcar como leídos los recibidos no leídos
-  const unreadIds=(data||[])
-    .filter(m=>m.receiver_id===USER_STATE.id&&!m.read)
-    .map(m=>m.id);
-  if(unreadIds.length)
-    _supa.from('private_messages').update({read:true}).in('id',unreadIds).catch(()=>{});
+  // marcar como leídos los recibidos
+  const unreadIds=data.filter(m=>m.receiver_id===USER_STATE.id&&!m.read).map(m=>m.id);
+  if(unreadIds.length) _supa.from('private_messages').update({read:true}).in('id',unreadIds).catch(()=>{});
 
-  // construir pmThreads ordenados por último mensaje (más reciente primero)
-  const pmThreads=Object.values(threads)
-    .map(t=>({
-      id      : 'pm_'+t.key,
-      carTitle: t.sourceTitle,
-      isPM    : true,
-      otherId : t.otherId,
-      otherName: t.otherName,
-      otherRole: t.otherRole,
-      sourceId : t.sourceId,
-      sourceType: t.sourceType,
-      unread  : t.unread>0,
-      messages: t.messages
-        .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at))
-        .map(m=>({
-          from : m.mine ? 'tú' : _masked(t.otherName),
-          text : m.text,
-          time : _fmtTimeAgo(m.created_at),
-          mine : m.mine,
-          role : m.mine ? '' : t.otherRole
-        }))
-    }))
-    .sort((a,b)=>{
-      // más reciente primero en el inbox
-      const la=a.messages[a.messages.length-1];
-      const lb=b.messages[b.messages.length-1];
-      return 0; // ya vienen ordered desc desde Supabase, sort estable los preserva
-    });
+  // construir pmThreads
+  const pmThreads=Object.values(threads).map(t=>({
+    id:'pm_'+t.key,
+    carTitle:t.sourceTitle,
+    isPM:true,
+    otherId:t.otherId,
+    otherName:t.otherName,
+    otherRole:t.otherRole,
+    sourceId:t.sourceId,
+    sourceType:t.sourceType,
+    unread:t.unread>0,
+    messages:t.messages
+      .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at))
+      .map(m=>({
+        from:m.mine?'tú':_masked(t.otherName),
+        text:m.text,
+        time:_fmtTimeAgo(m.created_at),
+        mine:m.mine,
+        role:m.mine?'':t.otherRole
+      }))
+  }));
 
-  // reemplazar threads PM, conservar no-PM (threads de subastas locales)
   const nonPM=THREADS.filter(t=>!t.isPM);
   THREADS.splice(0,THREADS.length,...nonPM,...pmThreads);
   renderMensajesList();
@@ -8338,11 +8311,9 @@ function _injectPmButton(sellerCardId,receiverId,receiverName,sourceId,sourceTyp
 // HOOK carga PM en tab mensajes
 // ─────────────────────────────────────────────
 const _origSwitchNotifTab=switchNotifTab;
-switchNotifTab=async function(tab){
-  // [FIX v63] fetch ANTES de activar el tab — evita race condition donde
-  // renderMensajesList dispara con THREADS vacío y pinta "sin mensajes aún"
-  if(tab==='mensajes'&&!isGuest()) await _loadPrivateMessages();
+switchNotifTab=function(tab){
   _origSwitchNotifTab(tab);
+  if(tab==='mensajes'&&!isGuest()) _loadPrivateMessages();
 };
 
 // ─────────────────────────────────────────────
