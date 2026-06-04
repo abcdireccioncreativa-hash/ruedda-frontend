@@ -3293,12 +3293,16 @@ async function loadSAQueue(){
 
 async function saApprove(id){
   if(!_supa) return;
-  const{error}=await _supa.from('auctions').update({estado:'activa'}).eq('id',id);
+  // subastas de particulares → aprobada (esperan pago); dealers → activa
+  // detectar si tiene concesionario_id
+  const{data:auc}=await _supa.from('auctions').select('concesionario_id').eq('id',id).single();
+  const esDealer=!!(auc?.concesionario_id);
+  const nuevoEstado=esDealer?'activa':'aprobada';
+  const{error}=await _supa.from('auctions').update({estado:nuevoEstado}).eq('id',id);
   if(error){showToast('error al aprobar');return;}
   showToast('publicación aprobada ✓',true);
   loadSAQueue();
-  // recargar feeds
-  _loadAuctions(); _loadMarket(); _loadChocados();
+  if(esDealer){ _loadAuctions(); _loadChocados(); }
 }
 
 async function saReject(id){
@@ -7669,16 +7673,13 @@ async function _activarTrasSubir(){
   const id=window._pendingSubirId;
   if(!id) return;
   window._pendingSubirId=null;
-  // badge publicando
   const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===id);
   if(l){ l.status='publicando'; _renderMisPubGrid(); }
-  // Supabase
   if(_supa){
-    await _supa.from('listings').update({estado:'activa'}).eq('id',id).catch(e=>console.error('[ruedda] activarTrasSubir:',e.message));
+    const tbl=l?.type==='subasta'?'auctions':'listings';
+    await _supa.from(tbl).update({estado:'activa'}).eq('id',id).catch(e=>console.error('[ruedda] activarTrasSubir:',e.message));
   }
-  // splash éxito
   _showSubidaAlMarketSplash();
-  // recargar
   await _loadMyListings();
   _renderMisPubGrid();
 }
@@ -7854,9 +7855,14 @@ async function sendMktComment(){
   const payload={body:text,user_id:USER_STATE.id,listing_id:String(currentMarketListing.id)};
   const{error}=await _supa.from('comments').insert(payload);
   if(error){showToast('error enviando');console.error('[mkt-comment]',error);return;}
-  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentMarketListing.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime',sourceId:currentMarketListing.id,sourceType:'listing'});
-  const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
   showToast('pregunta enviada',true);
+  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime'});
+  const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
+  if(currentMarketListing.user_id&&currentMarketListing.user_id!==USER_STATE.id){
+    _insertNotif(currentMarketListing.user_id,'question','Nueva pregunta en tu publicación',
+      _masked(USER_STATE.nombre||'alguien')+' preguntó sobre: '+currentMarketListing.title,
+      'lime',String(currentMarketListing.id),'listing');
+  }
   _loadComments('listing',String(currentMarketListing.id),'mkt-comment-list');
 }
 
@@ -7935,32 +7941,20 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
 async function _loadPrivateMessages(){
   if(!_supa||!USER_STATE.id||isGuest()) return;
   const{data,error}=await _supa.from('private_messages')
-    .select('id,sender_id,receiver_id,source_id,source_title,text,read,created_at')
+    .select('id,sender_id,receiver_id,source_id,source_title,text,read,created_at,sender:users!private_messages_sender_id_fkey(nombre,role),receiver:users!private_messages_receiver_id_fkey(nombre,role)')
     .or(`sender_id.eq.${USER_STATE.id},receiver_id.eq.${USER_STATE.id}`)
     .order('created_at',{ascending:false});
   if(error){console.error('[pm load]',error.message);return;}
-  if(!data?.length){
-    const nonPM=THREADS.filter(t=>!t.isPM);
-    THREADS.splice(0,THREADS.length,...nonPM);
-    renderMensajesList();
-    return;
-  }
-  // fetch usuarios relacionados en un solo query
-  const allIds=[...new Set(data.flatMap(m=>[m.sender_id,m.receiver_id]).filter(Boolean))];
-  const{data:usersData}=await _supa.from('users').select('id,nombre,role').in('id',allIds);
-  const usersMap={};
-  (usersData||[]).forEach(u=>{usersMap[u.id]=u;});
-  // agrupar por conversación
+  // agrupar por conversación (source_id + counterpart)
   const threads={};
-  data.forEach(m=>{
+  (data||[]).forEach(m=>{
     const isMe=m.sender_id===USER_STATE.id;
     const otherId=isMe?m.receiver_id:m.sender_id;
     const key=`${m.source_id||'direct'}_${otherId}`;
-    const otherUser=usersMap[otherId]||{};
     if(!threads[key]) threads[key]={
       key,otherId,
-      otherName:otherUser.nombre||'usuario',
-      otherRole:otherUser.role||'',
+      otherName:(isMe?m.receiver?.nombre:m.sender?.nombre)||'usuario',
+      otherRole:(isMe?m.receiver?.role:m.sender?.role)||'',
       sourceTitle:m.source_title||'publicación',
       messages:[],unread:0
     };
