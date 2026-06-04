@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RUEDDA — Exhaust Analyzer</title>
+<style>
+  @import url('https://fonts.cdnfonts.com/css/open-sauce-one');
+
+  :root {
+    --acc: #ffffff;
+    --red: #ff3a3a;
+    --orange: #ff9900;
+    --white: #e8e8e8;
+    --w10: rgba(255,255,255,0.10);
+    --w06: rgba(255,255,255,0.06);
+    --w28: rgba(255,255,255,0.28);
+    --w30: rgba(255,255,255,0.30);
+    --w65: rgba(255,255,255,0.65);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: 'Open Sauce One', system-ui, sans-serif;
+    color: var(--white);
+    cursor: crosshair;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── CRT grain ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 999; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    opacity: 0.3; mix-blend-mode: overlay;
+    animation: grain 0.08s steps(1) infinite;
+  }
+  @keyframes grain {
+    0%  {background-position:0 0}   10% {background-position:-5% -10%}
+    20% {background-position:-15% 5%} 30% {background-position:7% -25%}
+    40% {background-position:20% 10%} 50% {background-position:-10% 20%}
+    60% {background-position:15% -5%} 70% {background-position:0 25%}
+    80% {background-position:-20% 5%} 90% {background-position:10% 15%}
+    100%{background-position:0 0}
+  }
+
+  /* ── CRT scanlines ── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; z-index: 998; pointer-events: none;
+    background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.07) 2px,rgba(0,0,0,0.07) 4px);
+  }
+
+  /* ── Canvas ── */
+  #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+  /* ── HUD shell ── */
+  #hud {
+    position: fixed; inset: 0; z-index: 10; pointer-events: none;
+    background:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* ── Corner brackets ── */
+  .brk {
+    position: absolute; width: 28px; height: 28px;
+    border-color: rgba(255,255,255,0.45); border-style: solid; opacity: 0.6;
+  }
+  .brk-tl { top: 12px; left: 12px; border-width: 1px 0 0 1px; }
+  .brk-tr { top: 12px; right: 12px; border-width: 1px 1px 0 0; }
+  .brk-bl { bottom: 12px; left: 12px; border-width: 0 0 1px 1px; }
+  .brk-br { bottom: 12px; right: 12px; border-width: 0 1px 1px 0; }
+
+  /* ── Top bar ── */
+  #topbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    background: rgba(0,0,0,0.65);
+  }
+  #topbar .brand {
+    flex-shrink: 0;
+    display: flex; align-items: center;
+    line-height: 0;
+  }
+  #topbar .tag {
+    font-size: 8px; letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.28); text-align: center;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    flex: 1; padding: 0 8px;
+  }
+  #topbar .status-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.7);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+  /* ── Bottom bar ── */
+  #botbar {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    background: rgba(0,0,0,0.65);
+    gap: 8px;
+  }
+  #botbar span {
+    font-size: 7.5px; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.25);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* hide middle span on very small screens */
+  @media (max-width: 400px) { #tickdata { display: none; } }
+
+  /* ── Telemetry blocks (desktop only) ── */
+  .tele {
+    position: absolute;
+    font-size: 8.5px; letter-spacing: 0.07em; line-height: 1.75;
+    color: rgba(255,255,255,0.28); pointer-events: none;
+  }
+  .tele span { display: block; }
+  .tele .val { color: rgba(255,255,255,0.60); }
+  .tele .hi  { color: #fff; font-weight: 700; }
+  /* push them below topbar / above botbar so they don't overlap readouts */
+  .tele-tl { top: 50px; left: 20px; }
+  .tele-tr { top: 50px; right: 20px; text-align: right; }
+  .tele-bl { bottom: 40px; left: 20px; }
+  .tele-br { bottom: 40px; right: 20px; text-align: right; }
+  /* hide on narrow screens — the panel below covers those values */
+  @media (max-width: 600px) { .tele { display: none; } }
+
+  /* ── dB BIG READOUT — centred top on mobile ── */
+  #dbwrap {
+    position: absolute;
+    /* desktop: top-right */
+    top: 52px; right: 24px;
+    text-align: right; pointer-events: none;
+  }
+  #dblabel {
+    font-size: 7px; letter-spacing: 0.22em;
+    color: rgba(255,255,255,0.35); margin-bottom: 1px;
+  }
+  #dbval {
+    font-size: clamp(42px, 12vw, 80px); font-weight: 900; line-height: 1;
+    color: #fff;
+    text-shadow: 0 0 28px rgba(255,255,255,0.4), 0 0 64px rgba(255,255,255,0.12);
+    transition: color 0.15s;
+  }
+  #dbval.hot { color: var(--red); text-shadow: 0 0 24px rgba(255,58,58,0.65), 0 0 60px rgba(255,58,58,0.25); }
+  #dbunit {
+    font-size: 9px; letter-spacing: 0.22em;
+    color: rgba(255,255,255,0.32); margin-top: 2px;
+  }
+  @media (max-width: 600px) {
+    #dbwrap {
+      top: 50px; right: 50%; left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      white-space: nowrap;
+    }
+  }
+
+  /* ── State badge — top-left on desktop, below dB on mobile ── */
+  #statewrap {
+    position: absolute;
+    top: 52px; left: 24px; pointer-events: none; z-index: 15;
+  }
+  #statelabel {
+    font-size: 7px; letter-spacing: 0.22em;
+    color: rgba(255,255,255,0.32); margin-bottom: 5px;
+  }
+  #statebadge {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    color: rgba(255,255,255,0.40);
+    border: none;
+    padding: 5px 14px; border-radius: 999px;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    background: transparent;
+    transition: all 0.2s; display: inline-block;
+  }
+  #statebadge.sport {
+    color: #fff; border-color: rgba(255,255,255,0.5);
+    text-shadow: 0 0 10px rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.07);
+    box-shadow: 0 0 18px rgba(255,255,255,0.05) inset;
+  }
+  #statebadge.track {
+    color: var(--red); border-color: var(--red);
+    text-shadow: 0 0 10px rgba(255,58,58,0.55);
+    background: rgba(255,58,58,0.06);
+    box-shadow: 0 0 14px rgba(255,58,58,0.08) inset;
+    animation: glitch 0.1s steps(1) infinite;
+  }
+  #statebadge.pops {
+    color: var(--orange); border-color: var(--orange);
+    text-shadow: 0 0 10px rgba(255,153,0,0.55);
+    background: rgba(255,153,0,0.06);
+    animation: pulseAnim 0.35s ease-in-out infinite alternate;
+  }
+  /* demo button inherits badge styles, reset button defaults */
+  #statebadge {
+    appearance: none; -webkit-appearance: none;
+    cursor: pointer;
+    font-family: inherit;
+    pointer-events: all;
+    z-index: 15;
+    position: relative;
+  }
+  #statebadge:focus { outline: none; }
+  #statebadge:active { transform: scale(0.96); }
+
+  @keyframes glitch {
+    0%{transform:translateX(0)} 20%{transform:translateX(-2px)}
+    40%{transform:translateX(2px)} 60%{transform:translateX(-1px)}
+    80%{transform:translateX(1px)} 100%{transform:translateX(0)}
+  }
+  @keyframes pulseAnim { from{opacity:1} to{opacity:0.5} }
+
+  @media (max-width: 600px) {
+    #statewrap {
+      /* sit below the dB number — dB is centred, badge goes bottom-centre above panel */
+      top: auto;
+      bottom: 120px; /* above the mobile panel */
+      left: 50%; right: auto;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+    #statelabel { display: none; }
+  }
+
+  /* ── Mobile info panel (replaces corner telemetry) ── */
+  #mobile-panel {
+    display: none;
+  }
+  @media (max-width: 600px) {
+    #mobile-panel {
+      display: flex;
+      position: absolute;
+      bottom: 32px; left: 0; right: 0;
+      height: 88px;
+      background: rgba(0,0,0,0.72);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      pointer-events: none;
+      align-items: stretch;
+      padding: 0 4px;
+    }
+    .mp-cell {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      padding: 0 4px; gap: 3px;
+    }
+    .mp-cell:last-child { border-right: none; }
+    .mp-label {
+      font-size: 7px; letter-spacing: 0.14em;
+      color: rgba(255,255,255,0.28); text-align: center;
+      white-space: nowrap;
+    }
+    .mp-val {
+      font-size: 16px; font-weight: 900;
+      color: #ffffff; text-align: center;
+      text-shadow: 0 0 12px rgba(255,255,255,0.3);
+      white-space: nowrap;
+    }
+    .mp-val.sm { font-size: 12px; font-weight: 700; }
+  }
+
+  /* ── Freq bar strip ── */
+  #freqstrip {
+    position: absolute;
+    bottom: 32px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 2px; align-items: flex-end;
+    pointer-events: none;
+    /* desktop */
+    height: 44px; width: 200px;
+  }
+  @media (max-width: 600px) {
+    #freqstrip {
+      bottom: 120px; /* above mobile panel */
+      width: 70vw; height: 36px;
+    }
+  }
+  .fbar {
+    flex: 1; background: #fff; opacity: 0.4; min-height: 2px;
+    transition: height 0.04s;
+    box-shadow: 0 0 3px rgba(255,255,255,0.25);
+  }
+
+  /* ── Horizontal scan line ── */
+  #scanline {
+    position: absolute; left: 0; right: 0; height: 1px; opacity: 0; pointer-events: none;
+    background: linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.18) 30%,rgba(255,255,255,0.4) 50%,rgba(255,255,255,0.18) 70%,transparent 100%);
+    animation: scan 4s linear infinite;
+  }
+  @keyframes scan {
+    0%  {top:40px;opacity:0} 5%{opacity:1} 95%{opacity:1} 100%{top:calc(100% - 32px);opacity:0}
+  }
+
+  /* ── Crosshair ── */
+  #xhair {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 20px; height: 20px; pointer-events: none; opacity: 0.25;
+  }
+  #xhair::before, #xhair::after { content:''; position:absolute; background:#fff; }
+  #xhair::before { top:50%;left:0;right:0;height:1px;transform:translateY(-50%); }
+  #xhair::after  { left:50%;top:0;bottom:0;width:1px;transform:translateX(-50%); }
+
+  /* ── Side VU meters ── */
+  .vu {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column-reverse; gap: 2px;
+    pointer-events: none;
+  }
+  #vu-l { left: 10px; }
+  #vu-r { right: 10px; }
+  .vu-seg {
+    width: 4px; height: 12px;
+    background: rgba(255,255,255,0.07);
+    transition: background 0.06s, box-shadow 0.06s;
+  }
+  .vu-seg.lit { background:#fff; box-shadow:0 0 5px rgba(255,255,255,0.4); }
+  .vu-seg.lit-red { background:var(--red); box-shadow:0 0 5px rgba(255,58,58,0.5); }
+  @media (max-width: 600px) {
+    /* on mobile push VU up — clear the panel */
+    .vu { top: 42%; }
+    #vu-l { left: 6px; }
+    #vu-r { right: 6px; }
+    .vu-seg { width: 3px; height: 10px; }
+  }
+
+  /* ── Center button ── */
+  #btnwrap {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 20; pointer-events: none;
+  }
+  #initbtn {
+    pointer-events: all;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    color: #fff;
+    width: 72px; height: 72px;
+    padding: 0;
+    border-radius: 999px; cursor: pointer;
+    position: relative; overflow: hidden;
+    transition: background 0.25s, box-shadow 0.25s, transform 0.15s;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  #initbtn:hover {
+    background: rgba(255,255,255,0.11);
+    border-color: rgba(255,255,255,0.52);
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.10),
+      0 0 28px rgba(255,255,255,0.09),
+      0 12px 40px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.26);
+  }
+  #initbtn:active { transform: scale(0.97); }
+  #initbtn .sub {
+    display: block;
+    font-size: clamp(8px, 2.2vw, 9px);
+    letter-spacing: 0.20em;
+    color: rgba(255,255,255,0.38);
+    margin-top: 5px; font-weight: 400;
+  }
+
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<!-- HUD -->
+<div id="hud">
+  <div class="brk brk-tl"></div>
+  <div class="brk brk-tr"></div>
+  <div class="brk brk-bl"></div>
+  <div class="brk brk-br"></div>
+
+  <!-- top bar -->
+  <div id="topbar">
+    <div class="brand"><img src="data:image/png;base64,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" style="height:20px;filter:invert(1);display:block;"></div>
+    <div class="tag">EXHAUST DIAGNOSTIC SYSTEM // REV 4.6</div>
+    <div class="status-dot" id="statusdot"></div>
+  </div>
+
+  <!-- bottom bar -->
+  <div id="botbar">
+    <span id="coords">LAT: 10.4806° N &nbsp;|&nbsp; LON: 66.9036° W &nbsp;|&nbsp; ALT: 914m</span>
+    <span id="tickdata">SMP: 48kHz &nbsp;·&nbsp; FFT: 2048 &nbsp;·&nbsp; WIN: Hann</span>
+    <span id="framecnt">FPS: --</span>
+  </div>
+
+  <!-- scan line -->
+  <div id="scanline"></div>
+  <div id="xhair"></div>
+
+  <!-- Telemetry TL -->
+  <div class="tele tele-tl">
+    <span>SENSOR_ID <span class="val" id="sensorid">RWD-MIC-01</span></span>
+    <span>GAIN <span class="val" id="gainval">AUTO</span></span>
+    <span>NOISE_FLOOR <span class="val" id="noisefloor">-- dB</span></span>
+    <span>PEAK_HOLD <span class="val" id="peakhold">-- dB</span></span>
+    <span>SESSION <span class="val" id="sessiontime">00:00:00</span></span>
+    <span>&nbsp;</span>
+    <span class="hi">▸ FFT ACTIVE</span>
+  </div>
+
+  <!-- Telemetry TR -->
+  <div class="tele tele-tr">
+    <span><span class="val" id="t-octave">-- Hz</span> DOMINANT_FREQ</span>
+    <span><span class="val" id="t-bass">0.00</span> BASS_RMS</span>
+    <span><span class="val" id="t-mid">0.00</span> MID_RMS</span>
+    <span><span class="val" id="t-high">0.00</span> HIGH_RMS</span>
+    <span><span class="val" id="t-crest">0.00</span> CREST_FACTOR</span>
+    <span>&nbsp;</span>
+    <span class="hi">SPECTRUM_OK ◂</span>
+  </div>
+
+  <!-- Telemetry BL -->
+  <div class="tele tele-bl">
+    <span>ENGINE <span class="val">COMBUSTION_INT</span></span>
+    <span>CYL <span class="val">4 / INLINE</span></span>
+    <span>DISP <span class="val">-- CC</span></span>
+    <span>EXHAUST <span class="val">CAT_BACK</span></span>
+    <span>REF_PRESSURE <span class="val">20μPa</span></span>
+  </div>
+
+  <!-- Telemetry BR -->
+  <div class="tele tele-br">
+    <span><span class="val" id="t-env">IDLE</span> ENV_STATE</span>
+    <span><span class="val" id="t-compliance">ISO 362</span> COMPLIANCE</span>
+    <span><span class="val" id="t-thresh">85 dB</span> LIMIT</span>
+    <span><span class="val" id="t-margin">--</span> MARGIN</span>
+    <span><span class="val" id="t-hash">A3F7C1</span> RUN_HASH</span>
+  </div>
+
+  <!-- dB readout -->
+  <div id="dbwrap">
+    <div id="dblabel">NIVEL DE PRESIÓN SONORA</div>
+    <div id="dbval">—</div>
+    <div id="dbunit">dB SPL</div>
+  </div>
+
+  <!-- State badge -->
+  <div id="statewrap">
+    <div id="statelabel">ESTADO DEL SISTEMA</div>
+    <button id="statebadge" onclick="toggleDemo()">DEMO</button>
+  </div>
+
+  <!-- Mobile info panel -->
+  <div id="mobile-panel">
+    <div class="mp-cell">
+      <div class="mp-label">PEAK HOLD</div>
+      <div class="mp-val sm" id="mp-peak">--</div>
+    </div>
+    <div class="mp-cell">
+      <div class="mp-label">BASS RMS</div>
+      <div class="mp-val sm" id="mp-bass">0.000</div>
+    </div>
+    <div class="mp-cell">
+      <div class="mp-label">FREQ DOM.</div>
+      <div class="mp-val sm" id="mp-freq">-- Hz</div>
+    </div>
+    <div class="mp-cell">
+      <div class="mp-label">SESIÓN</div>
+      <div class="mp-val sm" id="mp-time">00:00</div>
+    </div>
+  </div>
+
+  <!-- Frequency strip -->
+  <div id="freqstrip"></div>
+
+  <!-- VU meters -->
+  <div class="vu" id="vu-l">
+    <div class="vu-seg" data-idx="0"></div>
+    <div class="vu-seg" data-idx="1"></div>
+    <div class="vu-seg" data-idx="2"></div>
+    <div class="vu-seg" data-idx="3"></div>
+    <div class="vu-seg" data-idx="4"></div>
+    <div class="vu-seg" data-idx="5"></div>
+    <div class="vu-seg" data-idx="6"></div>
+    <div class="vu-seg" data-idx="7"></div>
+    <div class="vu-seg" data-idx="8"></div>
+    <div class="vu-seg" data-idx="9"></div>
+    <div class="vu-seg" data-idx="10"></div>
+    <div class="vu-seg" data-idx="11"></div>
+  </div>
+  <div class="vu" id="vu-r">
+    <div class="vu-seg" data-idx="0"></div>
+    <div class="vu-seg" data-idx="1"></div>
+    <div class="vu-seg" data-idx="2"></div>
+    <div class="vu-seg" data-idx="3"></div>
+    <div class="vu-seg" data-idx="4"></div>
+    <div class="vu-seg" data-idx="5"></div>
+    <div class="vu-seg" data-idx="6"></div>
+    <div class="vu-seg" data-idx="7"></div>
+    <div class="vu-seg" data-idx="8"></div>
+    <div class="vu-seg" data-idx="9"></div>
+    <div class="vu-seg" data-idx="10"></div>
+    <div class="vu-seg" data-idx="11"></div>
+  </div>
+</div>
+
+<!-- Init button -->
+<div id="btnwrap">
+  <button id="initbtn" title="Iniciar diagnóstico de escape">
+    <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto">
+      <rect x="9" y="2" width="8" height="14" rx="4" stroke="white" stroke-width="1.8" fill="none"/>
+      <path d="M5 13c0 4.4 3.6 8 8 8s8-3.6 8-8" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+      <line x1="13" y1="21" x2="13" y2="24" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="9" y1="24" x2="17" y2="24" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Three.js + OrbitControls -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────────
+//  Three.js OrbitControls (inline, r128 compatible)
+// ─────────────────────────────────────────────────────────────────
+(function(){
+  THREE.OrbitControls = function(camera, domElement) {
+    this.camera = camera;
+    this.domElement = domElement;
+    this.enabled = true;
+    this.enableDamping = true;
+    this.dampingFactor = 0.05;
+    this.enableZoom = false;
+    this.enablePan = false;
+    this.minPolarAngle = Math.PI * 0.15;
+    this.maxPolarAngle = Math.PI * 0.55;
+    this.rotateSpeed = 0.4;
+
+    var _this = this;
+    var spherical = new THREE.Spherical();
+    var sphericalDelta = new THREE.Spherical();
+    var target = new THREE.Vector3();
+    var lastMouse = { x: 0, y: 0 };
+    var isDragging = false;
+
+    // init spherical from camera
+    var offset = new THREE.Vector3();
+    offset.copy(camera.position).sub(target);
+    spherical.setFromVector3(offset);
+
+    function onMouseDown(e) {
+      isDragging = true;
+      lastMouse.x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      lastMouse.y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+    }
+    function onMouseMove(e) {
+      if (!isDragging || !_this.enabled) return;
+      var x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      var y = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+      var dx = x - lastMouse.x;
+      var dy = y - lastMouse.y;
+      lastMouse.x = x; lastMouse.y = y;
+      sphericalDelta.theta -= 2 * Math.PI * dx / domElement.clientWidth * _this.rotateSpeed;
+      sphericalDelta.phi   -= 2 * Math.PI * dy / domElement.clientHeight * _this.rotateSpeed;
+    }
+    function onMouseUp() { isDragging = false; }
+
+    domElement.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    domElement.addEventListener('touchstart', onMouseDown, {passive:true});
+    window.addEventListener('touchmove', onMouseMove, {passive:true});
+    window.addEventListener('touchend', onMouseUp);
+
+    this.update = function() {
+      offset.copy(camera.position).sub(target);
+      spherical.setFromVector3(offset);
+      spherical.theta += sphericalDelta.theta;
+      spherical.phi   += sphericalDelta.phi;
+      spherical.phi = Math.max(_this.minPolarAngle, Math.min(_this.maxPolarAngle, spherical.phi));
+      spherical.makeSafe();
+      if (_this.enableDamping) {
+        sphericalDelta.theta *= (1 - _this.dampingFactor);
+        sphericalDelta.phi   *= (1 - _this.dampingFactor);
+      } else {
+        sphericalDelta.set(0,0,0);
+      }
+      offset.setFromSpherical(spherical);
+      camera.position.copy(target).add(offset);
+      camera.lookAt(target);
+    };
+  };
+})();
+
+// ─────────────────────────────────────────────────────────────────
+//  Scene Setup
+// ─────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setClearColor(0x000000, 1);
+renderer.setSize(innerWidth, innerHeight);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x000000, 0.010);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 500);
+camera.position.set(0, 14, 38);
+camera.lookAt(0, 0, 0);
+
+const controls = new THREE.OrbitControls(camera, canvas);
+
+// resize
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ─────────────────────────────────────────────────────────────────
+//  Point Cloud Terrain
+// ─────────────────────────────────────────────────────────────────
+const COLS = 110, ROWS = 110;
+const SPACEX = 0.62, SPACEZ = 0.62;
+const totalPts = COLS * ROWS;
+
+const positions  = new Float32Array(totalPts * 3);
+const baseHeight = new Float32Array(totalPts);
+const colors     = new Float32Array(totalPts * 3);
+
+// richer base terrain — multiple ridge lines like Cubica ref
+function baseY(x, z) {
+  const nx = x / COLS, nz = z / ROWS;
+  return (
+    Math.sin(nx * Math.PI * 3.2) * Math.cos(nz * Math.PI * 2.8) * 4.5 +
+    Math.sin(nx * Math.PI * 6.5 + 0.8) * Math.sin(nz * Math.PI * 5.2) * 2.8 +
+    Math.cos(nx * Math.PI * 1.4) * Math.cos(nz * Math.PI * 1.8) * 5.5 +
+    Math.sin((nx + nz) * Math.PI * 4.0) * 2.2 +
+    Math.cos(nx * Math.PI * 9.0 + nz * Math.PI * 7.0) * 1.2 +
+    Math.sin(nx * Math.PI * 14.0) * Math.cos(nz * Math.PI * 11.0) * 0.8
+  );
+}
+
+for (let row = 0; row < ROWS; row++) {
+  for (let col = 0; col < COLS; col++) {
+    const i = row * COLS + col;
+    const x = (col - COLS / 2) * SPACEX;
+    const z = (row - ROWS / 2) * SPACEZ;
+    const y = baseY(col, row);
+    baseHeight[i] = y;
+    positions[i * 3]     = x;
+    positions[i * 3 + 1] = y;
+    positions[i * 3 + 2] = z;
+    colors[i * 3]     = 0.50;
+    colors[i * 3 + 1] = 0.50;
+    colors[i * 3 + 2] = 0.50;
+  }
+}
+
+const geo = new THREE.BufferGeometry();
+geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+geo.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+
+const mat = new THREE.PointsMaterial({
+  size: 0.18,
+  vertexColors: true,
+  sizeAttenuation: true,
+  transparent: true,
+  opacity: 1.0
+});
+
+const pts = new THREE.Points(geo, mat);
+scene.add(pts);
+
+// grid lines (subtle)
+const gridHelper = new THREE.GridHelper(80, 24, 0x111111, 0x080808);
+gridHelper.position.y = -2;
+scene.add(gridHelper);
+
+// ─────────────────────────────────────────────────────────────────
+//  Audio Engine
+// ─────────────────────────────────────────────────────────────────
+let audioCtx, analyser, dataArray, micStream;
+let isRunning = false;
+let peakDB = -Infinity;
+let sessionStart = null;
+
+// UI refs
+const dbval      = document.getElementById('dbval');
+const statebadge = document.getElementById('statebadge');
+const btnwrap    = document.getElementById('btnwrap');
+const initbtn    = document.getElementById('initbtn');
+const freqstrip  = document.getElementById('freqstrip');
+const vuL        = document.querySelectorAll('#vu-l .vu-seg');
+const vuR        = document.querySelectorAll('#vu-r .vu-seg');
+
+// Build freq bars
+const FBARS = 32;
+for (let i = 0; i < FBARS; i++) {
+  const d = document.createElement('div');
+  d.className = 'fbar';
+  freqstrip.appendChild(d);
+}
+const fbars = freqstrip.querySelectorAll('.fbar');
+
+// init microphone
+async function initMic() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    micStream = stream;
+    audioCtx  = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 48000 });
+    const src = audioCtx.createMediaStreamSource(stream);
+    analyser  = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.92;
+    src.connect(analyser);
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    isRunning = true;
+    sessionStart = Date.now();
+    // hide button
+    btnwrap.style.display = 'none';
+    document.getElementById('sensorid').textContent = 'RWD-MIC-01 ✓';
+    document.getElementById('gainval').textContent   = '24 dB';
+    document.getElementById('t-hash').textContent    = Math.random().toString(16).slice(2,8).toUpperCase();
+  } catch(e) {
+    initbtn.style.width = 'auto'; initbtn.style.height = 'auto'; initbtn.style.padding = '14px 24px'; initbtn.innerHTML = '<span style="font-size:11px;letter-spacing:0.12em;font-family:inherit;font-weight:700">REINTENTAR</span>';
+  }
+}
+
+initbtn.addEventListener('click', initMic);
+
+// ─────────────────────────────────────────────────────────────────
+//  Helpers
+// ─────────────────────────────────────────────────────────────────
+function rms(arr, from, to) {
+  let sum = 0;
+  for (let i = from; i < to; i++) sum += (arr[i] / 255) ** 2;
+  return Math.sqrt(sum / (to - from));
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  Smooth dB state
+// ─────────────────────────────────────────────────────────────────
+let smoothDB = 0;
+let fps = 0, lastFps = performance.now(), frameCount = 0;
+let popsTimer = 0;
+// smoothed band values for terrain — independent lerp speed per band
+let sBass = 0, sMid = 0, sHigh = 0, sEnergy = 0;
+
+// ─────────────────────────────────────────────────────────────────
+//  Animation Loop
+// ─────────────────────────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+
+  // FPS
+  frameCount++;
+  if (t * 1000 - lastFps > 500) {
+    fps = Math.round(frameCount / ((t * 1000 - lastFps) / 1000));
+    lastFps = t * 1000; frameCount = 0;
+    document.getElementById('framecnt').textContent = `FPS: ${fps}`;
+  }
+
+  // ── Audio processing ──
+  let db = -80, bassRms = 0, midRms = 0, highRms = 0, dominantFreq = 0;
+  let audioEnergy = 0;
+
+  // ── demo RPM lerp ──
+  if (isDemo) {
+    demoRPM += (demoTarget - demoRPM) * 0.09;
+    synthEngine(t, demoRPM);
+  }
+
+  if ((isRunning && analyser) || isDemo) {
+    if (isDemo) {
+      dataArray = demoDataArray;
+    } else {
+      analyser.getByteFrequencyData(dataArray);
+    }
+    const N = dataArray.length;
+
+    // lerp each bin into smoothedBins — eliminates per-frame jitter
+    const binSmooth = 0.12;
+    for (let i = 0; i < N; i++) {
+      smoothedBins[i] += (dataArray[i] - smoothedBins[i]) * binSmooth;
+    }
+
+    // compute dB from mean amplitude
+    let sumSq = 0;
+    for (let i = 0; i < N; i++) sumSq += (dataArray[i] / 255) ** 2;
+    const rmsAll = Math.sqrt(sumSq / N);
+    db = rmsAll > 0 ? 20 * Math.log10(rmsAll) + 94 : -80; // approx SPL ref 94dB = full scale
+
+    // band splits (48kHz, 1024 bins → 23.4Hz/bin)
+    const binHz = ((audioCtx ? audioCtx.sampleRate : 48000) / 2) / N;
+    const bassEnd  = Math.floor(300  / binHz);
+    const midEnd   = Math.floor(3000 / binHz);
+    bassRms  = rms(dataArray, 0, bassEnd);
+    midRms   = rms(dataArray, bassEnd, midEnd);
+    highRms  = rms(dataArray, midEnd, N);
+
+    // smooth each band independently: fast attack, slow decay
+    const bAttack = bassRms  > sBass  ? 0.18 : 0.055;
+    const mAttack = midRms   > sMid   ? 0.14 : 0.045;
+    const hAttack = highRms  > sHigh  ? 0.20 : 0.060;
+    sBass   = sBass   + (bassRms  - sBass)  * bAttack;
+    sMid    = sMid    + (midRms   - sMid)   * mAttack;
+    sHigh   = sHigh   + (highRms  - sHigh)  * hAttack;
+    sEnergy = sEnergy + (audioEnergy - sEnergy) * 0.10;
+
+    // dominant freq
+    let maxVal = 0, maxIdx = 0;
+    for (let i = 1; i < N; i++) { if (dataArray[i] > maxVal) { maxVal = dataArray[i]; maxIdx = i; } }
+    dominantFreq = Math.round(maxIdx * binHz);
+
+    audioEnergy = Math.max(0, Math.min(1, rmsAll * 4));
+
+    // smooth db
+    smoothDB = lerp(smoothDB, Math.max(-80, db), 0.18);
+
+    // peak hold
+    if (db > peakDB) peakDB = db;
+
+    // pops & bangs: rapid transients in high-mid
+    if (highRms > 0.35 && midRms > 0.3) popsTimer = 60;
+    if (popsTimer > 0) popsTimer--;
+
+    // update UI labels
+    document.getElementById('t-octave').textContent  = dominantFreq + ' Hz';
+    document.getElementById('t-bass').textContent    = bassRms.toFixed(3);
+    document.getElementById('t-mid').textContent     = midRms.toFixed(3);
+    document.getElementById('t-high').textContent    = highRms.toFixed(3);
+    document.getElementById('t-crest').textContent   = (maxVal / 255 / (rmsAll + 1e-9)).toFixed(2);
+    document.getElementById('noisefloor').textContent = '-72 dBFS';
+    document.getElementById('peakhold').textContent   = peakDB > -80 ? peakDB.toFixed(1) + ' dB' : '-- dB';
+    document.getElementById('sessiontime').textContent = sessionStart ? fmtTime(Date.now() - sessionStart) : '00:00:00';
+
+    // mobile panel
+    document.getElementById('mp-peak').textContent = peakDB > -80 ? peakDB.toFixed(1) + ' dB' : '--';
+    document.getElementById('mp-bass').textContent = bassRms.toFixed(3);
+    document.getElementById('mp-freq').textContent = dominantFreq + ' Hz';
+    const ss = sessionStart ? Math.floor((Date.now()-sessionStart)/1000) : 0;
+    document.getElementById('mp-time').textContent =
+      String(Math.floor(ss/60)).padStart(2,'0') + ':' + String(ss%60).padStart(2,'0');
+
+    const margin = 85 - db;
+    document.getElementById('t-margin').textContent = (margin > 0 ? '+' : '') + margin.toFixed(1) + ' dB';
+
+    // dB display
+    const dispDB = Math.max(30, smoothDB).toFixed(1);
+    dbval.textContent = dispDB;
+    dbval.classList.toggle('hot', smoothDB > 85);
+
+    // state badge
+    let state = 'IDLE', stateClass = '';
+    if (popsTimer > 0) { state = 'POPS & BANGS ◈'; stateClass = 'pops'; }
+    else if (smoothDB > 85) { state = 'TRACK LIMIT ⚠'; stateClass = 'track'; }
+    else if (smoothDB > 72) { state = 'SPORT MODE'; stateClass = 'sport'; }
+    else if (smoothDB > 50) { state = 'SPORT'; stateClass = 'sport'; }
+    statebadge.textContent = state;
+    statebadge.className = 'status';
+    statebadge.id = 'statebadge';
+    if (stateClass) statebadge.classList.add(stateClass);
+    document.getElementById('t-env').textContent = state.split(' ')[0];
+
+    // freq bars
+    const stride = Math.floor(N / FBARS);
+    fbars.forEach((bar, i) => {
+      const val = dataArray[i * stride] / 255;
+      bar.style.height = (val * 44 + 2) + 'px';
+      bar.style.opacity = 0.35 + val * 0.65;
+    });
+
+    // VU meters
+    const vuLevel = Math.max(0, Math.min(1, (smoothDB - 30) / 60));
+    const vuSegs = Math.round(vuLevel * 12);
+    [vuL, vuR].forEach(vu => {
+      vu.forEach((seg, i) => {
+        seg.classList.remove('lit', 'lit-red');
+        if (i < vuSegs) {
+          seg.classList.add(i >= 10 ? 'lit-red' : 'lit');
+        }
+      });
+    });
+
+  } else if (!isDemo) {
+    // idle animation: slow drift (only when not in demo)
+    const idle = 0.06 + Math.sin(t * 0.4) * 0.04;
+    audioEnergy = idle;
+    dbval.textContent = '—';
+    fbars.forEach((bar, i) => {
+      const v = Math.abs(Math.sin(t * 0.8 + i * 0.25)) * 0.15;
+      bar.style.height = (v * 44 + 2) + 'px';
+      bar.style.opacity = 0.2 + v;
+    });
+  }
+
+  // ── Update point cloud ──
+  const posAttr = geo.attributes.position;
+  const colAttr = geo.attributes.color;
+
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const i = row * COLS + col;
+      const base = baseHeight[i];
+
+      // map col → freq bin for direct spectrum displacement
+      let freqVal = 0, freqValMid = 0, freqValHigh = 0;
+      if ((isRunning || isDemo) && dataArray) {
+        const N = dataArray.length;
+        const bassIdx = Math.floor((col / COLS) * (N * 0.25));
+        const midIdx  = Math.floor((col / COLS) * (N * 0.55));
+        const hiIdx   = Math.floor((col / COLS) * (N * 0.85));
+        freqVal      = smoothedBins[bassIdx] / 255;
+        freqValMid   = smoothedBins[midIdx]  / 255;
+        freqValHigh  = smoothedBins[hiIdx]   / 255;
+      }
+
+      const cx = (col - COLS / 2) / (COLS / 2);
+      const cz = (row - ROWS / 2) / (ROWS / 2);
+      const dist = Math.sqrt(cx * cx + cz * cz);
+
+      // ridge boost: points along Z-centre column get max lift (like Cubica mountain spine)
+      const ridgeBoost  = Math.exp(-cx * cx * 2.5);
+      const centralBoost = Math.max(0, 1 - dist * 0.85);
+
+      // three layered waves — different speeds create fluid motion
+      const wave1 = Math.sin(t * 2.2  + dist * 4.5  - sEnergy * 6)  * 0.7 * sEnergy;
+      const wave2 = Math.sin(t * 4.0  + col  * 0.28 + sEnergy * 4)  * 0.35 * sEnergy;
+      const wave3 = Math.cos(t * 1.2  + row  * 0.22 - sEnergy * 2)  * 0.30 * sEnergy;
+
+      // use smoothed band values — fluid, not jittery
+      const bassLift  = freqVal     * sBass  * 18 * (centralBoost + ridgeBoost * 1.0);
+      const midRipple = freqValMid  * sMid   * 7  * centralBoost;
+      const hiSpark   = freqValHigh * sHigh  * 4;
+
+      const lift = bassLift + midRipple + hiSpark + wave1 + wave2 + wave3;
+      const y = base + lift;
+
+      posAttr.setY(i, y);
+
+      // brightness: smooth ramp, over-expose only on genuine peaks
+      const intensity = Math.max(0, Math.min(1, lift / 8));
+      const tipBoost  = Math.max(0, (lift - 5) / 5);
+      const brightness = 0.28 + intensity * 0.72 + tipBoost * 0.25;
+      colAttr.setXYZ(i, Math.min(1, brightness), Math.min(1, brightness), Math.min(1, brightness));
+    }
+  }
+
+  posAttr.needsUpdate = true;
+  colAttr.needsUpdate = true;
+
+  // slow auto-rotate when fully idle
+  if (!isRunning && !isDemo) {
+    pts.rotation.y = t * 0.05;
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  DEMO MODE — synthetic engine simulation (no mic needed)
+// ─────────────────────────────────────────────────────────────────
+let isDemo = false;
+let demoPhase = 0;        // engine cycle phase
+let demoRPM = 800;        // simulated RPM
+let demoTarget = 800;     // RPM target
+let demoDataArray = new Uint8Array(1024);
+const smoothedBins = new Float32Array(1024); // lerped freq bins for terrain
+
+// demo sweep — loops forever: cold start → build → redline → decel → repeat
+let demoTimers = [];
+function scheduleDemoSweep() {
+  demoTimers.forEach(clearTimeout);
+  demoTimers = [];
+  const seq = [
+    [0,    900],
+    [600,  3500],
+    [1400, 7200],
+    [2200, 8500],  // redline
+    [2900, 3000],  // lift off
+    [3400, 8000],  // second pull
+    [4200, 9000],  // limiter
+    [4800, 2000],  // decel
+    [5600, 900],   // idle
+    [6400, null],  // loop
+  ];
+  seq.forEach(([ms, target]) => {
+    const id = setTimeout(() => {
+      if (!isDemo) return;
+      if (target === null) { scheduleDemoSweep(); return; }
+      demoTarget = target;
+    }, ms);
+    demoTimers.push(id);
+  });
+}
+
+function toggleDemo() {
+  if (isRunning) return;
+  isDemo = !isDemo;
+  const badge = document.getElementById('statebadge');
+  if (isDemo) {
+    sessionStart = Date.now();
+    document.getElementById('sensorid').textContent = 'DEMO MODE';
+    document.getElementById('gainval').textContent   = 'SIM';
+    document.getElementById('t-hash').textContent    = 'DEMO00';
+    badge.textContent = 'DEMO ON';
+    badge.classList.add('sport');
+    demoRPM = 900; demoTarget = 900;
+    scheduleDemoSweep();
+  } else {
+    demoTimers.forEach(clearTimeout); demoTimers = [];
+    sessionStart = null;
+    badge.textContent = 'DEMO';
+    badge.className = '';
+    badge.id = 'statebadge';
+    dbval.textContent = '—';
+    document.getElementById('sensorid').textContent = 'RWD-MIC-01';
+    document.getElementById('gainval').textContent   = 'AUTO';
+    document.getElementById('t-hash').textContent    = 'A3F7C1';
+    demoDataArray.fill(0);
+  }
+}
+
+// generates a synthetic FFT buffer — aggressive track-mode engine
+function synthEngine(t, rpm) {
+  const sampleRate = 48000;
+  const binHz = (sampleRate / 2) / 1024;
+  const rpmNorm = Math.min(1, (rpm - 800) / 8200);   // normalize 800–9000
+  const fundamental = (rpm / 60) * 2;                 // 4-cyl firing: 2 pulses/rev
+
+  // noise floor — more aggressive at high rpm
+  for (let i = 0; i < 1024; i++) {
+    demoDataArray[i] = Math.floor(Math.random() * (12 + rpmNorm * 30));
+  }
+
+  // ── harmonic stack — wider, louder, more overtones ──
+  const harmonics = [0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10];
+  const ampBase   = [180, 255, 160, 220, 180, 150, 120, 95, 70, 45];
+
+  harmonics.forEach((h, idx) => {
+    const freq = fundamental * h;
+    const bin = Math.round(freq / binHz);
+    if (bin <= 0 || bin >= 1024) return;
+    const amplitude = ampBase[idx] * (0.5 + rpmNorm * 0.65);
+    const width = 2 + Math.floor(rpmNorm * 6);
+    for (let w = -width; w <= width; w++) {
+      const b = bin + w;
+      if (b >= 0 && b < 1024) {
+        const falloff = amplitude * Math.exp(-0.5 * (w / Math.max(1, width * 0.4)) ** 2);
+        demoDataArray[b] = Math.min(255, demoDataArray[b] + falloff);
+      }
+    }
+  });
+
+  // ── exhaust low rumble — thick bass ──
+  const rumbleAmp = 90 + rpmNorm * 165;
+  for (let i = 0; i < 20; i++) {
+    const pulse = Math.abs(Math.sin(t * fundamental * Math.PI + i * 0.4));
+    demoDataArray[i] = Math.min(255, demoDataArray[i] + rumbleAmp * pulse);
+  }
+
+  // ── induction roar — mid presence ──
+  const roarCenter = Math.floor(80 + rpmNorm * 200);
+  for (let w = -18; w <= 18; w++) {
+    const b = roarCenter + w;
+    if (b >= 0 && b < 1024) {
+      const v = (55 + rpmNorm * 90) * Math.exp(-0.5 * (w / 8) ** 2);
+      demoDataArray[b] = Math.min(255, demoDataArray[b] + v);
+    }
+  }
+
+  // ── pops & bangs — frequent above 6500, full crackling ──
+  const popProb = rpm > 7000 ? 0.22 : rpm > 5500 ? 0.10 : rpm > 4000 ? 0.03 : 0;
+  if (Math.random() < popProb) {
+    const numPops = 1 + Math.floor(Math.random() * 3);
+    for (let p = 0; p < numPops; p++) {
+      const popBin = Math.floor(150 + Math.random() * 600);
+      const popAmp = 200 + Math.random() * 55;
+      for (let w = -10; w <= 10; w++) {
+        const b = popBin + w;
+        if (b >= 0 && b < 1024) {
+          demoDataArray[b] = Math.min(255, demoDataArray[b] + popAmp * Math.exp(-0.3 * Math.abs(w)));
+        }
+      }
+    }
+  }
+
+  // ── limiter stutter — flat-out bouncing off 9000 ──
+  if (rpm > 8600) {
+    const stutter = Math.sin(t * 28) > 0.3 ? 1 : 0.25;
+    for (let i = 0; i < 1024; i++) demoDataArray[i] = Math.floor(demoDataArray[i] * stutter);
+  }
+}
+
+animate();
+
+// ─────────────────────────────────────────────────────────────────
+//  Telemetry ticker — cosmetic data animation
+// ─────────────────────────────────────────────────────────────────
+let bassRms = 0, midRms = 0, highRms = 0;
+setInterval(() => {
+  if (!isRunning) {
+    // animate fake values
+    document.getElementById('t-bass').textContent  = (Math.random() * 0.03).toFixed(3);
+    document.getElementById('t-mid').textContent   = (Math.random() * 0.02).toFixed(3);
+    document.getElementById('t-high').textContent  = (Math.random() * 0.01).toFixed(3);
+  }
+}, 400);
+</script>
+</body>
+</html>
