@@ -248,7 +248,12 @@ html{scrollbar-width:none}
 .msg-item{display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
 .msg-item:hover{background:rgba(255,255,255,.02)}
 .msg-item.unread{background:rgba(230,240,59,.025)}
-.msg-avatar{width:38px;height:38px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.msg-avatar{width:38px;height:38px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;overflow:hidden}
+.msg-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.msg-avatar.dealer{border-radius:10px;border-color:rgba(100,220,150,.25)}
+.msg-avatar.dealer img{border-radius:10px}
+.msg-list-fade{opacity:0}
+.msg-list-fade.loaded{animation:fadeIn .22s ease forwards}
 .msg-car-tag{font-size:11px;font-weight:700;color:rgba(230,240,59,.7);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
 .msg-preview{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 .msg-time{font-size:11px;color:var(--muted2);flex-shrink:0;margin-top:2px}
@@ -8073,9 +8078,17 @@ async function _loadPrivateMessages(){
     data.map(m=>m.sender_id===USER_STATE.id?m.receiver_id:m.sender_id)
   )];
   const{data:usersData}=await _supa.from('users')
-    .select('id,nombre,username,role')
+    .select('id,nombre,username,role,avatar_url')
     .in('id',otherIds);
   const usersMap=Object.fromEntries((usersData||[]).map(u=>[u.id,u]));
+
+  // QUERY 3: si algún interlocutor es concesionario, traer su logo
+  const dealerUserIds=Object.values(usersMap).filter(u=>u.role==='concesionario'||u.role==='consesionario').map(u=>u.id);
+  let dealerLogoMap={};
+  if(dealerUserIds.length){
+    const{data:dealers}=await _supa.from('concesionarios').select('user_id,nombre,logo_url').in('user_id',dealerUserIds);
+    dealerLogoMap=Object.fromEntries((dealers||[]).map(d=>[d.user_id,{logo:d.logo_url,nombre:d.nombre}]));
+  }
 
   // agrupar por conversación (source_id + counterpart)
   const threads={};
@@ -8085,10 +8098,14 @@ async function _loadPrivateMessages(){
     const key=`${m.source_id||'direct'}_${otherId}`;
     if(!threads[key]){
       const u=usersMap[otherId]||{};
+      const isDealer=u.role==='concesionario'||u.role==='consesionario';
+      const dealerData=isDealer?(dealerLogoMap[otherId]||{}):null;
       threads[key]={
         key,otherId,
-        otherName:u.nombre||u.username||(otherId.slice(0,6)+'...'),
+        otherName:isDealer?(dealerData?.nombre||u.nombre||u.username||'concesionario'):(u.nombre||u.username||(otherId.slice(0,6)+'...')),
         otherRole:u.role||'',
+        otherAvatar:isDealer?(dealerData?.logo||null):(u.avatar_url||null),
+        otherIsDealer:isDealer,
         sourceTitle:m.source_title||'publicación',
         sourceId:m.source_id||null,
         sourceType:m.source_type||'',
@@ -8111,6 +8128,8 @@ async function _loadPrivateMessages(){
     otherId:t.otherId,
     otherName:t.otherName,
     otherRole:t.otherRole,
+    otherAvatar:t.otherAvatar||null,
+    otherIsDealer:t.otherIsDealer||false,
     sourceId:t.sourceId,
     sourceType:t.sourceType,
     unread:t.unread>0,
@@ -8150,15 +8169,20 @@ function renderMensajesList(){
     return;
   }
   if(!THREADS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:14px">sin mensajes aún</div>';return;}
+  // fade-in: reset → render → trigger
+  list.classList.remove('msg-list-fade','loaded');
   list.innerHTML=THREADS.map(t=>{
     const last=t.messages[t.messages.length-1];
-    const isDealer=t.otherRole==='concesionario'||t.otherRole==='consesionario';
+    const isDealer=t.otherIsDealer||(t.otherRole==='concesionario'||t.otherRole==='consesionario');
     const otherDisplay=t.isPM?t.otherName:((t.participants||[]).find(p=>!p.isSeller)||{user:'?'}).user;
-    const av=(otherDisplay||'?')[0].toUpperCase();
+    // avatar: imagen si existe, fallback inicial
+    const avatarInner=t.otherAvatar
+      ?`<img src="${t.otherAvatar}" alt="" loading="lazy" onerror="this.parentElement.textContent='${(otherDisplay||'?')[0].toUpperCase()}'"/>`
+      :(otherDisplay||'?')[0].toUpperCase();
     const dealerBadge=isDealer?`<span style="font-size:9px;color:rgba(100,220,150,.8);margin-left:4px">✦</span>`:'';
     const pmTag=t.isPM?`<span style="font-size:9px;font-weight:600;background:rgba(255,255,255,.06);color:var(--muted);padding:1px 5px;border-radius:4px;margin-left:4px">privado</span>`:'';
     return `<div class="msg-item${t.unread?' unread':''}" onclick="openThread('${t.id}')">
-      <div class="msg-avatar">${av}</div>
+      <div class="msg-avatar${isDealer?' dealer':''}">${avatarInner}</div>
       <div style="flex:1;min-width:0">
         <div class="msg-car-tag">${t.carTitle||'—'}</div>
         <div style="font-size:14px;font-weight:${t.unread?700:500};display:flex;align-items:center">${t.isPM?t.otherName:otherDisplay}${dealerBadge}${pmTag}</div>
@@ -8170,6 +8194,8 @@ function renderMensajesList(){
       </div>
     </div>`;
   }).join('');
+  // trigger fade-in en el siguiente frame
+  requestAnimationFrame(()=>{list.classList.add('msg-list-fade');requestAnimationFrame(()=>list.classList.add('loaded'));});
 }
 
 // ─────────────────────────────────────────────
