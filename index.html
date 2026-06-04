@@ -2874,6 +2874,40 @@ const MARKET_LISTINGS = []; // se carga desde Supabase en _loadMarket()
 
 const NOTIFICATIONS = []; // se carga desde Supabase en _rueddaLoadUserData()
 
+// ── [RUEDDA v61] NOTIF PERSISTENCE — localStorage helpers ──
+const _NOTIF_KEY = 'ruedda_notifs_v1';
+
+// Lee notifs guardadas y las mergea en NOTIFICATIONS (preserva estado read)
+function _loadNotifsFromStorage(){
+  try {
+    const raw = localStorage.getItem(_NOTIF_KEY);
+    if(!raw) return;
+    const saved = JSON.parse(raw);
+    if(!Array.isArray(saved)||!saved.length) return;
+    // merge: IDs nuevos se añaden, los ya presentes preservan su estado read
+    const existingIds = new Set(NOTIFICATIONS.map(n=>String(n.id)));
+    saved.forEach(n=>{
+      if(!existingIds.has(String(n.id))) NOTIFICATIONS.push(n);
+    });
+    // re-sort por id desc (más reciente primero)
+    NOTIFICATIONS.sort((a,b)=>b.id - a.id);
+  } catch(e){ console.warn('[ruedda] notif storage read:',e.message); }
+}
+
+// Serializa el array actual a localStorage
+function _saveNotifsToStorage(){
+  try {
+    localStorage.setItem(_NOTIF_KEY, JSON.stringify(NOTIFICATIONS));
+  } catch(e){ console.warn('[ruedda] notif storage write:',e.message); }
+}
+
+// Calcula badge (no leídas) y muestra/oculta el dot
+function _syncNotifBadge(){
+  const unread = NOTIFICATIONS.filter(n=>!n.read).length;
+  const dot = document.getElementById('notif-dot');
+  if(dot) dot.style.display = unread > 0 ? 'block' : 'none';
+}
+
 // ===================== STATE =====================
 let currentView='home', currentTab='pronto', currentSection='subastas';
 let PAYMENT_DATA={banco:'Banesco',telefono:'0412-0000000',cedula:'V-00000000',cuenta:''};
@@ -3144,6 +3178,7 @@ function filterChip(el){
 }
 
 // ===================== MENSAJES / THREADS =====================
+// [RUEDDA v61] THREADS vacío — se popula desde Supabase vía _rueddaLoadThreads()
 const THREADS = [];
 let currentThread=null;
 
@@ -3214,25 +3249,42 @@ function openThread(id){
   showView('thread');
 }
 
-function renderThreadMessages(){
-  if(!currentThread) return;
+// [RUEDDA v61] renderThreadMessages — acepta array directo o usa currentThread
+// Parámetros: messages=[{from,text,time,mine}], scroll automático al último
+function renderThreadMessages(messages){
+  if(!currentThread&&!messages) return;
+  const msgs=messages||currentThread.messages;
   const el=document.getElementById('thread-messages');
-  el.innerHTML=currentThread.messages.map(m=>`
+  if(!msgs||!msgs.length){
+    el.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px">sin mensajes aún</div>';
+    return;
+  }
+  el.innerHTML=msgs.map(m=>`
     <div class="thread-bubble ${m.mine?'mine':'theirs'}">
-      <div class="bubble-name">${m.mine?'tú':m.from}</div>
-      <div class="bubble-body">${m.text}</div>
-      <div class="bubble-time">${m.time}</div>
+      <div class="bubble-name">${m.mine?'tú':_escHtml(m.from)}</div>
+      <div class="bubble-body">${_escHtml(m.text)}</div>
+      <div class="bubble-time">${_escHtml(m.time)}</div>
     </div>`).join('');
   setTimeout(()=>{el.scrollTop=el.scrollHeight;},50);
 }
 
+// [RUEDDA v61] Escapa HTML para evitar XSS en burbujas de usuario
+function _escHtml(s){
+  if(!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// [RUEDDA v61] sendThreadReply — captura texto, limpia input + height, actualiza vista
 function sendThreadReply(){
   if(!currentThread) return;
   const input=document.getElementById('thread-input');
   const text=input.value.trim();
   if(!text) return;
   currentThread.messages.push({from:'tú',text,time:'ahora mismo',mine:true});
-  input.value='';input.style.height='44px';
+  // limpiar input sin recargar página
+  input.value='';
+  input.style.height='44px';
+  input.focus();
   renderThreadMessages();
 }
 
@@ -3293,16 +3345,12 @@ async function loadSAQueue(){
 
 async function saApprove(id){
   if(!_supa) return;
-  // subastas de particulares → aprobada (esperan pago); dealers → activa
-  // detectar si tiene concesionario_id
-  const{data:auc}=await _supa.from('auctions').select('concesionario_id').eq('id',id).single();
-  const esDealer=!!(auc?.concesionario_id);
-  const nuevoEstado=esDealer?'activa':'aprobada';
-  const{error}=await _supa.from('auctions').update({estado:nuevoEstado}).eq('id',id);
+  const{error}=await _supa.from('auctions').update({estado:'activa'}).eq('id',id);
   if(error){showToast('error al aprobar');return;}
   showToast('publicación aprobada ✓',true);
   loadSAQueue();
-  if(esDealer){ _loadAuctions(); _loadChocados(); }
+  // recargar feeds
+  _loadAuctions(); _loadMarket(); _loadChocados();
 }
 
 async function saReject(id){
@@ -3386,7 +3434,9 @@ async function confirmRef(i){
   if(listing){listing.status='activa';listing.daysLeft=30;PAID_TYPES[listing.type]=true;}
   renderPendingRefs();
   showToast('pago confirmado — publicación en revisión',true);
-  _notif('ganador','¡pago aprobado!','Tu pago fue aprobado. Tu publicación está en revisión.','lime');
+  NOTIFICATIONS.unshift({id:Date.now(),type:'ganador',title:'¡pago aprobado!',body:'Tu pago fue aprobado. Tu publicación está en revisión.',time:'ahora mismo',read:false,icon:'lime'});
+  _saveNotifsToStorage(); // [RUEDDA v61] persistir
+  document.getElementById('notif-dot').style.display='block';
   if(_supa){
     await _supa.from('payment_refs').update({status:'confirmado'}).eq('ref_num',ref.refNum).catch(()=>{});
     setTimeout(()=>renderModQueue('particular'),500);
@@ -3399,7 +3449,8 @@ function rejectRef(i){
   if(listing)listing.status='rechazada';
   renderPendingRefs();
   showToast('referencia rechazada');
-  _notif('system','pago rechazado','Tu referencia no pudo ser verificada. Contáctanos por soporte.','');
+  NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago rechazado',body:'Tu referencia no pudo ser verificada. Contáctanos por soporte.',time:'ahora mismo',read:false,icon:''});
+  _saveNotifsToStorage(); // [RUEDDA v61] persistir
   document.getElementById('notif-dot').style.display='block';
 }
 
@@ -3950,7 +4001,8 @@ function renderDetailAuctionEnded(){
     if(watchIcon){watchIcon.style.display='none';}
     const alreadyNotified=NOTIFICATIONS.some(n=>n.type==='ganador'&&n.auctionId===currentAuction.id);
     if(!alreadyNotified){
-      _notif('ganador','¡ganaste la subasta!','Tu oferta de '+fmtBid(currentAuction.currentBid)+' ganó en '+currentAuction.title,'lime',String(currentAuction.id),'auction');
+      NOTIFICATIONS.unshift({id:Date.now(),type:'ganador',auctionId:currentAuction.id,title:'¡ganaste la subasta!',body:'Tu oferta de '+fmtBid(currentAuction.currentBid)+' ganó en '+currentAuction.title,time:'ahora mismo',read:false,icon:'lime'});
+      _saveNotifsToStorage(); // [RUEDDA v61] persistir
       document.getElementById('notif-dot').style.display='block';
     }
   } else {
@@ -4004,7 +4056,8 @@ function toggleWatchlist(){
   updateWatchlistBtn();
   // Add notification
   if(watchlist.has(id)){
-    _notif('fav','Subasta guardada','Recibirás notificaciones sobre '+currentAuction.title,'lime',String(currentAuction.id),'auction');
+    NOTIFICATIONS.unshift({id:Date.now(),type:'fav',title:'Subasta guardada',body:'Recibirás notificaciones sobre '+currentAuction.title,time:'ahora mismo',read:false,icon:'lime'});
+    _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
   }
 }
@@ -4190,6 +4243,10 @@ function previewCsFile(input){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
+  // [RUEDDA v61] carga inicial: notifs persistidas → badge visible antes del auth
+  _loadNotifsFromStorage();
+  _syncNotifBadge();
+
   const descInput=document.getElementById('cs-desc-input');
   const counter=document.getElementById('cs-char-count');
   if(descInput&&counter){
@@ -4323,7 +4380,8 @@ function sendComment(){
   renderComments();
   showToast('pregunta enviada',true);
   // Notify seller simulation
-  _notif('question','Pregunta enviada','Tu pregunta sobre '+currentAuction.title+' fue enviada al vendedor','lime',String(currentAuction.id),'auction');
+  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentAuction.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime'});
+  _saveNotifsToStorage(); // [RUEDDA v61] persistir
   document.getElementById('notif-dot').style.display='block';
 }
 
@@ -4332,7 +4390,8 @@ function openBidModal(){
   if(isGuest()){
     closePaymentSheet();
     showToast('inicia sesión para hacer ofertas');
-    _notif('sistema','inicia sesión en Ruedda','Necesitas una cuenta para hacer ofertas y participar en subastas.','lime');
+    NOTIFICATIONS.unshift({id:Date.now(),type:'sistema',title:'inicia sesión en Ruedda',body:'Necesitas una cuenta para hacer ofertas y participar en subastas.',time:'ahora mismo',read:false,icon:'lime'});
+    _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
     setTimeout(()=>showView('cuenta'),700);
     return;
@@ -4417,17 +4476,13 @@ async function confirmBid(){
   if(!val||val<min){showToast('mínimo: '+fmtBid(min));return;}
   // optimistic UI
   currentAuction.currentBid=val;currentAuction.bidCount++;
-  if(currentAuction.ownerId&&currentAuction.ownerId!==USER_STATE.id){
-    _insertNotif(currentAuction.ownerId,'offer','Nueva oferta en tu subasta',
-      'Alguien hizo una oferta de '+fmtBid(val)+' en '+currentAuction.title,
-      'lime',String(currentAuction.id),'auction');
-  }
   currentAuction.bids.unshift({user:'tú ★',time:'ahora mismo',amount:val,top:true});
   currentAuction.bids.forEach((b,i)=>b.top=i===0);
   renderDetailBid();renderBidHistory();
   closeBidModal();
   showToast('oferta de '+fmtBid(val)+' registrada',true);
-  _notif('offer','Oferta registrada','Tu oferta de '+fmtBid(val)+' en '+currentAuction.title+' fue registrada','lime',String(currentAuction.id),'auction');
+  NOTIFICATIONS.unshift({id:Date.now(),type:'offer',title:'Oferta registrada',body:'Tu oferta de '+fmtBid(val)+' en '+currentAuction.title+' fue registrada',time:'ahora mismo',read:false,icon:'lime'});
+  _saveNotifsToStorage(); // [RUEDDA v61] persistir
   document.getElementById('notif-dot').style.display='block';
   // persistir en servidor
   // Guardar en Supabase directo — fuente de verdad
@@ -4450,7 +4505,10 @@ async function confirmBid(){
 }
 
 // ===================== NOTIFICATIONS =====================
+// [RUEDDA v61] renderNotifications — guarda estado a localStorage en cada render
 function renderNotifications(){
+  _saveNotifsToStorage(); // persistir estado actual
+  _syncNotifBadge();      // recalcular badge
   const list=document.getElementById('notif-list');
   if(isGuest()){
     list.innerHTML=`
@@ -4468,7 +4526,7 @@ function renderNotifications(){
   }
   if(!NOTIFICATIONS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:15px">sin notificaciones</div>';return;}
   list.innerHTML=NOTIFICATIONS.map(n=>`
-    <div class="notif-item ${n.read?'':' unread'}" onclick="${n.type==='question'?`openNotifThread(${n.auction_id||n.auctionId||1})`:`n.read=true;renderNotifications()`}" style="${n.type==='question'?'cursor:pointer':''}">
+    <div class="notif-item ${n.read?'':' unread'}" onclick="${n.type==='question'?`openNotifThread(${n.auction_id||n.auctionId||1})`:`markNotifRead('${n.id}')`}" style="${n.type==='question'?'cursor:pointer':''}">
       <div class="notif-icon ${n.icon==='lime'?'lime':''}">
         ${n.type==='offer'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>':n.type==='question'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>':n.type==='sold'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="m5 12 5 5L20 7"/></svg>':'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'}
       </div>
@@ -4483,7 +4541,15 @@ function renderNotifications(){
 
 function markAllRead(){
   NOTIFICATIONS.forEach(n=>n.read=true);
+  _saveNotifsToStorage(); // [RUEDDA v61] persistir estado leído
   renderNotifications();
+}
+
+// [RUEDDA v61] marcar una notif individual como leída y persistir
+function markNotifRead(id){
+  const n=NOTIFICATIONS.find(x=>String(x.id)===String(id));
+  if(n) n.read=true;
+  renderNotifications(); // llama _saveNotifsToStorage internamente
 }
 
 // ===================== SEARCH =====================
@@ -4925,7 +4991,8 @@ async function processPayment(){
       const{error:refErr}=await _supa.from('payment_refs').insert({user_id:uid,ref_num:refId,metodo,amount_usd:price,status:'pendiente',tipo:'vitrina'});
       if(refErr) console.error('[ruedda] vitrina payment_ref:',refErr?.message);
     }
-    _notif('system','pago de vitrina en revisión','El equipo de Ruedda verificará tu pago y activará tu vitrina pronto.','lime');
+    NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago de vitrina en revisión',body:'El equipo de Ruedda verificará tu pago y activará tu vitrina pronto.',time:'ahora mismo',read:false,icon:'lime'});
+    _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
     showToast('referencia enviada — activaremos tu vitrina pronto ✓',true);
     return;
@@ -4942,7 +5009,8 @@ async function processPayment(){
     addPendingListing(refId,'pago m\u00f3vil');
     window._pendingPaymentRef = refId;
     closeCheckout();
-    _notif('system','pago en revisión','Recibimos tu referencia de pago móvil. El equipo de Ruedda la verificará pronto.','lime');
+    NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago en revisi\u00f3n',body:'Recibimos tu referencia de pago m\u00f3vil. El equipo de Ruedda la verificar\u00e1 pronto.',time:'ahora mismo',read:false,icon:'lime'});
+    _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
     // ── INSERT payment_ref AWAITED antes de publicar ──
     if(_supa){
@@ -4973,7 +5041,8 @@ async function processPayment(){
     addPendingListing(refId,'USDT Binance');
     window._pendingPaymentRef = refId;
     closeCheckout();
-    _notif('system','pago en revisión','Recibimos tu ID de transacción Binance. El equipo de Ruedda la verificará pronto.','lime');
+    NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago en revisi\u00f3n',body:'Recibimos tu ID de transacci\u00f3n Binance. El equipo de Ruedda la verificar\u00e1 pronto.',time:'ahora mismo',read:false,icon:'lime'});
+    _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
     // ── INSERT payment_ref AWAITED antes de publicar ──
     if(_supa){
@@ -6602,11 +6671,6 @@ async function modApprove(id){
   const{error}=await _supa.from(tbl).update({estado:nuevoEstado}).eq('id',id);
   if(error){showToast('error al aprobar: '+error.message);return;}
   showToast('publicación aprobada ✓',true);
-  if(item?.user_id){
-    const _t=esDealer?'Publicación activa en el market':'Publicación aprobada — lista para subir';
-    const _b=esDealer?'Tu vehículo ya está visible en Ruedda.':'Tu publicación fue aprobada. Abre "Mis publicaciones" y toca Subir.';
-    _insertNotif(item.user_id,'aprobada',_t,_b,'lime',id,tbl==='auctions'?'auction':'listing');
-  }
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
   // solo recargar market si es dealer (ya está activa)
@@ -7336,6 +7400,7 @@ function triggerGuestBlock(accion){
       body: msgs[accion] || 'Inicia sesión para continuar.',
       time:'ahora mismo', read:false, icon:'lime'
     });
+    _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
   }
   setTimeout(()=>showLandingAuth('login'), 100);
@@ -7596,6 +7661,7 @@ function _subscribeNotifs(userId){
   _supa.channel(`ruedda-notifs-${userId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${userId}`},payload=>{
     const n=payload.new;
     NOTIFICATIONS.unshift({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'ahora mismo',read:false,icon:n.icon||'default'});
+    _saveNotifsToStorage(); // [RUEDDA v61] persistir notif realtime
     const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
   }).subscribe();
 }
@@ -7617,10 +7683,21 @@ async function _rueddaLoadUserData(userId,role){
   // cargar favoritos persistidos
   const{data:favs}=await _supa.from('user_favorites').select('item_id').eq('user_id',userId);
   if(favs?.length) favs.forEach(f=>watchlist.add(f.item_id));
-  // cargar notificaciones — 30 días, todas (leídas y no leídas)
-  await _loadNotifications(userId);
-  _subscribeNotifsRealtime(userId);
-  _loadPrivateMessages();
+  // [RUEDDA v61] cargar notifs guardadas (offline/persistidas) antes de Supabase
+  _loadNotifsFromStorage();
+  const{data:notifs}=await _supa.from('notifications').select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(40);
+  if(notifs?.length){
+    // merge: respetar estado read guardado en localStorage para cada notif
+    const storedMap=Object.fromEntries(NOTIFICATIONS.map(n=>[String(n.id),n.read]));
+    NOTIFICATIONS.length=0; // limpiar para re-poblar ordenado desde Supabase
+    notifs.forEach(n=>{
+      const wasRead = storedMap[String(n.id)] !== undefined ? storedMap[String(n.id)] : !!n.read;
+      NOTIFICATIONS.push({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'reciente',read:wasRead,icon:n.icon||'default'});
+    });
+    _saveNotifsToStorage(); // [RUEDDA v61] guardar estado mergeado
+  }
+  _syncNotifBadge(); // [RUEDDA v61] badge calculado desde no-leídas reales
+  _subscribeNotifs(userId);
 }
 
 (async function _rueddaInit(){
@@ -7679,15 +7756,16 @@ async function _activarTrasSubir(){
   const id=window._pendingSubirId;
   if(!id) return;
   window._pendingSubirId=null;
+  // badge publicando
   const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===id);
   if(l){ l.status='publicando'; _renderMisPubGrid(); }
+  // Supabase
   if(_supa){
-    const tbl=l?.type==='subasta'?'auctions':'listings';
-    await _supa.from(tbl).update({estado:'activa'}).eq('id',id).catch(e=>console.error('[ruedda] activarTrasSubir:',e.message));
+    await _supa.from('listings').update({estado:'activa'}).eq('id',id).catch(e=>console.error('[ruedda] activarTrasSubir:',e.message));
   }
-  _insertNotif(USER_STATE.id,'activa','¡Publicación activa en Ruedda!',
-    'Tu vehículo ya está visible para todos en el market.','lime',id,l?.type==='subasta'?'auction':'listing');
+  // splash éxito
   _showSubidaAlMarketSplash();
+  // recargar
   await _loadMyListings();
   _renderMisPubGrid();
 }
@@ -7847,7 +7925,9 @@ async function sendComment(){
   const{error}=await _supa.from('comments').insert(payload);
   if(error){showToast('error enviando');console.error('[comment]',error);return;}
   // notif local
-  _notif('question','Pregunta enviada','Tu pregunta sobre '+currentAuction.title+' fue enviada al vendedor','lime',String(currentAuction.id),'auction');
+  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentAuction.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime',sourceId:currentAuction.id,sourceType:'auction'});
+  _saveNotifsToStorage(); // [RUEDDA v61] persistir
+  const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
   showToast('pregunta enviada',true);
   _loadComments('auction',String(currentAuction.id),'comment-list');
 }
@@ -7862,14 +7942,10 @@ async function sendMktComment(){
   const payload={body:text,user_id:USER_STATE.id,listing_id:String(currentMarketListing.id)};
   const{error}=await _supa.from('comments').insert(payload);
   if(error){showToast('error enviando');console.error('[mkt-comment]',error);return;}
-  showToast('pregunta enviada',true);
-  _notif('question','Pregunta enviada','Tu pregunta fue enviada al vendedor','lime');
+  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentMarketListing.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime',sourceId:currentMarketListing.id,sourceType:'listing'});
+  _saveNotifsToStorage(); // [RUEDDA v61] persistir
   const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
-  if(currentMarketListing.user_id&&currentMarketListing.user_id!==USER_STATE.id){
-    _insertNotif(currentMarketListing.user_id,'question','Nueva pregunta en tu publicación',
-      _masked(USER_STATE.nombre||'alguien')+' preguntó sobre: '+currentMarketListing.title,
-      'lime',String(currentMarketListing.id),'listing');
-  }
+  showToast('pregunta enviada',true);
   _loadComments('listing',String(currentMarketListing.id),'mkt-comment-list');
 }
 
@@ -7897,7 +7973,8 @@ async function _sendPrivateMessage(receiverId,sourceId,sourceType,sourceTitle){
   if(panel) panel.style.display='none';
   showToast('mensaje enviado',true);
   // notif local para el sender
-  _notif('pm','Mensaje enviado','Tu mensaje sobre '+sourceTitle+' fue enviado','lime');
+  NOTIFICATIONS.unshift({id:Date.now(),type:'pm',title:'Mensaje enviado',body:'Tu mensaje sobre '+sourceTitle+' fue enviado',time:'ahora mismo',read:false,icon:'lime'});
+  _saveNotifsToStorage(); // [RUEDDA v61] persistir
   const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
   // recargar mensajes
   _loadPrivateMessages();
@@ -7994,88 +8071,204 @@ async function _loadPrivateMessages(){
   renderMensajesList();
 }
 
-
-// ═══════════════════════════════════════════════════════════
-// SISTEMA DE NOTIFICACIONES PERSISTENTES — RUEDDA
-// ═══════════════════════════════════════════════════════════
-
-async function _insertNotif(userId, tipo, titulo, body, icon, sourceId, sourceType){
-  if(!_supa||!userId) return;
-  await _supa.from('notifications').insert({
-    user_id:userId, tipo, titulo, body, icon:icon||'lime',
-    source_id:sourceId?String(sourceId):null,
-    source_type:sourceType||null
-  }).catch(e=>console.error('[notif insert]',e.message));
+// ─────────────────────────────────────────────
+// SOBREESCRIBIR renderMensajesList con badges PM
+// ─────────────────────────────────────────────
+function renderMensajesList(){
+  const list=document.getElementById('mensajes-list');
+  if(!list) return;
+  if(isGuest()){
+    list.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 28px;text-align:center;gap:20px">
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(230,240,59,0.08);border:1px solid rgba(230,240,59,0.15);display:flex;align-items:center;justify-content:center">
+        <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:28px;height:28px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div>
+        <div style="font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:10px;line-height:1.3">Estás a un mensaje de distancia.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,.35);line-height:1.6">Haz preguntas, cotiza o responde a compradores en tiempo real.</div>
+      </div>
+      <button onclick="showMobileAuth('login')" style="background:#e6f03b;color:#000;border:none;border-radius:14px;padding:14px 28px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer">iniciar sesión</button>
+    </div>`;
+    return;
+  }
+  if(!THREADS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:14px">sin mensajes aún</div>';return;}
+  list.innerHTML=THREADS.map(t=>{
+    const last=t.messages[t.messages.length-1];
+    const isDealer=t.otherRole==='concesionario'||t.otherRole==='consesionario';
+    const otherDisplay=t.isPM?t.otherName:((t.participants||[]).find(p=>!p.isSeller)||{user:'?'}).user;
+    const av=(otherDisplay||'?')[0].toUpperCase();
+    const dealerBadge=isDealer?`<span style="font-size:9px;color:rgba(100,220,150,.8);margin-left:4px">✦</span>`:'';
+    const pmTag=t.isPM?`<span style="font-size:9px;font-weight:600;background:rgba(255,255,255,.06);color:var(--muted);padding:1px 5px;border-radius:4px;margin-left:4px">privado</span>`:'';
+    return `<div class="msg-item${t.unread?' unread':''}" onclick="openThread('${t.id}')">
+      <div class="msg-avatar">${av}</div>
+      <div style="flex:1;min-width:0">
+        <div class="msg-car-tag">${t.carTitle||'—'}</div>
+        <div style="font-size:14px;font-weight:${t.unread?700:500};display:flex;align-items:center">${t.isPM?t.otherName:otherDisplay}${dealerBadge}${pmTag}</div>
+        <div class="msg-preview">${last?.from||'—'}: ${last?.text||'—'}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+        <div class="msg-time">${last?.time||'—'}</div>
+        ${t.unread?'<div style="width:8px;height:8px;border-radius:50%;background:#e6f03b"></div>':''}
+      </div>
+    </div>`;
+  }).join('');
 }
 
-async function _loadNotifications(userId){
-  if(!_supa||!userId) return;
-  const since=new Date(Date.now()-30*24*60*60*1000).toISOString();
-  const{data,error}=await _supa.from('notifications')
-    .select('*').eq('user_id',userId)
-    .gte('created_at',since)
-    .order('created_at',{ascending:false}).limit(50);
-  if(error){console.error('[notif load]',error.message);return;}
-  NOTIFICATIONS.splice(0,NOTIFICATIONS.length);
-  (data||[]).forEach(n=>{
-    NOTIFICATIONS.push({
-      id:n.id, type:n.tipo, title:n.titulo, body:n.body,
-      time:typeof _fmtTimeAgo==='function'?_fmtTimeAgo(n.created_at):'reciente',
-      read:n.read, icon:n.icon||'lime',
-      source_id:n.source_id, source_type:n.source_type,
-      auctionId:n.auction_id
+// ─────────────────────────────────────────────
+// SOBREESCRIBIR openThread para PM + threads normales
+// ─────────────────────────────────────────────
+function openThread(id){
+  currentThread=THREADS.find(t=>String(t.id)===String(id));
+  if(!currentThread) return;
+  currentThread.unread=false;
+  document.getElementById('thread-car-title').textContent=currentThread.carTitle||'mensaje';
+  const otherName=currentThread.isPM?currentThread.otherName:((currentThread.participants||[]).find(p=>!p.isSeller)||{user:'usuario'}).user;
+  const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
+  const dealerBadge=isDealer?' <span style="font-size:10px;color:rgba(100,220,150,.9)">✦ verificado</span>':'';
+  document.getElementById('thread-meta').innerHTML='conversación con '+otherName+dealerBadge;
+  renderThreadMessages();
+  showView('thread');
+}
+
+function renderThreadMessages(){
+  if(!currentThread) return;
+  const el=document.getElementById('thread-messages');
+  const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
+  el.innerHTML=currentThread.messages.map(m=>{
+    const mDealer=(!m.mine)&&isDealer;
+    const badge=mDealer?'<span style="font-size:9px;color:rgba(100,220,150,.9);margin-left:4px">✦ verificado</span>':'';
+    return `<div class="thread-bubble ${m.mine?'mine':'theirs'}">
+      <div class="bubble-name">${m.mine?'tú':m.from}${badge}</div>
+      <div class="bubble-body">${m.text}</div>
+      <div class="bubble-time">${m.time}</div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{el.scrollTop=el.scrollHeight;},50);
+}
+
+async function sendThreadReply(){
+  if(!currentThread) return;
+  const input=document.getElementById('thread-input');
+  const text=input.value.trim();
+  if(!text) return;
+  if(currentThread.isPM){
+    const{error}=await _supa.from('private_messages').insert({
+      sender_id:USER_STATE.id,
+      receiver_id:currentThread.otherId,
+      source_id:null,
+      source_title:currentThread.carTitle,
+      text
     });
-  });
-  const unread=NOTIFICATIONS.filter(n=>!n.read).length;
-  const dot=document.getElementById('notif-dot');
-  if(dot) dot.style.display=unread>0?'block':'none';
+    if(error){showToast('error enviando');return;}
+  }
+  currentThread.messages.push({from:'tú',text,time:'ahora mismo',mine:true});
+  input.value='';input.style.height='44px';
+  input.focus(); // [RUEDDA v61] mantener foco post-envío
+  renderThreadMessages();
 }
 
-async function _markNotifsRead(){
-  if(!_supa||!USER_STATE.id) return;
-  NOTIFICATIONS.forEach(n=>n.read=true);
-  const dot=document.getElementById('notif-dot');
-  if(dot) dot.style.display='none';
-  await _supa.from('notifications').update({read:true})
-    .eq('user_id',USER_STATE.id).eq('read',false)
-    .catch(e=>console.error('[notif mark]',e.message));
-  renderNotifications();
+// ─────────────────────────────────────────────
+// NOTIFICACIONES: render con link a publicación
+// ─────────────────────────────────────────────
+function _renderNotifItem(n){
+  const linkBtn=n.sourceId?`<button onclick="event.stopPropagation();_goToSource('${n.sourceId}','${n.sourceType||''}');document.getElementById('notif-action-btn')&&(document.getElementById('notif-action-btn').style.display='none')" style="background:none;border:none;color:rgba(230,240,59,.7);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;font-weight:600;margin-top:4px;display:block">ver publicación</button>`:'';
+  const icon=n.icon==='lime'?`<div style="width:42px;height:42px;border-radius:12px;background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:18px;height:18px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>`
+    :`<div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.5" style="width:18px;height:18px"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg></div>`;
+  return `<div class="notif-item${n.read?'':' unread'}" style="display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--border);cursor:default">
+    ${icon}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:${n.read?500:700};line-height:1.3">${n.title}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5">${n.body}</div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:4px">${n.time}</div>
+      ${linkBtn}
+    </div>
+    ${!n.read?'<div style="width:7px;height:7px;border-radius:50%;background:#e6f03b;flex-shrink:0;margin-top:4px"></div>':''}
+  </div>`;
 }
 
-function _subscribeNotifsRealtime(userId){
-  if(!_supa||!userId) return;
-  _supa.channel('ruedda-notifs-'+userId)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',
-      filter:'user_id=eq.'+userId},payload=>{
-      const n=payload.new;
-      NOTIFICATIONS.unshift({
-        id:n.id, type:n.tipo, title:n.titulo, body:n.body,
-        time:'ahora mismo', read:false, icon:n.icon||'lime',
-        source_id:n.source_id, source_type:n.source_type
-      });
-      const dot=document.getElementById('notif-dot');
-      if(dot) dot.style.display='block';
-      if(document.getElementById('notif-list')?.offsetParent!==null) renderNotifications();
-    }).subscribe();
+function _goToSource(sourceId,sourceType){
+  showView('home');
+  setTimeout(()=>{
+    if(sourceType==='auction'||sourceType==='subasta'){
+      const a=AUCTIONS.find(x=>String(x.id)===String(sourceId))||AUCTIONS_CHOCADOS.find(x=>String(x.id)===String(sourceId));
+      if(a) openDetail(a.id);
+    } else {
+      const l=MARKET_LISTINGS.find(x=>String(x.id)===String(sourceId));
+      if(l) openMarketDetail(l.id,'market');
+    }
+  },150);
 }
 
-// ── Mensajes privados: wrapper para _loadPrivateMessages en switchNotifTab ──
-const _origSwitchNotifTabFinal=switchNotifTab;
+// ─────────────────────────────────────────────
+// HOOK: cargar comentarios al abrir publicaciones
+// ─────────────────────────────────────────────
+const _origOpenDetail=openDetail;
+openDetail=function(id){
+  _origOpenDetail(id);
+  setTimeout(()=>{
+    if(currentAuction) _loadComments('auction',String(currentAuction.id),'comment-list');
+  },200);
+};
+
+const _origOpenMarketDetail=openMarketDetail;
+openMarketDetail=function(id,from){
+  _origOpenMarketDetail(id,from);
+  setTimeout(()=>{
+    if(currentMarketListing) _loadComments('listing',String(currentMarketListing.id),'mkt-comment-list');
+  },200);
+};
+
+// ─────────────────────────────────────────────
+// HOOK: añadir botón de mensaje en seller-card
+// ─────────────────────────────────────────────
+function _injectPmButton(sellerCardId,receiverId,receiverName,sourceId,sourceType,sourceTitle,isDealer){
+  const card=document.getElementById(sellerCardId);
+  if(!card||card.querySelector('.pm-icon-btn')) return;
+  if(!receiverId||receiverId===USER_STATE.id) return;
+  const btn=document.createElement('button');
+  btn.className='pm-icon-btn';
+  btn.title='Enviar mensaje privado';
+  btn.style.cssText='background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;margin-left:auto;opacity:.6;transition:opacity .2s;flex-shrink:0';
+  btn.innerHTML='<svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.5)" stroke-width="1.5" style="width:16px;height:16px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  btn.onmouseenter=()=>btn.style.opacity='1';
+  btn.onmouseleave=()=>btn.style.opacity='.6';
+  btn.onclick=e=>{e.stopPropagation();if(isGuest()){showToast('inicia sesión para enviar mensajes');return;}_openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,isDealer);};
+  card.appendChild(btn);
+}
+
+// ─────────────────────────────────────────────
+// HOOK carga PM en tab mensajes
+// ─────────────────────────────────────────────
+const _origSwitchNotifTab=switchNotifTab;
 switchNotifTab=function(tab){
-  _origSwitchNotifTabFinal(tab);
+  _origSwitchNotifTab(tab);
   if(tab==='mensajes'&&!isGuest()) _loadPrivateMessages();
 };
 
+// ─────────────────────────────────────────────
+// HOOK: inyectar botón PM cuando se popula seller-card
+// ─────────────────────────────────────────────
+const _origMktDetail=openMarketDetail;
+// ya wrapeado arriba — usamos MutationObserver para seller-card market
+const _pmObserver=new MutationObserver(()=>{
+  const name=document.getElementById('mkt-seller-name')?.textContent;
+  if(!name||name==='vendedor') return;
+  if(!currentMarketListing?.user_id) return;
+  const isDealer=!!(currentMarketListing.dealerId);
+  _injectPmButton('mkt-seller-card',currentMarketListing.user_id,name,currentMarketListing.id,'listing',currentMarketListing.title||'publicación',isDealer);
+});
+const _mktSellerCard=document.getElementById('mkt-seller-card');
+if(_mktSellerCard) _pmObserver.observe(_mktSellerCard,{childList:true,subtree:true,characterData:true});
 
-// _notif: añade al array local Y persiste en Supabase si hay sesión
-function _notif(type,title,body,icon,sourceId,sourceType){
-  const n={id:Date.now(),type,title,body,time:'ahora mismo',read:false,icon:icon||'lime',source_id:sourceId||null,source_type:sourceType||null};
-  NOTIFICATIONS.unshift(n);
-  const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
-  if(_supa&&USER_STATE.id&&!isGuest()){
-    _insertNotif(USER_STATE.id,type,title,body,icon||'lime',sourceId||null,sourceType||null);
-  }
-}
+// Para subastas (detail-seller-card)
+const _auctionObserver=new MutationObserver(()=>{
+  const name=document.getElementById('detail-seller-name')?.textContent;
+  if(!name||name==='vendedor') return;
+  if(!currentAuction) return;
+  const isDealer=false;
+  _injectPmButton('detail-seller-card',currentAuction.ownerId,name,currentAuction.id,'auction',currentAuction.title||'subasta',isDealer);
+});
+const _detailSellerCard=document.querySelector('.seller-card');
+if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true,subtree:true,characterData:true});
 
 </script>
 
