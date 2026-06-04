@@ -852,7 +852,7 @@ html{scrollbar-width:none}
 
 /* ── RUEDDA EXTRA MENU ── */
 .rx-menu{display:flex;flex-direction:column;gap:10px;padding:0 16px 100px}
-.rx-menu-card{background:#1c1c1e;border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;transition:border-color .2s}
+.rx-menu-card{background:#141416;border:1px solid rgba(255,255,255,.07);border-radius:18px;overflow:hidden;transition:border-color .2s}
 .rx-menu-card:active{border-color:rgba(230,240,59,.2)}
 .rx-menu-card-btn{width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 20px;background:none;border:none;cursor:pointer;font-family:var(--font);text-align:left;gap:12px}
 .rx-menu-card-text{flex:1;min-width:0}
@@ -862,8 +862,8 @@ html{scrollbar-width:none}
 .rx-menu-card-icon svg{width:32px;height:32px}
 .rx-menu-card.darkened{opacity:.4;pointer-events:none}
 .rx-menu-card.darkened .rx-menu-card-title::after{content:' (próximamente)';font-size:11px;font-weight:600;color:rgba(255,255,255,.3)}
-.rx-accordion-body{display:none;padding:0 20px 20px}
-.rx-accordion-body.open{display:block;animation:rxFadeIn .22s ease}
+.rx-accordion-body{max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.4,0,.2,1),opacity .25s ease;opacity:0;padding:0 20px}
+.rx-accordion-body.open{max-height:600px;opacity:1;padding:0 20px 20px}
 .rx-accordion-placeholder{min-height:60px;border:1.5px dashed rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:center}
 .rx-accordion-placeholder span{font-size:12px;color:rgba(255,255,255,.2)}
 .rx-chevron{transition:transform .22s cubic-bezier(.32,.72,0,1);color:rgba(255,255,255,.3)}
@@ -6398,7 +6398,7 @@ async function saLoadSugerencias(){
 }
 
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -6410,6 +6410,7 @@ function saTab(tab){
   if(tab==='usuarios') renderSAUsuarios();
   if(tab==='pagos') renderPendingRefs();
   if(tab==='comunidad') saLoadComunidadAdmin();
+  if(tab==='patrocinantes') saLoadPatrocinantes();
 }
 
 let saCatalogoLinks = [];
@@ -8394,6 +8395,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div class="tab" id="sa-tab-pagos" onclick="saTab('pagos')" style="white-space:nowrap;flex-shrink:0">pagos</div>
     <div class="tab" id="sa-tab-bypass" onclick="saTab('bypass')" style="white-space:nowrap;flex-shrink:0">bypass</div>
     <div class="tab" id="sa-tab-comunidad" onclick="saTab('comunidad')" style="white-space:nowrap;flex-shrink:0">comunidad</div>
+    <div class="tab" id="sa-tab-patrocinantes" onclick="saTab('patrocinantes')" style="white-space:nowrap;flex-shrink:0">patrocinantes</div>
   </div>
 
   <!-- USUARIOS TAB -->
@@ -8598,7 +8600,80 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     </div>
 
   </div>
+
+  <!-- PATROCINANTES -->
+  <div id="sa-patrocinantes" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Patrocinantes</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Gestiona los patrocinantes por sección de RueddaExtra. Cada card puede tener imagen, nombre y link.</div>
+    <div id="sa-pat-content" style="display:flex;flex-direction:column;gap:14px">
+      <div style="font-size:13px;color:var(--muted)">cargando...</div>
+    </div>
+  </div>
+
+  </div>
 </div>
+
+<!-- SA PATROCINANTES SECTION -->
+<script>
+// ── PATROCINANTES SUPERADMIN ──────────────────────────────
+const _saPatCats = ['financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos'];
+let _saPatData = {};
+
+async function saLoadPatrocinantes(){
+  if(!_supa) return;
+  const {data} = await _supa.from('patrocinantes').select('*').order('categoria').order('created_at',{ascending:false});
+  _saPatData = {};
+  (data||[]).forEach(p=>{ (_saPatData[p.categoria]??=[]).push(p); });
+  _renderPatrocinantes();
+}
+
+function _renderPatrocinantes(){
+  const cont = document.getElementById('sa-pat-content');
+  if(!cont) return;
+  cont.innerHTML = _saPatCats.map(cat=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted)">${cat}</div>
+      <div id="sa-pat-list-${cat}" style="display:flex;flex-direction:column;gap:8px">
+        ${(_saPatData[cat]||[]).map(p=>`
+          <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
+            <img src="${p.imagen_url||''}" onerror="this.style.display='none'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--card2)">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre||'—'}</div>
+              <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.link||'—'}</div>
+            </div>
+            <button onclick="_saDeletePat('${p.id}','${cat}')" style="background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.2);border-radius:10px;padding:8px 10px;cursor:pointer;flex-shrink:0;display:flex;align-items:center">
+              <svg fill="none" viewBox="0 0 16 16" stroke="rgba(255,80,80,.7)" stroke-width="2" style="width:12px;height:12px"><path d="m3 3 10 10M13 3 3 13"/></svg>
+            </button>
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+        <input class="form-input" id="sa-pat-img-${cat}" type="url" placeholder="URL imagen/logo">
+        <input class="form-input" id="sa-pat-nombre-${cat}" type="text" placeholder="nombre del patrocinante">
+        <input class="form-input" id="sa-pat-link-${cat}" type="url" placeholder="link al hacer click">
+        <button onclick="_saAddPat('${cat}')" style="background:var(--lime);color:#000;border:none;border-radius:12px;padding:11px 16px;font-family:var(--font);font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+          <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px"><path d="M8 3v10M3 8h10"/></svg> agregar
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+async function _saAddPat(cat){
+  const img = document.getElementById('sa-pat-img-'+cat)?.value.trim();
+  const nombre = document.getElementById('sa-pat-nombre-'+cat)?.value.trim();
+  const link = document.getElementById('sa-pat-link-'+cat)?.value.trim();
+  if(!nombre) return showToast('nombre requerido');
+  const {error} = await _supa.from('patrocinantes').insert({categoria:cat,imagen_url:img||null,nombre,link:link||null});
+  if(error){showToast('error guardando');console.error(error);return;}
+  showToast('patrocinante agregado',true);
+  saLoadPatrocinantes();
+}
+
+async function _saDeletePat(id,cat){
+  await _supa.from('patrocinantes').delete().eq('id',id);
+  showToast('eliminado',true);
+  saLoadPatrocinantes();
+}
+</script>
 
 <!-- NOTICIA DETAIL VIEW -->
 <div id="view-noticia-detail" class="view">
@@ -8766,8 +8841,8 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
   </div>
   <div class="rx-menu">
 
-    <!-- Comunidad — link directo -->
-    <div class="rx-menu-card" onclick="showView('favoritos')">
+    <!-- 1. Comunidad — link directo -->
+    <div class="rx-menu-card" onclick="showView('favoritos')" style="cursor:pointer">
       <div class="rx-menu-card-btn">
         <div class="rx-menu-card-text">
           <div class="rx-menu-card-title">Comunidad</div>
@@ -8779,7 +8854,46 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       </div>
     </div>
 
-    <!-- Acordeón items -->
+    <!-- 2. OBD2 Scanner — click directo, sin acordeón -->
+    <div class="rx-menu-card" onclick="window.location.href='ruedda_ob2_scanner.html'" style="cursor:pointer">
+      <div class="rx-menu-card-btn">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Scanner OBD2</div>
+          <div class="rx-menu-card-sub">Diagnóstico profesional de tu vehículo.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Medidor de decibeles — clickeable -->
+    <div class="rx-menu-card" onclick="showToast('próximamente')" style="cursor:pointer">
+      <div class="rx-menu-card-btn">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Medidor de decibeles</div>
+          <div class="rx-menu-card-sub">Mide los decibeles de tu tubo de escape. <span style="color:#e6f03b;font-weight:700">by STXX</span></div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Legal (ex Empresa) — clickeable -->
+    <div class="rx-menu-card" onclick="showToast('próximamente')" style="cursor:pointer">
+      <div class="rx-menu-card-btn">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Legal</div>
+          <div class="rx-menu-card-sub">Soluciones legales para transacciones automotrices.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Gestoría -->
     <div class="rx-menu-card" id="rxc-gestoria">
       <button class="rx-menu-card-btn" onclick="_rxToggle('gestoria')">
         <div class="rx-menu-card-text">
@@ -8794,6 +8908,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div class="rx-accordion-body" id="rxb-gestoria"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
     </div>
 
+    <!-- 6. Inspección pre-compra -->
     <div class="rx-menu-card" id="rxc-inspeccion">
       <button class="rx-menu-card-btn" onclick="_rxToggle('inspeccion')">
         <div class="rx-menu-card-text">
@@ -8808,6 +8923,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div class="rx-accordion-body" id="rxb-inspeccion"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
     </div>
 
+    <!-- 7. Aseguradoras — escudo con mini cruz -->
     <div class="rx-menu-card" id="rxc-aseguradoras">
       <button class="rx-menu-card-btn" onclick="_rxToggle('aseguradoras')">
         <div class="rx-menu-card-text">
@@ -8815,13 +8931,14 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
           <div class="rx-menu-card-sub">Asegura tu patrimonio hoy mismo.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v8M8 12h8" stroke="#e6f03b" stroke-width="1.8" stroke-linecap="round"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-aseguradoras" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
       <div class="rx-accordion-body" id="rxb-aseguradoras"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
     </div>
 
+    <!-- 8. Asistencia vial — grúa SVG -->
     <div class="rx-menu-card" id="rxc-asistencia">
       <button class="rx-menu-card-btn" onclick="_rxToggle('asistencia')">
         <div class="rx-menu-card-text">
@@ -8829,13 +8946,14 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
           <div class="rx-menu-card-sub">Las mejores grúas de tu zona.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M1 3h15v13H1zm15 5h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M2 17h20M2 17V9l5-5h9l4 5v8M2 17l2 2h16l2-2"/><path d="M7 4v5H2M15 9h5"/><circle cx="7" cy="19" r="2"/><circle cx="17" cy="19" r="2"/><path d="M12 4v5"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-asistencia" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
       <div class="rx-accordion-body" id="rxb-asistencia"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
     </div>
 
+    <!-- 9. Detailing — brocha -->
     <div class="rx-menu-card" id="rxc-detailing">
       <button class="rx-menu-card-btn" onclick="_rxToggle('detailing')">
         <div class="rx-menu-card-text">
@@ -8843,7 +8961,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
           <div class="rx-menu-card-sub">Estética profesional para tu vehículo.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 21l6-6M9 3l6 6-7 7M15 3l3 3-7.5 7.5"/><path d="M3 21c0-2 1-3 3-3s3 1 3 3" stroke-linecap="round"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-detailing" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -8876,20 +8994,6 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
         <svg class="rx-chevron" id="rxchev-socios" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
       <div class="rx-accordion-body" id="rxb-socios"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
-    </div>
-
-    <div class="rx-menu-card" id="rxc-scanner" onclick="window.location.href='/ruedda_ob2_scanner.html'">
-      <button class="rx-menu-card-btn" onclick="_rxToggle('scanner')">
-        <div class="rx-menu-card-text">
-          <div class="rx-menu-card-title">Scanner OBD2</div>
-          <div class="rx-menu-card-sub">Diagnóstico profesional de tu vehículo.</div>
-        </div>
-        <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-        </div>
-        <svg class="rx-chevron" id="rxchev-scanner" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div class="rx-accordion-body" id="rxb-scanner"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
     </div>
 
     <div class="rx-menu-card" id="rxc-vins">
@@ -8948,20 +9052,6 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div class="rx-accordion-body" id="rxb-fotografos"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
     </div>
 
-    <div class="rx-menu-card" id="rxc-empresa">
-      <button class="rx-menu-card-btn" onclick="_rxToggle('empresa')">
-        <div class="rx-menu-card-text">
-          <div class="rx-menu-card-title">Empresa</div>
-          <div class="rx-menu-card-sub">Soluciones para flotas y negocios automotrices.</div>
-        </div>
-        <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        </div>
-        <svg class="rx-chevron" id="rxchev-empresa" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-      <div class="rx-accordion-body" id="rxb-empresa"><div class="rx-accordion-placeholder"><span>próximamente</span></div></div>
-    </div>
-
     <div class="rx-menu-card" id="rxc-rc">
       <button class="rx-menu-card-btn" onclick="_rxToggle('rc')">
         <div class="rx-menu-card-text">
@@ -8978,6 +9068,3 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
 
   </div>
 </div>
-
-</body>
-</html>
