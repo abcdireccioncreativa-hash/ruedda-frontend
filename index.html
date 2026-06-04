@@ -7698,6 +7698,36 @@ async function _rueddaLoadUserData(userId,role){
   }
   _syncNotifBadge(); // [RUEDDA v61] badge calculado desde no-leídas reales
   _subscribeNotifs(userId);
+  _subscribePrivateMessages(userId); // [FIX v62] realtime para mensajes entrantes
+}
+
+// [FIX v62] Suscripción Realtime a private_messages — receptor recibe mensajes al instante
+function _subscribePrivateMessages(userId){
+  if(!_supa||!userId) return;
+  _supa.channel(`ruedda-pm-${userId}`)
+    .on('postgres_changes',{
+      event:'INSERT',
+      schema:'public',
+      table:'private_messages',
+      filter:`receiver_id=eq.${userId}`
+    },payload=>{
+      const m=payload.new;
+      // refetch completo para reconstruir threads con datos de sender
+      _loadPrivateMessages();
+      // notif local si la vista de mensajes no está abierta
+      if(currentView!=='notificaciones'){
+        NOTIFICATIONS.unshift({id:Date.now(),type:'pm',title:'Nuevo mensaje',body:'Tienes un mensaje sobre '+(m.source_title||'una publicación'),time:'ahora mismo',read:false,icon:'lime'});
+        _saveNotifsToStorage();
+        const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
+      }
+      // si el thread está abierto, actualizar en tiempo real
+      if(currentThread?.isPM&&currentThread?.otherId===m.sender_id){
+        _loadPrivateMessages().then(()=>{
+          const refreshed=THREADS.find(t=>String(t.id)===String(currentThread?.id));
+          if(refreshed){currentThread=refreshed;renderThreadMessages();}
+        });
+      }
+    }).subscribe();
 }
 
 (async function _rueddaInit(){
@@ -7968,16 +7998,15 @@ async function _sendPrivateMessage(receiverId,sourceId,sourceType,sourceTitle){
   });
   if(error){showToast('error enviando mensaje');console.error('[pm]',error);return;}
   inp.value='';
-  // cerrar el panel
-  const panel=document.getElementById('pm-panel');
-  if(panel) panel.style.display='none';
   showToast('mensaje enviado',true);
   // notif local para el sender
   NOTIFICATIONS.unshift({id:Date.now(),type:'pm',title:'Mensaje enviado',body:'Tu mensaje sobre '+sourceTitle+' fue enviado',time:'ahora mismo',read:false,icon:'lime'});
-  _saveNotifsToStorage(); // [RUEDDA v61] persistir
+  _saveNotifsToStorage();
   const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
-  // recargar mensajes
-  _loadPrivateMessages();
+  // [FIX v62] cerrar panel DESPUÉS de disparar el refetch — evita que la UI
+  // quede ciega mientras _loadPrivateMessages resuelve de forma asíncrona
+  _closePmPanel();
+  await _loadPrivateMessages();
 }
 
 function _closePmPanel(){
@@ -8040,6 +8069,7 @@ async function _loadPrivateMessages(){
       otherName:(isMe?m.receiver?.nombre:m.sender?.nombre)||'usuario',
       otherRole:(isMe?m.receiver?.role:m.sender?.role)||'',
       sourceTitle:m.source_title||'publicación',
+      sourceId:m.source_id||null, // [FIX v62] guardar sourceId para reconstruir thread
       messages:[],unread:0
     };
     threads[key].messages.push({...m,mine:isMe});
@@ -8056,6 +8086,7 @@ async function _loadPrivateMessages(){
     otherId:t.otherId,
     otherName:t.otherName,
     otherRole:t.otherRole,
+    sourceId:t.sourceId||null, // [FIX v62] exponer sourceId para sendThreadReply
     unread:t.unread>0,
     messages:t.messages.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)).map(m=>({
       from:m.mine?'tú':_masked(t.otherName),
@@ -8150,20 +8181,33 @@ async function sendThreadReply(){
   const input=document.getElementById('thread-input');
   const text=input.value.trim();
   if(!text) return;
+  // [FIX v62] optimistic update inmediato — el mensaje aparece al instante
+  currentThread.messages.push({from:'tú',text,time:'ahora mismo',mine:true});
+  input.value='';input.style.height='44px';
+  input.focus();
+  renderThreadMessages();
   if(currentThread.isPM){
     const{error}=await _supa.from('private_messages').insert({
       sender_id:USER_STATE.id,
       receiver_id:currentThread.otherId,
-      source_id:null,
+      source_id:currentThread.sourceId||null, // [FIX v62] source_id era null siempre → thread huérfano
       source_title:currentThread.carTitle,
       text
     });
-    if(error){showToast('error enviando');return;}
+    if(error){
+      showToast('error enviando');
+      // revertir optimistic update si falla la inserción
+      currentThread.messages.pop();
+      input.value=text;
+      renderThreadMessages();
+      return;
+    }
+    // [FIX v62] refetch para sincronizar con Supabase (timestamps reales, etc.)
+    await _loadPrivateMessages();
+    // re-abrir el thread correcto después del refetch
+    const refreshed=THREADS.find(t=>String(t.id)===String(currentThread?.id));
+    if(refreshed){currentThread=refreshed;renderThreadMessages();}
   }
-  currentThread.messages.push({from:'tú',text,time:'ahora mismo',mine:true});
-  input.value='';input.style.height='44px';
-  input.focus(); // [RUEDDA v61] mantener foco post-envío
-  renderThreadMessages();
 }
 
 // ─────────────────────────────────────────────
