@@ -3080,7 +3080,17 @@ function carPlaceholder(id,size='large'){
   return `<svg fill="none" viewBox="0 0 100 62" stroke="currentColor" stroke-width="1" style="width:90px;height:56px;color:#2a2a2a"><rect x="1" y="15" width="98" height="36" rx="7" fill="#1c1c1c" stroke="#2a2a2a"/><path d="M10 26L20 14L38 14L46 26" stroke="#333" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M52 26L62 14L78 14L86 26" stroke="#333" stroke-width="1.5" fill="none" stroke-linejoin="round"/><circle cx="21" cy="50" r="7" fill="#222" stroke="#333" stroke-width="1.5"/><circle cx="79" cy="50" r="7" fill="#222" stroke="#333" stroke-width="1.5"/><line x1="1" y1="31" x2="99" y2="31" stroke="#252525" stroke-width="1"/></svg>${pill}`;
 }
 
+// [v76] cache hashes para evitar re-render innecesario al volver del detalle
+let _lastCardsHash = '';
+let _lastMarketHash = '';
+
 function renderCards(filter){
+  // [v76] dirty check — si los datos y filtro no cambiaron, no re-renderizar
+  const hash = currentTab+'|'+(filter||'')+
+    '|'+(currentTab==='chocados'?AUCTIONS_CHOCADOS:AUCTIONS).map(a=>a.id+'_'+a.currentBid+'_'+a.bidCount).join(',');
+  if(hash===_lastCardsHash && document.getElementById('card-list').children.length>0) return;
+  _lastCardsHash=hash;
+
   clearTimers();
   const list=document.getElementById('card-list');
   list.innerHTML='';
@@ -3665,6 +3675,11 @@ function setMktCond(cond){
   renderMarket();
 }
 function renderMarket(){
+  // [v76] dirty check — si los datos y filtros no cambiaron, no re-renderizar
+  const hash = mktCond+'|'+JSON.stringify(mFilters)+'|'+MARKET_LISTINGS.map(l=>l.id+'_'+l.price).join(',');
+  if(hash===_lastMarketHash && document.getElementById('market-grid').children.length>0) return;
+  _lastMarketHash=hash;
+
   let data=[...MARKET_LISTINGS];
   // filtro condicion (usados/nuevos) — campo condicion en listings
   if(mktCond==='usados') data=data.filter(l=>!l.condicion||l.condicion!=='nuevo'&&l.condicion!=='0km');
