@@ -2941,6 +2941,11 @@ function setUserRole(role, data={}){
   updateCuentaView();
   updateVenderModal();
   updateHamburgerAdmin();
+  // [FIX v81] cargar mensajes apenas el usuario está autenticado
+  // USER_STATE.id está garantizado en este punto
+  if(role !== 'guest' && USER_STATE.id) {
+    setTimeout(()=>_loadPrivateMessages(), 500);
+  }
 }
 
 function isGuest(){ return USER_STATE.role === 'guest'; }
