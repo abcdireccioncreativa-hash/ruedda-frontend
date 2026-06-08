@@ -8399,9 +8399,14 @@ function _injectPmButton(sellerCardId,receiverId,receiverName,sourceId,sourceTyp
 // HOOK carga PM en tab mensajes
 // ─────────────────────────────────────────────
 const _origSwitchNotifTab=switchNotifTab;
-switchNotifTab=function(tab){
+switchNotifTab=async function(tab){
+  // [FIX v79] fetch ANTES de renderizar — evita flash de "sin mensajes"
+  // invalidamos cache para que siempre traiga datos frescos al abrir la tab
+  if(tab==='mensajes'&&!isGuest()){
+    _lastCardsHash=''; // no es el hash de mensajes pero por si acaso
+    await _loadPrivateMessages();
+  }
   _origSwitchNotifTab(tab);
-  if(tab==='mensajes'&&!isGuest()) _loadPrivateMessages();
 };
 
 // ─────────────────────────────────────────────
