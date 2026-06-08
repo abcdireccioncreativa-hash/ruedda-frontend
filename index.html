@@ -5305,14 +5305,16 @@ async function publishListing(){
     const{error}=await (_supaWrite||_supa).from(tabla).insert(payload);
     if(error) console.error('[ruedda publish] insert error:', error);
     if(error) throw new Error(error.message);
-    // operaciones post-insert aisladas — si fallan no matan el publish
-    if(window._venderPhotos?.length) await _uploadVenderPhotos(recordId,userId,esListing).catch(e=>console.warn('[ruedda] fotos:',e.message));
-    if(window._pendingPaymentRef){
-      const refField = esListing ? 'listing_id' : 'auction_id';
-      await _supa.from('payment_refs').update({[refField]:recordId}).eq('ref_num',window._pendingPaymentRef).catch(e=>console.warn('[ruedda] payment_ref link:',e.message));
-      window._pendingPaymentRef=null;
-    }
-    await (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'system',titulo:'publicación en revisión',body:`Tu ${year} ${marca} ${modelo} está en revisión. Te notificaremos cuando sea aprobado.`,icon:'lime'}).catch(e=>console.warn('[ruedda] notif:',e.message));
+    // operaciones post-insert aisladas — si fallan NO matan el publish ni bloquean el splash
+    Promise.allSettled([
+      window._venderPhotos?.length ? _uploadVenderPhotos(recordId,userId,esListing) : Promise.resolve(),
+      window._pendingPaymentRef ? (async()=>{
+        const refField = esListing ? 'listing_id' : 'auction_id';
+        await _supa.from('payment_refs').update({[refField]:recordId}).eq('ref_num',window._pendingPaymentRef);
+        window._pendingPaymentRef=null;
+      })() : Promise.resolve(),
+      (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'system',titulo:'publicación en revisión',body:`Tu ${year} ${marca} ${modelo} está en revisión. Te notificaremos cuando sea aprobado.`,icon:'lime'})
+    ]).catch(e=>console.warn('[ruedda] post-insert:',e?.message));
     showDealerFab(false);
     window._venderPhotos=[];
     photoItems=[];
@@ -5676,11 +5678,17 @@ function openEditListingModal(id){
         <div style="font-size:15px;font-weight:700">editar publicación</div>
         <button onclick="document.getElementById('edit-listing-modal').remove()" style="background:rgba(255,255,255,.07);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(255,255,255,.5)">×</button>
       </div>
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">nombre del vehículo</div>
+      <input id="edit-titulo" type="text" value="${l.title||l.titulo||''}" placeholder="ej. 2020 Toyota Corolla" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box;margin-bottom:14px" onfocus="this.style.borderColor='rgba(255,255,255,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
       <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">precio (USD)</div>
       <input id="edit-precio" type="number" value="${String(l.price).replace(/[^0-9.]/g,'')}" placeholder="ej. 12000" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box;margin-bottom:14px" onfocus="this.style.borderColor='rgba(255,255,255,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
       <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">descripción</div>
       <textarea id="edit-desc" placeholder="describe tu vehículo..." rows="4" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;resize:none;box-sizing:border-box;margin-bottom:14px;line-height:1.5" onfocus="this.style.borderColor='rgba(255,255,255,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">${l.desc||''}</textarea>
-      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">fotos</div>
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">fotos actuales</div>
+      <div id="edit-current-photos" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+        <div style="font-size:12px;color:rgba(255,255,255,.25);padding:8px 0">cargando fotos...</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">agregar fotos</div>
       <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.12);border-radius:12px;padding:14px;cursor:pointer;margin-bottom:18px;transition:border-color .15s" onmouseover="this.style.borderColor='rgba(230,240,59,.35)'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)'">
         <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.5" style="width:22px;height:22px;flex-shrink:0"><path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
         <span style="font-size:13px;color:rgba(255,255,255,.4)">reemplazar fotos del vehículo</span>
@@ -5689,6 +5697,27 @@ function openEditListingModal(id){
       <button id="save-listing-btn" onclick="saveListingEdit('${id}')" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s">guardar cambios</button>
     </div>`;
   document.body.appendChild(modal);
+  // cargar fotos existentes desde Supabase
+  if(_supa){
+    _supa.from('listing_photos').select('id,url,orden').eq('listing_id',_idStr).order('orden',{ascending:true}).then(({data:photos})=>{
+      const cont=document.getElementById('edit-current-photos');
+      if(!cont) return;
+      if(!photos?.length){cont.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.25);padding:4px 0;grid-column:1/-1">sin fotos aún</div>';return;}
+      cont.innerHTML=photos.map(p=>`
+        <div style="position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#1a1a1a">
+          <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;display:block">
+          <button onclick="_deleteEditPhoto('${p.id}','${_idStr}',this.closest('div[style*=relative]'))" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">×</button>
+        </div>`).join('');
+    });
+  }
+}
+async function _deleteEditPhoto(photoId, listingId, el){
+  if(!_supa) return;
+  el.style.opacity='.4';
+  const{error}=await _supa.from('listing_photos').delete().eq('id',photoId);
+  if(error){el.style.opacity='1';showToast('error eliminando foto');return;}
+  el.remove();
+  showToast('foto eliminada ✓',true);
 }
 function handleEditPhotos(input, id){
   if(!input.files?.length) return;
@@ -5702,12 +5731,15 @@ async function saveListingEdit(id){
   if(btn){btn.innerHTML='<div class="save-spinner"></div>';btn.disabled=true;btn.style.opacity='.7';}
   const precio=document.getElementById('edit-precio')?.value.trim();
   const desc=document.getElementById('edit-desc')?.value.trim();
+  const titulo=document.getElementById('edit-titulo')?.value.trim();
   const lMock=MOCK_MY_LISTINGS.find(x=>String(x.id)===_idStr);
   const lDealer=DEALER_LISTINGS_OWN.find(x=>String(x.id)===_idStr);
-  if(lMock){ if(precio) lMock.price='$'+Number(precio).toLocaleString(); if(desc!==undefined) lMock.desc=desc; }
-  if(lDealer){ if(precio) lDealer.price=Number(precio); if(desc!==undefined) lDealer.desc=desc; }
+  if(lMock){ if(titulo) lMock.title=titulo; if(precio) lMock.price='$'+Number(precio).toLocaleString(); if(desc!==undefined) lMock.desc=desc; }
+  if(lDealer){ if(titulo) lDealer.title=titulo; if(precio) lDealer.price=Number(precio); if(desc!==undefined) lDealer.desc=desc; }
   if(_supa && precio){
-    await _supa.from('listings').update({precio_usd:Number(precio),descripcion:desc||null}).eq('id',_idStr).catch(e=>console.error('[ruedda] saveListingEdit:',e.message));
+    const upd={precio_usd:Number(precio),descripcion:desc||null};
+    if(titulo) upd.titulo=titulo;
+    await _supa.from('listings').update(upd).eq('id',_idStr).catch(e=>console.error('[ruedda] saveListingEdit:',e.message));
   }
   // slide down del modal con animación
   const modal=document.getElementById('edit-listing-modal');
@@ -6077,7 +6109,7 @@ function renderDealerFiltered(){
   if(f.tipo !== 'todos') dealers = dealers.filter(d=>(d.tag||'').includes(f.tipo));
   grid.innerHTML = dealers.length
     ? dealers.map((d,i)=>`<div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
-        <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" loading="lazy">`:d.initial}</div>
+        <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1'">`:d.initial}</div>
         <div class="dealer-info"><div class="dealer-name" style="display:flex;align-items:center;gap:0">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="dealer-meta">${d.ciudad.toLowerCase()}</div><div class="dealer-count">${d.autos} vehículos</div></div>
       </div>`).join('')
     : '<div class="empty-state" style="grid-column:1/-1"><p>sin concesionarios con estos filtros</p></div>';
@@ -6101,7 +6133,7 @@ function renderDealerGrid(){
   }
   grid.innerHTML = data.map((d,i) => `
     <div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
-      <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0" loading="lazy">`:d.initial}</div>
+      <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1'">`:d.initial}</div>
       <div class="dealer-info">
         <div class="dealer-name" style="display:flex;align-items:center">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="dealer-meta">${d.ciudad.toLowerCase()}</div>
@@ -6413,7 +6445,7 @@ async function saLoadSugerencias(){
 }
 
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -6426,6 +6458,7 @@ function saTab(tab){
   if(tab==='pagos') renderPendingRefs();
   if(tab==='comunidad') saLoadComunidadAdmin();
   if(tab==='patrocinantes') saLoadPatrocinantes();
+  if(tab==='publicaciones') saLoadPublicaciones();
 }
 
 let saCatalogoLinks = [];
@@ -6690,6 +6723,16 @@ async function modApprove(id){
   const item=(window._modQueueData||[]).find(x=>x.id===id);
   const tbl=item?._table||'listings';
   const esDealer=!!(item?.concesionario_id);
+  // [FIX v78] verificar estado actual antes de aprobar — evita duplicados
+  if(_supa){
+    const{data:check}=await _supa.from(tbl).select('estado').eq('id',id).maybeSingle();
+    if(check?.estado==='activa'||check?.estado==='aprobada'){
+      showToast('ya está aprobada — sin cambios');
+      const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
+      renderModQueue(activeTab);
+      return;
+    }
+  }
   // dealers → activa (va al market directo); particulares → aprobada (espera pago del usuario)
   const nuevoEstado=esDealer?'activa':'aprobada';
   const{error}=await _supa.from(tbl).update({estado:nuevoEstado}).eq('id',id);
@@ -8411,6 +8454,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div class="tab" id="sa-tab-bypass" onclick="saTab('bypass')" style="white-space:nowrap;flex-shrink:0">bypass</div>
     <div class="tab" id="sa-tab-comunidad" onclick="saTab('comunidad')" style="white-space:nowrap;flex-shrink:0">comunidad</div>
     <div class="tab" id="sa-tab-patrocinantes" onclick="saTab('patrocinantes')" style="white-space:nowrap;flex-shrink:0">patrocinantes</div>
+    <div class="tab" id="sa-tab-publicaciones" onclick="saTab('publicaciones')" style="white-space:nowrap;flex-shrink:0">publicaciones</div>
   </div>
 
   <!-- USUARIOS TAB -->
@@ -8616,8 +8660,18 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
 
   </div>
 
-  <!-- PATROCINANTES -->
-  <div id="sa-patrocinantes" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
+  <!-- PUBLICACIONES -->
+  <div id="sa-publicaciones" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Gestor Global</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Todas las publicaciones de la plataforma.</div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button onclick="saLoadPublicaciones('listings')" id="sa-pub-tab-listings" style="flex:1;background:rgba(230,240,59,.15);border:1px solid rgba(230,240,59,.3);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:#e6f03b;cursor:pointer">market</button>
+      <button onclick="saLoadPublicaciones('auctions')" id="sa-pub-tab-auctions" style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer">subastas</button>
+    </div>
+    <div id="sa-pub-list" style="display:flex;flex-direction:column;gap:8px">
+      <div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
+    </div>
+  </div>
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Patrocinantes</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Gestiona los patrocinantes por sección de RueddaExtra. Cada card puede tener imagen, nombre y link.</div>
     <div id="sa-pat-content" style="display:flex;flex-direction:column;gap:14px">
@@ -8630,8 +8684,48 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
 
 <!-- SA PATROCINANTES SECTION -->
 <script>
+// ── SA GESTOR GLOBAL DE PUBLICACIONES ─────────────────────
+let _saPubTable = 'listings';
+async function saLoadPublicaciones(tbl){
+  _saPubTable = tbl || _saPubTable;
+  // toggle button styles
+  ['listings','auctions'].forEach(t=>{
+    const btn=document.getElementById('sa-pub-tab-'+t);
+    if(!btn) return;
+    const active=t===_saPubTable;
+    btn.style.background=active?'rgba(230,240,59,.15)':'rgba(255,255,255,.05)';
+    btn.style.borderColor=active?'rgba(230,240,59,.3)':'var(--border)';
+    btn.style.color=active?'#e6f03b':'rgba(255,255,255,.5)';
+  });
+  const list=document.getElementById('sa-pub-list');
+  if(!list||!_supa) return;
+  list.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>';
+  const{data,error}=await _supa.from(_saPubTable)
+    .select('id,titulo,marca,modelo,year,estado,ciudad,created_at,user_id')
+    .order('created_at',{ascending:false})
+    .limit(100);
+  if(error){list.innerHTML=`<div style="color:rgba(255,80,80,.8);font-size:12px;padding:12px">${error.message}</div>`;return;}
+  if(!data?.length){list.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones</div>';return;}
+  list.innerHTML=data.map(p=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.year||''} ${p.marca||''} ${p.modelo||p.titulo||'—'}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${p.ciudad||'—'} · <span style="color:${p.estado==='activa'?'rgba(100,220,150,.8)':p.estado==='revision'?'rgba(100,200,255,.7)':'rgba(255,255,255,.3)'}">${p.estado||'—'}</span></div>
+      </div>
+      <button onclick="saDeletePub('${p.id}')" style="flex-shrink:0;background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.2);border-radius:10px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,80,80,.9);cursor:pointer">eliminar</button>
+    </div>`).join('');
+}
+async function saDeletePub(id){
+  if(!confirm('¿Eliminar esta publicación? Esta acción no se puede deshacer.')) return;
+  if(!_supa) return;
+  const{error}=await _supa.from(_saPubTable).delete().eq('id',id);
+  if(error){showToast('error eliminando: '+error.message);return;}
+  showToast('publicación eliminada ✓',true);
+  saLoadPublicaciones();
+}
+
 // ── PATROCINANTES SUPERADMIN ──────────────────────────────
-const _saPatCats = ['financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos'];
+const _saPatCats = ['financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
 let _saPatData = {};
 
 async function saLoadPatrocinantes(){
