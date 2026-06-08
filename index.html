@@ -2996,7 +2996,11 @@ function showView(name,param){
   } else {}
   if(name==='vender')populateYears();
   if(name==='cuenta'){document.getElementById('stat-guardadas').textContent=watchlist.size;updateCuentaView();showDealerFab(false);}
-  if(name==='notificaciones'){renderNotifications();document.getElementById('notif-dot').style.display='none';}
+  if(name==='notificaciones'){
+    renderNotifications();
+    document.getElementById('notif-dot').style.display='none';
+    if(!isGuest()) _loadPrivateMessages(); // [FIX v80] cargar mensajes al abrir la view
+  }
   if(name==='favoritos')renderFavoritos();
   if(name==='carspotting')loadCarspotting();
   if(name==='sugerencias'){/* nada que cargar */}
@@ -8119,14 +8123,7 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
 }
 
 async function _loadPrivateMessages(){
-  // [FIX v79] si USER_STATE.id no está listo, esperar hasta 2s y reintentar
-  if(!_supa) return;
-  if(!USER_STATE.id||isGuest()){
-    if(!isGuest()){
-      await new Promise(r=>setTimeout(r,800));
-      if(!USER_STATE.id) return;
-    } else return;
-  }
+  if(!_supa||!USER_STATE.id||isGuest()) return;
 
   // QUERY 1: mensajes sin join — evita el problema cross-schema FK alias
   const{data,error}=await _supa.from('private_messages')
@@ -8407,8 +8404,8 @@ function _injectPmButton(sellerCardId,receiverId,receiverName,sourceId,sourceTyp
 // ─────────────────────────────────────────────
 const _origSwitchNotifTab=switchNotifTab;
 switchNotifTab=function(tab){
-  _origSwitchNotifTab(tab); // abre el tab SIEMPRE primero
-  if(tab==='mensajes'&&!isGuest()) _loadPrivateMessages(); // fetch en paralelo sin bloquear
+  _origSwitchNotifTab(tab);
+  if(tab==='mensajes'&&!isGuest()) _loadPrivateMessages();
 };
 
 // ─────────────────────────────────────────────
