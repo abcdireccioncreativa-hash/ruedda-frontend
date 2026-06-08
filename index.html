@@ -8119,7 +8119,14 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
 }
 
 async function _loadPrivateMessages(){
-  if(!_supa||!USER_STATE.id||isGuest()) return;
+  // [FIX v79] si USER_STATE.id no está listo, esperar hasta 2s y reintentar
+  if(!_supa) return;
+  if(!USER_STATE.id||isGuest()){
+    if(!isGuest()){
+      await new Promise(r=>setTimeout(r,800));
+      if(!USER_STATE.id) return;
+    } else return;
+  }
 
   // QUERY 1: mensajes sin join — evita el problema cross-schema FK alias
   const{data,error}=await _supa.from('private_messages')
@@ -8399,14 +8406,9 @@ function _injectPmButton(sellerCardId,receiverId,receiverName,sourceId,sourceTyp
 // HOOK carga PM en tab mensajes
 // ─────────────────────────────────────────────
 const _origSwitchNotifTab=switchNotifTab;
-switchNotifTab=async function(tab){
-  // [FIX v79] fetch ANTES de renderizar — evita flash de "sin mensajes"
-  // invalidamos cache para que siempre traiga datos frescos al abrir la tab
-  if(tab==='mensajes'&&!isGuest()){
-    _lastCardsHash=''; // no es el hash de mensajes pero por si acaso
-    await _loadPrivateMessages();
-  }
-  _origSwitchNotifTab(tab);
+switchNotifTab=function(tab){
+  _origSwitchNotifTab(tab); // abre el tab SIEMPRE primero
+  if(tab==='mensajes'&&!isGuest()) _loadPrivateMessages(); // fetch en paralelo sin bloquear
 };
 
 // ─────────────────────────────────────────────
