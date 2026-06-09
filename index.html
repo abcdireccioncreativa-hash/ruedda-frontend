@@ -7725,12 +7725,16 @@ function _subscribeToAuctions(){
 
 function _subscribeNotifs(userId){
   if(!_supa||!userId) return;
-  _supa.channel(`ruedda-notifs-${userId}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${userId}`},payload=>{
+  // [PM v82] singleton: remover canal anterior antes de crear uno nuevo (evita suscripciones zombi)
+  if(window._notifChannel){try{window._notifChannel.unsubscribe();_supa.removeChannel(window._notifChannel);}catch(e){}window._notifChannel=null;}
+  const ch=_supa.channel(`ruedda-notifs-${userId}-${Date.now()}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${userId}`},payload=>{
     const n=payload.new;
-    NOTIFICATIONS.unshift({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'ahora mismo',read:false,icon:n.icon||'default'});
+    NOTIFICATIONS.unshift({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'ahora mismo',read:false,icon:n.icon||'default',sourceId:n.source_id||null,sourceType:n.source_type||''});
     _saveNotifsToStorage(); // [RUEDDA v61] persistir notif realtime
     const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
+    if(typeof _syncNotifBadge==='function')_syncNotifBadge();
   }).subscribe();
+  window._notifChannel=ch;
 }
 
 async function _persistFav(itemId,add){
@@ -7759,19 +7763,22 @@ async function _rueddaLoadUserData(userId,role){
     NOTIFICATIONS.length=0; // limpiar para re-poblar ordenado desde Supabase
     notifs.forEach(n=>{
       const wasRead = storedMap[String(n.id)] !== undefined ? storedMap[String(n.id)] : !!n.read;
-      NOTIFICATIONS.push({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'reciente',read:wasRead,icon:n.icon||'default'});
+      NOTIFICATIONS.push({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'reciente',read:wasRead,icon:n.icon||'default',sourceId:n.source_id||null,sourceType:n.source_type||''});
     });
     _saveNotifsToStorage(); // [RUEDDA v61] guardar estado mergeado
   }
   _syncNotifBadge(); // [RUEDDA v61] badge calculado desde no-leídas reales
   _subscribeNotifs(userId);
   _subscribePrivateMessages(userId); // [FIX v62] realtime para mensajes entrantes
+  _loadPrivateMessages(); // [PM v82] precargar bandeja apenas la sesión resuelve — mata el cold start en blanco
 }
 
-// [FIX v62] Suscripción Realtime a private_messages — receptor recibe mensajes al instante
+// [PM v82] Suscripción Realtime a private_messages — singleton + resuscripción automática
 function _subscribePrivateMessages(userId){
   if(!_supa||!userId) return;
-  _supa.channel(`ruedda-pm-${userId}`)
+  // remover canal anterior antes de crear uno nuevo (evita suscripciones zombi/duplicadas)
+  if(window._pmChannel){try{window._pmChannel.unsubscribe();_supa.removeChannel(window._pmChannel);}catch(e){}window._pmChannel=null;}
+  const ch=_supa.channel(`ruedda-pm-${userId}-${Date.now()}`)
     .on('postgres_changes',{
       event:'INSERT',
       schema:'public',
@@ -7779,23 +7786,45 @@ function _subscribePrivateMessages(userId){
       filter:`receiver_id=eq.${userId}`
     },payload=>{
       const m=payload.new;
-      // refetch completo para reconstruir threads con datos de sender
+      // refetch (dedupe interno) — reconstruye threads y refresca thread abierto si aplica
       _loadPrivateMessages();
       // notif local si la vista de mensajes no está abierta
       if(currentView!=='notificaciones'){
-        NOTIFICATIONS.unshift({id:Date.now(),type:'pm',title:'Nuevo mensaje',body:'Tienes un mensaje sobre '+(m.source_title||'una publicación'),time:'ahora mismo',read:false,icon:'lime'});
+        NOTIFICATIONS.unshift({id:Date.now(),type:'pm',title:'Nuevo mensaje',body:'Tienes un mensaje sobre '+(m.source_title||'una publicación'),time:'ahora mismo',read:false,icon:'lime',sourceId:m.sender_id,sourceType:'pm',pmSourceId:m.source_id||null});
         _saveNotifsToStorage();
         const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
       }
-      // si el thread está abierto, actualizar en tiempo real
-      if(currentThread?.isPM&&currentThread?.otherId===m.sender_id){
-        _loadPrivateMessages().then(()=>{
-          const refreshed=THREADS.find(t=>String(t.id)===String(currentThread?.id));
-          if(refreshed){currentThread=refreshed;renderThreadMessages();}
-        });
+    })
+    .subscribe(status=>{
+      if(window._pmChannel!==ch) return; // canal viejo desechado, ignorar
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+        clearTimeout(window._pmResubT);
+        window._pmResubT=setTimeout(()=>{
+          if(USER_STATE.id&&window._pmChannel===ch)_subscribePrivateMessages(USER_STATE.id);
+        },4000);
       }
-    }).subscribe();
+    });
+  window._pmChannel=ch;
 }
+
+// [PM v82] iOS/Safari mata el websocket en background — al volver el foco: resuscribir + refetch silencioso
+(function(){
+  let _pmLastWake=0;
+  function _pmWake(){
+    if(document.visibilityState&&document.visibilityState!=='visible') return;
+    const now=Date.now();
+    if(now-_pmLastWake<1500) return; // debounce (visibilitychange+focus+pageshow disparan juntos)
+    _pmLastWake=now;
+    if(!USER_STATE.id||isGuest()) return;
+    // resuscribir solo si el canal murió (iOS background) — no churnear canales sanos
+    if(!window._pmChannel||window._pmChannel.state!=='joined') _subscribePrivateMessages(USER_STATE.id);
+    if(!window._notifChannel||window._notifChannel.state!=='joined') _subscribeNotifs(USER_STATE.id);
+    _loadPrivateMessages();
+  }
+  document.addEventListener('visibilitychange',_pmWake);
+  window.addEventListener('focus',_pmWake);
+  window.addEventListener('pageshow',_pmWake);
+})();
 
 (async function _rueddaInit(){
   if(!_supa){console.warn('[ruedda] modo demo');return;}
@@ -8066,6 +8095,8 @@ async function _sendPrivateMessage(receiverId,sourceId,sourceType,sourceTitle){
   if(error){showToast('error enviando mensaje');console.error('[pm]',error);return;}
   inp.value='';
   showToast('mensaje enviado',true);
+  // [PM v82] notificación persistente para el receptor — se entera aunque esté offline
+  _supa.from('notifications').insert({user_id:receiverId,tipo:'pm',titulo:'Nuevo mensaje',body:`${USER_STATE.nombre||USER_STATE.username||'Un usuario'} te escribió sobre ${sourceTitle||'tu publicación'}`,icon:'lime',source_id:String(USER_STATE.id),source_type:'pm'}).then(({error:ne})=>{if(ne)console.warn('[pm notif]',ne.message);});
   // notif local para el sender
   NOTIFICATIONS.unshift({id:Date.now(),type:'pm',title:'Mensaje enviado',body:'Tu mensaje sobre '+sourceTitle+' fue enviado',time:'ahora mismo',read:false,icon:'lime'});
   _saveNotifsToStorage();
@@ -8118,8 +8149,17 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
   setTimeout(()=>document.getElementById('pm-input')?.focus(),380);
 }
 
-async function _loadPrivateMessages(){
-  if(!_supa||!USER_STATE.id||isGuest()) return;
+async function _loadPrivateMessages(force){
+  if(!_supa) return;
+  // [PM v82] dedupe: una sola carga en vuelo; las llamadas extra se encolan en una sola
+  if(window._pmLoading){window._pmPending=true;return;}
+  window._pmLoading=true;
+  try{
+  // [PM v82] cold start: la sesión resuelve async — esperar antes de rendirse
+  if(!USER_STATE.id){
+    for(let i=0;i<20&&!USER_STATE.id;i++){await new Promise(r=>setTimeout(r,250));}
+  }
+  if(!USER_STATE.id||isGuest()) return;
 
   // QUERY 1: mensajes sin join — evita el problema cross-schema FK alias
   const{data,error}=await _supa.from('private_messages')
@@ -8129,9 +8169,12 @@ async function _loadPrivateMessages(){
     .limit(200);
   if(error){console.error('[pm load]',error.message);return;}
   if(!data?.length){
+    const hadPM=THREADS.some(t=>t.isPM);
     const nonPM=THREADS.filter(t=>!t.isPM);
     THREADS.splice(0,THREADS.length,...nonPM);
-    renderMensajesList();
+    window._pmLastSig='';
+    // [PM v82] solo re-render si había threads PM antes o la lista está vacía (anti-parpadeo)
+    if(hadPM||!document.getElementById('mensajes-list')?.childElementCount) renderMensajesList();
     return;
   }
 
@@ -8206,9 +8249,23 @@ async function _loadPrivateMessages(){
       }))
   }));
 
+  // [PM v82] anti-parpadeo: solo re-render si el estado realmente cambió
+  const sig=JSON.stringify(pmThreads.map(t=>[t.id,t.unread,t.messages.length,t.messages[t.messages.length-1]?.text]));
+  const changed=sig!==window._pmLastSig;
+  window._pmLastSig=sig;
   const nonPM=THREADS.filter(t=>!t.isPM);
   THREADS.splice(0,THREADS.length,...nonPM,...pmThreads);
-  renderMensajesList();
+  const listEl=document.getElementById('mensajes-list');
+  if(force||changed||!listEl||!listEl.childElementCount) renderMensajesList();
+  // [PM v82] si hay un thread PM abierto y el estado cambió, refrescarlo (render incremental, sin parpadeo)
+  if(changed&&currentThread?.isPM){
+    const refreshed=THREADS.find(t=>String(t.id)===String(currentThread.id));
+    if(refreshed){currentThread=refreshed;renderThreadMessages();}
+  }
+  }finally{
+    window._pmLoading=false;
+    if(window._pmPending){window._pmPending=false;setTimeout(()=>_loadPrivateMessages(),80);}
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -8231,8 +8288,9 @@ function renderMensajesList(){
     return;
   }
   if(!THREADS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:14px">sin mensajes aún</div>';return;}
-  // fade-in: reset → render → trigger
-  list.classList.remove('msg-list-fade','loaded');
+  // [PM v82] fade solo en el primer paint — los refrescos posteriores no parpadean
+  const firstPaint=!list.childElementCount||!list.classList.contains('loaded');
+  if(firstPaint) list.classList.remove('msg-list-fade','loaded');
   list.innerHTML=THREADS.map(t=>{
     const last=t.messages[t.messages.length-1];
     const isDealer=t.otherIsDealer||(t.otherRole==='concesionario'||t.otherRole==='consesionario');
@@ -8256,8 +8314,8 @@ function renderMensajesList(){
       </div>
     </div>`;
   }).join('');
-  // trigger fade-in en el siguiente frame
-  requestAnimationFrame(()=>{list.classList.add('msg-list-fade');requestAnimationFrame(()=>list.classList.add('loaded'));});
+  // trigger fade-in en el siguiente frame (solo primer paint)
+  if(firstPaint) requestAnimationFrame(()=>{list.classList.add('msg-list-fade');requestAnimationFrame(()=>list.classList.add('loaded'));});
 }
 
 // ─────────────────────────────────────────────
@@ -8280,7 +8338,7 @@ function renderThreadMessages(){
   if(!currentThread) return;
   const el=document.getElementById('thread-messages');
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
-  el.innerHTML=currentThread.messages.map(m=>{
+  const _bubble=m=>{
     const mDealer=(!m.mine)&&isDealer;
     const badge=mDealer?'<span style="font-size:9px;color:rgba(100,220,150,.9);margin-left:4px">✦ verificado</span>':'';
     return `<div class="thread-bubble ${m.mine?'mine':'theirs'}">
@@ -8288,7 +8346,19 @@ function renderThreadMessages(){
       <div class="bubble-body">${m.text}</div>
       <div class="bubble-time">${m.time}</div>
     </div>`;
-  }).join('');
+  };
+  // [PM v82] render incremental: mismo thread + solo mensajes nuevos → append, no rebuild (anti-parpadeo)
+  const tid=String(currentThread.id);
+  const prevTid=el.dataset.pmTid||'';
+  const prevCount=parseInt(el.dataset.pmCount||'0',10);
+  const msgs=currentThread.messages;
+  if(prevTid===tid&&prevCount>0&&msgs.length>prevCount){
+    el.insertAdjacentHTML('beforeend',msgs.slice(prevCount).map(_bubble).join(''));
+  } else if(prevTid!==tid||msgs.length!==prevCount||!el.childElementCount){
+    el.innerHTML=msgs.map(_bubble).join('');
+  }
+  el.dataset.pmTid=tid;
+  el.dataset.pmCount=String(msgs.length);
   setTimeout(()=>{el.scrollTop=el.scrollHeight;},50);
 }
 
@@ -8307,6 +8377,7 @@ async function sendThreadReply(){
       sender_id:USER_STATE.id,
       receiver_id:currentThread.otherId,
       source_id:currentThread.sourceId||null, // [FIX v62] source_id era null siempre → thread huérfano
+      source_type:currentThread.sourceType||null, // [PM v82] faltaba — degradaba el agrupado de threads
       source_title:currentThread.carTitle,
       text
     });
@@ -8318,6 +8389,8 @@ async function sendThreadReply(){
       renderThreadMessages();
       return;
     }
+    // [PM v82] notificación persistente para el receptor — se entera aunque esté offline
+    _supa.from('notifications').insert({user_id:currentThread.otherId,tipo:'pm',titulo:'Nuevo mensaje',body:`${USER_STATE.nombre||USER_STATE.username||'Un usuario'} respondió sobre ${currentThread.carTitle||'tu publicación'}`,icon:'lime',source_id:String(USER_STATE.id),source_type:'pm'}).then(({error:ne})=>{if(ne)console.warn('[pm notif]',ne.message);});
     // [FIX v62] refetch para sincronizar con Supabase (timestamps reales, etc.)
     await _loadPrivateMessages();
     // re-abrir el thread correcto después del refetch
@@ -8330,7 +8403,12 @@ async function sendThreadReply(){
 // NOTIFICACIONES: render con link a publicación
 // ─────────────────────────────────────────────
 function _renderNotifItem(n){
-  const linkBtn=n.sourceId?`<button onclick="event.stopPropagation();_goToSource('${n.sourceId}','${n.sourceType||''}');document.getElementById('notif-action-btn')&&(document.getElementById('notif-action-btn').style.display='none')" style="background:none;border:none;color:rgba(230,240,59,.7);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;font-weight:600;margin-top:4px;display:block">ver publicación</button>`:'';
+  // [PM v82] notifs de mensaje abren el chat; las demás conservan "ver publicación"
+  const _isPm=(n.type==='pm'||n.sourceType==='pm');
+  const _pmOther=_isPm?(n.sourceId||null):null;
+  const linkBtn=_isPm
+    ?(_pmOther?`<button onclick="event.stopPropagation();_openPmThreadFrom('${_pmOther}','${n.pmSourceId||''}')" style="background:none;border:none;color:rgba(230,240,59,.7);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;font-weight:600;margin-top:4px;display:block">abrir chat</button>`:'')
+    :(n.sourceId?`<button onclick="event.stopPropagation();_goToSource('${n.sourceId}','${n.sourceType||''}');document.getElementById('notif-action-btn')&&(document.getElementById('notif-action-btn').style.display='none')" style="background:none;border:none;color:rgba(230,240,59,.7);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;font-weight:600;margin-top:4px;display:block">ver publicación</button>`:'');
   const icon=n.icon==='lime'?`<div style="width:42px;height:42px;border-radius:12px;background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:18px;height:18px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>`
     :`<div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.5" style="width:18px;height:18px"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg></div>`;
   return `<div class="notif-item${n.read?'':' unread'}" style="display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--border);cursor:default">
@@ -8343,6 +8421,21 @@ function _renderNotifItem(n){
     </div>
     ${!n.read?'<div style="width:7px;height:7px;border-radius:50%;background:#e6f03b;flex-shrink:0;margin-top:4px"></div>':''}
   </div>`;
+}
+
+// [PM v82] abrir el thread de chat desde una notificación de mensaje
+async function _openPmThreadFrom(otherId,sourceId){
+  if(!otherId) return;
+  if(isGuest()){showToast('inicia sesión para ver tus mensajes');return;}
+  showView('notificaciones');
+  if(typeof switchNotifTab==='function') switchNotifTab('mensajes');
+  // esperar cualquier carga en vuelo (el dedupe encolaría la nuestra y THREADS estaría vacío)
+  for(let i=0;i<40&&window._pmLoading;i++){await new Promise(r=>setTimeout(r,100));}
+  await _loadPrivateMessages(true);
+  const t=THREADS.find(x=>x.isPM&&String(x.otherId)===String(otherId)&&sourceId&&String(x.sourceId||'')===String(sourceId))
+    ||THREADS.find(x=>x.isPM&&String(x.otherId)===String(otherId));
+  if(t) openThread(t.id);
+  else showToast('conversación no encontrada');
 }
 
 function _goToSource(sourceId,sourceType){
@@ -8401,7 +8494,8 @@ function _injectPmButton(sellerCardId,receiverId,receiverName,sourceId,sourceTyp
 const _origSwitchNotifTab=switchNotifTab;
 switchNotifTab=function(tab){
   _origSwitchNotifTab(tab);
-  if(tab==='mensajes'&&!isGuest()) _loadPrivateMessages();
+  // [PM v82] sin guard de isGuest aquí — el loader espera la sesión y decide (mata el race de cold start)
+  if(tab==='mensajes') _loadPrivateMessages(true);
 };
 
 // ─────────────────────────────────────────────
