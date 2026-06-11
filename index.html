@@ -259,7 +259,7 @@ html{scrollbar-width:none}
 .msg-avatar.dealer img{border-radius:10px}
 .msg-list-fade{opacity:0}
 .msg-list-fade.loaded{animation:fadeIn .22s ease forwards}
-.msg-car-tag{font-size:11px;font-weight:700;color:rgba(230,240,59,.7);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.msg-car-tag{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
 .msg-preview{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 .msg-time{font-size:11px;color:var(--muted2);flex-shrink:0;margin-top:2px}
 .thread-bubble{display:flex;flex-direction:column;margin-bottom:14px}
@@ -1936,7 +1936,7 @@ html{scrollbar-width:none}
       <div style="font-size:16px;font-weight:700;letter-spacing:-.2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="thread-car-title" onclick="_threadGoToSource()"></div>
       <div style="font-size:12px;color:var(--muted);margin-top:3px" id="thread-meta"></div>
     </div>
-    <button id="thread-call-btn" onclick="event.stopPropagation()" style="display:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:50%;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;margin-left:auto"><svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="1.9" style="width:17px;height:17px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+    <button id="thread-call-btn" onclick="event.stopPropagation()" style="display:none;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:6px;margin-left:auto"><svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="1.9" style="width:20px;height:20px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
   </div>
   <!-- MESSAGES -->
   <div id="thread-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 140px;overflow-y:auto;flex:1;min-height:0"></div>
@@ -8125,14 +8125,14 @@ async function _loadComments(sourceType,sourceId,listId){
     const nombre=c.users?.nombre||'usuario';
     const av=nombre[0].toUpperCase();
     const badge=isOwner?`<span style="font-size:9px;font-weight:700;background:rgba(230,240,59,.12);color:#e6f03b;padding:2px 6px;border-radius:100px;letter-spacing:.3px">creador</span>`
-      :isDealer?`<span style="font-size:9px;font-weight:700;background:rgba(29,155,240,.12);color:#1d9bf0;padding:2px 6px;border-radius:100px;display:inline-flex;align-items:center;gap:3px;"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg>verificado</span>`:'';
+      :isDealer?`<span style="font-size:9px;font-weight:700;background:rgba(29,155,240,.12);color:#1d9bf0;padding:2px 6px;border-radius:100px;display:inline-flex;align-items:center;gap:3px;"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>`:'';
     const replyBtns=!isMe?`<button onclick="_openReplyBox('${c.id}','${sourceType}','${sourceId}','${listId}')" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;margin-top:4px">responder</button>`:'';
     const cReplies=(replyMap[c.id]||[]).map(r=>{
       const rOwner=r.user_id===ownerId;
       const rDealer=r.users?.role==='concesionario'||r.users?.role==='consesionario';
       const rNombre=r.users?.nombre||'usuario';
       const rBadge=rOwner?`<span style="font-size:9px;font-weight:700;background:rgba(230,240,59,.12);color:#e6f03b;padding:2px 6px;border-radius:100px;letter-spacing:.3px">creador</span>`
-        :rDealer?`<span style="font-size:9px;font-weight:700;background:rgba(29,155,240,.12);color:#1d9bf0;padding:2px 6px;border-radius:100px;display:inline-flex;align-items:center;gap:3px;"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg>verificado</span>`:'';
+        :rDealer?`<span style="font-size:9px;font-weight:700;background:rgba(29,155,240,.12);color:#1d9bf0;padding:2px 6px;border-radius:100px;display:inline-flex;align-items:center;gap:3px;"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>`:'';
       return `<div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:10px;border-left:2px solid rgba(230,240,59,.2)">
         <div class="comment-header"><div class="comment-avatar" style="width:22px;height:22px;font-size:10px">${rNombre[0].toUpperCase()}</div>
         <span class="comment-name">${r.user_id===USER_STATE.id?'tú':_masked(rNombre)}</span>${rBadge}<span class="comment-time">${_fmtTimeAgo(r.created_at)}</span></div>
@@ -8269,7 +8269,7 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
     panel.onclick=e=>{if(e.target===panel)_closePmPanel();};
     document.body.appendChild(panel);
   }
-  const dealerBadge=isDealer?`<span style="font-size:9px;font-weight:700;color:#1d9bf0;margin-left:6px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg>verificado</span>`:'';
+  const dealerBadge=isDealer?`<span style="font-size:9px;font-weight:700;color:#1d9bf0;margin-left:6px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>`:'';
   panel.innerHTML=`<div style="width:100%;max-width:560px;margin:0 auto;background:rgba(14,14,16,1);border-radius:24px 24px 0 0;padding:24px 20px 36px;border-top:1px solid rgba(255,255,255,.08);transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)">
     <div style="width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);margin:0 auto 20px"></div>
     <div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">mensaje privado</div>
@@ -8442,7 +8442,7 @@ function renderMensajesList(){
     const avatarInner=t.otherAvatar
       ?`<img src="${t.otherAvatar}" alt="" loading="lazy" onerror="this.parentElement.textContent='${(otherDisplay||'?')[0].toUpperCase()}'"/>`
       :(otherDisplay||'?')[0].toUpperCase();
-    const dealerBadge=isDealer?`<span style="font-size:9px;color:rgba(100,220,150,.8);margin-left:4px">✦</span>`:'';
+    const dealerBadge=isDealer?`<span style="display:inline-flex;align-items:center;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>`:'';
     const pmTag=t.isPM?`<span style="font-size:9px;font-weight:600;background:rgba(255,255,255,.06);color:var(--muted);padding:1px 5px;border-radius:4px;margin-left:4px">privado</span>`:'';
     return `<div class="msg-item${t.unread?' unread':''}" onclick="openThread('${t.id}')">
       <div class="msg-avatar${isDealer?' dealer':''}">${avatarInner}</div>
@@ -8471,7 +8471,7 @@ function openThread(id){
   document.getElementById('thread-car-title').textContent=currentThread.carTitle||'mensaje';
   const otherName=currentThread.isPM?currentThread.otherName:((currentThread.participants||[]).find(p=>!p.isSeller)||{user:'usuario'}).user;
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
-  const dealerBadge=isDealer?' <span style="font-size:10px;color:#1d9bf0;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg>verificado</span>':'';
+  const dealerBadge=isDealer?' <span style="font-size:10px;color:#1d9bf0;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>':'';
   document.getElementById('thread-meta').innerHTML='conversación con '+otherName+dealerBadge;
   // [V87] avatar del interlocutor: inicial; si es dealer → logo de su card + clickeable a su vitrina
   const av=document.getElementById('thread-avatar');
@@ -8518,13 +8518,19 @@ function _threadGoToSource(){
 async function _openVitrinaByUserId(userId){
   if(!userId||!_supa) return;
   try{
-    const{data:row}=await _supa.from('concesionarios').select('id').eq('user_id',userId).maybeSingle();
-    if(!row){showToast('vitrina no disponible');return;}
-    let d=CONCESIONARIOS.find(c=>String(c.id)===String(row.id));
-    if(!d&&typeof _loadConcesionarios==='function'){await _loadConcesionarios();d=CONCESIONARIOS.find(c=>String(c.id)===String(row.id));}
-    if(d){showView('concesionarios');openVitrina(d.id);}
-    else showToast('vitrina no disponible');
-  }catch(e){showToast('vitrina no disponible');}
+    // [V87] limit(1) en vez de maybeSingle: si hay filas duplicadas de pruebas, no muere
+    const{data:rows}=await _supa.from('concesionarios').select('*').eq('user_id',userId).limit(1);
+    const r=(rows||[])[0];
+    if(!r){showToast('vitrina no disponible');return;}
+    let d=CONCESIONARIOS.find(c=>String(c.id)===String(r.id));
+    if(!d){
+      // autoconstruir con el mismo shape de _loadConcesionarios — no depende de que la lista este cargada
+      d={id:r.id,nombre:r.nombre,tag:r.tag||'',ciudad:r.ciudad||'',color:r.color||'135deg,#1a1a2e,#16213e',initial:(r.nombre||'C')[0].toUpperCase(),autos:0,autos_ids:[],logo:r.logo_url,banner:r.banner_url,telefono:r.telefono,instagram:r.instagram,whatsapp:r.whatsapp,user_id:r.user_id};
+      CONCESIONARIOS.push(d);
+    }
+    showView('concesionarios');
+    openVitrina(d.id);
+  }catch(e){console.warn('[vitrina]',e?.message||e);showToast('vitrina no disponible');}
 }
 
 function renderThreadMessages(){
@@ -8533,7 +8539,7 @@ function renderThreadMessages(){
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
   const _bubble=m=>{
     const mDealer=(!m.mine)&&isDealer;
-    const badge=mDealer?'<span style="font-size:9px;color:#1d9bf0;margin-left:4px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg>verificado</span>':'';
+    const badge=mDealer?'<span style="font-size:9px;color:#1d9bf0;margin-left:4px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>':'';
     return `<div class="thread-bubble ${m.mine?'mine':'theirs'}">
       <div class="bubble-name">${m.mine?'tú':m.from}${badge}</div>
       <div class="bubble-body">${m.text}</div>
