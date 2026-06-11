@@ -4861,6 +4861,12 @@ function confirmPlan(id, type, e){
     }
     PAID_TYPES[pendingVenderType]=true;
     closePricingSheet();
+    // [V85] contexto subir: la publicación ya existe y está aprobada — activarla, no abrir el form
+    if(window._pendingSubirId){
+      showToast('código aplicado — subiendo publicación',true);
+      setTimeout(_activarTrasSubir,400);
+      return;
+    }
     publishListing();
     return;
   }
@@ -5051,7 +5057,7 @@ async function processPayment(){
     const price=PLAN_PRICE[pendingVenderType]||5;
     const refId='PM-'+ref;
     submitRef(USER_STATE.username||'usuario',refId,price,{monto,fecha,celular});
-    addPendingListing(refId,'pago m\u00f3vil');
+    if(!window._pendingSubirId) addPendingListing(refId,'pago m\u00f3vil'); // [V85] subir: sin tarjeta fantasma
     window._pendingPaymentRef = refId;
     closeCheckout();
     NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago en revisi\u00f3n',body:'Recibimos tu referencia de pago m\u00f3vil. El equipo de Ruedda la verificar\u00e1 pronto.',time:'ahora mismo',read:false,icon:'lime'});
@@ -5068,6 +5074,8 @@ async function processPayment(){
       }
     }
     PAID_TYPES[pendingVenderType]=true;
+    // [V85] contexto subir: publicación ya aprobada — activar con la referencia registrada, no abrir form
+    if(window._pendingSubirId){ setTimeout(_activarTrasSubir,400); return; }
     // ── publishListing: si falla, NO mostrar pantalla de revisión ──
     try{
       await publishListing();
@@ -5083,7 +5091,7 @@ async function processPayment(){
     const price=PLAN_PRICE[pendingVenderType]||5;
     const refId='BNB-'+txid;
     submitRef(USER_STATE.username||'usuario',refId,price);
-    addPendingListing(refId,'USDT Binance');
+    if(!window._pendingSubirId) addPendingListing(refId,'USDT Binance'); // [V85] subir: sin tarjeta fantasma
     window._pendingPaymentRef = refId;
     closeCheckout();
     NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago en revisi\u00f3n',body:'Recibimos tu ID de transacci\u00f3n Binance. El equipo de Ruedda la verificar\u00e1 pronto.',time:'ahora mismo',read:false,icon:'lime'});
@@ -5100,6 +5108,8 @@ async function processPayment(){
       }
     }
     PAID_TYPES[pendingVenderType]=true;
+    // [V85] contexto subir: publicación ya aprobada — activar con la referencia registrada, no abrir form
+    if(window._pendingSubirId){ setTimeout(_activarTrasSubir,400); return; }
     // ── publishListing: si falla, NO mostrar pantalla de revisión ──
     try{
       await publishListing();
@@ -7925,7 +7935,10 @@ function _subirPublicacion(id){
   pendingVenderType='market';
   // guardar id para actualizar tras pago
   window._pendingSubirId=String(id);
-  openPaymentSheetForType('market');
+  // [V85] el sheet de mis publicaciones (z-index 9990) tapaba los modales (z-index 300) — cerrarlo primero
+  closeMisPub();
+  // [V85] flujo correcto: subir → "elige tu plan" (gratis con código / pago) → checkout si es de pago
+  setTimeout(()=>openPricingSheet(),300);
 }
 
 async function _activarTrasSubir(){
