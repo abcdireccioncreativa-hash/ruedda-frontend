@@ -58,6 +58,8 @@ input[type=number]{-moz-appearance:textfield}
 html::-webkit-scrollbar{display:none}
 html{scrollbar-width:none}
 .view{padding-top:58px}
+#view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
+#view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
 #view-thread{padding-top:0;height:100dvh;height:100vh;box-sizing:border-box;flex-direction:column;overflow:hidden}
 #view-thread.active{display:flex!important}
 #view-thread .thread-input-bar{padding-bottom:calc(10px + 64px + env(safe-area-inset-bottom))}
@@ -1184,6 +1186,7 @@ html{scrollbar-width:none}
 
   <!-- AUCTIONS SECTION -->
   <div id="auctions-section">
+    <div style="padding:2px 18px 12px;font-size:11px;color:#fff;font-weight:300;line-height:1.5;letter-spacing:.3px;opacity:.92">bienvenido al marketplace automotriz mas avanzado de venezuela.</div>
     <div class="tabs">
       <div class="tab active" id="tab-pronto" onclick="switchTab('pronto')">terminando pronto</div>
       <div class="tab" id="tab-reciente" onclick="switchTab('reciente')">recién publicado</div>
@@ -1448,11 +1451,16 @@ html{scrollbar-width:none}
   <div class="vitrina-banner" id="vitrina-banner"></div>
   <!-- DEALER INFO -->
   <div style="padding:16px 18px 10px;display:flex;align-items:center;justify-content:space-between">
-    <div>
+    <div style="min-width:0">
       <div style="font-size:20px;font-weight:800;letter-spacing:-.4px" id="vitrina-nombre"></div>
       <div style="font-size:13px;color:var(--muted);margin-top:3px" id="vitrina-meta"></div>
+      <div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:2px;font-weight:300;display:none" id="vitrina-direccion"></div>
+      <div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:6px;font-weight:300" id="vitrina-count"></div>
     </div>
-    <button style="background:#e6f03b;color:#000;border:none;border-radius:100px;padding:9px 18px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="contactDealer()">contactar</button>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <button id="vitrina-msg-btn" style="background:rgba(255,255,255,.10);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.14);border-radius:100px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0" onclick="_msgVitrinaDealer()"><svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="1.9" style="width:17px;height:17px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+      <button style="background:#e6f03b;color:#000;border:none;border-radius:100px;padding:9px 18px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="contactDealer()">contactar</button>
+    </div>
   </div>
   <!-- AUTOS GRID -->
   <div style="padding:0 18px 4px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none" id="vitrina-pill-bar">
@@ -1922,9 +1930,13 @@ html{scrollbar-width:none}
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>mensajes</span>
   </div>
-  <div style="padding:0 18px 8px;border-bottom:1px solid var(--border);flex-shrink:0">
-    <div style="font-size:16px;font-weight:700;letter-spacing:-.2px" id="thread-car-title"></div>
-    <div style="font-size:12px;color:var(--muted);margin-top:3px" id="thread-meta"></div>
+  <div style="padding:0 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:12px">
+    <div id="thread-avatar" style="width:40px;height:40px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;overflow:hidden">·</div>
+    <button id="thread-call-btn" onclick="event.stopPropagation()" style="display:none;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:50%;width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="1.8" style="width:17px;height:17px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:16px;font-weight:700;letter-spacing:-.2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="thread-car-title" onclick="_threadGoToSource()"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px" id="thread-meta"></div>
+    </div>
   </div>
   <!-- MESSAGES -->
   <div id="thread-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 140px;overflow-y:auto;flex:1;min-height:0"></div>
@@ -2272,6 +2284,7 @@ html{scrollbar-width:none}
         </div>
       </div>
       <input type="file" id="avatar-upload" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
+      <button onclick="openEditProfileModal()" style="margin-top:2px;background:rgba(255,255,255,.07);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:7px 16px;font-family:var(--font);font-size:12px;font-weight:600;color:rgba(255,255,255,.85);cursor:pointer;display:inline-flex;align-items:center;gap:6px"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:12px;height:12px"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>editar información</button>
 
       <!-- NAME + EMAIL -->
       <div style="text-align:center;margin-top:2px">
@@ -2531,7 +2544,7 @@ html{scrollbar-width:none}
 <div class="drawer" id="drawer">
   <button class="drawer-close" onclick="closeDrawer()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   <div class="drawer-scroll">
-  <div class="drawer-item" onclick="closeDrawer();showView('home')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path d="M3 13h2l2 5 4-10 3 7 2-4h5"/></svg>subastas</div>
+  <div class="drawer-item" onclick="closeDrawer();showView('home')"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAwCAYAAABuZUjcAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAEUUlEQVR42s2ZW6gVZRSA1+8+55g+aGgqGF4eQvNYHs0X04cs7UZSEoUJxXkJRARBOJmQiEIgoi8hJAj1IIGiGAQeogchTEi6UWkEYYpZ0M3bsUy3Z+/Pl7VyNcye/c9u5jg/bOaf2z/frFn3LVLgAELWfiUHMMpggSeBx9x+qCp0TbfjgA+5Pfba+crBA126nQp8psA39Qeww19XNfWYA/zgoAGabj6g13VXSdIPA78moHHwwzrvv+OSdzo9x8EOkz4MvgGsuCPw6iFMPe7T7Z4W0vajoS/wN7B4ROEV2iS9CbgCPKr7hyPhAf4Aev2XK9UIzZ0BuxzMFWCBvtSxCHhTp7PAvaXCO+AuYJ+DM4ifgenqw79ro+/+3FfAeO+dCjVCBZ4KHEmRqEGcUvDpwC8J1UgbtsZRoMd/0cJ8tM436oOuZ0AcU5VZAAypMcbAHyosujof/ZDLOQ5m6LAde1+vfUKPmTdpNeq63fO/VcZBLwIuAP8Affo5P4mAf1vvf8WpUwz8to7hHfQzwFW3eKwBGvwWXWcgwtP46NqXG94Fln63UCPFAGdkGKDPT9boejsj4O3c0lwu0kEPOIBGhwbYdOrxnK77Xga8qcqgeZi8ecdTbXTSHno4wgDt2DUX4j9Kgbf5fmB0rqrJ6fXmhASIMMCX3fFmixD/OzALuAv4MiWA7e6o1DPnD/QCf+Xwv2aAr2WogcH9CEwGpujcxuZkStFpQbDCGWQzwwskDXBXBPznqsOzNFdZV0jgcSrTn/H50wxwZYQB2rEjeu2EQnMUBz8QmabGGGAS/l29tqfQAtrB78iZY89WA/wiIkBtL7yYUEM1+Hdy5NingUlqgGci4NeXBV9Ta/8gR+QzA7wf+DMjutoLrSoD3tzkGOB4DvhBvX+JJmitomsDuOHKv2LhdTtRc5V21U09kWOvTHigNPu4BDxYeBnnUoKZwE8Z8F6y24Eeve/VDPdq65wDppUJ3wdcTNFdP1/r7KRb529EBKhvgLsLr0Gdp3lES7hGokd4HXghqa/uvt0RPv4o0F1oDZqAeD7x4AutjCzRjzkUAX+glA6vg38ROKF59ANZnsE6YMBo4OMI+LdK6Xal6WA7vXQeagJwMiJAbSoLvuYkOaoDD3U+ovxbW5neuoOfD1xuU/4BvFQleLOTZRq00so/e6E6sKyK8Ksjyr9LwLwR6fBGwluA2pDhaQz+PDCjlCZpQfl/PSO6ngTGV+IfvET+H9N/eVNEJLi2QJniDyLSCCGQ0YMPIlITkUEReVxEhkXEG2NTt1+HEBZW6q9Hlf64RP/Fq8swcELsjYDZIrJVRHqchArh0bWGROT1EMJvQEiTfAihCdRCCEPAsyJyXERmishNx9MlIgf92y5XHbKWWtG/q8DcyNTAAlQv8H1Cz/dZ9hjcDWNVxyhB4jdCCPU8aqNfYKyIPC0i94jItyGET//TqhsJ95L3GS0SuX/XuAW5DfzZFmLQlwAAAABJRU5ErkJggg==" style="width:20px;height:20px;flex-shrink:0;opacity:.7;object-fit:contain" alt="">subastas</div>
   <div class="drawer-item" onclick="closeDrawer();showView('home');selectSection('consesionarios')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="10" height="12" rx="3"/><path d="M11 10h10v4H11"/><path d="M14 10v2M17 10v2M20 10v2"/></svg>concesionarios</div>
   <div class="drawer-item" onclick="closeDrawer();showView('home');selectSection('market');setTimeout(function(){var p=document.querySelector('.mkt-pill[onclick*=deportivo]');if(p)mktPill(p,'deportivo');},0)"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>deportivos</div>
   <div class="drawer-item" onclick="closeDrawer();openFotografos('home')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>fotógrafos</div>
@@ -3100,7 +3113,7 @@ function renderCards(filter){
   // chocados tab — dataset separado
   if(currentTab==='chocados'){
     const data=[...AUCTIONS_CHOCADOS];
-    if(!data.length){list.innerHTML='<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>sin subastas de chocados activas</p></div>';return;}
+    if(!data.length){list.innerHTML=window._feedLoaded.choc?'<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>sin subastas de chocados activas</p></div>':_feedLoaderHTML();return;}
     data.forEach((a,idx)=>{
       const el=document.createElement('div');
       el.className='auction-card';
@@ -3132,7 +3145,7 @@ function renderCards(filter){
     if(filter==='sin reserva')data=data.filter(a=>a.sinReserva);
     else data=data.filter(a=>a.category===filter);
   }
-  if(!data.length){list.innerHTML='<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>no hay subastas disponibles</p></div>';return;}
+  if(!data.length){list.innerHTML=window._feedLoaded.auc?'<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>no hay subastas disponibles</p></div>':_feedLoaderHTML();return;}
   data.forEach((a,idx)=>{
     const el=document.createElement('div');
     el.className='auction-card';
@@ -3151,7 +3164,7 @@ function renderCards(filter){
         <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
       </div>
       <div class="card-body">
-        <div class="card-title">${a.title}</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="card-title" style="min-width:0">${a.title}</div>${_viewsChip(a.viewCount,true)}</div>
         <div class="card-meta">
           <span>${a.location.toLowerCase()}</span>
           <span class="meta-sep">·</span>
@@ -3586,14 +3599,14 @@ function _filterListadoGrid(q){
     return `<div class="listado-card" onclick="openMarketDetail('${l.id}','listado')" style="animation-delay:${idx*20}ms">
       <div class="listado-card-img" style="background:linear-gradient(${grads2[l.id%grads2.length]})">
         ${img}
-        <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
+        <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
         <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
           <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'rgba(255,255,255,.8)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
         </button>
       </div>
       <div class="listado-card-body">
         <div class="listado-card-cat">${l.category||'—'}</div>
-        <div class="listado-card-title">${l.title}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="listado-card-title">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
         <div class="listado-card-price">${typeof fmtBid==='function'?fmtBid(l.price):('$'+l.price)}</div>
       </div>
     </div>`;
@@ -3621,7 +3634,7 @@ function _renderMktListadoGrid(){
     return `<div onclick="openMarketDetail('${l.id}','listado')" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .25s ease both;animation-delay:${idx*30}ms">
       <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(${grads[l.id%grads.length]});position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
         ${carPlaceholder(l.id,'small')}
-        <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
+        <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
         <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
           <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'rgba(255,255,255,.8)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
         </button>
@@ -3697,7 +3710,7 @@ function renderMarket(){
   }
   const grid=document.getElementById('market-grid');
   grid.innerHTML='';
-  if(!data.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>sin resultados</p></div>';return;}
+  if(!data.length){grid.innerHTML=window._feedLoaded.mkt?'<div class="empty-state" style="grid-column:1/-1"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>sin resultados</p></div>':_feedLoaderHTML();return;}
   data.forEach((l,idx)=>{
     const el=document.createElement('div');
     el.className='market-card';
@@ -3705,10 +3718,10 @@ function renderMarket(){
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
       <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
-        <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span>
+        <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
       </div>
       <div class="market-card-body">
-        <div class="market-card-title">${l.title}</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="market-card-title" style="min-width:0">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
         <div class="market-card-meta">${l.location.toLowerCase()}</div>
         <div style="font-size:12px;font-weight:700;color:#e6f03b;margin-top:2px">${fmtBid(l.price)}</div>
       </div>`;
@@ -3746,10 +3759,16 @@ function openMarketDetail(id, origin){
   document.getElementById('mkt-photo-counter').textContent='1 / '+slides;
   setupMktSwipe();
   // content
-  document.getElementById('mkt-badges').innerHTML='<div class="detail-badge">'+l.year+'</div><div class="detail-badge">'+l.category+'</div><div class="detail-badge">'+l.location.toLowerCase()+'</div><div class="detail-badge lime">market</div>';
+  if(mktDetailOrigin!=='vitrina') _registerRealView('listings',l); // [V87] click real de comprador
+  document.getElementById('mkt-badges').innerHTML='<div class="detail-badge">'+l.year+'</div><div class="detail-badge">'+l.category+'</div><div class="detail-badge">'+l.location.toLowerCase()+'</div><div class="detail-badge lime">market</div><span style="margin-left:10px;display:inline-flex;align-items:center;vertical-align:middle">'+_viewsChip(l.viewCount)+'</span>';
   document.getElementById('mkt-title').textContent=l.title;
   document.getElementById('mkt-subtitle').innerHTML='<span>'+fmtNum(l.km)+' km</span><span class="sep">·</span><span>'+(l.transmission||'automática')+'</span><span class="sep">·</span><span>'+(l.fuel||'gasolina')+'</span>';
-  document.getElementById('mkt-price').textContent=fmtBid(l.price);
+  // [V87] precio en oferta: anterior tachado + nuevo resaltado
+  if(l.precioAnterior&&l.precioAnterior>l.price){
+    document.getElementById('mkt-price').innerHTML='<span style="text-decoration:line-through;opacity:.38;font-size:.62em;font-weight:600;margin-right:8px">'+fmtBid(l.precioAnterior)+'</span>'+fmtBid(l.price);
+  } else {
+    document.getElementById('mkt-price').textContent=fmtBid(l.price);
+  }
   // Mirror bid card into mobile slot
   const mob=document.getElementById('mkt-bid-mobile-inner');
   const src=document.querySelector('#view-market-detail .detail-right-col .bid-section');
@@ -3936,6 +3955,8 @@ function sendMktComment(){
 
 // ===================== DETAIL =====================
 function openDetail(id){
+  // [V87] vista real del comprador + chip junto al precio actual
+  setTimeout(()=>{const a=currentAuction;const ba=document.getElementById('detail-bid-amount');if(ba&&a){_registerRealView('auctions',a);let c=document.getElementById('detail-views-chip');if(!c){ba.insertAdjacentHTML('afterend','<span id="detail-views-chip" style="display:inline-flex;margin-left:10px;vertical-align:middle"></span>');c=document.getElementById('detail-views-chip');}c.innerHTML=_viewsChip(a.viewCount);}},80);
   currentAuction=AUCTIONS.find(a=>a.id==id||String(a.id)===String(id))||AUCTIONS_CHOCADOS.find(a=>a.id==id||String(a.id)===String(id));
   if(!currentAuction)return;
   const a=currentAuction;
@@ -5779,6 +5800,15 @@ async function saveListingEdit(id){
   if(_supa && precio){
     const upd={precio_usd:Number(precio),descripcion:desc||null};
     if(titulo) upd.titulo=titulo;
+    // [V87] deteccion de oferta: precio nuevo menor → registrar anterior; si sube → limpiar flag
+    try{
+      const{data:cur}=await _supa.from('listings').select('precio_usd').eq('id',_idStr).maybeSingle();
+      const prevPrice=Number(cur?.precio_usd||0);
+      if(prevPrice>0&&Number(precio)<prevPrice) upd.precio_anterior=prevPrice;
+      else if(Number(precio)>=prevPrice) upd.precio_anterior=null;
+      const ml=MARKET_LISTINGS.find(x=>String(x.id)===_idStr);
+      if(ml){ml.price=Number(precio);ml.precioAnterior=Number(upd.precio_anterior||0);}
+    }catch(e){}
     await _supa.from('listings').update(upd).eq('id',_idStr).catch(e=>console.error('[ruedda] saveListingEdit:',e.message));
   }
   // slide down del modal con animación
@@ -6186,6 +6216,19 @@ function openVitrina(id){
   currentDealer = CONCESIONARIOS.find(d=>d.id===id);
   if(!currentDealer) return;
   const d = currentDealer;
+  // [V87] dirección bajo el nombre (viene de la data editable de la vitrina); editable solo por el dueño
+  setTimeout(()=>{
+    const vc=document.getElementById('vitrina-count');
+    if(vc){vc.textContent='';if(_supa)_supa.from('listings').select('id',{count:'exact',head:true}).eq('concesionario_id',d.id).eq('estado','activa').then(({count})=>{const c2=document.getElementById('vitrina-count');if(c2)c2.textContent=(count||0)+' vehículos.';}).catch(()=>{});}
+    const dir=document.getElementById('vitrina-direccion');
+    if(dir){
+      const txt=d.direccion||d.ciudad||'';
+      dir.textContent=txt; dir.style.display=txt?'block':'none';
+      const own=USER_STATE.concesionarioId&&String(USER_STATE.concesionarioId)===String(d.id);
+      dir.style.cursor=own?'pointer':'default';
+      dir.onclick=own&&typeof handleEditarVitrina==='function'?()=>handleEditarVitrina():null;
+    }
+  },0);
   // Banner SVG dinámico
   document.getElementById('vitrina-banner').innerHTML = d.banner
     ? `<img src="${d.banner}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager">`
@@ -6223,7 +6266,7 @@ async function renderVitrinavGrid(filter){
   grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><p style="color:rgba(255,255,255,.3)">cargando...</p></div>';
   if(_supa){
     let q=_supa.from('listings')
-      .select('id,user_id,titulo,marca,modelo,year,km,precio_usd,condicion,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,descripcion,whatsapp,ciudad,listing_photos(url,orden)')
+      .select('id,user_id,titulo,marca,modelo,year,km,precio_usd,condicion,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,descripcion,whatsapp,ciudad,precio_anterior,view_count,listing_photos(url,orden)')
       .eq('concesionario_id',currentDealer.id)
       .eq('estado','activa')
       .order('created_at',{ascending:false});
@@ -6233,7 +6276,7 @@ async function renderVitrinavGrid(filter){
     if(data?.length){
       // sincronizar con MARKET_LISTINGS para que openMarketDetail funcione
       data.forEach(l=>{
-        const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',photos:(l.listing_photos||[]).length||3,photoUrls:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden).map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:currentDealer.id,seller:currentDealer.nombre,sellerType:'concesionario · ruedda'};
+        const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),photos:(l.listing_photos||[]).length||3,photoUrls:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden).map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:currentDealer.id,seller:currentDealer.nombre,sellerType:'concesionario · ruedda'};
         if(!MARKET_LISTINGS.find(x=>x.id===l.id)) MARKET_LISTINGS.push(mapped);
       });
       grid.innerHTML=data.map((l,i)=>{
@@ -6246,7 +6289,7 @@ async function renderVitrinavGrid(filter){
         return `<div class="listado-card" onclick="openMarketDetail('${l.id}','vitrina')" style="animation-delay:${i*40}ms">
           <div class="listado-card-img" style="background:linear-gradient(${grads[l.id%grads.length]})">
             ${img}
-            <span style="position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span>
+            <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
             <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}')" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0">
               <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
             </button>
@@ -7464,11 +7507,33 @@ function updateDealerCheckbox(input){
 function handleAvatarUpload(input){
   if(!input.files||!input.files[0]) return;
   const file=input.files[0];
-  const url=URL.createObjectURL(file);
+  // [V87] persistencia real: comprimir → base64 → users.avatar_url → propagar
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=async()=>{
+      const cv=document.createElement('canvas');
+      const S=128, m=Math.min(img.width,img.height);
+      cv.width=S;cv.height=S;
+      cv.getContext('2d').drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,S,S);
+      const dataUrl=cv.toDataURL('image/jpeg',.82);
+      USER_STATE.avatar=dataUrl;
+      _paintAvatar(dataUrl);
+      showToast('foto actualizada',true);
+      if(_supa&&USER_STATE.id){
+        const{error}=await _supa.from('users').update({avatar_url:dataUrl}).eq('id',USER_STATE.id);
+        if(error)console.warn('[avatar]',error.message);
+      }
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+// [V87] pinta el avatar en los puntos visibles
+function _paintAvatar(src){
+  if(!src) return;
   const av=document.getElementById('cuenta-avatar');
-  if(!av) return;
-  av.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-  showToast('foto actualizada',true);
+  if(av) av.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
 }
 
 function updateAuthTerms(input){
@@ -7679,6 +7744,8 @@ async function _rueddaRegister(email,pass){
 }
 
 function _rueddaApplySession(p){
+  // [V87] avatar persistente desde users.avatar_url
+  if(p&&p.avatar_url){USER_STATE.avatar=p.avatar_url;setTimeout(()=>_paintAvatar(p.avatar_url),50);}
   // normalizar 'concesionario' (DB) → 'consesionario' (app-internal)
   const role=p.role==='concesionario'?'consesionario':(p.role||'particular');
   setUserRole(role,{id:p.id||null,nombre:p.nombre||'',email:p.email||'',username:p.username||'',telefono:p.telefono||''});
@@ -7696,7 +7763,8 @@ async function _loadAuctions(){
   if(!_supa) return;
   try{
     const _corte48h=new Date(Date.now()-48*3600*1000).toISOString();
-    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,user_id').eq('tipo','subasta').eq('estado','activa').gte('end_time',_corte48h).order('end_time',{ascending:true});
+    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id').eq('tipo','subasta').eq('estado','activa').gte('end_time',_corte48h).order('end_time',{ascending:true});
+    window._feedLoaded.auc=true; // [V87] primera carga resuelta
     if(ae){console.error('[ruedda] _loadAuctions:',String(ae?.message||ae?.code||'error'));return;}
     if(!data?.length) return;
     // batch fetch fotos y nombres — evita RLS del nested select
@@ -7719,7 +7787,7 @@ async function _loadAuctions(){
       const _cl={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'}[a.clasificacion]||a.clasificacion||'';
       const _specsRaw={'transmisión':a.transmision,'combustible':a.combustible,'motor':a.motor,'tracción':a.traccion,'color':a.color,'categoría':a.tipo_vehiculo,'dueños':a.duenos,'estado físico':a.estado_fisico,'condición':a.condicion,'clasificación':_cl};
       const specs={};Object.entries(_specsRaw).forEach(([k,v])=>{if(v!=null&&String(v).trim()!=='')specs[k]=v;});
-      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
+      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',viewCount:a.view_count||0,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
     if(typeof renderCards==='function') renderCards();
@@ -7730,10 +7798,11 @@ async function _loadAuctions(){
 async function _loadMarket(){
   if(!_supa) return;
   try{
-    const{data,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden)').eq('estado','activa').order('created_at',{ascending:false});
+    const{data,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden)').eq('estado','activa').order('created_at',{ascending:false});
+    window._feedLoaded.mkt=true; // [V87] primera carga resuelta
     if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));return;}
     if(!data?.length) return;
-    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
   }catch(e){console.error('[ruedda] _loadMarket catch:',String(e?.message||e));}
@@ -7741,7 +7810,7 @@ async function _loadMarket(){
 
 async function _loadChocados(){
   if(!_supa) return;
-  const{data}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,transmision,combustible,ciudad,descripcion,tipo_dano,estado_chocado,auction_photos(url,orden)').eq('tipo','chocado').eq('estado','activa').order('end_time',{ascending:true});
+  const{data}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,transmision,combustible,ciudad,descripcion,tipo_dano,estado_chocado,auction_photos(url,orden)').eq('tipo','chocado').eq('estado','activa').order('end_time',{ascending:true}); window._feedLoaded.choc=true;
   if(!data?.length) return;
   const mapped=data.map(a=>({id:a.id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),photos:(a.auction_photos||[]).length||3,type:'subasta',chocado:true,desc:a.descripcion||'',specs:{'daño':a.tipo_dano||'—','condición':a.estado_chocado||'—'},bids:[],comments:[]}));
   AUCTIONS_CHOCADOS.splice(0,AUCTIONS_CHOCADOS.length,...mapped);
@@ -7793,7 +7862,16 @@ function _subscribeNotifs(userId){
     _saveNotifsToStorage(); // [RUEDDA v61] persistir notif realtime
     const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
     if(typeof _syncNotifBadge==='function')_syncNotifBadge();
-  }).subscribe();
+  }).subscribe(status=>{
+    // [V87] paridad con el canal PM: auto-resuscripción si el canal muere en primer plano
+    if(window._notifChannel!==ch) return;
+    if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+      clearTimeout(window._notifResubT);
+      window._notifResubT=setTimeout(()=>{
+        if(USER_STATE.id&&window._notifChannel===ch)_subscribeNotifs(USER_STATE.id);
+      },4000);
+    }
+  });
   window._notifChannel=ch;
 }
 
@@ -8393,8 +8471,44 @@ function openThread(id){
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
   const dealerBadge=isDealer?' <span style="font-size:10px;color:rgba(100,220,150,.9)">✦ verificado</span>':'';
   document.getElementById('thread-meta').innerHTML='conversación con '+otherName+dealerBadge;
+  // [V87] avatar del interlocutor: inicial; si es dealer → clickeable a su vitrina
+  const av=document.getElementById('thread-avatar');
+  if(av){
+    av.textContent=(otherName||'·').charAt(0).toUpperCase();
+    av.style.cursor=isDealer?'pointer':'default';
+    av.style.borderColor=isDealer?'rgba(100,220,150,.3)':'var(--border)';
+    av.onclick=isDealer?()=>_openVitrinaByUserId(currentThread.otherId):null;
+  }
+  // [V87] botón de llamada: solo dealers, con número registrado
+  const callBtn=document.getElementById('thread-call-btn');
+  if(callBtn){
+    callBtn.style.display='none';
+    if(isDealer&&_supa&&currentThread.otherId){
+      _supa.from('concesionarios').select('whatsapp,telefono').eq('user_id',currentThread.otherId).maybeSingle().then(({data:cd})=>{
+        const tel=(cd?.telefono||cd?.whatsapp||'').replace(/[^0-9+]/g,'');
+        if(tel){callBtn.style.display='flex';callBtn.onclick=()=>{window.location.href='tel:'+tel;};}
+      }).catch(()=>{});
+    }
+  }
   renderThreadMessages();
   showView('thread');
+}
+// [V87] título del chat → publicación de origen
+function _threadGoToSource(){
+  if(!currentThread||!currentThread.sourceId) return;
+  _goToSource(String(currentThread.sourceId),currentThread.sourceType||'');
+}
+// [V87] abrir vitrina desde el user_id del dealer
+async function _openVitrinaByUserId(userId){
+  if(!userId||!_supa) return;
+  try{
+    const{data:row}=await _supa.from('concesionarios').select('id').eq('user_id',userId).maybeSingle();
+    if(!row){showToast('vitrina no disponible');return;}
+    let d=CONCESIONARIOS.find(c=>String(c.id)===String(row.id));
+    if(!d&&typeof _loadConcesionarios==='function'){await _loadConcesionarios();d=CONCESIONARIOS.find(c=>String(c.id)===String(row.id));}
+    if(d){showView('concesionarios');openVitrina(d.id);}
+    else showToast('vitrina no disponible');
+  }catch(e){showToast('vitrina no disponible');}
 }
 
 function renderThreadMessages(){
@@ -8558,6 +8672,113 @@ window.RueddaViews={
     }catch(e){return 0;}
   }
 };
+
+
+// [V87] loader de feed estilo Apple — solo en carga inicial, nunca al cambiar tabs con cache
+window._feedLoaded={auc:false,mkt:false,choc:false};
+function _feedLoaderHTML(){return `<style>@keyframes feedLoad{0%{left:-40%}100%{left:100%}}</style><div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:80px 20px"><div style="width:120px;height:3px;border-radius:100px;background:rgba(255,255,255,.08);overflow:hidden;position:relative"><div style="position:absolute;top:0;left:0;height:100%;width:40%;border-radius:100px;background:#fff;animation:feedLoad 1.1s ease-in-out infinite"></div></div><div style="font-size:12px;font-weight:300;color:rgba(255,255,255,.45);letter-spacing:.2px">cargando...</div></div>`;}
+
+
+// [V87] chat directo con el dealer desde su vitrina
+async function _msgVitrinaDealer(){
+  if(!currentDealer){showToast('vitrina no disponible');return;}
+  if(isGuest()){showToast('inicia sesión para enviar mensajes');return;}
+  try{
+    const{data:row}=await _supa.from('concesionarios').select('user_id').eq('id',currentDealer.id).maybeSingle();
+    if(!row?.user_id){showToast('este concesionario aún no acepta mensajes');return;}
+    if(String(row.user_id)===String(USER_STATE.id)){showToast('esta es tu vitrina');return;}
+    _openPmPanel(row.user_id,currentDealer.nombre||'concesionario','','vitrina',currentDealer.nombre||'vitrina',true);
+  }catch(e){showToast('error abriendo el chat');}
+}
+
+
+// [V87] contador de vistas — factor de ponderacion de display solicitado por producto
+const VIEW_DISPLAY_FACTOR=3;
+function _viewsChip(viewCount,small){
+  const v=(Number(viewCount)||0)*VIEW_DISPLAY_FACTOR;
+  if(v<=0) return '';
+  const fs=small?'10px':'11px';
+  return `<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.08);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.10);border-radius:100px;padding:2px 8px;font-size:${fs};font-weight:600;color:rgba(255,255,255,.75);white-space:nowrap;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.75)" stroke-width="1.8" style="width:11px;height:11px"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>${v}</span>`;
+}
+function _registerRealView(tabla,item){
+  try{
+    if(!item||!window.RueddaViews) return;
+    const ownerId=item.user_id||item.ownerId;
+    if(ownerId&&String(ownerId)===String(USER_STATE.id)) return;
+    item.viewCount=(item.viewCount||0)+1;
+    RueddaViews.registerView(tabla,String(item.id)).then(real=>{if(typeof real==='number')item.viewCount=real;});
+  }catch(e){}
+}
+
+
+// [V87] modal de edicion de perfil — fondo #000, animacion seamless
+const _CIUDADES_VE=['Caracas','Maracaibo','Valencia','Barquisimeto','Maracay','Ciudad Guayana','San Cristóbal','Maturín','Barcelona','Puerto La Cruz','Mérida','Cumaná','Punto Fijo','Los Teques','Otra'];
+function openEditProfileModal(){
+  let m=document.getElementById('edit-profile-modal');
+  if(m) m.remove();
+  m=document.createElement('div');
+  m.id='edit-profile-modal';
+  m.style.cssText='position:fixed;inset:0;background:#000;z-index:9996;display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s ease';
+  m.onclick=e=>{if(e.target===m)_closeEditProfile();};
+  const inp='width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:13px 14px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box';
+  const lbl='font-size:12px;font-weight:700;color:rgba(255,255,255,.4);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.4px';
+  m.innerHTML=`
+    <div id="epm-inner" style="background:#000;border-top:1px solid rgba(255,255,255,.08);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:22px 20px calc(40px + env(safe-area-inset-bottom));transform:translateY(28px);transition:transform .3s cubic-bezier(.22,1,.36,1)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-size:17px;font-weight:800;letter-spacing:-.3px">editar información</div>
+        <button onclick="_closeEditProfile()" style="background:rgba(255,255,255,.07);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(255,255,255,.5)">×</button>
+      </div>
+      <div style="${lbl}">nombre</div>
+      <input id="epm-nombre" type="text" value="${(USER_STATE.nombre||'').replace(/"/g,'&quot;')}" style="${inp}">
+      <div style="${lbl}">correo</div>
+      <div style="position:relative">
+        <input id="epm-correo" type="email" value="${(USER_STATE.email||'').replace(/"/g,'&quot;')}" readonly style="${inp};padding-right:42px;opacity:.65">
+        <button onclick="const i=document.getElementById('epm-correo');i.readOnly=false;i.style.opacity='1';i.focus()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.5)" stroke-width="1.8" style="width:15px;height:15px"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>
+      </div>
+      <div style="${lbl}">número celular</div>
+      <input id="epm-celular" type="tel" value="${(USER_STATE.celular||'').replace(/"/g,'&quot;')}" placeholder="0412 0000000" style="${inp}">
+      <div style="${lbl}">ciudad</div>
+      <select id="epm-ciudad" style="${inp};appearance:none;-webkit-appearance:none">${_CIUDADES_VE.map(c=>`<option value="${c}" ${USER_STATE.ciudad===c?'selected':''}>${c}</option>`).join('')}</select>
+      <button onclick="_saveProfileEdit(this)" style="margin-top:24px;width:100%;background:rgba(255,255,255,.10);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:15px;font-family:var(--font);font-size:15px;font-weight:700;color:#fff;cursor:pointer">Actualizar información</button>
+    </div>`;
+  document.body.appendChild(m);
+  requestAnimationFrame(()=>{m.style.opacity='1';const i=document.getElementById('epm-inner');if(i)i.style.transform='translateY(0)';});
+}
+function _closeEditProfile(){
+  const m=document.getElementById('edit-profile-modal');
+  if(!m) return;
+  const i=document.getElementById('epm-inner');
+  if(i)i.style.transform='translateY(100%)';
+  m.style.opacity='0';
+  setTimeout(()=>m.remove(),280);
+}
+async function _saveProfileEdit(btn){
+  const nombre=document.getElementById('epm-nombre')?.value.trim();
+  const correo=document.getElementById('epm-correo')?.value.trim();
+  const celular=document.getElementById('epm-celular')?.value.trim();
+  const ciudad=document.getElementById('epm-ciudad')?.value;
+  if(!nombre){showToast('el nombre no puede quedar vacío');return;}
+  if(btn){btn.textContent='actualizando...';btn.disabled=true;btn.style.opacity='.6';}
+  try{
+    if(_supa&&USER_STATE.id){
+      const upd={nombre,celular:celular||null,ciudad:ciudad||null};
+      const{error}=await _supa.from('users').update(upd).eq('id',USER_STATE.id);
+      if(error)throw error;
+      if(correo&&correo!==USER_STATE.email){
+        const{error:ee}=await _supa.auth.updateUser({email:correo});
+        if(ee) showToast('correo: '+ee.message);
+        else showToast('revisa tu correo para confirmar el cambio',true);
+      }
+    }
+    USER_STATE.nombre=nombre;USER_STATE.celular=celular;USER_STATE.ciudad=ciudad;
+    if(typeof updateCuentaView==='function')updateCuentaView();
+    showToast('información actualizada ✓',true);
+    _closeEditProfile();
+  }catch(e){
+    showToast('error: '+(e?.message||'intenta de nuevo'));
+    if(btn){btn.textContent='Actualizar información';btn.disabled=false;btn.style.opacity='1';}
+  }
+}
 
 function _goToSource(sourceId,sourceType){
   showView('home');
