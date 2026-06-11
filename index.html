@@ -1932,11 +1932,11 @@ html{scrollbar-width:none}
   </div>
   <div style="padding:0 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:12px">
     <div id="thread-avatar" style="width:40px;height:40px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;overflow:hidden">·</div>
-    <button id="thread-call-btn" onclick="event.stopPropagation()" style="display:none;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:50%;width:36px;height:36px;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="1.8" style="width:17px;height:17px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
     <div style="flex:1;min-width:0">
       <div style="font-size:16px;font-weight:700;letter-spacing:-.2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="thread-car-title" onclick="_threadGoToSource()"></div>
       <div style="font-size:12px;color:var(--muted);margin-top:3px" id="thread-meta"></div>
     </div>
+    <button id="thread-call-btn" onclick="event.stopPropagation()" style="display:none;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:50%;width:38px;height:38px;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;margin-left:auto"><svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="1.9" style="width:17px;height:17px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
   </div>
   <!-- MESSAGES -->
   <div id="thread-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 140px;overflow-y:auto;flex:1;min-height:0"></div>
@@ -8473,7 +8473,7 @@ function openThread(id){
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
   const dealerBadge=isDealer?' <span style="font-size:10px;color:rgba(100,220,150,.9)">✦ verificado</span>':'';
   document.getElementById('thread-meta').innerHTML='conversación con '+otherName+dealerBadge;
-  // [V87] avatar del interlocutor: inicial; si es dealer → clickeable a su vitrina
+  // [V87] avatar del interlocutor: inicial; si es dealer → logo de su card + clickeable a su vitrina
   const av=document.getElementById('thread-avatar');
   if(av){
     av.textContent=(otherName||'·').charAt(0).toUpperCase();
@@ -8481,16 +8481,17 @@ function openThread(id){
     av.style.borderColor=isDealer?'rgba(100,220,150,.3)':'var(--border)';
     av.onclick=isDealer?()=>_openVitrinaByUserId(currentThread.otherId):null;
   }
-  // [V87] botón de llamada: solo dealers, con número registrado
+  // [V87] dealer: una sola consulta — logo para el avatar + teléfono para el botón de llamada
   const callBtn=document.getElementById('thread-call-btn');
-  if(callBtn){
-    callBtn.style.display='none';
-    if(isDealer&&_supa&&currentThread.otherId){
-      _supa.from('concesionarios').select('whatsapp,telefono').eq('user_id',currentThread.otherId).maybeSingle().then(({data:cd})=>{
-        const tel=(cd?.telefono||cd?.whatsapp||'').replace(/[^0-9+]/g,'');
-        if(tel){callBtn.style.display='flex';callBtn.onclick=()=>{window.location.href='tel:'+tel;};}
-      }).catch(()=>{});
-    }
+  if(callBtn) callBtn.style.display='none';
+  if(isDealer&&_supa&&currentThread.otherId){
+    _supa.from('concesionarios').select('*').eq('user_id',currentThread.otherId).maybeSingle().then(({data:cd})=>{
+      if(!cd) return;
+      const logo=cd.logo_url||cd.logo||'';
+      if(logo&&av) av.innerHTML=`<img src="${logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      const tel=String(cd.telefono||cd.whatsapp||'').replace(/[^0-9+]/g,'');
+      if(tel&&callBtn){callBtn.style.display='flex';callBtn.onclick=()=>{window.location.href='tel:'+tel;};}
+    }).catch(()=>{});
   }
   renderThreadMessages();
   showView('thread');
