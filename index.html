@@ -1701,6 +1701,7 @@ html{scrollbar-width:none}
         <option value="">seleccionar</option>
         <option value="sedan">Sedan</option>
         <option value="hatchback">Hatchback</option>
+        <option value="coupe">Coupe</option>
         <option value="fastback">Fastback</option>
         <option value="pickup">Pickup</option>
         <option value="descapotable">Descapotable</option>
@@ -3115,7 +3116,7 @@ function renderCards(filter){
         </div>
         <div class="card-body">
           <div class="card-title">${a.title}</div>
-          <div class="card-meta"><span>${a.location.toLowerCase()}</span><span class="meta-sep">·</span><span>${fmtNum(a.km)} km</span><span class="meta-sep">·</span><span>${a.owners} ${a.owners===1?'dueño':'dueños'}</span></div>
+          <div class="card-meta"><span>${a.location.toLowerCase()}</span><span class="meta-sep">·</span><span>${fmtNum(a.km)} km</span>${a.owners?`<span class="meta-sep">·</span><span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}</div>
           <div class="card-chips"><div class="chip-sm">${a.transmission}</div><div class="chip-sm">${a.fuel}</div><div class="chip-sm">${a.year}</div></div>
         </div>`;
       list.appendChild(el);
@@ -3156,7 +3157,7 @@ function renderCards(filter){
           <span class="meta-sep">·</span>
           <span>${fmtNum(a.km)} km</span>
           <span class="meta-sep">·</span>
-          <span>${a.owners} ${a.owners===1?'dueño':'dueños'}</span>
+          ${a.owners?`<span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}
         </div>
         <div class="card-chips">
           <div class="chip-sm">${a.transmission}</div>
@@ -3804,6 +3805,7 @@ function openMarketDetail(id, origin){
     +_pill('motor',l.motor)
     +_pill('tracción',l.traccion)
     +_pill('color',l.color)
+    +_pill('dueños',l.owners)
     +_pill('estado físico',l.estadoFisico)
     +_pill('condición',l.condicion)
     +_pill('clasificación',_clasifLbl);
@@ -3969,7 +3971,7 @@ function openDetail(id){
   if(a.sinReserva)badges.innerHTML+='<div class="detail-badge lime">sin reserva</div>';
   badges.innerHTML+=`<div class="detail-badge">${a.year}</div><div class="detail-badge">${a.category}</div><div class="detail-badge">${a.location.toLowerCase()}</div>`;
   document.getElementById('detail-title').textContent=a.title;
-  document.getElementById('detail-subtitle').innerHTML=`<span>${fmtKm(a.km)}</span><span class="sep">·</span><span>${a.owners} ${a.owners===1?'dueño':'dueños'}</span><span class="sep">·</span><span>${a.transmission}</span><span class="sep">·</span><span>${a.fuel}</span>`;
+  document.getElementById('detail-subtitle').innerHTML=`<span>${fmtKm(a.km)}</span>${a.owners?`<span class="sep">·</span><span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}${a.transmission?`<span class="sep">·</span><span>${a.transmission}</span>`:''}${a.fuel?`<span class="sep">·</span><span>${a.fuel}</span>`:''}`; // [V84] segmentos condicionales — sin "undefined" 
   renderDetailBid();
   // Specs
   const sg=document.getElementById('specs-grid');
@@ -4025,8 +4027,19 @@ function renderDetailAuctionEnded(){
   const timerEl=document.getElementById('detail-timer');
   if(timerEl){timerEl.textContent='finalizada';timerEl.className='timer-big-value';timerEl.style.color='rgba(255,255,255,.4)';}
   const bidCount=document.getElementById('detail-bid-count');
-  if(bidCount&&topBid) bidCount.innerHTML=currentAuction.bidCount+' ofertas · <span style="color:#e6f03b;font-weight:700">ganador: '+(isWinner?'tú':topBid.user)+'</span>';
-  if(isWinner){
+  // [V84] validación de precio de reserva al cierre
+  const reserveNotMet=!currentAuction.sinReserva&&(currentAuction.precioReserva||0)>0&&(currentAuction.currentBid||0)<currentAuction.precioReserva;
+  if(bidCount&&topBid) bidCount.innerHTML=currentAuction.bidCount+' ofertas · <span style="color:'+(reserveNotMet?'rgba(255,255,255,.5)':'#e6f03b')+';font-weight:700">'+(reserveNotMet?'reserva no alcanzada':('ganador: '+(isWinner?'tú':topBid.user)))+'</span>';
+  if(isWinner&&reserveNotMet){
+    // mayor postor por debajo de la base — no hay venta obligada
+    if(bidBtn){bidBtn.textContent='reserva no alcanzada';bidBtn.disabled=true;bidBtn.style.opacity='.35';bidBtn.style.cursor='not-allowed';bidBtn.onclick=null;}
+    const _yaNotif=NOTIFICATIONS.some(n=>n.type==='reserva'&&n.auctionId===currentAuction.id);
+    if(!_yaNotif){
+      NOTIFICATIONS.unshift({id:Date.now(),type:'reserva',auctionId:currentAuction.id,title:'Subasta finalizada',body:'No alcanzaste el precio base requerido por el dueño en '+currentAuction.title+'.',time:'ahora mismo',read:false,icon:'default'});
+      _saveNotifsToStorage();
+      document.getElementById('notif-dot').style.display='block';
+    }
+  } else if(isWinner){
     if(bidBtn){bidBtn.textContent='enviar mensaje';bidBtn.disabled=false;bidBtn.style.opacity='1';bidBtn.style.cursor='pointer';bidBtn.onclick=()=>{_msgAuctionSeller(currentAuction.ownerId,currentAuction.id,currentAuction.title);};}
     if(watchBtn){watchBtn.onclick=contactSeller;}
     if(watchLabel){watchLabel.textContent='contactar vendedor';}
@@ -4629,7 +4642,7 @@ const PLANS = {
     subtitle:'El mejor postor se lo lleva. Sin compromisos.',
     price:'$10', priceSub:'USD para iniciar',
     features:[
-      {text:'Subastas de 1 hasta 15 días', ok:true},
+      {text:'Subastas de 1 hasta 25 días', ok:true},
       {text:'Precio de reserva opcional', ok:true},
       {text:'Hasta 2 republicaciones gratuitas', ok:true},
       {text:'Sin obligación de vender bajo tu reserva', ok:true},
@@ -5144,7 +5157,8 @@ function showDealerFab(show){
 
 function openPaymentSheetForType(type){
   pendingVenderType=type;
-  const p=PLANS[type];
+  // [V84] 'market' (botón subir) no existe como llave en PLANS — caía en TypeError silencioso
+  const p=PLANS[type]||PLANS.particular;
   const badge=document.getElementById('ps-badge');
   if(!badge) return;
   badge.textContent=p.badge; badge.style.background=p.badgeColor; badge.style.color=p.badgeText; badge.style.borderColor=p.badgeText;
@@ -5267,6 +5281,7 @@ async function publishListing(){
   const ciudad=getSelByLabel('ciudad');
   const transmision=getSelByLabel('transmisión');
   const combustible=getSelByLabel('combustible');
+  const duenos=getSelByLabel('dueños previos')||''; // [V84] se capturaba en el form pero jamás se leía
   const condicion=window._listingCondNuevo?'nuevo':'usado';
   const estadoFisico=document.getElementById('estado-fisico-select')?.value||'';
   const esChocado=document.getElementById('chocado-toggle')?.checked||false;
@@ -5306,7 +5321,7 @@ async function publishListing(){
     if(esListing && pendingVenderType==='consesionario'){
       concesionarioId = USER_STATE.concesionarioId||null;
     }
-    const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,clasificacion:categoria||null,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
+    const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,clasificacion:categoria||null,duenos:duenos||null,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
     const payload = esListing
       ? {...payloadBase, concesionario_id:concesionarioId}
       : {...payloadBase, tipo, sin_reserva:precioRes===0&&tipo==='subasta', duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioRes||0};
@@ -5850,7 +5865,7 @@ function selectDano(btn){
 function populateYears(){
   const sel=document.getElementById('year-select');
   if(!sel||sel.options.length>1)return;
-  for(let y=2025;y>=1980;y--){const o=document.createElement('option');o.value=y;o.textContent=y;sel.appendChild(o)}
+  for(let y=2026;y>=1950;y--){const o=document.createElement('option');o.value=y;o.textContent=y;sel.appendChild(o)} // [V84] clásicos hasta 1950 + modelos 2026
 }
 
 let photoItems = [];
@@ -6198,7 +6213,7 @@ async function renderVitrinavGrid(filter){
   grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><p style="color:rgba(255,255,255,.3)">cargando...</p></div>';
   if(_supa){
     let q=_supa.from('listings')
-      .select('id,user_id,titulo,marca,modelo,year,km,precio_usd,condicion,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,estado_fisico,descripcion,whatsapp,ciudad,listing_photos(url,orden)')
+      .select('id,user_id,titulo,marca,modelo,year,km,precio_usd,condicion,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,descripcion,whatsapp,ciudad,listing_photos(url,orden)')
       .eq('concesionario_id',currentDealer.id)
       .eq('estado','activa')
       .order('created_at',{ascending:false});
@@ -6208,7 +6223,7 @@ async function renderVitrinavGrid(filter){
     if(data?.length){
       // sincronizar con MARKET_LISTINGS para que openMarketDetail funcione
       data.forEach(l=>{
-        const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',photos:(l.listing_photos||[]).length||3,photoUrls:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden).map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:currentDealer.id,seller:currentDealer.nombre,sellerType:'concesionario · ruedda'};
+        const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',photos:(l.listing_photos||[]).length||3,photoUrls:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden).map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:currentDealer.id,seller:currentDealer.nombre,sellerType:'concesionario · ruedda'};
         if(!MARKET_LISTINGS.find(x=>x.id===l.id)) MARKET_LISTINGS.push(mapped);
       });
       grid.innerHTML=data.map((l,i)=>{
@@ -6753,6 +6768,13 @@ async function modApprove(id){
   const{error}=await _supa.from(tbl).update({estado:nuevoEstado}).eq('id',id);
   if(error){showToast('error al aprobar: '+error.message);return;}
   showToast('publicación aprobada ✓',true);
+  // [V84] notificación persistente al dueño — llega por realtime si está online, queda en bandeja si no
+  if(item?.user_id){
+    const _nbody=esDealer
+      ?`${item.titulo||'Tu publicación'} fue aprobada y ya está activa en el market.`
+      :`${item.titulo||'Tu publicación'} fue aprobada. Ve a Mis publicaciones y presiona "subir" para activarla.`;
+    _supa.from('notifications').insert({user_id:item.user_id,tipo:'aprobacion',titulo:'¡Publicación aprobada!',body:_nbody,icon:'lime',source_id:String(id),source_type:tbl==='listings'?'listing':'auction'}).then(({error:ne})=>{if(ne)console.warn('[notif aprobacion]',ne.message);});
+  }
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
   // solo recargar market si es dealer (ya está activa)
@@ -7088,8 +7110,8 @@ async function renderDhPubs(){
   if(_supa && USER_STATE.concesionarioId){
     el.innerHTML='<div style="grid-column:1/-1;display:flex;justify-content:center;padding:30px"><div class="save-spinner" style="border-top-color:rgba(255,255,255,.6)"></div></div>';
     try{
-      const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado').eq('concesionario_id',USER_STATE.concesionarioId).order('created_at',{ascending:false});
-      if(!error&&data?.length) DEALER_LISTINGS_OWN.splice(0,DEALER_LISTINGS_OWN.length,...data.map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:Number(l.precio_usd||0),km:'—',status:l.estado})));
+      const{data,error}=await _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado,listing_photos(url,orden)').eq('concesionario_id',USER_STATE.concesionarioId).order('created_at',{ascending:false});
+      if(!error&&data?.length) DEALER_LISTINGS_OWN.splice(0,DEALER_LISTINGS_OWN.length,...data.map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:Number(l.precio_usd||0),km:'—',status:l.estado,photoUrl:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null})));
     }catch(e){ console.error('[ruedda] renderDhPubs:',String(e?.message||e)); }
   }
   if(!DEALER_LISTINGS_OWN.length){
@@ -7103,8 +7125,11 @@ async function renderDhPubs(){
     const badgeColor=isActiva?'rgba(100,220,100,.9)':isRevision?'rgba(255,170,0,.8)':isNegada?'rgba(255,70,70,.9)':'rgba(255,170,0,.8)';
     const badgeLabel=isActiva?'activa':isRevision?'en revisión':isNegada?'negada':l.status;
     return `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer" onclick="openMarketDetail('${l.id}','vitrina')">
-      <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(${grads[l.id%grads.length]});display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
-        ${carPlaceholder(l.id,'small')}
+      <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
+        ${l.photoUrl
+          ?`<img src="${l.photoUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none';const s=this.nextElementSibling;if(s)s.style.display='none'">
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.06) 25%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.06) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
+          :`<svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
         <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:100px;padding:3px 8px;font-size:10px;font-weight:700;color:${badgeColor}">${badgeLabel}</div>
       </div>
       <div style="padding:10px 11px 12px;flex:1;display:flex;flex-direction:column;gap:4px">
@@ -7661,7 +7686,7 @@ async function _loadAuctions(){
   if(!_supa) return;
   try{
     const _corte48h=new Date(Date.now()-48*3600*1000).toISOString();
-    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,estado_fisico,condicion,ciudad,descripcion,user_id').eq('tipo','subasta').eq('estado','activa').gte('end_time',_corte48h).order('end_time',{ascending:true});
+    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,user_id').eq('tipo','subasta').eq('estado','activa').gte('end_time',_corte48h).order('end_time',{ascending:true});
     if(ae){console.error('[ruedda] _loadAuctions:',String(ae?.message||ae?.code||'error'));return;}
     if(!data?.length) return;
     // batch fetch fotos y nombres — evita RLS del nested select
@@ -7682,9 +7707,9 @@ async function _loadAuctions(){
       const sortedPhotos=(photosMap[a.id]||[]).sort((x,y)=>x.orden-y.orden);
       // [V83] specs completas: solo claves con valor real — adiós "undefined" en pills
       const _cl={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'}[a.clasificacion]||a.clasificacion||'';
-      const _specsRaw={'transmisión':a.transmision,'combustible':a.combustible,'motor':a.motor,'tracción':a.traccion,'color':a.color,'categoría':a.tipo_vehiculo,'estado físico':a.estado_fisico,'condición':a.condicion,'clasificación':_cl};
+      const _specsRaw={'transmisión':a.transmision,'combustible':a.combustible,'motor':a.motor,'tracción':a.traccion,'color':a.color,'categoría':a.tipo_vehiculo,'dueños':a.duenos,'estado físico':a.estado_fisico,'condición':a.condicion,'clasificación':_cl};
       const specs={};Object.entries(_specsRaw).forEach(([k,v])=>{if(v!=null&&String(v).trim()!=='')specs[k]=v;});
-      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
+      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
     if(typeof renderCards==='function') renderCards();
@@ -7695,10 +7720,10 @@ async function _loadAuctions(){
 async function _loadMarket(){
   if(!_supa) return;
   try{
-    const{data,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden)').eq('estado','activa').order('created_at',{ascending:false});
+    const{data,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden)').eq('estado','activa').order('created_at',{ascending:false});
     if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));return;}
     if(!data?.length) return;
-    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
   }catch(e){console.error('[ruedda] _loadMarket catch:',String(e?.message||e));}
@@ -8487,6 +8512,39 @@ async function _openPmThreadFrom(otherId,sourceId){
   if(t) openThread(t.id);
   else showToast('conversación no encontrada');
 }
+
+// ── [V84] SISTEMA DE VISTAS — solo lógica, sin UI. Conectar después donde se decida. ──
+// Uso futuro: RueddaViews.registerView('listings', id) al abrir un detalle.
+//             RueddaViews.getViewCount('auctions', id) para leer el total.
+// Dedupe por sesión de navegador (clave persistente en localStorage) — una vista por sesión por publicación.
+window.RueddaViews={
+  _sessionKey(){
+    let k=null;
+    try{k=localStorage.getItem('ruedda_view_session');}catch(e){}
+    if(!k){
+      k=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2));
+      try{localStorage.setItem('ruedda_view_session',k);}catch(e){}
+    }
+    return k;
+  },
+  // registra una vista; devuelve el total actualizado o null si no contó (duplicada/offline)
+  async registerView(tabla,recordId){
+    if(!_supa||!recordId||(tabla!=='listings'&&tabla!=='auctions'))return null;
+    try{
+      const{data,error}=await _supa.rpc('registrar_vista',{p_tabla:tabla,p_record_id:recordId,p_session_key:this._sessionKey()});
+      if(error){console.warn('[views]',error.message);return null;}
+      return data;
+    }catch(e){return null;}
+  },
+  // lee el total de vistas de una publicación
+  async getViewCount(tabla,recordId){
+    if(!_supa||!recordId||(tabla!=='listings'&&tabla!=='auctions'))return 0;
+    try{
+      const{data}=await _supa.from(tabla).select('view_count').eq('id',recordId).maybeSingle();
+      return data?.view_count||0;
+    }catch(e){return 0;}
+  }
+};
 
 function _goToSource(sourceId,sourceType){
   showView('home');
