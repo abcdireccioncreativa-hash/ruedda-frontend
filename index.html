@@ -3965,7 +3965,7 @@ function sendMktComment(){
 // ===================== DETAIL =====================
 function openDetail(id){
   // [V87] vista real del comprador + chip junto al precio actual
-  setTimeout(()=>{const a=currentAuction;const ba=document.getElementById('detail-bid-amount');if(ba&&a){_registerRealView('auctions',a);let c=document.getElementById('detail-views-chip');if(!c){ba.insertAdjacentHTML('afterend','<span id="detail-views-chip" style="display:inline-flex;margin-left:10px;vertical-align:middle"></span>');c=document.getElementById('detail-views-chip');}c.innerHTML=_viewsChip(a.viewCount);}},80);
+  setTimeout(()=>{const a=currentAuction;const tm=document.getElementById('detail-timer');if(tm&&a){_registerRealView('auctions',a);let c=document.getElementById('detail-views-chip');if(!c){tm.insertAdjacentHTML('afterend','<span id="detail-views-chip" style="display:flex;justify-content:flex-end;margin-top:7px"></span>');c=document.getElementById('detail-views-chip');}c.innerHTML=_viewsChip(a.viewCount);const sv=document.getElementById('detail-stats-vistas');if(sv)sv.textContent=((a.viewCount||0)*2).toLocaleString();}},80);
   currentAuction=AUCTIONS.find(a=>a.id==id||String(a.id)===String(id))||AUCTIONS_CHOCADOS.find(a=>a.id==id||String(a.id)===String(id));
   if(!currentAuction)return;
   const a=currentAuction;
@@ -4070,11 +4070,11 @@ function _renderDetailStatsCard(a){
   const val='display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.85);font-weight:400';
   const row='display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)';
   box.innerHTML=`
-  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:6px 18px 14px;margin-top:18px;font-family:var(--font)">
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:6px 18px 14px;margin:18px 0 28px;font-family:var(--font)">
     <div style="${row}"><span style="${lbl}">oferta actual</span><span style="${val}"><span style="color:#e6f03b;font-weight:700;font-size:15px">${fmtBid(a.currentBid||0)}</span></span></div>
     <div style="${row}"><span style="${lbl}">terminando</span><span style="${val}">${icoCal}${fecha} · ${hora}</span></div>
     <div style="${row}"><span style="${lbl}">ofertas</span><span style="${val}">${icoHammer}${a.bidCount||0}</span></div>
-    <div style="${row}"><span style="${lbl}">vistas</span><span style="${val}">${icoEye}${vistas}</span></div>
+    <div style="${row}"><span style="${lbl}">vistas</span><span style="${val}">${icoEye}<span id="detail-stats-vistas">${vistas}</span></span></div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0 4px">
       <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.85)" stroke-width="1.8" style="width:17px;height:17px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
       <span id="detail-fav-count" style="font-size:12px;color:rgba(255,255,255,.55);font-weight:300">—</span>
