@@ -178,7 +178,7 @@ html{scrollbar-width:none}
 .detail-layout-desktop{display:flex;flex-direction:column;gap:0}
 .detail-right-col{order:-1}
 .detail-left-col{order:1;display:flex;flex-direction:column}
-.bid-section{margin-bottom:20px}
+.bid-section{margin-bottom:34px}
 
 .detail-back{display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--white);font-size:14px;font-weight:300;padding:16px 10px 16px;transition:opacity .2s;width:fit-content}
 .detail-back svg{width:20px;height:20px;flex-shrink:0}
@@ -197,7 +197,7 @@ html{scrollbar-width:none}
 .detail-title{font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1.15;margin-bottom:0}
 .detail-subtitle{font-size:13px;color:var(--muted);margin-bottom:18px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
 .detail-subtitle .sep{color:var(--muted2)}
-.bid-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:0px;margin-bottom:20px}
+.bid-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:0px;margin-bottom:34px}
 .bid-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
 .bid-amount-label,.timer-big-label{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
 .bid-amount{font-size:28px;font-weight:700;letter-spacing:-1px}
@@ -4070,7 +4070,7 @@ function _renderDetailStatsCard(a){
   const val='display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.85);font-weight:400';
   const row='display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)';
   box.innerHTML=`
-  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:6px 18px 14px;margin:18px 0 28px;font-family:var(--font)">
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:6px 18px 14px;margin:14px 0 46px;font-family:var(--font)">
     <div style="${row}"><span style="${lbl}">oferta actual</span><span style="${val}"><span style="color:#e6f03b;font-weight:700;font-size:15px">${fmtBid(a.currentBid||0)}</span></span></div>
     <div style="${row}"><span style="${lbl}">terminando</span><span style="${val}">${icoCal}${fecha} · ${hora}</span></div>
     <div style="${row}"><span style="${lbl}">ofertas</span><span style="${val}">${icoHammer}${a.bidCount||0}</span></div>
