@@ -1728,6 +1728,10 @@ html{scrollbar-width:none}
       <label class="form-label">precio base de subasta (USD)</label>
       <input class="form-input" type="number" id="precio-base-input" placeholder="ej: 5000 — arranca en 0 si se deja vacío" min="0">
     </div>
+    <div class="form-group" id="field-reserva-oculta" style="display:none">
+      <label class="form-label">precio de reserva (USD) · solo lo ves tú</label>
+      <input class="form-input" type="number" id="precio-reserva-input" placeholder="opcional: mínimo para vender — no se muestra en la publicación" min="0">
+    </div>
 
     <!-- DURACIÓN: solo aparece en subasta -->
     <div class="form-group" id="field-duracion" style="display:none">
@@ -1939,9 +1943,9 @@ html{scrollbar-width:none}
     <button id="thread-call-btn" onclick="event.stopPropagation()" style="display:none;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:6px;margin-left:auto"><svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="1.9" style="width:20px;height:20px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
   </div>
   <!-- MESSAGES -->
-  <div id="thread-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 140px;overflow-y:auto;flex:1;min-height:0"></div>
+  <div id="thread-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 175px;overflow-y:auto;flex:1;min-height:0"></div>
   <!-- INPUT AREA -->
-  <div id="thread-input-bar" style="position:fixed;bottom:calc(64px + env(safe-area-inset-bottom));left:0;right:0;background:rgba(0,0,0,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;z-index:200">
+  <div id="thread-input-bar" style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:rgba(0,0,0,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;z-index:200">
     <textarea id="thread-input" placeholder="responder..." style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;resize:none;min-height:44px;max-height:96px;line-height:1.5;transition:border-color .2s" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,96)+'px'" onfocus="this.style.borderColor='rgba(230,240,59,.35)'" onblur="this.style.borderColor='var(--border)'"></textarea>
     <button onclick="sendThreadReply()" style="background:#e6f03b;color:#000;border:none;border-radius:10px;padding:11px 16px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all .15s;align-self:flex-end" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'">enviar</button>
   </div>
@@ -2996,7 +3000,7 @@ function showView(name,param){
   document.getElementById('view-'+name).classList.add('active');
   currentView=name;
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos'};
+  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos'};
   if(map[name])document.getElementById(map[name]).classList.add('active');
   if(name==='home'){
     clearTimers();
@@ -3783,7 +3787,7 @@ function openMarketDetail(id, origin){
   document.getElementById('mkt-city').textContent=l.location;
   // seller real desde Supabase si no hay nombre
   if(_supa && l.user_id && !l.seller){
-    _supa.from('users').select('nombre,username').eq('id',l.user_id).maybeSingle().then(({data:u})=>{
+    _supa.from('users').select('nombre,username,avatar_url').eq('id',l.user_id).maybeSingle().then(({data:u})=>{
       if(u){
         const nm=u.nombre||u.username||'Vendedor';
         const ini=nm.charAt(0).toUpperCase();
@@ -3791,8 +3795,9 @@ function openMarketDetail(id, origin){
         const _av2=document.getElementById('mkt-seller-avatar-bid');
         const _nm=document.getElementById('mkt-seller-name');
         const _nm2=document.getElementById('mkt-seller-name-bid');
-        if(_av){_av.textContent=ini;_av.style.background=`hsl(${(ini.charCodeAt(0)*47)%360},40%,28%)`;}
-        if(_av2) _av2.textContent=ini;
+        const _img=u.avatar_url?`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:null;
+        if(_av){ if(_img){_av.innerHTML=_img;_av.style.overflow='hidden';} else {_av.textContent=ini;_av.style.background=`hsl(${(ini.charCodeAt(0)*47)%360},40%,28%)`;} }
+        if(_av2){ if(_img){_av2.innerHTML=_img;_av2.style.overflow='hidden';} else {_av2.textContent=ini;} }
         if(_nm) _nm.innerHTML=nm;
         if(_nm2) _nm2.innerHTML=nm;
         l.seller=nm;
@@ -3948,7 +3953,8 @@ function sendMktComment(){
   if(list.querySelector('.comment-empty'))list.innerHTML='';
   const div=document.createElement('div');
   div.className='comment-item';
-  div.innerHTML='<div class="comment-header"><div class="comment-avatar">T</div><span class="comment-name">tú</span><span class="comment-time">ahora mismo</span></div><div class="comment-text">'+text+'</div>';
+  const _myAv=USER_STATE.avatar?'<div class="comment-avatar" style="overflow:hidden"><img src="'+USER_STATE.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>':'<div class="comment-avatar">T</div>';
+  div.innerHTML='<div class="comment-header">'+_myAv+'<span class="comment-name">tú</span><span class="comment-time">ahora mismo</span></div><div class="comment-text">'+text+'</div>';
   list.prepend(div);
   input.value='';input.style.height='auto';
   showToast('pregunta enviada',true);
@@ -5313,7 +5319,8 @@ async function publishListing(){
   const km=parseInt(getByPH('km')||'0');
   const color=getByPH('ej. negro mate');
   const precioFijo=parseFloat(getByPH('precio de venta')||'0');
-  const precioRes=parseFloat(document.getElementById('precio-base-input')?.value||getByPH('arranca en 0 si se deja vacío')||'0');
+  const precioBase=parseFloat(document.getElementById('precio-base-input')?.value||'0')||0; // arranque público de la puja
+  const precioRes=parseFloat(document.getElementById('precio-reserva-input')?.value||'0')||0; // [V90] mínimo oculto del dueño
   const whatsapp=getByPH('+58 412 000 0000');
   const descripcion=getByPH('sé sumamente detallado: estado, equipamiento, historial. no aceptamos descripciones mediocres, el sistema rechaza la publicación.');
   const ciudad=getSelByLabel('ciudad');
@@ -5362,7 +5369,7 @@ async function publishListing(){
     const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,clasificacion:categoria||null,duenos:duenos||null,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
     const payload = esListing
       ? {...payloadBase, concesionario_id:concesionarioId}
-      : {...payloadBase, tipo, sin_reserva:precioRes===0&&tipo==='subasta', duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioRes||0};
+      : {...payloadBase, tipo, sin_reserva:precioRes===0&&tipo==='subasta', duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioBase||0};
     console.log('[ruedda publish] tabla:', tabla, '| payload:', JSON.stringify(payload));
     const{error}=await (_supaWrite||_supa).from(tabla).insert(payload);
     if(error) console.error('[ruedda publish] insert error:', error);
@@ -5454,6 +5461,7 @@ function openVenderForm(){
   document.getElementById('btn-submit-vender').textContent=c.btn;
   document.getElementById('field-precio-fijo').style.display=c.precioFijo?'':'none';
   document.getElementById('field-precio-reserva').style.display=c.reserva?'':'none';
+  const _fro=document.getElementById('field-reserva-oculta'); if(_fro)_fro.style.display=c.reserva?'':'none';
   document.getElementById('field-duracion').style.display=c.duracion?'':'none';
   document.getElementById('field-condicion').style.display=c.condicion?'':'none';
   document.getElementById('field-contacto').style.display=c.contacto?'':'none';
@@ -7399,7 +7407,12 @@ function updateCuentaView(){
     }
     if(USER_STATE.nombre && document.getElementById('cuenta-nombre')) document.getElementById('cuenta-nombre').textContent=USER_STATE.nombre;
     if(USER_STATE.email && document.getElementById('cuenta-correo')) document.getElementById('cuenta-correo').textContent=USER_STATE.email;
-    if(USER_STATE.username && document.getElementById('cuenta-avatar')) document.getElementById('cuenta-avatar').textContent=(USER_STATE.username||'U').charAt(0).toUpperCase();
+    // [V90] la foto manda; la inicial es solo fallback (antes este textContent borraba la foto en cada refresh de vista)
+    const _cav=document.getElementById('cuenta-avatar');
+    if(_cav){
+      if(USER_STATE.avatar){ _paintAvatar(USER_STATE.avatar); }
+      else if(USER_STATE.username){ _cav.textContent=(USER_STATE.username||'U').charAt(0).toUpperCase(); }
+    }
     _updateCuentaSlider();
   } else {
     guest.style.display = 'block';
@@ -7529,7 +7542,7 @@ function handleAvatarUpload(input){
       showToast('foto actualizada',true);
       if(_supa&&USER_STATE.id){
         const{error}=await _supa.from('users').update({avatar_url:dataUrl}).eq('id',USER_STATE.id);
-        if(error)console.warn('[avatar]',error.message);
+        if(error){console.warn('[avatar]',error.message);showToast('la foto no se pudo guardar: '+error.message);}
       }
     };
     img.src=reader.result;
@@ -8032,23 +8045,22 @@ async function _activarTrasSubir(){
   const id=window._pendingSubirId;
   if(!id) return;
   window._pendingSubirId=null;
-  // [V88] tabla correcta segun el tipo guardado en _subirPublicacion
   const _tbl=window._pendingSubirTable||'listings';
   window._pendingSubirTable=null;
-  // badge publicando
-  const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===id);
-  if(l){ l.status='publicando'; _renderMisPubGrid(); }
-  // Supabase
-  if(_supa){
-    await _supa.from(_tbl).update({estado:'activa'}).eq('id',id).catch(e=>console.error('[ruedda] activarTrasSubir:',e.message));
-  }
-  // recargar el feed del mercado correspondiente para que aparezca de inmediato
+  // [V90] blindado: cada etapa aislada; el splash se garantiza tras activacion confirmada
+  try{
+    const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===id);
+    if(l){ l.status='publicando'; _renderMisPubGrid(); }
+  }catch(e){console.warn('[subir badge]',e?.message||e);}
+  try{
+    if(_supa){
+      const{error}=await _supa.from(_tbl).update({estado:'activa'}).eq('id',id);
+      if(error){console.error('[ruedda] activarTrasSubir:',error.message);showToast('error al activar: '+error.message);return;}
+    }
+  }catch(e){console.error('[ruedda] activarTrasSubir:',e?.message||e);showToast('error al activar la publicación');return;}
+  try{ _showSubidaAlMarketSplash(_tbl==='auctions'); }catch(e){console.warn('[subir splash]',e?.message||e);}
   try{ if(_tbl==='auctions'&&typeof _loadAuctions==='function')_loadAuctions(); else if(typeof _loadMarket==='function')_loadMarket(); }catch(e){}
-  // splash éxito
-  _showSubidaAlMarketSplash(_tbl==='auctions');
-  // recargar
-  await _loadMyListings();
-  _renderMisPubGrid();
+  try{ await _loadMyListings(); _renderMisPubGrid(); }catch(e){}
 }
 
 function _showSubidaAlMarketSplash(esSubasta){
@@ -8387,8 +8399,8 @@ async function _loadPrivateMessages(force){
     isPM:true,
     otherId:t.otherId,
     otherName:t.otherName,
-    otherRole:t.otherRole,
     otherAvatar:t.otherAvatar||null,
+    otherRole:t.otherRole,
     otherIsDealer:t.otherIsDealer||false,
     sourceId:t.sourceId,
     sourceType:t.sourceType,
@@ -8516,6 +8528,11 @@ function openThread(id){
       }
       if(tel&&callBtn){callBtn.style.display='flex';callBtn.onclick=()=>{window.location.href='tel:'+tel;};}
       else console.warn('[thread] dealer sin telefono/whatsapp registrado (ni en concesionarios ni en la publicación)');
+    }).catch(()=>{});
+  } else if(_supa&&currentThread.otherId){
+    // [V90] interlocutor particular: foto de perfil real si la tiene
+    _supa.from('users').select('avatar_url').eq('id',currentThread.otherId).maybeSingle().then(({data:u})=>{
+      if(u?.avatar_url&&av) av.innerHTML=`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
     }).catch(()=>{});
   }
   renderThreadMessages();
