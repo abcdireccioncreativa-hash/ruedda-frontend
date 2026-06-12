@@ -59,6 +59,7 @@ html::-webkit-scrollbar{display:none}
 html{scrollbar-width:none}
 .view{padding-top:58px}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
+#view-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
 #view-thread{padding-top:0;height:100dvh;height:100vh;box-sizing:border-box;flex-direction:column;overflow:hidden}
 #view-thread.active{display:flex!important}
@@ -197,7 +198,7 @@ html{scrollbar-width:none}
 .detail-subtitle{font-size:13px;color:var(--muted);margin-bottom:18px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
 .detail-subtitle .sep{color:var(--muted2)}
 .bid-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:0px;margin-bottom:20px}
-.bid-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.bid-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
 .bid-amount-label,.timer-big-label{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
 .bid-amount{font-size:28px;font-weight:700;letter-spacing:-1px}
 .bid-count{font-size:12px;color:var(--muted);margin-top:3px}
@@ -1266,6 +1267,7 @@ html{scrollbar-width:none}
           <div class="detail-section-title">historial de ofertas</div>
           <div class="bid-history-list" id="bid-history"></div>
         </div>
+        <div id="detail-stats-card"></div>
         <div class="detail-section">
           <div class="detail-section-title">descripción</div>
           <p style="font-size:14px;color:var(--muted);line-height:1.75" id="detail-desc"></p>
@@ -4039,9 +4041,52 @@ function openDetail(id){
   const sellerInit=(a.seller||'V')[0].toUpperCase();
   const sellerAv=document.getElementById('detail-seller-avatar');
   const sellerNm=document.getElementById('detail-seller-name');
-  if(sellerAv){sellerAv.textContent=sellerInit;sellerAv.style.background=`hsl(${(sellerInit.charCodeAt(0)*47)%360},40%,28%)`;}
+  if(sellerAv){sellerAv.textContent=sellerInit;sellerAv.style.background=`hsl(${(sellerInit.charCodeAt(0)*47)%360},40%,28%)`;sellerAv.style.overflow='hidden';}
   if(sellerNm) sellerNm.textContent=a.seller||'Vendedor anónimo';
+  // [V91] foto real del publicante en "publicado por"
+  if(_supa&&a.ownerId){
+    _supa.from('users').select('avatar_url').eq('id',a.ownerId).maybeSingle().then(({data:u})=>{
+      if(u?.avatar_url&&sellerAv) sellerAv.innerHTML=`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    }).catch(()=>{});
+  }
+  _renderDetailStatsCard(a);
   if(a.endTime-Date.now()<=0) renderDetailAuctionEnded();
+}
+
+// [V91] card de stats estilo Ruedda bajo el historial de ofertas
+function _renderDetailStatsCard(a){
+  const box=document.getElementById('detail-stats-card');
+  if(!box||!a) return;
+  const _ic=(p)=>`<svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.55)" stroke-width="1.7" style="width:15px;height:15px;flex-shrink:0">${p}</svg>`;
+  const icoClock=_ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>');
+  const icoCal=_ic('<rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 9h18"/>');
+  const icoHammer=_ic('<path d="M14 4l6 6-3 3-6-6zM11 7l-7.5 7.5a2 2 0 0 0 0 2.8l.2.2a2 2 0 0 0 2.8 0L14 10"/><path d="M4 21h10"/>');
+  const icoEye=_ic('<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>');
+  const dEnd=new Date(a.endTime);
+  const fecha=dEnd.toLocaleDateString('es-VE',{weekday:'short',day:'numeric',month:'short'}).replace(/\./g,'');
+  const hora=dEnd.toLocaleTimeString('es-VE',{hour:'numeric',minute:'2-digit'});
+  const vistas=((a.viewCount||0)*2).toLocaleString();
+  const lbl='font-size:13px;font-weight:700;color:#fff;letter-spacing:-.1px';
+  const val='display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.85);font-weight:400';
+  const row='display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)';
+  box.innerHTML=`
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:6px 18px 14px;margin-top:18px;font-family:var(--font)">
+    <div style="${row}"><span style="${lbl}">oferta actual</span><span style="${val}"><span style="color:#e6f03b;font-weight:700;font-size:15px">${fmtBid(a.currentBid||0)}</span></span></div>
+    <div style="${row}"><span style="${lbl}">terminando</span><span style="${val}">${icoCal}${fecha} · ${hora}</span></div>
+    <div style="${row}"><span style="${lbl}">ofertas</span><span style="${val}">${icoHammer}${a.bidCount||0}</span></div>
+    <div style="${row}"><span style="${lbl}">vistas</span><span style="${val}">${icoEye}${vistas}</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0 4px">
+      <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.85)" stroke-width="1.8" style="width:17px;height:17px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
+      <span id="detail-fav-count" style="font-size:12px;color:rgba(255,255,255,.55);font-weight:300">—</span>
+    </div>
+  </div>`;
+  if(_supa){
+    const keys=['mkt-'+a.id,String(a.id)];
+    _supa.from('user_favorites').select('id',{count:'exact',head:true}).in('item_id',keys).then(({count})=>{
+      const el=document.getElementById('detail-fav-count');
+      if(el){const n=count||0;el.textContent=n===1?'1 persona lo tiene en favoritos':n+' personas lo tienen en favoritos';}
+    }).catch(()=>{});
+  }
 }
 
 function renderDetailAuctionEnded(){
