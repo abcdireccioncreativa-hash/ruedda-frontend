@@ -4924,6 +4924,12 @@ async function processPlanPayment(){
     _showVitrinaActivadaSplash();
     return;
   }
+  // [V88] contexto subir: la publicación ya existe y está aprobada — activar, no abrir el form
+  if(window._pendingSubirId){
+    showToast('código aplicado — subiendo publicación',true);
+    setTimeout(_activarTrasSubir,400);
+    return;
+  }
   showToast('código aplicado — publicando',true);
   setTimeout(openVenderForm,600);
 }
@@ -8014,6 +8020,8 @@ function _subirPublicacion(id){
   pendingVenderType='market';
   // guardar id para actualizar tras pago
   window._pendingSubirId=String(id);
+  // [V88] tabla destino segun tipo: las subastas viven en auctions, no en listings
+  window._pendingSubirTable=(l.type==='subasta'||l.type==='chocado')?'auctions':'listings';
   // [V85] el sheet de mis publicaciones (z-index 9990) tapaba los modales (z-index 300) — cerrarlo primero
   closeMisPub();
   // [V85] flujo correcto: subir → "elige tu plan" (gratis con código / pago) → checkout si es de pago
@@ -8024,21 +8032,26 @@ async function _activarTrasSubir(){
   const id=window._pendingSubirId;
   if(!id) return;
   window._pendingSubirId=null;
+  // [V88] tabla correcta segun el tipo guardado en _subirPublicacion
+  const _tbl=window._pendingSubirTable||'listings';
+  window._pendingSubirTable=null;
   // badge publicando
   const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===id);
   if(l){ l.status='publicando'; _renderMisPubGrid(); }
   // Supabase
   if(_supa){
-    await _supa.from('listings').update({estado:'activa'}).eq('id',id).catch(e=>console.error('[ruedda] activarTrasSubir:',e.message));
+    await _supa.from(_tbl).update({estado:'activa'}).eq('id',id).catch(e=>console.error('[ruedda] activarTrasSubir:',e.message));
   }
+  // recargar el feed del mercado correspondiente para que aparezca de inmediato
+  try{ if(_tbl==='auctions'&&typeof _loadAuctions==='function')_loadAuctions(); else if(typeof _loadMarket==='function')_loadMarket(); }catch(e){}
   // splash éxito
-  _showSubidaAlMarketSplash();
+  _showSubidaAlMarketSplash(_tbl==='auctions');
   // recargar
   await _loadMyListings();
   _renderMisPubGrid();
 }
 
-function _showSubidaAlMarketSplash(){
+function _showSubidaAlMarketSplash(esSubasta){
   const sp=document.createElement('div');
   sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#000;opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
   sp.innerHTML=`
@@ -8048,7 +8061,7 @@ function _showSubidaAlMarketSplash(){
       <path d="M17 26l6 6 12-12" stroke="#e6f03b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
     </svg>
     <div style="display:flex;flex-direction:column;gap:10px;opacity:0;animation:splashFade .4s ease .15s forwards">
-      <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:#fff">¡Publicación subida al market!</div>
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:#fff">${esSubasta?'¡Subasta publicada y activa!':'¡Publicación subida al market!'}</div>
       <div style="font-size:14px;color:rgba(255,255,255,.5);line-height:1.7">Tu vehículo ya está visible<br>para todos en Ruedda.</div>
     </div>
     <button onclick="this.closest('[style*=fixed]').remove();showView('cuenta');" style="margin-top:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:white;font-size:14px;font-weight:700;padding:12px 32px;border-radius:100px;cursor:pointer;font-family:var(--font)">ver mis publicaciones</button>`;
