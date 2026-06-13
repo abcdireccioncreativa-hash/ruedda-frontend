@@ -2908,9 +2908,10 @@ const NOTIFICATIONS = []; // se carga desde Supabase en _rueddaLoadUserData()
 const _NOTIF_KEY = 'ruedda_notifs_v1';
 
 // Lee notifs guardadas y las mergea en NOTIFICATIONS (preserva estado read)
+function _notifKey(){ return 'ruedda_notifs_'+(USER_STATE&&USER_STATE.id?USER_STATE.id:'guest'); }
 function _loadNotifsFromStorage(){
   try {
-    const raw = localStorage.getItem(_NOTIF_KEY);
+    const raw = localStorage.getItem(_notifKey());
     if(!raw) return;
     const saved = JSON.parse(raw);
     if(!Array.isArray(saved)||!saved.length) return;
@@ -2927,7 +2928,7 @@ function _loadNotifsFromStorage(){
 // Serializa el array actual a localStorage
 function _saveNotifsToStorage(){
   try {
-    localStorage.setItem(_NOTIF_KEY, JSON.stringify(NOTIFICATIONS));
+    localStorage.setItem(_notifKey(), JSON.stringify(NOTIFICATIONS));
   } catch(e){ console.warn('[ruedda] notif storage write:',e.message); }
 }
 
@@ -7477,7 +7478,9 @@ function updateCuentaView(){
         lockLabel.style.background=active?'rgba(230,240,59,.1)':'rgba(255,255,255,.06)';
       }
     }
-    if(USER_STATE.nombre && document.getElementById('cuenta-nombre')) document.getElementById('cuenta-nombre').textContent=USER_STATE.nombre;
+    // [V102] saludo: nombre real, o username, nunca 'mi cuenta' para logueados
+    const _cn=document.getElementById('cuenta-nombre');
+    if(_cn){ const _disp=(USER_STATE.nombre||'').trim()||(USER_STATE.username||'').trim(); if(_disp)_cn.textContent=_disp; }
     if(USER_STATE.email && document.getElementById('cuenta-correo')) document.getElementById('cuenta-correo').textContent=USER_STATE.email;
     // [V90] la foto manda; la inicial es solo fallback (antes este textContent borraba la foto en cada refresh de vista)
     const _cav=document.getElementById('cuenta-avatar');
@@ -7507,11 +7510,19 @@ function logOut(){
   setTimeout(()=>{
     window._rueddaUser=null;
     if(_supa) _supa.auth.signOut().catch(()=>{});
+    // [V102] purga total de estado para evitar fuga entre cuentas
     USER_STATE.role='guest';USER_STATE.id=null;USER_STATE.nombre=null;
-    USER_STATE.email=null;USER_STATE.username=null;
+    USER_STATE.email=null;USER_STATE.username=null;USER_STATE.telefono=null;USER_STATE.celular=null;USER_STATE.ciudad=null;
+    USER_STATE.avatar=null;USER_STATE.kycVerified=false;
     USER_STATE.dealerActive=false;USER_STATE.dealerExpiry=null;
     USER_STATE.concesionarioId=null;
     Object.keys(PAID_TYPES).forEach(k=>delete PAID_TYPES[k]);
+    // purgar notificaciones en memoria (las del usuario anterior) + acceso a subastas
+    NOTIFICATIONS.length=0;
+    window._auctionAccessGranted={};
+    if(typeof _syncNotifBadge==='function')_syncNotifBadge();
+    const _dot=document.getElementById('notif-dot'); if(_dot)_dot.style.display='none';
+    const _cn=document.getElementById('cuenta-nombre'); if(_cn)_cn.textContent='mi cuenta';
     isLoggedIn=false;
     updateHamburgerAdmin();
     updateCuentaView();
@@ -7816,7 +7827,9 @@ async function _rueddaRegister(email,pass){
   const cedula=(document.querySelector('#auth-cedula-wrap input[type="tel"]')?.value||'').trim();
   const cedTipo=(document.getElementById('cedula-type-label')?.textContent||'V').trim();
   const telefono=(document.querySelector('#auth-phone-wrap input')?.value||'').trim();
-  const username=(document.querySelector('#auth-user-wrap input')?.value||'').trim().replace('@','');
+  let username=(document.querySelector('#auth-user-wrap input')?.value||'').trim().replace('@','').replace(/\s+/g,'_');
+  // [V102] si no escribió usuario, derivarlo del correo o del nombre
+  if(!username) username=(email?email.split('@')[0]:'')||(nombre?nombre.toLowerCase().replace(/\s+/g,'_'):'usuario');
   const role=(authUserType==='consesionario')?'concesionario':'particular';
   if(!nombre) throw new Error('ingresa tu nombre');
   if(!cedula) throw new Error('ingresa tu cédula');
@@ -7836,14 +7849,21 @@ async function _rueddaRegister(email,pass){
 }
 
 function _rueddaApplySession(p){
+  // [V102] limpiar notifs en memoria del estado previo antes de hidratar al nuevo usuario
+  NOTIFICATIONS.length=0;
   // [V87] avatar persistente desde users.avatar_url
   if(p&&p.avatar_url){USER_STATE.avatar=p.avatar_url;setTimeout(()=>_paintAvatar(p.avatar_url),50);}
   USER_STATE.kycVerified=!!(p&&p.kyc_verified); // [V94]
   // normalizar 'concesionario' (DB) → 'consesionario' (app-internal)
   const role=p.role==='concesionario'?'consesionario':(p.role||'particular');
-  setUserRole(role,{id:p.id||null,nombre:p.nombre||'',email:p.email||'',username:p.username||'',telefono:p.telefono||''});
+  // [V102] derivar username si la cuenta vieja/nueva no lo tiene aún
+  const _uname=p.username||(p.email?p.email.split('@')[0]:'')||(p.nombre?p.nombre.toLowerCase().replace(/\s+/g,'_'):'');
+  setUserRole(role,{id:p.id||null,nombre:p.nombre||'',email:p.email||'',username:_uname,telefono:p.telefono||'',celular:p.telefono||'',ciudad:p.ciudad||''});
   updateHamburgerAdmin();
   updateCuentaView();
+  // [V102] recargar notifs del namespace del usuario recién logueado
+  if(typeof _loadNotifsFromStorage==='function')_loadNotifsFromStorage();
+  if(typeof _syncNotifBadge==='function')_syncNotifBadge();
 }
 
 async function supabaseLogout(){
@@ -8907,8 +8927,13 @@ function openEditProfileModal(){
         <input id="epm-correo" type="email" value="${(USER_STATE.email||'').replace(/"/g,'&quot;')}" readonly style="${inp};padding-right:42px;opacity:.65">
         <button onclick="const i=document.getElementById('epm-correo');i.readOnly=false;i.style.opacity='1';i.focus()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:6px"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.5)" stroke-width="1.8" style="width:15px;height:15px"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>
       </div>
+      <div style="${lbl}">usuario</div>
+      <div style="position:relative">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:15px">@</span>
+        <input id="epm-username" type="text" value="${(USER_STATE.username||'').replace(/"/g,'&quot;')}" placeholder="tu_usuario" style="${inp};padding-left:30px">
+      </div>
       <div style="${lbl}">número celular</div>
-      <input id="epm-celular" type="tel" value="${(USER_STATE.celular||'').replace(/"/g,'&quot;')}" placeholder="0412 0000000" style="${inp}">
+      <input id="epm-celular" type="tel" value="${(USER_STATE.telefono||USER_STATE.celular||'').replace(/"/g,'&quot;')}" placeholder="0412 0000000" style="${inp}">
       <div style="${lbl}">ciudad</div>
       <select id="epm-ciudad" style="${inp};appearance:none;-webkit-appearance:none">${_CIUDADES_VE.map(c=>`<option value="${c}" ${USER_STATE.ciudad===c?'selected':''}>${c}</option>`).join('')}</select>
       <button onclick="_saveProfileEdit(this)" style="margin-top:24px;width:100%;background:rgba(255,255,255,.10);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:15px;font-family:var(--font);font-size:15px;font-weight:700;color:#fff;cursor:pointer">Actualizar información</button>
@@ -8927,22 +8952,24 @@ function _closeEditProfile(){
 async function _saveProfileEdit(btn){
   const nombre=document.getElementById('epm-nombre')?.value.trim();
   const correo=document.getElementById('epm-correo')?.value.trim();
+  const username=document.getElementById('epm-username')?.value.trim().replace(/^@+/,'').replace(/\s+/g,'_');
   const celular=document.getElementById('epm-celular')?.value.trim();
   const ciudad=document.getElementById('epm-ciudad')?.value;
   if(!nombre){showToast('el nombre no puede quedar vacío');return;}
+  if(!username){showToast('el usuario no puede quedar vacío');return;}
   if(btn){btn.textContent='actualizando...';btn.disabled=true;btn.style.opacity='.6';}
   try{
     if(_supa&&USER_STATE.id){
-      const upd={nombre,celular:celular||null,ciudad:ciudad||null};
+      const upd={nombre,username,telefono:celular||null,ciudad:ciudad||null};
       const{error}=await _supa.from('users').update(upd).eq('id',USER_STATE.id);
-      if(error)throw error;
+      if(error){ if(String(error.message||'').toLowerCase().includes('duplicate')||error.code==='23505'){showToast('ese usuario ya está tomado, elige otro');if(btn){btn.textContent='Actualizar información';btn.disabled=false;btn.style.opacity='1';}return;} throw error; }
       if(correo&&correo!==USER_STATE.email){
         const{error:ee}=await _supa.auth.updateUser({email:correo});
         if(ee) showToast('correo: '+ee.message);
         else showToast('revisa tu correo para confirmar el cambio',true);
       }
     }
-    USER_STATE.nombre=nombre;USER_STATE.celular=celular;USER_STATE.ciudad=ciudad;
+    USER_STATE.nombre=nombre;USER_STATE.username=username;USER_STATE.telefono=celular;USER_STATE.celular=celular;USER_STATE.ciudad=ciudad;
     if(typeof updateCuentaView==='function')updateCuentaView();
     showToast('información actualizada ✓',true);
     _closeEditProfile();
