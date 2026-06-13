@@ -1120,11 +1120,14 @@ html{scrollbar-width:none}
     <!-- CTA BLOCK -->
     <div style="padding:0 24px">
       <!-- RECORDAR -->
-      <div id="auth-remember-wrap" style="display:none;align-items:center;gap:10px;margin-top:16px;cursor:pointer" onclick="_toggleRemember()">
-        <div id="auth-remember-ui" style="width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.18);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s">
-          <svg id="auth-remember-icon" fill="none" viewBox="0 0 14 14" stroke="#000" stroke-width="2.5" style="width:10px;height:10px;display:none"><path d="m2 7 3.5 3.5 6.5-7"/></svg>
+      <div id="auth-remember-row" style="display:none;align-items:center;justify-content:space-between;margin-top:16px">
+        <div id="auth-remember-wrap" style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="_toggleRemember()">
+          <div id="auth-remember-ui" style="width:20px;height:20px;border-radius:6px;border:1.5px solid rgba(255,255,255,.18);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s">
+            <svg id="auth-remember-icon" fill="none" viewBox="0 0 14 14" stroke="#000" stroke-width="2.5" style="width:10px;height:10px;display:none"><path d="m2 7 3.5 3.5 6.5-7"/></svg>
+          </div>
+          <span style="font-size:11px;color:rgba(255,255,255,.35);font-weight:500;user-select:none">recordar sesión</span>
         </div>
-        <span style="font-size:11px;color:rgba(255,255,255,.35);font-weight:500;user-select:none">recordar sesión</span>
+        <span onclick="_showForgotPassword()" style="font-size:11px;color:rgba(255,255,255,.45);font-weight:500;cursor:pointer;user-select:none;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.45)'">¿olvidaste tu contraseña?</span>
       </div>
       <button onclick="completeAuth()" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:13px;padding:16px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:14px;transition:all .15s;letter-spacing:-.1px" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'" id="auth-cta">crear cuenta y entrar</button>
 
@@ -1594,7 +1597,7 @@ html{scrollbar-width:none}
         </div>
         <svg class="fdd-arrow" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2"><path d="m5 8 5 5 5-5"/></svg>
       </button>
-      <div class="fdd-menu" id="fdd-precio-menu" style="padding:18px 16px 8px">
+      <div class="fdd-menu" id="fdd-precio-menu"><div style="padding:18px 16px 8px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <span id="precio-min-lbl" style="font-size:14px;font-weight:700;color:#fff">$0</span>
           <span id="precio-max-lbl" style="font-size:14px;font-weight:700;color:#fff">$200.000+</span>
@@ -1605,7 +1608,7 @@ html{scrollbar-width:none}
           <input type="range" min="0" max="200000" step="2500" value="0" id="precio-min" oninput="_priceSlide()">
           <input type="range" min="0" max="200000" step="2500" value="200000" id="precio-max" oninput="_priceSlide()">
         </div>
-      </div>
+      </div></div>
     </div>
 
     <!-- TRANSMISIÓN -->
@@ -1637,7 +1640,7 @@ html{scrollbar-width:none}
         </div>
         <svg class="fdd-arrow" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2"><path d="m5 8 5 5 5-5"/></svg>
       </button>
-      <div class="fdd-menu" id="fdd-anio-menu" style="padding:18px 16px 8px">
+      <div class="fdd-menu" id="fdd-anio-menu"><div style="padding:18px 16px 8px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <span id="anio-min-lbl" style="font-size:14px;font-weight:700;color:#fff">1930</span>
           <span id="anio-max-lbl" style="font-size:14px;font-weight:700;color:#fff">2027</span>
@@ -1648,7 +1651,7 @@ html{scrollbar-width:none}
           <input type="range" min="1930" max="2027" step="1" value="1930" id="anio-min" oninput="_yearSlide()">
           <input type="range" min="1930" max="2027" step="1" value="2027" id="anio-max" oninput="_yearSlide()">
         </div>
-      </div>
+      </div></div>
     </div>
 
     <!-- CIUDAD -->
@@ -2615,6 +2618,14 @@ html{scrollbar-width:none}
   <div class="drawer-item" onclick="showFinanciamientoSoon()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>financiamiento</div>
     <div class="drawer-item" onclick="closeDrawer();showView('soporte-ruedda')"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>soporte</div>
   <div class="drawer-item" onclick="closeDrawer();showView('cuenta')" style="color:var(--muted);font-size:15px;font-weight:500"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>mi cuenta</div>
+  <!-- [V105] enlaces de texto estilo Cars&Bids -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 12px;padding:16px 2px 10px">
+    <span onclick="closeDrawer();showToast('carreras: próximamente')" style="font-size:13px;font-weight:400;color:var(--muted);cursor:pointer;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted)'">carreras</span>
+    <span onclick="closeDrawer();showView('soporte-ruedda')" style="font-size:13px;font-weight:400;color:var(--muted);cursor:pointer;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted)'">preguntas</span>
+    <span onclick="closeDrawer();showView('fotografos')" style="font-size:13px;font-weight:400;color:var(--muted);cursor:pointer;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted)'">guía de fotos</span>
+    <span onclick="closeDrawer();showView('se-parte-ruedda')" style="font-size:13px;font-weight:400;color:var(--muted);cursor:pointer;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted)'">ser vendedor</span>
+    <span onclick="closeDrawer();showToast('inspecciones: próximamente')" style="font-size:13px;font-weight:400;color:var(--muted);cursor:pointer;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted)'">inspecciones</span>
+  </div>
   <div id="drawer-superadmin-item" onclick="closeDrawer();showView('superadmin')" style="display:none;align-items:center;gap:10px;padding:14px 0;cursor:pointer;border-bottom:1px solid var(--border);margin-bottom:4px">
     <span style="font-size:16px;font-weight:700">panel admin</span>
     <span style="background:#e6f03b;color:#000;font-size:10px;font-weight:800;padding:3px 9px;border-radius:100px;letter-spacing:.5px">SÚPER ADMIN</span>
@@ -7702,7 +7713,7 @@ function showLandingAuth(mode){
   });
   if(!isLogin){ authUserType='particular'; }
   document.getElementById('auth-cta').textContent=isLogin?'entrar':'crear cuenta y entrar';
-  const rw=document.getElementById('auth-remember-wrap');if(rw)rw.style.display=isLogin?'flex':'none';
+  const rw=document.getElementById('auth-remember-row');if(rw)rw.style.display=isLogin?'flex':'none';
   document.getElementById('auth-toggle-text').textContent=isLogin?'¿no tienes cuenta?':'¿ya tienes cuenta?';
   document.getElementById('auth-toggle-btn').textContent=isLogin?'registrate':'iniciar sesión';
   document.getElementById('auth-sheet').classList.add('open');
@@ -7845,6 +7856,49 @@ function _toggleRemember(){
   if(ui){ ui.style.background=_rememberChecked?'#e6f03b':'transparent'; ui.style.borderColor=_rememberChecked?'#e6f03b':'rgba(255,255,255,.18)'; }
   if(icon){ icon.style.display=_rememberChecked?'block':'none'; }
 }
+
+// [V105] splash de recuperación de contraseña (UI lista, backend luego)
+function _showForgotPassword(){
+  let m=document.getElementById('forgot-pw-sheet'); if(m)m.remove();
+  m=document.createElement('div');
+  m.id='forgot-pw-sheet';
+  m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease';
+  m.onclick=e=>{if(e.target===m)_closeForgotPassword();};
+  m.innerHTML=`
+  <div id="fpw-inner" style="background:#000;border-top:1px solid rgba(255,255,255,.08);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+    <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:rgba(255,255,255,.2)"></div></div>
+    <div style="width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
+      <svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="1.6" style="width:24px;height:24px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:#fff">recuperar contraseña</div>
+    <div style="font-size:13px;font-weight:300;color:rgba(255,255,255,.55);text-align:center;margin-top:10px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto">Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.</div>
+    <input id="fpw-email" type="email" placeholder="tu@correo.com" style="width:100%;margin-top:22px;background:#0e0e10;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box">
+    <button id="fpw-send" onclick="_sendForgotPassword(this)" style="width:100%;margin-top:14px;background:#e6f03b;color:#000;border:none;border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:-.1px" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'">enviar enlace</button>
+    <button onclick="_closeForgotPassword()" style="width:100%;margin-top:10px;background:none;border:none;color:rgba(255,255,255,.4);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;padding:8px">cancelar</button>
+  </div>`;
+  document.body.appendChild(m);
+  requestAnimationFrame(()=>{m.style.opacity='1';const i=document.getElementById('fpw-inner');if(i)i.style.transform='translateY(0)';});
+}
+function _closeForgotPassword(){
+  const m=document.getElementById('forgot-pw-sheet'); if(!m)return;
+  const i=document.getElementById('fpw-inner'); if(i)i.style.transform='translateY(100%)';
+  m.style.opacity='0'; setTimeout(()=>m.remove(),380);
+}
+async function _sendForgotPassword(btn){
+  const email=(document.getElementById('fpw-email')?.value||'').trim();
+  if(!email||!email.includes('@')){showToast('ingresa un correo válido');return;}
+  if(btn){btn.textContent='enviando...';btn.disabled=true;btn.style.opacity='.6';}
+  // [V105] backend pendiente — conectar a _supa.auth.resetPasswordForEmail(email) cuando esté listo
+  try{
+    if(_supa&&_supa.auth&&_supa.auth.resetPasswordForEmail){
+      await _supa.auth.resetPasswordForEmail(email).then(null,()=>{});
+    }
+  }catch(e){}
+  setTimeout(()=>{
+    showToast('si el correo existe, te enviamos el enlace ✓',true);
+    _closeForgotPassword();
+  },800);
+}
 function _showLoadingSplash(texto){
   let sp=document.getElementById('login-splash');
   if(sp) sp.remove();
@@ -7957,6 +8011,14 @@ async function _rueddaLogin(email,pass){
   setTimeout(()=>_showLoginSplash(profile.nombre||''),50);
   if(profile.role==='superadmin'){updateHamburgerAdmin();setTimeout(()=>showView('superadmin'),1200);}
   else if(isDesktop()) setTimeout(()=>enterApp(),1200);
+  else {
+    // [V105] móvil: aterrizar en cuenta con scroll arriba, elegante
+    setTimeout(()=>{
+      showView('cuenta');
+      document.documentElement.scrollTop=0;document.body.scrollTop=0;
+      const _cv=document.getElementById('view-cuenta'); if(_cv)_cv.scrollTop=0;
+    },1200);
+  }
   _rueddaLoadUserData(data.user.id,profile.role);
 }
 
