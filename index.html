@@ -1199,15 +1199,17 @@ html{scrollbar-width:none}
   <!-- MARKET SECTION (hidden initially) -->
   <div id="market-section" style="display:none">
     <div class="filter-bar" id="market-pill-bar">
-      <div class="mkt-pill active" onclick="mktPill(this,'todos')">todos</div>
-      <div class="mkt-pill" onclick="mktPill(this,'comercial')">comerciales</div>
-      <div class="mkt-pill" onclick="mktPill(this,'deportivo')">deportivos</div>
-      <div class="mkt-pill" onclick="mktPill(this,'clasico')">clásicos</div>
-      <div class="mkt-pill" onclick="mktPill(this,'oferta')">en oferta</div>
       <button class="filter-btn" id="market-filter-btn" onclick="toggleFilterPanel('market')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
         <span id="market-filter-count"></span>
       </button>
+      <div class="mkt-pill active" onclick="mktPill(this,'todos')">todos</div>
+      <div class="mkt-pill" onclick="mktPill(this,'comercial')">comerciales</div>
+      <div class="mkt-pill" onclick="mktPill(this,'deportivo')">deportivos</div>
+      <div class="mkt-pill" onclick="mktPill(this,'clasico')">clásicos</div>
+      <div class="mkt-pill" onclick="mktPill(this,'camioneta')">camionetas</div>
+      <div class="mkt-pill" onclick="mktPill(this,'pickup')">pickup</div>
+      <div class="mkt-pill" onclick="mktPill(this,'oferta')">en oferta</div>
     </div>
     <div class="market-grid" id="market-grid"></div>
   </div>
@@ -1677,7 +1679,6 @@ html{scrollbar-width:none}
         <option value="deportivo">Deportivo</option>
         <option value="clasico">Clásico</option>
         <option value="nicho">De nicho</option>
-        <option value="competencia">De competencia</option>
       </select>
     </div>
 
@@ -1695,7 +1696,7 @@ html{scrollbar-width:none}
     <div class="form-row">
       <div class="form-group"><label class="form-label">transmisión</label><select class="form-select"><option value="">seleccionar</option><option>automática</option><option>automática con levas</option><option>auto CVT</option><option>DSG</option><option>sincrónica</option><option>secuencial</option></select></div>
       <div class="form-group"><label class="form-label">combustible</label><select class="form-select"><option>gasolina</option><option>diesel</option><option>eléctrico</option><option>híbrido</option></select></div>
-      <div class="form-group"><label class="form-label">motor</label><select class="form-select" id="motor-select"><option value="">seleccionar</option><option>1.2</option><option>1.3</option><option>1.4</option><option>1.5</option><option>1.6</option><option>1.8</option><option>1.9</option><option>1.9 TDI</option><option>2.0</option><option>2.5</option><option>3.0</option><option>4.0</option><option>5.0</option></select></div>
+      <div class="form-group"><label class="form-label">motor</label><select class="form-select" id="motor-select"><option value="">seleccionar</option><option>1.0</option><option>1.1</option><option>1.2</option><option>1.3</option><option>1.4</option><option>1.5</option><option>1.6</option><option>1.8</option><option>1.9</option><option>1.9 TDI</option><option>2.0</option><option>2.2</option><option>2.3</option><option>2.4</option><option>2.5</option><option>2.7</option><option>2.8</option><option>3.0</option><option>3.2</option><option>3.3</option><option>3.5</option><option>3.6</option><option>3.8</option><option>4.0</option><option>4.2</option><option>4.4</option><option>4.6</option><option>5.0</option><option>5.5</option><option>5.7</option><option>6.0</option><option>6.2</option><option>eléctrico</option></select></div>
       <div class="form-group"><label class="form-label">tracción</label><select class="form-select" id="traccion-select" onchange="handleTraccionChange(this)"><option value="">seleccionar</option><option>RWD</option><option>FWD</option><option>AWD</option><option>4x4</option><option value="unknown">No lo sé.</option></select></div>
     </div>
     <div class="form-row">
@@ -1706,7 +1707,7 @@ html{scrollbar-width:none}
     </div>
 
     <div class="form-group">
-      <label class="form-label">tipo de vehículo</label>
+      <label class="form-label">tipo de carrocería</label>
       <select class="form-select" id="tipo-vehiculo-select">
         <option value="">seleccionar</option>
         <option value="sedan">Sedan</option>
@@ -1714,10 +1715,18 @@ html{scrollbar-width:none}
         <option value="coupe">Coupe</option>
         <option value="fastback">Fastback</option>
         <option value="pickup">Pickup</option>
+        <option value="camioneta">Camioneta</option>
+        <option value="suv">SUV</option>
+        <option value="crossover">Crossover</option>
         <option value="descapotable">Descapotable</option>
+        <option value="roadster">Roadster</option>
+        <option value="targa">Targa</option>
         <option value="hothatch">HotHatch</option>
+        <option value="liftback">Liftback</option>
         <option value="wagon">Wagon</option>
         <option value="minivan">Minivan</option>
+        <option value="van">Van</option>
+        <option value="buggy">Buggy</option>
       </select>
     </div>
 
@@ -3708,8 +3717,11 @@ function renderMarket(){
   if(mktCond==='usados') data=data.filter(l=>!l.condicion||l.condicion!=='nuevo'&&l.condicion!=='0km');
   else data=data.filter(l=>l.condicion==='nuevo'||l.condicion==='0km');
   if(mFilters.cat&&mFilters.cat!=='todos'){
-    if(mFilters.cat==='comercial')data=data.filter(l=>['sedán','camioneta','pickup','comercial'].includes(l.category));
-    else data=data.filter(l=>l.category===mFilters.cat);
+    // [V103] cada pill matchea su campo real: clasificacion (comercial/deportivo/clasico), carroceria (camioneta/pickup), oferta (precio rebajado)
+    const _c=mFilters.cat;
+    if(_c==='oferta') data=data.filter(l=>l.precioAnterior&&l.precioAnterior>l.price);
+    else if(_c==='camioneta'||_c==='pickup') data=data.filter(l=>(l.tipoVehiculo||'').toLowerCase()===_c);
+    else data=data.filter(l=>(l.clasificacion||'').toLowerCase()===_c||l.category===_c);
   }
   if(mFilters.city&&mFilters.city!=='todas')data=data.filter(l=>l.location===mFilters.city);
   if(mFilters.price&&mFilters.price!=='todas'){
@@ -4669,7 +4681,7 @@ function renderNotifications(){
   }
   if(!NOTIFICATIONS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:15px">sin notificaciones</div>';return;}
   list.innerHTML=NOTIFICATIONS.map(n=>`
-    <div class="notif-item ${n.read?'':' unread'}" onclick="${n.type==='question'?`openNotifThread(${n.auction_id||n.auctionId||1})`:`markNotifRead('${n.id}')`}" style="${n.type==='question'?'cursor:pointer':''}">
+    <div class="notif-item ${n.read?'':' unread'}" onclick="_notifClick('${n.id}')" style="cursor:pointer">
       <div class="notif-icon ${n.icon==='lime'?'lime':''}">
         ${n.type==='offer'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>':n.type==='question'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>':n.type==='sold'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="m5 12 5 5L20 7"/></svg>':'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'}
       </div>
@@ -4680,6 +4692,36 @@ function renderNotifications(){
       </div>
       ${!n.read?'<div class="notif-unread-dot"></div>':''}
     </div>`).join('');
+}
+
+function _notifClick(id){
+  const n=NOTIFICATIONS.find(x=>String(x.id)===String(id));
+  if(!n){return;}
+  // marcar leída siempre
+  n.read=true;
+  // navegar según tipo
+  try{
+    if(n.type==='question'){ openNotifThread(n.auction_id||n.auctionId||1); }
+    else if(n.type==='ganador'||n.type==='subasta_ganada'){
+      if(n.auctionId){ _goToSource(String(n.auctionId),'auction'); }
+      else { renderNotifications(); }
+    }
+    else if(n.type==='pm'){
+      // abrir bandeja de mensajes
+      showView('notificaciones');
+      if(typeof switchNotifTab==='function') switchNotifTab('mensajes');
+    }
+    else if(n.type==='aprobacion'||n.type==='market'||n.type==='subasta'||n.type==='reserva'||n.type==='offer'){
+      // si la notif trae fuente, ir a la publicación; si no, a mis publicaciones
+      if(n.source_id||n.sourceId){ _goToSource(String(n.source_id||n.sourceId),n.source_type||n.sourceType||''); }
+      else if(n.auctionId){ _goToSource(String(n.auctionId),'auction'); }
+      else { showView('cuenta'); }
+    }
+    else { renderNotifications(); }
+  }catch(e){ renderNotifications(); }
+  // persistir estado leído
+  if(typeof _saveNotifsToStorage==='function')_saveNotifsToStorage();
+  if(typeof _syncNotifBadge==='function')_syncNotifBadge();
 }
 
 function markAllRead(){
