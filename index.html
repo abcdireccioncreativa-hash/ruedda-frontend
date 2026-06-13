@@ -4534,6 +4534,12 @@ function openBidModal(){
   if(!_kycDealer&&!_kycAdmin&&!USER_STATE.kycVerified){closePaymentSheet();_showKycGateSplash();return;}
   if(!currentAuction)return;
   if(currentAuction.endTime-Date.now()<=0){showToast('esta subasta ya finalizó');return;}
+  // [V101] gate de acceso por código: si no está habilitado para esta subasta, abrir sheet de acceso
+  const _accessOk=(_kycAdmin)||(window._auctionAccessGranted&&window._auctionAccessGranted[currentAuction.id]);
+  if(!_accessOk){closePaymentSheet();_showAuctionAccessSheet();return;}
+  _openBidModalReal();
+}
+function _openBidModalReal(){
   if(!currentAuction)return;
   const min=currentAuction.currentBid+500;
   document.getElementById('modal-subtitle').textContent=currentAuction.title;
@@ -5432,7 +5438,7 @@ async function publishListing(){
     const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,clasificacion:categoria||null,duenos:duenos||null,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
     const payload = esListing
       ? {...payloadBase, concesionario_id:concesionarioId}
-      : {...payloadBase, tipo, sin_reserva:precioRes===0&&tipo==='subasta', duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioBase||0};
+      : {...payloadBase, tipo, sin_reserva:precioRes===0&&tipo==='subasta', duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioBase||0, access_code:(typeof _genAccessCode==='function'?_genAccessCode():null)};
     console.log('[ruedda publish] tabla:', tabla, '| payload:', JSON.stringify(payload));
     const{error}=await (_supaWrite||_supa).from(tabla).insert(payload);
     if(error) console.error('[ruedda publish] insert error:', error);
@@ -6606,7 +6612,7 @@ async function saLoadSugerencias(){
 }
 
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -6617,6 +6623,8 @@ function saTab(tab){
   if(tab==='fotografos') renderSAFotografosList();
   if(tab==='usuarios') renderSAUsuarios();
   if(tab==='kyc') renderSAKyc();
+  if(tab==='acceso') renderSAAccessRequests();
+  if(tab==='aucodigos') renderSAAuctionCodes();
   if(tab==='pagos') renderPendingRefs();
   if(tab==='comunidad') saLoadComunidadAdmin();
   if(tab==='patrocinantes') saLoadPatrocinantes();
@@ -9020,6 +9028,325 @@ async function _submitKyc(btn){
     if(btn){btn.disabled=false;btn.textContent='Enviar';btn.style.opacity='1';}
   }
 }
+
+// ═══════════ [V101] SISTEMA DE CÓDIGO DE ACCESO A SUBASTAS (comprador post-hold) ═══════════
+// Genera un código de 6 caracteres alfanuméricos
+function _genAccessCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin O/0/I/1 para evitar confusión
+  let c=''; for(let i=0;i<6;i++) c+=chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+
+// abre el menú desplegable de acceso a subasta
+function _showAuctionAccessSheet(){
+  // ¿ya está habilitado para esta subasta?
+  const aid=currentAuction?.id;
+  if(!aid){showToast('subasta no encontrada');return;}
+  let sheet=document.getElementById('auction-access-sheet');
+  if(sheet) sheet.remove();
+  sheet=document.createElement('div');
+  sheet.id='auction-access-sheet';
+  sheet.style.cssText='position:fixed;inset:0;z-index:9996;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;transition:opacity .3s ease;display:flex;align-items:flex-end;justify-content:center';
+  sheet.onclick=e=>{if(e.target===sheet)_closeAuctionAccessSheet();};
+  const holdId='358420048'; // holding id USDT
+  sheet.innerHTML=`
+  <div id="aas-panel" style="background:#000;width:100%;max-width:560px;max-height:92vh;border-radius:24px 24px 0 0;border-top:1px solid rgba(255,255,255,.1);overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+    <div style="position:sticky;top:0;background:rgba(0,0,0,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 0 10px;display:flex;justify-content:center;z-index:2">
+      <div style="width:38px;height:4px;border-radius:100px;background:rgba(255,255,255,.2)"></div>
+    </div>
+    <div style="padding:6px 24px 40px">
+
+      <!-- LLENA EL FORMULARIO -->
+      <div style="text-align:center;margin-top:14px">
+        <div style="font-size:26px;font-weight:800;letter-spacing:-.6px">Llena el formulario</div>
+        <div style="display:flex;justify-content:center;margin:18px 0">
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC0AAAA0CAYAAAAew7HJAAADeElEQVR42u2Z204UQRCGv5odBEUjHkAFMYoIBlG8Md74AD4Cb+udiUEvjIrKYlCJwchBMAqu7E55QbV2hmHpmdkAmulkM5Pd3qm/q3uqvq4WCjZVjYGHwD1gErgC9AMngR6gF9gEfgBrwAbwEXgOPAYeiYhyEE1Vxa4DqtrQYm22jIa4xH8FaAA1QIHIvsO7Yr+5a8v6/Tws0U6cEy1t+vjXqE3foBbxD7ZKdCW6En0EWtyBZyT28R0R7fF7RzJgbOk4EZEkNDZbVqxZvI32mbHM31XVxXcNSedmU4AoFpFm6kHtAv+fwanqqnnwPTADvLD7T8CK59VzwAhwFRgD7gM1EWnlsKvWX4FEVHUaeCYi9UD2iIAJ4BYwC8yJSCMHu3QD48AwUAfqgZ7uAm4Ak6KqCmwDr8xLb4BF85YbfZ8JHTFjE8CyiAxkeEpTa1d8L4pI05bkhtHga2AO+GAfN0vHjBqHze4YcB0QUdWmrc+87RUwZUtGA73sxJ8ysYMF7K7GHvBohpey4Ect6kT+ugwmLBFV1cSzGxJZfNiK4qwpDAhxnWqSg/ocSWqVESvRlegjAkxacM9Ws6Sy10Y2c59o4U5KwJPG9oA0qckeIceFvNjjgSJliF82y4nt0CXArlpsj2JL4V0FlkqkqkPAKHDNijVDwAXPkwJsAevAEjDvQdV2ACFm5okYuGkAMw4MAJeB00ZnjilWzOi6GZ0FvgJPgYsFnD0DPLAB3wXOG2f0m93I2KQBrAKfgS+GDvOF6w+qesY81r3PFGvqvga8FJGpMpuAKCONpzkkXT1KTGwTOJ4DAxJ7VquN3SSFFrt0xYE7Fh/YxaCnaNQxbtrXrlbJpRJdif7PizV5tkzaCUeVFd3kb2E9zyCbbpOb59zFFWzKHl/02f2ilQHesnMo9M3r12c8MuqVIC45sVZOSIPRLjp05QdAy6TxE8C08UddRLYC/3PHxD8BFnKU41x9ZUQ69XJYWo5CSmrWf8lm5SnwDFgwKNr01r8Dt1HgtpXUBqWk0NhewtAiouONk7acBgqYXSv1IvrFy9Bxikiiqi0v6rQ8MErXQJIUvNU6FfLK5ol2hBhlFGuqjFiJrkRXog+R8oq2xNt7RgHFGhfPW4cpujeQDiXl4LNy0Eq988BpY4lRdg6eTtlAerxE0gC+A8vsnIS9A2Z+A+FUjxFei45zAAAAAElFTkSuQmCC" style="width:38px;height:38px;object-fit:contain" alt="" onerror="this.style.display='none'">
+        </div>
+        <div style="font-size:14px;font-weight:300;color:rgba(255,255,255,.7);line-height:1.6;max-width:380px;margin:0 auto">Para participar activamente en subastas de Ruedda debes llenar los siguientes datos, bienvenido.</div>
+      </div>
+
+      <!-- INFO CONTACTO -->
+      <div style="margin-top:34px">
+        <div style="font-size:17px;font-weight:800;letter-spacing:-.3px">Información de contacto</div>
+        <div style="font-size:12px;font-weight:300;color:rgba(255,255,255,.45);margin-top:6px;line-height:1.5">Número de teléfono, asegúrate de colocar el prefijo correcto y el +58. (en caso de ganar la subasta)</div>
+        <input id="aas-phone" type="tel" placeholder="+58 412 1234567" style="width:100%;margin-top:14px;background:#0e0e10;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:#fff;outline:none">
+      </div>
+
+      <!-- CEDULA -->
+      <div style="margin-top:24px">
+        <div style="font-size:17px;font-weight:800;letter-spacing:-.3px">Cédula de identidad</div>
+        <div style="font-size:12px;font-weight:300;color:rgba(255,255,255,.45);margin-top:6px;line-height:1.5">Colocar la cédula del potencial comprador, si eres broker debes colocar la cédula de tu cliente.</div>
+        <div style="display:flex;margin-top:14px;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;background:#0e0e10">
+          <div style="padding:16px 20px;border-right:1px solid rgba(255,255,255,.1);font-size:15px;font-weight:700;color:rgba(255,255,255,.6)">V</div>
+          <input id="aas-cedula" type="number" placeholder="12345678" style="flex:1;background:none;border:none;padding:16px;font-family:var(--font);font-size:15px;color:#fff;outline:none">
+        </div>
+      </div>
+
+      <!-- SUBIR COMPROBANTE + CODIGO -->
+      <div style="display:flex;gap:12px;margin-top:24px;align-items:stretch">
+        <div style="flex:1;display:flex;flex-direction:column">
+          <button id="aas-upload-btn" onclick="document.getElementById('aas-file').click()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;background:#0e0e10;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;font-family:var(--font);font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:border-color .3s">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:18px;height:18px"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <span id="aas-upload-label">Subir comprobante</span>
+          </button>
+          <input type="file" id="aas-file" accept="image/*" style="display:none" onchange="_aasComprobantePicked(this)">
+          <div style="font-size:10px;font-weight:300;color:rgba(255,255,255,.35);margin-top:6px;text-align:center">(si ya tienes código, no hace falta.)</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="flex:1;display:flex;background:#0e0e10;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;transition:border-color .3s" id="aas-code-wrap">
+            <input id="aas-code" type="text" maxlength="6" placeholder="Código" style="flex:1;background:none;border:none;padding:16px;font-family:var(--font);font-size:15px;color:#fff;outline:none;text-transform:uppercase;letter-spacing:1px">
+            <button id="aas-code-btn" onclick="_aasValidateCode()" style="background:none;border:none;padding:0 18px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+              <svg id="aas-code-icon" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="1.8" style="width:20px;height:20px"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.6);margin-top:6px;text-align:center">Código de acceso</div>
+        </div>
+      </div>
+
+      <!-- COMO FUNCIONA -->
+      <div style="margin-top:42px">
+        <div style="font-size:26px;font-weight:800;letter-spacing:-.6px">Como funciona</div>
+        <div style="font-size:13px;font-weight:300;color:rgba(255,255,255,.7);margin-top:14px;line-height:1.7">Para entrar a las subastas requerimos un depósito de hold de 60$ que se te devolverá si no ganas la subasta. Nos tomamos muy en serio el tiempo del vendedor y de los postores reales a nivel nacional.</div>
+      </div>
+
+      <div style="margin-top:34px">
+        <div style="font-size:24px;font-weight:800;letter-spacing:-.5px">Como conseguir acceso?</div>
+        <div style="font-size:16px;font-weight:700;margin-top:18px">Simple. 2 maneras.</div>
+        <ol style="margin:14px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:14px">
+          <li style="font-size:13px;font-weight:300;color:rgba(255,255,255,.7);line-height:1.6">Escríbenos por whatsapp, direct message por Instagram, o email, deja tu hold en Bolívares o usdt para entregarte el código de acceso.</li>
+          <li style="font-size:13px;font-weight:300;color:rgba(255,255,255,.7);line-height:1.6">Sube el comprobante de Binance en el botón de "subir comprobante", el sistema lo verifica y te llega el código de acceso a notificaciones.</li>
+        </ol>
+      </div>
+
+      <!-- DATOS DE PAGO -->
+      <div style="margin-top:30px">
+        <div style="font-size:15px;font-weight:700">Datos de pago (usdt) holding id</div>
+        <div onclick="_aasCopyHold('${holdId}')" style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;cursor:pointer">
+          <span style="font-size:26px;font-weight:300;color:rgba(255,255,255,.5);letter-spacing:.5px">${holdId}</span>
+          <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.7" style="width:22px;height:22px"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align:center;margin-top:40px">
+        <div style="font-size:16px;font-weight:700">Las subastas te están esperando!</div>
+        <button id="aas-confirm" disabled onclick="_aasConfirmAccess()" style="width:100%;max-width:340px;margin:24px auto 0;display:block;background:rgba(255,255,255,.06);border:none;border-radius:100px;padding:20px;font-family:var(--font);font-size:17px;font-weight:700;color:rgba(255,255,255,.3);cursor:not-allowed;transition:background .4s,color .4s">confirmar acceso</button>
+      </div>
+
+      <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,.3);margin-top:24px;text-align:center;line-height:1.6;max-width:420px;margin-left:auto;margin-right:auto">Ruedda hace devolución de los holding a los usuarios que no ganaron la subasta y a compradores insatisfechos con el vehículo, en caso de encontrar información falsa y/o inconsistencias en la publicación.</div>
+
+    </div>
+  </div>`;
+  document.body.appendChild(sheet);
+  window._aasCodeValid=false;
+  window._aasComprobante=null;
+  requestAnimationFrame(()=>{
+    sheet.style.opacity='1';
+    const p=document.getElementById('aas-panel');
+    if(p)p.style.transform='translateY(0)';
+  });
+}
+
+function _closeAuctionAccessSheet(){
+  const sheet=document.getElementById('auction-access-sheet');
+  if(!sheet) return;
+  const p=document.getElementById('aas-panel');
+  if(p)p.style.transform='translateY(100%)';
+  sheet.style.opacity='0';
+  setTimeout(()=>sheet.remove(),400);
+}
+
+function _aasCopyHold(id){
+  try{navigator.clipboard.writeText(id);showToast('holding id copiado ✓',true);}catch(e){}
+}
+
+async function _aasComprobantePicked(input){
+  if(!input.files||!input.files[0]) return;
+  const lbl=document.getElementById('aas-upload-label');
+  const btn=document.getElementById('aas-upload-btn');
+  try{
+    if(lbl)lbl.textContent='procesando…';
+    const dataUrl=await _kycCompress(input.files[0],1100);
+    window._aasComprobante=dataUrl;
+    if(lbl)lbl.textContent='comprobante listo ✓';
+    if(btn)btn.style.borderColor='rgba(230,240,59,.5)';
+    // enviar al superadmin
+    await _aasSubmitComprobante(dataUrl);
+  }catch(e){
+    if(lbl)lbl.textContent='Subir comprobante';
+    showToast('no se pudo leer la imagen');
+  }
+}
+
+async function _aasSubmitComprobante(dataUrl){
+  if(!_supa||!currentAuction){showToast('error al enviar');return;}
+  const phone=document.getElementById('aas-phone')?.value||'';
+  const cedula=document.getElementById('aas-cedula')?.value||'';
+  if(!phone||!cedula){showToast('completa teléfono y cédula primero');return;}
+  try{
+    const{error}=await _supa.from('auction_access_requests').insert({
+      user_id:USER_STATE.id,
+      auction_id:currentAuction.id,
+      auction_title:currentAuction.title||'subasta',
+      phone, cedula,
+      comprobante_b64:dataUrl,
+      estado:'pendiente'
+    });
+    if(error)throw error;
+    showToast('comprobante enviado ✓ — revisaremos y te llega el código',true);
+  }catch(e){
+    showToast('error: '+(e?.message||'intenta de nuevo'));
+  }
+}
+
+async function _aasValidateCode(){
+  const input=document.getElementById('aas-code');
+  const wrap=document.getElementById('aas-code-wrap');
+  const icon=document.getElementById('aas-code-icon');
+  const code=(input?.value||'').trim().toUpperCase();
+  if(code.length<6){showToast('el código tiene 6 caracteres');return;}
+  if(!_supa||!currentAuction)return;
+  // animación loading: el avión gira
+  if(icon){
+    icon.outerHTML='<svg id="aas-code-icon" viewBox="0 0 24 24" style="width:20px;height:20px;animation:aasSpin .7s linear infinite"><circle cx="12" cy="12" r="9" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="2.5"/><path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="#e6f03b" stroke-width="2.5" stroke-linecap="round"/></svg>';
+  }
+  if(!document.getElementById('aas-spin-style')){
+    const st=document.createElement('style');st.id='aas-spin-style';
+    st.textContent='@keyframes aasSpin{to{transform:rotate(360deg)}}@keyframes aasPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}';
+    document.head.appendChild(st);
+  }
+  try{
+    const{data,error}=await _supa.from('auctions').select('access_code').eq('id',currentAuction.id).maybeSingle();
+    await new Promise(r=>setTimeout(r,650)); // dejar ver el loading
+    const valid=!error&&data&&data.access_code&&String(data.access_code).toUpperCase()===code;
+    const ic=document.getElementById('aas-code-icon');
+    if(valid){
+      window._aasCodeValid=true;
+      if(ic)ic.outerHTML='<svg id="aas-code-icon" viewBox="0 0 24 24" style="width:20px;height:20px;animation:aasPop .35s cubic-bezier(.22,1,.36,1)"><rect x="2" y="2" width="20" height="20" rx="6" fill="#1fbf5c"/><path d="M7 12.5l3 3 7-7.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      if(wrap)wrap.style.borderColor='rgba(31,191,92,.5)';
+      if(input){input.disabled=true;input.style.color='#1fbf5c';}
+      // encender confirmar acceso
+      const cf=document.getElementById('aas-confirm');
+      if(cf){cf.disabled=false;cf.style.background='#e6f03b';cf.style.color='#000';cf.style.cursor='pointer';}
+      showToast('código válido ✓',true);
+    }else{
+      window._aasCodeValid=false;
+      if(ic)ic.outerHTML='<svg id="aas-code-icon" onclick="_aasValidateCode()" fill="none" viewBox="0 0 24 24" stroke="#ff6b6b" stroke-width="1.8" style="width:20px;height:20px;cursor:pointer"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>';
+      if(wrap)wrap.style.borderColor='rgba(255,107,107,.4)';
+      showToast('código inválido para esta subasta');
+    }
+  }catch(e){
+    showToast('error al validar');
+  }
+}
+
+function _aasConfirmAccess(){
+  if(!window._aasCodeValid){showToast('valida tu código primero');return;}
+  // marcar habilitado para esta subasta en sesión
+  if(!window._auctionAccessGranted)window._auctionAccessGranted={};
+  if(currentAuction)window._auctionAccessGranted[currentAuction.id]=true;
+  _closeAuctionAccessSheet();
+  setTimeout(()=>{ _openBidModalReal(); },420);
+}
+
+// ── SUPERADMIN: solicitudes de acceso (enviar código) ──
+async function renderSAAccessRequests(){
+  const list=document.getElementById('sa-access-list'); if(!list) return;
+  list.innerHTML='<div style="color:var(--muted);font-size:13px;font-weight:300">cargando solicitudes…</div>';
+  try{
+    const{data:reqs,error}=await _supa.from('auction_access_requests').select('id,user_id,auction_id,auction_title,phone,cedula,comprobante_b64,estado,created_at').eq('estado','pendiente').order('created_at',{ascending:true});
+    if(error){list.innerHTML='<div style="color:#ff9b9b;font-size:13px">error: '+error.message+'</div>';return;}
+    if(!reqs?.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;font-weight:300">sin solicitudes de acceso pendientes.</div>';return;}
+    list.innerHTML=reqs.map(r=>`
+      <div style="background:#101013;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px">
+        <div style="font-size:14px;font-weight:700;letter-spacing:-.2px">${r.auction_title||'subasta'}</div>
+        <div style="font-size:11px;color:var(--muted);margin:4px 0 10px;font-weight:300">tel: ${r.phone||'—'} · CI: V-${r.cedula||'—'} · ${new Date(r.created_at).toLocaleDateString('es-VE',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}</div>
+        <img src="${r.comprobante_b64}" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in;max-height:280px;object-fit:contain;background:#000" onclick="window.open(this.src)">
+        <div style="display:flex;gap:8px;margin-top:13px">
+          <button onclick="_saSendAccessCode('${r.id}','${r.user_id}','${r.auction_id}',this)" style="flex:1;background:#e6f03b;color:#000;border:none;border-radius:100px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">enviar código</button>
+          <button onclick="_saRejectAccess('${r.id}',this)" style="flex:1;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">rechazar</button>
+        </div>
+      </div>`).join('');
+  }catch(e){list.innerHTML='<div style="color:#ff9b9b;font-size:13px">error cargando.</div>';}
+}
+
+async function _saSendAccessCode(reqId,userId,auctionId,btn){
+  if(btn){btn.disabled=true;btn.style.opacity='.5';btn.textContent='enviando…';}
+  try{
+    // leer el código que ya existe de la subasta
+    const{data:auc,error:e0}=await _supa.from('auctions').select('access_code,titulo,marca,modelo,year').eq('id',auctionId).maybeSingle();
+    if(e0)throw e0;
+    let code=auc&&auc.access_code;
+    // si por alguna razón no tiene, generarlo ahora
+    if(!code){
+      code=_genAccessCode();
+      await _supa.from('auctions').update({access_code:code}).eq('id',auctionId).then(null,()=>{});
+    }
+    // marcar request aprobado
+    await _supa.from('auction_access_requests').update({estado:'aprobada'}).eq('id',reqId).then(null,()=>{});
+    // notificar al usuario con el código
+    const titulo=auc?(`${auc.year||''} ${auc.marca||''} ${auc.modelo||''}`).trim():'la subasta';
+    await _supa.from('notifications').insert({user_id:userId,tipo:'system',titulo:'¡Tu código de acceso está listo!',body:`Tu código para ofertar en ${titulo} es: ${code}. Ingrésalo en el formulario de la subasta para participar.`,icon:'lime'}).then(null,()=>{});
+    showToast('código '+code+' enviado ✓',true);
+    renderSAAccessRequests();
+  }catch(e){
+    showToast('error: '+(e?.message||''));
+    if(btn){btn.disabled=false;btn.style.opacity='1';btn.textContent='enviar código';}
+  }
+}
+
+async function _saRejectAccess(reqId,btn){
+  if(btn){btn.disabled=true;btn.style.opacity='.5';}
+  try{
+    await _supa.from('auction_access_requests').update({estado:'rechazada'}).eq('id',reqId).then(null,()=>{});
+    showToast('solicitud rechazada');
+    renderSAAccessRequests();
+  }catch(e){showToast('error');}
+}
+
+// ── SUPERADMIN: subastas activas + sus códigos ──
+async function renderSAAuctionCodes(){
+  const list=document.getElementById('sa-codes-list'); if(!list) return;
+  list.innerHTML='<div style="color:var(--muted);font-size:13px;font-weight:300">cargando subastas…</div>';
+  try{
+    const{data:aucs,error}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,access_code,estado').eq('estado','activa').order('created_at',{ascending:false});
+    if(error){list.innerHTML='<div style="color:#ff9b9b;font-size:13px">error: '+error.message+'</div>';return;}
+    if(!aucs?.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;font-weight:300">sin subastas activas.</div>';return;}
+    list.innerHTML=aucs.map(a=>{
+      const t=(`${a.year||''} ${a.marca||''} ${a.modelo||''}`).trim()||a.titulo||'subasta';
+      return `<div style="background:#101013;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;letter-spacing:-.2px">${t}</div>
+          <div style="font-size:18px;font-weight:800;color:#e6f03b;letter-spacing:2px;margin-top:4px;font-family:var(--mono,monospace)">${a.access_code||'—— sin código ——'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${a.access_code?`<button onclick="_saCopyCode('${a.access_code}')" style="background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:8px 12px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer">copiar</button>`:''}
+          <button onclick="_saRegenCode('${a.id}',this)" style="background:#e6f03b;color:#000;border:none;border-radius:10px;padding:8px 12px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer">${a.access_code?'regenerar':'generar'}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){list.innerHTML='<div style="color:#ff9b9b;font-size:13px">error cargando.</div>';}
+}
+
+function _saCopyCode(code){
+  try{navigator.clipboard.writeText(code);showToast('código '+code+' copiado ✓',true);}catch(e){}
+}
+
+async function _saRegenCode(auctionId,btn){
+  if(btn){btn.disabled=true;btn.style.opacity='.5';}
+  try{
+    const code=_genAccessCode();
+    const{error}=await _supa.from('auctions').update({access_code:code}).eq('id',auctionId);
+    if(error)throw error;
+    showToast('código generado: '+code,true);
+    renderSAAuctionCodes();
+  }catch(e){
+    showToast('error: '+(e?.message||''));
+    if(btn){btn.disabled=false;btn.style.opacity='1';}
+  }
+}
+
+
 function _showKycGateSplash(){
   let m=document.getElementById('kyc-gate-splash'); if(m)m.remove();
   m=document.createElement('div');
@@ -9191,6 +9518,8 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div class="tab" id="sa-tab-pagos" onclick="saTab('pagos')" style="white-space:nowrap;flex-shrink:0">pagos</div>
     <div class="tab" id="sa-tab-bypass" onclick="saTab('bypass')" style="white-space:nowrap;flex-shrink:0">bypass</div>
     <div class="tab" id="sa-tab-kyc" onclick="saTab('kyc')" style="white-space:nowrap;flex-shrink:0">KYC</div>
+    <div class="tab" id="sa-tab-acceso" onclick="saTab('acceso')" style="white-space:nowrap;flex-shrink:0">enviar código</div>
+    <div class="tab" id="sa-tab-aucodigos" onclick="saTab('aucodigos')" style="white-space:nowrap;flex-shrink:0">subastas activas</div>
     <div class="tab" id="sa-tab-comunidad" onclick="saTab('comunidad')" style="white-space:nowrap;flex-shrink:0">comunidad</div>
     <div class="tab" id="sa-tab-patrocinantes" onclick="saTab('patrocinantes')" style="white-space:nowrap;flex-shrink:0">patrocinantes</div>
     <div class="tab" id="sa-tab-publicaciones" onclick="saTab('publicaciones')" style="white-space:nowrap;flex-shrink:0">publicaciones</div>
@@ -9319,6 +9648,14 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
   </div>
 
   <!-- BYPASS TAB -->
+  <div id="sa-acceso" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
+    <div style="font-size:13px;color:var(--muted);font-weight:300">comprobantes de hold de compradores — revisa y envía el código de acceso de la subasta.</div>
+    <div id="sa-access-list" style="display:flex;flex-direction:column;gap:14px"></div>
+  </div>
+  <div id="sa-aucodigos" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
+    <div style="font-size:13px;color:var(--muted);font-weight:300">cada subasta tiene su código de acceso. cópialo para entregarlo, o regenéralo.</div>
+    <div id="sa-codes-list" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
   <div id="sa-kyc" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
     <div style="font-size:13px;color:var(--muted);font-weight:300">solicitudes de verificación pendientes — compara el nombre registrado con la cédula de las fotos.</div>
     <div id="sa-kyc-list" style="display:flex;flex-direction:column;gap:14px"></div>
