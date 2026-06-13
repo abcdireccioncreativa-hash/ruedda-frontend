@@ -6640,25 +6640,27 @@ async function saLoadComunidadAdmin(){
   saLoadSugerencias();
 }
 
-async function saFetchThumb(){
-  const url=(document.getElementById('sa-clip-url')?.value||'').trim();
-  if(!url){showToast('pega el link primero');return;}
+// [V106] subir portada del clip a Supabase Storage (URL permanente, no caduca)
+async function saUploadClipThumb(input){
+  if(!input.files||!input.files[0])return;
+  const file=input.files[0];
   const btn=document.getElementById('sa-fetch-thumb-btn');
-  btn.textContent='buscando...';btn.disabled=true;
+  btn.textContent='subiendo...';btn.disabled=true;
   try{
-    const res=await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
-    const json=await res.json();
-    const img=json?.data?.image?.url||json?.data?.video?.thumbnailUrl||null;
-    if(img){
-      document.getElementById('sa-clip-thumb').value=img;
-      showToast('portada encontrada',true);
-    } else {
-      showToast('no se encontró portada — pégala manualmente');
-    }
-  } catch(e){
-    showToast('error al buscar portada');
+    // comprimir antes de subir
+    const dataUrl=await _kycCompress(file,900);
+    const blob=await(await fetch(dataUrl)).blob();
+    const path='clip_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
+    const{error:upErr}=await _supa.storage.from('clips').upload(path,blob,{upsert:false,contentType:'image/jpeg'});
+    if(upErr)throw upErr;
+    const{data:urlData}=_supa.storage.from('clips').getPublicUrl(path);
+    document.getElementById('sa-clip-thumb').value=urlData.publicUrl;
+    showToast('portada subida ✓',true);
+  }catch(e){
+    showToast('error: '+(e?.message||'intenta de nuevo'));
   }
-  btn.textContent='obtener portada';btn.disabled=false;
+  btn.textContent='subir portada';btn.disabled=false;
+  input.value='';
 }
 
 async function saAddClip(){
@@ -9933,8 +9935,9 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
         <input class="form-input" id="sa-clip-url" type="url" placeholder="link del reel (Instagram o YouTube)">
         <div style="display:flex;gap:8px">
-          <input class="form-input" id="sa-clip-thumb" type="url" placeholder="URL de portada" style="flex:1">
-          <button onclick="saFetchThumb()" style="flex-shrink:0;background:var(--card);color:var(--white);border:1px solid var(--border);border-radius:12px;font-size:12px;font-weight:700;padding:0 14px;cursor:pointer;font-family:var(--font);white-space:nowrap" id="sa-fetch-thumb-btn">obtener portada</button>
+          <input class="form-input" id="sa-clip-thumb" type="url" placeholder="portada (sube una imagen →)" style="flex:1" readonly>
+          <button onclick="document.getElementById('sa-clip-thumb-file').click()" style="flex-shrink:0;background:var(--card);color:var(--white);border:1px solid var(--border);border-radius:12px;font-size:12px;font-weight:700;padding:0 14px;cursor:pointer;font-family:var(--font);white-space:nowrap" id="sa-fetch-thumb-btn">subir portada</button>
+          <input type="file" id="sa-clip-thumb-file" accept="image/*" style="display:none" onchange="saUploadClipThumb(this)">
         </div>
         <button onclick="saAddClip()" style="background:var(--lime);color:#000;border:none;border-radius:12px;font-size:13px;font-weight:800;padding:12px 18px;cursor:pointer;font-family:var(--font)">añadir clip</button>
       </div>
