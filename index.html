@@ -8782,7 +8782,7 @@ window.RueddaViews={
 
 // [V87] loader de feed estilo Apple — solo en carga inicial, nunca al cambiar tabs con cache
 // (estado window._feedLoaded inicializado al tope del script — debe existir antes del primer renderCards del boot)
-function _feedLoaderHTML(){return `<style>@keyframes feedLoad{0%{left:-40%}100%{left:100%}}</style><div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:46vh;padding:20px"><div style="width:120px;height:3px;border-radius:100px;background:rgba(255,255,255,.08);overflow:hidden;position:relative"><div style="position:absolute;top:0;left:0;height:100%;width:40%;border-radius:100px;background:#fff;animation:feedLoad 1.1s ease-in-out infinite"></div></div><div style="font-size:12px;font-weight:300;color:rgba(255,255,255,.45);letter-spacing:.2px">cargando</div></div>`;}
+function _feedLoaderHTML(){return `<style>@keyframes feedLoad{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}</style><div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:46vh;padding:20px"><div style="width:120px;height:3px;border-radius:100px;background:rgba(255,255,255,.08);overflow:hidden;position:relative;transform:translateZ(0)"><div style="position:absolute;top:0;left:0;height:100%;width:40%;border-radius:100px;background:#fff;will-change:transform;animation:feedLoad 1.15s cubic-bezier(.45,.05,.55,.95) infinite"></div></div><div style="font-size:12px;font-weight:300;color:rgba(255,255,255,.45);letter-spacing:.2px">cargando</div></div>`;}
 
 
 // [V87] chat directo con el dealer desde su vitrina
