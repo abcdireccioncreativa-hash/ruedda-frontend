@@ -8211,12 +8211,17 @@ async function _loadComments(sourceType,sourceId,listId){
     const isOwner=c.user_id===ownerId;
     const isMe=c.user_id===USER_STATE.id;
     const isDealer=c.users?.role==='concesionario'||c.users?.role==='consesionario';
-    const nombre=c.users?.nombre||'usuario';
-    const av=nombre[0].toUpperCase();
+    const _cu=c.users||{};
+    const nombre=_cu.username||_cu.nombre||'usuario';
+    const dealerName=isDealer?(window.CONCESIONARIOS||[]).find(d=>d.user_id===c.user_id)?.nombre||null:null;
+    const displayName=isMe?'tú':(dealerName||nombre);
+    const avSrc=_cu.avatar_url;
+    const avEl=avSrc?`<div class="comment-avatar" style="overflow:hidden"><img src="${avSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`:`<div class="comment-avatar">${nombre[0].toUpperCase()}</div>`;
     const badge=isOwner?`<span style="font-size:9px;font-weight:700;background:rgba(230,240,59,.12);color:#e6f03b;padding:2px 6px;border-radius:100px;letter-spacing:.3px">creador</span>`
-      :isDealer?`<span style="font-size:9px;font-weight:700;background:rgba(29,155,240,.12);color:#1d9bf0;padding:2px 6px;border-radius:100px;display:inline-flex;align-items:center;gap:3px;"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>`:'';
-    const replyBtns=!isMe?`<button onclick="_openReplyBox('${c.id}','${sourceType}','${sourceId}','${listId}')" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;margin-top:4px">responder</button>`:'';
-    const cReplies=(replyMap[c.id]||[]).map(r=>{
+      :isDealer?'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:11px;height:11px;flex-shrink:0;margin-left:3px;vertical-align:middle"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.4 6.8l1.9 1.9 3.4-3.9" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      :_cu.kyc_verified?'<span style=\"display:inline-flex;align-items:center;vertical-align:middle;margin-left:3px\"><svg viewBox=\"0 0 24 24\" style=\"width:11px;height:11px\"><circle cx=\"12\" cy=\"12\" r=\"11\" fill=\"#1d9bf0\"/><path fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M7.5 12.3l3 3 6-6.5\"/></svg></span>'
+      :`<span style="font-size:9px;font-weight:400;color:rgba(255,255,255,.3);margin-left:3px">particular</span>`;
+    const replyBtns=!isMe?`<button onclick="_openReplyBox('${c.id}','${sourceType}','${sourceId}','${listId}')" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:var(--font);cursor:pointer;padding:0">responder</button>`:'';    const cReplies=(replyMap[c.id]||[]).map(r=>{
       const rOwner=r.user_id===ownerId;
       const rDealer=r.users?.role==='concesionario'||r.users?.role==='consesionario';
       const _ru=r.users||{};
@@ -8233,25 +8238,51 @@ async function _loadComments(sourceType,sourceId,listId){
         <span class="comment-name">${rDisplay}</span>${rBadge}<span class="comment-time">${_fmtTimeAgo(r.created_at)}</span></div>
         <div class="comment-text" style="margin-top:4px">${r.body}</div></div>`;
     }).join('');
+    const cLikes=c.likes||0;const cLiked=c.likedByMe||false;
     return `<div class="comment-item" id="cmt-${c.id}">
       <div class="comment-header">
-        <div class="comment-avatar">${av}</div>
-        <span class="comment-name">${isMe?'tú':_masked(nombre)}</span>${badge}
+        ${avEl}
+        <span class="comment-name">${displayName}</span>${badge}
         <span class="comment-time">${_fmtTimeAgo(c.created_at)}</span>
       </div>
       <div class="comment-text">${c.body}</div>
       ${cReplies}
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">${replyBtns}<button onclick="_likeComment('${c.id}',this)" data-liked="${cLiked}" style="display:inline-flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:0;color:${cLiked?'#e6f03b':'rgba(255,255,255,.3)'};font-size:12px;font-family:var(--font);transition:color .2s"><svg fill="${cLiked?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${cLiked?'#e6f03b':'rgba(255,255,255,.35)'}" stroke-width="1.8" style="width:13px;height:13px;transition:fill .2s,stroke .2s"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg><span id="like-count-${c.id}">${cLikes>0?cLikes:''}</span></button></div>
       <div id="reply-box-${c.id}" style="display:none;margin-top:8px;display:none">
         <div style="display:flex;gap:8px;margin-top:8px">
           <textarea id="reply-input-${c.id}" class="comment-input" placeholder="escribe una respuesta..." rows="1" style="flex:1;min-height:36px" oninput="autoResizeComment(this)"></textarea>
           <button onclick="_submitReply('${c.id}','${sourceType}','${sourceId}','${listId}')" class="comment-send-btn" style="align-self:flex-end">enviar</button>
         </div>
       </div>
-      <div style="display:flex;gap:12px;align-items:center;margin-top:6px">${replyBtns}</div>
+
     </div>`;
   }).join('');
 }
 
+// [V96] like de comentario — optimista + Supabase
+async function _likeComment(commentId,btn){
+  if(isGuest()){showToast('inicia sesión para dar like');return;}
+  const liked=btn.dataset.liked==='true';
+  const newLiked=!liked;
+  btn.dataset.liked=String(newLiked);
+  btn.style.color=newLiked?'#e6f03b':'rgba(255,255,255,.3)';
+  const svg=btn.querySelector('svg');
+  if(svg){svg.setAttribute('fill',newLiked?'#e6f03b':'none');svg.setAttribute('stroke',newLiked?'#e6f03b':'rgba(255,255,255,.35)');}
+  const span=document.getElementById('like-count-'+commentId);
+  const cur=parseInt(span?.textContent||'0')||0;
+  const next=newLiked?cur+1:Math.max(0,cur-1);
+  if(span)span.textContent=next>0?next:'';
+  if(!_supa) return;
+  try{
+    if(newLiked){
+      await _supa.from('comment_likes').insert({comment_id:commentId,user_id:USER_STATE.id}).then(null,()=>{});
+      await _supa.from('comments').update({likes:(next)}).eq('id',commentId).then(null,()=>{});
+    } else {
+      await _supa.from('comment_likes').delete().eq('comment_id',commentId).eq('user_id',USER_STATE.id).then(null,()=>{});
+      await _supa.from('comments').update({likes:Math.max(0,next)}).eq('id',commentId).then(null,()=>{});
+    }
+  }catch(e){console.warn('[like]',e?.message);}
+}
 function _openReplyBox(commentId,sourceType,sourceId,listId){
   const box=document.getElementById('reply-box-'+commentId);
   if(!box) return;
