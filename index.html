@@ -3002,7 +3002,7 @@ function showView(name,param){
   document.getElementById('view-'+name).classList.add('active');
   currentView=name;
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos'};
+  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos'};
   if(map[name])document.getElementById(map[name]).classList.add('active');
   if(name==='home'){
     clearTimers();
@@ -3789,7 +3789,7 @@ function openMarketDetail(id, origin){
   document.getElementById('mkt-city').textContent=l.location;
   // seller real desde Supabase si no hay nombre
   if(_supa && l.user_id && !l.seller){
-    _supa.from('users').select('nombre,username,avatar_url').eq('id',l.user_id).maybeSingle().then(({data:u})=>{
+    _supa.from('users').select('nombre,username,avatar_url,kyc_verified').eq('id',l.user_id).maybeSingle().then(({data:u})=>{
       if(u){
         const nm=u.nombre||u.username||'Vendedor';
         const ini=nm.charAt(0).toUpperCase();
@@ -3800,8 +3800,9 @@ function openMarketDetail(id, origin){
         const _img=u.avatar_url?`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:null;
         if(_av){ if(_img){_av.innerHTML=_img;_av.style.overflow='hidden';} else {_av.textContent=ini;_av.style.background=`hsl(${(ini.charCodeAt(0)*47)%360},40%,28%)`;} }
         if(_av2){ if(_img){_av2.innerHTML=_img;_av2.style.overflow='hidden';} else {_av2.textContent=ini;} }
-        if(_nm) _nm.innerHTML=nm;
-        if(_nm2) _nm2.innerHTML=nm;
+        const _kseal=u.kyc_verified?'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>':'';
+        if(_nm) _nm.innerHTML=nm+_kseal;
+        if(_nm2) _nm2.innerHTML=nm+_kseal;
         l.seller=nm;
         // inyectar botón PM solo si no es el dueño
         const card=document.getElementById('mkt-seller-card');
@@ -3956,7 +3957,7 @@ function sendMktComment(){
   const div=document.createElement('div');
   div.className='comment-item';
   const _myAv=USER_STATE.avatar?'<div class="comment-avatar" style="overflow:hidden"><img src="'+USER_STATE.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>':'<div class="comment-avatar">T</div>';
-  div.innerHTML='<div class="comment-header">'+_myAv+'<span class="comment-name">tú</span><span class="comment-time">ahora mismo</span></div><div class="comment-text">'+text+'</div>';
+  div.innerHTML='<div class="comment-header">'+_myAv+'<span class="comment-name">tú'+(USER_STATE.kycVerified?'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>':'')+'</span><span class="comment-time">ahora mismo</span></div><div class="comment-text">'+text+'</div>';
   list.prepend(div);
   input.value='';input.style.height='auto';
   showToast('pregunta enviada',true);
@@ -4045,8 +4046,9 @@ function openDetail(id){
   if(sellerNm) sellerNm.textContent=a.seller||'Vendedor anónimo';
   // [V91] foto real del publicante en "publicado por"
   if(_supa&&a.ownerId){
-    _supa.from('users').select('avatar_url').eq('id',a.ownerId).maybeSingle().then(({data:u})=>{
+    _supa.from('users').select('avatar_url,kyc_verified').eq('id',a.ownerId).maybeSingle().then(({data:u})=>{
       if(u?.avatar_url&&sellerAv) sellerAv.innerHTML=`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      if(u?.kyc_verified&&sellerNm) sellerNm.innerHTML=(a.seller||'Vendedor anónimo')+'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>';
     }).catch(()=>{});
   }
   _renderDetailStatsCard(a);
@@ -4514,6 +4516,10 @@ function openBidModal(){
     setTimeout(()=>showView('cuenta'),700);
     return;
   }
+  // [V94] gate KYC: particulares deben verificar su cuenta para ofertar
+  const _kycDealer=USER_STATE.role==='consesionario'||USER_STATE.role==='concesionario';
+  const _kycAdmin=(typeof isSuperAdmin==='function'&&isSuperAdmin())||USER_STATE.role==='superadmin';
+  if(!_kycDealer&&!_kycAdmin&&!USER_STATE.kycVerified){closePaymentSheet();_showKycGateSplash();return;}
   if(!currentAuction)return;
   if(currentAuction.endTime-Date.now()<=0){showToast('esta subasta ya finalizó');return;}
   if(!currentAuction)return;
@@ -6588,7 +6594,7 @@ async function saLoadSugerencias(){
 }
 
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -6598,6 +6604,7 @@ function saTab(tab){
   if(tab==='codigos') renderCodesList();
   if(tab==='fotografos') renderSAFotografosList();
   if(tab==='usuarios') renderSAUsuarios();
+  if(tab==='kyc') renderSAKyc();
   if(tab==='pagos') renderPendingRefs();
   if(tab==='comunidad') saLoadComunidadAdmin();
   if(tab==='patrocinantes') saLoadPatrocinantes();
@@ -7811,6 +7818,7 @@ async function _rueddaRegister(email,pass){
 function _rueddaApplySession(p){
   // [V87] avatar persistente desde users.avatar_url
   if(p&&p.avatar_url){USER_STATE.avatar=p.avatar_url;setTimeout(()=>_paintAvatar(p.avatar_url),50);}
+  USER_STATE.kycVerified=!!(p&&p.kyc_verified); // [V94]
   // normalizar 'concesionario' (DB) → 'consesionario' (app-internal)
   const role=p.role==='concesionario'?'consesionario':(p.role||'particular');
   setUserRole(role,{id:p.id||null,nombre:p.nombre||'',email:p.email||'',username:p.username||'',telefono:p.telefono||''});
@@ -8395,7 +8403,7 @@ async function _loadPrivateMessages(force){
     data.map(m=>m.sender_id===USER_STATE.id?m.receiver_id:m.sender_id)
   )];
   const{data:usersData}=await _supa.from('users')
-    .select('id,nombre,username,role,avatar_url')
+    .select('id,nombre,username,role,avatar_url,kyc_verified')
     .in('id',otherIds);
   const usersMap=Object.fromEntries((usersData||[]).map(u=>[u.id,u]));
 
@@ -8421,6 +8429,7 @@ async function _loadPrivateMessages(force){
         key,otherId,
         otherName:isDealer?(dealerData?.nombre||u.nombre||u.username||'concesionario'):(u.nombre||u.username||(otherId.slice(0,6)+'...')),
         otherRole:u.role||'',
+        otherKyc:!!u.kyc_verified,
         otherAvatar:isDealer?(dealerData?.logo||null):(u.avatar_url||null),
         otherIsDealer:isDealer,
         sourceTitle:m.source_title||'publicación',
@@ -8446,6 +8455,7 @@ async function _loadPrivateMessages(force){
     otherName:t.otherName,
     otherAvatar:t.otherAvatar||null,
     otherRole:t.otherRole,
+    otherKyc:t.otherKyc||false,
     otherIsDealer:t.otherIsDealer||false,
     sourceId:t.sourceId,
     sourceType:t.sourceType,
@@ -8511,7 +8521,7 @@ function renderMensajesList(){
     const avatarInner=t.otherAvatar
       ?`<img src="${t.otherAvatar}" alt="" loading="lazy" onerror="this.parentElement.textContent='${(otherDisplay||'?')[0].toUpperCase()}'"/>`
       :(otherDisplay||'?')[0].toUpperCase();
-    const dealerBadge=isDealer?`<span style="display:inline-flex;align-items:center;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>`:'';
+    const dealerBadge=(isDealer||t.otherKyc)?`<span style="display:inline-flex;align-items:center;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>`:'';
     const pmTag=t.isPM?`<span style="font-size:9px;font-weight:600;background:rgba(255,255,255,.06);color:var(--muted);padding:1px 5px;border-radius:4px;margin-left:4px">privado</span>`:'';
     return `<div class="msg-item${t.unread?' unread':''}" onclick="openThread('${t.id}')">
       <div class="msg-avatar${isDealer?' dealer':''}">${avatarInner}</div>
@@ -8540,7 +8550,7 @@ function openThread(id){
   document.getElementById('thread-car-title').textContent=currentThread.carTitle||'mensaje';
   const otherName=currentThread.isPM?currentThread.otherName:((currentThread.participants||[]).find(p=>!p.isSeller)||{user:'usuario'}).user;
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
-  const dealerBadge=isDealer?' <span style="font-size:10px;color:#1d9bf0;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>':'';
+  const dealerBadge=(isDealer||currentThread.otherKyc)?' <span style="font-size:10px;color:#1d9bf0;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>':'';
   document.getElementById('thread-meta').innerHTML='conversación con '+otherName+dealerBadge;
   // [V87] avatar del interlocutor: inicial; si es dealer → logo de su card + clickeable a su vitrina
   const av=document.getElementById('thread-avatar');
@@ -8876,6 +8886,144 @@ async function _saveProfileEdit(btn){
   }
 }
 
+
+// ═══════════ [V94] SISTEMA DE VERIFICACIÓN KYC ═══════════
+const _KYC_SEAL='<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>';
+function _kycCompress(file,maxW){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const sc=Math.min(1,maxW/img.width);const cv=document.createElement('canvas');cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);res(cv.toDataURL('image/jpeg',.8));};img.onerror=rej;img.src=r.result;};r.onerror=rej;r.readAsDataURL(file);});}
+async function openKycView(){
+  const body=document.getElementById('kyc-body'); if(!body) return;
+  if(isGuest()){body.innerHTML='<div style="color:var(--muted);font-size:14px;font-weight:300">inicia sesión para verificar tu cuenta.</div>';return;}
+  if(USER_STATE.kycVerified){
+    body.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 10px;gap:14px;opacity:0;transition:opacity .4s"><svg viewBox="0 0 24 24" style="width:54px;height:54px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><div style="font-size:18px;font-weight:800;letter-spacing:-.3px">tu cuenta está verificada</div><div style="font-size:13px;color:rgba(255,255,255,.5);font-weight:300;line-height:1.6;max-width:300px">ya puedes participar en subastas a nivel nacional. Tu usuario lleva el sello de verificado junto a tu nombre.</div></div>`;
+    requestAnimationFrame(()=>{const d=body.firstElementChild;if(d)d.style.opacity='1';});
+    return;
+  }
+  body.innerHTML='<div style="color:rgba(255,255,255,.4);font-size:13px;font-weight:300">cargando…</div>';
+  let sub=null;
+  try{
+    const{data}=await _supa.from('kyc_submissions').select('id,estado,created_at').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}).limit(1);
+    sub=(data||[])[0]||null;
+  }catch(e){}
+  if(sub&&sub.estado==='pendiente'){_renderKycRevision(body);return;}
+  _renderKycForm(body,sub&&sub.estado==='rechazada');
+}
+function _renderKycRevision(body){
+  body.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 10px;gap:14px;opacity:0;transition:opacity .45s"><div style="width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center"><svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="1.7" style="width:24px;height:24px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div style="font-size:18px;font-weight:800;letter-spacing:-.3px">tu verificación está en revisión</div><div style="font-size:13px;color:rgba(255,255,255,.5);font-weight:300;line-height:1.6;max-width:300px">te notificaremos al aprobarla — toma un día hábil máximo. Mientras tanto puedes echar un ojo a tus carros favoritos y hacer comentarios.</div></div>`;
+  requestAnimationFrame(()=>{const d=body.firstElementChild;if(d)d.style.opacity='1';});
+}
+function _renderKycForm(body,rechazada){
+  window._kycDoc=null;window._kycSelfie=null;
+  const box=(id,label,sub)=>`<div id="kyc-box-${id}" onclick="document.getElementById('kyc-file-${id}').click()" style="border:1.5px dashed rgba(255,255,255,.18);border-radius:16px;height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:border-color .3s,background .3s;overflow:hidden;position:relative;background:rgba(255,255,255,.02)">
+    <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.45)" stroke-width="1.6" style="width:26px;height:26px"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+    <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.85);padding:0 16px;text-align:center">${label}</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.35);font-weight:300">${sub}</div>
+    <input type="file" id="kyc-file-${id}" accept="image/*" ${id==='selfie'?'capture="user"':''} style="display:none" onchange="_kycFilePicked(this,'${id}')">
+  </div>`;
+  body.innerHTML=`<div style="opacity:0;transition:opacity .4s">
+    ${rechazada?'<div style="background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.25);border-radius:12px;padding:11px 14px;font-size:12px;color:#ff9b9b;margin-bottom:16px;font-weight:300">tu solicitud anterior fue rechazada — sube fotos nítidas y legibles e inténtalo de nuevo.</div>':''}
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${box('doc','introduce una foto de tu documento','pasaporte o cédula')}
+      ${box('selfie','selfie','una foto tuya, clara y de frente')}
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.45);font-weight:300;line-height:1.65;margin-top:18px">Te hablamos claro. Debes introducir tus documentos y selfie para que verifiquemos la legalidad de tu cuenta, poder cuidar la seguridad de los vendedores y poder participar activamente en subastas a nivel nacional. Al estar verificado tu usuario tendrá el tag especial de verificado.</div>
+    <button id="kyc-submit-btn" onclick="_submitKyc(this)" disabled style="margin-top:18px;width:100%;background:rgba(255,255,255,.10);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:15px;font-family:var(--font);font-size:15px;font-weight:700;color:#fff;cursor:pointer;opacity:.35;transition:opacity .3s">Enviar</button>
+    <div style="font-size:11px;color:rgba(255,255,255,.35);font-weight:300;margin-top:12px;text-align:center;line-height:1.6">la verificación toma un día hábil máximo. Mientras tanto puedes echar un ojo a tus carros favoritos y hacer comentarios.</div>
+  </div>`;
+  requestAnimationFrame(()=>{const d=body.firstElementChild;if(d)d.style.opacity='1';});
+}
+async function _kycFilePicked(input,which){
+  if(!input.files||!input.files[0]) return;
+  try{
+    const dataUrl=await _kycCompress(input.files[0],which==='doc'?1100:900);
+    if(which==='doc')window._kycDoc=dataUrl;else window._kycSelfie=dataUrl;
+    const bx=document.getElementById('kyc-box-'+which);
+    if(bx){
+      let im=bx.querySelector('.kyc-preview');
+      if(!im){bx.insertAdjacentHTML('beforeend','<img class="kyc-preview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.05);transition:opacity .45s ease,transform .45s ease">');im=bx.querySelector('.kyc-preview');}
+      im.src=dataUrl;
+      requestAnimationFrame(()=>{im.style.opacity='1';im.style.transform='scale(1)';});
+      bx.style.borderColor='rgba(230,240,59,.55)';bx.style.borderStyle='solid';
+    }
+    if(window._kycDoc&&window._kycSelfie){const b=document.getElementById('kyc-submit-btn');if(b){b.disabled=false;b.style.opacity='1';}}
+  }catch(e){showToast('no se pudo leer la imagen, intenta de nuevo');}
+}
+async function _submitKyc(btn){
+  if(!window._kycDoc||!window._kycSelfie){showToast('sube el documento y el selfie');return;}
+  if(btn){btn.disabled=true;btn.textContent='enviando…';btn.style.opacity='.6';}
+  try{
+    const{error}=await _supa.from('kyc_submissions').insert({user_id:USER_STATE.id,doc_b64:window._kycDoc,selfie_b64:window._kycSelfie,estado:'pendiente'});
+    if(error)throw error;
+    showToast('documentos enviados ✓',true);
+    window._kycDoc=null;window._kycSelfie=null;
+    const body=document.getElementById('kyc-body');
+    if(body){const d=body.firstElementChild;if(d)d.style.opacity='0';setTimeout(()=>_renderKycRevision(body),320);}
+  }catch(e){
+    showToast('error: '+(e?.message||'intenta de nuevo'));
+    if(btn){btn.disabled=false;btn.textContent='Enviar';btn.style.opacity='1';}
+  }
+}
+function _showKycGateSplash(){
+  let m=document.getElementById('kyc-gate-splash'); if(m)m.remove();
+  m=document.createElement('div');
+  m.id='kyc-gate-splash';
+  m.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:30px;opacity:0;transition:opacity .3s ease';
+  m.onclick=e=>{if(e.target===m){m.style.opacity='0';setTimeout(()=>m.remove(),300);}};
+  m.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;max-width:320px;transform:translateY(10px);transition:transform .35s cubic-bezier(.22,1,.36,1)" id="kyc-gate-inner">
+    <div style="width:56px;height:56px;border-radius:50%;background:rgba(230,240,59,.1);border:1px solid rgba(230,240,59,.3);display:flex;align-items:center;justify-content:center"><svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.7" style="width:25px;height:25px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4.5"/></svg></div>
+    <div style="font-size:18px;font-weight:800;letter-spacing:-.3px;color:#fff;line-height:1.35">debes verificar tu cuenta para poder participar en subastas Ruedda</div>
+    <button onclick="const s=document.getElementById('kyc-gate-splash');if(s){s.style.opacity='0';setTimeout(()=>s.remove(),250);}showView('kyc');openKycView();" style="background:rgba(255,255,255,.10);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.18);border-radius:100px;padding:10px 22px;font-family:var(--font);font-size:13px;font-weight:700;color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:7px">verificar <span style="font-size:14px">&rarr;</span></button>
+  </div>`;
+  document.body.appendChild(m);
+  requestAnimationFrame(()=>{m.style.opacity='1';const i=document.getElementById('kyc-gate-inner');if(i)i.style.transform='translateY(0)';});
+}
+async function renderSAKyc(){
+  const list=document.getElementById('sa-kyc-list'); if(!list) return;
+  list.innerHTML='<div style="color:var(--muted);font-size:13px;font-weight:300">cargando solicitudes…</div>';
+  try{
+    const{data:subs,error}=await _supa.from('kyc_submissions').select('id,user_id,doc_b64,selfie_b64,estado,created_at').eq('estado','pendiente').order('created_at',{ascending:true});
+    if(error){list.innerHTML='<div style="color:#ff9b9b;font-size:13px">error: '+error.message+'</div>';return;}
+    if(!subs?.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;font-weight:300">sin solicitudes pendientes.</div>';return;}
+    const ids=[...new Set(subs.map(s=>s.user_id))];
+    const{data:us}=await _supa.from('users').select('id,nombre,username').in('id',ids);
+    const um=Object.fromEntries((us||[]).map(u=>[u.id,u]));
+    list.innerHTML=subs.map(s=>{
+      const u=um[s.user_id]||{};
+      const nm=u.nombre||u.username||String(s.user_id).slice(0,8);
+      return `<div style="background:#101013;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px">
+        <div style="font-size:15px;font-weight:700;letter-spacing:-.2px">${nm}</div>
+        <div style="font-size:11px;color:var(--muted);margin:3px 0 12px;font-weight:300">${new Date(s.created_at).toLocaleDateString('es-VE',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700">documento</div><img src="${s.doc_b64}" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in" onclick="window.open(this.src)"></div>
+          <div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700">selfie</div><img src="${s.selfie_b64}" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in" onclick="window.open(this.src)"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:13px">
+          <button onclick="_saKycResolve('${s.id}','${s.user_id}',true,this)" style="flex:1;background:#e6f03b;color:#000;border:none;border-radius:100px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">aprobar</button>
+          <button onclick="_saKycResolve('${s.id}','${s.user_id}',false,this)" style="flex:1;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">rechazar</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){list.innerHTML='<div style="color:#ff9b9b;font-size:13px">error cargando solicitudes.</div>';}
+}
+async function _saKycResolve(subId,userId,aprobar,btn){
+  if(btn){btn.disabled=true;btn.style.opacity='.5';}
+  try{
+    const{error}=await _supa.from('kyc_submissions').update({estado:aprobar?'aprobada':'rechazada'}).eq('id',subId);
+    if(error)throw error;
+    if(aprobar){
+      const{error:e2}=await _supa.from('users').update({kyc_verified:true}).eq('id',userId);
+      if(e2)throw e2;
+      _supa.from('notifications').insert({user_id:userId,tipo:'system',titulo:'¡Tu cuenta fue verificada!',body:'Tu verificación KYC fue aprobada. Ya puedes participar en subastas a nivel nacional y tu usuario lleva el sello de verificado.',icon:'lime'}).then(null,e=>console.warn('[kyc notif]',e?.message));
+    } else {
+      _supa.from('notifications').insert({user_id:userId,tipo:'system',titulo:'verificación KYC rechazada',body:'No pudimos validar tus documentos. Revisa que las fotos sean nítidas y legibles e inténtalo de nuevo desde configuración.',icon:'lime'}).then(null,e=>console.warn('[kyc notif]',e?.message));
+    }
+    showToast(aprobar?'cuenta verificada ✓':'solicitud rechazada',true);
+    renderSAKyc();
+  }catch(e){
+    showToast('error: '+(e?.message||''));
+    if(btn){btn.disabled=false;btn.style.opacity='1';}
+  }
+}
+
 function _goToSource(sourceId,sourceType){
   showView('home');
   setTimeout(()=>{
@@ -8984,6 +9132,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div class="tab" id="sa-tab-fotografos" onclick="saTab('fotografos')" style="white-space:nowrap;flex-shrink:0">fotógrafos</div>
     <div class="tab" id="sa-tab-pagos" onclick="saTab('pagos')" style="white-space:nowrap;flex-shrink:0">pagos</div>
     <div class="tab" id="sa-tab-bypass" onclick="saTab('bypass')" style="white-space:nowrap;flex-shrink:0">bypass</div>
+    <div class="tab" id="sa-tab-kyc" onclick="saTab('kyc')" style="white-space:nowrap;flex-shrink:0">KYC</div>
     <div class="tab" id="sa-tab-comunidad" onclick="saTab('comunidad')" style="white-space:nowrap;flex-shrink:0">comunidad</div>
     <div class="tab" id="sa-tab-patrocinantes" onclick="saTab('patrocinantes')" style="white-space:nowrap;flex-shrink:0">patrocinantes</div>
     <div class="tab" id="sa-tab-publicaciones" onclick="saTab('publicaciones')" style="white-space:nowrap;flex-shrink:0">publicaciones</div>
@@ -9112,6 +9261,10 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
   </div>
 
   <!-- BYPASS TAB -->
+  <div id="sa-kyc" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
+    <div style="font-size:13px;color:var(--muted);font-weight:300">solicitudes de verificación pendientes — compara el nombre registrado con la cédula de las fotos.</div>
+    <div id="sa-kyc-list" style="display:flex;flex-direction:column;gap:14px"></div>
+  </div>
   <div id="sa-bypass" style="display:none;padding:18px 18px 100px;display:none;flex-direction:column;gap:12px">
     <p style="font-size:13px;color:var(--muted);margin-bottom:8px">acceso directo para testing sin pasar por pagos.</p>
     <button onclick="bypassPublicacion()" style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:15px;font-family:var(--font);font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:all .15s;text-align:left;display:flex;align-items:center;justify-content:space-between">
@@ -9426,6 +9579,23 @@ async function _saDeletePat(id,cat){
 
   <div class="config-section" style="margin-top:8px">
     <div class="config-card">
+      <div class="config-row" onclick="showView('kyc');openKycView()" style="cursor:pointer">
+        <div class="config-row-left">
+          <div class="config-row-icon" style="background:rgba(230,240,59,.12)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4.5"/></svg>
+          </div>
+          <div>
+            <div class="config-row-title">verificación KYC</div>
+            <div class="config-row-sub">verifica tus datos personales en Ruedda</div>
+          </div>
+        </div>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.35)" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="config-section" style="margin-top:8px">
+    <div class="config-card">
       <div class="config-danger-row" onclick="confirmDeleteAccount()">
         <div class="config-danger-icon">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
@@ -9438,6 +9608,18 @@ async function _saDeletePat(id,cat){
     </div>
   </div>
 
+</div>
+
+<!-- KYC VIEW [V94] -->
+<div id="view-kyc" class="view" style="padding-bottom:calc(175px + env(safe-area-inset-bottom))">
+  <div class="detail-back" onclick="showView('configuracion')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>configuración</span>
+  </div>
+  <div style="padding:4px 18px 18px;max-width:560px">
+    <div style="font-size:24px;font-weight:800;letter-spacing:-.5px">verificación KYC</div>
+    <div id="kyc-body" style="margin-top:18px"></div>
+  </div>
 </div>
 
 
