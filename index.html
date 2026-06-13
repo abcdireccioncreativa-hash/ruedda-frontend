@@ -551,12 +551,18 @@ html{scrollbar-width:none}
 .fdd-btn{width:100%;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border:none;padding:15px 16px;font-family:var(--font);cursor:pointer;transition:background .15s}
 .fdd-btn:hover{background:rgba(255,255,255,.05)}
 .fdd-label{font-size:14px;font-weight:600;color:rgba(255,255,255,.85)}
-.fdd-val{font-size:12px;font-weight:600;color:#e6f03b;background:rgba(230,240,59,.1);padding:2px 9px;border-radius:100px;display:none}
+.fdd-val{font-size:12px;font-weight:600;color:#fff;background:rgba(255,255,255,.1);padding:2px 9px;border-radius:100px;display:none}
 .fdd-val.show{display:inline}
 .fdd-arrow{width:16px;height:16px;color:rgba(255,255,255,.3);transition:transform .22s,color .15s;flex-shrink:0}
 .fdd-wrap.open .fdd-arrow{transform:rotate(180deg);color:rgba(255,255,255,.6)}
-.fdd-menu{display:none;flex-direction:column;border-top:1px solid rgba(255,255,255,.06)}
-.fdd-wrap.open .fdd-menu{display:flex;animation:fadeIn .18s ease}
+.fdd-menu{display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,0);max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.22,1,.36,1),border-color .3s ease,opacity .25s ease;opacity:0}
+.range-slider{position:relative;height:36px;margin:4px 6px 0}
+.range-slider .range-track{position:absolute;top:16px;left:0;right:0;height:4px;border-radius:100px;background:rgba(255,255,255,.1)}
+.range-slider .range-fill{position:absolute;top:16px;height:4px;border-radius:100px;background:rgba(255,255,255,.85);transition:left .04s linear,right .04s linear}
+.range-slider input[type=range]{position:absolute;top:0;left:0;width:100%;height:36px;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
+.range-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.5);box-shadow:0 2px 10px rgba(0,0,0,.5),0 0 0 4px rgba(255,255,255,.1);cursor:pointer;pointer-events:auto;backdrop-filter:blur(8px)}
+.range-slider input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.5);box-shadow:0 2px 10px rgba(0,0,0,.5),0 0 0 4px rgba(255,255,255,.1);cursor:pointer;pointer-events:auto}
+.fdd-wrap.open .fdd-menu{max-height:600px;opacity:1;border-top-color:rgba(255,255,255,.06)}
 .fdd-item{padding:13px 16px;font-size:14px;font-weight:400;color:rgba(255,255,255,.55);cursor:pointer;transition:all .12s;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;justify-content:space-between}
 .fdd-item:last-child{border-bottom:none}
 .fdd-item:hover{background:rgba(255,255,255,.04);color:#fff}
@@ -1588,12 +1594,17 @@ html{scrollbar-width:none}
         </div>
         <svg class="fdd-arrow" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2"><path d="m5 8 5 5 5-5"/></svg>
       </button>
-      <div class="fdd-menu" id="fdd-precio-menu">
-        <div class="fdd-item active" onclick="fpSelect(this,'precio','todos','fdd-precio')">cualquier precio</div>
-        <div class="fdd-item" onclick="fpSelect(this,'precio','0-15000','fdd-precio')">hasta $15.000</div>
-        <div class="fdd-item" onclick="fpSelect(this,'precio','15000-30000','fdd-precio')">$15.000 – $30.000</div>
-        <div class="fdd-item" onclick="fpSelect(this,'precio','30000-60000','fdd-precio')">$30.000 – $60.000</div>
-        <div class="fdd-item" onclick="fpSelect(this,'precio','60000-9999999','fdd-precio')">más de $60.000</div>
+      <div class="fdd-menu" id="fdd-precio-menu" style="padding:18px 16px 8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <span id="precio-min-lbl" style="font-size:14px;font-weight:700;color:#fff">$0</span>
+          <span id="precio-max-lbl" style="font-size:14px;font-weight:700;color:#fff">$200.000+</span>
+        </div>
+        <div class="range-slider" id="precio-slider">
+          <div class="range-track"></div>
+          <div class="range-fill" id="precio-fill"></div>
+          <input type="range" min="0" max="200000" step="2500" value="0" id="precio-min" oninput="_priceSlide()">
+          <input type="range" min="0" max="200000" step="2500" value="200000" id="precio-max" oninput="_priceSlide()">
+        </div>
       </div>
     </div>
 
@@ -1609,7 +1620,11 @@ html{scrollbar-width:none}
       <div class="fdd-menu" id="fdd-trans-menu">
         <div class="fdd-item active" onclick="fpSelect(this,'trans','todas','fdd-trans')">cualquiera</div>
         <div class="fdd-item" onclick="fpSelect(this,'trans','automática','fdd-trans')">automática</div>
-        <div class="fdd-item" onclick="fpSelect(this,'trans','manual','fdd-trans')">manual</div>
+        <div class="fdd-item" onclick="fpSelect(this,'trans','automática con levas','fdd-trans')">automática con levas</div>
+        <div class="fdd-item" onclick="fpSelect(this,'trans','auto CVT','fdd-trans')">auto CVT</div>
+        <div class="fdd-item" onclick="fpSelect(this,'trans','DSG','fdd-trans')">DSG</div>
+        <div class="fdd-item" onclick="fpSelect(this,'trans','sincrónica','fdd-trans')">sincrónica</div>
+        <div class="fdd-item" onclick="fpSelect(this,'trans','secuencial','fdd-trans')">secuencial</div>
       </div>
     </div>
 
@@ -1622,13 +1637,46 @@ html{scrollbar-width:none}
         </div>
         <svg class="fdd-arrow" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2"><path d="m5 8 5 5 5-5"/></svg>
       </button>
-      <div class="fdd-menu" id="fdd-anio-menu">
-        <div class="fdd-item active" onclick="fpSelect(this,'anio','todos','fdd-anio')">cualquier año</div>
-        <div class="fdd-item" onclick="fpSelect(this,'anio','2020-2025','fdd-anio')">2020 – 2025</div>
-        <div class="fdd-item" onclick="fpSelect(this,'anio','2015-2019','fdd-anio')">2015 – 2019</div>
-        <div class="fdd-item" onclick="fpSelect(this,'anio','2010-2014','fdd-anio')">2010 – 2014</div>
-        <div class="fdd-item" onclick="fpSelect(this,'anio','2000-2009','fdd-anio')">2000 – 2009</div>
-        <div class="fdd-item" onclick="fpSelect(this,'anio','0-1999','fdd-anio')">clásico (– 1999)</div>
+      <div class="fdd-menu" id="fdd-anio-menu" style="padding:18px 16px 8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <span id="anio-min-lbl" style="font-size:14px;font-weight:700;color:#fff">1930</span>
+          <span id="anio-max-lbl" style="font-size:14px;font-weight:700;color:#fff">2027</span>
+        </div>
+        <div class="range-slider" id="anio-slider">
+          <div class="range-track"></div>
+          <div class="range-fill" id="anio-fill"></div>
+          <input type="range" min="1930" max="2027" step="1" value="1930" id="anio-min" oninput="_yearSlide()">
+          <input type="range" min="1930" max="2027" step="1" value="2027" id="anio-max" oninput="_yearSlide()">
+        </div>
+      </div>
+    </div>
+
+    <!-- CIUDAD -->
+    <div class="fdd-wrap">
+      <button class="fdd-btn" onclick="toggleFdd(this)" id="fdd-ciudad-btn">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="fdd-label">ciudad</span>
+          <span class="fdd-val" id="fdd-ciudad-val"></span>
+        </div>
+        <svg class="fdd-arrow" fill="none" viewBox="0 0 20 20" stroke="currentColor" stroke-width="2"><path d="m5 8 5 5 5-5"/></svg>
+      </button>
+      <div class="fdd-menu" id="fdd-ciudad-menu">
+        <div class="fdd-item active" onclick="fpSelect(this,'ciudad','todas','fdd-ciudad')">todas las ciudades</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Caracas','fdd-ciudad')">Caracas</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Maracaibo','fdd-ciudad')">Maracaibo</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Valencia','fdd-ciudad')">Valencia</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Barquisimeto','fdd-ciudad')">Barquisimeto</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Maracay','fdd-ciudad')">Maracay</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Ciudad Guayana','fdd-ciudad')">Ciudad Guayana</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','San Cristóbal','fdd-ciudad')">San Cristóbal</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Maturín','fdd-ciudad')">Maturín</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Barcelona','fdd-ciudad')">Barcelona</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Puerto La Cruz','fdd-ciudad')">Puerto La Cruz</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Mérida','fdd-ciudad')">Mérida</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Cumaná','fdd-ciudad')">Cumaná</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Punto Fijo','fdd-ciudad')">Punto Fijo</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Los Teques','fdd-ciudad')">Los Teques</div>
+        <div class="fdd-item" onclick="fpSelect(this,'ciudad','Otra','fdd-ciudad')">Otra</div>
       </div>
     </div>
 
@@ -6142,7 +6190,7 @@ function showToast(msg,lime=false){
 }
 
 // ===================== FILTER PANEL =====================
-let activeFilters = {tipo:'todos', marca:'todas', precio:'todos', trans:'todas', anio:'todos'};
+let activeFilters = {tipo:'todos', marca:'todas', precio:'todos', trans:'todas', anio:'todos', ciudad:'todas'};
 let filterContext = 'market'; // 'market' | 'dealer'
 
 function toggleFilterPanel(ctx){
@@ -6155,6 +6203,9 @@ function toggleFilterPanel(ctx){
   overlay.style.display = 'block';
   // sync UI to current filters
   syncFilterUI();
+  // [V104] pintar sliders de precio y año
+  if(typeof _priceSlide==='function')_priceSlide();
+  if(typeof _yearSlide==='function')_yearSlide();
 }
 
 function closeFilterPanel(){
@@ -6206,6 +6257,45 @@ function fpSelect(el, key, val, prefix){
 function fpToggle(el, key, val){ fpSelect(el, key, val, 'fdd-'+key); } // legacy compat
 
 
+function _priceSlide(){
+  const mn=document.getElementById('precio-min'),mx=document.getElementById('precio-max');
+  if(!mn||!mx)return;
+  let lo=parseInt(mn.value),hi=parseInt(mx.value);
+  if(lo>hi){const t=lo;lo=hi;hi=t;} // no cruzar
+  const max=200000;
+  const fill=document.getElementById('precio-fill');
+  if(fill){fill.style.left=(lo/max*100)+'%';fill.style.right=(100-hi/max*100)+'%';}
+  const fmt=v=>'$'+v.toLocaleString('es-VE').replace(/,/g,'.');
+  const lblMin=document.getElementById('precio-min-lbl'),lblMax=document.getElementById('precio-max-lbl');
+  if(lblMin)lblMin.textContent=fmt(lo);
+  if(lblMax)lblMax.textContent=hi>=max?'$200.000+':fmt(hi);
+  // escribir en activeFilters: si está en extremos = sin filtro
+  if(lo<=0&&hi>=max){activeFilters.precio='todos';}
+  else{activeFilters.precio=lo+'-'+(hi>=max?9999999:hi);}
+  // marcar el btn precio como activo visualmente
+  const btn=document.getElementById('fdd-precio-btn');
+  if(btn)btn.style.background=(activeFilters.precio!=='todos')?'rgba(255,255,255,.06)':'rgba(255,255,255,.03)';
+  const val=document.getElementById('fdd-precio-val');
+  if(val){if(activeFilters.precio!=='todos'){val.textContent=fmt(lo)+(hi>=max?'+':' – '+fmt(hi));val.classList.add('show');}else{val.textContent='';val.classList.remove('show');}}
+}
+function _yearSlide(){
+  const mn=document.getElementById('anio-min'),mx=document.getElementById('anio-max');
+  if(!mn||!mx)return;
+  let lo=parseInt(mn.value),hi=parseInt(mx.value);
+  if(lo>hi){const t=lo;lo=hi;hi=t;}
+  const MIN=1930,MAX=2027,span=MAX-MIN;
+  const fill=document.getElementById('anio-fill');
+  if(fill){fill.style.left=((lo-MIN)/span*100)+'%';fill.style.right=(100-(hi-MIN)/span*100)+'%';}
+  const lblMin=document.getElementById('anio-min-lbl'),lblMax=document.getElementById('anio-max-lbl');
+  if(lblMin)lblMin.textContent=lo;
+  if(lblMax)lblMax.textContent=hi;
+  if(lo<=MIN&&hi>=MAX){activeFilters.anio='todos';}
+  else{activeFilters.anio=lo+'-'+hi;}
+  const btn=document.getElementById('fdd-anio-btn');
+  if(btn)btn.style.background=(activeFilters.anio!=='todos')?'rgba(255,255,255,.06)':'rgba(255,255,255,.03)';
+  const val=document.getElementById('fdd-anio-val');
+  if(val){if(activeFilters.anio!=='todos'){val.textContent=lo+' – '+hi;val.classList.add('show');}else{val.textContent='';val.classList.remove('show');}}
+}
 function applyFilters(){
   closeFilterPanel();
   updateFilterBadge(filterContext);
@@ -6214,9 +6304,14 @@ function applyFilters(){
 }
 
 function clearAllFilters(){
-  activeFilters = {tipo:'todos', marca:'todas', precio:'todos', trans:'todas', anio:'todos'};
+  activeFilters = {tipo:'todos', marca:'todas', precio:'todos', trans:'todas', anio:'todos', ciudad:'todas'};
+  // reset sliders
+  const _pmin=document.getElementById('precio-min'),_pmax=document.getElementById('precio-max');
+  if(_pmin&&_pmax){_pmin.value=0;_pmax.value=200000;if(typeof _priceSlide==='function')_priceSlide();}
+  const _amin=document.getElementById('anio-min'),_amax=document.getElementById('anio-max');
+  if(_amin&&_amax){_amin.value=1930;_amax.value=2027;if(typeof _yearSlide==='function')_yearSlide();}
   // reset all dropdowns to first item active
-  ['fdd-tipo','fdd-marca','fdd-precio','fdd-trans','fdd-anio'].forEach(prefix=>{
+  ['fdd-tipo','fdd-marca','fdd-precio','fdd-trans','fdd-anio','fdd-ciudad'].forEach(prefix=>{
     const menu = document.getElementById(prefix+'-menu');
     if(!menu) return;
     const items = menu.querySelectorAll('.fdd-item');
@@ -6237,6 +6332,7 @@ function countActiveFilters(){
   let n = 0;
   if(f.tipo !== 'todos') n++;
   if(f.marca !== 'todas') n++;
+  if(f.ciudad && f.ciudad !== 'todas') n++;
   if(f.precio !== 'todos') n++;
   if(f.trans !== 'todas') n++;
   if(f.anio !== 'todos') n++;
@@ -6268,6 +6364,7 @@ function applyFilterLogic(data){
       const [yn,yx] = f.anio.split('-').map(Number);
       if((l.year||0) < yn || (l.year||0) > yx) return false;
     }
+    if(f.ciudad !== 'todas' && (l.location||'') !== f.ciudad) return false;
     return true;
   });
 }
