@@ -6203,9 +6203,6 @@ function toggleFilterPanel(ctx){
   overlay.style.display = 'block';
   // sync UI to current filters
   syncFilterUI();
-  // [V104] pintar sliders de precio y año
-  if(typeof _priceSlide==='function')_priceSlide();
-  if(typeof _yearSlide==='function')_yearSlide();
 }
 
 function closeFilterPanel(){
@@ -6231,6 +6228,12 @@ function syncFilterUI(){
 }
 
 function toggleFdd(btn){
+  // [V104] al abrir un dropdown de slider, pintar su fill (cuando ya tiene altura)
+  const _id=btn.id||'';
+  setTimeout(()=>{
+    if(_id.indexOf('precio')>=0&&typeof _priceSlide==='function')_priceSlide();
+    if(_id.indexOf('anio')>=0&&typeof _yearSlide==='function')_yearSlide();
+  },60);
   const wrap = btn.closest('.fdd-wrap');
   const isOpen = wrap.classList.contains('open');
   // close all others first
@@ -6382,7 +6385,7 @@ function renderMarketFiltered(){
     el.className = 'market-card';
     el.style.animationDelay = (idx*50)+'ms';
     el.onclick = ()=>openMarketDetail(l.id);
-    el.innerHTML = `<div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]})">${carPlaceholder(l.id,'small')}</div>
+    el.innerHTML = `<div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}</div>
       <div class="market-card-body">
         <div class="market-card-title">${l.title}</div>
         <div class="market-card-price">${fmtBid(l.price)}</div>
