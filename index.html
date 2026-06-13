@@ -3478,7 +3478,7 @@ async function confirmRef(i){
   _saveNotifsToStorage(); // [RUEDDA v61] persistir
   document.getElementById('notif-dot').style.display='block';
   if(_supa){
-    await _supa.from('payment_refs').update({status:'confirmado'}).eq('ref_num',ref.refNum).catch(()=>{});
+    await _supa.from('payment_refs').update({status:'confirmado'}).eq('ref_num',ref.refNum).then(null,()=>{});
     setTimeout(()=>renderModQueue('particular'),500);
   }
 }
@@ -4788,7 +4788,7 @@ function confirmPayment(){
       USER_STATE.dealerActive=true;USER_STATE.dealerExpiry=exp.toISOString();
       updateCuentaView();
       if(_supa&&USER_STATE.concesionarioId){
-        _supa.from('concesionarios').update({activo:true,plan_expiry:exp.toISOString()}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] activar vitrina:',e.message));
+        _supa.from('concesionarios').update({activo:true,plan_expiry:exp.toISOString()}).eq('id',USER_STATE.concesionarioId).then(null,e=>console.error('[ruedda] activar vitrina:',e.message));
       }
       document.getElementById('payment-sheet').classList.remove('open');
       if(_supa) _loadConcesionarios();
@@ -4969,7 +4969,7 @@ async function processPlanPayment(){
     const exp=new Date(Date.now()+30*86400000).toISOString();
     USER_STATE.dealerExpiry=exp;
     if(_supa&&USER_STATE.concesionarioId){
-      _supa.from('concesionarios').update({activo:true,plan_expiry:exp}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] processPlanPayment:',e.message));
+      _supa.from('concesionarios').update({activo:true,plan_expiry:exp}).eq('id',USER_STATE.concesionarioId).then(null,e=>console.error('[ruedda] processPlanPayment:',e.message));
     }
     if(_supa) _loadConcesionarios();
     _showVitrinaActivadaSplash();
@@ -5089,7 +5089,7 @@ async function processPayment(){
       const exp=new Date(Date.now()+30*86400000).toISOString();
       USER_STATE.dealerExpiry=exp;
       if(_supa&&USER_STATE.concesionarioId){
-        _supa.from('concesionarios').update({activo:true,plan_expiry:exp}).eq('id',USER_STATE.concesionarioId).catch(e=>console.error('[ruedda] activar vitrina código:',e.message));
+        _supa.from('concesionarios').update({activo:true,plan_expiry:exp}).eq('id',USER_STATE.concesionarioId).then(null,e=>console.error('[ruedda] activar vitrina código:',e.message));
       }
       closeCheckout();
       if(_supa) _loadConcesionarios();
@@ -5428,7 +5428,7 @@ async function publishListing(){
         window._pendingPaymentRef=null;
       })() : Promise.resolve(),
       (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'system',titulo:'publicación en revisión',body:`Tu ${year} ${marca} ${modelo} está en revisión. Te notificaremos cuando sea aprobado.`,icon:'lime'})
-    ]).catch(e=>console.warn('[ruedda] post-insert:',e?.message));
+    ]).then(null,e=>console.warn('[ruedda] post-insert:',e?.message));
     showDealerFab(false);
     window._venderPhotos=[];
     photoItems=[];
@@ -5869,7 +5869,7 @@ async function saveListingEdit(id){
       const ml=MARKET_LISTINGS.find(x=>String(x.id)===_idStr);
       if(ml){ml.price=Number(precio);ml.precioAnterior=Number(upd.precio_anterior||0);}
     }catch(e){}
-    await _supa.from('listings').update(upd).eq('id',_idStr).catch(e=>console.error('[ruedda] saveListingEdit:',e.message));
+    await _supa.from('listings').update(upd).eq('id',_idStr).then(null,e=>console.error('[ruedda] saveListingEdit:',e.message));
   }
   // slide down del modal con animación
   const modal=document.getElementById('edit-listing-modal');
@@ -7910,11 +7910,11 @@ async function _loadFotografos(){
 
 function _subscribeToAuctions(){
   if(!_supa) return;
-  _supa.channel('ruedda-bids').on('postgres_changes',{event:'INSERT',schema:'public',table:'bids'},payload=>{
+  if(!window._bidsChannel){ window._bidsChannel=_supa.channel('ruedda-bids').on('postgres_changes',{event:'INSERT',schema:'public',table:'bids'},payload=>{
     const bid=payload.new;
     const a=AUCTIONS.find(x=>x.id===bid.auction_id);
     if(a){a.currentBid=bid.amount;a.bidCount=(a.bidCount||0)+1;if(typeof renderCards==='function')renderCards();if(currentAuction?.id===bid.auction_id&&typeof renderDetailBid==='function')renderDetailBid();}
-  }).subscribe();
+  }).subscribe(); }
 }
 
 function _subscribeNotifs(userId){
@@ -8435,7 +8435,7 @@ async function _loadPrivateMessages(force){
 
   // marcar como leídos los recibidos
   const unreadIds=data.filter(m=>m.receiver_id===USER_STATE.id&&!m.read).map(m=>m.id);
-  if(unreadIds.length) _supa.from('private_messages').update({read:true}).in('id',unreadIds).catch(()=>{});
+  if(unreadIds.length) _supa.from('private_messages').update({read:true}).in('id',unreadIds).then(null,()=>{});
 
   // construir pmThreads
   const pmThreads=Object.values(threads).map(t=>({
