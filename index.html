@@ -3789,7 +3789,7 @@ function openMarketDetail(id, origin){
   document.getElementById('mkt-city').textContent=l.location;
   // seller real desde Supabase si no hay nombre
   if(_supa && l.user_id && !l.seller){
-    _supa.from('users').select('nombre,username,avatar_url,kyc_verified').eq('id',l.user_id).maybeSingle().then(({data:u})=>{
+    _supa.from('users').select('nombre,username,avatar_url,kyc_verified,role').eq('id',l.user_id).maybeSingle().then(async({data:u})=>{
       if(u){
         const nm=u.nombre||u.username||'Vendedor';
         const ini=nm.charAt(0).toUpperCase();
@@ -3797,10 +3797,22 @@ function openMarketDetail(id, origin){
         const _av2=document.getElementById('mkt-seller-avatar-bid');
         const _nm=document.getElementById('mkt-seller-name');
         const _nm2=document.getElementById('mkt-seller-name-bid');
-        const _img=u.avatar_url?`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:null;
+        const isDealer=u.role==='concesionario'||u.role==='consesionario';
+        let logoUrl=u.avatar_url||null;
+        // [V94] dealer: trae logo_url desde concesionarios
+        if(isDealer&&_supa){
+          try{
+            const{data:cd}=await _supa.from('concesionarios').select('logo_url').eq('user_id',l.user_id).maybeSingle();
+            if(cd?.logo_url) logoUrl=cd.logo_url;
+          }catch(e){}
+        }
+        const _img=logoUrl?`<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:null;
         if(_av){ if(_img){_av.innerHTML=_img;_av.style.overflow='hidden';} else {_av.textContent=ini;_av.style.background=`hsl(${(ini.charCodeAt(0)*47)%360},40%,28%)`;} }
         if(_av2){ if(_img){_av2.innerHTML=_img;_av2.style.overflow='hidden';} else {_av2.textContent=ini;} }
-        const _kseal=u.kyc_verified?'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>':'';
+        // sello: estrella lime para dealer, azul para particular verificado KYC
+        const _kseal=isDealer
+          ?'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:12px;height:12px;flex-shrink:0;margin-left:4px;vertical-align:middle"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.4 6.8l1.9 1.9 3.4-3.9" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+          :u.kyc_verified?'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>':'';
         if(_nm) _nm.innerHTML=nm+_kseal;
         if(_nm2) _nm2.innerHTML=nm+_kseal;
         l.seller=nm;
