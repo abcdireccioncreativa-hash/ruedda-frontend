@@ -53,12 +53,12 @@ input[type=number]{-moz-appearance:textfield}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 
 /* NAVBAR */
-.navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(0,0,0,0.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:space-between;padding:12px 18px 12px;border-bottom:none}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(0,0,0,0.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:space-between;padding:12px 18px 12px;padding-top:max(12px,env(safe-area-inset-top));border-bottom:none}
 #view-cuenta{scrollbar-width:none}
 #view-cuenta::-webkit-scrollbar{display:none}
 html::-webkit-scrollbar{display:none}
 html{scrollbar-width:none}
-.view{padding-top:58px}
+.view{padding-top:max(58px,calc(env(safe-area-inset-top) + 46px))}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
 #view-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
