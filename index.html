@@ -3015,6 +3015,10 @@ let PAYMENT_DATA={banco:'Banesco',telefono:'0412-0000000',cedula:'V-00000000',cu
 const PAID_TYPES={}; // tracks which venderType the user has paid for
 
 // ── USER STATE ──
+// ── XSS PROTECTION ─────────────────────────────────────────────
+function _esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+function _escLine(s){return _esc(s).replace(/\n/g,'<br>');}
+// ───────────────────────────────────────────────────────────────
 // roles: 'guest' | 'particular' | 'consesionario' | 'superadmin'
 const USER_STATE = {
   role: 'guest',
@@ -4043,7 +4047,7 @@ function sendMktComment(){
   const div=document.createElement('div');
   div.className='comment-item';
   const _myAv=USER_STATE.avatar?'<div class="comment-avatar" style="overflow:hidden"><img src="'+USER_STATE.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>':'<div class="comment-avatar">T</div>';
-  div.innerHTML='<div class="comment-header">'+_myAv+'<span class="comment-name">tú'+(USER_STATE.kycVerified?'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>':'')+'</span><span class="comment-time">ahora mismo</span></div><div class="comment-text">'+text+'</div>';
+  div.innerHTML='<div class="comment-header">'+_myAv+'<span class="comment-name">tú'+(USER_STATE.kycVerified?'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>':'')+'</span><span class="comment-time">ahora mismo</span></div><div class="comment-text">'+_escLine(text)+'</div>';
   list.prepend(div);
   input.value='';input.style.height='auto';
   showToast('pregunta enviada',true);
@@ -4532,7 +4536,7 @@ async function loadHistoria(){
   try{
     const{data}=await _supa.from('historia_app').select('*').order('updated_at',{ascending:false}).limit(1);
     if(!data||data.length===0){el.innerHTML='<p style="color:var(--muted)">la historia de Ruedda está siendo escrita.</p>';return;}
-    el.innerHTML=`<p>${data[0].content.replace(/\n/g,'</p><p style=margin-top:14px>')}</p>`;
+    el.innerHTML=`<p>${_esc(data[0].content).replace(/\n/g,'</p><p style=margin-top:14px>')}</p>`;
     document.getElementById('historia-edit-input').value=data[0].content;
   } catch(e){ el.innerHTML='<div class="com-empty">error cargando</div>'; }
 }
@@ -4568,12 +4572,12 @@ function renderComments(){
   list.innerHTML=comments.map((c,i)=>`
     <div class="comment-item">
       <div class="comment-header">
-        <div class="comment-avatar ${c.isSeller?'seller':''}">${c.avatar}</div>
-        <span class="comment-name">${c.user}${c.isSeller?'<span class="comment-badge">vendedor</span>':''}</span>
-        <span class="comment-time">${c.time}</span>
+        <div class="comment-avatar ${c.isSeller?'seller':''}">${_esc(c.avatar)}</div>
+        <span class="comment-name">${_esc(c.user)}${c.isSeller?'<span class="comment-badge">vendedor</span>':''}</span>
+        <span class="comment-time">${_esc(c.time)}</span>
       </div>
-      <div class="comment-text">${c.text}</div>
-      ${c.reply?`<div class="comment-reply"><div class="comment-header"><div class="comment-avatar seller">V</div><span class="comment-name">Vendedor<span class="comment-badge">vendedor</span></span><span class="comment-time">${c.reply.time}</span></div><div class="comment-text">${c.reply.text}</div></div>`:''}
+      <div class="comment-text">${_escLine(c.text)}</div>
+      ${c.reply?`<div class="comment-reply"><div class="comment-header"><div class="comment-avatar seller">V</div><span class="comment-name">Vendedor<span class="comment-badge">vendedor</span></span><span class="comment-time">${_esc(c.reply.time)}</span></div><div class="comment-text">${_escLine(c.reply.text)}</div></div>`:''}
       <button class="comment-reply-btn" onclick="focusCommentInput(${i})">responder</button>
     </div>`).join('');
 }
@@ -4827,7 +4831,7 @@ function doSearch(q){
   const results=[...AUCTIONS,...MARKET_LISTINGS].filter(a=>a.title.toLowerCase().includes(q.toLowerCase())||a.location.toLowerCase().includes(q.toLowerCase())||a.year.toString().includes(q));
   const el=document.getElementById('search-results');
   if(!results.length){el.innerHTML='<div class="search-cat-label">sin resultados</div>';return}
-  el.innerHTML='<div class="search-cat-label">resultados ('+results.length+')</div>'+results.map(a=>`<div class="search-cat-item" onclick="closeSearch();${a.type==='subasta'?'openDetail('+a.id+')':''}">${a.title} <span style="color:var(--muted);font-weight:400;font-size:13px">— ${a.location}</span></div>`).join('');
+  el.innerHTML='<div class="search-cat-label">resultados ('+results.length+')</div>'+results.map(a=>`<div class="search-cat-item" onclick="closeSearch();${a.type==='subasta'?'openDetail('+a.id+')':''}">${_esc(a.title)} <span style="color:var(--muted);font-weight:400;font-size:13px">— ${_esc(a.location)}</span></div>`).join('');
 }
 function applySearch(q){document.getElementById('search-input').value=q;doSearch(q)}
 
@@ -6885,7 +6889,7 @@ async function saDeleteUser(id, label){
   if(!_supa) return;
   // 1. Eliminar de tabla users
   await _supa.from('users').delete().eq('id',id);
-  // 2. Eliminar de Auth (requiere service_role)
+  // 2. Eliminar de Auth (requiere Edge Function con permisos de admin)
   const{error}=await _supa.auth.admin.deleteUser(id);
   if(error) console.warn('[ruedda] auth delete:',error.message);
   showToast('usuario eliminado',true);
@@ -7141,7 +7145,7 @@ async function saCrearConcesionario(){
   const btn=document.querySelector('[onclick="saCrearConcesionario()"]');
   if(btn){btn.textContent='creando...';btn.disabled=true;}
   try{
-    // 1. crear usuario en Supabase Auth (requiere service_role)
+    // 1. crear usuario en Supabase Auth (requiere Edge Function con permisos de admin)
     const{data:authData,error:authErr}=await _supa.auth.admin.createUser({
       email,password:pass,email_confirm:true,
       user_metadata:{role:'concesionario'}
@@ -7512,42 +7516,11 @@ function goHome(){
 }
 
 async function secretAdminBypass(){
-  const SUPERADMIN_FALLBACK_ID = '00000000-0000-0000-0000-000000000001'; // UUID fijo para bypass local
-
-  if(_supa){
-    try{
-      // intentar login real para obtener sesión Supabase válida
-      await _rueddaLogin('ruedda@superadmin.com','RueddaVenezuela');
-      return; // _rueddaLogin ya hace setUserRole y showView
-    }catch(e){
-      console.warn('[ruedda] superadmin Supabase Auth falló, usando bypass local:',e.message);
-    }
-  }
-
-  // fallback local: funciona sin cuenta en Supabase Auth
-  // USER_STATE.id queda como FALLBACK_ID — no bloquea la lectura del panel (service_role key)
-  setUserRole('superadmin',{
-    id: SUPERADMIN_FALLBACK_ID,
-    nombre:'SuperAdmin',
-    email:'ruedda@superadmin.com',
-    username:'superadmin'
-  });
-  window._rueddaUser = {id: SUPERADMIN_FALLBACK_ID, role:'superadmin'};
-  updateHamburgerAdmin();
-  updateCuentaView();
-  showToast('bienvenido, SuperAdmin ✓',true);
-  const ov=document.getElementById('auth-overlay');if(ov)ov.classList.remove('open');
-  const authSheet=document.getElementById('auth-sheet');if(authSheet)authSheet.classList.remove('open');
-  setTimeout(()=>showView('superadmin'),400);
+  // [security] superadmin logs in via normal Supabase Auth — role assigned server-side
+  showToast('usa el login normal con tu cuenta superadmin');
 }
-function checkSuperAdminLogin(){
-  const em = (document.getElementById('auth-email')||{}).value||'';
-  const pw = (document.getElementById('auth-pass')||{}).value||'';
-  if(em.trim().toLowerCase()==='ruedda@superadmin.com' && pw==='RueddaVenezuela'){
-    secretAdminBypass(); return true;
-  }
-  return false;
-}
+function checkSuperAdminLogin(){ return false; }
+
 
 
 function showMobileAuth(mode){
@@ -7982,12 +7955,6 @@ async function completeAuth(){
   const pass=(document.getElementById('auth-pass')?.value||'').trim();
   if(!email||!pass){showToast('completa correo y contraseña');return;}
 
-  // ── Superadmin bypass (interceptado antes de tocar Supabase Auth) ──
-  if(email.toLowerCase()==='ruedda@superadmin.com' && pass==='RueddaVenezuela'){
-    await secretAdminBypass();
-    return;
-  }
-
   const btn=document.getElementById('auth-cta');
   if(btn){btn.textContent='cargando...';btn.disabled=true;}
   // [V83] splash idéntico para ambos flujos — registro muestra "Creando cuenta"
@@ -8012,7 +7979,7 @@ async function completeAuth(){
 const _supa=(function(){
   try{return window.supabase.createClient(
     'https://ltodsegzbbdcaublkgtp.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0b2RzZWd6YmJkY2F1YmxrZ3RwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTcyMjA5OCwiZXhwIjoyMDk1Mjk4MDk4fQ.idUpPtzBrQMliaNcajhGgXFhdt42N2zm2fu6JgjsDfM',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0b2RzZWd6YmJkY2F1YmxrZ3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjIwOTgsImV4cCI6MjA5NTI5ODA5OH0.WXbnE5_XfNwwVUtDGSWa6Voetcflcl7m2vDOpEofs_w', // anon public key
     {auth:{persistSession:true,autoRefreshToken:true,storageKey:'ruedda-auth'}}
   );}catch(e){console.warn('[ruedda] Supabase no disponible');return null;}
 })();
@@ -8509,7 +8476,7 @@ async function _loadComments(sourceType,sourceId,listId){
       return `<div style="margin-top:8px;padding:8px 10px;background:rgba(255,255,255,.03);border-radius:10px;border-left:2px solid rgba(255,255,255,.14)">
         <div class="comment-header">${rAvEl}
         <span class="comment-name">${rDisplay}</span>${rBadge}<span class="comment-time">${_fmtTimeAgo(r.created_at)}</span></div>
-        <div class="comment-text" style="margin-top:4px">${r.body}</div></div>`;
+        <div class="comment-text" style="margin-top:4px">${_escLine(r.body)}</div></div>`;
     }).join('');
     const cLikes=c.likes||0;const cLiked=c.likedByMe||false;
     return `<div class="comment-item" id="cmt-${c.id}">
@@ -8518,7 +8485,7 @@ async function _loadComments(sourceType,sourceId,listId){
         <span class="comment-name">${displayName}</span>${badge}
         <span class="comment-time" style="margin-left:auto">${_fmtTimeAgo(c.created_at)}</span>
       </div>
-      <div class="comment-text">${c.body}</div>
+      <div class="comment-text">${_escLine(c.body)}</div>
       ${cReplies}
       <div style="display:flex;align-items:center;gap:10px;margin-top:6px">${replyBtns}<button onclick="_likeComment('${c.id}',this)" data-liked="${cLiked}" style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:4px 0;color:${cLiked?'#e6f03b':'rgba(255,255,255,.3)'};font-size:12px;font-family:var(--font);transition:color .2s"><svg fill="${cLiked?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${cLiked?'#e6f03b':'rgba(255,255,255,.35)'}" stroke-width="1.7" style="width:15px;height:15px;transition:fill .2s,stroke .2s"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg><span id="like-count-${c.id}">${cLikes>0?cLikes:''}</span></button></div>
       <div id="reply-box-${c.id}" style="display:none;margin-top:8px;display:none">
@@ -8963,9 +8930,9 @@ function renderThreadMessages(){
     const mDealer=(!m.mine)&&isDealer;
     const badge=mDealer?'<span style="font-size:9px;color:#1d9bf0;margin-left:4px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>':'';
     return `<div class="thread-bubble ${m.mine?'mine':'theirs'}">
-      <div class="bubble-name">${m.mine?'tú':m.from}${badge}</div>
-      <div class="bubble-body">${m.text}</div>
-      <div class="bubble-time">${m.time}</div>
+      <div class="bubble-name">${m.mine?'tú':_esc(m.from)}${badge}</div>
+      <div class="bubble-body">${_escLine(m.text)}</div>
+      <div class="bubble-time">${_esc(m.time)}</div>
     </div>`;
   };
   // [PM v82] render incremental: mismo thread + solo mensajes nuevos → append, no rebuild (anti-parpadeo)
