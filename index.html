@@ -199,7 +199,7 @@ html{scrollbar-width:none}
 .detail-title{font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1.15;margin-bottom:0}
 .detail-subtitle{font-size:13px;color:var(--muted);margin-bottom:10px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
 .detail-subtitle .sep{color:var(--muted2)}
-.bid-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:0px;margin-bottom:20px}
+.bid-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:-6px;margin-bottom:20px}
 .bid-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
 .bid-amount-label,.timer-big-label{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
 .bid-amount{font-size:28px;font-weight:700;letter-spacing:-1px}
@@ -9361,23 +9361,24 @@ function _showAuctionAccessSheet(){
         </div>
       </div>
 
-      <!-- SUBIR COMPROBANTE -->
-      <div style="margin-top:24px">
-        <button id="aas-upload-btn" onclick="_aasUploadAction()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:#0e0e10;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;font-family:var(--font);font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:all .3s">
-          <svg id="aas-upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:18px;height:18px"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-          <span id="aas-upload-label">Subir comprobante</span>
-        </button>
-        <input type="file" id="aas-file" accept="image/*" style="display:none" onchange="_aasComprobantePicked(this)">
-        <div style="font-size:10px;font-weight:300;color:rgba(255,255,255,.35);margin-top:7px;text-align:center">(si ya tienes código, sáltate este paso.)</div>
-      </div>
-
-      <!-- CODIGO DE ACCESO -->
-      <div style="margin-top:16px">
-        <div style="display:flex;background:#0e0e10;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;transition:border-color .3s" id="aas-code-wrap">
-          <input id="aas-code" type="text" maxlength="6" placeholder="código de acceso" style="flex:1;background:none;border:none;padding:15px 16px;font-family:var(--font);font-size:14px;color:#fff;outline:none;text-transform:uppercase;letter-spacing:2px">
-          <button id="aas-code-btn" onclick="_aasValidateCode()" style="background:none;border:none;padding:0 16px;cursor:pointer;display:flex;align-items:center;justify-content:center">
-            <svg id="aas-code-icon" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="1.8" style="width:18px;height:18px"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      <!-- SUBIR COMPROBANTE + CODIGO (lado a lado, como mocks) -->
+      <div style="display:flex;gap:12px;margin-top:24px;align-items:stretch">
+        <div style="flex:1;display:flex;flex-direction:column">
+          <button id="aas-upload-btn" onclick="_aasUploadAction()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:9px;background:#0e0e10;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px 14px;font-family:var(--font);font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:all .3s">
+            <svg id="aas-upload-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:17px;height:17px;flex-shrink:0"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <span id="aas-upload-label">Subir comprobante</span>
           </button>
+          <input type="file" id="aas-file" accept="image/*" style="display:none" onchange="_aasComprobantePicked(this)">
+          <div style="font-size:10px;font-weight:300;color:rgba(255,255,255,.35);margin-top:6px;text-align:center">(si ya tienes código, no hace falta.)</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column">
+          <div style="flex:1;display:flex;background:#0e0e10;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;transition:border-color .3s" id="aas-code-wrap">
+            <input id="aas-code" type="text" maxlength="6" placeholder="código" style="flex:1;min-width:0;background:none;border:none;padding:15px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;text-transform:uppercase;letter-spacing:1px">
+            <button id="aas-code-btn" onclick="_aasValidateCode()" style="background:none;border:none;padding:0 14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg id="aas-code-icon" fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.8)" stroke-width="1.8" style="width:18px;height:18px"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            </button>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.55);margin-top:6px;text-align:center">Código de acceso</div>
         </div>
       </div>
 
@@ -9470,9 +9471,6 @@ async function _aasSendComprobante(){
   const lbl=document.getElementById('aas-upload-label');
   const icon=document.getElementById('aas-upload-icon');
   const btn=document.getElementById('aas-upload-btn');
-  const phone=document.getElementById('aas-phone')?.value||'';
-  const cedula=document.getElementById('aas-cedula')?.value||'';
-  if(!phone||!cedula){showToast('completa teléfono y cédula primero');return;}
   window._aasSending=true;
   if(lbl)lbl.textContent='enviando…';
   if(icon)icon.outerHTML='<svg id="aas-upload-icon" viewBox="0 0 24 24" style="width:18px;height:18px;animation:aasSpin .7s linear infinite"><circle cx="12" cy="12" r="9" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2.5"/><path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round"/></svg>';
@@ -9480,10 +9478,11 @@ async function _aasSendComprobante(){
   const ok=await _aasSubmitComprobante(window._aasComprobante);
   window._aasSending=false;
   if(ok){
-    // cerrar el menú suave y mostrar splash de confirmación
-    _closeAuctionAccessSheet();
     window._aasComprobante=null;
-    setTimeout(()=>_showComprobanteSplash(),420);
+    // splash de inmediato (crossfade encima); el menú se desvanece por detrás
+    _showComprobanteSplash();
+    const sheet=document.getElementById('auction-access-sheet');
+    if(sheet){ sheet.style.transition='opacity .45s ease'; sheet.style.opacity='0'; setTimeout(()=>sheet.remove(),460); }
   } else {
     // restaurar botón si falló
     if(lbl)lbl.textContent='enviar';
@@ -9492,10 +9491,9 @@ async function _aasSendComprobante(){
 }
 
 async function _aasSubmitComprobante(dataUrl){
-  if(!_supa||!currentAuction){showToast('error al enviar');return;}
+  if(!_supa||!currentAuction){return false;}
   const phone=document.getElementById('aas-phone')?.value||'';
   const cedula=document.getElementById('aas-cedula')?.value||'';
-  if(!phone||!cedula){showToast('completa teléfono y cédula primero');return;}
   try{
     const{error}=await _supa.from('auction_access_requests').insert({
       user_id:USER_STATE.id,
@@ -9506,7 +9504,6 @@ async function _aasSubmitComprobante(dataUrl){
       estado:'pendiente'
     });
     if(error)throw error;
-    showToast('comprobante enviado ✓ — revisaremos y te llega el código',true);
     return true;
   }catch(e){
     showToast('error: '+(e?.message||'intenta de nuevo'));
