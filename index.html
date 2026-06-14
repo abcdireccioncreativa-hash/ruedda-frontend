@@ -193,13 +193,13 @@ html{scrollbar-width:none}
 .gallery-dot{width:5px;height:5px;border-radius:50%;background:var(--muted2);transition:all .2s;cursor:pointer}
 .gallery-dot.active{background:var(--white);width:16px;border-radius:3px}
 .detail-content{padding:14px 18px}
-.detail-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;margin-bottom:14px}
+.detail-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;margin-bottom:10px}
 .detail-badge{font-size:12px;font-weight:600;padding:5px 12px;border-radius:100px;border:1px solid var(--border);color:var(--muted)}
 .detail-badge.lime{background:rgba(230,240,59,.08);border-color:rgba(230,240,59,.28);color:var(--lime)}
 .detail-title{font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1.15;margin-bottom:0}
-.detail-subtitle{font-size:13px;color:var(--muted);margin-bottom:18px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.detail-subtitle{font-size:13px;color:var(--muted);margin-bottom:10px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
 .detail-subtitle .sep{color:var(--muted2)}
-.bid-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:0px;margin-bottom:34px}
+.bid-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:0px;margin-bottom:20px}
 .bid-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
 .bid-amount-label,.timer-big-label{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
 .bid-amount{font-size:28px;font-weight:700;letter-spacing:-1px}
@@ -4054,7 +4054,7 @@ function openDetail(id){
   currentAuction=AUCTIONS.find(a=>a.id==id||String(a.id)===String(id))||AUCTIONS_CHOCADOS.find(a=>a.id==id||String(a.id)===String(id));
   if(!currentAuction)return;
   // [V87] vista real del comprador + chip (tras reasignar currentAuction al correcto)
-  setTimeout(()=>{const a=currentAuction;const tm=document.getElementById('detail-timer');if(tm&&a){_registerRealView('auctions',a);let c=document.getElementById('detail-views-chip');if(!c){tm.insertAdjacentHTML('afterend','<span id="detail-views-chip" style="display:flex;justify-content:flex-end;margin-top:7px"></span>');c=document.getElementById('detail-views-chip');}c.innerHTML=_viewsChip(a.viewCount);const sv=document.getElementById('detail-stats-vistas');if(sv)sv.textContent=((a.viewCount||0)*3).toLocaleString();}},80);
+  setTimeout(()=>{const a=currentAuction;const tm=document.getElementById('detail-timer');if(tm&&a){_registerRealView('auctions',a);let c=document.getElementById('detail-views-chip');if(!c){tm.insertAdjacentHTML('afterend','<span id="detail-views-chip" style="display:flex;justify-content:flex-end;margin-top:7px"></span>');c=document.getElementById('detail-views-chip');}c.innerHTML=_viewsChip(a.viewCount);const sv=document.getElementById('detail-stats-vistas');if(sv)sv.textContent=((a.viewCount||0)).toLocaleString();}},80);
   const a=currentAuction;
   clearTimers();
   showView('detail');
@@ -4096,7 +4096,7 @@ function openDetail(id){
   const badges=document.getElementById('detail-badges');
   badges.innerHTML='';
   if(a.sinReserva)badges.innerHTML+='<div class="detail-badge lime">sin reserva</div>';
-  badges.innerHTML+=`<div class="detail-badge">${a.year}</div><div class="detail-badge">${a.category}</div><div class="detail-badge">${a.location.toLowerCase()}</div>`;
+  const _clasifMap={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'};const _clasif=_clasifMap[a.clasificacion]||a.clasificacion||a.category||'';badges.innerHTML+=`<div class="detail-badge">${a.year}</div>${(_clasif&&_clasif!=='undefined')?`<div class="detail-badge">${_clasif}</div>`:''}<div class="detail-badge">${a.location.toLowerCase()}</div>`;
   document.getElementById('detail-title').textContent=a.title;
   document.getElementById('detail-subtitle').innerHTML=`<span>${fmtKm(a.km)}</span>${a.owners?`<span class="sep">·</span><span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}${a.transmission?`<span class="sep">·</span><span>${a.transmission}</span>`:''}${a.fuel?`<span class="sep">·</span><span>${a.fuel}</span>`:''}`; // [V84] segmentos condicionales — sin "undefined" 
   renderDetailBid();
@@ -4163,7 +4163,7 @@ function _renderDetailStatsCard(a){
   const dEnd=new Date(a.endTime);
   const fecha=dEnd.toLocaleDateString('es-VE',{weekday:'short',day:'numeric',month:'short'}).replace(/\./g,'');
   const hora=dEnd.toLocaleTimeString('es-VE',{hour:'numeric',minute:'2-digit'});
-  const vistas=((a.viewCount||0)*2).toLocaleString();
+  const vistas=((a.viewCount||0)).toLocaleString();
   const lbl='font-size:13px;font-weight:700;color:#fff;letter-spacing:-.1px';
   const val='display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.85);font-weight:400';
   const row='display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)';
@@ -8136,7 +8136,7 @@ async function _loadAuctions(){
       const _cl={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'}[a.clasificacion]||a.clasificacion||'';
       const _specsRaw={'transmisión':a.transmision,'combustible':a.combustible,'motor':a.motor,'tracción':a.traccion,'color':a.color,'categoría':a.tipo_vehiculo,'dueños':a.duenos,'estado físico':a.estado_fisico,'condición':a.condicion,'clasificación':_cl};
       const specs={};Object.entries(_specsRaw).forEach(([k,v])=>{if(v!=null&&String(v).trim()!=='')specs[k]=v;});
-      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',viewCount:a.view_count||0,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
+      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',clasificacion:a.clasificacion||'',tipoVehiculo:a.tipo_vehiculo||'',viewCount:a.view_count||0,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
     if(typeof renderCards==='function') renderCards();
