@@ -21,16 +21,16 @@ module.exports = async function handler(req, res) {
     const user = await getUserFromToken(req);
     if (!user) return res.status(401).json({ error: 'no autenticado' });
 
-    if (!auction_id || !monto) return res.status(400).json({ error: 'faltan parámetros' });
-
-    const montoNum = parseFloat(monto);
-    if (isNaN(montoNum) || montoNum <= 0) return res.status(400).json({ error: 'monto inválido' });
-
     // Parse body
     let body = req.body;
     if (typeof body === 'string') { try{ body=JSON.parse(body); }catch(_){ body={}; } }
     if (!body) body = {};
     const { auction_id, monto } = body;
+
+    if (!auction_id || !monto) return res.status(400).json({ error: 'faltan parámetros' });
+
+    const montoNum = parseFloat(monto);
+    if (isNaN(montoNum) || montoNum <= 0) return res.status(400).json({ error: 'monto inválido' });
 
     // 2. Leer subasta actual
     const { data: auction, error: fetchErr } = await supabaseAdmin

@@ -17,7 +17,11 @@ module.exports = async function handler(req, res) {
 
   // Proteger con secret si está configurado
   if (CRON_SECRET) {
-    const secret = req.headers['x-cron-secret'] || req.query.secret || '';
+    const authHeader = req.headers['authorization'] || '';
+    const secret = (authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '')
+      || req.headers['x-cron-secret']
+      || req.query.secret
+      || '';
     if (secret !== CRON_SECRET) return res.status(401).json({ error: 'no autorizado' });
   }
 
