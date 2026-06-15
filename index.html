@@ -302,6 +302,7 @@ html{scrollbar-width:none}
 .form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23555'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;background-size:18px}
 .form-select option{background:#1a1a1a}
 .form-textarea{resize:none;min-height:90px;line-height:1.5}
+#desc-textarea::placeholder{font-size:12.5px;line-height:1.45}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .photo-upload-area{border:1.5px dashed var(--border);border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s}
 .photo-upload-area:hover{border-color:var(--lime);background:rgba(204,255,0,.02)}
@@ -392,10 +393,13 @@ html{scrollbar-width:none}
 .noticia-card-wide{width:240px}
 .feedback-grid{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
 .feedback-grid::-webkit-scrollbar{display:none}
-.feedback-btn{flex-shrink:0;width:150px;height:150px;background:var(--card);border:1px solid var(--border);border-radius:22px;display:flex;align-items:flex-end;justify-content:flex-start;padding:14px;cursor:pointer;transition:transform .18s,border-color .18s;position:relative;overflow:hidden;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
+.feedback-btn{flex-shrink:0;width:158px;height:168px;background:var(--card);border:1px solid var(--border);border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:18px 16px;cursor:pointer;transition:transform .18s,border-color .18s;position:relative;overflow:hidden;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
 .feedback-btn:active{transform:scale(.95)}
 .feedback-btn-sm{width:100px}
-.feedback-btn-label{font-size:13px;font-weight:700;color:var(--white);writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);letter-spacing:.5px}
+.feedback-btn-icon{width:56px;height:56px;display:flex;align-items:center;justify-content:center;margin:auto auto 0;align-self:center}
+.feedback-btn-icon svg{width:36px;height:36px;color:var(--white)}
+.feedback-btn-title{font-size:16px;font-weight:700;color:var(--white);letter-spacing:-.2px;margin-top:14px;text-align:center;width:100%}
+.feedback-btn-sub{font-size:10px;font-weight:400;color:var(--muted);line-height:1.35;margin-top:4px;text-align:center;width:100%}
 .com-empty{padding:20px 0;font-size:13px;color:var(--muted);text-align:center}
 .com-loading{padding:20px 0;font-size:13px;color:var(--muted);text-align:center}
 
@@ -1783,6 +1787,18 @@ html{scrollbar-width:none}
       </select>
     </div>
 
+    <div class="form-group">
+      <label class="form-label">¿el vehículo ha sido modificado previamente?</label>
+      <select class="form-select" id="modificaciones-select">
+        <option value="">seleccionar</option>
+        <option value="original">Original</option>
+        <option value="esteticas-menores">Modificaciones estéticas menores</option>
+        <option value="estetica">Modificación estética</option>
+        <option value="estetica-mecanica">Modificación estética y mecánica</option>
+        <option value="swap">Swap de motor</option>
+      </select>
+    </div>
+
     <!-- PRECIO: particular muestra precio fijo, subasta muestra reserva -->
     <div class="form-group" id="field-precio-fijo">
       <label class="form-label">precio (USD)</label>
@@ -1870,7 +1886,7 @@ html{scrollbar-width:none}
 
     <div class="form-group">
       <label class="form-label">descripción</label>
-      <textarea class="form-textarea" placeholder="sé sumamente detallado: estado, equipamiento, historial. no aceptamos descripciones mediocres, el sistema rechaza la publicación."></textarea>
+      <textarea class="form-textarea" id="desc-textarea" placeholder="sé sumamente detallado: estado, equipamiento, historial. no aceptamos descripciones mediocres, el sistema rechaza la publicación."></textarea>
     </div>
 
 
@@ -2200,13 +2216,25 @@ html{scrollbar-width:none}
     </div>
     <div class="feedback-grid" style="padding:0 16px">
       <div class="feedback-btn" style="animation-delay:0ms" onclick="showView('carspotting')">
-        <span class="feedback-btn-label">carspotting</span>
+        <div class="feedback-btn-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h1.2a2 2 0 001.7-.9l.8-1.2a2 2 0 011.7-.9h3.6a2 2 0 011.7.9l.8 1.2a2 2 0 001.7.9H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
+        </div>
+        <div class="feedback-btn-title">carspotting</div>
+        <div class="feedback-btn-sub">comparte tus mejores spots en ruedda</div>
       </div>
       <div class="feedback-btn" style="animation-delay:70ms" onclick="showView('sugerencias')">
-        <span class="feedback-btn-label">sugerencias</span>
+        <div class="feedback-btn-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l9 6 9-6M4 6h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V7a1 1 0 011-1z"/></svg>
+        </div>
+        <div class="feedback-btn-title">sugerencias</div>
+        <div class="feedback-btn-sub">tus ideas hacen crecer a ruedda</div>
       </div>
       <div class="feedback-btn" style="animation-delay:140ms" onclick="showView('historia')">
-        <span class="feedback-btn-label">historia</span>
+        <div class="feedback-btn-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a2 2 0 012-2h11a1 1 0 011 1v15a1 1 0 01-1 1H6a2 2 0 01-2-2V5zm0 0a2 2 0 002 2h11"/></svg>
+        </div>
+        <div class="feedback-btn-title">historia</div>
+        <div class="feedback-btn-sub">el camino de ruedda hasta hoy</div>
       </div>
     </div>
   </div>
@@ -4782,7 +4810,10 @@ function _notifClick(id){
       else { openNotifThread(n.auction_id||n.auctionId||1); }
     }
     else if(n.type==='ganador'||n.type==='subasta_ganada'){
-      if(n.auctionId){ _goToSource(String(n.auctionId),'auction'); }
+      // [v110] abrir chat directo con el creador de la subasta
+      const sid=n.sellerId||n.seller_id||null;
+      if(sid){ _openChatWithUser(sid, n.sourceTitle||'subasta', n.auctionId||n.auction_id||null); }
+      else if(n.auctionId){ _goToSource(String(n.auctionId),'auction'); }
       else { renderNotifications(); }
     }
     else if(n.type==='pm'){
@@ -8603,6 +8634,52 @@ async function sendMktComment(){
 // ─────────────────────────────────────────────
 // MENSAJES PRIVADOS
 // ─────────────────────────────────────────────
+
+// [v110] abrir chat directo con un usuario (usado por la notif de subasta ganada)
+async function _openChatWithUser(otherId, sourceTitle, sourceId){
+  if(isGuest()){showToast('inicia sesión para abrir el chat');return;}
+  if(!otherId){showToast('no se encontró el vendedor');return;}
+  if(String(otherId)===String(USER_STATE.id)){showToast('eres el creador de esta subasta');return;}
+  try{
+    // asegurar que la bandeja esté cargada
+    await _loadPrivateMessages(true);
+    // buscar thread existente con ese usuario
+    let thread=(THREADS||[]).find(t=>t.isPM && String(t.otherId)===String(otherId));
+    if(thread){
+      switchNotifTab('mensajes');
+      setTimeout(()=>openThread(thread.id),60);
+      return;
+    }
+    // no existe: obtener nombre del usuario y abrir un thread nuevo (vacío)
+    let otherName='vendedor';
+    if(_supa){
+      const{data:u}=await _supa.from('users').select('nombre,username,role,kyc_verified,avatar_url').eq('id',otherId).maybeSingle();
+      if(u) otherName=u.nombre||u.username||'vendedor';
+      const newThread={
+        id:'pm_new_'+otherId,
+        carTitle:sourceTitle||'subasta ganada',
+        isPM:true,
+        otherId:otherId,
+        otherName:otherName,
+        otherAvatar:u?.avatar_url||null,
+        otherRole:u?.role||'',
+        otherKyc:!!u?.kyc_verified,
+        sourceId:sourceId?String(sourceId):null,
+        sourceType:'auction',
+        unread:false,
+        messages:[]
+      };
+      THREADS.unshift(newThread);
+      switchNotifTab('mensajes');
+      setTimeout(()=>openThread(newThread.id),60);
+    }
+  }catch(e){
+    console.warn('[openChatWithUser]',e);
+    showView('notificaciones');
+    switchNotifTab('mensajes');
+  }
+}
+
 async function _sendPrivateMessage(receiverId,sourceId,sourceType,sourceTitle){
   if(isGuest()){showToast('inicia sesión para enviar mensajes');return;}
   const inp=document.getElementById('pm-input');
