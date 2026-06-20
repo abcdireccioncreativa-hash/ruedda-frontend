@@ -2990,6 +2990,8 @@ html{scrollbar-width:none}
 <div class="toast" id="toast"></div>
 
 <script>
+// [B2] flag de debug — logs sensibles solo si está activo
+window._DEBUG=false;
 // [V87-fix] estado del loader de feed — vive al tope: el boot lo necesita antes que todo
 window._feedLoaded={auc:false,mkt:false,choc:false};
 
@@ -3044,6 +3046,7 @@ const PAID_TYPES={}; // tracks which venderType the user has paid for
 
 // ── USER STATE ──
 // ── XSS PROTECTION ─────────────────────────────────────────────
+function _gidx(id){let h=0,s=String(id);for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h%grads.length;}
 function _esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
 function _escLine(s){return _esc(s).replace(/\n/g,'<br>');}
 // ───────────────────────────────────────────────────────────────
@@ -3227,20 +3230,20 @@ function renderCards(filter){
     data.forEach((a,idx)=>{
       const el=document.createElement('div');
       el.className='auction-card';
-      el.style.animationDelay=(idx*60)+'ms';
+      el.style.animationDelay=Math.min(idx,12)*60+'ms';
       el.onclick=()=>openDetail(a.id);
       el.innerHTML=`
-        <div class="card-img-wrap" style="background:linear-gradient(${grads[a.id%grads.length]})">
-          <div class="car-placeholder" style="background:linear-gradient(${grads[a.id%grads.length]})">${carPlaceholder(a.id)}</div>
+        <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
+          <div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>
           <div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>
           ${isUrgent(a.endTime)?'<div class="badge-ending">terminando</div>':''}
           <div class="badge-timer ${isUrgent(a.endTime)?'urgent':''}" id="timer-card-${a.id}">--:--:--</div>
           <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
         </div>
         <div class="card-body">
-          <div class="card-title">${a.title}</div>
-          <div class="card-meta"><span>${a.location.toLowerCase()}</span><span class="meta-sep">·</span><span>${fmtNum(a.km)} km</span>${a.owners?`<span class="meta-sep">·</span><span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}</div>
-          <div class="card-chips"><div class="chip-sm">${a.transmission}</div><div class="chip-sm">${a.fuel}</div><div class="chip-sm">${a.year}</div></div>
+          <div class="card-title">${_esc(a.title)}</div>
+          <div class="card-meta"><span>${_esc((a.location||'').toLowerCase())}</span><span class="meta-sep">·</span><span>${fmtNum(a.km)} km</span>${a.owners?`<span class="meta-sep">·</span><span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}</div>
+          <div class="card-chips"><div class="chip-sm">${_esc(a.transmission)}</div><div class="chip-sm">${_esc(a.fuel)}</div><div class="chip-sm">${a.year}</div></div>
         </div>`;
       list.appendChild(el);
       startCardTimer(a.id,a.endTime);
@@ -3259,32 +3262,33 @@ function renderCards(filter){
   data.forEach((a,idx)=>{
     const el=document.createElement('div');
     el.className='auction-card';
-    el.style.animationDelay=(idx*60)+'ms';
+    el.style.animationDelay=Math.min(idx,12)*60+'ms';
     el.onclick=()=>openDetail(a.id);
     const urgent=isUrgent(a.endTime);
     const days=getDaysLeft(a.endTime);
     el.innerHTML=`
-      <div class="card-img-wrap" style="background:linear-gradient(${grads[a.id%grads.length]})">
+      <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
         ${a.photoUrls&&a.photoUrls[0]
           ?`<img src="${a.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
-          :`<div class="car-placeholder" style="background:linear-gradient(${grads[a.id%grads.length]})">${carPlaceholder(a.id)}</div>`}
+          :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
         ${a.sinReserva?'<div class="badge-sinreserva">sin reserva</div>':''}
+        ${a.chocado?`<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>`:''}
         ${urgent?'<div class="badge-ending">terminando</div>':''}
         <div class="badge-timer ${urgent?'urgent':days>=1?'days':''}" id="timer-card-${a.id}">--:--:--</div>
         <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
       </div>
       <div class="card-body">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="card-title" style="min-width:0">${a.title}</div>${_viewsChip(a.viewCount,true)}</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="card-title" style="min-width:0">${_esc(a.title)}</div>${_viewsChip(a.viewCount,true)}</div>
         <div class="card-meta">
-          <span>${a.location.toLowerCase()}</span>
+          <span>${_esc((a.location||'').toLowerCase())}</span>
           <span class="meta-sep">·</span>
           <span>${fmtNum(a.km)} km</span>
           <span class="meta-sep">·</span>
           ${a.owners?`<span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}
         </div>
         <div class="card-chips">
-          <div class="chip-sm">${a.transmission}</div>
-          <div class="chip-sm">${a.fuel}</div>
+          <div class="chip-sm">${_esc(a.transmission)}</div>
+          <div class="chip-sm">${_esc(a.fuel)}</div>
           <div class="chip-sm">${a.year}</div>
         </div>
       </div>`;
@@ -3293,16 +3297,12 @@ function renderCards(filter){
   });
 }
 
-function startCardTimer(id,endTime){
-  const update=()=>{
-    const el=document.getElementById('timer-card-'+id);
-    if(!el)return;
-    const ms=endTime-Date.now();
-    el.textContent=fmtCountdown(ms);
-  };
-  update();
-  timers['card-'+id]=setInterval(update,1000);
-}
+function startCardTimer(id,endTime){ const el=document.getElementById('timer-card-'+id); if(el) el.dataset.end=endTime; }
+if(!window._cardTick) window._cardTick=setInterval(()=>{
+  document.querySelectorAll('[id^="timer-card-"]').forEach(el=>{
+    if(el.dataset.end) el.textContent=fmtCountdown(+el.dataset.end-Date.now());
+  });
+},1000);
 
 function clearTimers(){Object.values(timers).forEach(clearInterval);timers={};}
 
@@ -3577,7 +3577,7 @@ async function confirmRef(i){
   if(listing){listing.status='activa';listing.daysLeft=30;PAID_TYPES[listing.type]=true;}
   renderPendingRefs();
   showToast('pago confirmado — publicación en revisión',true);
-  NOTIFICATIONS.unshift({id:Date.now(),type:'ganador',title:'¡pago aprobado!',body:'Tu pago fue aprobado. Tu publicación está en revisión.',time:'ahora mismo',read:false,icon:'lime'});
+  NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'ganador',title:'¡pago aprobado!',body:'Tu pago fue aprobado. Tu publicación está en revisión.',time:'ahora mismo',read:false,icon:'lime'});
   _saveNotifsToStorage(); // [RUEDDA v61] persistir
   document.getElementById('notif-dot').style.display='block';
   if(_supa){
@@ -3592,7 +3592,7 @@ function rejectRef(i){
   if(listing)listing.status='rechazada';
   renderPendingRefs();
   showToast('referencia rechazada');
-  NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago rechazado',body:'Tu referencia no pudo ser verificada. Contáctanos por soporte.',time:'ahora mismo',read:false,icon:''});
+  NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'system',title:'pago rechazado',body:'Tu referencia no pudo ser verificada. Contáctanos por soporte.',time:'ahora mismo',read:false,icon:''});
   _saveNotifsToStorage(); // [RUEDDA v61] persistir
   document.getElementById('notif-dot').style.display='block';
 }
@@ -3707,7 +3707,7 @@ function _filterListadoGrid(q){
       ?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
       :(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
     return `<div class="listado-card" onclick="openMarketDetail('${l.id}','listado')" style="animation-delay:${idx*20}ms">
-      <div class="listado-card-img" style="background:linear-gradient(${grads2[l.id%grads2.length]})">
+      <div class="listado-card-img" style="background:linear-gradient(${grads2[_gidx(l.id)%grads2.length]})">
         ${img}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
         <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
@@ -3715,8 +3715,8 @@ function _filterListadoGrid(q){
         </button>
       </div>
       <div class="listado-card-body">
-        <div class="listado-card-cat">${l.category||'—'}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="listado-card-title">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
+        <div class="listado-card-cat">${_esc(l.category)||'—'}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="listado-card-title">${_esc(l.title)}</div>${_viewsChip(l.viewCount,true)}</div>
         <div class="listado-card-price">${typeof fmtBid==='function'?fmtBid(l.price):('$'+l.price)}</div>
       </div>
     </div>`;
@@ -3726,37 +3726,7 @@ function closeMktListado(){
   document.getElementById('listado-bg').classList.remove('open');
   document.getElementById('mkt-listado-overlay').classList.remove('open');
 }
-function _renderMktListadoGrid(){
-  _filterListadoGrid('');
-  return;
-  const grid=document.getElementById('mkt-listado-grid');
-  if(!grid) return;
-  const data=MARKET_LISTINGS;
-  if(!data.length){
-    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:rgba(255,255,255,.3);font-size:14px">sin publicaciones aún</div>';
-    return;
-  }
-  grid.innerHTML=data.map((l,idx)=>{
-    const esNuevo=l.condicion==='nuevo'||l.condicion==='0km';
-    const badge=esNuevo?'Nuevo':'Usado';
-    const badgeColor=esNuevo?'rgba(100,200,255,.9)':'rgba(255,255,255,.75)';
-    const isFav=watchlist.has('mkt-'+String(l.id))||watchlist.has(l.id)||watchlist.has(String(l.id));
-    return `<div onclick="openMarketDetail('${l.id}','listado')" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;animation:fadeIn .25s ease both;animation-delay:${idx*30}ms">
-      <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(${grads[l.id%grads.length]});position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
-        ${carPlaceholder(l.id,'small')}
-        <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
-        <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
-          <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'rgba(255,255,255,.8)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
-        </button>
-      </div>
-      <div style="padding:10px 11px 12px;flex:1">
-        <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,.35);margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px">${l.category||'—'}</div>
-        <div style="font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px">${l.title}</div>
-        <div style="font-size:13px;font-weight:800;color:#e6f03b">${fmtBid(l.price)}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
+function _renderMktListadoGrid(){ _filterListadoGrid(''); }
 async function toggleWatchlist(id,btn){
   if(isGuest()){showView('cuenta');return;}
   const key=String(id).includes('-')?'mkt-'+id:Number(id);
@@ -3830,7 +3800,7 @@ function renderMarket(){
     el.style.animationDelay=(idx*40)+'ms';
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
       </div>
       <div class="market-card-body">
@@ -3856,7 +3826,7 @@ function openMarketDetail(id, origin){
   for(let i=0;i<slides;i++){
     const s=document.createElement('div');
     s.className='photo-slide';
-    s.style.background='linear-gradient('+grads[l.id%grads.length]+')';
+    s.style.background='linear-gradient('+grads[_gidx(l.id)]+')';
     if(hasPhotos){
       s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
     } else {
@@ -3883,12 +3853,16 @@ function openMarketDetail(id, origin){
     document.getElementById('mkt-price').textContent=fmtBid(l.price);
   }
   // Mirror bid card into mobile slot
+  // [FIX precio fantasma] el clon NO debe llevar IDs duplicados: si los lleva,
+  // getElementById('mkt-price') agarra el clon viejo y muestra el precio del carro anterior.
   const mob=document.getElementById('mkt-bid-mobile-inner');
   const src=document.querySelector('#view-market-detail .detail-right-col .bid-section');
   if(mob&&src) setTimeout(()=>{
     const clone=src.cloneNode(true);
     const sb=clone.querySelector('#mkt-seller-right-block');
     if(sb)sb.remove();
+    // quitar todos los id del clon para que no colisionen con el original
+    clone.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
     mob.innerHTML=clone.innerHTML;
   },0);
 
@@ -4110,7 +4084,7 @@ function openDetail(id){
   for(let i=0;i<_slideCount;i++){
     const slide=document.createElement('div');
     slide.className='photo-slide';
-    slide.style.background=`linear-gradient(${grads[a.id%grads.length]})`;
+    slide.style.background=`linear-gradient(${grads[_gidx(a.id)]})`;
     if(_hasPhotos){
       slide.innerHTML=`<img src="${a.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`;
     } else {
@@ -4238,7 +4212,7 @@ function renderDetailAuctionEnded(){
     if(bidBtn){bidBtn.textContent='reserva no alcanzada';bidBtn.disabled=true;bidBtn.style.opacity='.35';bidBtn.style.cursor='not-allowed';bidBtn.onclick=null;}
     const _yaNotif=NOTIFICATIONS.some(n=>n.type==='reserva'&&n.auctionId===currentAuction.id);
     if(!_yaNotif){
-      NOTIFICATIONS.unshift({id:Date.now(),type:'reserva',auctionId:currentAuction.id,title:'Subasta finalizada',body:'No alcanzaste el precio base requerido por el dueño en '+currentAuction.title+'.',time:'ahora mismo',read:false,icon:'default'});
+      NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'reserva',auctionId:currentAuction.id,title:'Subasta finalizada',body:'No alcanzaste el precio base requerido por el dueño en '+currentAuction.title+'.',time:'ahora mismo',read:false,icon:'default'});
       _saveNotifsToStorage();
       document.getElementById('notif-dot').style.display='block';
     }
@@ -4249,7 +4223,7 @@ function renderDetailAuctionEnded(){
     if(watchIcon){watchIcon.style.display='none';}
     const alreadyNotified=NOTIFICATIONS.some(n=>n.type==='ganador'&&n.auctionId===currentAuction.id);
     if(!alreadyNotified){
-      NOTIFICATIONS.unshift({id:Date.now(),type:'ganador',auctionId:currentAuction.id,sellerId:currentAuction.ownerId||null,sourceTitle:currentAuction.title||'subasta',title:'¡ganaste la subasta!',body:'Tu oferta de '+fmtBid(currentAuction.currentBid)+' ganó en '+currentAuction.title,time:'ahora mismo',read:false,icon:'lime'});
+      NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'ganador',auctionId:currentAuction.id,sellerId:currentAuction.ownerId||null,sourceTitle:currentAuction.title||'subasta',title:'¡ganaste la subasta!',body:'Tu oferta de '+fmtBid(currentAuction.currentBid)+' ganó en '+currentAuction.title,time:'ahora mismo',read:false,icon:'lime'});
       _saveNotifsToStorage(); // [RUEDDA v61] persistir
       document.getElementById('notif-dot').style.display='block';
     }
@@ -4304,7 +4278,7 @@ function toggleWatchlist(){
   updateWatchlistBtn();
   // Add notification
   if(watchlist.has(id)){
-    NOTIFICATIONS.unshift({id:Date.now(),type:'fav',title:'Subasta guardada',body:'Recibirás notificaciones sobre '+currentAuction.title,time:'ahora mismo',read:false,icon:'lime'});
+    NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'fav',title:'Subasta guardada',body:'Recibirás notificaciones sobre '+currentAuction.title,time:'ahora mismo',read:false,icon:'lime'});
     _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
   }
@@ -4628,7 +4602,7 @@ function sendComment(){
   renderComments();
   showToast('pregunta enviada',true);
   // Notify seller simulation
-  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentAuction.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime'});
+  NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentAuction.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime'});
   _saveNotifsToStorage(); // [RUEDDA v61] persistir
   document.getElementById('notif-dot').style.display='block';
 }
@@ -4638,7 +4612,7 @@ function openBidModal(){
   if(isGuest()){
     closePaymentSheet();
     showToast('inicia sesión para hacer ofertas');
-    NOTIFICATIONS.unshift({id:Date.now(),type:'sistema',title:'inicia sesión en Ruedda',body:'Necesitas una cuenta para hacer ofertas y participar en subastas.',time:'ahora mismo',read:false,icon:'lime'});
+    NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'sistema',title:'inicia sesión en Ruedda',body:'Necesitas una cuenta para hacer ofertas y participar en subastas.',time:'ahora mismo',read:false,icon:'lime'});
     _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
     setTimeout(()=>showView('cuenta'),700);
@@ -4706,6 +4680,8 @@ function confirmBidCheck(){
   if(!currentAuction) return;
   const val = parseFloat(document.getElementById('bid-input-field').value);
   const min = currentAuction.currentBid + 500;
+  if(!Number.isFinite(val) || !Number.isInteger(val)){ showToast('monto inválido'); return; }
+  if(val > 5000000){ showToast('monto fuera de rango'); return; }
   if(!val || val < 80){ showToast('mínimo $80'); return; }
   if(val < min){ showToast('mínimo: '+fmtBid(min)); return; }
 
@@ -4731,7 +4707,12 @@ async function confirmBid(){
   if(!currentAuction)return;
   const val=parseFloat(document.getElementById('bid-input-field').value);
   const min=currentAuction.currentBid+500;
+  if(!Number.isFinite(val) || !Number.isInteger(val)){ showToast('monto inválido'); return; }
+  if(val > 5000000){ showToast('monto fuera de rango'); return; }
   if(!val||val<min){showToast('mínimo: '+fmtBid(min));return;}
+  // [RDA-001] guardar estado previo para revertir si el RPC falla
+  const prevBid = currentAuction.currentBid;
+  const prevCount = currentAuction.bidCount;
   // optimistic UI
   currentAuction.currentBid=val;currentAuction.bidCount++;
   currentAuction.bids.unshift({user:'tú ★',time:'ahora mismo',amount:val,top:true});
@@ -4739,24 +4720,22 @@ async function confirmBid(){
   renderDetailBid();renderBidHistory();
   closeBidModal();
   showToast('oferta de '+fmtBid(val)+' registrada',true);
-  NOTIFICATIONS.unshift({id:Date.now(),type:'offer',title:'Oferta registrada',body:'Tu oferta de '+fmtBid(val)+' en '+currentAuction.title+' fue registrada',time:'ahora mismo',read:false,icon:'lime'});
+  NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'offer',title:'Oferta registrada',body:'Tu oferta de '+fmtBid(val)+' en '+currentAuction.title+' fue registrada',time:'ahora mismo',read:false,icon:'lime'});
   _saveNotifsToStorage(); // [RUEDDA v61] persistir
   document.getElementById('notif-dot').style.display='block';
-  // persistir en servidor
-  // Guardar en Supabase directo — fuente de verdad
+  // [RDA-001] persistir en servidor vía RPC atómico (evita lost-update en pujas simultáneas)
   if(_supa){
-    const{error:bidErr}=await _supa.from('bids').insert({
-      auction_id:currentAuction.id,
-      user_id:USER_STATE.id,
-      amount:val
-    });
-    if(bidErr){
-      console.error('[ruedda confirmBid supabase]',bidErr.message);
-      showToast('error bid: '+bidErr.message);
-    } else {
-      const{error:updErr}=await _supa.from('auctions').update({current_bid:val,bid_count:currentAuction.bidCount}).eq('id',currentAuction.id);
-      if(updErr) showToast('error update: '+updErr.message);
+    const{data,error}=await _supa.rpc('place_bid',{p_auction_id:currentAuction.id,p_amount:val,p_user_id:USER_STATE.id});
+    if(error){
+      // revertir UI optimista
+      currentAuction.currentBid=prevBid; currentAuction.bidCount=prevCount;
+      currentAuction.bids.shift();
+      currentAuction.bids.forEach((b,i)=>b.top=i===0);
+      renderDetailBid(); renderBidHistory();
+      showToast(error.message.includes('obsoleta')?'alguien pujó más alto, refrescá':'no se pudo registrar la puja');
+      return;
     }
+    if(data){ currentAuction.currentBid=data.current_bid; currentAuction.bidCount=data.bid_count; renderDetailBid(); }
   }
   // API como secundario — fire and forget
   _apiPost('/api/place-bid',{auction_id:currentAuction.id,monto:val}).catch(e=>console.warn('[ruedda confirmBid API]',e.message));
@@ -4859,10 +4838,13 @@ function resetSearchResults(){
 }
 function doSearch(q){
   if(!q.trim()){resetSearchResults();return}
-  const results=[...AUCTIONS,...MARKET_LISTINGS].filter(a=>a.title.toLowerCase().includes(q.toLowerCase())||a.location.toLowerCase().includes(q.toLowerCase())||a.year.toString().includes(q));
+  const results=[...AUCTIONS,...MARKET_LISTINGS].filter(a=>
+    (a.title||'').toLowerCase().includes(q.toLowerCase())||
+    (a.location||'').toLowerCase().includes(q.toLowerCase())||
+    String(a.year||'').includes(q));
   const el=document.getElementById('search-results');
   if(!results.length){el.innerHTML='<div class="search-cat-label">sin resultados</div>';return}
-  el.innerHTML='<div class="search-cat-label">resultados ('+results.length+')</div>'+results.map(a=>`<div class="search-cat-item" onclick="closeSearch();${a.type==='subasta'?'openDetail('+a.id+')':''}">${_esc(a.title)} <span style="color:var(--muted);font-weight:400;font-size:13px">— ${_esc(a.location)}</span></div>`).join('');
+  el.innerHTML='<div class="search-cat-label">resultados ('+results.length+')</div>'+results.map(a=>`<div class="search-cat-item" onclick="closeSearch();${a.type==='subasta'?`openDetail('${a.id}')`:`openMarketDetail('${a.id}')`}">${_esc(a.title)} <span style="color:var(--muted);font-weight:400;font-size:13px">— ${_esc(a.location)}</span></div>`).join('');
 }
 function applySearch(q){document.getElementById('search-input').value=q;doSearch(q)}
 
@@ -5298,7 +5280,7 @@ async function processPayment(){
       const{error:refErr}=await _supa.from('payment_refs').insert({user_id:uid,ref_num:refId,metodo,amount_usd:price,status:'pendiente',tipo:'vitrina'});
       if(refErr) console.error('[ruedda] vitrina payment_ref:',refErr?.message);
     }
-    NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago de vitrina en revisión',body:'El equipo de Ruedda verificará tu pago y activará tu vitrina pronto.',time:'ahora mismo',read:false,icon:'lime'});
+    NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'system',title:'pago de vitrina en revisión',body:'El equipo de Ruedda verificará tu pago y activará tu vitrina pronto.',time:'ahora mismo',read:false,icon:'lime'});
     _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
     showToast('referencia enviada — activaremos tu vitrina pronto ✓',true);
@@ -5316,7 +5298,7 @@ async function processPayment(){
     if(!window._pendingSubirId) addPendingListing(refId,'pago m\u00f3vil'); // [V85] subir: sin tarjeta fantasma
     window._pendingPaymentRef = refId;
     closeCheckout();
-    NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago en revisi\u00f3n',body:'Recibimos tu referencia de pago m\u00f3vil. El equipo de Ruedda la verificar\u00e1 pronto.',time:'ahora mismo',read:false,icon:'lime'});
+    NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'system',title:'pago en revisi\u00f3n',body:'Recibimos tu referencia de pago m\u00f3vil. El equipo de Ruedda la verificar\u00e1 pronto.',time:'ahora mismo',read:false,icon:'lime'});
     _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
     // ── INSERT payment_ref AWAITED antes de publicar ──
@@ -5350,7 +5332,7 @@ async function processPayment(){
     if(!window._pendingSubirId) addPendingListing(refId,'USDT Binance'); // [V85] subir: sin tarjeta fantasma
     window._pendingPaymentRef = refId;
     closeCheckout();
-    NOTIFICATIONS.unshift({id:Date.now(),type:'system',title:'pago en revisi\u00f3n',body:'Recibimos tu ID de transacci\u00f3n Binance. El equipo de Ruedda la verificar\u00e1 pronto.',time:'ahora mismo',read:false,icon:'lime'});
+    NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'system',title:'pago en revisi\u00f3n',body:'Recibimos tu ID de transacci\u00f3n Binance. El equipo de Ruedda la verificar\u00e1 pronto.',time:'ahora mismo',read:false,icon:'lime'});
     _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
     // ── INSERT payment_ref AWAITED antes de publicar ──
@@ -5526,7 +5508,8 @@ function handlePublicar(){
 async function publishListing(){
   closeCheckout();
   const form=document.querySelector('.vender-form');
-  const tipo=pendingVenderType==='subasta'?'subasta':pendingVenderType==='chocado'?'chocado':'market';
+  const tipo = (document.getElementById('chocado-toggle')?.checked) ? 'chocado'
+    : (pendingVenderType==='subasta' ? 'subasta' : 'market');
   // clasificacion-select es la categoría (comercial/deportivo) — la MARCA real se lee por label
   const categoria=(document.getElementById('clasificacion-select')?.value||'').trim();
   const year=parseInt(document.getElementById('year-select')?.value||'0');
@@ -5591,8 +5574,8 @@ async function publishListing(){
     const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,clasificacion:categoria||null,duenos:duenos||null,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
     const payload = esListing
       ? {...payloadBase, concesionario_id:concesionarioId}
-      : {...payloadBase, tipo, sin_reserva:precioRes===0&&tipo==='subasta', duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioBase||0, access_code:(typeof _genAccessCode==='function'?_genAccessCode():null)};
-    console.log('[ruedda publish] tabla:', tabla, '| payload:', JSON.stringify(payload));
+      : {...payloadBase, tipo, sin_reserva:precioRes===0&&(tipo==='subasta'||tipo==='chocado'), duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioBase||0, access_code:(typeof _genAccessCode==='function'?_genAccessCode():null)};
+    if(window._DEBUG) console.log('[ruedda publish] tabla:', tabla, '| payload:', JSON.stringify(payload));
     const{error}=await (_supaWrite||_supa).from(tabla).insert(payload);
     if(error) console.error('[ruedda publish] insert error:', error);
     if(error) throw new Error(error.message);
@@ -6461,7 +6444,7 @@ function renderMarketFiltered(){
     el.className = 'market-card';
     el.style.animationDelay = (idx*50)+'ms';
     el.onclick = ()=>openMarketDetail(l.id);
-    el.innerHTML = `<div class="market-card-img" style="background:linear-gradient(${grads[l.id%grads.length]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}</div>
+    el.innerHTML = `<div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}</div>
       <div class="market-card-body">
         <div class="market-card-title">${l.title}</div>
         <div class="market-card-price">${fmtBid(l.price)}</div>
@@ -6590,7 +6573,7 @@ async function renderVitrinavGrid(filter){
         const badgeColor=esNuevo?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)';
         const img=imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
         return `<div class="listado-card" onclick="openMarketDetail('${l.id}','vitrina')" style="animation-delay:${i*40}ms">
-          <div class="listado-card-img" style="background:linear-gradient(${grads[l.id%grads.length]})">
+          <div class="listado-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]})">
             ${img}
             <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
             <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}')" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0">
@@ -7869,7 +7852,7 @@ function triggerGuestBlock(accion){
   const existing = NOTIFICATIONS.find(n=>n.type==='guest_block');
   if(!existing){
     NOTIFICATIONS.unshift({
-      id:Date.now(), type:'guest_block',
+      id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)), type:'guest_block',
       title:'Únete a Ruedda',
       body: msgs[accion] || 'Inicia sesión para continuar.',
       time:'ahora mismo', read:false, icon:'lime'
@@ -8110,7 +8093,7 @@ async function _loadAuctions(){
   if(!_supa) return;
   try{
     const _corte48h=new Date(Date.now()-48*3600*1000).toISOString();
-    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id').eq('tipo','subasta').eq('estado','activa').gte('end_time',_corte48h).order('end_time',{ascending:true});
+    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id,es_chocado,tipo_dano,estado_chocado').eq('tipo','subasta').eq('estado','activa').gte('end_time',_corte48h).order('end_time',{ascending:true});
     window._feedLoaded.auc=true; // [V87] primera carga resuelta
     if(ae){console.error('[ruedda] _loadAuctions:',String(ae?.message||ae?.code||'error'));if(typeof renderCards==='function')renderCards();return;}
     if(!data?.length){if(typeof renderCards==='function')renderCards();return;} // [V87] feed vacio: pintar empty state, no dejar el loader
@@ -8134,7 +8117,7 @@ async function _loadAuctions(){
       const _cl={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'}[a.clasificacion]||a.clasificacion||'';
       const _specsRaw={'transmisión':a.transmision,'combustible':a.combustible,'motor':a.motor,'tracción':a.traccion,'color':a.color,'categoría':a.tipo_vehiculo,'dueños':a.duenos,'estado físico':a.estado_fisico,'condición':a.condicion,'clasificación':_cl};
       const specs={};Object.entries(_specsRaw).forEach(([k,v])=>{if(v!=null&&String(v).trim()!=='')specs[k]=v;});
-      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',clasificacion:a.clasificacion||'',tipoVehiculo:a.tipo_vehiculo||'',viewCount:a.view_count||0,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
+      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',clasificacion:a.clasificacion||'',tipoVehiculo:a.tipo_vehiculo||'',viewCount:a.view_count||0,chocado:!!a.es_chocado,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
     if(typeof renderCards==='function') renderCards();
@@ -8275,7 +8258,7 @@ function _subscribePrivateMessages(userId){
       _loadPrivateMessages();
       // notif local si la vista de mensajes no está abierta
       if(currentView!=='notificaciones'){
-        NOTIFICATIONS.unshift({id:Date.now(),type:'pm',title:'Nuevo mensaje',body:'Tienes un mensaje sobre '+(m.source_title||'una publicación'),time:'ahora mismo',read:false,icon:'lime',sourceId:m.sender_id,sourceType:'pm',pmSourceId:m.source_id||null});
+        NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'pm',title:'Nuevo mensaje',body:'Tienes un mensaje sobre '+(m.source_title||'una publicación'),time:'ahora mismo',read:false,icon:'lime',sourceId:m.sender_id,sourceType:'pm',pmSourceId:m.source_id||null});
         _saveNotifsToStorage();
         const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
       }
@@ -8599,7 +8582,7 @@ async function sendComment(){
     }
   })();
   // notif local
-  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentAuction.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime',sourceId:currentAuction.id,sourceType:'auction'});
+  NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentAuction.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime',sourceId:currentAuction.id,sourceType:'auction'});
   _saveNotifsToStorage(); // [RUEDDA v61] persistir
   const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
   showToast('pregunta enviada',true);
@@ -8624,7 +8607,7 @@ async function sendMktComment(){
       _supa.from('notifications').insert({user_id:ownerId,tipo:'question',titulo:'Nuevo comentario',body:'@'+_who+' comentó en tu publicación '+(currentMarketListing.title||''),icon:'lime',source_id:String(currentMarketListing.id),source_type:'listing'}).then(null,()=>{});
     }
   })();
-  NOTIFICATIONS.unshift({id:Date.now(),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentMarketListing.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime',sourceId:currentMarketListing.id,sourceType:'listing'});
+  NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'question',title:'Pregunta enviada',body:'Tu pregunta sobre '+currentMarketListing.title+' fue enviada al vendedor',time:'ahora mismo',read:false,icon:'lime',sourceId:currentMarketListing.id,sourceType:'listing'});
   _saveNotifsToStorage(); // [RUEDDA v61] persistir
   const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
   showToast('pregunta enviada',true);
@@ -8700,7 +8683,7 @@ async function _sendPrivateMessage(receiverId,sourceId,sourceType,sourceTitle){
   // [PM v82] notificación persistente para el receptor — se entera aunque esté offline
   _supa.from('notifications').insert({user_id:receiverId,tipo:'pm',titulo:'Nuevo mensaje',body:`${USER_STATE.nombre||USER_STATE.username||'Un usuario'} te escribió sobre ${sourceTitle||'tu publicación'}`,icon:'lime',source_id:String(USER_STATE.id),source_type:'pm'}).then(({error:ne})=>{if(ne)console.warn('[pm notif]',ne.message);});
   // notif local para el sender
-  NOTIFICATIONS.unshift({id:Date.now(),type:'pm',title:'Mensaje enviado',body:'Tu mensaje sobre '+sourceTitle+' fue enviado',time:'ahora mismo',read:false,icon:'lime'});
+  NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'pm',title:'Mensaje enviado',body:'Tu mensaje sobre '+sourceTitle+' fue enviado',time:'ahora mismo',read:false,icon:'lime'});
   _saveNotifsToStorage();
   const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
   // [FIX v62] cerrar panel DESPUÉS de disparar el refetch — evita que la UI
@@ -10243,6 +10226,10 @@ async function _saDeletePat(id,cat){
   showToast('eliminado',true);
   saLoadPatrocinantes();
 }
+
+// [B1] red de seguridad global — un error aislado no debe tumbar la UI
+window.addEventListener('error',e=>{ if(window._DEBUG) console.error('[ruedda guard]',e.message); });
+window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.error('[ruedda guard rej]',e.reason); });
 </script>
 
 <!-- NOTICIA DETAIL VIEW -->
