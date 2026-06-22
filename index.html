@@ -403,6 +403,22 @@ html{scrollbar-width:none}
 .noticia-card:active{transform:scale(.97)}
 .noticia-card-wide{width:240px}
 .feedback-grid{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
+/* [V122] visor de fotos a pantalla completa — scroll-snap nativo, sin JS de swipe manual */
+#photo-viewer-overlay{position:fixed;inset:0;z-index:600;background:#000;display:none;flex-direction:column}
+#photo-viewer-overlay.open{display:flex}
+.pv-top{display:flex;align-items:center;justify-content:space-between;padding:16px;flex-shrink:0}
+.pv-stage{position:relative;flex:1;overflow:hidden;min-height:0}
+.pv-inner{height:100%;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.pv-inner::-webkit-scrollbar{display:none}
+.pv-slide{flex:0 0 100%;scroll-snap-align:center;display:flex;align-items:center;justify-content:center;height:100%}
+.pv-slide img{max-width:100%;max-height:100%;object-fit:contain;-webkit-user-select:none;user-select:none}
+.pv-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff}
+.pv-thumbs{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.pv-thumbs::-webkit-scrollbar{display:none}
+.pv-thumb{width:50px;height:38px;object-fit:cover;border-radius:8px;opacity:.4;cursor:pointer;flex-shrink:0;transition:opacity .15s;border:1.5px solid transparent}
+.pv-thumb.active{opacity:1;border-color:#e6f03b}
+.cs-tab-btn{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:100px;color:rgba(255,255,255,.55);font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s}
+.cs-tab-btn.active{background:var(--lime);color:#000;border-color:transparent}
 .feedback-grid::-webkit-scrollbar{display:none}
 .feedback-btn{flex-shrink:0;width:158px;height:168px;background:var(--card);border:1px solid var(--border);border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:18px 16px;cursor:pointer;transition:transform .18s,border-color .18s;position:relative;overflow:hidden;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
 .feedback-btn:active{transform:scale(.95)}
@@ -2202,7 +2218,10 @@ html{scrollbar-width:none}
     <!-- Header Comunidad -->
     <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:20px">
       <span style="font-size:14px;font-weight:600;color:var(--muted);letter-spacing:.3px">Comunidad</span>
-      <svg fill="white" viewBox="0 0 24 24" style="width:22px;height:22px;opacity:.7"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div onclick="isGuest()?triggerGuestBlock('tu perfil'):openUserProfile(USER_STATE.id)" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+        <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.55)">mi perfil</span>
+        <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;opacity:.85"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
     </div>
 
     <!-- Ruedda Clips -->
@@ -2263,6 +2282,13 @@ html{scrollbar-width:none}
       subir
     </button>
   </div>
+  <div style="padding:0 16px 14px">
+    <div style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px">Comparte los mejores carros que consigas en la calle hoy.</div>
+    <div style="display:flex;gap:8px">
+      <button id="cs-tab-mis" onclick="loadCarspotting('mis')" class="cs-tab-btn">mis spots</button>
+      <button id="cs-tab-pop" onclick="loadCarspotting('populares')" class="cs-tab-btn active">más populares</button>
+    </div>
+  </div>
   <!-- Upload panel (oculto por defecto) -->
   <div id="cs-upload-panel" style="display:none;margin:0 16px 20px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:18px">
     <div style="font-size:14px;font-weight:700;margin-bottom:12px">nueva foto</div>
@@ -2274,6 +2300,7 @@ html{scrollbar-width:none}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
       <span id="cs-char-count" style="font-size:11px;color:var(--muted)">0/100</span>
     </div>
+    <input id="cs-location-input" type="text" maxlength="60" placeholder="ubicación (ej: Av. Francisco de Miranda, Caracas)" style="width:100%;margin-top:10px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:12px;color:var(--white);font-size:14px;padding:11px 12px;font-family:inherit;box-sizing:border-box">
     <button onclick="submitCarspotting()" style="width:100%;margin-top:12px;background:var(--lime);color:#000;border:none;border-radius:14px;font-size:14px;font-weight:800;padding:13px;cursor:pointer">publicar</button>
   </div>
   <div id="cs-feed" style="padding:0 16px 100px;display:flex;flex-direction:column;gap:14px">
@@ -2686,6 +2713,22 @@ html{scrollbar-width:none}
       </div>
     </div>
   </div>
+</div>
+
+<!-- VISOR DE FOTOS A PANTALLA COMPLETA -->
+<div id="photo-viewer-overlay">
+  <div class="pv-top">
+    <span id="pv-counter" style="color:#fff;font-size:13px;font-weight:600;background:rgba(255,255,255,.08);padding:5px 12px;border-radius:100px"></span>
+    <button onclick="closePhotoViewer()" style="background:rgba(255,255,255,.08);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="pv-stage">
+    <div id="pv-inner" class="pv-inner"></div>
+    <div class="pv-arrow" id="pv-arrow-prev" style="left:12px" onclick="_pvPrev()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 18l-6-6 6-6"/></svg></div>
+    <div class="pv-arrow" id="pv-arrow-next" style="right:12px" onclick="_pvNext()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 18l6-6-6-6"/></svg></div>
+  </div>
+  <div id="pv-thumbs" class="pv-thumbs"></div>
 </div>
 
 <!-- CALIFICAR USUARIO -->
@@ -3863,7 +3906,7 @@ function openMarketDetail(id, origin){
     s.className='photo-slide';
     s.style.background='linear-gradient('+grads[_gidx(l.id)]+')';
     if(hasPhotos){
-      s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
+      s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onclick="openPhotoViewer(currentMarketListing.photoUrls,${i})"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
     } else {
       s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'</div>';
     }
@@ -4129,7 +4172,7 @@ function openDetail(id){
     slide.className='photo-slide';
     slide.style.background=`linear-gradient(${grads[_gidx(a.id)]})`;
     if(_hasPhotos){
-      slide.innerHTML=`<img src="${a.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`;
+      slide.innerHTML=`<img src="${a.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'" onclick="openPhotoViewer(currentAuction.photoUrls,${i})">`;
     } else {
       slide.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.4"><div>${carPlaceholder(a.id)}</div><div style="font-size:12px;color:#555">foto ${i+1} de ${_slideCount}</div></div>`;
     }
@@ -4482,28 +4525,131 @@ function closeClipModal(){
 }
 
 // ===================== CARSPOTTING =====================
-async function loadCarspotting(){
+// ─────────────────────────────────────────────
+// VISOR DE FOTOS A PANTALLA COMPLETA (V122)
+// — estilo Cars & Bids / Conduce: tap en cualquier foto de una
+// subasta, market o carspotting, abre galería completa con scroll
+// nativo (sin librerías), miniaturas abajo y flechas para desktop.
+// ─────────────────────────────────────────────
+let _pvPhotos=[];
+let _pvIndex=0;
+
+function openPhotoViewer(photos,startIndex){
+  if(!photos||!photos.length) return;
+  _pvPhotos=photos.filter(Boolean);
+  if(!_pvPhotos.length) return;
+  _pvIndex=Math.min(startIndex||0,_pvPhotos.length-1);
+  const ov=document.getElementById('photo-viewer-overlay');
+  const inner=document.getElementById('pv-inner');
+  const thumbs=document.getElementById('pv-thumbs');
+  inner.innerHTML=_pvPhotos.map((url,i)=>`<div class="pv-slide" data-i="${i}"><img src="${url}" loading="${Math.abs(i-_pvIndex)<=1?'eager':'lazy'}"></div>`).join('');
+  thumbs.innerHTML=_pvPhotos.length>1?_pvPhotos.map((url,i)=>`<img src="${url}" class="pv-thumb${i===_pvIndex?' active':''}" onclick="_pvGoTo(${i})" loading="lazy">`).join(''):'';
+  thumbs.style.display=_pvPhotos.length>1?'flex':'none';
+  document.getElementById('pv-arrow-prev').style.display=_pvPhotos.length>1?'flex':'none';
+  document.getElementById('pv-arrow-next').style.display=_pvPhotos.length>1?'flex':'none';
+  document.getElementById('pv-counter').textContent=(_pvIndex+1)+' / '+_pvPhotos.length;
+  ov.classList.add('open');
+  document.body.style.overflow='hidden';
+  requestAnimationFrame(()=>{ inner.scrollLeft=_pvIndex*inner.clientWidth; });
+  inner.onscroll=_pvOnScroll;
+}
+
+function _pvOnScroll(){
+  const inner=document.getElementById('pv-inner');
+  const w=inner.clientWidth;
+  if(!w) return;
+  const idx=Math.round(inner.scrollLeft/w);
+  if(idx!==_pvIndex && idx>=0 && idx<_pvPhotos.length){
+    _pvIndex=idx;
+    document.getElementById('pv-counter').textContent=(_pvIndex+1)+' / '+_pvPhotos.length;
+    document.querySelectorAll('.pv-thumb').forEach((t,i)=>t.classList.toggle('active',i===_pvIndex));
+  }
+}
+
+function _pvGoTo(i){
+  _pvIndex=i;
+  const inner=document.getElementById('pv-inner');
+  inner.scrollTo({left:i*inner.clientWidth,behavior:'smooth'});
+}
+
+function _pvPrev(){ if(_pvIndex>0) _pvGoTo(_pvIndex-1); }
+function _pvNext(){ if(_pvIndex<_pvPhotos.length-1) _pvGoTo(_pvIndex+1); }
+
+function closePhotoViewer(){
+  document.getElementById('photo-viewer-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+let _csTab='populares'; // [V122] pestaña activa: 'populares' o 'mis'
+async function loadCarspotting(tab){
+  if(tab) _csTab=tab;
   const feed=document.getElementById('cs-feed');
   if(!feed)return;
+  const btnMis=document.getElementById('cs-tab-mis'),btnPop=document.getElementById('cs-tab-pop');
+  if(btnMis&&btnPop){btnMis.classList.toggle('active',_csTab==='mis');btnPop.classList.toggle('active',_csTab==='populares');}
   feed.innerHTML='<div class="com-loading">cargando...</div>';
   try{
-    const{data,error}=await _supa.from('carspotting').select('*,users(nombre,username,avatar_url,role)').order('created_at',{ascending:false}).limit(30);
-    if(error||!data||data.length===0){feed.innerHTML='<div class="com-empty">sin spots aún. ¡sé el primero!</div>';return;}
+    let q=_supa.from('carspotting').select('*,users(nombre,username,avatar_url,role)');
+    if(_csTab==='mis'){
+      if(isGuest()||!USER_STATE?.id){feed.innerHTML='<div class="com-empty">inicia sesión para ver tus spots</div>';return;}
+      q=q.eq('user_id',USER_STATE.id).order('created_at',{ascending:false});
+    } else {
+      q=q.order('likes',{ascending:false}).order('created_at',{ascending:false});
+    }
+    const{data,error}=await q.limit(30);
+    if(error||!data||data.length===0){feed.innerHTML=`<div class="com-empty">${_csTab==='mis'?'aún no has subido spots':'sin spots aún. ¡sé el primero!'}</div>`;return;}
+    // estado de like propio, para pintar el corazón ya marcado
+    let likedSet=new Set();
+    if(_supa&&USER_STATE?.id&&!isGuest()){
+      try{
+        const{data:lk}=await _supa.from('carspotting_likes').select('carspotting_id').eq('user_id',USER_STATE.id);
+        (lk||[]).forEach(l=>likedSet.add(l.carspotting_id));
+      }catch(e){}
+    }
     feed.innerHTML=data.map(s=>{
       const _u=s.users||{};
       const authorName=_u.nombre||_u.username||'usuario';
       const isDealer=_u.role==='concesionario'||_u.role==='consesionario';
       const authorClick=s.user_id?`${isDealer?`_openVitrinaByUserId('${s.user_id}')`:`openUserProfile('${s.user_id}')`}`:'';
+      const liked=likedSet.has(s.id);
       return `
       <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden">
-        <img src="${s.image_url}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">
+        <img src="${s.image_url}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:pointer" loading="lazy" onclick="openPhotoViewer(['${s.image_url}'],0)">
         <div style="padding:12px 14px">
           ${s.description?`<div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:6px">${_escLine(s.description)}</div>`:''}
-          ${s.user_id?`<div onclick="${authorClick}" style="font-size:12px;color:var(--muted);cursor:pointer;display:inline-flex">por <span style="color:rgba(230,240,59,.85);font-weight:600;margin-left:3px">${_esc(authorName)}</span></div>`:''}
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+              ${s.user_id?`<div onclick="${authorClick}" style="font-size:12px;color:var(--muted);cursor:pointer;display:inline-flex">por <span style="color:rgba(230,240,59,.85);font-weight:600;margin-left:3px">${_esc(authorName)}</span></div>`:''}
+              ${s.location?`<div style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;flex-shrink:0"><path d="M12 21s-7-6.5-7-11a7 7 0 1 1 14 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>${_esc(s.location)}</div>`:''}
+            </div>
+            <button onclick="_likeCarspot('${s.id}',this)" data-liked="${liked}" style="flex-shrink:0;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px">
+              <svg viewBox="0 0 24 24" fill="${liked?'#e6f03b':'none'}" stroke="${liked?'#e6f03b':'rgba(255,255,255,.4)'}" stroke-width="1.8" style="width:16px;height:16px"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2.5 5 6 5c2 0 3.5 1.2 4.5 2.5C11.5 6.2 13 5 15 5c3.5 0 5.5 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>
+              <span class="cs-like-count" style="font-size:11px;color:var(--muted);font-weight:600">${s.likes||0}</span>
+            </button>
+          </div>
         </div>
       </div>`;
     }).join('');
   } catch(e){ feed.innerHTML='<div class="com-empty">error cargando spots</div>'; }
+}
+
+// [V122] like de carspotting — mismo patrón optimista que noticias/comentarios
+async function _likeCarspot(id,btn){
+  if(isGuest()){showToast('inicia sesión para dar like');return;}
+  const liked=btn.dataset.liked==='true';
+  const newLiked=!liked;
+  btn.dataset.liked=String(newLiked);
+  const svg=btn.querySelector('svg');
+  const countEl=btn.querySelector('.cs-like-count');
+  if(svg){svg.setAttribute('fill',newLiked?'#e6f03b':'none');svg.setAttribute('stroke',newLiked?'#e6f03b':'rgba(255,255,255,.4)');}
+  if(countEl){const cur=parseInt(countEl.textContent)||0;countEl.textContent=newLiked?cur+1:Math.max(0,cur-1);}
+  if(!_supa) return;
+  try{
+    if(newLiked){ await _supa.from('carspotting_likes').insert({carspotting_id:id,user_id:USER_STATE.id}).then(null,()=>{}); }
+    else { await _supa.from('carspotting_likes').delete().eq('carspotting_id',id).eq('user_id',USER_STATE.id).then(null,()=>{}); }
+    const{count}=await _supa.from('carspotting_likes').select('*',{count:'exact',head:true}).eq('carspotting_id',id);
+    await _supa.from('carspotting').update({likes:count||0}).eq('id',id).then(null,()=>{});
+  }catch(e){console.warn('[carspot like]',e?.message);}
 }
 
 function openCarspottingUpload(){
@@ -4539,22 +4685,26 @@ async function submitCarspotting(){
   if(isGuest()){triggerGuestBlock('carspotting');return;}
   const fileInput=document.getElementById('cs-file-input');
   const desc=document.getElementById('cs-desc-input').value.trim();
+  const location=document.getElementById('cs-location-input')?.value.trim()||'';
   if(!fileInput.files[0]){showToast('selecciona una foto');return;}
   const file=fileInput.files[0];
   const ext=file.name.split('.').pop();
   const path=`${USER_STATE.id}/${Date.now()}.${ext}`;
   showToast('subiendo...');
   const{error:upErr}=await _supa.storage.from('carspotting').upload(path,file,{upsert:false});
-  if(upErr){showToast('error subiendo foto');return;}
+  // [FIX V122] antes el toast decía "error subiendo foto" genérico — ahora muestra el motivo
+  // real (ej: bucket sin permisos), para poder diagnosticar sin adivinar.
+  if(upErr){showToast('error subiendo foto: '+(upErr.message||upErr.error||'desconocido'));console.error('[carspotting upload]',upErr);return;}
   const{data:urlData}=_supa.storage.from('carspotting').getPublicUrl(path);
-  const{error:dbErr}=await _supa.from('carspotting').insert({user_id:USER_STATE.id,image_url:urlData.publicUrl,description:desc||null});
-  if(dbErr){showToast('error guardando');return;}
+  const{error:dbErr}=await _supa.from('carspotting').insert({user_id:USER_STATE.id,image_url:urlData.publicUrl,description:desc||null,location:location||null});
+  if(dbErr){showToast('error guardando: '+(dbErr.message||'desconocido'));console.error('[carspotting insert]',dbErr);return;}
   showToast('spot publicado',true);
   document.getElementById('cs-upload-panel').style.display='none';
   document.getElementById('cs-file-input').value='';
   document.getElementById('cs-preview').innerHTML='<span style="font-size:13px;color:var(--muted)">toca para seleccionar foto</span>';
   document.getElementById('cs-desc-input').value='';
-  loadCarspotting();
+  if(document.getElementById('cs-location-input')) document.getElementById('cs-location-input').value='';
+  loadCarspotting('mis'); // [V122] al publicar, te muestra tu propio spot recién subido
 }
 
 async function loadNoticiaDetail(id){
@@ -4579,8 +4729,9 @@ async function loadNoticiaDetail(id){
       <div style="padding:20px 16px 0">
         ${data.titulo?`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px">
           <h1 style="font-size:24px;font-weight:800;letter-spacing:-.4px;line-height:1.2;margin:0;flex:1">${data.titulo}</h1>
-          <button id="noticia-like-btn" data-liked="${_liked}" onclick="_likeNoticia('${id}',this)" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:4px;margin-top:2px;display:flex;align-items:center;justify-content:center">
+          <button id="noticia-like-btn" data-liked="${_liked}" onclick="_likeNoticia('${id}',this)" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:4px;margin-top:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
             <svg viewBox="0 0 24 24" fill="${_liked?'#e6f03b':'none'}" stroke="${_liked?'#e6f03b':'rgba(255,255,255,.4)'}" stroke-width="1.8" style="width:22px;height:22px;transition:transform .15s"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2.5 5 6 5c2 0 3.5 1.2 4.5 2.5C11.5 6.2 13 5 15 5c3.5 0 5.5 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>
+            <span id="noticia-like-count" style="font-size:10.5px;font-weight:700;color:var(--muted)">${data.likes||0}</span>
           </button>
         </div>`:''}
         ${data.content?`<div style="font-size:15px;color:rgba(255,255,255,.8);line-height:1.8;white-space:pre-wrap">${data.content}</div>`:''}
@@ -4596,12 +4747,14 @@ async function _likeNoticia(noticiaId,btn){
   const newLiked=!liked;
   btn.dataset.liked=String(newLiked);
   const svg=btn.querySelector('svg');
+  const countEl=btn.querySelector('#noticia-like-count');
   if(svg){
     svg.setAttribute('fill',newLiked?'#e6f03b':'none');
     svg.setAttribute('stroke',newLiked?'#e6f03b':'rgba(255,255,255,.4)');
     svg.style.transform=newLiked?'scale(1.15)':'scale(1)';
     setTimeout(()=>{svg.style.transform='scale(1)';},150);
   }
+  if(countEl){const cur=parseInt(countEl.textContent)||0;countEl.textContent=newLiked?cur+1:Math.max(0,cur-1);}
   if(!_supa) return;
   try{
     if(newLiked){
