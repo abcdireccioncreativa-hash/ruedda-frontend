@@ -174,6 +174,10 @@ html{scrollbar-width:none}
 .view.active{display:block;animation:viewFadeIn .22s ease both}
 #view-thread.active{display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding-bottom:0}
 @keyframes viewFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+/* [V117] transición tipo fintech para el perfil — entra deslizando desde la derecha, no con el fade genérico */
+@keyframes slideInFromRight{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+#view-perfil-publico, #view-mi-perfil{background:var(--card)}
+#view-perfil-publico.active, #view-mi-perfil.active{animation:slideInFromRight .32s cubic-bezier(.22,.61,.36,1) both}
 
 /* DETAIL LAYOUT — mobile first */
 .detail-header-block{padding:16px 0 4px}
@@ -4479,13 +4483,22 @@ async function loadCarspotting(){
   if(!feed)return;
   feed.innerHTML='<div class="com-loading">cargando...</div>';
   try{
-    const{data,error}=await _supa.from('carspotting').select('*').order('created_at',{ascending:false}).limit(30);
+    const{data,error}=await _supa.from('carspotting').select('*,users(nombre,username,avatar_url,role)').order('created_at',{ascending:false}).limit(30);
     if(error||!data||data.length===0){feed.innerHTML='<div class="com-empty">sin spots aún. ¡sé el primero!</div>';return;}
-    feed.innerHTML=data.map(s=>`
+    feed.innerHTML=data.map(s=>{
+      const _u=s.users||{};
+      const authorName=_u.nombre||_u.username||'usuario';
+      const isDealer=_u.role==='concesionario'||_u.role==='consesionario';
+      const authorClick=s.user_id?`${isDealer?`_openVitrinaByUserId('${s.user_id}')`:`openUserProfile('${s.user_id}')`}`:'';
+      return `
       <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden">
         <img src="${s.image_url}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">
-        ${s.description?`<div style="padding:12px 14px;font-size:13px;color:rgba(255,255,255,.75);line-height:1.5">${s.description}</div>`:''}
-      </div>`).join('');
+        <div style="padding:12px 14px">
+          ${s.description?`<div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:6px">${_escLine(s.description)}</div>`:''}
+          ${s.user_id?`<div onclick="${authorClick}" style="font-size:12px;color:var(--muted);cursor:pointer;display:inline-flex">por <span style="color:rgba(230,240,59,.85);font-weight:600;margin-left:3px">${_esc(authorName)}</span></div>`:''}
+        </div>
+      </div>`;
+    }).join('');
   } catch(e){ feed.innerHTML='<div class="com-empty">error cargando spots</div>'; }
 }
 
@@ -8717,7 +8730,7 @@ async function _loadComments(sourceType,sourceId,listId){
     const _authorCursor=isAdmin?'':'cursor:pointer';
     return `<div class="comment-item" id="cmt-${c.id}">
       <div class="comment-header">
-        <span onclick="${_authorClick}" style="display:inline-flex;align-items:center;${_authorCursor}">${avEl}
+        <span onclick="${_authorClick}" style="display:inline-flex;align-items:center;gap:8px;${_authorCursor}">${avEl}
         <span class="comment-name">${displayName}</span></span>${badge}
         <span class="comment-time" style="margin-left:auto">${_fmtTimeAgo(c.created_at)}</span>
       </div>
@@ -8758,7 +8771,7 @@ async function openUserProfile(userId){
   const isMe=USER_STATE?.id===userId;
 
   try{
-    const[{data:u},{data:dreamCars},{count:followersCount},{count:followingCount},{data:myFollow},{data:ratings},{data:soldAuctions}]=await Promise.all([
+    const[{data:u},{data:dreamCars},{count:followersCount},{count:followingCount},{data:myFollow},{data:ratings},{data:soldAuctions},{data:topBid},{count:favCount},{count:commentsCount},{count:spotCount}]=await Promise.all([
       _supa.from('users').select('nombre,username,avatar_url,kyc_verified,descripcion,role').eq('id',userId).maybeSingle(),
       _supa.from('user_dream_cars').select('modelo').eq('user_id',userId).order('orden',{ascending:true}),
       _supa.from('user_follows').select('*',{count:'exact',head:true}).eq('followed_id',userId),
@@ -8767,7 +8780,12 @@ async function openUserProfile(userId){
       _supa.from('user_ratings').select('score,rater_id').eq('rated_id',userId),
       // "carros vendidos": no existe un estado real de venta en el sistema — se infiere de
       // subastas ya terminadas (end_time pasado) que tuvieron al menos una oferta.
-      _supa.from('auctions').select('id,titulo,marca,modelo,year,auction_photos(url,orden)').eq('user_id',userId).eq('estado','activa').lt('end_time',new Date().toISOString()).gt('bid_count',0).order('end_time',{ascending:false}).limit(8)
+      _supa.from('auctions').select('id,titulo,marca,modelo,year,auction_photos(url,orden)').eq('user_id',userId).eq('estado','activa').lt('end_time',new Date().toISOString()).gt('bid_count',0).order('end_time',{ascending:false}).limit(8),
+      // [V117] Métricas
+      _supa.from('bids').select('amount').eq('user_id',userId).order('amount',{ascending:false}).limit(1),
+      _supa.from('user_favorites').select('*',{count:'exact',head:true}).eq('user_id',userId),
+      _supa.from('comments').select('*',{count:'exact',head:true}).eq('user_id',userId),
+      _supa.from('carspotting').select('*',{count:'exact',head:true}).eq('user_id',userId)
     ]);
 
     // si mientras cargaba el usuario abrió OTRO perfil, no pintamos esto encima del nuevo
@@ -8782,6 +8800,25 @@ async function openUserProfile(userId){
     const myRating=ratings?.find(r=>r.rater_id===USER_STATE?.id)?.score||0;
     const amIFollowing=!!myFollow;
     const safeName=_esc(nombre).replace(/'/g,"\\'");
+    const topBidAmount=topBid?.[0]?.amount||0;
+
+    // [V117] tier de métricas — 4 cards glassmorph, mismo lenguaje visual que .bottom-nav/.dropdown-glass
+    const _metricCard=(label,value,iconPath)=>`
+      <div style="background:rgba(255,255,255,.04);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e6f03b" stroke-width="1.6" style="width:16px;height:16px;margin-bottom:8px">${iconPath}</svg>
+        <div style="font-size:16px;font-weight:800;letter-spacing:-.2px">${value}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:1px;line-height:1.3">${label}</div>
+      </div>`;
+    const metricsHtml=`
+      <div style="margin-top:26px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:12px">Métricas</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${_metricCard('oferta más alta',topBidAmount?fmtBid(topBidAmount):'—','<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>')}
+          ${_metricCard('guardados en favoritos',favCount||0,'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>')}
+          ${_metricCard('comentarios enviados',commentsCount||0,'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>')}
+          ${_metricCard('carspotting',spotCount||0,'<rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6l1.5-2.5h5L16 6"/>')}
+        </div>
+      </div>`;
 
     el.innerHTML=`
       <div style="display:flex;align-items:center;gap:16px;margin-top:6px">
@@ -8799,8 +8836,8 @@ async function openUserProfile(userId){
       </div>
       ${!isMe?`
       <div style="display:flex;gap:10px;margin-top:18px">
-        <button onclick="_openRatingModal('${userId}','${safeName}',${myRating})" style="flex:1;background:rgba(230,240,59,.12);border:1px solid rgba(230,240,59,.3);color:#e6f03b;border-radius:13px;font-size:13px;font-weight:800;padding:12px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">calificar <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg></button>
-        <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="flex:1;background:${amIFollowing?'rgba(255,255,255,.06)':'#e6f03b'};border:1px solid ${amIFollowing?'var(--border)':'transparent'};color:${amIFollowing?'rgba(255,255,255,.7)':'#000'};border-radius:13px;font-size:13px;font-weight:800;padding:12px;cursor:pointer;font-family:var(--font)">${amIFollowing?'siguiendo':'seguir'}</button>
+        <button onclick="_openRatingModal('${userId}','${safeName}',${myRating})" style="background:#e6f03b;border:none;color:#000;border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">calificar <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg></button>
+        <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="background:${amIFollowing?'rgba(255,255,255,.08)':'#e6f03b'};border:${amIFollowing?'1px solid var(--border)':'none'};color:${amIFollowing?'#fff':'#000'};border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">${amIFollowing?'siguiendo':'seguir'} <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M15 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4 0-8 2-8 5v1h12v-3.5h4v-2c0-2-3-2.5-4.5-2.5A8.6 8.6 0 0 0 15 14zm5-6V6h-2v2h-2v2h2v2h2v-2h2V8z"/></svg></button>
       </div>`:`<div style="margin-top:16px;font-size:12px;color:var(--muted)">este es tu perfil — edítalo desde configuración</div>`}
       ${u.descripcion?`
       <div style="margin-top:26px">
@@ -8814,6 +8851,7 @@ async function openUserProfile(userId){
           ${dreamCars.map(d=>`<div style="font-size:14px;color:rgba(255,255,255,.7)">${_esc(d.modelo)}</div>`).join('')}
         </div>
       </div>`:''}
+      ${metricsHtml}
       <div style="margin-top:26px">
         <div style="font-size:16px;font-weight:800;margin-bottom:12px">Carros vendidos</div>
         ${soldAuctions?.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
