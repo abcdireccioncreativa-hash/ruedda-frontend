@@ -176,7 +176,7 @@ html{scrollbar-width:none}
 @keyframes viewFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 /* [V117] transición tipo fintech para el perfil — entra deslizando desde la derecha, no con el fade genérico */
 @keyframes slideInFromRight{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
-#view-perfil-publico, #view-mi-perfil{background:var(--card)}
+#view-perfil-publico, #view-mi-perfil{background:var(--card);min-height:100vh}
 #view-perfil-publico.active, #view-mi-perfil.active{animation:slideInFromRight .32s cubic-bezier(.22,.61,.36,1) both}
 
 /* DETAIL LAYOUT — mobile first */
@@ -5777,7 +5777,6 @@ function openConfigView(){
   document.getElementById('cfg-nombre').value   = USER_STATE.nombre   || '';
   document.getElementById('cfg-email').value    = USER_STATE.email    || '';
   document.getElementById('cfg-telefono').value = USER_STATE.telefono || '';
-  document.getElementById('cfg-username').value = USER_STATE.username ? '@'+USER_STATE.username : '';
   // collapse edit panel on open
   document.getElementById('config-edit-panel').classList.remove('open');
   document.getElementById('config-perfil-chevron').querySelector('svg').style.transform='';
@@ -5792,21 +5791,36 @@ function toggleEditPerfil(){
   chevron.style.transition = 'transform .2s';
 }
 
-function savePerfilConfig(){
+async function savePerfilConfig(){
   const nombre   = document.getElementById('cfg-nombre').value.trim();
   const email    = document.getElementById('cfg-email').value.trim();
   const telefono = document.getElementById('cfg-telefono').value.trim();
-  const username = document.getElementById('cfg-username').value.trim().replace('@','');
-  if(nombre)   USER_STATE.nombre   = nombre;
-  if(email)    USER_STATE.email    = email;
-  if(telefono) USER_STATE.telefono = telefono;
-  if(username) USER_STATE.username = username;
-  // update sub label
-  document.getElementById('config-perfil-sub').textContent = nombre || 'nombre, email, teléfono';
-  // collapse
-  toggleEditPerfil();
-  updateCuentaView();
-  showToast('cambios guardados');
+  if(!_supa||!USER_STATE?.id){ showToast('inicia sesión primero'); return; }
+  // [FIX V119] antes esto solo actualizaba USER_STATE en memoria — los cambios se veían
+  // bien en esa sesión pero NUNCA llegaban a Supabase, así que se perdían al recargar o
+  // se mostraban distinto para otros usuarios (comentarios, perfil). Ahora persiste de verdad.
+  const updates={};
+  if(nombre) updates.nombre=nombre;
+  if(telefono) updates.telefono=telefono;
+  // nota: esto actualiza el email mostrado en la tabla users, no el email de inicio de
+  // sesión real — cambiar ese requiere auth.updateUser() + verificación, fuera de este fix.
+  if(email) updates.email=email;
+  try{
+    if(Object.keys(updates).length){
+      const{error}=await _supa.from('users').update(updates).eq('id',USER_STATE.id);
+      if(error) throw error;
+    }
+    if(nombre)   USER_STATE.nombre   = nombre;
+    if(email)    USER_STATE.email    = email;
+    if(telefono) USER_STATE.telefono = telefono;
+    document.getElementById('config-perfil-sub').textContent = nombre || 'nombre, email, teléfono';
+    toggleEditPerfil();
+    updateCuentaView();
+    showToast('cambios guardados',true);
+  }catch(e){
+    console.error('[savePerfilConfig]',e);
+    showToast('error guardando: '+(e?.message||''));
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -5816,16 +5830,18 @@ async function openMiPerfil(){
   if(!_supa||!USER_STATE?.id){showToast('inicia sesión primero');return;}
   showView('mi-perfil');
   document.getElementById('mi-perfil-nombre-input').value=USER_STATE.nombre||'';
+  document.getElementById('mi-perfil-username-input').value=USER_STATE.username||'';
   const avEl=document.getElementById('mi-perfil-avatar');
   if(avEl) avEl.innerHTML=USER_STATE.avatar?`<img src="${USER_STATE.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(USER_STATE.nombre||'?').charAt(0).toUpperCase();
   document.getElementById('mi-perfil-descripcion-input').value='';
   document.getElementById('mi-perfil-dreamcars-list').innerHTML='<div style="font-size:13px;color:var(--muted)">cargando...</div>';
   try{
     const[{data:u},{data:dreamCars}]=await Promise.all([
-      _supa.from('users').select('descripcion,avatar_url').eq('id',USER_STATE.id).maybeSingle(),
+      _supa.from('users').select('descripcion,avatar_url,username').eq('id',USER_STATE.id).maybeSingle(),
       _supa.from('user_dream_cars').select('id,modelo').eq('user_id',USER_STATE.id).order('orden',{ascending:true})
     ]);
     document.getElementById('mi-perfil-descripcion-input').value=u?.descripcion||'';
+    if(u?.username) document.getElementById('mi-perfil-username-input').value=u.username;
     if(u?.avatar_url&&avEl) avEl.innerHTML=`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
     const list=document.getElementById('mi-perfil-dreamcars-list');
     list.innerHTML='';
@@ -5858,14 +5874,23 @@ function _addDreamCarInput(value){
 async function saveMiPerfil(){
   if(!_supa||!USER_STATE?.id) return;
   const nombre=document.getElementById('mi-perfil-nombre-input').value.trim();
+  const username=document.getElementById('mi-perfil-username-input').value.trim().replace('@','').replace(/\s+/g,'_');
   const descripcion=document.getElementById('mi-perfil-descripcion-input').value.trim();
   const dreamCarValues=[...document.querySelectorAll('#mi-perfil-dreamcars-list input')].map(i=>i.value.trim()).filter(Boolean);
   try{
     const updates={descripcion:descripcion||null};
     if(nombre) updates.nombre=nombre;
+    if(username) updates.username=username;
     const{error:uErr}=await _supa.from('users').update(updates).eq('id',USER_STATE.id);
-    if(uErr) throw uErr;
+    if(uErr){
+      // [FIX V119] mismo cuidado que en el registro: si choca con un username ya tomado,
+      // se avisa claro en vez de fallar en silencio o perder los demás cambios.
+      const isUsernameConflict=uErr.code==='23505'||/username/i.test(uErr.message||'');
+      if(isUsernameConflict){ showToast('ese @usuario ya está en uso, intenta otro'); return; }
+      throw uErr;
+    }
     if(nombre) USER_STATE.nombre=nombre;
+    if(username) USER_STATE.username=username;
     // dream cars: se reemplazan completas en el orden actual — simple y sin diffing
     await _supa.from('user_dream_cars').delete().eq('user_id',USER_STATE.id);
     if(dreamCarValues.length){
@@ -8284,9 +8309,28 @@ async function _rueddaRegister(email,pass){
   const{data,error}=await _supa.auth.signUp({email,password:pass,options:{data:{role}}});
   if(error) throw new Error(error.message);
   if(!data.user) throw new Error('no se pudo crear la cuenta');
-  await _supa.from('users').upsert({id:data.user.id,nombre,apellido,cedula,cedula_tipo:cedTipo,telefono,username,role},{onConflict:'id'});
+  // [FIX V119] antes este upsert no revisaba si fallaba (ej: username duplicado) — la cuenta
+  // quedaba creada en auth pero sin fila completa en users, mostrando "usuario" para siempre
+  // en comentarios y perfil. Ahora se revisa el error y, si es por username repetido, se
+  // reintenta con un sufijo numérico en vez de fallar en silencio.
+  let _upErr=null;
+  for(let attempt=0;attempt<5;attempt++){
+    const{error:upErr}=await _supa.from('users').upsert({id:data.user.id,nombre,apellido,cedula,cedula_tipo:cedTipo,telefono,username,role},{onConflict:'id'});
+    if(!upErr){ _upErr=null; break; }
+    _upErr=upErr;
+    const isUsernameConflict=upErr.code==='23505'||/username/i.test(upErr.message||'');
+    if(!isUsernameConflict) break; // otro tipo de error — no insistir a ciegas
+    username=(document.querySelector('#auth-user-wrap input')?.value||nombre||'usuario').toLowerCase().replace('@','').replace(/\s+/g,'_')+'_'+(Math.floor(Math.random()*9000)+1000);
+  }
+  if(_upErr){
+    // no dejar la cuenta a medias en silencio — se informa claro y no se sigue como si hubiese ido bien
+    throw new Error('no se pudo completar el registro. intenta de nuevo ('+(_upErr.message||'error de base de datos')+')');
+  }
   const{data:profile}=await _supa.from('users').select('*').eq('id',data.user.id).single();
-  _rueddaApplySession(profile||{role,nombre,email,username});
+  // [FIX V119] red de seguridad: si por lo que sea la lectura vuelve incompleta, no perder lo
+  // que el usuario ya escribió en el formulario.
+  const _safeProfile=profile?{...profile,nombre:profile.nombre||nombre,username:profile.username||username}:{role,nombre,email,username};
+  _rueddaApplySession(_safeProfile);
   closeAuthSheet();
   // [V83] cierre idéntico al login: barra al 100% con spring → crossfade al splash de bienvenida
   const bar=document.getElementById('login-progress-bar');
@@ -8839,7 +8883,7 @@ async function openUserProfile(userId){
       ${!isMe?`
       <div style="display:flex;gap:10px;margin-top:18px">
         <button onclick="_openRatingModal('${userId}','${safeName}',${myRating})" style="background:#e6f03b;border:none;color:#000;border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">calificar <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg></button>
-        <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="background:${amIFollowing?'rgba(255,255,255,.08)':'#e6f03b'};border:${amIFollowing?'1px solid var(--border)':'none'};color:${amIFollowing?'#fff':'#000'};border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">${amIFollowing?'siguiendo':'seguir'} <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M15 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4 0-8 2-8 5v1h12v-3.5h4v-2c0-2-3-2.5-4.5-2.5A8.6 8.6 0 0 0 15 14zm5-6V6h-2v2h-2v2h2v2h2v-2h2V8z"/></svg></button>
+        <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="background:${amIFollowing?'rgba(255,255,255,.08)':'#e6f03b'};border:${amIFollowing?'1px solid var(--border)':'none'};color:${amIFollowing?'#fff':'#000'};border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">${amIFollowing?'siguiendo':'seguir'} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></button>
       </div>`:`<div style="margin-top:16px;font-size:12px;color:var(--muted)">este es tu perfil — edítalo desde configuración</div>`}
       ${u.descripcion?`
       <div style="margin-top:26px">
@@ -10810,6 +10854,14 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
 
     <div style="margin-top:22px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="font-size:16px;font-weight:800">Usuario</div>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+      </div>
+      <input id="mi-perfil-username-input" class="form-input" type="text" placeholder="@usuario">
+    </div>
+
+    <div style="margin-top:22px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <div style="font-size:16px;font-weight:800">Descripción</div>
         <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
       </div>
@@ -10877,7 +10929,7 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
             <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           </div>
           <div>
-            <div class="config-row-title">datos de perfil</div>
+            <div class="config-row-title">datos de usuario</div>
             <div class="config-row-sub" id="config-perfil-sub">nombre, email, teléfono</div>
           </div>
         </div>
@@ -10901,10 +10953,6 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
     <div class="config-edit-row">
       <div class="config-edit-label">teléfono / WhatsApp</div>
       <input class="config-edit-input" id="cfg-telefono" type="tel" placeholder="+58 412 0000000">
-    </div>
-    <div class="config-edit-row">
-      <div class="config-edit-label">usuario</div>
-      <input class="config-edit-input" id="cfg-username" type="text" placeholder="@usuario">
     </div>
     <button class="config-save-btn" onclick="savePerfilConfig()">guardar cambios</button>
   </div>
@@ -10955,7 +11003,7 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
             <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
           </div>
           <div>
-            <div class="config-row-title">ver perfil</div>
+            <div class="config-row-title">perfil público</div>
             <div class="config-row-sub">así te ven los demás usuarios en Ruedda</div>
           </div>
         </div>
