@@ -261,20 +261,19 @@ html{scrollbar-width:none}
 .msg-item.unread{background:rgba(230,240,59,.025)}
 .msg-avatar{width:46px;height:46px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;overflow:hidden}
 .msg-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
-.msg-avatar.dealer{border-color:rgba(255,255,255,.14)}
-/* chat oficial Ruedda Team — anillo lime sutil */
-.msg-item.official{background:linear-gradient(90deg,rgba(230,240,59,.045),rgba(230,240,59,.012))}
-.msg-item.official:hover{background:linear-gradient(90deg,rgba(230,240,59,.07),rgba(230,240,59,.02))}
-.msg-avatar.official-ring{border:1.5px solid rgba(230,240,59,.55);box-shadow:0 0 0 3px rgba(230,240,59,.08),0 0 14px rgba(230,240,59,.18);background:#000}
-.msg-avatar.official-ring img{padding:0}
+/* dealer ahora también circular — más limpio y consistente */
+.msg-avatar.dealer{border-color:rgba(100,220,150,.22)}
+/* canal oficial Ruedda Team — anillo lime sutil */
+.msg-item.official{background:linear-gradient(180deg,rgba(230,240,59,.04),transparent)}
+.msg-item.official:hover{background:linear-gradient(180deg,rgba(230,240,59,.06),transparent)}
+.msg-avatar.official-ring{border:1.5px solid rgba(230,240,59,.55);box-shadow:0 0 0 3px rgba(230,240,59,.07)}
 .msg-pin{display:inline-flex;align-items:center;margin-left:5px;color:rgba(230,240,59,.85)}
-/* nombre persona/dealer arriba (bold) + modelo abajo (light) */
-.msg-name{font-size:15px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;color:#fff;line-height:1.25}
+.msg-name{font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;letter-spacing:-.2px;line-height:1.25}
 .msg-model{font-size:13px;font-weight:400;color:rgba(255,255,255,.5);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.1px}
 .msg-list-fade{opacity:0}
 .msg-list-fade.loaded{animation:fadeIn .22s ease forwards}
 .msg-car-tag{font-size:11px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
-.msg-preview{font-size:12.5px;color:rgba(255,255,255,.32);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;font-weight:400}
+.msg-preview{font-size:13px;color:rgba(255,255,255,.32);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;font-weight:400}
 .msg-time{font-size:11px;color:var(--muted2);flex-shrink:0;margin-top:2px}
 .thread-bubble{display:flex;flex-direction:column;margin-bottom:14px}
 .thread-bubble.mine{align-items:flex-end}
@@ -8885,31 +8884,31 @@ function renderMensajesList(){
   if(!THREADS.length){
     const _rl='https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/ruedda-logo.png';
     list.innerHTML=`<div class="msg-item official" onclick="openRueddaTeamThread()">
-      <div class="msg-avatar official-ring"><img src="${_rl}" alt="Ruedda" loading="lazy" onerror="this.parentElement.innerHTML='<span style=\\'color:#e6f03b;font-weight:800\\'>R</span>'"/></div>
+      <div class="msg-avatar official-ring"><img src="${_rl}" alt="Ruedda" loading="lazy" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
       <div style="flex:1;min-width:0">
-        <div class="msg-name">Ruedda Team<span class="msg-pin"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M16 4v2l-1 1v5l3 3v1h-5v5l-1 1-1-1v-5H5v-1l3-3V7L7 6V4z"/></svg></span></div>
+        <div class="msg-name">Ruedda Team<span class="msg-pin"><svg viewBox="0 0 24 24" style="width:13px;height:13px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span></div>
         <div class="msg-model">canal oficial · novedades y soporte</div>
-        <div class="msg-preview">Bienvenido a Ruedda — el mercado automotriz más avanzado.</div>
+        <div class="msg-preview">bienvenido a Ruedda — toca para escribirnos</div>
       </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0"><div class="msg-time">oficial</div></div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0"><div class="msg-time">Ruedda</div></div>
     </div>
-    <div style="text-align:center;padding:48px 20px 20px;color:var(--muted);font-size:13px;font-weight:300">aún no tienes conversaciones con vendedores</div>`;
+    <div style="text-align:center;padding:40px 20px 20px;color:var(--muted);font-size:13px;font-weight:400">aún no tienes conversaciones con vendedores</div>`;
     return;
   }
   // [PM v82] fade solo en el primer paint — los refrescos posteriores no parpadean
   const firstPaint=!list.childElementCount||!list.classList.contains('loaded');
   if(firstPaint) list.classList.remove('msg-list-fade','loaded');
-  // [V115] chat oficial fijado "Ruedda Team" — siempre arriba
+  // ── canal oficial fijado: Ruedda Team (siempre arriba) ──
   const _rueddaLogo='https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/ruedda-logo.png';
   const officialRow=`<div class="msg-item official" onclick="openRueddaTeamThread()">
-      <div class="msg-avatar official-ring"><img src="${_rueddaLogo}" alt="Ruedda" loading="lazy" onerror="this.parentElement.innerHTML='<span style=\\'color:#e6f03b;font-weight:800\\'>R</span>'"/></div>
+      <div class="msg-avatar official-ring"><img src="${_rueddaLogo}" alt="Ruedda" loading="lazy" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
       <div style="flex:1;min-width:0">
-        <div class="msg-name">Ruedda Team<span class="msg-pin"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M16 4v2l-1 1v5l3 3v1h-5v5l-1 1-1-1v-5H5v-1l3-3V7L7 6V4z"/></svg></span></div>
+        <div class="msg-name">Ruedda Team<span class="msg-pin"><svg viewBox="0 0 24 24" style="width:13px;height:13px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span></div>
         <div class="msg-model">canal oficial · novedades y soporte</div>
-        <div class="msg-preview">Bienvenido a Ruedda — el mercado automotriz más avanzado.</div>
+        <div class="msg-preview">bienvenido a Ruedda — toca para escribirnos</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
-        <div class="msg-time">oficial</div>
+        <div class="msg-time">Ruedda</div>
       </div>
     </div>`;
   list.innerHTML=officialRow+THREADS.map(t=>{
@@ -8919,10 +8918,10 @@ function renderMensajesList(){
     const nameStr=t.isPM?t.otherName:otherDisplay;
     // avatar: imagen si existe, fallback inicial
     const avatarInner=t.otherAvatar
-      ?`<img src="${t.otherAvatar}" alt="" loading="lazy" onerror="this.parentElement.textContent='${(nameStr||'?')[0].toUpperCase()}'"/>`
-      :(nameStr||'?')[0].toUpperCase();
+      ?`<img src="${t.otherAvatar}" alt="" loading="lazy" onerror="this.parentElement.textContent='${(otherDisplay||'?')[0].toUpperCase()}'"/>`
+      :(otherDisplay||'?')[0].toUpperCase();
     const dealerBadge=(isDealer||t.otherKyc)?`<span style="display:inline-flex;align-items:center;margin-left:4px"><svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>`:'';
-    const pmTag=t.isPM?`<span style="font-size:9px;font-weight:600;background:rgba(255,255,255,.06);color:var(--muted);padding:1px 5px;border-radius:4px;margin-left:6px;letter-spacing:.2px">privado</span>`:'';
+    const pmTag=t.isPM?`<span style="font-size:9px;font-weight:600;background:rgba(255,255,255,.06);color:var(--muted);padding:1px 5px;border-radius:4px;margin-left:5px">privado</span>`:'';
     return `<div class="msg-item${t.unread?' unread':''}" onclick="openThread('${t.id}')">
       <div class="msg-avatar${isDealer?' dealer':''}">${avatarInner}</div>
       <div style="flex:1;min-width:0">
@@ -8941,44 +8940,43 @@ function renderMensajesList(){
 }
 
 // ─────────────────────────────────────────────
-// SOBREESCRIBIR openThread para PM + threads normales
+// CANAL OFICIAL: Ruedda Team (chat sintético fijado)
 // ─────────────────────────────────────────────
-// [V115] abre el chat oficial fijado "Ruedda Team"
 function openRueddaTeamThread(){
-  const _rl='https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/ruedda-logo.png';
   currentThread={
     id:'__ruedda_team__',
     isOfficial:true,
     isPM:false,
+    carTitle:'Ruedda Team',
     otherName:'Ruedda Team',
-    otherRole:null,
-    carTitle:'canal oficial',
-    participants:[],
     messages:[
-      {from:'Ruedda Team',text:'¡Bienvenido a Ruedda! 🏁 El mercado automotriz más avanzado de Venezuela y el primero con subastas en tiempo real.',time:'',mine:false},
-      {from:'Ruedda Team',text:'Aquí te avisaremos de novedades, lanzamientos y todo lo que necesites. Si tienes dudas, este es tu canal directo con el equipo.',time:'',mine:false}
+      {from:'Ruedda Team',text:'¡Bienvenido a Ruedda! 👋 Somos el equipo oficial. Aquí te avisamos de novedades y resolvemos cualquier duda.',time:'',mine:false},
+      {from:'Ruedda Team',text:'¿En qué te podemos ayudar hoy? Escríbenos y te respondemos lo antes posible.',time:'',mine:false}
     ]
   };
-  const tt=document.getElementById('thread-car-title');
-  if(tt) tt.textContent='Ruedda Team';
+  const title=document.getElementById('thread-car-title');
+  if(title){title.textContent='Ruedda Team';title.onclick=null;title.style.cursor='default';}
   const meta=document.getElementById('thread-meta');
-  if(meta) meta.innerHTML='canal oficial <span style="display:inline-flex;align-items:center;margin-left:2px;color:#e6f03b;vertical-align:middle"><svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" style="vertical-align:-1px"><path d="M16 4v2l-1 1v5l3 3v1h-5v5l-1 1-1-1v-5H5v-1l3-3V7L7 6V4z"/></svg></span>';
+  if(meta) meta.innerHTML='canal oficial <span style="color:rgba(230,240,59,.85);display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span>';
   const av=document.getElementById('thread-avatar');
   if(av){
-    av.style.cursor='default';
-    av.onclick=null;
+    av.style.cursor='default';av.onclick=null;
     av.style.border='1.5px solid rgba(230,240,59,.55)';
-    av.style.boxShadow='0 0 0 3px rgba(230,240,59,.08)';
-    av.style.background='#000';
-    av.innerHTML=`<img src="${_rl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML='<span style=\\'color:#e6f03b;font-weight:800\\'>R</span>'">`;
+    av.style.boxShadow='0 0 0 3px rgba(230,240,59,.07)';
+    av.innerHTML=`<img src="https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/ruedda-logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
   }
   const callBtn=document.getElementById('thread-call-btn');
   if(callBtn) callBtn.style.display='none';
   renderThreadMessages();
   showView('thread');
 }
-
+// ─────────────────────────────────────────────
+// SOBREESCRIBIR openThread para PM + threads normales
+// ─────────────────────────────────────────────
 function openThread(id){
+  currentThread=THREADS.find(t=>String(t.id)===String(id));
+  if(!currentThread) return;
+  currentThread.unread=false;
   document.getElementById('thread-car-title').textContent=currentThread.carTitle||'mensaje';
   const otherName=currentThread.isPM?currentThread.otherName:((currentThread.participants||[]).find(p=>!p.isSeller)||{user:'usuario'}).user;
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
@@ -9082,13 +9080,13 @@ async function sendThreadReply(){
   const input=document.getElementById('thread-input');
   const text=input.value.trim();
   if(!text) return;
-  // [V115] canal oficial Ruedda Team: respuesta local, sin insertar en DB
+  // canal oficial: respuesta local, no toca private_messages
   if(currentThread.isOfficial){
     currentThread.messages.push({from:'tú',text,time:'ahora mismo',mine:true});
     input.value='';input.style.height='44px';
     renderThreadMessages();
     setTimeout(()=>{
-      currentThread.messages.push({from:'Ruedda Team',text:'¡Gracias por escribirnos! Un miembro del equipo te responderá pronto por este canal. 🏁',time:'ahora mismo',mine:false});
+      currentThread.messages.push({from:'Ruedda Team',text:'¡Gracias por escribirnos! Un miembro del equipo te responderá pronto. 🚗',time:'ahora mismo',mine:false});
       renderThreadMessages();
     },700);
     return;
