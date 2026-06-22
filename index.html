@@ -1307,6 +1307,10 @@ html{scrollbar-width:none}
           <div class="detail-section-title">especificaciones</div>
           <div class="specs-grid" id="specs-grid"></div>
         </div>
+        <div class="detail-section" id="detail-videos-section" style="display:none">
+          <div class="detail-section-title">videos</div>
+          <div id="detail-videos-grid" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
         <div class="detail-section">
           <div class="detail-section-title">historial de ofertas</div>
           <div class="bid-history-list" id="bid-history"></div>
@@ -1402,6 +1406,10 @@ html{scrollbar-width:none}
         <div class="detail-section">
           <div class="detail-section-title">especificaciones</div>
           <div class="specs-grid" id="mkt-specs"></div>
+        </div>
+        <div class="detail-section" id="mkt-videos-section" style="display:none">
+          <div class="detail-section-title">videos</div>
+          <div id="mkt-videos-grid" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
         <div class="detail-section">
           <div class="detail-section-title">descripción</div>
@@ -1932,6 +1940,22 @@ html{scrollbar-width:none}
       </div>
       <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="handleFiles(this)">
       <div id="photo-count-hint" style="font-size:12px;color:rgba(255,255,255,.3);margin-top:8px;display:none"></div>
+    </div>
+
+    <!-- VIDEOS DEL VEHÍCULO (opcional) -->
+    <div class="form-group">
+      <label class="form-label">videos del vehículo (opcional)</label>
+      <div id="video-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div id="video-add-btn" onclick="document.getElementById('video-input').click()" style="aspect-ratio:1;background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.15);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .2s;position:relative" onmouseover="this.style.borderColor='rgba(230,240,59,.5)';this.style.background='rgba(230,240,59,.04)'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.background='rgba(255,255,255,.04)'">
+          <div style="width:40px;height:40px;background:rgba(230,240,59,.12);border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="2.2" style="width:20px;height:20px"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+          </div>
+          <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.8);text-align:center;line-height:1.4">agregar<br>videos</div>
+          <div style="position:absolute;bottom:8px;font-size:9px;color:rgba(255,255,255,.3);font-weight:500">hasta 3</div>
+        </div>
+      </div>
+      <input type="file" id="video-input" multiple accept="video/*" style="display:none" onchange="handleVideoFiles(this)">
+      <div id="video-count-hint" style="font-size:12px;color:rgba(255,255,255,.3);margin-top:8px;display:none"></div>
     </div>
 
     <div style="background:rgba(230,240,59,.05);border:1px solid rgba(230,240,59,.16);border-radius:14px;padding:18px 18px 20px">
@@ -3900,6 +3924,20 @@ function openMarketDetail(id, origin){
   if(!l)return;
   mktDetailOrigin=origin||'market';
   currentMarketListing=l;
+  // [V124] videos del vehículo — sección solo aparece si hay al menos uno
+  // reset sincrónico primero: el DOM persiste entre vistas (SPA).
+  const _mvSec=document.getElementById('mkt-videos-section');
+  if(_mvSec){_mvSec.style.display='none';document.getElementById('mkt-videos-grid').innerHTML='';}
+  if(_supa&&l.id){
+    _supa.from('listing_videos').select('url,orden').eq('listing_id',l.id).order('orden',{ascending:true}).then(({data:vids})=>{
+      const sec=document.getElementById('mkt-videos-section');
+      const grid=document.getElementById('mkt-videos-grid');
+      if(!sec||!grid) return;
+      if(!vids?.length){ sec.style.display='none'; grid.innerHTML=''; return; }
+      sec.style.display='block';
+      grid.innerHTML=vids.map(v=>`<video src="${v.url}" controls playsinline style="width:100%;border-radius:14px;background:#000;max-height:420px"></video>`).join('');
+    }).catch(()=>{});
+  }
   // gallery
   const inner=document.getElementById('mkt-gallery-inner');
   const dots=document.getElementById('mkt-gallery-dots');
@@ -4249,6 +4287,21 @@ function openDetail(id){
         sellerCard.style.cursor='pointer';
         sellerCard.onclick=()=>{ isDealer?_openVitrinaByUserId(a.ownerId):openUserProfile(a.ownerId); };
       }
+    }).catch(()=>{});
+  }
+  // [V124] videos del vehículo — sección solo aparece si hay al menos uno
+  // reset sincrónico primero: el DOM persiste entre vistas (SPA), si no se limpia acá
+  // se ven por un instante los videos del carro anterior.
+  const _avSec=document.getElementById('detail-videos-section');
+  if(_avSec){_avSec.style.display='none';document.getElementById('detail-videos-grid').innerHTML='';}
+  if(_supa&&a.id){
+    _supa.from('auction_videos').select('url,orden').eq('auction_id',a.id).order('orden',{ascending:true}).then(({data:vids})=>{
+      const sec=document.getElementById('detail-videos-section');
+      const grid=document.getElementById('detail-videos-grid');
+      if(!sec||!grid) return;
+      if(!vids?.length){ sec.style.display='none'; grid.innerHTML=''; return; }
+      sec.style.display='block';
+      grid.innerHTML=vids.map(v=>`<video src="${v.url}" controls playsinline style="width:100%;border-radius:14px;background:#000;max-height:420px"></video>`).join('');
     }).catch(()=>{});
   }
   _renderDetailStatsCard(a);
@@ -5862,6 +5915,7 @@ async function publishListing(){
     // operaciones post-insert aisladas — si fallan NO matan el publish ni bloquean el splash
     Promise.allSettled([
       window._venderPhotos?.length ? _uploadVenderPhotos(recordId,userId,esListing) : Promise.resolve(),
+      videoItems.length ? _uploadVenderVideos(recordId,userId,esListing) : Promise.resolve(),
       window._pendingPaymentRef ? (async()=>{
         const refField = esListing ? 'listing_id' : 'auction_id';
         await _supa.from('payment_refs').update({[refField]:recordId}).eq('ref_num',window._pendingPaymentRef);
@@ -5872,6 +5926,8 @@ async function publishListing(){
     showDealerFab(false);
     window._venderPhotos=[];
     photoItems=[];
+    videoItems.forEach(v=>URL.revokeObjectURL(v.src));
+    videoItems=[];
     // reset form
     document.querySelectorAll('.vender-form input,.vender-form textarea,.vender-form select').forEach(el=>{
       if(el.tagName==='SELECT') el.selectedIndex=0;
@@ -5884,6 +5940,12 @@ async function publishListing(){
       photoGrid.innerHTML='';
       if(addBtn) photoGrid.appendChild(addBtn);
     }
+    const videoGrid=document.getElementById('video-grid');
+    if(videoGrid){
+      const vAddBtn=document.getElementById('video-add-btn');
+      videoGrid.innerHTML='';
+      if(vAddBtn){vAddBtn.style.display='flex';videoGrid.appendChild(vAddBtn);}
+    }
     _showPublicacionRevisionSplash(isConcesionario()||USER_STATE.role==='concesionario');
   }catch(e){
     console.error('[ruedda publish] ERROR COMPLETO:',e);
@@ -5893,6 +5955,27 @@ async function publishListing(){
   }finally{
     if(btn){btn.textContent='publicar';btn.disabled=false;}
   }
+}
+
+async function _uploadVenderVideos(recordId,userId,isListing=false){
+  if(!_supa||!videoItems.length) return;
+  const videoTable=isListing?'listing_videos':'auction_videos';
+  // upload secuencial — los videos pesan mucho, evitar saturar la conexión con paralelo
+  for(let i=0;i<videoItems.length;i++){
+    const item=videoItems[i];
+    const file=item?.file;
+    if(!file) continue;
+    const ext=(file.name||'mp4').split('.').pop()||'mp4';
+    const path=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`;
+    try{
+      const{error}=await _supa.storage.from('car-videos').upload(path,file,{upsert:true});
+      if(error){console.error('[ruedda] video upload',i,error.message);continue;}
+      const{data:{publicUrl}}=_supa.storage.from('car-videos').getPublicUrl(path);
+      const videoPayload=isListing?{listing_id:recordId,url:publicUrl,orden:i}:{auction_id:recordId,url:publicUrl,orden:i};
+      await (_supaWrite||_supa).from(videoTable).insert(videoPayload);
+    }catch(e){console.error('[ruedda] video',i,'catch:',e.message);}
+  }
+  console.log('[ruedda] videos subidos:',videoItems.length);
 }
 
 async function _uploadVenderPhotos(recordId,userId,isListing=false){
@@ -6520,6 +6603,56 @@ function populateYears(){
 
 let photoItems = [];
 let dragSrcIdx = null;
+let videoItems = []; // [V124] {src, name, file} — mismo patrón que photoItems
+const MAX_VIDEOS = 3;
+const MAX_VIDEO_BYTES = 500 * 1024 * 1024; // 500 MB por archivo
+
+function handleVideoFiles(input){
+  if(!input.files?.length) return;
+  const incoming=[...input.files];
+  const room=MAX_VIDEOS-videoItems.length;
+  if(room<=0){ showToast(`máximo ${MAX_VIDEOS} videos`); input.value=''; return; }
+  const accepted=incoming.slice(0,room);
+  if(incoming.length>room) showToast(`solo se agregaron ${room} — máximo ${MAX_VIDEOS} videos`);
+  accepted.forEach(file=>{
+    if(file.size>MAX_VIDEO_BYTES){ showToast(`"${file.name}" pesa más de 500MB, no se agregó`); return; }
+    const url=URL.createObjectURL(file);
+    videoItems.push({src:url,name:file.name,file:file});
+    renderVideoGrid();
+  });
+  input.value='';
+}
+
+function renderVideoGrid(){
+  const grid=document.getElementById('video-grid');
+  if(!grid) return;
+  const addBtn=document.getElementById('video-add-btn');
+  grid.innerHTML='';
+  if(addBtn){ addBtn.style.display=videoItems.length>=MAX_VIDEOS?'none':'flex'; grid.appendChild(addBtn); }
+  videoItems.forEach((item,i)=>{
+    const cell=document.createElement('div');
+    cell.style.cssText='aspect-ratio:1;border-radius:14px;overflow:hidden;position:relative;background:#000';
+    cell.innerHTML=`
+      <video src="${item.src}" style="width:100%;height:100%;object-fit:cover;pointer-events:none" muted></video>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+        <svg fill="rgba(255,255,255,.85)" viewBox="0 0 24 24" style="width:30px;height:30px"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,.4)"/><path d="M10 8.5v7l6-3.5z" fill="#fff"/></svg>
+      </div>
+      <button onclick="removeVideo(${i})" style="position:absolute;top:5px;right:5px;width:22px;height:22px;background:rgba(0,0,0,.65);border:none;border-radius:50%;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .15s" onmouseover="this.style.background='rgba(255,60,60,.8)'" onmouseout="this.style.background='rgba(0,0,0,.65)'">×</button>
+    `;
+    grid.appendChild(cell);
+  });
+  const hint=document.getElementById('video-count-hint');
+  if(hint){
+    if(videoItems.length>0){ hint.style.display='block'; hint.textContent=`${videoItems.length}/${MAX_VIDEOS} videos`; }
+    else hint.style.display='none';
+  }
+}
+
+function removeVideo(i){
+  URL.revokeObjectURL(videoItems[i]?.src);
+  videoItems.splice(i,1);
+  renderVideoGrid();
+}
 
 function handleFiles(input){
   if(!window._venderPhotos) window._venderPhotos=[];
@@ -8601,11 +8734,15 @@ async function _loadChocados(){
   if(!_supa) return;
   const{data}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,transmision,combustible,ciudad,descripcion,duenos,user_id,tipo_dano,estado_chocado,auction_photos(url,orden)').eq('es_chocado',true).eq('estado','activa').order('end_time',{ascending:true}); window._feedLoaded.choc=true;
   if(!data?.length){AUCTIONS_CHOCADOS.splice(0,AUCTIONS_CHOCADOS.length);if(typeof renderCards==='function')renderCards();return;} // [V87] feed vacio: pintar empty state
-  // [FIX V121] antes este mapeo no incluía photoUrls/transmission/fuel/year/owners — la card
-  // de chocados siempre mostraba el placeholder y "undefined" en vez de los datos reales.
+  // [FIX V124] faltaba el nombre del vendedor — por eso el detalle de chocados mostraba
+  // "vendedor anónimo" aunque el resto de la card ya estuviera bien (V121 lo dejó pasar).
+  const _userIds=[...new Set(data.map(a=>a.user_id).filter(Boolean))];
+  const{data:_usersRes}=_userIds.length?await _supa.from('users').select('id,nombre').in('id',_userIds):{data:[]};
+  const sellerMap={};
+  (_usersRes||[]).forEach(u=>{ sellerMap[u.id]=u.nombre||'Vendedor'; });
   const mapped=data.map(a=>{
     const sortedPhotos=(a.auction_photos||[]).slice().sort((x,y)=>(x.orden||0)-(y.orden||0));
-    return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),owners:a.duenos||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',chocado:true,desc:a.descripcion||'',specs:{'daño':a.tipo_dano||'—','condición':a.estado_chocado||'—'},bids:[],comments:[]};
+    return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),owners:a.duenos||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',chocado:true,desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',specs:{'daño':a.tipo_dano||'—','condición':a.estado_chocado||'—'},bids:[],comments:[]};
   });
   AUCTIONS_CHOCADOS.splice(0,AUCTIONS_CHOCADOS.length,...mapped);
   // [FIX V116] antes solo se re-renderizaba en el caso vacío — los chocados nuevos
