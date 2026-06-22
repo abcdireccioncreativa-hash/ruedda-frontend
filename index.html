@@ -2219,7 +2219,7 @@ html{scrollbar-width:none}
     <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:20px">
       <span style="font-size:14px;font-weight:600;color:var(--muted);letter-spacing:.3px">Comunidad</span>
       <div onclick="isGuest()?triggerGuestBlock('tu perfil'):openUserProfile(USER_STATE.id)" style="display:flex;align-items:center;gap:6px;cursor:pointer">
-        <span style="font-size:12px;font-weight:700;color:rgba(255,255,255,.55)">mi perfil</span>
+        <span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.55)">mi perfil</span>
         <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;opacity:.85"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       </div>
     </div>
@@ -2719,9 +2719,14 @@ html{scrollbar-width:none}
 <div id="photo-viewer-overlay">
   <div class="pv-top">
     <span id="pv-counter" style="color:#fff;font-size:13px;font-weight:600;background:rgba(255,255,255,.08);padding:5px 12px;border-radius:100px"></span>
-    <button onclick="closePhotoViewer()" style="background:rgba(255,255,255,.08);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer">
-      <svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M18 6 6 18M6 6l12 12"/></svg>
-    </button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button id="pv-share-btn" onclick="_pvShare()" style="display:none;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:34px;height:34px;align-items:center;justify-content:center;cursor:pointer">
+        <svg fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg>
+      </button>
+      <button onclick="closePhotoViewer()" style="background:rgba(255,255,255,.08);border:none;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
   </div>
   <div class="pv-stage">
     <div id="pv-inner" class="pv-inner"></div>
@@ -3906,7 +3911,7 @@ function openMarketDetail(id, origin){
     s.className='photo-slide';
     s.style.background='linear-gradient('+grads[_gidx(l.id)]+')';
     if(hasPhotos){
-      s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onclick="openPhotoViewer(currentMarketListing.photoUrls,${i})"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
+      s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onclick="openPhotoViewer(currentMarketListing.photoUrls,${i},{type:'market',id:currentMarketListing.id,title:currentMarketListing.title})"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
     } else {
       s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'</div>';
     }
@@ -4172,7 +4177,7 @@ function openDetail(id){
     slide.className='photo-slide';
     slide.style.background=`linear-gradient(${grads[_gidx(a.id)]})`;
     if(_hasPhotos){
-      slide.innerHTML=`<img src="${a.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'" onclick="openPhotoViewer(currentAuction.photoUrls,${i})">`;
+      slide.innerHTML=`<img src="${a.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'" onclick="openPhotoViewer(currentAuction.photoUrls,${i},{type:'auction',id:currentAuction.id,title:currentAuction.title})">`;
     } else {
       slide.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.4"><div>${carPlaceholder(a.id)}</div><div style="font-size:12px;color:#555">foto ${i+1} de ${_slideCount}</div></div>`;
     }
@@ -4533,12 +4538,16 @@ function closeClipModal(){
 // ─────────────────────────────────────────────
 let _pvPhotos=[];
 let _pvIndex=0;
+let _pvShareInfo=null;
 
-function openPhotoViewer(photos,startIndex){
+function openPhotoViewer(photos,startIndex,shareInfo){
   if(!photos||!photos.length) return;
   _pvPhotos=photos.filter(Boolean);
   if(!_pvPhotos.length) return;
   _pvIndex=Math.min(startIndex||0,_pvPhotos.length-1);
+  _pvShareInfo=shareInfo||null;
+  const shareBtn=document.getElementById('pv-share-btn');
+  if(shareBtn) shareBtn.style.display=_pvShareInfo?'flex':'none';
   const ov=document.getElementById('photo-viewer-overlay');
   const inner=document.getElementById('pv-inner');
   const thumbs=document.getElementById('pv-thumbs');
@@ -4552,6 +4561,24 @@ function openPhotoViewer(photos,startIndex){
   document.body.style.overflow='hidden';
   requestAnimationFrame(()=>{ inner.scrollLeft=_pvIndex*inner.clientWidth; });
   inner.onscroll=_pvOnScroll;
+}
+
+// [V123] comparte la publicación (no solo la foto) — genera un link que reabre
+// directo en esa subasta/listing de market, con Web Share API y respaldo a copiar.
+function _shareUrlFor(type,id){
+  return `${window.location.origin}${window.location.pathname}?${type}=${id}`;
+}
+function _pvShare(){
+  if(!_pvShareInfo) return;
+  const url=_shareUrlFor(_pvShareInfo.type,_pvShareInfo.id);
+  const title=_pvShareInfo.title||'Ruedda';
+  if(navigator.share){
+    navigator.share({title,url}).catch(()=>{});
+  } else if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(()=>showToast('link copiado',true)).catch(()=>showToast(url));
+  } else {
+    showToast(url);
+  }
 }
 
 function _pvOnScroll(){
@@ -4645,10 +4672,12 @@ async function _likeCarspot(id,btn){
   if(countEl){const cur=parseInt(countEl.textContent)||0;countEl.textContent=newLiked?cur+1:Math.max(0,cur-1);}
   if(!_supa) return;
   try{
-    if(newLiked){ await _supa.from('carspotting_likes').insert({carspotting_id:id,user_id:USER_STATE.id}).then(null,()=>{}); }
-    else { await _supa.from('carspotting_likes').delete().eq('carspotting_id',id).eq('user_id',USER_STATE.id).then(null,()=>{}); }
-    const{count}=await _supa.from('carspotting_likes').select('*',{count:'exact',head:true}).eq('carspotting_id',id);
-    await _supa.from('carspotting').update({likes:count||0}).eq('id',id).then(null,()=>{});
+    // [FIX V123] antes este update de carspotting.likes fallaba en silencio por RLS cuando
+    // el que daba like no era el dueño del spot — el contador no se mantenía al recargar.
+    // Ahora un trigger en la base mantiene el contador automáticamente; el cliente solo
+    // inserta/borra su propio like.
+    if(newLiked){ await _supa.from('carspotting_likes').insert({carspotting_id:id,user_id:USER_STATE.id}); }
+    else { await _supa.from('carspotting_likes').delete().eq('carspotting_id',id).eq('user_id',USER_STATE.id); }
   }catch(e){console.warn('[carspot like]',e?.message);}
 }
 
@@ -4757,14 +4786,14 @@ async function _likeNoticia(noticiaId,btn){
   if(countEl){const cur=parseInt(countEl.textContent)||0;countEl.textContent=newLiked?cur+1:Math.max(0,cur-1);}
   if(!_supa) return;
   try{
+    // [FIX V123] el update directo a noticias.likes podía fallar por RLS si el que daba
+    // like no era el autor de la noticia — ahora un trigger en la base mantiene el
+    // contador automáticamente al insertar/borrar el like.
     if(newLiked){
-      await _supa.from('noticia_likes').insert({noticia_id:noticiaId,user_id:USER_STATE.id}).then(null,()=>{});
+      await _supa.from('noticia_likes').insert({noticia_id:noticiaId,user_id:USER_STATE.id});
     } else {
-      await _supa.from('noticia_likes').delete().eq('noticia_id',noticiaId).eq('user_id',USER_STATE.id).then(null,()=>{});
+      await _supa.from('noticia_likes').delete().eq('noticia_id',noticiaId).eq('user_id',USER_STATE.id);
     }
-    // contador global vía RPC sencillo: leer count actual y actualizar — sin función SQL extra
-    const{count}=await _supa.from('noticia_likes').select('*',{count:'exact',head:true}).eq('noticia_id',noticiaId);
-    await _supa.from('noticias').update({likes:count||0}).eq('id',noticiaId).then(null,()=>{});
   }catch(e){console.warn('[noticia like]',e?.message);}
 }
 
@@ -8751,6 +8780,15 @@ function _subscribePrivateMessages(userId){
     }
   }
   await Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadConcesionarios(),_loadFotografos()]);
+  // [V123] deep-link: si llegaste por un link compartido (?auction=ID o ?market=ID),
+  // abre directo esa publicación en vez de quedarte en el home.
+  try{
+    const _params=new URLSearchParams(window.location.search);
+    const _aId=_params.get('auction');
+    const _mId=_params.get('market');
+    if(_aId&&typeof openDetail==='function') setTimeout(()=>openDetail(_aId),300);
+    else if(_mId&&typeof openMarketDetail==='function') setTimeout(()=>openMarketDetail(_mId),300);
+  }catch(e){}
 })();
 
 initLanding();
@@ -9159,12 +9197,15 @@ async function _likeComment(commentId,btn){
   if(span)span.textContent=next>0?next:'';
   if(!_supa) return;
   try{
+    // [FIX V123] esta es la causa de "el contador no se mantiene": el update directo a
+    // comments.likes fallaba en silencio por RLS casi siempre, porque solo el AUTOR del
+    // comentario puede editarlo — pero quien da like normalmente es OTRA persona. El corazón
+    // se pintaba bien (optimista, en memoria) pero el número nunca llegaba a guardarse, y al
+    // recargar volvía a cero. Ahora un trigger en la base mantiene el contador automáticamente.
     if(newLiked){
-      await _supa.from('comment_likes').insert({comment_id:commentId,user_id:USER_STATE.id}).then(null,()=>{});
-      await _supa.from('comments').update({likes:(next)}).eq('id',commentId).then(null,()=>{});
+      await _supa.from('comment_likes').insert({comment_id:commentId,user_id:USER_STATE.id});
     } else {
-      await _supa.from('comment_likes').delete().eq('comment_id',commentId).eq('user_id',USER_STATE.id).then(null,()=>{});
-      await _supa.from('comments').update({likes:Math.max(0,next)}).eq('id',commentId).then(null,()=>{});
+      await _supa.from('comment_likes').delete().eq('comment_id',commentId).eq('user_id',USER_STATE.id);
     }
   }catch(e){console.warn('[like]',e?.message);}
 }
