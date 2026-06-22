@@ -2684,6 +2684,17 @@ html{scrollbar-width:none}
   </div>
 </div>
 
+<!-- CALIFICAR USUARIO -->
+<div class="modal-overlay" id="rating-sheet" onclick="if(event.target.id==='rating-sheet')closeRatingModal()" style="align-items:flex-end">
+  <div class="modal-sheet" style="text-align:center">
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:6px" id="rating-sheet-name">calificar usuario</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:22px">toca una estrella para calificar</div>
+    <div id="rating-stars" style="display:flex;justify-content:center;gap:8px;margin-bottom:24px"></div>
+    <button onclick="closeRatingModal()" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:13px;color:rgba(255,255,255,.6);font-size:14px;font-weight:700;padding:13px;cursor:pointer;font-family:var(--font)">cerrar</button>
+  </div>
+</div>
+
 <!-- PAYMENT SHEET -->
 <div class="modal-overlay" id="payment-sheet" onclick="closePaymentSheet(event)" style="align-items:flex-end">
   <div style="background:#0a0a0a;border-radius:28px 28px 0 0;padding:0 0 44px;width:100%;border:1px solid rgba(255,255,255,.08);border-bottom:none;animation:slideUp .38s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
@@ -3006,6 +3017,17 @@ window._feedLoaded={auc:false,mkt:false,choc:false};
 const AUCTIONS = []; // se carga desde Supabase en _loadAuctions()
 
 const AUCTIONS_CHOCADOS = []; // se carga desde Supabase en _loadChocados()
+window._rueddaTeamLogoUrl='https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/ruedda-logo.png'; // fallback, editable desde SuperAdmin
+async function _loadRueddaTeamConfig(){
+  if(!_supa) return;
+  try{
+    const{data}=await _supa.from('app_settings').select('value').eq('key','ruedda_team_avatar_url').maybeSingle();
+    if(data?.value){
+      window._rueddaTeamLogoUrl=data.value;
+      if(typeof renderMensajesList==='function') renderMensajesList();
+    }
+  }catch(e){}
+}
 
 const MARKET_LISTINGS = []; // se carga desde Supabase en _loadMarket()
 
@@ -3127,7 +3149,7 @@ function showView(name,param){
     document.querySelectorAll('.dropdown-item').forEach((i,idx)=>i.classList.toggle('active',idx===0));
     renderCurrentSection();
     // refetch desde DB para que listings aprobados aparezcan sin recargar la página
-    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados()]);
+    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig()]);
   } else {}
   if(name==='vender')populateYears();
   if(name==='cuenta'){document.getElementById('stat-guardadas').textContent=watchlist.size;updateCuentaView();showDealerFab(false);}
@@ -3903,6 +3925,12 @@ function openMarketDetail(id, origin){
         if(_nm) _nm.innerHTML=nm+_kseal;
         if(_nm2) _nm2.innerHTML=nm+_kseal;
         l.seller=nm;
+        // [V116] click en la card abre el perfil — vitrina si es dealer, perfil público si es particular
+        const sellerCard=document.getElementById('mkt-seller-card');
+        if(sellerCard){
+          sellerCard.style.cursor='pointer';
+          sellerCard.onclick=()=>{ isDealer?_openVitrinaByUserId(l.user_id):openUserProfile(l.user_id); };
+        }
         // inyectar botón PM solo si no es el dueño
         const card=document.getElementById('mkt-seller-card');
         if(card&&!card.querySelector('.pm-icon-btn')&&l.user_id!==USER_STATE.id){
@@ -4155,9 +4183,16 @@ function openDetail(id){
   if(sellerNm) sellerNm.textContent=a.seller||'Vendedor anónimo';
   // [V91] foto real del publicante en "publicado por"
   if(_supa&&a.ownerId){
-    _supa.from('users').select('avatar_url,kyc_verified').eq('id',a.ownerId).maybeSingle().then(({data:u})=>{
+    _supa.from('users').select('avatar_url,kyc_verified,role').eq('id',a.ownerId).maybeSingle().then(({data:u})=>{
       if(u?.avatar_url&&sellerAv) sellerAv.innerHTML=`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
       if(u?.kyc_verified&&sellerNm) sellerNm.innerHTML=(a.seller||'Vendedor anónimo')+'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>';
+      // [V116] click en la card abre el perfil — vitrina si es dealer, perfil público si es particular
+      const sellerCard=document.getElementById('detail-seller-card');
+      if(sellerCard){
+        const isDealer=u?.role==='concesionario'||u?.role==='consesionario';
+        sellerCard.style.cursor='pointer';
+        sellerCard.onclick=()=>{ isDealer?_openVitrinaByUserId(a.ownerId):openUserProfile(a.ownerId); };
+      }
     }).catch(()=>{});
   }
   _renderDetailStatsCard(a);
@@ -4512,16 +4547,55 @@ async function loadNoticiaDetail(id){
   try{
     const{data,error}=await _supa.from('noticias').select('*').eq('id',id).single();
     if(error||!data){el.innerHTML='<div class="com-empty" style="padding:40px 16px">noticia no encontrada</div>';return;}
+    // [V116] estado de like propio, para pintar el corazón ya marcado si aplica
+    let _liked=false;
+    if(_supa&&USER_STATE?.id&&!isGuest()){
+      try{
+        const{data:lk}=await _supa.from('noticia_likes').select('user_id').eq('noticia_id',id).eq('user_id',USER_STATE.id).maybeSingle();
+        _liked=!!lk;
+      }catch(e){}
+    }
     el.innerHTML=`
       <div style="width:100%;aspect-ratio:16/9;background:var(--card);overflow:hidden">
         <img src="${data.banner_image_url}" style="width:100%;height:100%;object-fit:cover;display:block">
       </div>
       <div style="padding:20px 16px 0">
-        ${data.titulo?`<h1 style="font-size:24px;font-weight:800;letter-spacing:-.4px;line-height:1.2;margin-bottom:14px">${data.titulo}</h1>`:''}
+        ${data.titulo?`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px">
+          <h1 style="font-size:24px;font-weight:800;letter-spacing:-.4px;line-height:1.2;margin:0;flex:1">${data.titulo}</h1>
+          <button id="noticia-like-btn" data-liked="${_liked}" onclick="_likeNoticia('${id}',this)" style="flex-shrink:0;background:none;border:none;cursor:pointer;padding:4px;margin-top:2px;display:flex;align-items:center;justify-content:center">
+            <svg viewBox="0 0 24 24" fill="${_liked?'#e6f03b':'none'}" stroke="${_liked?'#e6f03b':'rgba(255,255,255,.4)'}" stroke-width="1.8" style="width:22px;height:22px;transition:transform .15s"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.4 2.5 5 6 5c2 0 3.5 1.2 4.5 2.5C11.5 6.2 13 5 15 5c3.5 0 5.5 3.4 4 6.7-2.5 4.7-10 9.3-10 9.3z"/></svg>
+          </button>
+        </div>`:''}
         ${data.content?`<div style="font-size:15px;color:rgba(255,255,255,.8);line-height:1.8;white-space:pre-wrap">${data.content}</div>`:''}
         ${data.autor?`<div style="margin-top:20px;font-size:13px;color:var(--muted);font-weight:600">— ${data.autor}</div>`:''}
       </div>`;
   } catch(e){ el.innerHTML='<div class="com-empty" style="padding:40px 16px">error cargando</div>'; }
+}
+
+// [V116] like de noticia — mismo patrón optimista que _likeComment
+async function _likeNoticia(noticiaId,btn){
+  if(isGuest()){showToast('inicia sesión para dar like');return;}
+  const liked=btn.dataset.liked==='true';
+  const newLiked=!liked;
+  btn.dataset.liked=String(newLiked);
+  const svg=btn.querySelector('svg');
+  if(svg){
+    svg.setAttribute('fill',newLiked?'#e6f03b':'none');
+    svg.setAttribute('stroke',newLiked?'#e6f03b':'rgba(255,255,255,.4)');
+    svg.style.transform=newLiked?'scale(1.15)':'scale(1)';
+    setTimeout(()=>{svg.style.transform='scale(1)';},150);
+  }
+  if(!_supa) return;
+  try{
+    if(newLiked){
+      await _supa.from('noticia_likes').insert({noticia_id:noticiaId,user_id:USER_STATE.id}).then(null,()=>{});
+    } else {
+      await _supa.from('noticia_likes').delete().eq('noticia_id',noticiaId).eq('user_id',USER_STATE.id).then(null,()=>{});
+    }
+    // contador global vía RPC sencillo: leer count actual y actualizar — sin función SQL extra
+    const{count}=await _supa.from('noticia_likes').select('*',{count:'exact',head:true}).eq('noticia_id',noticiaId);
+    await _supa.from('noticias').update({likes:count||0}).eq('id',noticiaId).then(null,()=>{});
+  }catch(e){console.warn('[noticia like]',e?.message);}
 }
 
 // ===================== SUGERENCIAS =====================
@@ -5720,6 +5794,77 @@ function savePerfilConfig(){
   showToast('cambios guardados');
 }
 
+// ─────────────────────────────────────────────
+// VER/EDITAR MI PERFIL — configuración (V116)
+// ─────────────────────────────────────────────
+async function openMiPerfil(){
+  if(!_supa||!USER_STATE?.id){showToast('inicia sesión primero');return;}
+  showView('mi-perfil');
+  document.getElementById('mi-perfil-nombre-input').value=USER_STATE.nombre||'';
+  const avEl=document.getElementById('mi-perfil-avatar');
+  if(avEl) avEl.innerHTML=USER_STATE.avatar?`<img src="${USER_STATE.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(USER_STATE.nombre||'?').charAt(0).toUpperCase();
+  document.getElementById('mi-perfil-descripcion-input').value='';
+  document.getElementById('mi-perfil-dreamcars-list').innerHTML='<div style="font-size:13px;color:var(--muted)">cargando...</div>';
+  try{
+    const[{data:u},{data:dreamCars}]=await Promise.all([
+      _supa.from('users').select('descripcion,avatar_url').eq('id',USER_STATE.id).maybeSingle(),
+      _supa.from('user_dream_cars').select('id,modelo').eq('user_id',USER_STATE.id).order('orden',{ascending:true})
+    ]);
+    document.getElementById('mi-perfil-descripcion-input').value=u?.descripcion||'';
+    if(u?.avatar_url&&avEl) avEl.innerHTML=`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    const list=document.getElementById('mi-perfil-dreamcars-list');
+    list.innerHTML='';
+    (dreamCars||[]).forEach(d=>_addDreamCarInput(d.modelo));
+    if(!dreamCars?.length) _addDreamCarInput(); // al menos una fila vacía para empezar
+  }catch(e){
+    console.error('[openMiPerfil]',e);
+    showToast('error cargando tu perfil');
+  }
+}
+
+function _dreamCarRowHtml(value){
+  const rid='dc_'+Math.random().toString(36).slice(2,9);
+  return `<div style="display:flex;gap:8px;align-items:center" id="${rid}">
+    <input class="form-input" type="text" value="${_esc(value||'')}" placeholder="ej: Nissan Skyline" style="flex:1">
+    <button onclick="document.getElementById('${rid}').remove()" style="flex-shrink:0;width:36px;height:36px;border-radius:10px;background:rgba(255,60,60,.08);border:1px solid rgba(255,80,80,.2);color:rgba(255,80,80,.8);cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" style="width:12px;height:12px"><path d="m3 3 10 10M13 3 3 13"/></svg>
+    </button>
+  </div>`;
+}
+
+function _addDreamCarInput(value){
+  const list=document.getElementById('mi-perfil-dreamcars-list');
+  if(!list) return;
+  // la primera carga limpia el "cargando..." si todavía está ahí
+  if(list.children.length===1&&list.children[0].tagName==='DIV'&&!list.children[0].querySelector('input')) list.innerHTML='';
+  list.insertAdjacentHTML('beforeend',_dreamCarRowHtml(value));
+}
+
+async function saveMiPerfil(){
+  if(!_supa||!USER_STATE?.id) return;
+  const nombre=document.getElementById('mi-perfil-nombre-input').value.trim();
+  const descripcion=document.getElementById('mi-perfil-descripcion-input').value.trim();
+  const dreamCarValues=[...document.querySelectorAll('#mi-perfil-dreamcars-list input')].map(i=>i.value.trim()).filter(Boolean);
+  try{
+    const updates={descripcion:descripcion||null};
+    if(nombre) updates.nombre=nombre;
+    const{error:uErr}=await _supa.from('users').update(updates).eq('id',USER_STATE.id);
+    if(uErr) throw uErr;
+    if(nombre) USER_STATE.nombre=nombre;
+    // dream cars: se reemplazan completas en el orden actual — simple y sin diffing
+    await _supa.from('user_dream_cars').delete().eq('user_id',USER_STATE.id);
+    if(dreamCarValues.length){
+      const rows=dreamCarValues.map((modelo,i)=>({user_id:USER_STATE.id,modelo,orden:i}));
+      await _supa.from('user_dream_cars').insert(rows);
+    }
+    showToast('perfil actualizado',true);
+    if(typeof updateCuentaView==='function') updateCuentaView();
+  }catch(e){
+    console.error('[saveMiPerfil]',e);
+    showToast('error guardando: '+(e?.message||''));
+  }
+}
+
 function confirmDeleteAccount(){
   if(confirm('¿Seguro que quieres eliminar tu cuenta? Esta acción no se puede deshacer.')){
     logOut();
@@ -6810,6 +6955,66 @@ async function saDeleteNoticia(id){
   saLoadNoticiasList();
 }
 
+// ── RUEDDA TEAM: foto editable + mensajes globales ──
+async function saLoadRueddaTeamAvatarPreview(){
+  const prev=document.getElementById('sa-rtm-avatar-preview');
+  if(!prev||!_supa) return;
+  const{data}=await _supa.from('app_settings').select('value').eq('key','ruedda_team_avatar_url').maybeSingle();
+  if(data?.value) prev.innerHTML=`<img src="${data.value}" style="width:100%;height:100%;object-fit:cover">`;
+}
+
+async function saUploadRueddaTeamAvatar(input){
+  const file=input.files?.[0];
+  if(!file||!_supa) return;
+  showToast('subiendo imagen...');
+  const ext=file.name.split('.').pop();
+  const path=`ruedda-team-avatar_${Date.now()}.${ext}`;
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  if(upErr){showToast('error: '+upErr.message);return;}
+  const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('app_settings').upsert({key:'ruedda_team_avatar_url',value:urlData.publicUrl,updated_at:new Date().toISOString()});
+  if(dbErr){showToast('error guardando: '+dbErr.message);return;}
+  const prev=document.getElementById('sa-rtm-avatar-preview');
+  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  window._rueddaTeamLogoUrl=urlData.publicUrl; // refresca en memoria para la lista de mensajes
+  showToast('foto del canal actualizada',true);
+}
+
+async function saSendRueddaTeamMessage(){
+  const ta=document.getElementById('sa-rtm-body');
+  const raw=(ta?.value||'').trim();
+  if(!raw){showToast('escribe un mensaje primero');return;}
+  if(!_supa) return;
+  // [FIX V116] texto crudo a la BD — el escape se aplica al renderizar (mismo patrón que comentarios),
+  // para no doble-escapar cuando renderThreadMessages ya pasa el texto por _escLine.
+  const{error}=await _supa.from('ruedda_team_messages').insert({body:raw,created_by:USER_STATE.id});
+  if(error){showToast('error enviando: '+error.message);return;}
+  ta.value='';
+  showToast('anuncio enviado a todos los usuarios',true);
+  saLoadRueddaTeamMessages();
+}
+
+async function saLoadRueddaTeamMessages(){
+  const list=document.getElementById('sa-rtm-list');
+  if(!list||!_supa) return;
+  const{data,error}=await _supa.from('ruedda_team_messages').select('*').order('created_at',{ascending:false}).limit(20);
+  if(error||!data?.length){list.innerHTML='<div style="font-size:13px;color:var(--muted)">sin anuncios aún</div>';return;}
+  list.innerHTML=data.map(m=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
+      <span style="flex:1;font-size:12px;color:rgba(255,255,255,.7);line-height:1.5">${_esc(m.body)}</span>
+      <button onclick="saDeleteRueddaTeamMessage('${m.id}')" style="flex-shrink:0;background:rgba(255,60,60,.08);border:1px solid rgba(255,80,80,.2);border-radius:9px;padding:7px 10px;cursor:pointer;display:flex;align-items:center">
+        <svg fill="none" viewBox="0 0 16 16" stroke="rgba(255,80,80,.8)" stroke-width="2" style="width:12px;height:12px"><path d="m3 3 10 10M13 3 3 13"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+async function saDeleteRueddaTeamMessage(id){
+  const{error}=await _supa.from('ruedda_team_messages').delete().eq('id',id);
+  if(error){showToast('error eliminando');return;}
+  showToast('anuncio eliminado');
+  saLoadRueddaTeamMessages();
+}
+
 async function saLoadSugerencias(){
   const list=document.getElementById('sa-sugerencias-list');
   if(!list)return;
@@ -6823,7 +7028,7 @@ async function saLoadSugerencias(){
 }
 
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -6840,6 +7045,7 @@ function saTab(tab){
   if(tab==='comunidad') saLoadComunidadAdmin();
   if(tab==='patrocinantes') saLoadPatrocinantes();
   if(tab==='publicaciones') saLoadPublicaciones();
+  if(tab==='mensajes'){ saLoadRueddaTeamAvatarPreview(); saLoadRueddaTeamMessages(); }
 }
 
 let saCatalogoLinks = [];
@@ -7816,6 +8022,9 @@ function _paintAvatar(src){
   if(!src) return;
   const av=document.getElementById('cuenta-avatar');
   if(av) av.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  // [V116] mismo avatar, si la vista de "ver perfil" está abierta
+  const av2=document.getElementById('mi-perfil-avatar');
+  if(av2) av2.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
 }
 
 function updateAuthTerms(input){
@@ -8148,9 +8357,12 @@ async function _loadMarket(){
 async function _loadChocados(){
   if(!_supa) return;
   const{data}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,transmision,combustible,ciudad,descripcion,tipo_dano,estado_chocado,auction_photos(url,orden)').eq('tipo','chocado').eq('estado','activa').order('end_time',{ascending:true}); window._feedLoaded.choc=true;
-  if(!data?.length){if(typeof renderCards==='function')renderCards();return;} // [V87] feed vacio: pintar empty state
+  if(!data?.length){AUCTIONS_CHOCADOS.splice(0,AUCTIONS_CHOCADOS.length);if(typeof renderCards==='function')renderCards();return;} // [V87] feed vacio: pintar empty state
   const mapped=data.map(a=>({id:a.id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),photos:(a.auction_photos||[]).length||3,type:'subasta',chocado:true,desc:a.descripcion||'',specs:{'daño':a.tipo_dano||'—','condición':a.estado_chocado||'—'},bids:[],comments:[]}));
   AUCTIONS_CHOCADOS.splice(0,AUCTIONS_CHOCADOS.length,...mapped);
+  // [FIX V116] antes solo se re-renderizaba en el caso vacío — los chocados nuevos
+  // quedaban cargados en memoria pero invisibles hasta forzar otro repintado.
+  if(typeof renderCards==='function') renderCards();
 }
 
 async function _loadConcesionarios(){
@@ -8500,10 +8712,13 @@ async function _loadComments(sourceType,sourceId,listId){
         <div class="comment-text" style="margin-top:4px">${_escLine(r.body)}</div></div>`;
     }).join('');
     const cLikes=c.likes||0;const cLiked=c.likedByMe||false;
+    // [V116] clic en avatar/nombre abre perfil — vitrina si dealer, perfil público si particular, nada si es Ruedda admin
+    const _authorClick=isAdmin?'':`_openCommentAuthorProfile('${c.user_id}',${isDealer})`;
+    const _authorCursor=isAdmin?'':'cursor:pointer';
     return `<div class="comment-item" id="cmt-${c.id}">
       <div class="comment-header">
-        ${avEl}
-        <span class="comment-name">${displayName}</span>${badge}
+        <span onclick="${_authorClick}" style="display:inline-flex;align-items:center;${_authorCursor}">${avEl}
+        <span class="comment-name">${displayName}</span></span>${badge}
         <span class="comment-time" style="margin-left:auto">${_fmtTimeAgo(c.created_at)}</span>
       </div>
       <div class="comment-text">${_escLine(c.body)}</div>
@@ -8518,6 +8733,171 @@ async function _loadComments(sourceType,sourceId,listId){
 
     </div>`;
   }).join('');
+}
+
+// [V116] desde un comentario: dealer → vitrina, particular → perfil público
+function _openCommentAuthorProfile(userId,isDealer){
+  if(!userId) return;
+  if(isDealer){ if(typeof _openVitrinaByUserId==='function') _openVitrinaByUserId(userId); }
+  else { if(typeof openUserProfile==='function') openUserProfile(userId); }
+}
+
+// ─────────────────────────────────────────────
+// PERFIL PÚBLICO DE USUARIO (V116)
+// ─────────────────────────────────────────────
+let _profileViewingId=null; // [V116] guarda qué perfil se está cargando — evita que datos de un fetch viejo se pinten sobre el perfil nuevo si el usuario abre otro antes de que termine
+async function openUserProfile(userId){
+  if(!userId||!_supa) return;
+  window._profileBackView=currentView; // para que "volver" regrese a donde estabas
+  _profileViewingId=userId;
+  const el=document.getElementById('perfil-publico-content');
+  if(!el) return;
+  el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">cargando perfil...</div>';
+  showView('perfil-publico');
+
+  const isMe=USER_STATE?.id===userId;
+
+  try{
+    const[{data:u},{data:dreamCars},{count:followersCount},{count:followingCount},{data:myFollow},{data:ratings},{data:soldAuctions}]=await Promise.all([
+      _supa.from('users').select('nombre,username,avatar_url,kyc_verified,descripcion,role').eq('id',userId).maybeSingle(),
+      _supa.from('user_dream_cars').select('modelo').eq('user_id',userId).order('orden',{ascending:true}),
+      _supa.from('user_follows').select('*',{count:'exact',head:true}).eq('followed_id',userId),
+      _supa.from('user_follows').select('*',{count:'exact',head:true}).eq('follower_id',userId),
+      isMe?Promise.resolve({data:null}):_supa.from('user_follows').select('follower_id').eq('follower_id',USER_STATE.id).eq('followed_id',userId).maybeSingle(),
+      _supa.from('user_ratings').select('score,rater_id').eq('rated_id',userId),
+      // "carros vendidos": no existe un estado real de venta en el sistema — se infiere de
+      // subastas ya terminadas (end_time pasado) que tuvieron al menos una oferta.
+      _supa.from('auctions').select('id,titulo,marca,modelo,year,auction_photos(url,orden)').eq('user_id',userId).eq('estado','activa').lt('end_time',new Date().toISOString()).gt('bid_count',0).order('end_time',{ascending:false}).limit(8)
+    ]);
+
+    // si mientras cargaba el usuario abrió OTRO perfil, no pintamos esto encima del nuevo
+    if(_profileViewingId!==userId) return;
+
+    if(!u){ el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">usuario no encontrado</div>'; return; }
+
+    const nombre=u.nombre||u.username||'usuario';
+    const initial=nombre.charAt(0).toUpperCase();
+    const avatarHtml=u.avatar_url?`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:initial;
+    const avgScore=ratings?.length?(ratings.reduce((s,r)=>s+r.score,0)/ratings.length):0;
+    const myRating=ratings?.find(r=>r.rater_id===USER_STATE?.id)?.score||0;
+    const amIFollowing=!!myFollow;
+    const safeName=_esc(nombre).replace(/'/g,"\\'");
+
+    el.innerHTML=`
+      <div style="display:flex;align-items:center;gap:16px;margin-top:6px">
+        <div style="width:84px;height:84px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;overflow:hidden;flex-shrink:0">${avatarHtml}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">${_esc(nombre)}</div>
+          ${u.username?`<div style="font-size:13px;color:var(--muted);margin-top:2px">@${_esc(u.username)}</div>`:''}
+          ${u.kyc_verified?`<div style="display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;color:rgba(255,255,255,.5)">usuario verificado en Ruedda <svg viewBox="0 0 24 24" style="width:13px;height:13px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></div>`:''}
+        </div>
+      </div>
+      <div style="display:flex;gap:22px;margin-top:18px">
+        <div><span style="font-weight:800;font-size:15px">${followersCount||0}</span> <span style="color:var(--muted);font-size:13px">seguidores</span></div>
+        <div><span style="font-weight:800;font-size:15px">${followingCount||0}</span> <span style="color:var(--muted);font-size:13px">siguiendo</span></div>
+        ${ratings?.length?`<div><span style="font-weight:800;font-size:15px;color:#e6f03b">★ ${avgScore.toFixed(1)}</span> <span style="color:var(--muted);font-size:13px">(${ratings.length})</span></div>`:''}
+      </div>
+      ${!isMe?`
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button onclick="_openRatingModal('${userId}','${safeName}',${myRating})" style="flex:1;background:rgba(230,240,59,.12);border:1px solid rgba(230,240,59,.3);color:#e6f03b;border-radius:13px;font-size:13px;font-weight:800;padding:12px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">calificar <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg></button>
+        <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="flex:1;background:${amIFollowing?'rgba(255,255,255,.06)':'#e6f03b'};border:1px solid ${amIFollowing?'var(--border)':'transparent'};color:${amIFollowing?'rgba(255,255,255,.7)':'#000'};border-radius:13px;font-size:13px;font-weight:800;padding:12px;cursor:pointer;font-family:var(--font)">${amIFollowing?'siguiendo':'seguir'}</button>
+      </div>`:`<div style="margin-top:16px;font-size:12px;color:var(--muted)">este es tu perfil — edítalo desde configuración</div>`}
+      ${u.descripcion?`
+      <div style="margin-top:26px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:8px">Descripción</div>
+        <div style="font-size:14px;color:rgba(255,255,255,.7);line-height:1.6;white-space:pre-wrap">${_escLine(u.descripcion)}</div>
+      </div>`:''}
+      ${dreamCars?.length?`
+      <div style="margin-top:26px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:8px">Dream cars</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${dreamCars.map(d=>`<div style="font-size:14px;color:rgba(255,255,255,.7)">${_esc(d.modelo)}</div>`).join('')}
+        </div>
+      </div>`:''}
+      <div style="margin-top:26px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:12px">Carros vendidos</div>
+        ${soldAuctions?.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${soldAuctions.map(a=>{
+            const photo=(a.auction_photos||[]).sort((x,y)=>x.orden-y.orden)[0]?.url;
+            return `<div onclick="openDetail('${a.id}')" style="aspect-ratio:1;border-radius:14px;background:${photo?`url('${photo}') center/cover`:'var(--card)'};border:1px solid var(--border);cursor:pointer;display:flex;align-items:flex-end;padding:8px;position:relative;overflow:hidden">
+              ${photo?'<div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7))"></div>':''}
+              <span style="position:relative;font-size:11px;font-weight:700;color:#fff;z-index:1">${a.year||''} ${_esc(a.marca||'')} ${_esc(a.modelo||'')}</span>
+            </div>`;
+          }).join('')}
+        </div>`:`<div style="font-size:13px;color:var(--muted)">sin carros vendidos aún</div>`}
+      </div>
+    `;
+  }catch(e){
+    console.error('[openUserProfile]',e);
+    if(_profileViewingId===userId) el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">error cargando perfil</div>';
+  }
+}
+
+function _backFromProfile(){
+  showView(window._profileBackView||'home');
+}
+
+async function _followToggle(userId,btn){
+  if(isGuest()){showToast('inicia sesión para seguir usuarios');return;}
+  if(!_supa) return;
+  const following=btn.dataset.following==='true';
+  const newFollowing=!following;
+  // optimista
+  btn.dataset.following=String(newFollowing);
+  btn.textContent=newFollowing?'siguiendo':'seguir';
+  btn.style.background=newFollowing?'rgba(255,255,255,.06)':'#e6f03b';
+  btn.style.color=newFollowing?'rgba(255,255,255,.7)':'#000';
+  btn.style.borderColor=newFollowing?'var(--border)':'transparent';
+  try{
+    if(newFollowing){
+      await _supa.from('user_follows').insert({follower_id:USER_STATE.id,followed_id:userId});
+    } else {
+      await _supa.from('user_follows').delete().eq('follower_id',USER_STATE.id).eq('followed_id',userId);
+    }
+  }catch(e){
+    // revertir si falla
+    btn.dataset.following=String(following);
+    btn.textContent=following?'siguiendo':'seguir';
+    showToast('error, intenta de nuevo');
+  }
+}
+
+let _ratingTargetUserId=null;
+function _openRatingModal(userId,nombre,myScore){
+  if(isGuest()){showToast('inicia sesión para calificar');return;}
+  _ratingTargetUserId=userId;
+  document.getElementById('rating-sheet-name').textContent='calificar a '+nombre;
+  const wrap=document.getElementById('rating-stars');
+  wrap.innerHTML=[1,2,3,4,5].map(n=>`
+    <svg onclick="_submitRating(${n})" data-star="${n}" viewBox="0 0 24 24" fill="${n<=myScore?'#e6f03b':'none'}" stroke="${n<=myScore?'#e6f03b':'rgba(255,255,255,.3)'}" stroke-width="1.5" style="width:34px;height:34px;cursor:pointer;transition:transform .1s" onmouseenter="this.style.transform='scale(1.15)'" onmouseleave="this.style.transform='scale(1)'"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg>
+  `).join('');
+  document.getElementById('rating-sheet').classList.add('open');
+}
+
+function closeRatingModal(){
+  document.getElementById('rating-sheet').classList.remove('open');
+  _ratingTargetUserId=null;
+}
+
+async function _submitRating(score){
+  if(!_ratingTargetUserId||!_supa) return;
+  const userId=_ratingTargetUserId;
+  // pintar estrellas de inmediato
+  document.querySelectorAll('#rating-stars svg').forEach(s=>{
+    const n=parseInt(s.dataset.star,10);
+    s.setAttribute('fill',n<=score?'#e6f03b':'none');
+    s.setAttribute('stroke',n<=score?'#e6f03b':'rgba(255,255,255,.3)');
+  });
+  try{
+    await _supa.from('user_ratings').upsert({rater_id:USER_STATE.id,rated_id:userId,score,updated_at:new Date().toISOString()},{onConflict:'rater_id,rated_id'});
+    showToast('calificación guardada',true);
+    setTimeout(()=>{
+      closeRatingModal();
+      if(_profileViewingId===userId) openUserProfile(userId); // refresca el promedio en pantalla
+    },500);
+  }catch(e){
+    showToast('error guardando calificación');
+  }
 }
 
 // [V96] like de comentario — optimista + Supabase
@@ -8882,7 +9262,7 @@ function renderMensajesList(){
     return;
   }
   if(!THREADS.length){
-    const _rl='https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/ruedda-logo.png';
+    const _rl=window._rueddaTeamLogoUrl;
     list.innerHTML=`<div class="msg-item official" onclick="openRueddaTeamThread()">
       <div class="msg-avatar official-ring"><img src="${_rl}" alt="Ruedda" loading="lazy" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
       <div style="flex:1;min-width:0">
@@ -8896,10 +9276,12 @@ function renderMensajesList(){
     return;
   }
   // [PM v82] fade solo en el primer paint — los refrescos posteriores no parpadean
+  // [FIX V116] antes se ocultaba DESPUÉS de pintar (visible→invisible→fade), causando
+  // el titileo. Ahora se oculta ANTES de pintar, así nunca se ve el contenido sin estilo.
   const firstPaint=!list.childElementCount||!list.classList.contains('loaded');
-  if(firstPaint) list.classList.remove('msg-list-fade','loaded');
+  if(firstPaint){list.classList.remove('loaded');list.classList.add('msg-list-fade');}
   // ── canal oficial fijado: Ruedda Team (siempre arriba) ──
-  const _rueddaLogo='https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/ruedda-logo.png';
+  const _rueddaLogo=window._rueddaTeamLogoUrl;
   const officialRow=`<div class="msg-item official" onclick="openRueddaTeamThread()">
       <div class="msg-avatar official-ring"><img src="${_rueddaLogo}" alt="Ruedda" loading="lazy" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
       <div style="flex:1;min-width:0">
@@ -8936,7 +9318,7 @@ function renderMensajesList(){
     </div>`;
   }).join('');
   // trigger fade-in en el siguiente frame (solo primer paint)
-  if(firstPaint) requestAnimationFrame(()=>{list.classList.add('msg-list-fade');requestAnimationFrame(()=>list.classList.add('loaded'));});
+  if(firstPaint) requestAnimationFrame(()=>requestAnimationFrame(()=>list.classList.add('loaded')));
 }
 
 // ─────────────────────────────────────────────
@@ -8963,12 +9345,20 @@ function openRueddaTeamThread(){
     av.style.cursor='default';av.onclick=null;
     av.style.border='1.5px solid rgba(230,240,59,.55)';
     av.style.boxShadow='0 0 0 3px rgba(230,240,59,.07)';
-    av.innerHTML=`<img src="https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/ruedda-logo.png" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
+    av.innerHTML=`<img src="${window._rueddaTeamLogoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
   }
   const callBtn=document.getElementById('thread-call-btn');
   if(callBtn) callBtn.style.display='none';
   renderThreadMessages();
   showView('thread');
+  // [V116] anuncios globales reales del superadmin, se intercalan después del saludo
+  if(_supa){
+    _supa.from('ruedda_team_messages').select('body,created_at').order('created_at',{ascending:true}).then(({data,error})=>{
+      if(error||!data?.length||!currentThread||currentThread.id!=='__ruedda_team__') return;
+      data.forEach(m=>currentThread.messages.push({from:'Ruedda Team',text:m.body,time:'',mine:false}));
+      renderThreadMessages();
+    }).catch(()=>{});
+  }
 }
 // ─────────────────────────────────────────────
 // SOBREESCRIBIR openThread para PM + threads normales
@@ -9962,6 +10352,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div class="tab" id="sa-tab-comunidad" onclick="saTab('comunidad')" style="white-space:nowrap;flex-shrink:0">comunidad</div>
     <div class="tab" id="sa-tab-patrocinantes" onclick="saTab('patrocinantes')" style="white-space:nowrap;flex-shrink:0">patrocinantes</div>
     <div class="tab" id="sa-tab-publicaciones" onclick="saTab('publicaciones')" style="white-space:nowrap;flex-shrink:0">publicaciones</div>
+    <div class="tab" id="sa-tab-mensajes" onclick="saTab('mensajes')" style="white-space:nowrap;flex-shrink:0">ruedda team</div>
   </div>
 
   <!-- USUARIOS TAB -->
@@ -10192,6 +10583,29 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
     </div>
   </div>
+
+  <!-- RUEDDA TEAM -->
+  <div id="sa-mensajes" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:28px">
+    <div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:14px">foto del canal Ruedda Team</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:4px">
+        <div id="sa-rtm-avatar-preview" onclick="document.getElementById('sa-rtm-avatar-file').click()" style="width:56px;height:56px;border-radius:50%;background:var(--card);border:1.5px solid rgba(230,240,59,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;font-weight:800;color:#e6f03b">R</div>
+        <input type="file" id="sa-rtm-avatar-file" accept="image/*" style="display:none" onchange="saUploadRueddaTeamAvatar(this)">
+        <div style="font-size:12px;color:var(--muted);line-height:1.5">toca el círculo para subir<br>una foto nueva</div>
+      </div>
+    </div>
+
+    <div style="height:1px;background:var(--border)"></div>
+
+    <div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:14px">mensaje global a todos los usuarios</div>
+      <textarea id="sa-rtm-body" placeholder="escribe el anuncio..." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--white);font-size:14px;padding:14px;resize:none;font-family:var(--font);box-sizing:border-box;height:100px;line-height:1.6;margin-bottom:10px"></textarea>
+      <button onclick="saSendRueddaTeamMessage()" style="width:100%;background:var(--lime);color:#000;border:none;border-radius:13px;font-size:14px;font-weight:800;padding:14px;cursor:pointer;font-family:var(--font)">enviar a todos</button>
+      <div id="sa-rtm-list" style="display:flex;flex-direction:column;gap:8px;margin-top:16px">
+        <div style="font-size:13px;color:var(--muted)">cargando anuncios...</div>
+      </div>
+    </div>
+  </div>
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Patrocinantes</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Gestiona los patrocinantes por sección de RueddaExtra. Cada card puede tener imagen, nombre y link.</div>
     <div id="sa-pat-content" style="display:flex;flex-direction:column;gap:14px">
@@ -10317,6 +10731,66 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
   <div id="noticia-detail-content" style="padding-bottom:100px"></div>
 </div>
 
+<!-- PERFIL PÚBLICO DE USUARIO -->
+<div id="view-perfil-publico" class="view">
+  <div class="detail-back" onclick="_backFromProfile()">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>volver</span>
+  </div>
+  <div id="perfil-publico-content" style="padding:4px 18px 100px"></div>
+</div>
+
+<!-- VER/EDITAR MI PERFIL (desde configuración) -->
+<div id="view-mi-perfil" class="view">
+  <div class="detail-back" onclick="showView('configuracion')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>volver</span>
+  </div>
+  <div style="padding:4px 18px 130px">
+    <div style="display:flex;align-items:center;gap:16px;margin-top:6px">
+      <div style="position:relative;flex-shrink:0">
+        <div id="mi-perfil-avatar" onclick="document.getElementById('mi-perfil-avatar-upload').click()" style="width:84px;height:84px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;overflow:hidden;cursor:pointer">·</div>
+        <input type="file" id="mi-perfil-avatar-upload" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
+        <div onclick="document.getElementById('mi-perfil-avatar-upload').click()" style="position:absolute;bottom:-2px;right:-2px;width:26px;height:26px;border-radius:50%;background:#e6f03b;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #000">
+          <svg fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="2.2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+        </div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;color:var(--muted)">así te ven los demás en tu perfil público</div>
+      </div>
+    </div>
+
+    <div style="margin-top:28px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="font-size:16px;font-weight:800">Nombre</div>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+      </div>
+      <input id="mi-perfil-nombre-input" class="form-input" type="text" placeholder="tu nombre">
+    </div>
+
+    <div style="margin-top:22px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="font-size:16px;font-weight:800">Descripción</div>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+      </div>
+      <textarea id="mi-perfil-descripcion-input" placeholder="cuéntale algo de ti a la comunidad..." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--white);font-size:14px;padding:14px;resize:none;font-family:var(--font);box-sizing:border-box;height:90px;line-height:1.6"></textarea>
+    </div>
+
+    <div style="margin-top:22px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="font-size:16px;font-weight:800">Dream cars</div>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+      </div>
+      <div id="mi-perfil-dreamcars-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button onclick="_addDreamCarInput()" style="margin-top:10px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:11px;color:rgba(255,255,255,.7);font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:6px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg> agregar
+      </button>
+    </div>
+
+    <button onclick="saveMiPerfil()" style="width:100%;margin-top:30px;background:#e6f03b;color:#000;border:none;border-radius:13px;font-size:14px;font-weight:800;padding:14px;cursor:pointer;font-family:var(--font)">guardar cambios</button>
+  </div>
+</div>
+
 <!-- SÉ PARTE DE RUEDDA -->
 <div id="view-se-parte-ruedda" class="view">
   <div class="detail-back" onclick="showView('cuenta')">
@@ -10426,6 +10900,23 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
           <div>
             <div class="config-row-title">verificación KYC</div>
             <div class="config-row-sub">verifica tus datos personales en Ruedda</div>
+          </div>
+        </div>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.35)" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="config-section" style="margin-top:8px">
+    <div class="config-card">
+      <div class="config-row" onclick="openMiPerfil()" style="cursor:pointer">
+        <div class="config-row-left">
+          <div class="config-row-icon" style="background:rgba(230,240,59,.12)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div>
+            <div class="config-row-title">ver perfil</div>
+            <div class="config-row-sub">así te ven los demás usuarios en Ruedda</div>
           </div>
         </div>
         <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.35)" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><path d="m9 18 6-6-6-6"/></svg>
