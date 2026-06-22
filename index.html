@@ -3930,10 +3930,12 @@ function openMarketDetail(id, origin){
         if(_nm2) _nm2.innerHTML=nm+_kseal;
         l.seller=nm;
         // [V116] click en la card abre el perfil — vitrina si es dealer, perfil público si es particular
+        // [FIX V118] usar l.dealerId (id real de concesionarios, ya confiable) en vez de re-buscar por
+        // user_id — esa búsqueda podía no encontrar fila y mostrar "vitrina no disponible" de regreso.
         const sellerCard=document.getElementById('mkt-seller-card');
         if(sellerCard){
           sellerCard.style.cursor='pointer';
-          sellerCard.onclick=()=>{ isDealer?_openVitrinaByUserId(l.user_id):openUserProfile(l.user_id); };
+          sellerCard.onclick=()=>{ isDealer?(l.dealerId?openVitrina(l.dealerId):_openVitrinaByUserId(l.user_id)):openUserProfile(l.user_id); };
         }
         // inyectar botón PM solo si no es el dueño
         const card=document.getElementById('mkt-seller-card');
