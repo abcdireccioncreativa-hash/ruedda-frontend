@@ -3267,7 +3267,9 @@ function renderCards(filter){
       el.onclick=()=>openDetail(a.id);
       el.innerHTML=`
         <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
-          <div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>
+          ${a.photoUrls&&a.photoUrls[0]
+            ?`<img src="${a.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+            :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
           <div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>
           ${isUrgent(a.endTime)?'<div class="badge-ending">terminando</div>':''}
           <div class="badge-timer ${isUrgent(a.endTime)?'urgent':''}" id="timer-card-${a.id}">--:--:--</div>
@@ -3276,7 +3278,7 @@ function renderCards(filter){
         <div class="card-body">
           <div class="card-title">${_esc(a.title)}</div>
           <div class="card-meta"><span>${_esc((a.location||'').toLowerCase())}</span><span class="meta-sep">·</span><span>${fmtNum(a.km)} km</span>${a.owners?`<span class="meta-sep">·</span><span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}</div>
-          <div class="card-chips"><div class="chip-sm">${_esc(a.transmission)}</div><div class="chip-sm">${_esc(a.fuel)}</div><div class="chip-sm">${a.year}</div></div>
+          <div class="card-chips">${a.transmission?`<div class="chip-sm">${_esc(a.transmission)}</div>`:''}${a.fuel?`<div class="chip-sm">${_esc(a.fuel)}</div>`:''}${a.year?`<div class="chip-sm">${a.year}</div>`:''}</div>
         </div>`;
       list.appendChild(el);
       startCardTimer(a.id,a.endTime);
@@ -8415,9 +8417,14 @@ async function _loadMarket(){
 
 async function _loadChocados(){
   if(!_supa) return;
-  const{data}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,transmision,combustible,ciudad,descripcion,tipo_dano,estado_chocado,auction_photos(url,orden)').eq('es_chocado',true).eq('estado','activa').order('end_time',{ascending:true}); window._feedLoaded.choc=true;
+  const{data}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,transmision,combustible,ciudad,descripcion,duenos,user_id,tipo_dano,estado_chocado,auction_photos(url,orden)').eq('es_chocado',true).eq('estado','activa').order('end_time',{ascending:true}); window._feedLoaded.choc=true;
   if(!data?.length){AUCTIONS_CHOCADOS.splice(0,AUCTIONS_CHOCADOS.length);if(typeof renderCards==='function')renderCards();return;} // [V87] feed vacio: pintar empty state
-  const mapped=data.map(a=>({id:a.id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),photos:(a.auction_photos||[]).length||3,type:'subasta',chocado:true,desc:a.descripcion||'',specs:{'daño':a.tipo_dano||'—','condición':a.estado_chocado||'—'},bids:[],comments:[]}));
+  // [FIX V121] antes este mapeo no incluía photoUrls/transmission/fuel/year/owners — la card
+  // de chocados siempre mostraba el placeholder y "undefined" en vez de los datos reales.
+  const mapped=data.map(a=>{
+    const sortedPhotos=(a.auction_photos||[]).slice().sort((x,y)=>(x.orden||0)-(y.orden||0));
+    return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),owners:a.duenos||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',chocado:true,desc:a.descripcion||'',specs:{'daño':a.tipo_dano||'—','condición':a.estado_chocado||'—'},bids:[],comments:[]};
+  });
   AUCTIONS_CHOCADOS.splice(0,AUCTIONS_CHOCADOS.length,...mapped);
   // [FIX V116] antes solo se re-renderizaba en el caso vacío — los chocados nuevos
   // quedaban cargados en memoria pero invisibles hasta forzar otro repintado.
