@@ -1984,38 +1984,9 @@ html{scrollbar-width:none}
   </div>
   <div style="padding:4px 18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
     <div style="font-size:13px;color:var(--muted);font-weight:500">fotógrafos autorizados por Ruedda.</div>
-    <svg width="54" height="40" viewBox="0 0 54 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:.85">
-      <!-- body principal -->
-      <rect x="6" y="12" width="42" height="26" rx="5" fill="white" opacity=".9"/>
-      <!-- grip izquierdo -->
-      <rect x="2" y="16" width="7" height="18" rx="4" fill="white"/>
-      <!-- top deck -->
-      <rect x="10" y="7" width="28" height="7" rx="3" fill="white" opacity=".85"/>
-      <!-- pentaprisma (bump central) -->
-      <path d="M18 7 L22 2 L32 2 L36 7Z" fill="white" opacity=".9"/>
-      <!-- flash hotshoe -->
-      <rect x="23" y="1" width="8" height="2" rx="1" fill="white" opacity=".5"/>
-      <!-- lens mount ring -->
-      <circle cx="28" cy="26" r="12" fill="#111" stroke="white" stroke-width="1.5"/>
-      <!-- lens outer glass -->
-      <circle cx="28" cy="26" r="9" fill="#191919"/>
-      <!-- lens inner ring -->
-      <circle cx="28" cy="26" r="6.5" fill="#111" stroke="rgba(255,255,255,.15)" stroke-width=".8"/>
-      <!-- lens glass reflection -->
-      <circle cx="28" cy="26" r="5" fill="#0d0d0d"/>
-      <circle cx="25.5" cy="23.5" r="1.8" fill="rgba(255,255,255,.12)"/>
-      <circle cx="30" cy="29" r=".7" fill="rgba(255,255,255,.07)"/>
-      <!-- mode dial -->
-      <circle cx="44" cy="11" r="4" fill="#222" stroke="white" stroke-width="1"/>
-      <line x1="44" y1="8" x2="44" y2="10" stroke="white" stroke-width="1" opacity=".7"/>
-      <!-- shutter button -->
-      <circle cx="38" cy="8" r="2.5" fill="#e6f03b"/>
-      <!-- NIKON lettering -->
-      <text x="14" y="22" font-family="Arial,sans-serif" font-size="4.5" font-weight="800" fill="rgba(255,255,255,.35)" letter-spacing="1.5">NIKON</text>
-      <!-- strap lug left -->
-      <rect x="4" y="13" width="3" height="2" rx="1" fill="rgba(255,255,255,.4)"/>
-      <!-- strap lug right -->
-      <rect x="47" y="13" width="3" height="2" rx="1" fill="rgba(255,255,255,.4)"/>
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" style="opacity:.8;flex-shrink:0">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
     </svg>
   </div>
 
@@ -7393,7 +7364,7 @@ function saTab(tab){
   });
   if(tab==='moderacion') renderModQueue('particular');
   if(tab==='codigos') renderCodesList();
-  if(tab==='fotografos') renderSAFotografosList();
+  if(tab==='fotografos'){ _loadFotografos().then(renderSAFotografosList); renderSAFotografosList(); }
   if(tab==='usuarios') renderSAUsuarios();
   if(tab==='kyc') renderSAKyc();
   if(tab==='acceso') renderSAAccessRequests();
@@ -7415,16 +7386,31 @@ function saAddCatalogoLink(){
   row.innerHTML = `<input class="form-input" type="url" placeholder="https://instagram.com/..." style="flex:1" oninput="saCatalogoLinks[${idx}]=this.value"><button onclick="this.parentElement.remove();saCatalogoLinks.splice(${idx},1)" style="background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.2);border-radius:10px;padding:11px 13px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg fill="none" viewBox="0 0 16 16" stroke="rgba(255,80,80,.7)" stroke-width="2" style="width:12px;height:12px"><path d="m3 3 10 10M13 3 3 13"/></svg></button>`;
   list.appendChild(row);
 }
-function saPublicarFotografo(){
+async function saPublicarFotografo(){
   const nombre = document.getElementById('sa-f-nombre')?.value.trim();
   const ciudad = document.getElementById('sa-f-ciudad')?.value.trim();
   const tel = document.getElementById('sa-f-telefono')?.value.trim();
   const esp = document.getElementById('sa-f-especialidad')?.value.trim();
   if(!nombre||!ciudad){showToast('nombre y ciudad son requeridos');return;}
-  FOTOGRAFOS.push({id:Date.now(),nombre,ciudad,especialidad:esp||'fotografía automotriz',rating:5.0,trabajos:0,telefono:tel||''});
+  if(!_supa){showToast('sin conexión a la base de datos');return;}
+  // [FIX V125] antes esto solo hacía FOTOGRAFOS.push() — vivía únicamente en la memoria
+  // de TU navegador. Por eso aparecía en tu propia lista de SuperAdmin (que lee del mismo
+  // array local) pero nunca llegaba a la base, así que nadie más lo veía y desaparecía
+  // al recargar. Ahora se inserta de verdad en Supabase.
+  const payload={
+    nombre, ciudad,
+    whatsapp: tel||null,
+    especialidad: esp||'fotografía automotriz',
+    fotos_url: saCatalogoLinks.filter(Boolean),
+    rating: 5.0,
+    activo: true
+  };
+  const{error}=await _supa.from('fotografos').insert(payload);
+  if(error){showToast('error publicando: '+error.message);console.error('[saPublicarFotografo]',error);return;}
   ['sa-f-nombre','sa-f-ciudad','sa-f-telefono','sa-f-especialidad'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('sa-f-catalogo-list').innerHTML='';
   saCatalogoLinks=[];
+  await _loadFotografos();
   renderSAFotografosList();
   showToast('fotógrafo publicado: '+nombre,true);
 }
@@ -7491,10 +7477,20 @@ function renderSAFotografosList(){
         <div style="font-size:14px;font-weight:700">${f.nombre}</div>
         <div style="font-size:12px;color:var(--muted);margin-top:2px">${f.ciudad.toLowerCase()} · ${f.especialidad}</div>
       </div>
-      <button onclick="FOTOGRAFOS.splice(${i},1);renderSAFotografosList();showToast('fotógrafo eliminado')" style="background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.18);border-radius:9px;padding:8px 11px;cursor:pointer;display:flex;align-items:center;justify-content:center">
+      <button onclick="_saDeleteFotografo('${f.id}')" style="background:rgba(255,60,60,.07);border:1px solid rgba(255,60,60,.18);border-radius:9px;padding:8px 11px;cursor:pointer;display:flex;align-items:center;justify-content:center">
         <svg fill="none" viewBox="0 0 16 16" stroke="rgba(255,80,80,.7)" stroke-width="2" style="width:12px;height:12px"><path d="m3 3 10 10M13 3 3 13"/></svg>
       </button>
     </div>`).join('');
+}
+async function _saDeleteFotografo(id){
+  if(!_supa) return;
+  // [FIX V125] antes esto solo hacía FOTOGRAFOS.splice() local — el fotógrafo seguía
+  // vivo en la base y volvía a aparecer al recargar. Ahora se borra de verdad.
+  const{error}=await _supa.from('fotografos').delete().eq('id',id);
+  if(error){showToast('error eliminando: '+error.message);return;}
+  await _loadFotografos();
+  renderSAFotografosList();
+  showToast('fotógrafo eliminado',true);
 }
 function modTab(type){
   ['particular','subasta','consesionario'].forEach(t=>{
@@ -8773,8 +8769,11 @@ async function _loadConcesionarios(){
 async function _loadFotografos(){
   if(!_supa||typeof FOTOGRAFOS==='undefined') return;
   const{data}=await _supa.from('fotografos').select('*').eq('activo',true);
-  if(!data?.length) return;
-  FOTOGRAFOS.splice(0,FOTOGRAFOS.length,...data.map(f=>({id:f.id,nombre:f.nombre,ciudad:f.ciudad,instagram:f.instagram,whatsapp:f.whatsapp,precio:f.precio_usd,rating:f.rating,fotos:f.fotos_url||[]})));
+  // [FIX V125] antes, si la query venía vacía, esto se salía sin limpiar — dejaba
+  // fotógrafos viejos/eliminados pegados en memoria. Y faltaba 'especialidad', que sí
+  // se usa en las cards públicas (mostraba "undefined").
+  if(!data?.length){ FOTOGRAFOS.splice(0,FOTOGRAFOS.length); return; }
+  FOTOGRAFOS.splice(0,FOTOGRAFOS.length,...data.map(f=>({id:f.id,nombre:f.nombre,ciudad:f.ciudad,especialidad:f.especialidad||'fotografía automotriz',instagram:f.instagram,whatsapp:f.whatsapp,precio:f.precio_usd,rating:f.rating,fotos:f.fotos_url||[]})));
 }
 
 function _subscribeToAuctions(){
