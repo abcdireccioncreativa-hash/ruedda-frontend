@@ -141,6 +141,71 @@ html{scrollbar-width:none}
 .market-card-price{font-size:15px;color:var(--white);font-weight:800;letter-spacing:-.3px;margin-top:1px}
 .market-card-meta{font-size:11px;color:var(--muted);margin-top:1px}
 
+/* MARKET HUB HEADER (partners/store) */
+.mkt-hub-actions{display:flex;align-items:center;gap:18px;flex-shrink:0}
+.mkt-hub-btn{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;background:none;border:none;color:#fff;font-family:var(--font);padding:0}
+.mkt-hub-btn svg{width:21px;height:21px}
+.mkt-hub-btn span{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.1px}
+.mkt-hub-btn:active{opacity:.55}
+
+/* SPONSOR SLIDER */
+.sponsor-slider{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;gap:10px;padding:14px 14px 0;-webkit-overflow-scrolling:touch}
+.sponsor-slider::-webkit-scrollbar{display:none}
+.sponsor-slide{position:relative;flex:0 0 100%;scroll-snap-align:start;aspect-ratio:40/7;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 20px;box-sizing:border-box;cursor:pointer}
+.sponsor-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sponsor-slide span{position:relative;z-index:2;font-size:15px;font-weight:800;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.25)}
+.sponsor-dots{display:flex;justify-content:center;gap:6px;padding:10px 0 4px}
+.sponsor-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .25s}
+.sponsor-dot.active{width:18px;border-radius:4px;background:#fff}
+
+/* TRENDING HOY */
+.trending-head{display:flex;align-items:center;justify-content:space-between;padding:20px 14px 0}
+.trending-title{display:flex;align-items:center;gap:8px;font-size:21px;font-weight:800;letter-spacing:-.4px}
+.trending-title svg{width:19px;height:19px;color:#e6f03b}
+.trending-link{font-size:12px;color:var(--muted);font-weight:600;cursor:pointer}
+.trending-shell{padding:12px 14px 0}
+.trending-scroll{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:20px}
+.trending-scroll::-webkit-scrollbar{display:none}
+.trending-panel{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;aspect-ratio:1/1;background:#000;border-radius:20px;overflow:hidden}
+.trending-cell{position:relative;overflow:hidden;cursor:pointer;background:#161616;display:flex;align-items:flex-end}
+.trending-cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.trending-cell::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,rgba(0,0,0,.72));pointer-events:none}
+.trending-rank{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:800;z-index:2}
+.trending-info{position:relative;z-index:2;padding:9px;width:100%;box-sizing:border-box}
+.trending-price{font-size:13px;font-weight:800;color:#fff;line-height:1.2}
+.trending-views{display:flex;align-items:center;gap:3px;font-size:10px;color:rgba(255,255,255,.75);margin-top:2px}
+.trending-views svg{width:10px;height:10px}
+.trending-dots{display:flex;justify-content:center;gap:6px;padding:9px 0 2px}
+
+/* QUICK ACCESS (2do panel del trending) */
+.quick-cell{background:rgba(255,255,255,.04);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:background .15s}
+.quick-cell:active{background:rgba(255,255,255,.1)}
+.quick-cell svg{width:23px;height:23px;color:#e6f03b}
+.quick-cell span{font-size:11.5px;font-weight:700;text-align:center;line-height:1.25;padding:0 8px}
+
+/* FILA SECUNDARIA: usados/nuevos + ir a marcas */
+.mkt-secondary-row{display:flex;align-items:center;justify-content:space-between;padding:18px 14px 0}
+.mkt-marcas-link{text-align:right;cursor:pointer}
+.mkt-marcas-link .ml-title{font-size:14px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:flex-end;gap:3px}
+.mkt-marcas-link .ml-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.mkt-marcas-link svg{width:11px;height:11px}
+
+/* VISTA MARCAS */
+.marcas-hero{position:relative;background:#141414;border-radius:0 0 28px 28px;padding:max(70px,calc(env(safe-area-inset-top) + 26px)) 20px 28px;overflow:hidden}
+.marcas-hero h1{font-size:32px;font-weight:800;letter-spacing:-.5px;position:relative;z-index:2}
+.marcas-hero svg.world-ico{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:150px;opacity:.92;z-index:1}
+.marcas-search{margin:16px 14px 0;background:#161616;border:1px solid var(--border);border-radius:100px;display:flex;align-items:center;padding:13px 18px;gap:10px}
+.marcas-search input{flex:1;background:none;border:none;color:#fff;font-family:var(--font);font-size:14px;outline:none;min-width:0}
+.marcas-search svg{width:16px;height:16px;color:var(--muted);flex-shrink:0}
+.marcas-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:18px 14px 100px}
+.marca-card{aspect-ratio:1/1;background:var(--card2);border:1px solid var(--border);border-radius:18px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:transform .15s,border-color .15s;padding:8px}
+.marca-card:active{transform:scale(.94);border-color:rgba(255,255,255,.25)}
+.marca-card span{font-size:12.5px;font-weight:700;letter-spacing:-.1px;line-height:1.2}
+
+/* TOAST proximamente */
+.soon-toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,20,20,.95);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:11px 20px;font-size:13px;font-weight:600;color:#fff;z-index:999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+.soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
 /* CAR IMG PLACEHOLDER */
 .car-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
 
@@ -714,6 +779,12 @@ html{scrollbar-width:none}
   .market-card-title{white-space:normal;font-size:14px}
   .market-card-price{font-size:15px}
 
+  /* nuevos bloques de market: quitar padding lateral (ya lo da .view) */
+  .sponsor-slider,.trending-head,.trending-shell,.mkt-secondary-row{padding-left:0;padding-right:0}
+  .marcas-search{margin-left:0;margin-right:0}
+  .marcas-grid{padding-left:0;padding-right:0;grid-template-columns:repeat(5,1fr)}
+  .marcas-hero{padding-left:32px;padding-right:32px}
+
   /* TABS */
   .tabs{padding:12px 0 0;gap:32px}
   .tab{font-size:15px}
@@ -1214,15 +1285,16 @@ html{scrollbar-width:none}
       </div>
     </div>
 
-    <!-- LISTADO BTN — solo market -->
-    <span id="mkt-listado-btn" class="section-link" onclick="openMktListado()" style="display:none;margin-left:10px">listado</span>
-    <!-- MARKET CONDITION TOGGLE -->
-    <div class="mkt-cond-toggle" id="mkt-cond-toggle" role="switch" aria-label="filtrar por condición">
-      <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
-      <div class="mkt-cond-track">
-        <div class="mkt-cond-tab active" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
-        <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')" style="padding-left:20px">nuevos</div>
-      </div>
+    <!-- MARKET HUB ACTIONS — solo market -->
+    <div class="mkt-hub-actions" id="mkt-hub-actions" style="display:none">
+      <button class="mkt-hub-btn" onclick="_soonToast('partners — próximamente')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H6a4 4 0 0 1 0-8h2M15 7h3a4 4 0 0 1 0 8h-2M8 12h8"/></svg>
+        <span>partners</span>
+      </button>
+      <button class="mkt-hub-btn" onclick="_soonToast('store — próximamente')">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l1 12.5h-13z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+        <span>store</span>
+      </button>
     </div>
     <span class="section-link" id="section-como-funciona-link" onclick="showView('como-funciona')">como funciona</span>
   </div>
@@ -1240,6 +1312,42 @@ html{scrollbar-width:none}
 
   <!-- MARKET SECTION (hidden initially) -->
   <div id="market-section" style="display:none">
+
+    <!-- SPONSOR SLIDER -->
+    <div id="sponsor-wrap">
+      <div class="sponsor-slider" id="sponsor-slider"></div>
+      <div class="sponsor-dots" id="sponsor-dots"></div>
+    </div>
+
+    <!-- TRENDING HOY -->
+    <div class="trending-head">
+      <div class="trending-title">trending hoy <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-9"/><path d="M16 6h5v5"/></svg></div>
+      <span class="trending-link" onclick="showView('home');selectSection('subastas')">ir a subastas</span>
+    </div>
+    <div class="trending-shell">
+      <div class="trending-scroll" id="trending-scroll">
+        <div class="trending-panel" id="trending-panel-1"></div>
+      </div>
+    </div>
+
+    <!-- TOGGLE + LISTADO + IR A MARCAS -->
+    <div class="mkt-secondary-row">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="mkt-cond-toggle show" id="mkt-cond-toggle" role="switch" aria-label="filtrar por condición">
+          <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
+          <div class="mkt-cond-track">
+            <div class="mkt-cond-tab active" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
+            <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')" style="padding-left:20px">nuevos</div>
+          </div>
+        </div>
+        <span id="mkt-listado-btn" class="section-link" onclick="openMktListado()">listado</span>
+      </div>
+      <div class="mkt-marcas-link" onclick="showView('marcas')">
+        <div class="ml-title">ir a marcas <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2"><path d="m6 4 4 4-4 4"/></svg></div>
+        <div class="ml-sub">busca tu marca de preferencia</div>
+      </div>
+    </div>
+
     <div class="filter-bar" id="market-pill-bar">
       <button class="filter-btn" id="market-filter-btn" onclick="toggleFilterPanel('market')">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
@@ -1255,6 +1363,9 @@ html{scrollbar-width:none}
     </div>
     <div class="market-grid" id="market-grid"></div>
   </div>
+
+  <!-- TOAST proximamente -->
+  <div class="soon-toast" id="soon-toast"></div>
 
   <!-- CONCESIONARIOS SECTION (hidden initially) -->
   <div id="concesionarios-section" style="display:none">
@@ -2303,6 +2414,36 @@ html{scrollbar-width:none}
   </div>
 </div>
 
+<!-- MARCAS VIEW -->
+<div id="view-marcas" class="view">
+  <div class="marcas-hero">
+    <h1>Marcas.</h1>
+    <svg class="world-ico" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"><circle cx="12" cy="12" r="9.2"/><path d="M2.8 12h18.4M12 2.8a13.5 13.5 0 0 1 0 18.4M12 2.8a13.5 13.5 0 0 0 0 18.4M4.2 7h15.6M4.2 17h15.6"/></svg>
+  </div>
+  <div class="detail-back" onclick="showView('home');selectSection('market')" style="padding:14px 14px 0">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>volver al market</span>
+  </div>
+  <div class="marcas-search">
+    <input type="text" placeholder="buscar marca..." oninput="filterMarcas(this.value)">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+  </div>
+  <div class="marcas-grid" id="marcas-grid"></div>
+</div>
+
+<!-- USUARIOS MAS POPULARES VIEW -->
+<div id="view-usuarios-top" class="view">
+  <div class="detail-back" onclick="showView('home');selectSection('market')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>volver al market</span>
+  </div>
+  <div style="padding:0 18px 10px">
+    <div style="font-size:22px;font-weight:800;letter-spacing:-.3px">usuarios más populares</div>
+    <div style="font-size:12.5px;color:var(--muted);margin-top:3px">ranking por actividad y confianza en la comunidad Ruedda</div>
+  </div>
+  <div id="usuarios-top-list" style="padding:8px 16px 100px"></div>
+</div>
+
 <!-- SUGERENCIAS VIEW -->
 <div id="view-sugerencias" class="view">
   <div class="notif-header" style="display:flex;align-items:center;gap:10px">
@@ -3184,19 +3325,18 @@ function showView(name,param){
   document.getElementById('view-'+name).classList.add('active');
   currentView=name;
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos'};
+  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos',marcas:'bnav-home','usuarios-top':'bnav-home'};
   if(map[name])document.getElementById(map[name]).classList.add('active');
   if(name==='home'){
     clearTimers();
     currentSection='subastas';
-    const _tog=document.getElementById('mkt-cond-toggle');if(_tog)_tog.className='mkt-cond-toggle';
+    const _hub=document.getElementById('mkt-hub-actions');if(_hub)_hub.style.display='none';
     const _cl=document.getElementById('section-como-funciona-link');if(_cl)_cl.style.display='inline';
-    const _lb=document.getElementById('mkt-listado-btn');if(_lb)_lb.style.display='none';
     document.getElementById('section-title-text').textContent='subastas';
     document.querySelectorAll('.dropdown-item').forEach((i,idx)=>i.classList.toggle('active',idx===0));
     renderCurrentSection();
     // refetch desde DB para que listings aprobados aparezcan sin recargar la página
-    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig()]);
+    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors()]);
   } else {}
   if(name==='vender')populateYears();
   if(name==='cuenta'){document.getElementById('stat-guardadas').textContent=watchlist.size;updateCuentaView();showDealerFab(false);}
@@ -3205,6 +3345,7 @@ function showView(name,param){
   if(name==='carspotting')loadCarspotting();
   if(name==='sugerencias'){/* nada que cargar */}
   if(name==='historia')loadHistoria();
+  if(name==='marcas')renderMarcasGrid();
   if(name==='noticia-detail')loadNoticiaDetail(param);
   if(name==='superadmin'){
     setTimeout(async()=>{
@@ -3236,6 +3377,8 @@ function renderCurrentSection(){
     renderCards();
   } else if(s==='market'){
     renderMarket();
+    renderSponsorSlider();
+    renderTrendingHoy();
   } else if(s==='consesionarios'){
     renderDealerGrid();
   }
@@ -3249,13 +3392,11 @@ function toggleDropdown(){
 }
 
 function selectSection(s){
-  // show/hide market condition toggle
-  const tog=document.getElementById('mkt-cond-toggle');
+  // show/hide acciones de market en el header
   const cl=document.getElementById('section-como-funciona-link');
-  const lb=document.getElementById('mkt-listado-btn');
-  if(tog){tog.className='mkt-cond-toggle'+(s==='market'?' show':'');}
+  const hub=document.getElementById('mkt-hub-actions');
   if(cl){cl.style.display=s==='market'?'none':'inline';}
-  if(lb){lb.style.display=s==='market'?'inline':'none';}
+  if(hub){hub.style.display=s==='market'?'flex':'none';}
   currentSection=s;
   document.getElementById('section-title-text').textContent=s==='consesionarios'?'concesionarios':s;
   document.getElementById('section-dropdown').classList.remove('open');
@@ -3889,6 +4030,170 @@ function renderMarket(){
     grid.appendChild(el);
   });
 }
+// ───────────────────────────────────────────
+// TOAST "próximamente" — partners/store por ahora
+// ───────────────────────────────────────────
+let _soonToastTimer=null;
+function _soonToast(msg){
+  const el=document.getElementById('soon-toast');
+  if(!el) return;
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(_soonToastTimer);
+  _soonToastTimer=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ───────────────────────────────────────────
+// SPONSOR SLIDER — banner real, conectado a patrocinantes (categoria='market')
+// el SuperAdmin sube imagen/nombre/link desde el panel y aparece aquí solo
+// ───────────────────────────────────────────
+let MARKET_SPONSORS=[];
+let _sponsorIdx=0;
+async function _loadMarketSponsors(){
+  if(!_supa) return;
+  try{
+    const{data,error}=await _supa.from('patrocinantes').select('*').eq('categoria','market').order('created_at',{ascending:false});
+    if(error){console.error('[ruedda] _loadMarketSponsors:',String(error?.message||error));return;}
+    MARKET_SPONSORS=data||[];
+    renderSponsorSlider();
+  }catch(e){console.error('[ruedda] _loadMarketSponsors catch:',String(e?.message||e));}
+}
+function renderSponsorSlider(){
+  const track=document.getElementById('sponsor-slider');
+  const dotsEl=document.getElementById('sponsor-dots');
+  const wrap=document.getElementById('sponsor-wrap');
+  if(!track||!dotsEl) return;
+  clearInterval(timers.sponsor);
+  if(!MARKET_SPONSORS.length){
+    track.innerHTML='';dotsEl.innerHTML='';
+    if(wrap) wrap.style.display='none';
+    return;
+  }
+  if(wrap) wrap.style.display='';
+  _sponsorIdx=0;
+  track.scrollLeft=0;
+  track.innerHTML=MARKET_SPONSORS.map(s=>`
+    <div class="sponsor-slide" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
+      ${s.imagen_url?`<img src="${s.imagen_url}" alt="${_esc(s.nombre||'')}">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
+    </div>`).join('');
+  dotsEl.innerHTML=MARKET_SPONSORS.length>1?MARKET_SPONSORS.map((_,i)=>`<div class="sponsor-dot${i===0?' active':''}"></div>`).join(''):'';
+  if(MARKET_SPONSORS.length<2) return; // un solo patrocinante: se muestra fijo, sin autoplay ni dots
+  track.addEventListener('scroll',()=>{
+    const i=Math.round(track.scrollLeft/track.clientWidth);
+    if(i!==_sponsorIdx&&i>=0&&i<MARKET_SPONSORS.length){_sponsorIdx=i;_updateSponsorDots();}
+  },{passive:true});
+  track.addEventListener('touchstart',_pauseSponsorAutoplay,{passive:true});
+  timers.sponsor=setInterval(_advanceSponsor,3200);
+}
+function _updateSponsorDots(){
+  document.querySelectorAll('#sponsor-dots .sponsor-dot').forEach((d,i)=>d.classList.toggle('active',i===_sponsorIdx));
+}
+function _advanceSponsor(){
+  const track=document.getElementById('sponsor-slider');
+  if(!track||MARKET_SPONSORS.length<2) return;
+  _sponsorIdx=(_sponsorIdx+1)%MARKET_SPONSORS.length;
+  track.scrollTo({left:track.clientWidth*_sponsorIdx,behavior:'smooth'});
+  _updateSponsorDots();
+}
+function _pauseSponsorAutoplay(){
+  clearInterval(timers.sponsor);
+  clearTimeout(_sponsorResumeTimer);
+  _sponsorResumeTimer=setTimeout(()=>{if(MARKET_SPONSORS.length>1)timers.sponsor=setInterval(_advanceSponsor,3200);},5000);
+}
+let _sponsorResumeTimer=null;
+
+// ───────────────────────────────────────────
+// TRENDING HOY — top 4 por vistas, cache diario (un solo cálculo por día)
+// ───────────────────────────────────────────
+function _trendingTop4(){
+  const today=new Date().toISOString().slice(0,10);
+  try{
+    const cache=JSON.parse(localStorage.getItem('rd_trending_cache')||'null');
+    if(cache&&cache.date===today&&Array.isArray(cache.ids)&&cache.ids.length){
+      const byId=new Map(MARKET_LISTINGS.map(l=>[l.id,l]));
+      const list=cache.ids.map(id=>byId.get(id)).filter(Boolean);
+      if(list.length===cache.ids.length) return list;
+    }
+  }catch(e){}
+  const top4=[...MARKET_LISTINGS].sort((a,b)=>(b.viewCount||0)-(a.viewCount||0)).slice(0,4);
+  try{localStorage.setItem('rd_trending_cache',JSON.stringify({date:today,ids:top4.map(l=>l.id)}));}catch(e){}
+  return top4;
+}
+function renderTrendingHoy(){
+  const wrap=document.getElementById('trending-panel-1');
+  if(!wrap) return;
+  const top4=_trendingTop4();
+  if(!top4.length){wrap.innerHTML='<div style="grid-column:1/-1;grid-row:1/-1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px">aún no hay publicaciones suficientes pa armar el trending</div>';return;}
+  wrap.innerHTML=top4.map((l,i)=>`
+    <div class="trending-cell" onclick="openMarketDetail('${l.id}')">
+      ${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" loading="lazy">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(l.id)]})"></div>`}
+      <div class="trending-rank">#${i+1}</div>
+      <div class="trending-info">
+        <div class="trending-price">${fmtBid(l.price)}</div>
+        ${_viewsChip(l.viewCount,true)}
+      </div>
+    </div>`).join('');
+}
+
+// ───────────────────────────────────────────
+// MARCAS — grid (solo nombre por ahora, logos van después)
+// ───────────────────────────────────────────
+const MARCAS_LIST=['Alfa Romeo','Audi','BAIC','Bentley','Bera','BMW','BYD','Cadillac','Changan','Chery','Chevrolet','Chrysler','Citroën','Dodge','Ferrari','Fiat','Ford','GAC','Geely','GMC','Great Wall','Honda','Hummer','Hyundai','Infiniti','JAC','Jaguar','Jeep','Kia','Lamborghini','Land Rover','Lexus','Lincoln','Maserati','Mazda','Mercedes-Benz','MINI','Mitsubishi','Nissan','Peugeot','Pontiac','Porsche','Ram','Renault','Rolls-Royce','SAIC','Seat','Skoda','SsangYong','Subaru','Suzuki','Tesla','Toyota','Volkswagen','Volvo','Zotye'];
+function renderMarcasGrid(filterText){
+  const grid=document.getElementById('marcas-grid');
+  if(!grid) return;
+  const q=(filterText||'').toLowerCase().trim();
+  const list=q?MARCAS_LIST.filter(m=>m.toLowerCase().includes(q)):MARCAS_LIST;
+  grid.innerHTML=list.length?list.map(m=>`<div class="marca-card" onclick="goToMarcaFilter('${m.replace(/'/g,"\\'")}')"><span>${_esc(m)}</span></div>`).join(''):'<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:30px 0">sin resultados</div>';
+}
+function filterMarcas(val){ renderMarcasGrid(val); }
+function goToMarcaFilter(marca){
+  activeFilters.marca=marca;
+  filterContext='market';
+  if(typeof updateFilterBadge==='function') updateFilterBadge('market');
+  if(typeof renderMarketFiltered==='function') renderMarketFiltered();
+  // sincronizar el dropdown de filtros pa que quede consistente si lo abren después
+  const menu=document.getElementById('fdd-marca-menu');
+  if(menu){
+    menu.querySelectorAll('.fdd-item').forEach(i=>i.classList.toggle('active',i.textContent.trim()===marca));
+    const valEl=document.getElementById('fdd-marca-val');
+    if(valEl){valEl.textContent=marca;valEl.classList.add('show');}
+  }
+  showView('home');selectSection('market');
+}
+
+// ───────────────────────────────────────────
+// USUARIOS MÁS POPULARES — ranking por score combinado (ver migración SQL)
+// ───────────────────────────────────────────
+async function openTopUsuarios(){
+  showView('usuarios-top');
+  const el=document.getElementById('usuarios-top-list');
+  if(!el) return;
+  el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">cargando...</div>';
+  if(!_supa){el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:13px">sin conexión a la base de datos.</div>';return;}
+  try{
+    const{data,error}=await _supa.rpc('get_top_users_ranking',{p_limit:10});
+    if(error) throw error;
+    if(!data||!data.length){el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">todavía no hay suficiente actividad pa armar el ranking.</div>';return;}
+    el.innerHTML=data.map((u,i)=>{
+      const nombre=u.nombre||u.username||'usuario';
+      const initial=_esc(nombre).charAt(0).toUpperCase();
+      const avatarHtml=u.avatar_url?`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:initial;
+      return `
+      <div style="display:flex;align-items:center;gap:13px;padding:13px 14px;background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;cursor:pointer" onclick="openUserProfile('${u.user_id}')">
+        <div style="font-size:15px;font-weight:800;color:var(--muted);width:20px;flex-shrink:0;text-align:center">${i+1}</div>
+        <div style="width:44px;height:44px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;overflow:hidden;flex-shrink:0">${avatarHtml}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:5px">${_esc(nombre)}${u.kyc_verified?'<svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg>':''}</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:1px">${u.followers_count||0} seguidores${u.avg_rating?` · ★ ${Number(u.avg_rating).toFixed(1)}`:''}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.5">no se pudo cargar el ranking.<br>corre la migración <code>get_top_users_ranking</code> en supabase.</div>';
+  }
+}
+
 let mktDetailOrigin='market';
 function openMarketDetail(id, origin){
   const l=MARKET_LISTINGS.find(x=>x.id===id);
@@ -8739,6 +9044,7 @@ async function _loadMarket(){
     const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
+    if(typeof renderTrendingHoy==='function') renderTrendingHoy();
   }catch(e){console.error('[ruedda] _loadMarket catch:',String(e?.message||e));}
 }
 
@@ -8931,7 +9237,7 @@ function _subscribePrivateMessages(userId){
       _rueddaLoadUserData(session.user.id,profile.role);
     }
   }
-  await Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadConcesionarios(),_loadFotografos()]);
+  await Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors()]);
   // [V123] deep-link: si llegaste por un link compartido (?auction=ID o ?market=ID),
   // abre directo esa publicación en vez de quedarte en el home.
   try{
@@ -11044,7 +11350,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     </div>
   </div>
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Patrocinantes</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Gestiona los patrocinantes por sección de RueddaExtra. Cada card puede tener imagen, nombre y link.</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Gestiona los patrocinantes por categoría. La categoría "market" es el banner rotativo que aparece arriba del market. Las demás son de RueddaExtra. Cada card puede tener imagen, nombre y link.</div>
     <div id="sa-pat-content" style="display:flex;flex-direction:column;gap:14px">
       <div style="font-size:13px;color:var(--muted)">cargando...</div>
     </div>
@@ -11096,7 +11402,7 @@ async function saDeletePub(id){
 }
 
 // ── PATROCINANTES SUPERADMIN ──────────────────────────────
-const _saPatCats = ['financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
+const _saPatCats = ['market','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
 let _saPatData = {};
 
 async function saLoadPatrocinantes(){
