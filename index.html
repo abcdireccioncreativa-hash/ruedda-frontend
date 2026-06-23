@@ -8620,7 +8620,14 @@ async function _rueddaRegister(email,pass){
   if(!nombre) throw new Error('ingresa tu nombre');
   if(!cedula) throw new Error('ingresa tu cédula');
   const{data,error}=await _supa.auth.signUp({email,password:pass,options:{data:{role}}});
-  if(error) throw new Error(error.message);
+  if(error){
+    // [FIX V127] mensaje más claro si el correo ya tiene cuenta — antes mostraba el error
+    // crudo de Supabase y el usuario quedaba reintentando "registrarse" sin salida.
+    if(/already registered|already exists|user already/i.test(error.message||'')){
+      throw new Error('ya existe una cuenta con este correo — intenta iniciar sesión en vez de registrarte');
+    }
+    throw new Error(error.message);
+  }
   if(!data.user) throw new Error('no se pudo crear la cuenta');
   // [FIX V119] antes este upsert no revisaba si fallaba (ej: username duplicado) — la cuenta
   // quedaba creada en auth pero sin fila completa en users, mostrando "usuario" para siempre
@@ -8635,9 +8642,18 @@ async function _rueddaRegister(email,pass){
     if(!isUsernameConflict) break; // otro tipo de error — no insistir a ciegas
     username=(document.querySelector('#auth-user-wrap input')?.value||nombre||'usuario').toLowerCase().replace('@','').replace(/\s+/g,'_')+'_'+(Math.floor(Math.random()*9000)+1000);
   }
+  // [FIX V127] CRÍTICO: antes, si el upsert fallaba por algo que no fuera username duplicado
+  // (ej: un error de RLS), esto lanzaba un error DESPUÉS de que la cuenta de auth ya existía
+  // — la persona quedaba varada: no podía "registrarse" de nuevo (correo ya existe) pero
+  // tampoco tenía perfil completo. Ahora, en vez de morir ahí, entra a la app igual con los
+  // datos que ya escribió en el formulario, y se reintenta guardar el perfil en segundo plano
+  // sin bloquear ni interrumpir su sesión.
   if(_upErr){
-    // no dejar la cuenta a medias en silencio — se informa claro y no se sigue como si hubiese ido bien
-    throw new Error('no se pudo completar el registro. intenta de nuevo ('+(_upErr.message||'error de base de datos')+')');
+    console.warn('[ruedda register] upsert de perfil falló, se continúa con sesión local y se reintenta en segundo plano:',_upErr.message);
+    setTimeout(()=>{
+      _supa.from('users').update({nombre,apellido,cedula,cedula_tipo:cedTipo,telefono,username,role}).eq('id',data.user.id)
+        .then(({error:retryErr})=>{ if(retryErr) console.warn('[ruedda register] reintento en segundo plano también falló:',retryErr.message); });
+    },4000);
   }
   const{data:profile}=await _supa.from('users').select('*').eq('id',data.user.id).single();
   // [FIX V119] red de seguridad: si por lo que sea la lectura vuelve incompleta, no perder lo
