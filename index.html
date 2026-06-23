@@ -4136,21 +4136,27 @@ function _trendingTop4(){
   try{localStorage.setItem('rd_trending_cache',JSON.stringify({date:today,items:top4}));}catch(e){}
   return top4;
 }
+let _lastTrendingIds=null;
 function renderTrendingHoy(){
   const wrap=document.getElementById('trending-panel-1');
   if(!wrap) return;
   const top4=_trendingTop4();
+  const _ids=top4.map(t=>t.id).join(',');
+  // [FIX] si ya está pintado con los mismos 4 items, no se vuelve a repintar — antes
+  // esto regeneraba el innerHTML cada vez que entrabas a market (aunque la data fuera
+  // idéntica), y al crear elementos nuevos el fadeIn se disparaba de nuevo → parpadeo.
+  if(_ids===_lastTrendingIds && wrap.children.length) return;
+  _lastTrendingIds=_ids;
   if(!top4.length){wrap.innerHTML='<div style="grid-column:1/-1;grid-row:1/-1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12.5px">aún no hay publicaciones suficientes pa armar el trending</div>';return;}
   wrap.innerHTML=top4.map((item,i)=>{
     const isSubasta=item.source==='subasta';
     const photoUrl=isSubasta?(item.photoUrls&&item.photoUrls[0]):item.photoUrls&&item.photoUrls[0];
     const precio=isSubasta?(item.currentBid||item.bid_count||0):(item.price||0);
     const title=isSubasta?item.title:`${item.year} ${item.marca||''} ${item.modelo||item.title}`;
-    const badgeIcon=isSubasta?'<svg fill="currentColor" viewBox="0 0 24 24" style="width:10px;height:10px"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2H4V6zm0 4h16v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8zm8 2a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>':'<svg fill="currentColor" viewBox="0 0 24 24" style="width:10px;height:10px"><path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>';
     return `
     <div class="trending-cell" onclick="${isSubasta?`openAuctionDetail('${item.id}')`:`openMarketDetail('${item.id}')`}">
       ${photoUrl?`<img src="${photoUrl}" loading="lazy">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
-      <div class="trending-rank" style="display:flex;align-items:center;gap:3px">#${i+1} ${badgeIcon}</div>
+      <div class="trending-rank">#${i+1}</div>
       <div class="trending-info">
         <div class="trending-price">${fmtBid(precio)}</div>
         ${_viewsChip(item.viewCount,true)}
