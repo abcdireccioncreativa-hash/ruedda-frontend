@@ -2,10 +2,15 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Ruedda Store</title>
 <meta name="description" content="Ruedda Store. Apparel, accesorios, mugs y linea STXX.">
-<style>
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ruedda Store">
+<meta name="format-detection" content="telephone=no"><style>
 /* Open Sauce One 400/500/700 — apuntar al bucket assets del proyecto Ruedda */
 @font-face{font-family:'Open Sauce One';src:local('Open Sauce One'),url('https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/fonts/OpenSauceOne-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'Open Sauce One';src:local('Open Sauce One Medium'),url('https://ltodsegzbbdcaublkgtp.supabase.co/storage/v1/object/public/assets/fonts/OpenSauceOne-Medium.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
@@ -57,7 +62,7 @@ a{color:inherit}
 .hero{position:relative;height:60vh;min-height:420px;background:#111;overflow:hidden}
 .hero img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s ease}
 .hero img.lista{opacity:1}
-.header-store{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:flex-start;justify-content:space-between;padding:22px 24px}
+.header-store{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:flex-start;justify-content:space-between;padding:22px 24px;padding-top:max(22px, calc(env(safe-area-inset-top) + 14px))}
 .btn-categorias{color:#fff;font-weight:700;font-size:18px;line-height:1;display:flex;align-items:center;gap:8px}
 .btn-categorias .chev{font-size:13px;font-weight:400;transform:translateY(3px);transition:transform .2s ease}
 .btn-categorias[aria-expanded="true"] .chev{transform:translateY(3px) rotate(180deg)}
@@ -92,7 +97,7 @@ a{color:inherit}
 
 /* ============ DETALLE PRODUCTO ============ */
 .detalle{max-width:1100px;margin:0 auto;padding-bottom:64px}
-.detalle-top{display:flex;justify-content:space-between;align-items:center;padding:18px 24px}
+.detalle-top{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;padding-top:max(18px, calc(env(safe-area-inset-top) + 12px))}
 .btn-volver{font-weight:700;font-size:16px}
 .galeria{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .galeria::-webkit-scrollbar{display:none}
@@ -119,7 +124,7 @@ a{color:inherit}
 .stock-nota{font-size:13px;color:var(--gris-med);margin-top:10px}
 
 /* ============ CHECKOUT ============ */
-.checkout{max-width:1100px;margin:0 auto;padding:56px 24px 0}
+.checkout{max-width:1100px;margin:0 auto;padding:56px 24px 0;padding-top:max(56px, calc(env(safe-area-inset-top) + 34px))}
 .checkout h1{font-weight:700;font-size:40px}
 .co-sub{font-weight:700;font-size:26px;margin-top:36px}
 .co-items{margin-top:14px}
@@ -149,7 +154,7 @@ a{color:inherit}
 .co-vacio a{display:inline-block;margin-top:16px;text-decoration:underline;font-weight:500}
 
 /* ============ DATOS DE ENVIO ============ */
-.envio{max-width:1100px;margin:0 auto;padding:56px 24px 72px}
+.envio{max-width:1100px;margin:0 auto;padding:56px 24px 72px;padding-top:max(56px, calc(env(safe-area-inset-top) + 34px))}
 .envio h1{font-weight:700;font-size:44px;line-height:1.05}
 .envio-sub{font-size:14px;color:var(--gris-osc);margin-top:10px;max-width:520px;line-height:1.6}
 .f-fila{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px}
@@ -191,7 +196,7 @@ a{color:inherit}
 .gracias-orden{margin-top:56px;font-size:12px;color:#8a8a8a}
 
 /* ============ FOOTER ============ */
-.footer{background:#000;color:#fff;padding:56px 24px 30px}
+.footer{background:#000;color:#fff;padding:56px 24px 30px;padding-bottom:calc(30px + env(safe-area-inset-bottom))}
 .footer-in{max-width:1100px;margin:0 auto}
 
 .footer-tag{color:#c9c9c9;font-size:14px;margin-top:10px}
@@ -212,13 +217,13 @@ a{color:inherit}
 .modal-cerrar{display:block;margin:16px auto 0;font-size:13px;color:var(--gris-med);text-decoration:underline}
 
 /* ============ TOAST ============ */
-#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;z-index:800;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px)}
+#toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(26px + env(safe-area-inset-bottom));z-index:800;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px)}
 .toast{background:#000;color:#fff;font-size:14px;padding:14px 18px;text-align:center;animation:vistaIn .2s var(--ease)}
 
 /* ============ ADMIN HUD ============ */
 .hud{background:var(--hud-bg);color:#fff;min-height:100vh;display:flex;flex-direction:column}
 @media(min-width:900px){.hud{flex-direction:row}}
-.hud-side{background:var(--hud-card);border-bottom:1px solid var(--hud-borde);display:flex;overflow-x:auto;flex:0 0 auto;scrollbar-width:none}
+.hud-side{background:var(--hud-card);border-bottom:1px solid var(--hud-borde);display:flex;overflow-x:auto;flex:0 0 auto;scrollbar-width:none;padding-top:env(safe-area-inset-top)}
 .hud-side::-webkit-scrollbar{display:none}
 @media(min-width:900px){.hud-side{flex-direction:column;width:230px;border-bottom:none;border-right:1px solid var(--hud-borde);padding:24px 0;overflow:visible}}
 .hud-marca{display:none}
