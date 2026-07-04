@@ -62,7 +62,7 @@ html{scrollbar-width:none}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
 #view-detail,#view-market-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
-#view-thread{padding-top:0;height:100dvh;height:100vh;box-sizing:border-box;flex-direction:column;overflow:hidden}
+#view-thread{padding-top:0;height:100vh;height:100dvh;box-sizing:border-box;flex-direction:column;overflow:hidden}
 #view-thread.active{display:flex!important}
 #view-thread .thread-input-bar{padding-bottom:calc(10px + 64px + env(safe-area-inset-bottom))}
 .logo{cursor:pointer;user-select:none;display:flex;align-items:center}
@@ -254,8 +254,12 @@ html{scrollbar-width:none}
 /* [ajuste post-launch] el chat necesita layout flex real: header fijo, solo los
    mensajes scrollean. .view.active fuerza display:block para todas las vistas —
    este override es scoped solo a #view-thread, no toca el resto. */
-#view-thread.active{display:flex;flex-direction:column}
-#view-thread.active{display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding-bottom:0}
+#view-thread.active{display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding-bottom:0;animation:threadFadeIn .22s ease both}
+/* [FIX] la animación genérica viewFadeIn deja transform:translateY(0) pegado (fill both)
+   — un transform, aunque sea cero, crea un containing block y hace que la caja de texto
+   position:fixed scrollee con el contenido como si fuera parte de la página. El chat usa
+   su propio fade SOLO de opacidad, sin transform. Nada más de la app cambia. */
+@keyframes threadFadeIn{from{opacity:0}to{opacity:1}}
 @keyframes viewFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 /* [V117] transición tipo fintech para el perfil — entra deslizando desde la derecha, no con el fade genérico */
 @keyframes slideInFromRight{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
@@ -10830,7 +10834,7 @@ async function _loadPrivateMessages(force){
     messages:t.messages
       .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at))
       .map(m=>({
-        from:m.mine?'tú':_masked(t.otherName),
+        from:m.mine?'tú':t.otherName,
         text:m.text,
         time:_fmtTimeAgo(m.created_at),
         mine:m.mine,
