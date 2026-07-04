@@ -29,6 +29,7 @@
   font-weight: 700; font-display: swap;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{overscroll-behavior-y:none}
 :root{
   --bg:#000000;--card:#161616;--card2:#1e1e1e;
   --lime:#e6f03b;--lime-dark:#b8c22e;
@@ -38,7 +39,7 @@
   --font:'OpenSauceOne',-apple-system,BlinkMacSystemFont,sans-serif;
 }
 html,body{height:100%;background:var(--bg);color:var(--white);font-family:var(--font)}
-html{overflow-x:hidden}
+html{overflow-x:hidden;overscroll-behavior-y:none}
 ::-webkit-scrollbar{width:2px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:2px}
 
 input[type=number]::-webkit-outer-spin-button,
@@ -251,6 +252,10 @@ html{scrollbar-width:none}
 /* VIEWS */
 .view{display:none}
 .view.active{display:block;animation:viewFadeIn .22s ease both}
+/* [ajuste post-launch] el chat necesita layout flex real: header fijo, solo los
+   mensajes scrollean. .view.active fuerza display:block para todas las vistas —
+   este override es scoped solo a #view-thread, no toca el resto. */
+#view-thread.active{display:flex;flex-direction:column}
 #view-thread.active{display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding-bottom:0}
 @keyframes viewFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 /* [V117] transición tipo fintech para el perfil — entra deslizando desde la derecha, no con el fade genérico */
@@ -1406,18 +1411,9 @@ html{scrollbar-width:none}
         <span id="dealer-city-label">ciudad</span>
         <svg fill="none" viewBox="0 0 10 10" stroke="rgba(255,255,255,.4)" stroke-width="2" style="width:8px;height:8px"><path d="m2 3.5 3 3 3-3"/></svg>
         <!-- DROPDOWN -->
-        <div id="dealer-city-menu" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#161616;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;z-index:99;min-width:160px;box-shadow:0 12px 40px rgba(0,0,0,.7);text-align:left">
+        <div id="dealer-city-menu" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#161616;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;z-index:99;min-width:160px;max-height:280px;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.7);text-align:left">
           <div onclick="setDealerCity(event,'todas')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">todas las ciudades</div>
-          <div onclick="setDealerCity(event,'Caracas')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Caracas</div>
-          <div onclick="setDealerCity(event,'Maracay')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Maracay</div>
-          <div onclick="setDealerCity(event,'Valencia')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Valencia</div>
-          <div onclick="setDealerCity(event,'Maracaibo')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Maracaibo</div>
-          <div onclick="setDealerCity(event,'Barquisimeto')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Barquisimeto</div>
-          <div onclick="setDealerCity(event,'Mérida')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Mérida</div>
-          <div onclick="setDealerCity(event,'Puerto Ordaz')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Puerto Ordaz</div>
-          <div onclick="setDealerCity(event,'Barcelona')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Barcelona</div>
-          <div onclick="setDealerCity(event,'Cumaná')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Cumaná</div>
-          <div onclick="setDealerCity(event,'San Cristóbal')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">San Cristóbal</div>
+        </div>
         </div>
       </button>
     </div>
@@ -4191,11 +4187,12 @@ function renderMarket(){
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
+        ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;text-transform:uppercase">vendido</span></div>':''}
       </div>
       <div class="market-card-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="market-card-title" style="min-width:0">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
         <div class="market-card-meta">${l.location.toLowerCase()}</div>
-        <div class="market-card-price">${fmtBid(l.price)}</div>
+        <div class="market-card-price" style="${l.vendido?'color:rgba(255,255,255,.35);text-decoration:line-through':''}">${fmtBid(l.price)}</div>
       </div>`;
     grid.appendChild(el);
   });
@@ -4472,11 +4469,13 @@ function openMarketDetail(id, origin){
   setupMktSwipe();
   // content
   if(mktDetailOrigin!=='vitrina') _registerRealView('listings',l); // [V87] click real de comprador
-  document.getElementById('mkt-badges').innerHTML='<div class="detail-badge">'+l.year+'</div><div class="detail-badge">'+l.category+'</div><div class="detail-badge">'+l.location.toLowerCase()+'</div><div class="detail-badge lime">market</div><span style="margin-left:10px;display:inline-flex;align-items:center;vertical-align:middle">'+_viewsChip(l.viewCount)+'</span>';
+  document.getElementById('mkt-badges').innerHTML='<div class="detail-badge">'+l.year+'</div><div class="detail-badge">'+l.category+'</div><div class="detail-badge">'+l.location.toLowerCase()+'</div><div class="detail-badge lime">market</div>'+(l.vendido?'<div class="detail-badge" style="background:rgba(255,255,255,.12);color:#fff;font-weight:800">vendido</div>':'')+'<span style="margin-left:10px;display:inline-flex;align-items:center;vertical-align:middle">'+_viewsChip(l.viewCount)+'</span>';
   document.getElementById('mkt-title').textContent=l.title;
   document.getElementById('mkt-subtitle').innerHTML='<span>'+fmtNum(l.km)+' km</span><span class="sep">·</span><span>'+(l.transmission||'automática')+'</span><span class="sep">·</span><span>'+(l.fuel||'gasolina')+'</span>';
   // [V87] precio en oferta: anterior tachado + nuevo resaltado
-  if(l.precioAnterior&&l.precioAnterior>l.price){
+  if(l.vendido){
+    document.getElementById('mkt-price').innerHTML='<span style="text-decoration:line-through;color:rgba(255,255,255,.35)">'+fmtBid(l.price)+'</span>';
+  } else if(l.precioAnterior&&l.precioAnterior>l.price){
     document.getElementById('mkt-price').innerHTML='<span style="text-decoration:line-through;opacity:.38;font-size:.62em;font-weight:600;margin-right:8px">'+fmtBid(l.precioAnterior)+'</span>'+fmtBid(l.price);
   } else {
     document.getElementById('mkt-price').textContent=fmtBid(l.price);
@@ -5186,14 +5185,16 @@ async function loadCarspotting(tab){
   }
   feed.innerHTML='<div class="com-loading">cargando...</div>';
   try{
-    let q=_supa.from('carspotting').select('*,users(nombre,username,avatar_url,role)');
+    // [FIX] antes ordenaba .order('likes',...) sobre una columna que probablemente
+    // nunca existió en carspotting — el query fallaba entero y la pestaña de
+    // comunidad quedaba siempre vacía. Ahora ordena por fecha (columna que sí existe
+    // seguro) y calcula los likes en vivo desde carspotting_likes, sin esa dependencia.
+    let q=_supa.from('carspotting').select('*,users(nombre,username,avatar_url,role)').order('created_at',{ascending:false});
     if(_csTab==='mis'){
       if(isGuest()||!USER_STATE?.id){feed.innerHTML='<div class="com-empty">inicia sesión para ver tus spots</div>';return;}
-      q=q.eq('user_id',USER_STATE.id).order('created_at',{ascending:false});
-    } else {
-      q=q.order('likes',{ascending:false}).order('created_at',{ascending:false});
+      q=q.eq('user_id',USER_STATE.id);
     }
-    const{data,error}=await q.limit(30);
+    let{data,error}=await q.limit(_csTab==='mis'?30:60);
     if(error||!data||data.length===0){feed.innerHTML=`<div class="com-empty">${_csTab==='mis'?'aún no has subido spots':'sin spots aún. ¡sé el primero!'}</div>`;return;}
     // estado de like propio, para pintar el corazón ya marcado
     let likedSet=new Set();
@@ -5203,6 +5204,15 @@ async function loadCarspotting(tab){
         (lk||[]).forEach(l=>likedSet.add(l.carspotting_id));
       }catch(e){}
     }
+    // conteo real de likes por spot (reemplaza la columna 'likes' que no existía)
+    try{
+      const{data:allLikes}=await _supa.from('carspotting_likes').select('carspotting_id').in('carspotting_id',data.map(s=>s.id));
+      const counts={};
+      (allLikes||[]).forEach(l=>{counts[l.carspotting_id]=(counts[l.carspotting_id]||0)+1;});
+      data.forEach(s=>{s.likes=counts[s.id]||0;});
+      if(_csTab!=='mis') data.sort((a,b)=>b.likes-a.likes);
+    }catch(e){data.forEach(s=>{s.likes=s.likes||0;});}
+    data=data.slice(0,30);
     feed.innerHTML=data.map(s=>{
       const _u=s.users||{};
       const authorName=_u.nombre||_u.username||'usuario';
@@ -6972,17 +6982,17 @@ async function _loadMyListings(){
   if(!_supa||!USER_STATE.id){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
   try{
     const[resListings,resAuctions]=await Promise.all([
-      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado,listing_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}),
-      _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo,end_time,auction_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false})
+      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado,vendido,vendido_at,listing_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}),
+      _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo,end_time,republish_count,auction_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false})
     ]);
     if(resListings.error) console.error('[ruedda] _loadMyListings listings:',resListings.error.message);
     if(resAuctions.error) console.error('[ruedda] _loadMyListings auctions:',resAuctions.error.message);
-    const listings=(resListings.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.estado,daysLeft:0,fotos:0,type:'market',desc:'',photoUrl:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null}));
+    const listings=(resListings.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.vendido?'vendido':l.estado,vendido:!!l.vendido,vendidoAt:l.vendido_at,daysLeft:0,fotos:0,type:'market',desc:'',photoUrl:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null}));
     // [V83] subasta con end_time vencido y estado activa → estado finalizada (permanente para el dueño)
     const auctions=(resAuctions.data||[]).map(l=>{
       const ended=l.end_time&&new Date(l.end_time).getTime()<=Date.now();
       const status=(ended&&l.estado==='activa')?'finalizada':l.estado;
-      return {id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status,daysLeft:0,fotos:0,type:'subasta',desc:'',photoUrl:(l.auction_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null};
+      return {id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status,republishCount:l.republish_count||0,daysLeft:0,fotos:0,type:'subasta',desc:'',photoUrl:(l.auction_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null};
     });
     const all=[...listings,...auctions];
     if(!all.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
@@ -7003,27 +7013,43 @@ function _renderMisPubGrid(){
     const isAprobada=l.status==='aprobada';
     const isNegada=l.status==='negada'||l.status==='rechazada';
     const isFinalizada=l.status==='finalizada';
-    const badgeColor=isAprobada?'rgba(230,240,59,.9)':isRevision?'rgba(255,170,0,.8)':isNegada?'rgba(255,70,70,.9)':isFinalizada?'rgba(255,255,255,.45)':'rgba(100,220,100,.9)';
+    const isVendido=l.status==='vendido'||l.vendido;
+    const badgeColor=isVendido?'rgba(255,255,255,.4)':isAprobada?'rgba(230,240,59,.9)':isRevision?'rgba(255,170,0,.8)':isNegada?'rgba(255,70,70,.9)':isFinalizada?'rgba(255,255,255,.45)':'rgba(100,220,100,.9)';
     const isPublicando=l.status==='publicando';
-    const badgeLabel=isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':isPublicando?'publicando...':isFinalizada?'finalizada':'activa';
+    const badgeLabel=isVendido?'vendido':isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':isPublicando?'publicando...':isFinalizada?'finalizada':'activa';
     const badgeColor2=isPublicando?'rgba(255,170,0,.8)':badgeColor;
+    const canMarkSold=l.type==='market'&&!isVendido&&!isRevision&&!isNegada&&!isPublicando;
+    const republishesLeft=2-(l.republishCount||0);
+    let actionBtns;
+    if(isVendido){
+      actionBtns='';
+    }else if(isAprobada){
+      actionBtns=`<button onclick="event.stopPropagation();_subirPublicacion('${l.id}')" style="flex:1;background:#e6f03b;border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:#000;cursor:pointer">subir</button>`;
+    }else if(isNegada){
+      actionBtns='';
+    }else if(isFinalizada){
+      // [nuevo] republicar subasta finalizada — válido máximo 2 veces
+      actionBtns=republishesLeft>0
+        ?`<button onclick="event.stopPropagation();_republishAuction('${l.id}')" style="flex:1;background:#e6f03b;border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:#000;cursor:pointer">republicar (${republishesLeft})</button>`
+        :`<span style="flex:1;text-align:center;font-size:9px;color:rgba(255,255,255,.3);padding:6px 0">límite de republicaciones</span>`;
+    }else{
+      actionBtns=`<button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>`;
+    }
+    // [nuevo] marcar como vendido — solo listings de market activas
+    const soldBtn=canMarkSold?`<button onclick="event.stopPropagation();_marcarVendido('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(230,240,59,.25);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:#e6f03b;cursor:pointer">vendido</button>`:'';
     return `<div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
         ${l.photoUrl
-          ?`<img src="${l.photoUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
+          ?`<img src="${l.photoUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:${isVendido?'.4':'0'};transition:opacity .4s ease;filter:${isVendido?'grayscale(.6)':'none'}" loading="lazy" onload="this.style.opacity='${isVendido?'.4':'1'}';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.06) 25%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.06) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
           :`<svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
         <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${badgeColor2||badgeColor}">${badgeLabel}</span>
       </div>
       <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
         <div style="font-size:11px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
-        <div style="font-size:12px;font-weight:800;color:#e6f03b">${l.price}</div>
+        <div style="font-size:12px;font-weight:800;color:${isVendido?'rgba(255,255,255,.35)':'#e6f03b'};${isVendido?'text-decoration:line-through':''}">${l.price}</div>
         <div style="display:flex;gap:5px;margin-top:4px">
-          ${isAprobada
-            ?`<button onclick="event.stopPropagation();_subirPublicacion('${l.id}')" style="flex:1;background:#e6f03b;border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:#000;cursor:pointer">subir</button>`
-            :isNegada
-            ?''
-            :`<button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>`}
+          ${actionBtns}${soldBtn}
           <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
         </div>
       </div>
@@ -7144,6 +7170,30 @@ async function saveListingEdit(id){
   else { openMisPublicaciones(); }
 }
 function editListing(id){ openEditListingModal(id); }
+// [nuevo] republicar subasta finalizada — máximo 2 veces, reinicia el cierre a 5 días
+async function _republishAuction(id){
+  if(!_supa)return;
+  const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===String(id));
+  if(!l)return;
+  if((l.republishCount||0)>=2){showToast('ya alcanzaste el máximo de republicaciones para esta subasta');return;}
+  try{
+    const newEnd=new Date(Date.now()+5*24*3600*1000).toISOString();
+    const{error}=await _supa.from('auctions').update({estado:'activa',end_time:newEnd,republish_count:(l.republishCount||0)+1}).eq('id',id);
+    if(error){showToast('error al republicar: '+error.message);return;}
+    showToast('publicación republicada por 5 días más',true);
+    _loadMyListings();
+  }catch(e){console.error('[republish]',e?.message||e);showToast('error al republicar');}
+}
+// [nuevo] marcar listing de market como vendido — precio tachado + tag, visible 24h y luego se oculta del feed público
+async function _marcarVendido(id){
+  if(!_supa)return;
+  try{
+    const{error}=await _supa.from('listings').update({vendido:true,vendido_at:new Date().toISOString()}).eq('id',id);
+    if(error){showToast('error al marcar como vendido: '+error.message);return;}
+    showToast('marcado como vendido',true);
+    _loadMyListings();
+  }catch(e){console.error('[marcar vendido]',e?.message||e);showToast('error al marcar como vendido');}
+}
 function confirmDeleteListing(id){
   const _idStr=String(id);
   let overlay=document.getElementById('confirm-delete-overlay');
@@ -7617,10 +7667,10 @@ function renderMarketFiltered(){
     el.className = 'market-card';
     el.style.animationDelay = (idx*50)+'ms';
     el.onclick = ()=>openMarketDetail(l.id);
-    el.innerHTML = `<div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}</div>
+    el.innerHTML = `<div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;text-transform:uppercase">vendido</span></div>':''}</div>
       <div class="market-card-body">
         <div class="market-card-title">${l.title}</div>
-        <div class="market-card-price">${fmtBid(l.price)}</div>
+        <div class="market-card-price" style="${l.vendido?'color:rgba(255,255,255,.35);text-decoration:line-through':''}">${fmtBid(l.price)}</div>
         <div class="market-card-meta">${l.location.toLowerCase()} · ${fmtNum(l.km)} km</div>
       </div>`;
     grid.appendChild(el);
@@ -7707,7 +7757,7 @@ function openVitrina(id){
       <text x="40" y="200" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,.35)">${d.ciudad.toLowerCase()} · ${d.autos} vehículos disponibles</text>
       <text x="750" y="110" font-family="-apple-system,sans-serif" font-size="56" font-weight="800" fill="rgba(255,255,255,.06)" text-anchor="end">${d.initial}</text>
     </svg>`;
-  document.getElementById('vitrina-nombre').innerHTML = d.nombre+'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.4 6.8l1.9 1.9 3.4-3.9" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  document.getElementById('vitrina-nombre').innerHTML = d.nombre+'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:19px;height:19px;flex-shrink:0;margin-left:6px;vertical-align:middle;filter:drop-shadow(0 1px 3px rgba(230,240,59,.45))" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.4 6.8l1.9 1.9 3.4-3.9" stroke="#000" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   document.getElementById('vitrina-meta').textContent = d.ciudad.toLowerCase() + ' · ' + d.tag;
   vitrinaFilters={cat:'todos',city:'todas'};
   renderVitrinavGrid('todos'); // async — no await para no bloquear la animación
@@ -9511,11 +9561,15 @@ async function _loadAuctions(){
 async function _loadMarket(){
   if(!_supa) return;
   try{
-    const{data,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado').eq('estado','activa').order('created_at',{ascending:false});
+    const{data:rawData,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at').eq('estado','activa').order('created_at',{ascending:false});
     window._feedLoaded.mkt=true; // [V87] primera carga resuelta
     if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));if(typeof renderMarket==='function')renderMarket();return;}
-    if(!data?.length){if(typeof renderMarket==='function')renderMarket();return;} // [V87] feed vacio: pintar empty state
-    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
+    if(!rawData?.length){if(typeof renderMarket==='function')renderMarket();return;} // [V87] feed vacio: pintar empty state
+    // [nuevo] los vendidos quedan visibles 24h (con tag/precio tachado) y luego se ocultan del feed público
+    const _cutoffVendido=Date.now()-24*3600*1000;
+    const data=rawData.filter(l=>!l.vendido||(l.vendido_at&&new Date(l.vendido_at).getTime()>_cutoffVendido));
+    if(!data.length){if(typeof renderMarket==='function')renderMarket();return;}
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
     if(typeof renderTrendingHoy==='function') renderTrendingHoy();
@@ -9563,6 +9617,17 @@ async function _loadConcesionarios(){
     autos:countMap[d.id]||0,autos_ids:[],logo:d.logo_url,banner:d.banner_url,
     telefono:d.telefono,instagram:d.instagram,whatsapp:d.whatsapp,user_id:d.user_id
   })));
+  // [FIX] antes el filtro de ciudad tenía 10 ciudades hardcodeadas — muchas vitrinas
+  // reales quedaban sin poder filtrarse. Ahora se arma con las ciudades reales que
+  // existen entre los concesionarios cargados.
+  const cityMenu=document.getElementById('dealer-city-menu');
+  if(cityMenu){
+    const cities=[...new Set(CONCESIONARIOS.map(d=>d.ciudad).filter(Boolean))].sort();
+    const cur=dealerCityFilter;
+    cityMenu.innerHTML='<div onclick="setDealerCity(event,\'todas\')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background=\'rgba(255,255,255,.06)\'" onmouseout="this.style.background=\'transparent\'">todas las ciudades</div>'
+      +cities.map((c,i)=>`<div onclick="setDealerCity(event,'${c.replace(/'/g,"\\'")}')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;${i<cities.length-1?'border-bottom:1px solid rgba(255,255,255,.05);':''}transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">${_esc(c)}</div>`).join('');
+    if(cur!=='todas'&&!cities.includes(cur)){ dealerCityFilter='todas'; const lbl=document.getElementById('dealer-city-label'); if(lbl)lbl.textContent='ciudad'; }
+  }
   if(typeof renderDealerGrid==='function') renderDealerGrid();
 }
 
@@ -9854,12 +9919,22 @@ async function _loadComments(sourceType,sourceId,listId,explicitOwnerId){
   if(!list||!_supa) return;
   list.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">cargando...</div>';
   const{data,error}=await _supa.from('comments')
-    .select('id,body,created_at,parent_id,user_id,users(nombre,username,avatar_url,kyc_verified,role,email)')
+    .select('id,body,created_at,parent_id,user_id,likes,users(nombre,username,avatar_url,kyc_verified,role,email)')
     .eq(_commentCol(sourceType),sourceId)
     .is('parent_id',null)
     .order('created_at',{ascending:false});
   if(error){list.innerHTML='';console.error('[comments]',error.message);return;}
   if(!data?.length){list.innerHTML='<div class="comment-empty" style="color:var(--muted);font-size:13px;padding:8px 0">sé el primero en preguntar</div>';return;}
+  // [FIX] "el contador de likes no sirve": el query nunca traía la columna likes ni
+  // si YO ya le había dado like — por eso siempre mostraba 0 y el corazón nunca
+  // quedaba marcado al recargar. Ahora se traen ambos.
+  if(USER_STATE.id){
+    try{
+      const{data:myLikes}=await _supa.from('comment_likes').select('comment_id').eq('user_id',USER_STATE.id).in('comment_id',data.map(c=>c.id));
+      const likedSet=new Set((myLikes||[]).map(l=>l.comment_id));
+      data.forEach(c=>{ c.likedByMe=likedSet.has(c.id); });
+    }catch(e){console.warn('[comment likes]',e?.message);}
+  }
   // cargar replies
   const ids=data.map(c=>c.id);
   const{data:replies}=await _supa.from('comments')
@@ -10551,9 +10626,11 @@ function _closeStoryViewer(){
   clearTimeout(_storyTimer);
   _storyTimer=null;
   _storyList=null;
-  document.body.style.overflow='';
   v.style.opacity='0';
-  setTimeout(()=>v.remove(),250);
+  // [FIX] antes se liberaba el scroll del body de inmediato, mientras el overlay
+  // todavía estaba visible fundiéndose — si scrolleabas en ese instante, el fondo
+  // se veía por encima del header/dynamic island. Ahora se libera junto con el remove().
+  setTimeout(()=>{ v.remove(); document.body.style.overflow=''; },250);
 }
 
 async function _storyPublishFlow(){
@@ -10891,6 +10968,12 @@ function renderMensajesList(){
         <div class="msg-time">Ruedda</div>
       </div>
     </div>`;
+  // [FIX] dirty-check — evita reconstruir la lista (y titilar los avatares) cuando
+  // se llama 2 veces seguidas con los mismos datos (ej: _loadPrivateMessages(true)
+  // seguido de switchNotifTab, mismo patrón ya resuelto en el banner de sponsors).
+  const _msgHash=THREADS.map(t=>t.id+'_'+t.messages.length+'_'+(t.messages[t.messages.length-1]?.text||'')+'_'+(t.unread?1:0)).join(',');
+  if(_msgHash===window._lastMsgListHash&&list.childElementCount)return;
+  window._lastMsgListHash=_msgHash;
   list.innerHTML=officialRow+THREADS.map(t=>{
     const last=t.messages[t.messages.length-1];
     const isDealer=t.otherIsDealer||(t.otherRole==='concesionario'||t.otherRole==='consesionario');
