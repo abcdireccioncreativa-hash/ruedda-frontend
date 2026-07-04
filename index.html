@@ -60,7 +60,7 @@ html::-webkit-scrollbar{display:none}
 html{scrollbar-width:none}
 .view{padding-top:58px}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
-#view-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
+#view-detail,#view-market-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
 #view-thread{padding-top:0;height:100dvh;height:100vh;box-sizing:border-box;flex-direction:column;overflow:hidden}
 #view-thread.active{display:flex!important}
@@ -251,6 +251,10 @@ html{scrollbar-width:none}
 /* VIEWS */
 .view{display:none}
 .view.active{display:block;animation:viewFadeIn .22s ease both}
+/* [ajuste post-launch] el chat necesita layout flex real: header fijo, solo los
+   mensajes scrollean. .view.active fuerza display:block para todas las vistas —
+   este override es scoped solo a #view-thread, no toca el resto. */
+#view-thread.active{display:flex;flex-direction:column}
 #view-thread.active{display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding-bottom:0}
 @keyframes viewFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 /* [V117] transición tipo fintech para el perfil — entra deslizando desde la derecha, no con el fade genérico */
@@ -1406,18 +1410,8 @@ html{scrollbar-width:none}
         <span id="dealer-city-label">ciudad</span>
         <svg fill="none" viewBox="0 0 10 10" stroke="rgba(255,255,255,.4)" stroke-width="2" style="width:8px;height:8px"><path d="m2 3.5 3 3 3-3"/></svg>
         <!-- DROPDOWN -->
-        <div id="dealer-city-menu" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#161616;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;z-index:99;min-width:160px;box-shadow:0 12px 40px rgba(0,0,0,.7);text-align:left">
+        <div id="dealer-city-menu" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#161616;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;overflow-y:auto;max-height:280px;z-index:99;min-width:160px;box-shadow:0 12px 40px rgba(0,0,0,.7);text-align:left">
           <div onclick="setDealerCity(event,'todas')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">todas las ciudades</div>
-          <div onclick="setDealerCity(event,'Caracas')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Caracas</div>
-          <div onclick="setDealerCity(event,'Maracay')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Maracay</div>
-          <div onclick="setDealerCity(event,'Valencia')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Valencia</div>
-          <div onclick="setDealerCity(event,'Maracaibo')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Maracaibo</div>
-          <div onclick="setDealerCity(event,'Barquisimeto')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Barquisimeto</div>
-          <div onclick="setDealerCity(event,'Mérida')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Mérida</div>
-          <div onclick="setDealerCity(event,'Puerto Ordaz')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Puerto Ordaz</div>
-          <div onclick="setDealerCity(event,'Barcelona')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Barcelona</div>
-          <div onclick="setDealerCity(event,'Cumaná')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">Cumaná</div>
-          <div onclick="setDealerCity(event,'San Cristóbal')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">San Cristóbal</div>
         </div>
       </button>
     </div>
@@ -7707,7 +7701,7 @@ function openVitrina(id){
       <text x="40" y="200" font-family="-apple-system,sans-serif" font-size="13" fill="rgba(255,255,255,.35)">${d.ciudad.toLowerCase()} · ${d.autos} vehículos disponibles</text>
       <text x="750" y="110" font-family="-apple-system,sans-serif" font-size="56" font-weight="800" fill="rgba(255,255,255,.06)" text-anchor="end">${d.initial}</text>
     </svg>`;
-  document.getElementById('vitrina-nombre').innerHTML = d.nombre+'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.4 6.8l1.9 1.9 3.4-3.9" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  document.getElementById('vitrina-nombre').innerHTML = d.nombre+'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:19px;height:19px;flex-shrink:0;margin-left:6px;vertical-align:middle;filter:drop-shadow(0 1px 4px rgba(230,240,59,.4))" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.4 6.8l1.9 1.9 3.4-3.9" stroke="#000" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   document.getElementById('vitrina-meta').textContent = d.ciudad.toLowerCase() + ' · ' + d.tag;
   vitrinaFilters={cat:'todos',city:'todas'};
   renderVitrinavGrid('todos'); // async — no await para no bloquear la animación
@@ -9563,6 +9557,18 @@ async function _loadConcesionarios(){
     autos:countMap[d.id]||0,autos_ids:[],logo:d.logo_url,banner:d.banner_url,
     telefono:d.telefono,instagram:d.instagram,whatsapp:d.whatsapp,user_id:d.user_id
   })));
+  // [FIX] filtro de ciudad 100% funcional: antes el dropdown tenía 10 ciudades
+  // hardcodeadas y el match era texto-exacto — cualquier vitrina con una ciudad
+  // fuera de esa lista (o con distinta capitalización) era infiltrable. Ahora el
+  // menú se arma con los strings EXACTOS que traen los concesionarios cargados,
+  // así el filtro siempre matchea.
+  const _cityMenu=document.getElementById('dealer-city-menu');
+  if(_cityMenu){
+    const _cities=[...new Set(CONCESIONARIOS.map(d=>d.ciudad).filter(Boolean))].sort();
+    _cityMenu.innerHTML='<div onclick="setDealerCity(event,\'todas\')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background=\'rgba(255,255,255,.06)\'" onmouseout="this.style.background=\'transparent\'">todas las ciudades</div>'
+      +_cities.map((c,i)=>`<div onclick="setDealerCity(event,'${c.replace(/'/g,"\\'")}')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;${i<_cities.length-1?'border-bottom:1px solid rgba(255,255,255,.05);':''}transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">${_esc(c)}</div>`).join('');
+    if(dealerCityFilter!=='todas'&&!_cities.includes(dealerCityFilter)){ dealerCityFilter='todas'; const _lbl=document.getElementById('dealer-city-label'); if(_lbl)_lbl.textContent='ciudad'; }
+  }
   if(typeof renderDealerGrid==='function') renderDealerGrid();
 }
 
@@ -9854,12 +9860,21 @@ async function _loadComments(sourceType,sourceId,listId,explicitOwnerId){
   if(!list||!_supa) return;
   list.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">cargando...</div>';
   const{data,error}=await _supa.from('comments')
-    .select('id,body,created_at,parent_id,user_id,users(nombre,username,avatar_url,kyc_verified,role,email)')
+    .select('id,body,created_at,parent_id,user_id,likes,users(nombre,username,avatar_url,kyc_verified,role,email)')
     .eq(_commentCol(sourceType),sourceId)
     .is('parent_id',null)
     .order('created_at',{ascending:false});
   if(error){list.innerHTML='';console.error('[comments]',error.message);return;}
   if(!data?.length){list.innerHTML='<div class="comment-empty" style="color:var(--muted);font-size:13px;padding:8px 0">sé el primero en preguntar</div>';return;}
+  // [FIX] contador de likes: el query nunca traía la columna likes ni si YO ya
+  // le había dado like — siempre pintaba 0 y el corazón nunca quedaba marcado.
+  if(USER_STATE.id){
+    try{
+      const{data:myLikes}=await _supa.from('comment_likes').select('comment_id').eq('user_id',USER_STATE.id).in('comment_id',data.map(c=>c.id));
+      const _likedSet=new Set((myLikes||[]).map(l=>l.comment_id));
+      data.forEach(c=>{ c.likedByMe=_likedSet.has(c.id); });
+    }catch(e){console.warn('[comment likes]',e?.message);}
+  }
   // cargar replies
   const ids=data.map(c=>c.id);
   const{data:replies}=await _supa.from('comments')
@@ -10394,7 +10409,7 @@ async function openStories(){
   document.body.style.overflow='hidden';
   const v=document.createElement('div');
   v.id='story-viewer';
-  v.style.cssText='position:fixed;inset:0;z-index:9996;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .25s ease';
+  v.style.cssText='position:fixed;inset:0;z-index:9996;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .25s ease;overscroll-behavior:contain';
   v.innerHTML=`
     <div id="story-bars" style="display:flex;gap:4px;padding:12px 12px 0"></div>
     <div id="story-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px 8px">
@@ -10551,9 +10566,13 @@ function _closeStoryViewer(){
   clearTimeout(_storyTimer);
   _storyTimer=null;
   _storyList=null;
-  document.body.style.overflow='';
   v.style.opacity='0';
-  setTimeout(()=>v.remove(),250);
+  // [FIX] antes se liberaba el scroll del body de inmediato, mientras el overlay
+  // todavía estaba visible fundiéndose — si scrolleabas en ese instante, el fondo
+  // se veía por encima del header/dynamic island. Ahora se libera junto con el remove().
+  // Scoped: no se toca overscroll-behavior global (eso rompía el bounce nativo de iOS
+  // y hacía sentir la app entera "barata" — ya lo aprendimos, no se repite).
+  setTimeout(()=>{ v.remove(); document.body.style.overflow=''; },250);
 }
 
 async function _storyPublishFlow(){
@@ -10891,6 +10910,12 @@ function renderMensajesList(){
         <div class="msg-time">Ruedda</div>
       </div>
     </div>`;
+  // [FIX] dirty-check — evita reconstruir la lista (y titilar los avatares) cuando
+  // se llama 2 veces seguidas con los mismos datos (ej: _loadPrivateMessages(true)
+  // seguido de switchNotifTab, mismo patrón ya resuelto en el banner de sponsors).
+  const _msgHash=THREADS.map(t=>t.id+'_'+t.messages.length+'_'+(t.messages[t.messages.length-1]?.text||'')+'_'+(t.unread?1:0)).join(',');
+  if(_msgHash===window._lastMsgListHash&&list.childElementCount)return;
+  window._lastMsgListHash=_msgHash;
   list.innerHTML=officialRow+THREADS.map(t=>{
     const last=t.messages[t.messages.length-1];
     const isDealer=t.otherIsDealer||(t.otherRole==='concesionario'||t.otherRole==='consesionario');
