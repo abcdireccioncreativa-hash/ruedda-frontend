@@ -82,6 +82,11 @@ html{scrollbar-width:none}
 .vender-handle{width:36px;height:4px;background:var(--muted2);border-radius:2px;margin:0 auto 24px}
 .vender-sheet-title{font-size:22px;font-weight:700;margin-bottom:6px;letter-spacing:-.4px}
 .vender-sheet-sub{font-size:14px;color:var(--muted);margin-bottom:24px}
+/* [ajuste post-launch] partners: sheet en blanco, scoped solo a #partners-modal — no toca .vender-sheet compartido */
+#partners-modal .vender-sheet{background:#fff;color:#000}
+#partners-modal .vender-handle{background:rgba(0,0,0,.15)}
+#partners-modal .vender-sheet-title{color:#000}
+#partners-modal .vender-sheet-sub{color:rgba(0,0,0,.55)}
 .vender-type-btn{display:flex;align-items:center;gap:16px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:all .2s;text-align:left}
 .vender-type-btn:hover,.vender-type-btn:active{border-color:var(--lime);background:rgba(230,240,59,.04)}
 .vender-type-icon{width:46px;height:46px;border-radius:12px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -381,7 +386,7 @@ html{scrollbar-width:none}
 .vender-hero p{font-size:15px;color:var(--muted);line-height:1.6}
 .vender-form{padding:20px 18px;display:flex;flex-direction:column;gap:14px}
 .form-group{display:flex;flex-direction:column;gap:6px}
-.form-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px}
+.form-label{font-size:11px;font-weight:400;color:var(--muted);letter-spacing:.5px}
 .form-input,.form-select,.form-textarea{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;transition:border-color .2s;width:100%}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:rgba(230,240,59,.45)}
 .form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23555'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;background-size:18px}
@@ -617,7 +622,7 @@ html{scrollbar-width:none}
 .drawer-bottom{margin-top:auto;font-size:12px;color:var(--muted2);padding-top:20px;padding-bottom:40px;border-top:1px solid var(--border)}
 
 /* TOAST */
-.toast{position:fixed;top:76px;left:50%;transform:translateX(-50%) translateY(-20px);background:#1e1e1e;border:1px solid var(--border);border-radius:100px;padding:11px 22px;font-size:14px;font-weight:500;z-index:500;opacity:0;transition:all .28s;white-space:nowrap;pointer-events:none}
+.toast{position:fixed;top:76px;left:50%;transform:translateX(-50%) translateY(-20px);background:#1e1e1e;border:1px solid var(--border);border-radius:100px;padding:11px 22px;font-size:14px;font-weight:500;z-index:10000;opacity:0;transition:all .28s;white-space:nowrap;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.lime{border-color:rgba(230,240,59,.3);color:var(--lime)}
 
@@ -1962,7 +1967,7 @@ html{scrollbar-width:none}
       <div class="form-group"><label class="form-label">Transmisión.</label><select class="form-select" id="transmision-select" onchange="_checkDsgVagWarning()"><option value="">seleccionar</option><option>automática</option><option>automática con levas</option><option>auto CVT</option><option>DSG</option><option>sincrónica</option><option>secuencial</option></select>
         <div id="dsg-vag-warning" style="display:none;margin-top:8px;background:rgba(255,170,60,.12);border:1px solid rgba(255,170,60,.3);border-radius:10px;padding:8px 12px;font-size:12px;color:rgba(255,180,70,.95);font-weight:600">Esta opción es solo para vehículos del grupo VAG</div>
       </div>
-      <div class="form-group"><label class="form-label">Combustible.</label><select class="form-select"><option>gasolina</option><option>diesel</option><option>eléctrico</option><option>híbrido</option></select></div>
+      <div class="form-group"><label class="form-label">Combustible.</label><select class="form-select" id="combustible-select" onchange="_syncMotorElectrico(this.value)"><option>gasolina</option><option>diesel</option><option>eléctrico</option><option>híbrido</option></select></div>
       <div class="form-group"><label class="form-label">Motor.</label><select class="form-select" id="motor-select"><option value="">seleccionar</option><option>3 cyl</option><option>4 cyl</option><option>5 cyl</option><option>6 cyl</option><option>8 cyl</option><option>10 cyl</option><option>12 cyl</option><option>rotativo</option><option>eléctrico</option></select></div>
       <div class="form-group"><label class="form-label">Tracción.</label><select class="form-select" id="traccion-select" onchange="handleTraccionChange(this)"><option value="">seleccionar</option><option>RWD</option><option>FWD</option><option>AWD</option><option>4x4</option><option value="unknown">No lo sé.</option></select></div>
     </div>
@@ -2105,32 +2110,34 @@ html{scrollbar-width:none}
       <label class="form-label">Fotos del vehículo.</label>
       <div id="photo-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
         <!-- Add button always first -->
-        <div id="photo-add-btn" onclick="document.getElementById('file-input').click()" style="aspect-ratio:1;background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.15);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .2s;position:relative" onmouseover="this.style.borderColor='rgba(230,240,59,.5)';this.style.background='rgba(230,240,59,.04)'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.background='rgba(255,255,255,.04)'">
+        <div id="photo-add-btn" onclick="document.getElementById('file-input').click()" style="grid-column:1/-1;width:100%;height:140px;background:rgba(255,255,255,.02);border:1.5px dashed rgba(255,255,255,.18);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:all .2s;position:relative" onmouseover="this.style.borderColor='rgba(230,240,59,.5)';this.style.background='rgba(230,240,59,.04)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)';this.style.background='rgba(255,255,255,.02)'">
           <div style="width:40px;height:40px;background:rgba(230,240,59,.12);border-radius:50%;display:flex;align-items:center;justify-content:center">
             <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="2.2" style="width:20px;height:20px"><path d="M12 5v14M5 12h14"/></svg>
           </div>
-          <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.8);text-align:center;line-height:1.4">agregar<br>fotos</div>
-          <div style="position:absolute;bottom:8px;font-size:9px;color:rgba(255,255,255,.3);font-weight:500">mínimo 10</div>
+          <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.85)">agregar fotos</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);font-weight:300">mínimo 10</div>
         </div>
       </div>
       <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="handleFiles(this)">
       <div id="photo-count-hint" style="font-size:12px;color:rgba(255,255,255,.3);margin-top:8px;display:none"></div>
+      <div style="font-size:12px;color:rgba(255,255,255,.35);font-weight:300;line-height:1.6;margin-top:8px">Trata de subir fotografías en formato 16:9 para maximizar las visualizaciones y atraer más compradores. Si nos gusta tu post, te lo boosteamos completamente gratis.</div>
     </div>
 
     <!-- VIDEOS DEL VEHÍCULO (opcional) -->
     <div class="form-group">
       <label class="form-label">Videos del vehículo (opcional).</label>
       <div id="video-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-        <div id="video-add-btn" onclick="document.getElementById('video-input').click()" style="aspect-ratio:1;background:rgba(255,255,255,.04);border:2px dashed rgba(255,255,255,.15);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .2s;position:relative" onmouseover="this.style.borderColor='rgba(230,240,59,.5)';this.style.background='rgba(230,240,59,.04)'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.background='rgba(255,255,255,.04)'">
+        <div id="video-add-btn" onclick="document.getElementById('video-input').click()" style="grid-column:1/-1;width:100%;height:140px;background:rgba(255,255,255,.02);border:1.5px dashed rgba(255,255,255,.18);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:all .2s;position:relative" onmouseover="this.style.borderColor='rgba(230,240,59,.5)';this.style.background='rgba(230,240,59,.04)'" onmouseout="this.style.borderColor='rgba(255,255,255,.18)';this.style.background='rgba(255,255,255,.02)'">
           <div style="width:40px;height:40px;background:rgba(230,240,59,.12);border-radius:50%;display:flex;align-items:center;justify-content:center">
             <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="2.2" style="width:20px;height:20px"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
           </div>
-          <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,.8);text-align:center;line-height:1.4">agregar<br>videos</div>
-          <div style="position:absolute;bottom:8px;font-size:9px;color:rgba(255,255,255,.3);font-weight:500">hasta 3</div>
+          <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.85)">agregar videos</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);font-weight:300">hasta 3</div>
         </div>
       </div>
       <input type="file" id="video-input" multiple accept="video/*" style="display:none" onchange="handleVideoFiles(this)">
       <div id="video-count-hint" style="font-size:12px;color:rgba(255,255,255,.3);margin-top:8px;display:none"></div>
+      <div style="font-size:12px;color:rgba(255,255,255,.35);font-weight:300;line-height:1.6;margin-top:8px">Sube hasta 3 videos estables mostrando tu vehículo. Se aceptan videos producidos serios — no edits de baja calidad o grabados en muy baja resolución. En Ruedda tomamos muy en serio la recepción de clientes :)</div>
     </div>
 
     <div style="background:rgba(230,240,59,.05);border:1px solid rgba(230,240,59,.16);border-radius:14px;padding:18px 18px 20px">
@@ -2510,7 +2517,7 @@ html{scrollbar-width:none}
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
   </div>
   <!-- [BLOQUE 5] filtros dinámicos por región -->
-  <div style="display:flex;gap:8px;padding:0 18px 14px;overflow-x:auto;scrollbar-width:none">
+  <div style="display:flex;gap:8px;padding:14px 18px 14px;overflow-x:auto;scrollbar-width:none">
     <button class="marcas-region-btn" onclick="filterMarcasByRegion('americanas',this)">Americanas</button>
     <button class="marcas-region-btn" onclick="filterMarcasByRegion('chinas',this)">Chinas</button>
     <button class="marcas-region-btn" onclick="filterMarcasByRegion('europeas',this)">Europeas</button>
@@ -2840,43 +2847,43 @@ html{scrollbar-width:none}
     <div style="display:flex;flex-direction:column;gap:14px;margin-top:6px">
       <div style="display:flex;gap:14px;align-items:flex-start">
         <div style="width:42px;height:42px;flex-shrink:0;border-radius:12px;background:rgba(230,240,59,.1);display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.7" style="width:20px;height:20px"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11 12.5v6a2 2 0 0 1-4 0v-5"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="1.7" style="width:20px;height:20px"><path d="M3 11l18-5v12L3 14v-3z"/><path d="M11 12.5v6a2 2 0 0 1-4 0v-5"/></svg>
         </div>
         <div>
-          <div style="font-size:15px;font-weight:700;letter-spacing:-.2px">publicidad</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.4;margin-top:2px">tu marca en el banner principal de Market, frente a miles de compradores activos todos los días.</div>
+          <div style="font-size:15px;font-weight:700;letter-spacing:-.2px;color:#000">publicidad</div>
+          <div style="font-size:13px;color:rgba(0,0,0,.55);line-height:1.4;margin-top:2px">tu marca en el banner principal de Market, frente a miles de compradores activos todos los días.</div>
         </div>
       </div>
       <div style="display:flex;gap:14px;align-items:flex-start">
         <div style="width:42px;height:42px;flex-shrink:0;border-radius:12px;background:rgba(230,240,59,.1);display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.7" style="width:20px;height:20px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="1.7" style="width:20px;height:20px"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
         </div>
         <div>
-          <div style="font-size:15px;font-weight:700;letter-spacing:-.2px">prestación de servicios</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.4;margin-top:2px">mecánicos, aseguradoras, financiamiento e inspecciones — ofrece tu servicio dentro del ecosistema Ruedda.</div>
+          <div style="font-size:15px;font-weight:700;letter-spacing:-.2px;color:#000">prestación de servicios</div>
+          <div style="font-size:13px;color:rgba(0,0,0,.55);line-height:1.4;margin-top:2px">mecánicos, aseguradoras, financiamiento e inspecciones — ofrece tu servicio dentro del ecosistema Ruedda.</div>
         </div>
       </div>
       <div style="display:flex;gap:14px;align-items:flex-start">
         <div style="width:42px;height:42px;flex-shrink:0;border-radius:12px;background:rgba(230,240,59,.1);display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.7" style="width:20px;height:20px"><path d="M3 21h18"/><path d="M5 21V9l7-6 7 6v12"/><path d="M9 21v-6h6v6"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="1.7" style="width:20px;height:20px"><path d="M3 21h18"/><path d="M5 21V9l7-6 7 6v12"/><path d="M9 21v-6h6v6"/></svg>
         </div>
         <div>
-          <div style="font-size:15px;font-weight:700;letter-spacing:-.2px">reconstrucción del país</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.4;margin-top:2px">parte de los ingresos de partners se destina a nuestros programas de apoyo tras los sismos, como Chocados 24J.</div>
+          <div style="font-size:15px;font-weight:700;letter-spacing:-.2px;color:#000">reconstrucción del país</div>
+          <div style="font-size:13px;color:rgba(0,0,0,.55);line-height:1.4;margin-top:2px">parte de los ingresos de partners se destina a nuestros programas de apoyo tras los sismos, como Chocados 24J.</div>
         </div>
       </div>
       <div style="display:flex;gap:14px;align-items:flex-start">
         <div style="width:42px;height:42px;flex-shrink:0;border-radius:12px;background:rgba(230,240,59,.1);display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.7" style="width:20px;height:20px"><rect x="1" y="6" width="10" height="12" rx="3"/><path d="M11 10h10v4H11"/><path d="M14 10v2M17 10v2M20 10v2"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="1.7" style="width:20px;height:20px"><rect x="1" y="6" width="10" height="12" rx="3"/><path d="M11 10h10v4H11"/><path d="M14 10v2M17 10v2M20 10v2"/></svg>
         </div>
         <div>
-          <div style="font-size:15px;font-weight:700;letter-spacing:-.2px">esquema de concesionarios</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.4;margin-top:2px">vitrina propia, listados ilimitados, sello de verificado y prioridad en resultados de búsqueda.</div>
+          <div style="font-size:15px;font-weight:700;letter-spacing:-.2px;color:#000">esquema de concesionarios</div>
+          <div style="font-size:13px;color:rgba(0,0,0,.55);line-height:1.4;margin-top:2px">vitrina propia, listados ilimitados, sello de verificado y prioridad en resultados de búsqueda.</div>
         </div>
       </div>
     </div>
 
-    <button class="config-save-btn" style="margin-top:22px" onclick="closePartnersModal();showView('afiliate')">quiero ser partner</button>
+    <button class="config-save-btn" style="margin-top:22px" onclick="closePartnersModal();window.open('https://instagram.com/ruedda.app','_blank','noopener')">quiero ser partner</button>
   </div>
 </div>
 
@@ -3505,7 +3512,21 @@ function showView(name,param){
       renderPendingRefs();
     },300);
   }
+  if(!_navigatingFromPopstate){
+    // [FIX] Android PWA: sin esto, el botón atrás del sistema no tiene historial
+    // dentro del WebView y cierra la app entera en vez de regresar a la vista anterior.
+    if(name==='home') history.replaceState({rueddaView:'home'},'',location.href);
+    else history.pushState({rueddaView:name,param:param!==undefined?param:null},'',location.href);
+  }
 }
+let _navigatingFromPopstate=false;
+window.addEventListener('popstate',(e)=>{
+  _navigatingFromPopstate=true;
+  const st=e.state;
+  try{ showView(st&&st.rueddaView?st.rueddaView:'home', st?st.param:undefined); }
+  finally{ _navigatingFromPopstate=false; }
+});
+if(typeof history!=='undefined'&&history.replaceState) history.replaceState({rueddaView:'home'},'',location.href);
 
 // ===================== SECTION =====================
 function renderCurrentSection(){
@@ -4174,7 +4195,7 @@ function renderMarket(){
       <div class="market-card-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="market-card-title" style="min-width:0">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
         <div class="market-card-meta">${l.location.toLowerCase()}</div>
-        <div style="font-size:12px;font-weight:700;color:#e6f03b;margin-top:2px">${fmtBid(l.price)}</div>
+        <div class="market-card-price">${fmtBid(l.price)}</div>
       </div>`;
     grid.appendChild(el);
   });
@@ -4217,11 +4238,18 @@ window.addEventListener('pageshow',function(){
 // ───────────────────────────────────────────
 let MARKET_SPONSORS=[];
 let _sponsorIdx=0;
+let _lastSponsorHash=null;
 async function _loadMarketSponsors(){
   if(!_supa) return;
   try{
     const{data,error}=await _supa.from('patrocinantes').select('*').eq('categoria','market').order('created_at',{ascending:false});
     if(error){console.error('[ruedda] _loadMarketSponsors:',String(error?.message||error));return;}
+    // [FIX] este load se dispara 2 veces seguidas en el boot inicial (showView('home') +
+    // el bootstrap general) — sin este guard, renderSponsorSlider() reconstruía el innerHTML
+    // dos veces y el banner titilaba. Si los datos no cambiaron, no se vuelve a pintar.
+    const hash=(data||[]).map(s=>s.id+'_'+(s.imagen_url||'')).join(',');
+    if(hash===_lastSponsorHash&&document.getElementById('sponsor-slider')?.children.length>0)return;
+    _lastSponsorHash=hash;
     MARKET_SPONSORS=data||[];
     renderSponsorSlider();
   }catch(e){console.error('[ruedda] _loadMarketSponsors catch:',String(e?.message||e));}
@@ -7219,6 +7247,12 @@ function _toggleDuenosExacto(val){
   const inp=document.getElementById('duenos-exacto-input');
   if(inp) inp.style.display=val==='4+'?'block':'none';
 }
+// [ajuste post-launch] combustible eléctrico -> autoselecciona motor eléctrico
+function _syncMotorElectrico(val){
+  const motorSel=document.getElementById('motor-select');
+  if(!motorSel)return;
+  if(val==='eléctrico') motorSel.value='eléctrico';
+}
 // [BLOQUE 4] DSG solo aplica al grupo VAG (VW, Porsche, Audi, Seat, Skoda...)
 const _VAG_BRANDS=['volkswagen','porsche','audi','seat','skoda','bentley','lamborghini'];
 function _checkDsgVagWarning(){
@@ -9915,7 +9949,10 @@ function _openCommentAuthorProfile(userId,isDealer){
 let _profileViewingId=null; // [V116] guarda qué perfil se está cargando — evita que datos de un fetch viejo se pinten sobre el perfil nuevo si el usuario abre otro antes de que termine
 async function openUserProfile(userId){
   if(!userId||!_supa) return;
-  window._profileBackView=currentView; // para que "volver" regrese a donde estabas
+  // [FIX] si ya estás viendo un perfil y abres otro desde ahí, no pisamos el
+  // "volver" original — si no, _profileBackView quedaba apuntando a 'perfil-publico'
+  // (a sí mismo) y "volver" no salía de la sección de perfiles nunca.
+  if(currentView!=='perfil-publico') window._profileBackView=currentView;
   _profileViewingId=userId;
   const el=document.getElementById('perfil-publico-content');
   if(!el) return;
@@ -9991,7 +10028,7 @@ async function openUserProfile(userId){
       ${!isMe?`
       <div style="display:flex;gap:10px;margin-top:18px">
         <button onclick="_openRatingModal('${userId}','${safeName}',${myRating})" style="background:#e6f03b;border:none;color:#000;border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">calificar <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg></button>
-        <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="background:${amIFollowing?'rgba(255,255,255,.08)':'#e6f03b'};border:${amIFollowing?'1px solid var(--border)':'none'};color:${amIFollowing?'#fff':'#000'};border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">${amIFollowing?'siguiendo':'seguir'} <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></button>
+        <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="background:${amIFollowing?'rgba(255,255,255,.08)':'#e6f03b'};border:${amIFollowing?'1px solid var(--border)':'none'};color:${amIFollowing?'#fff':'#000'};border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0"><span id="follow-btn-label-${userId}">${amIFollowing?'siguiendo':'seguir'}</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></button>
       </div>`:`<div style="margin-top:16px;font-size:12px;color:var(--muted)">este es tu perfil — edítalo desde configuración</div>`}
       ${u.descripcion?`
       <div style="margin-top:26px">
@@ -10034,9 +10071,10 @@ async function _followToggle(userId,btn){
   if(!_supa) return;
   const following=btn.dataset.following==='true';
   const newFollowing=!following;
+  const label=document.getElementById('follow-btn-label-'+userId);
   // optimista
   btn.dataset.following=String(newFollowing);
-  btn.textContent=newFollowing?'siguiendo':'seguir';
+  if(label)label.textContent=newFollowing?'siguiendo':'seguir';
   btn.style.background=newFollowing?'rgba(255,255,255,.06)':'#e6f03b';
   btn.style.color=newFollowing?'rgba(255,255,255,.7)':'#000';
   btn.style.borderColor=newFollowing?'var(--border)':'transparent';
@@ -10049,7 +10087,7 @@ async function _followToggle(userId,btn){
   }catch(e){
     // revertir si falla
     btn.dataset.following=String(following);
-    btn.textContent=following?'siguiendo':'seguir';
+    if(label)label.textContent=following?'siguiendo':'seguir';
     showToast('error, intenta de nuevo');
   }
 }
@@ -12447,8 +12485,8 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
     <div class="config-card">
       <div class="config-row" onclick="openEditProfileModal()" style="cursor:pointer"><!-- [V87] desplegable reemplazado por el modal -->
         <div class="config-row-left">
-          <div class="config-row-icon" style="background:rgba(230,240,59,.1)">
-            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          <div class="config-row-icon" style="background:rgba(255,255,255,.07)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           </div>
           <div>
             <div class="config-row-title">datos de usuario</div>
@@ -12484,8 +12522,8 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
     <div class="config-card">
       <div class="config-row" style="flex-direction:column;align-items:stretch;gap:14px;cursor:default">
         <div class="config-row-left">
-          <div class="config-row-icon" style="background:rgba(230,240,59,.1)">
-            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>
+          <div class="config-row-icon" style="background:rgba(255,255,255,.07)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>
           </div>
           <div>
             <div class="config-row-title">al iniciar sesión mostrar siempre:</div>
@@ -12526,8 +12564,8 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
     <div class="config-card">
       <div class="config-row" onclick="showView('kyc');openKycView()" style="cursor:pointer">
         <div class="config-row-left">
-          <div class="config-row-icon" style="background:rgba(230,240,59,.12)">
-            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4.5"/></svg>
+          <div class="config-row-icon" style="background:rgba(255,255,255,.07)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4.5"/></svg>
           </div>
           <div>
             <div class="config-row-title">verificación KYC</div>
@@ -12543,8 +12581,8 @@ window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.erro
     <div class="config-card">
       <div class="config-row" onclick="openMiPerfil()" style="cursor:pointer">
         <div class="config-row-left">
-          <div class="config-row-icon" style="background:rgba(230,240,59,.12)">
-            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+          <div class="config-row-icon" style="background:rgba(255,255,255,.07)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
           </div>
           <div>
             <div class="config-row-title">perfil público</div>
