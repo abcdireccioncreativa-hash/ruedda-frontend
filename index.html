@@ -254,7 +254,8 @@ html{scrollbar-width:none}
 /* [ajuste post-launch] el chat necesita layout flex real: header fijo, solo los
    mensajes scrollean. .view.active fuerza display:block para todas las vistas —
    este override es scoped solo a #view-thread, no toca el resto. */
-#view-thread.active{display:flex;flex-direction:column;height:100dvh;overflow:hidden;padding-bottom:0;animation:threadFadeIn .22s ease both}
+#view-thread.active{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;padding-bottom:0;animation:threadFadeIn .22s ease both}
+#view-thread #thread-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 /* [FIX] la animación genérica viewFadeIn deja transform:translateY(0) pegado (fill both)
    — un transform, aunque sea cero, crea un containing block y hace que la caja de texto
    position:fixed scrollee con el contenido como si fuera parte de la página. El chat usa
@@ -2211,7 +2212,7 @@ html{scrollbar-width:none}
 </div>
 
 <!-- THREAD VIEW -->
-<div id="view-thread" class="view" style="height:100%;overflow:hidden">
+<div id="view-thread" class="view" style="overflow:hidden">
   <div class="detail-back" onclick="showView('notificaciones');switchNotifTab('mensajes')" style="flex-shrink:0;padding-top:calc(58px + env(safe-area-inset-top))">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>mensajes</span>
@@ -4189,11 +4190,12 @@ function renderMarket(){
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
+        ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;text-transform:uppercase">vendido</span></div>':''}
       </div>
       <div class="market-card-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="market-card-title" style="min-width:0">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
         <div class="market-card-meta">${l.location.toLowerCase()}</div>
-        <div class="market-card-price">${fmtBid(l.price)}</div>
+        <div class="market-card-price" style="${l.vendido?'color:rgba(255,255,255,.35);text-decoration:line-through':''}">${fmtBid(l.price)}</div>
       </div>`;
     grid.appendChild(el);
   });
@@ -4470,11 +4472,13 @@ function openMarketDetail(id, origin){
   setupMktSwipe();
   // content
   if(mktDetailOrigin!=='vitrina') _registerRealView('listings',l); // [V87] click real de comprador
-  document.getElementById('mkt-badges').innerHTML='<div class="detail-badge">'+l.year+'</div><div class="detail-badge">'+l.category+'</div><div class="detail-badge">'+l.location.toLowerCase()+'</div><div class="detail-badge lime">market</div><span style="margin-left:10px;display:inline-flex;align-items:center;vertical-align:middle">'+_viewsChip(l.viewCount)+'</span>';
+  document.getElementById('mkt-badges').innerHTML='<div class="detail-badge">'+l.year+'</div><div class="detail-badge">'+l.category+'</div><div class="detail-badge">'+l.location.toLowerCase()+'</div><div class="detail-badge lime">market</div>'+(l.vendido?'<div class="detail-badge" style="background:rgba(255,255,255,.12);color:#fff;font-weight:800">vendido</div>':'')+'<span style="margin-left:10px;display:inline-flex;align-items:center;vertical-align:middle">'+_viewsChip(l.viewCount)+'</span>';
   document.getElementById('mkt-title').textContent=l.title;
   document.getElementById('mkt-subtitle').innerHTML='<span>'+fmtNum(l.km)+' km</span><span class="sep">·</span><span>'+(l.transmission||'automática')+'</span><span class="sep">·</span><span>'+(l.fuel||'gasolina')+'</span>';
   // [V87] precio en oferta: anterior tachado + nuevo resaltado
-  if(l.precioAnterior&&l.precioAnterior>l.price){
+  if(l.vendido){
+    document.getElementById('mkt-price').innerHTML='<span style="text-decoration:line-through;color:rgba(255,255,255,.35)">'+fmtBid(l.price)+'</span>';
+  } else if(l.precioAnterior&&l.precioAnterior>l.price){
     document.getElementById('mkt-price').innerHTML='<span style="text-decoration:line-through;opacity:.38;font-size:.62em;font-weight:600;margin-right:8px">'+fmtBid(l.precioAnterior)+'</span>'+fmtBid(l.price);
   } else {
     document.getElementById('mkt-price').textContent=fmtBid(l.price);
@@ -5184,15 +5188,17 @@ async function loadCarspotting(tab){
   }
   feed.innerHTML='<div class="com-loading">cargando...</div>';
   try{
-    let q=_supa.from('carspotting').select('*,users(nombre,username,avatar_url,role)');
+    // [FIX RC7] "no se ven los spots en la comunidad": el tab populares ordenaba por
+    // .order('likes',...) sobre una columna que no existe en carspotting — el query
+    // fallaba ENTERO y la pestaña quedaba siempre vacía. Ahora ordena por created_at
+    // (columna segura) y los likes se calculan en vivo desde carspotting_likes.
+    let q=_supa.from('carspotting').select('*,users(nombre,username,avatar_url,role)').order('created_at',{ascending:false});
     if(_csTab==='mis'){
       if(isGuest()||!USER_STATE?.id){feed.innerHTML='<div class="com-empty">inicia sesión para ver tus spots</div>';return;}
-      q=q.eq('user_id',USER_STATE.id).order('created_at',{ascending:false});
-    } else {
-      q=q.order('likes',{ascending:false}).order('created_at',{ascending:false});
+      q=q.eq('user_id',USER_STATE.id);
     }
-    const{data,error}=await q.limit(30);
-    if(error||!data||data.length===0){feed.innerHTML=`<div class="com-empty">${_csTab==='mis'?'aún no has subido spots':'sin spots aún. ¡sé el primero!'}</div>`;return;}
+    let{data,error}=await q.limit(_csTab==='mis'?30:60);
+    if(error||!data||data.length===0){feed.innerHTML=`<div class="com-empty">${_csTab==='mis'?'aún no has subido spots':'sin spots aún. ¡sé el primero!'}</div>`;if(error)console.warn('[ruedda carspotting]',error.message);return;}
     // estado de like propio, para pintar el corazón ya marcado
     let likedSet=new Set();
     if(_supa&&USER_STATE?.id&&!isGuest()){
@@ -5201,6 +5207,15 @@ async function loadCarspotting(tab){
         (lk||[]).forEach(l=>likedSet.add(l.carspotting_id));
       }catch(e){}
     }
+    // conteo real de likes por spot (reemplaza la columna que no existía)
+    try{
+      const{data:allLikes}=await _supa.from('carspotting_likes').select('carspotting_id').in('carspotting_id',data.map(s=>s.id));
+      const _counts={};
+      (allLikes||[]).forEach(l=>{_counts[l.carspotting_id]=(_counts[l.carspotting_id]||0)+1;});
+      data.forEach(s=>{s.likes=_counts[s.id]||0;});
+      if(_csTab!=='mis') data.sort((a,b)=>b.likes-a.likes);
+    }catch(e){data.forEach(s=>{s.likes=s.likes||0;});}
+    data=data.slice(0,30);
     feed.innerHTML=data.map(s=>{
       const _u=s.users||{};
       const authorName=_u.nombre||_u.username||'usuario';
@@ -5642,7 +5657,7 @@ function renderNotifications(){
   }
   if(!NOTIFICATIONS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:15px">sin notificaciones</div>';return;}
   list.innerHTML=NOTIFICATIONS.map(n=>`
-    <div class="notif-item ${n.read?'':' unread'}" onclick="_notifClick('${n.id}')" style="cursor:pointer">
+    <div class="notif-item ${n.read?'':' unread'}" data-notif-id="${n.id}" onclick="_notifClick('${n.id}')" style="cursor:pointer;position:relative;touch-action:pan-y;will-change:transform;background:var(--bg)">
       <div class="notif-icon ${n.icon==='lime'?'lime':''}">
         ${n.type==='offer'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>':n.type==='question'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>':n.type==='sold'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="m5 12 5 5L20 7"/></svg>':'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'}
       </div>
@@ -5653,6 +5668,46 @@ function renderNotifications(){
       </div>
       ${!n.read?'<div class="notif-unread-dot"></div>':''}
     </div>`).join('');
+  _attachNotifSwipe(list);
+}
+
+// [RC7] swipe horizontal para eliminar notificaciones — sigue el dedo, umbral 90px,
+// animación de salida y persiste el borrado. touch-action:pan-y en cada item deja el
+// scroll vertical intacto.
+function _attachNotifSwipe(list){
+  list.querySelectorAll('.notif-item[data-notif-id]').forEach(item=>{
+    let sx=0,dx=0,dragging=false;
+    item.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;dx=0;dragging=true;item.style.transition='none';},{passive:true});
+    item.addEventListener('touchmove',e=>{
+      if(!dragging)return;
+      dx=e.touches[0].clientX-sx;
+      item.style.transform='translateX('+dx+'px)';
+      item.style.opacity=String(Math.max(.25,1-Math.abs(dx)/260));
+    },{passive:true});
+    const end=()=>{
+      if(!dragging)return;dragging=false;
+      if(Math.abs(dx)>90){
+        item.style.transition='transform .22s ease,opacity .22s ease';
+        item.style.transform='translateX('+(dx>0?'110%':'-110%')+')';
+        item.style.opacity='0';
+        const id=item.dataset.notifId;
+        setTimeout(()=>{
+          const i=NOTIFICATIONS.findIndex(x=>String(x.id)===String(id));
+          if(i>-1)NOTIFICATIONS.splice(i,1);
+          _saveNotifsToStorage();
+          item.remove();
+          if(!NOTIFICATIONS.length)renderNotifications();
+          if(typeof _syncNotifBadge==='function')_syncNotifBadge();
+        },220);
+      }else{
+        item.style.transition='transform .25s cubic-bezier(.32,.72,0,1),opacity .25s ease';
+        item.style.transform='translateX(0)';
+        item.style.opacity='1';
+      }
+    };
+    item.addEventListener('touchend',end);
+    item.addEventListener('touchcancel',end);
+  });
 }
 
 function _notifClick(id){
@@ -6970,17 +7025,17 @@ async function _loadMyListings(){
   if(!_supa||!USER_STATE.id){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
   try{
     const[resListings,resAuctions]=await Promise.all([
-      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado,listing_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}),
-      _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo,end_time,auction_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false})
+      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado,vendido,vendido_at,listing_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}),
+      _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo,end_time,republish_count,auction_photos(url,orden)').eq('user_id',USER_STATE.id).order('created_at',{ascending:false})
     ]);
     if(resListings.error) console.error('[ruedda] _loadMyListings listings:',resListings.error.message);
     if(resAuctions.error) console.error('[ruedda] _loadMyListings auctions:',resAuctions.error.message);
-    const listings=(resListings.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.estado,daysLeft:0,fotos:0,type:'market',desc:'',photoUrl:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null}));
+    const listings=(resListings.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.vendido?'vendido':l.estado,vendido:!!l.vendido,daysLeft:0,fotos:0,type:'market',desc:'',photoUrl:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null}));
     // [V83] subasta con end_time vencido y estado activa → estado finalizada (permanente para el dueño)
     const auctions=(resAuctions.data||[]).map(l=>{
       const ended=l.end_time&&new Date(l.end_time).getTime()<=Date.now();
       const status=(ended&&l.estado==='activa')?'finalizada':l.estado;
-      return {id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status,daysLeft:0,fotos:0,type:'subasta',desc:'',photoUrl:(l.auction_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null};
+      return {id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status,republishCount:l.republish_count||0,daysLeft:0,fotos:0,type:'subasta',desc:'',photoUrl:(l.auction_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null};
     });
     const all=[...listings,...auctions];
     if(!all.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones aún</div>'; return; }
@@ -7001,10 +7056,27 @@ function _renderMisPubGrid(){
     const isAprobada=l.status==='aprobada';
     const isNegada=l.status==='negada'||l.status==='rechazada';
     const isFinalizada=l.status==='finalizada';
-    const badgeColor=isAprobada?'rgba(230,240,59,.9)':isRevision?'rgba(255,170,0,.8)':isNegada?'rgba(255,70,70,.9)':isFinalizada?'rgba(255,255,255,.45)':'rgba(100,220,100,.9)';
+    const isVendido=l.status==='vendido'||l.vendido;
+    const badgeColor=isVendido?'rgba(255,255,255,.4)':isAprobada?'rgba(230,240,59,.9)':isRevision?'rgba(255,170,0,.8)':isNegada?'rgba(255,70,70,.9)':isFinalizada?'rgba(255,255,255,.45)':'rgba(100,220,100,.9)';
     const isPublicando=l.status==='publicando';
-    const badgeLabel=isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':isPublicando?'publicando...':isFinalizada?'finalizada':'activa';
+    const badgeLabel=isVendido?'vendido':isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':isPublicando?'publicando...':isFinalizada?'finalizada':'activa';
     const badgeColor2=isPublicando?'rgba(255,170,0,.8)':badgeColor;
+    // [RC7] republicar (subastas finalizadas, máx 2) y marcar vendido (market activas)
+    const republishesLeft=2-(l.republishCount||0);
+    const canMarkSold=l.type==='market'&&!isVendido&&!isRevision&&!isNegada&&!isPublicando&&!isAprobada;
+    let actionBtn;
+    if(isVendido||isNegada){
+      actionBtn='';
+    }else if(isAprobada){
+      actionBtn=`<button onclick="event.stopPropagation();_subirPublicacion('${l.id}')" style="flex:1;background:#e6f03b;border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:#000;cursor:pointer">subir</button>`;
+    }else if(isFinalizada){
+      actionBtn=republishesLeft>0
+        ?`<button onclick="event.stopPropagation();_republishAuction('${l.id}')" style="flex:1;background:#e6f03b;border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:#000;cursor:pointer">republicar (${republishesLeft})</button>`
+        :`<span style="flex:1;text-align:center;font-size:9px;color:rgba(255,255,255,.3);padding:6px 0">límite de republicaciones</span>`;
+    }else{
+      actionBtn=`<button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>`;
+    }
+    const soldBtn=canMarkSold?`<button onclick="event.stopPropagation();_marcarVendido('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(230,240,59,.25);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:#e6f03b;cursor:pointer">vendido</button>`:'';
     return `<div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
         ${l.photoUrl
@@ -7015,13 +7087,9 @@ function _renderMisPubGrid(){
       </div>
       <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
         <div style="font-size:11px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
-        <div style="font-size:12px;font-weight:800;color:#e6f03b">${l.price}</div>
+        <div style="font-size:12px;font-weight:800;color:${isVendido?'rgba(255,255,255,.35)':'#e6f03b'};${isVendido?'text-decoration:line-through':''}">${l.price}</div>
         <div style="display:flex;gap:5px;margin-top:4px">
-          ${isAprobada
-            ?`<button onclick="event.stopPropagation();_subirPublicacion('${l.id}')" style="flex:1;background:#e6f03b;border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:#000;cursor:pointer">subir</button>`
-            :isNegada
-            ?''
-            :`<button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>`}
+          ${actionBtn}${soldBtn}
           <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
         </div>
       </div>
@@ -7142,6 +7210,30 @@ async function saveListingEdit(id){
   else { openMisPublicaciones(); }
 }
 function editListing(id){ openEditListingModal(id); }
+// [RC7] republicar subasta finalizada — máximo 2 veces, reinicia el cierre a 5 días
+async function _republishAuction(id){
+  if(!_supa)return;
+  const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===String(id));
+  if(!l)return;
+  if((l.republishCount||0)>=2){showToast('ya alcanzaste el máximo de republicaciones');return;}
+  try{
+    const newEnd=new Date(Date.now()+5*24*3600*1000).toISOString();
+    const{error}=await _supa.from('auctions').update({estado:'activa',end_time:newEnd,republish_count:(l.republishCount||0)+1}).eq('id',id);
+    if(error){showToast('error al republicar: '+error.message);return;}
+    showToast('publicación republicada por 5 días más',true);
+    _loadMyListings();
+  }catch(e){console.warn('[ruedda republish]',e?.message||e);showToast('error al republicar');}
+}
+// [RC7] marcar listing de market como vendido — precio tachado + tag, visible 24h en el feed
+async function _marcarVendido(id){
+  if(!_supa)return;
+  try{
+    const{error}=await _supa.from('listings').update({vendido:true,vendido_at:new Date().toISOString()}).eq('id',id);
+    if(error){showToast('error al marcar como vendido: '+error.message);return;}
+    showToast('marcado como vendido',true);
+    _loadMyListings();
+  }catch(e){console.warn('[ruedda vendido]',e?.message||e);showToast('error al marcar como vendido');}
+}
 function confirmDeleteListing(id){
   const _idStr=String(id);
   let overlay=document.getElementById('confirm-delete-overlay');
@@ -7615,11 +7707,19 @@ function renderMarketFiltered(){
     el.className = 'market-card';
     el.style.animationDelay = (idx*50)+'ms';
     el.onclick = ()=>openMarketDetail(l.id);
-    el.innerHTML = `<div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}</div>
+    // [FIX RC7] misma card exacta que renderMarket — antes este template era una versión
+    // vieja (sin badges, sin views, precio antes de ciudad) y la grid cambiaba de estilo
+    // según cuál de las dos funciones la pintara. Ahora es UNA sola apariencia siempre.
+    el.innerHTML=`
+      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+        <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
+        ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
+        ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;text-transform:uppercase">vendido</span></div>':''}
+      </div>
       <div class="market-card-body">
-        <div class="market-card-title">${l.title}</div>
-        <div class="market-card-price">${fmtBid(l.price)}</div>
-        <div class="market-card-meta">${l.location.toLowerCase()} · ${fmtNum(l.km)} km</div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="market-card-title" style="min-width:0">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
+        <div class="market-card-meta">${l.location.toLowerCase()}</div>
+        <div class="market-card-price" style="${l.vendido?'color:rgba(255,255,255,.35);text-decoration:line-through':''}">${fmtBid(l.price)}</div>
       </div>`;
     grid.appendChild(el);
   });
@@ -9509,11 +9609,15 @@ async function _loadAuctions(){
 async function _loadMarket(){
   if(!_supa) return;
   try{
-    const{data,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado').eq('estado','activa').order('created_at',{ascending:false});
+    const{data:rawData,error}=await _supa.from('listings').select('id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at').eq('estado','activa').order('created_at',{ascending:false});
     window._feedLoaded.mkt=true; // [V87] primera carga resuelta
     if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));if(typeof renderMarket==='function')renderMarket();return;}
-    if(!data?.length){if(typeof renderMarket==='function')renderMarket();return;} // [V87] feed vacio: pintar empty state
-    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
+    if(!rawData?.length){if(typeof renderMarket==='function')renderMarket();return;} // [V87] feed vacio: pintar empty state
+    // [RC7] los vendidos quedan visibles 24h (tag + precio tachado) y luego se ocultan del feed
+    const _cutoffVendido=Date.now()-24*3600*1000;
+    const data=rawData.filter(l=>!l.vendido||(l.vendido_at&&new Date(l.vendido_at).getTime()>_cutoffVendido));
+    if(!data.length){if(typeof renderMarket==='function')renderMarket();return;}
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
     if(typeof renderTrendingHoy==='function') renderTrendingHoy();
