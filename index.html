@@ -255,7 +255,11 @@ html{scrollbar-width:none}
    mensajes scrollean. .view.active fuerza display:block para todas las vistas —
    este override es scoped solo a #view-thread, no toca el resto. */
 #view-thread.active{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;padding-bottom:0;animation:threadFadeIn .22s ease both}
-#view-thread #thread-messages{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+/* [FIX RC8] -webkit-overflow-scrolling:touch tiene un bug legacy de iOS: un scroller
+   que arranca display:none dentro de un position:fixed queda CONGELADO hasta repaint.
+   iOS moderno da momentum nativo sin esa propiedad. translateZ(0) fuerza capa de
+   compositor propia — kick clásico para scrollers dentro de elementos fixed. */
+#view-thread #thread-messages{overscroll-behavior:contain;transform:translateZ(0)}
 /* [FIX] la animación genérica viewFadeIn deja transform:translateY(0) pegado (fill both)
    — un transform, aunque sea cero, crea un containing block y hace que la caja de texto
    position:fixed scrollee con el contenido como si fuera parte de la página. El chat usa
@@ -371,10 +375,14 @@ html{scrollbar-width:none}
 .thread-bubble.mine{align-items:flex-end}
 .thread-bubble.theirs{align-items:flex-start}
 .bubble-name{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;padding:0 4px}
-.bubble-body{max-width:82%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.55}
-.thread-bubble.mine .bubble-body{background:#e6f03b;color:#000;border-radius:16px 16px 4px 16px}
-.thread-bubble.theirs .bubble-body{background:var(--card);border:1px solid var(--border);border-radius:16px 16px 16px 4px}
+/* [RC8] redondez ligera (12px, como el mockup) + fondo del área de mensajes apenas
+   más claro que el negro — premium, sutil. Solo el chat, nada más cambia. */
+.bubble-body{max-width:82%;padding:11px 14px;border-radius:12px;font-size:14px;line-height:1.55}
+.thread-bubble.mine .bubble-body{background:#e6f03b;color:#000;border-radius:12px 12px 4px 12px}
+.thread-bubble.theirs .bubble-body{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:12px 12px 12px 4px}
 .bubble-time{font-size:11px;color:var(--muted2);margin-top:4px;padding:0 4px}
+#view-thread.active{background:#0a0a0b}
+#thread-messages{background:#0a0a0b}
 
 .cf-hero{padding:30px 18px 20px;border-bottom:1px solid var(--border)}
 .cf-hero h2{font-size:26px;font-weight:700;letter-spacing:-.6px;margin-bottom:8px}
@@ -928,6 +936,11 @@ html{scrollbar-width:none}
 @media(max-width:599px){#view-market-detail .detail-right-col{display:none!important}}
   .detail-right-col [style*="position:sticky"]{position:static!important}
 }
+/* [FIX RC8] estas 2 reglas estaban fugadas fuera de todo media query (la línea de
+   apertura de su @media se perdió en alguna edición vieja) + había una llave huérfana
+   que desbalanceaba el CSS. Se envuelven en min-width:768px — mismo render exacto
+   que hoy (en mobile eran no-op), pero con estructura sana. */
+@media(min-width:768px){
   .card-list{grid-template-columns:1fr 1fr 1fr}
   .market-grid{grid-template-columns:repeat(4,1fr)}
 }
@@ -3522,7 +3535,14 @@ let _navigatingFromPopstate=false;
 window.addEventListener('popstate',(e)=>{
   _navigatingFromPopstate=true;
   const st=e.state;
-  try{ showView(st&&st.rueddaView?st.rueddaView:'home', st?st.param:undefined); }
+  const _prevSection=currentSection; // [FIX RC8] sección activa antes del back del sistema
+  try{
+    const target=st&&st.rueddaView?st.rueddaView:'home';
+    showView(target, st?st.param:undefined);
+    // el swipe-back debe comportarse igual que el botón "volver" del post: si vuelves
+    // a home y estabas en market/consesionarios/etc, te quedas en esa sección — no en subastas.
+    if(target==='home'&&_prevSection&&_prevSection!=='subastas'&&typeof selectSection==='function') selectSection(_prevSection);
+  }
   finally{ _navigatingFromPopstate=false; }
 });
 if(typeof history!=='undefined'&&history.replaceState) history.replaceState({rueddaView:'home'},'',location.href);
@@ -11145,6 +11165,12 @@ function openThread(id){
   }
   renderThreadMessages();
   showView('thread');
+  // [FIX RC8] kick del scroller: forzar reflow + bajar al último mensaje tras el paint.
+  // Despierta el scroller que iOS deja congelado al pasar de display:none a fixed.
+  requestAnimationFrame(()=>{
+    const tm=document.getElementById('thread-messages');
+    if(tm){ void tm.offsetHeight; tm.scrollTop=tm.scrollHeight; }
+  });
 }
 // [V87] título del chat → publicación de origen
 function _threadGoToSource(){
