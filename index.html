@@ -257,7 +257,10 @@ html{scrollbar-width:none}
    que arranca display:none dentro de un position:fixed queda CONGELADO hasta repaint.
    iOS moderno da momentum nativo sin esa propiedad. translateZ(0) fuerza capa de
    compositor propia — kick clásico para scrollers dentro de elementos fixed. */
-#view-thread #thread-messages{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+/* [FIX RC9.3] sin -webkit-overflow-scrolling:touch: su modo de scroll legacy se
+   congela específicamente en PWA standalone (funciona en Safari, muere instalada).
+   iOS 13+ da momentum/spring nativo en todo overflow scroller sin esa propiedad. */
+#view-thread #thread-messages{overscroll-behavior:contain}
 /* [FIX] la animación genérica viewFadeIn deja transform:translateY(0) pegado (fill both)
    — un transform, aunque sea cero, crea un containing block y hace que la caja de texto
    position:fixed scrollee con el contenido como si fuera parte de la página. El chat usa
