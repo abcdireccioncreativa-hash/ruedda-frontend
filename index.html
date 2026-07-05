@@ -11163,11 +11163,21 @@ function openThread(id){
   }
   renderThreadMessages();
   showView('thread');
-  // [FIX RC8] kick del scroller: forzar reflow + bajar al último mensaje tras el paint.
-  // Despierta el scroller que iOS deja congelado al pasar de display:none a fixed.
+  // [FIX RC9.2 — bulletproof] Safari/WebKit no está resolviendo la cadena flex
+  // (flex:1 + min-height:0) dentro del position:fixed: el contenedor crecía al alto
+  // de su contenido y nunca había overflow interno que scrollear. Solución definitiva:
+  // altura EXPLÍCITA en píxeles medida en runtime (viewport - header real) + flex:none
+  // para que el algoritmo flex no la pise + thaw canónico de iOS (toggle de overflow
+  // tras hacerse visible, despierta el compositor del scroller). Solo el chat.
   requestAnimationFrame(()=>{
     const tm=document.getElementById('thread-messages');
-    if(tm){ void tm.offsetHeight; tm.scrollTop=tm.scrollHeight; }
+    const vt=document.getElementById('view-thread');
+    if(tm&&vt){
+      const h=vt.clientHeight-tm.offsetTop;
+      if(h>100){ tm.style.flex='none'; tm.style.height=h+'px'; tm.style.minHeight='0'; }
+      tm.style.overflowY='hidden'; void tm.offsetHeight; tm.style.overflowY='auto';
+      tm.scrollTop=tm.scrollHeight;
+    }
   });
 }
 // [V87] título del chat → publicación de origen
