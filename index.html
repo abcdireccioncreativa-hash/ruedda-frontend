@@ -62,8 +62,6 @@ html{scrollbar-width:none}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
 #view-detail,#view-market-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
-#view-thread{padding-top:0;height:100vh;height:100dvh;box-sizing:border-box;flex-direction:column;overflow:hidden}
-#view-thread.active{display:flex!important}
 #view-thread .thread-input-bar{padding-bottom:calc(10px + 64px + env(safe-area-inset-bottom))}
 .logo{cursor:pointer;user-select:none;display:flex;align-items:center}
 .logo img{height:32px;width:auto;object-fit:contain}
@@ -352,16 +350,17 @@ html{scrollbar-width:none}
 .bid-value{font-size:15px;font-weight:700}
 .bid-value.top{color:var(--white);font-weight:800}
 
-.msg-item{display:flex;gap:13px;align-items:center;padding:15px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
-.msg-item:hover{background:rgba(255,255,255,.02)}
-.msg-item.unread{background:rgba(230,240,59,.025)}
+.msg-item{display:flex;gap:13px;align-items:center;padding:15px 16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:background .15s}
+.msg-item:hover{background:rgba(255,255,255,.06)}
+.msg-item.unread{background:rgba(230,240,59,.05);border-color:rgba(230,240,59,.15)}
 .msg-avatar{width:46px;height:46px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;overflow:hidden}
 .msg-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 /* dealer ahora también circular — más limpio y consistente */
 .msg-avatar.dealer{border-color:rgba(100,220,150,.22)}
 /* canal oficial Ruedda Team — anillo lime sutil */
-.msg-item.official{background:linear-gradient(180deg,rgba(230,240,59,.04),transparent)}
-.msg-item.official:hover{background:linear-gradient(180deg,rgba(230,240,59,.06),transparent)}
+.msg-item.official{background:linear-gradient(180deg,rgba(230,240,59,.07),rgba(255,255,255,.035));border-color:rgba(230,240,59,.14)}
+.msg-item.official:hover{background:linear-gradient(180deg,rgba(230,240,59,.1),rgba(255,255,255,.05))}
+#mensajes-list{display:flex;flex-direction:column;gap:9px;padding:12px 14px 100px}
 .msg-avatar.official-ring{border:1.5px solid rgba(230,240,59,.55);box-shadow:0 0 0 3px rgba(230,240,59,.07)}
 .msg-pin{display:inline-flex;align-items:center;margin-left:5px;color:rgba(230,240,59,.85)}
 .msg-name{font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;letter-spacing:-.2px;line-height:1.25}
@@ -381,7 +380,6 @@ html{scrollbar-width:none}
 .thread-bubble.mine .bubble-body{background:#e6f03b;color:#000;border-radius:12px 12px 4px 12px}
 .thread-bubble.theirs .bubble-body{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.09);border-radius:12px 12px 12px 4px}
 .bubble-time{font-size:11px;color:var(--muted2);margin-top:4px;padding:0 4px}
-#view-thread.active{background:#0a0a0b}
 #thread-messages{background:#0a0a0b}
 
 .cf-hero{padding:30px 18px 20px;border-bottom:1px solid var(--border)}
