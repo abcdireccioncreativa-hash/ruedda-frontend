@@ -147,6 +147,15 @@ html{scrollbar-width:none}
 /* MARKET HUB HEADER (partners/store) */
 .mkt-hub-actions{display:flex;align-items:center;gap:18px;flex-shrink:0}
 .mkt-hub-btn{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;background:none;border:none;color:#fff;font-family:var(--font);padding:0}
+@keyframes ptrSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+/* [fix] antes translateY(8px)→0 los hacía SUBIR desde abajo — "caen" es al revés:
+   arrancan arriba (negativo) y bajan a su lugar, con un pelín de rebote al asentar. */
+@keyframes hubPopIn{
+  0%{opacity:0;transform:translateY(-22px) scale(.75)}
+  60%{opacity:1;transform:translateY(3px) scale(1.06)}
+  100%{opacity:1;transform:translateY(0) scale(1)}
+}
+.mkt-hub-btn.hub-pop-in{animation:hubPopIn .55s cubic-bezier(.22,1,.36,1) both}
 .mkt-hub-btn svg{width:21px;height:21px}
 .mkt-hub-btn span{font-size:10px;color:var(--muted);font-weight:400;letter-spacing:.1px}
 .mkt-hub-btn:active{opacity:.55}
@@ -1051,6 +1060,13 @@ html{scrollbar-width:none}
     </button>
   </div>
 </nav>
+
+<!-- [pull-to-refresh] indicador — vive fuera del navbar, nunca lo mueve -->
+<div id="ptr-indicator" style="position:fixed;top:58px;left:0;right:0;display:flex;justify-content:center;z-index:95;pointer-events:none;opacity:0">
+  <div id="ptr-spinner" style="width:34px;height:34px;border-radius:50%;background:rgba(20,20,20,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4)">
+    <svg id="ptr-icon" viewBox="0 0 24 24" fill="none" stroke="#e6f03b" stroke-width="2.3" stroke-linecap="round" style="width:17px;height:17px;transition:transform .1s linear"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+  </div>
+</div>
 
 <!-- LANDING VIEW (desktop only) -->
 <div id="view-landing" class="view" style="padding:0;max-width:none">
@@ -3582,6 +3598,17 @@ function selectSection(s){
   const hub=document.getElementById('mkt-hub-actions');
   if(cl){cl.style.display=s==='market'?'none':'inline';}
   if(hub){hub.style.display=s==='market'?'flex':'none';}
+  // [pop escalonado] historias/partners/store entran con pop cada vez que se entra a market.
+  // reset+reflow+add: fuerza que la animación CSS se repita aunque la clase ya estuviera puesta.
+  if(s==='market'&&hub){
+    const btns=hub.querySelectorAll('.mkt-hub-btn');
+    btns.forEach((b,i)=>{
+      b.classList.remove('hub-pop-in');
+      void b.offsetWidth; // fuerza reflow — sin esto el navegador ignora el re-add inmediato
+      b.style.animationDelay=(i*110)+'ms';
+      b.classList.add('hub-pop-in');
+    });
+  }
   if(s==='market'&&typeof _storyRefreshBadge==='function')_storyRefreshBadge();
   currentSection=s;
   document.getElementById('section-title-text').textContent=s==='consesionarios'?'concesionarios':s;
@@ -12531,9 +12558,85 @@ async function _saDeletePat(id,cat){
   saLoadPatrocinantes();
 }
 
-// [B1] red de seguridad global — un error aislado no debe tumbar la UI
-window.addEventListener('error',e=>{ if(window._DEBUG) console.error('[ruedda guard]',e.message); });
-window.addEventListener('unhandledrejection',e=>{ if(window._DEBUG) console.error('[ruedda guard rej]',e.reason); });
+// [pull-to-refresh] gesto natural estilo apple — solo en las 3 secciones de home
+// (subastas/market/consesionarios), nunca dentro de una publicación (currentView
+// distinto de 'home' queda excluido automáticamente). traslada #view-home, jamás
+// el navbar (elemento fixed independiente, ni se entera). haptic vía Vibration API
+// donde el navegador la soporte (iOS Safari no la implementa — ahí el feedback
+// es puramente visual/spring, no hay vibración real posible desde la web).
+(function(){
+  let _ptrStartY=0, _ptrPulling=false, _ptrDist=0, _ptrRefreshing=false;
+  const MAX_PULL=88, THRESHOLD=64;
+  function _ptrEligible(){
+    if(currentView!=='home') return false; // nunca dentro de publicaciones/detalle
+    if(document.querySelector('.modal-overlay.open,.vender-modal.open,#filter-panel[style*="flex"]')) return false;
+    if(window.scrollY>2) return false;
+    return true;
+  }
+  document.addEventListener('touchstart',e=>{
+    if(_ptrRefreshing||!_ptrEligible()){_ptrPulling=false;return;}
+    _ptrStartY=e.touches[0].clientY;
+    _ptrPulling=true;
+    _ptrDist=0;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!_ptrPulling||_ptrRefreshing)return;
+    const dy=e.touches[0].clientY-_ptrStartY;
+    if(dy<=0){ // el dedo subió o el usuario ya está scrolleando normal — soltar el gesto
+      if(_ptrDist>0){ _ptrDist=0; _ptrApply(0); }
+      return;
+    }
+    if(window.scrollY>2){_ptrPulling=false;_ptrApply(0);return;}
+    _ptrDist=Math.min(MAX_PULL, dy*0.5); // resistencia — se siente elástico, no 1:1
+    _ptrApply(_ptrDist);
+  },{passive:true});
+  document.addEventListener('touchend',()=>{
+    if(!_ptrPulling||_ptrRefreshing)return;
+    _ptrPulling=false;
+    if(_ptrDist>=THRESHOLD*0.5) _ptrTrigger();
+    else _ptrApply(0);
+  });
+  document.addEventListener('touchcancel',()=>{ if(_ptrPulling&&!_ptrRefreshing){_ptrPulling=false;_ptrApply(0);} });
+
+  function _ptrApply(dist){
+    const vh=document.getElementById('view-home');
+    const ind=document.getElementById('ptr-indicator');
+    const icon=document.getElementById('ptr-icon');
+    if(!vh||!ind)return;
+    const progress=Math.min(1,dist/THRESHOLD);
+    vh.style.transition=dist===0?'transform .3s cubic-bezier(.32,.72,0,1)':'none';
+    vh.style.transform=`translateY(${dist}px)`;
+    ind.style.transition=dist===0?'opacity .25s ease':'none';
+    ind.style.opacity=String(progress);
+    ind.style.transform=`translateY(${dist*0.6}px)`;
+    if(icon) icon.style.transform=`rotate(${progress*300}deg)`;
+    if(dist===0) setTimeout(()=>{vh.style.transform='';},300);
+  }
+  async function _ptrTrigger(){
+    _ptrRefreshing=true;
+    const vh=document.getElementById('view-home'), ind=document.getElementById('ptr-indicator'), icon=document.getElementById('ptr-icon');
+    vh.style.transition='transform .25s cubic-bezier(.32,.72,0,1)';
+    vh.style.transform='translateY(56px)';
+    ind.style.transition='opacity .2s ease';
+    ind.style.opacity='1';
+    if(icon){ icon.style.animation='ptrSpin .6s linear infinite'; }
+    if(navigator.vibrate) navigator.vibrate(10); // haptic real donde el navegador lo soporte
+    try{
+      if(currentSection==='subastas'&&typeof _loadAuctions==='function') await _loadAuctions();
+      else if(currentSection==='market'&&typeof _loadMarket==='function') await _loadMarket();
+      else if(currentSection==='consesionarios'&&typeof _loadConcesionarios==='function') await _loadConcesionarios();
+      if(typeof renderCurrentSection==='function') renderCurrentSection();
+    }catch(e){ console.warn('[ptr]',e?.message||e); }
+    // seamless: deja el spinner un pelín más para que no se sienta un parpadeo instantáneo
+    setTimeout(()=>{
+      vh.style.transform='translateY(0)';
+      ind.style.opacity='0';
+      if(icon) icon.style.animation='';
+      setTimeout(()=>{vh.style.transform='';_ptrRefreshing=false;},300);
+    },350);
+  }
+})();
+
 </script>
 
 <!-- NOTICIA DETAIL VIEW -->
