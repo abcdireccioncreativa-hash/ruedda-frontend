@@ -192,7 +192,10 @@ html{scrollbar-width:none}
 .trending-panel{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;aspect-ratio:4/3;background:#000;border-radius:20px;overflow:hidden}
 
 /* [hot deals] misma jerarquía visual que trending-head, con la llama como firma propia */
-.hd-head{display:flex;align-items:center;justify-content:space-between;padding:20px 14px 0}
+.hd-head{display:flex;flex-direction:column;gap:5px;padding:20px 14px 0}
+.hd-subtitle{font-size:10px;color:var(--muted);font-weight:400;letter-spacing:.1px;line-height:1.4}
+.hd-info-link{text-decoration:underline;color:var(--muted);cursor:pointer}
+.hd-info-link:active{color:#e6f03b}
 .hd-title{display:flex;align-items:center;gap:8px;font-size:21px;font-weight:800;letter-spacing:-.4px}
 @keyframes hdFlicker{
   0%,100%{transform:scale(1) rotate(0deg);filter:brightness(1)}
@@ -208,6 +211,8 @@ html{scrollbar-width:none}
 .hd-card:active{transform:scale(.94)}
 .hd-card-img{width:100%;height:92px;object-fit:cover;display:block;background:#161616}
 .hd-off{position:absolute;margin:7px;background:linear-gradient(135deg,#ff5b1a,#ffb020);color:#000;font-size:9.5px;font-weight:800;padding:2.5px 8px;border-radius:100px;letter-spacing:.2px}
+.hd-off-icon{display:flex;align-items:center;gap:4px;background:rgba(10,10,10,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;border:1px solid rgba(255,255,255,.12)}
+.hd-off-icon svg{flex-shrink:0}
 .hd-body{padding:8px 9px 10px}
 .hd-name{font-size:10.5px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hd-prices{display:flex;align-items:baseline;gap:5px;margin-top:3px}
@@ -1435,20 +1440,29 @@ html{scrollbar-width:none}
 
     <!-- [hot deals] llama retro animada + slider horizontal, debajo de trending hoy -->
     <div class="hd-head" id="hd-head" style="display:none">
-      <div class="hd-title">
-        <svg class="hd-flame" viewBox="0 0 24 24" width="19" height="19">
-          <defs>
-            <linearGradient id="hdFlameGrad" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stop-color="#ff3d1a"/>
-              <stop offset="45%" stop-color="#ff8a1e"/>
-              <stop offset="100%" stop-color="#ffd23d"/>
-            </linearGradient>
-          </defs>
-          <path fill="url(#hdFlameGrad)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/>
-        </svg>
-        <span>hot deals</span>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="hd-title">
+          <svg class="hd-flame" viewBox="0 0 24 24" width="19" height="19">
+            <defs>
+              <linearGradient id="hdFlameGrad" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stop-color="#ff3d1a"/>
+                <stop offset="45%" stop-color="#ff8a1e"/>
+                <stop offset="100%" stop-color="#ffd23d"/>
+              </linearGradient>
+              <linearGradient id="hdGoldGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#fff3b0"/>
+                <stop offset="40%" stop-color="#ffd700"/>
+                <stop offset="100%" stop-color="#b8860b"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#hdFlameGrad)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/>
+          </svg>
+          <span>hot deals</span>
+        </div>
+        <span class="trending-link" onclick="showView('hotdeals-all')">ver todo</span>
       </div>
-      <span class="trending-link" onclick="showView('home');selectSection('market')">ver todo</span>
+      <!-- [subtítulo] mismo tamaño que el texto de partners (10px) — info subrayado enlaza a soporte -->
+      <div class="hd-subtitle">consigue los mejores deals a nivel nacional. si quieres que tu vehículo aparezca aquí, <span class="hd-info-link" onclick="showView('soporte-ruedda')">info</span></div>
     </div>
     <div class="hd-shell" id="hd-shell" style="display:none">
       <div class="hd-track" id="hd-track"></div>
@@ -2585,6 +2599,19 @@ html{scrollbar-width:none}
 </div>
 
 <!-- MARCAS VIEW -->
+<!-- [hot deals] vista completa — pestaña real, no menú desplegable -->
+<div id="view-hotdeals-all" class="view">
+  <div class="detail-back" onclick="showView('home');selectSection('market')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>market</span>
+  </div>
+  <div style="padding:2px 18px 16px;display:flex;align-items:center;gap:8px">
+    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="url(#hdFlameGrad)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>
+    <h2 style="font-size:22px;font-weight:800;letter-spacing:-.4px">hot deals</h2>
+  </div>
+  <div id="hotdeals-all-grid" style="padding:0 14px 100px;display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+</div>
+
 <div id="view-marcas" class="view">
   <div class="marcas-hero">
     <div class="mh-text">
@@ -3561,7 +3588,7 @@ function showView(name,param){
   document.getElementById('view-'+name).classList.add('active');
   currentView=name;
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos',marcas:'bnav-home','usuarios-top':'bnav-home'};
+  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos',marcas:'bnav-home','usuarios-top':'bnav-home','hotdeals-all':'bnav-home'};
   if(map[name])document.getElementById(map[name]).classList.add('active');
   if(name==='home'){
     clearTimers();
@@ -4477,32 +4504,68 @@ function renderTrendingHoy(){
 // (precioAnterior > price), ordenados por % de descuento. dirty-check propio para no
 // repintar (y parpadear) si los datos no cambiaron desde el último render.
 let _lastHotDealsHash=null;
+// [ver todo] panel dedicado — reusa el set completo ya calculado por renderHotDeals,
+// cero query nuevo. bottom sheet liviano, mismo estilo visual que el resto de la app.
+function openHotDealsAll(){
+  const deals=window._hotDealsFull||[];
+  if(!deals.length)return;
+  const isReal=window._hotDealsIsReal;
+  const grid=document.getElementById('hotdeals-all-grid');
+  if(!grid)return;
+  grid.innerHTML=deals.map(l=>{
+    const img=(l.photoUrls&&l.photoUrls[0])?`<img src="${l.photoUrls[0]}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">`:'<div style="width:100%;aspect-ratio:4/3;background:#1c1c1e"></div>';
+    const badge=isReal
+      ?`<div class="hd-off" style="position:absolute">-${Math.round((l.precioAnterior-l.price)/l.precioAnterior*100)}%</div>`
+      :(l.destacado
+        ?`<div class="hd-off hd-off-icon" style="position:absolute"><svg viewBox="0 0 24 24" width="11" height="11"><path fill="url(#hdGoldGrad)" stroke="#8a6200" stroke-width=".4" d="M12 2.5l2.66 5.61 6.09.79-4.46 4.32 1.14 6.06L12 16.4l-5.43 2.88 1.14-6.06-4.46-4.32 6.09-.79z"/></svg>destacado</div>`
+        :`<div class="hd-off hd-off-icon" style="position:absolute"><svg viewBox="0 0 24 24" width="10" height="10"><path fill="url(#hdFlameGrad)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>popular</div>`);
+    const priceRow=isReal
+      ?`<span class="hd-old">${fmtBid(l.precioAnterior)}</span><span class="hd-new">${fmtBid(l.price)}</span>`
+      :`<span class="hd-new">${fmtBid(l.price)}</span>`;
+    return `<div onclick="openMarketDetail('${l.id}')" style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;position:relative">
+      ${badge}${img}
+      <div style="padding:8px 9px 10px">
+        <div style="font-size:11px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(l.title||'')}</div>
+        <div class="hd-prices" style="margin-top:3px">${priceRow}</div>
+      </div>
+    </div>`;
+  }).join('');
+  // [fix] "ver todo" ahora es una pestaña real de la app (showView), no un menú
+  // desplegable/sheet — navega igual que cualquier otra sección de Ruedda.
+  showView('hotdeals-all');
+}
 function renderHotDeals(){
   const head=document.getElementById('hd-head'), shell=document.getElementById('hd-shell'), track=document.getElementById('hd-track');
   if(!head||!shell||!track||typeof MARKET_LISTINGS==='undefined') return;
   let deals=MARKET_LISTINGS.filter(l=>l.precioAnterior&&l.precioAnterior>l.price)
-    .sort((a,b)=>(b.precioAnterior-b.price)/b.precioAnterior-(a.precioAnterior-a.price)/a.precioAnterior)
-    .slice(0,12);
+    .sort((a,b)=>(b.precioAnterior-b.price)/b.precioAnterior-(a.precioAnterior-a.price)/a.precioAnterior);
   let isRealDiscount=deals.length>0;
   // [fallback] mientras la comunidad no llene precio_anterior, la sección no se queda
   // vacía: cae a destacados/más vistos. nunca inventa un "-XX%" que no existe — el
-  // badge cambia a algo honesto (🔥 popular / ⭐ destacado) en vez de fingir rebaja.
+  // badge cambia a un ícono honesto (no dice "rebaja" si no la hay).
   if(!isRealDiscount){
     deals=[...MARKET_LISTINGS].filter(l=>!l.vendido)
-      .sort((a,b)=>((b.viewCount||0)+(b.destacado?1000:0))-((a.viewCount||0)+(a.destacado?1000:0)))
-      .slice(0,12);
+      .sort((a,b)=>((b.viewCount||0)+(b.destacado?1000:0))-((a.viewCount||0)+(a.destacado?1000:0)));
   }
   if(!deals.length){ head.style.display='none'; shell.style.display='none'; return; }
+  // [ver todo] guarda el set completo (sin el tope de 12) para el panel de "ver todo"
+  window._hotDealsFull=deals; window._hotDealsIsReal=isRealDiscount;
+  deals=deals.slice(0,12);
   const hash=isRealDiscount+'|'+deals.map(l=>l.id+'_'+l.price).join(',');
   if(hash===_lastHotDealsHash) return;
   _lastHotDealsHash=hash;
   head.style.display='flex'; shell.style.display='block';
-  head.querySelector('.hd-title span').textContent=isRealDiscount?'hot deals':'lo más buscado';
+  // [fix] el título ya no cambia según el modo — siempre "hot deals", como pediste
+  head.querySelector('.hd-title span').textContent='hot deals';
   track.innerHTML=deals.map(l=>{
     const img=(l.photoUrls&&l.photoUrls[0])?`<img class="hd-card-img" src="${l.photoUrls[0]}" loading="lazy">`:'<div class="hd-card-img"></div>';
+    // [fix] antes emojis 🔥/⭐ — ahora íconos svg propios, mismo gradiente que la
+    // llama del título (url(#hdFlameGrad)), misma estética, cero emojis
     const badge=isRealDiscount
       ? `<div class="hd-off">-${Math.round((l.precioAnterior-l.price)/l.precioAnterior*100)}%</div>`
-      : `<div class="hd-off" style="background:linear-gradient(135deg,#e6f03b,#ffb020)">${l.destacado?'⭐ destacado':'🔥 popular'}</div>`;
+      : l.destacado
+      ? `<div class="hd-off hd-off-icon"><svg viewBox="0 0 24 24" width="11" height="11"><path fill="url(#hdGoldGrad)" stroke="#8a6200" stroke-width=".4" d="M12 2.5l2.66 5.61 6.09.79-4.46 4.32 1.14 6.06L12 16.4l-5.43 2.88 1.14-6.06-4.46-4.32 6.09-.79z"/></svg>destacado</div>`
+      : `<div class="hd-off hd-off-icon"><svg viewBox="0 0 24 24" width="10" height="10"><path fill="url(#hdFlameGrad)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>popular</div>`;
     const priceRow=isRealDiscount
       ? `<span class="hd-old">${fmtBid(l.precioAnterior)}</span><span class="hd-new">${fmtBid(l.price)}</span>`
       : `<span class="hd-new">${fmtBid(l.price)}</span>`;
