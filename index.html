@@ -205,9 +205,9 @@ html{scrollbar-width:none}
 }
 .hd-flame{transform-origin:50% 90%;animation:hdFlicker 2.4s ease-in-out infinite;flex-shrink:0}
 .hd-shell{margin-top:10px;overflow:hidden;padding:2px 0 4px}
-.hd-track{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;padding:0 14px}
+.hd-track{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding-left:14px;scrollbar-width:none;padding:0 14px}
 .hd-track::-webkit-scrollbar{display:none}
-.hd-card{flex:0 0 auto;width:132px;scroll-snap-align:start;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .25s cubic-bezier(.32,.72,0,1)}
+.hd-card{flex:0 0 auto;width:132px;scroll-snap-align:start;scroll-margin-left:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .25s cubic-bezier(.32,.72,0,1)}
 .hd-card:active{transform:scale(.94)}
 .hd-card-img{width:100%;height:92px;object-fit:cover;display:block;background:#161616}
 .hd-off{position:absolute;margin:7px;background:linear-gradient(135deg,#ff5b1a,#ffb020);color:#000;font-size:9.5px;font-weight:800;padding:2.5px 8px;border-radius:100px;letter-spacing:.2px}
@@ -1459,7 +1459,7 @@ html{scrollbar-width:none}
           </svg>
           <span>hot deals</span>
         </div>
-        <span class="trending-link" onclick="showView('hotdeals-all')">ver todo</span>
+        <span class="trending-link" onclick="openHotDealsAll()">ver todo</span>
       </div>
       <!-- [subtítulo] mismo tamaño que el texto de partners (10px) — info subrayado enlaza a soporte -->
       <div class="hd-subtitle">consigue los mejores deals a nivel nacional. si quieres que tu vehículo aparezca aquí, <span class="hd-info-link" onclick="showView('soporte-ruedda')">info</span></div>
@@ -3470,7 +3470,19 @@ async function _loadRueddaTeamConfig(){
     const{data}=await _supa.from('app_settings').select('value').eq('key','ruedda_team_avatar_url').maybeSingle();
     if(data?.value){
       window._rueddaTeamLogoUrl=data.value;
-      if(typeof renderMensajesList==='function') renderMensajesList();
+      // [FIX] antes llamaba renderMensajesList() para refrescar el avatar — pero el
+      // dirty-check de esa función (agregado para matar el titileo de fotos) compara
+      // un hash basado en THREADS, que nunca cambia por esto, así que el refresh
+      // quedaba bloqueado: la lista se quedaba pegada mostrando la "R" de respaldo
+      // aunque el logo real ya hubiera cargado. Ahora se actualiza el <img> del DOM
+      // directamente, sin pasar por el re-render completo ni el dirty-check.
+      document.querySelectorAll('.msg-avatar.official-ring').forEach(av=>{
+        av.innerHTML=`<img src="${data.value}" alt="Ruedda" loading="lazy" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
+      });
+      const _threadAv=document.getElementById('thread-avatar');
+      if(_threadAv&&currentThread?.isOfficial){
+        _threadAv.innerHTML=`<img src="${data.value}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
+      }
     }
   }catch(e){}
 }
@@ -13261,6 +13273,19 @@ async function _saDeletePat(id,cat){
         </div>
         <div class="rx-menu-card-icon">
           <svg fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Store — clickeable, misma navegación que _openStore() en el hub de market -->
+    <div class="rx-menu-card" onclick="_openStore()" style="cursor:pointer">
+      <div class="rx-menu-card-btn">
+        <div class="rx-menu-card-text">
+          <div class="rx-menu-card-title">Store</div>
+          <div class="rx-menu-card-sub">Merch oficial de Ruedda y STXX AutoClub.</div>
+        </div>
+        <div class="rx-menu-card-icon">
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l1 12.5h-13z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
         </div>
       </div>
     </div>
