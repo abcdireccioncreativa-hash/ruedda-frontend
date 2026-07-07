@@ -1414,6 +1414,12 @@ html{scrollbar-width:none}
       <div class="tab" id="tab-reciente" onclick="switchTab('reciente')">recién publicado</div>
       <div class="tab" id="tab-chocados" onclick="switchTab('chocados')">chocados</div>
     </div>
+    <!-- [banner chocados] idéntico al de market, patrocinantes propios (categoria='chocados').
+         solo visible con la pestaña chocados activa — lo controla switchTab(). -->
+    <div id="choc-sponsor-wrap" style="display:none">
+      <div class="sponsor-slider" id="choc-sponsor-slider"></div>
+      <div class="sponsor-dots" id="choc-sponsor-dots"></div>
+    </div>
     <div class="card-list" id="card-list"></div>
   </div>
 
@@ -3623,7 +3629,7 @@ function showView(name,param){
     });
     renderCurrentSection();
     // refetch desde DB para que listings aprobados aparezcan sin recargar la página
-    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors()]).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
+    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors(),_loadChocadosSponsors()]).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
     // [config] respeta "al iniciar sesión mostrar siempre" — solo usuarios logueados, guest siempre subastas
     if(_target==='subastas'&&isLoggedIn&&USER_STATE.defaultView==='market') selectSection('market');
   } else {}
@@ -3857,6 +3863,9 @@ function switchTab(tab){
   document.getElementById('tab-pronto').classList.toggle('active',tab==='pronto');
   document.getElementById('tab-reciente').classList.toggle('active',tab==='reciente');
   document.getElementById('tab-chocados').classList.toggle('active',tab==='chocados');
+  // [banner chocados] solo visible con esa pestaña activa
+  const _cw=document.getElementById('choc-sponsor-wrap');
+  if(_cw) _cw.style.display=(tab==='chocados'&&CHOCADOS_SPONSORS.length)?'':'none';
   renderCards();
 }
 
@@ -4457,6 +4466,68 @@ function _pauseSponsorAutoplay(){
   _sponsorResumeTimer=setTimeout(()=>{if(MARKET_SPONSORS.length>1)timers.sponsor=setInterval(_advanceSponsor,3200);},5000);
 }
 let _sponsorResumeTimer=null;
+
+// [banner chocados] clon independiente del de market — propia data, propio timer,
+// propios patrocinantes (categoria='chocados'). cero mezcla con MARKET_SPONSORS.
+let CHOCADOS_SPONSORS=[];
+let _chocSponsorIdx=0;
+let _lastChocSponsorHash=null;
+let _chocSponsorResumeTimer=null;
+async function _loadChocadosSponsors(){
+  if(!_supa) return;
+  try{
+    const{data,error}=await _supa.from('patrocinantes').select('*').eq('categoria','chocados').order('created_at',{ascending:false});
+    if(error){console.error('[ruedda] _loadChocadosSponsors:',String(error?.message||error));return;}
+    const hash=(data||[]).map(s=>s.id+'_'+(s.imagen_url||'')).join(',');
+    if(hash===_lastChocSponsorHash&&document.getElementById('choc-sponsor-slider')?.children.length>0)return;
+    _lastChocSponsorHash=hash;
+    CHOCADOS_SPONSORS=data||[];
+    renderChocSponsorSlider();
+  }catch(e){console.error('[ruedda] _loadChocadosSponsors catch:',String(e?.message||e));}
+}
+function renderChocSponsorSlider(){
+  const track=document.getElementById('choc-sponsor-slider');
+  const dotsEl=document.getElementById('choc-sponsor-dots');
+  const wrap=document.getElementById('choc-sponsor-wrap');
+  if(!track||!dotsEl) return;
+  clearInterval(timers.chocSponsor);
+  if(!CHOCADOS_SPONSORS.length){
+    track.innerHTML='';dotsEl.innerHTML='';
+    if(wrap) wrap.style.display='none';
+    return;
+  }
+  // solo se muestra si además la pestaña chocados está activa ahora mismo
+  if(wrap) wrap.style.display=(typeof currentTab!=='undefined'&&currentTab==='chocados')?'':'none';
+  _chocSponsorIdx=0;
+  track.scrollLeft=0;
+  track.innerHTML=CHOCADOS_SPONSORS.map(s=>`
+    <div class="sponsor-slide" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
+      ${s.imagen_url?`<img src="${s.imagen_url}" alt="${_esc(s.nombre||'')}">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
+    </div>`).join('');
+  dotsEl.innerHTML=CHOCADOS_SPONSORS.length>1?CHOCADOS_SPONSORS.map((_,i)=>`<div class="sponsor-dot${i===0?' active':''}"></div>`).join(''):'';
+  if(CHOCADOS_SPONSORS.length<2) return;
+  track.addEventListener('scroll',()=>{
+    const i=Math.round(track.scrollLeft/track.clientWidth);
+    if(i!==_chocSponsorIdx&&i>=0&&i<CHOCADOS_SPONSORS.length){_chocSponsorIdx=i;_updateChocSponsorDots();}
+  },{passive:true});
+  track.addEventListener('touchstart',_pauseChocSponsorAutoplay,{passive:true});
+  timers.chocSponsor=setInterval(_advanceChocSponsor,3200);
+}
+function _updateChocSponsorDots(){
+  document.querySelectorAll('#choc-sponsor-dots .sponsor-dot').forEach((d,i)=>d.classList.toggle('active',i===_chocSponsorIdx));
+}
+function _advanceChocSponsor(){
+  const track=document.getElementById('choc-sponsor-slider');
+  if(!track||CHOCADOS_SPONSORS.length<2) return;
+  _chocSponsorIdx=(_chocSponsorIdx+1)%CHOCADOS_SPONSORS.length;
+  track.scrollTo({left:track.clientWidth*_chocSponsorIdx,behavior:'smooth'});
+  _updateChocSponsorDots();
+}
+function _pauseChocSponsorAutoplay(){
+  clearInterval(timers.chocSponsor);
+  clearTimeout(_chocSponsorResumeTimer);
+  _chocSponsorResumeTimer=setTimeout(()=>{if(CHOCADOS_SPONSORS.length>1)timers.chocSponsor=setInterval(_advanceChocSponsor,3200);},5000);
+}
 
 // ───────────────────────────────────────────
 // TRENDING HOY — top 4 por vistas, cache diario (un solo cálculo por día)
@@ -10108,7 +10179,7 @@ function _subscribePrivateMessages(userId){
       _rueddaLoadUserData(session.user.id,profile.role);
     }
   }
-  await Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors()]);
+  await Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors()]);
   if(document.getElementById('market-section')?.style.display!=='none') renderTrendingHoy();
   // [V123] deep-link: si llegaste por un link compartido (?auction=ID o ?market=ID),
   // abre directo esa publicación en vez de quedarte en el home.
@@ -13052,6 +13123,26 @@ async function _saDeletePat(id,cat){
   <!-- PERFIL -->
   <div class="config-section">
     <div class="config-card">
+      <div class="config-row" onclick="rdOpenTutorialFromConfig()" style="cursor:pointer">
+        <div class="config-row-left">
+          <div class="config-row-icon" style="background:rgba(255,255,255,.07)">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-2.5 2-2.5 3.5"/><circle cx="12" cy="16.5" r=".6" fill="currentColor" stroke="none"/></svg>
+          </div>
+          <div>
+            <div class="config-row-title">tutorial de uso</div>
+            <div class="config-row-sub">recorrido guiado por toda la app</div>
+          </div>
+        </div>
+        <div class="config-chevron">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="config-section">
+    <div class="config-card">
       <div class="config-row" onclick="openEditProfileModal()" style="cursor:pointer"><!-- [V87] desplegable reemplazado por el modal -->
         <div class="config-row-left">
           <div class="config-row-icon" style="background:rgba(255,255,255,.07)">
@@ -13506,3 +13597,215 @@ async function _saDeletePat(id,cat){
 
   </div>
 </div>
+<!-- ═══════════ ONBOARDING — popup de bienvenida + tour de 8 pasos + guía PWA ═══════════
+     Bloque 100% nuevo y aislado, cero HTML/CSS/JS existente tocado. Todo se construye
+     dinámico por JS y se destruye al cerrar — igual que el resto de overlays de la app. -->
+<style>
+@keyframes rdOnbFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes rdOnbCardIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* [suavizado] overlay menos opaco + blur mayor (se siente vidrio, no telón negro);
+   card con esquinas más redondeadas, borde casi invisible, sombra difusa en vez de
+   dura — así se ve flotando, no como una caja pegada encima. */
+.rd-onb-overlay{position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.55);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);display:flex;align-items:center;justify-content:center;padding:24px;animation:rdOnbFadeIn .35s ease both}
+.rd-onb-card{background:rgba(20,20,22,.82);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid rgba(255,255,255,.07);border-radius:30px;padding:32px 26px 26px;max-width:340px;width:100%;text-align:center;animation:rdOnbCardIn .45s cubic-bezier(.22,1,.36,1) both;box-shadow:0 30px 90px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.2)}
+.rd-onb-icon{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;overflow:hidden;padding:14px;box-sizing:border-box}
+.rd-onb-icon img{width:100%;height:100%;object-fit:contain}
+.rd-onb-title{font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:9px}
+.rd-onb-text{font-size:13px;color:rgba(255,255,255,.55);line-height:1.55;margin-bottom:24px;font-weight:400}
+.rd-onb-btn-row{display:flex;flex-direction:column;gap:8px}
+.rd-onb-btn-yes{background:#e6f03b;color:#000;border:none;border-radius:100px;padding:13px;font-family:var(--font);font-size:14px;font-weight:700;letter-spacing:-.1px;cursor:pointer;transition:transform .3s cubic-bezier(.32,.72,0,1),opacity .2s}
+.rd-onb-btn-yes:active{transform:scale(.965);opacity:.9}
+.rd-onb-btn-no{background:none;border:none;color:rgba(255,255,255,.35);font-family:var(--font);font-size:12.5px;font-weight:500;padding:9px;cursor:pointer;transition:color .2s}
+.rd-onb-btn-no:active{color:rgba(255,255,255,.6)}
+
+/* tour spotlight — [suavizado] sombra del recorte más liviana (.68 en vez de .82,
+   con blur en el propio anillo), tips con el mismo tratamiento glass que el popup */
+.rd-tour-spot{position:fixed;border-radius:20px;box-shadow:0 0 0 9999px rgba(0,0,0,.68);transition:all .55s cubic-bezier(.22,1,.36,1);pointer-events:none;z-index:10003;border:1px solid rgba(230,240,59,.35)}
+.rd-tour-tip{position:fixed;z-index:10004;max-width:290px;background:rgba(22,22,24,.86);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:20px;transition:all .55s cubic-bezier(.22,1,.36,1);box-shadow:0 24px 70px rgba(0,0,0,.4)}
+.rd-tour-tip.rd-tour-center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-width:310px}
+.rd-tour-inner{transition:opacity .15s ease}
+.rd-tour-step-label{font-size:9.5px;font-weight:700;color:#e6f03b;letter-spacing:.7px;text-transform:uppercase;margin-bottom:7px;opacity:.9}
+.rd-tour-tip h4{font-size:16px;font-weight:800;letter-spacing:-.3px;margin-bottom:7px}
+.rd-tour-tip p{font-size:12.5px;color:rgba(255,255,255,.55);line-height:1.55;margin-bottom:16px;font-weight:400}
+.rd-tour-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rd-tour-dots{display:flex;gap:5px}
+.rd-tour-dots span{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.18);transition:all .35s cubic-bezier(.22,1,.36,1)}
+.rd-tour-dots span.on{background:#e6f03b;width:14px;border-radius:3px}
+.rd-tour-actions{display:flex;align-items:center;gap:6px}
+.rd-tour-next{background:#e6f03b;color:#000;border:none;border-radius:100px;padding:8px 17px;font-family:var(--font);font-size:12.5px;font-weight:700;cursor:pointer;transition:transform .25s cubic-bezier(.32,.72,0,1)}
+.rd-tour-next:active{transform:scale(.94)}
+.rd-tour-skip{background:none;border:none;color:rgba(255,255,255,.32);font-family:var(--font);font-size:11.5px;cursor:pointer;padding:8px}
+.rd-pwa-steps{text-align:left;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px 15px;margin-bottom:16px}
+.rd-pwa-step{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:rgba(255,255,255,.65);line-height:1.5;margin-bottom:11px;font-weight:400}
+.rd-pwa-step:last-child{margin-bottom:0}
+.rd-pwa-num{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:rgba(230,240,59,.12);color:#e6f03b;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:1px}
+</style>
+
+<script>
+(function(){
+  // ── popup de bienvenida — se guarda apenas se toca cualquier botón, jamás
+  //    vuelve a salir en ese navegador (ni creando cuenta, ni logueándose, ni
+  //    recargando — todo eso deja intacto el localStorage del dispositivo). ──
+  function rdShowWelcome(){
+    if(localStorage.getItem('rd_welcome_seen'))return;
+    const ov=document.createElement('div');
+    ov.className='rd-onb-overlay';
+    ov.id='rd-onb-welcome';
+    ov.innerHTML=`
+      <div class="rd-onb-card">
+        <div class="rd-onb-icon">
+          <img src="data:image/png;base64,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" alt="Ruedda">
+        </div>
+        <div class="rd-onb-title">Bienvenido a Ruedda</div>
+        <div class="rd-onb-text">El marketplace automotriz más avanzado de Venezuela. ¿Quieres un tour rápido de cómo funciona todo?</div>
+        <div class="rd-onb-btn-row">
+          <button class="rd-onb-btn-yes" onclick="_rdOnbAnswer(true)">Sí, muéstrame</button>
+          <button class="rd-onb-btn-no" onclick="_rdOnbAnswer(false)">No, gracias</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+  }
+  window._rdOnbAnswer=function(yes){
+    localStorage.setItem('rd_welcome_seen','1'); // nunca más, pase lo que pase
+    document.getElementById('rd-onb-welcome')?.remove();
+    if(yes) setTimeout(rdStartTour,250);
+  };
+  // [nuevo flujo] botón "tutorial de uso" en Configuración — manda a inicio primero
+  // (así los primeros pasos del tour tienen un contexto real donde resaltar) y
+  // arranca el tour directo, sin el popup de Sí/No de por medio.
+  window.rdOpenTutorialFromConfig=function(){
+    showView('home');
+    selectSection('subastas');
+    setTimeout(rdStartTour,300);
+  };
+
+  // ── tour — 8 pasos, navega la app de verdad mientras explica, estilo producto
+  //    americano: directo, beneficio primero, sin relleno. ──
+  const RD_TOUR=[
+    {intro:true,title:'Así se mueve Ruedda',text:'Te lo mostramos en 60 segundos. Dale a "siguiente" cuando quieras.'},
+    {find:()=>[...document.querySelectorAll('.navbar *')].find(el=>el.textContent&&el.textContent.trim()==='vender'),
+      title:'Vende en minutos',text:'Sube fotos, pon tu precio y listo. Subasta en vivo o venta directa — tú decides cómo vender más rápido.'},
+    {find:()=>document.querySelector('[id^="bnav"]')?.parentElement,
+      title:'Todo a un toque',text:'Subastas, notificaciones, favoritos y tu cuenta viven aquí abajo, siempre a la mano.'},
+    {nav:()=>{showView('home');selectSection('subastas');},
+      find:()=>document.getElementById('card-list'),
+      title:'Subastas en tiempo real',text:'Si ofertas en el último minuto, el reloj se extiende. Aquí nadie te roba una subasta por sorpresa.'},
+    {nav:()=>{showView('home');selectSection('market');},
+      find:()=>document.getElementById('hd-head')?.style.display!=='none'?document.getElementById('hd-head'):document.getElementById('market-grid'),
+      title:'Market sin límites',text:'Miles de carros, filtros inteligentes y hot deals reales todos los días.'},
+    {nav:()=>{showView('home');selectSection('market');},
+      find:()=>document.getElementById('mkt-hub-actions'),
+      title:'Historias que venden',text:'Muestra tu carro como en Instagram. Así se venden los carros en 2026.'},
+    {nav:()=>{showView('home');selectSection('subastas');switchTab('chocados');},
+      find:()=>document.getElementById('tab-chocados'),
+      title:'Chocados, con la verdad por delante',text:'Vehículos con daños, a precio de daños. Cero sorpresas, cero letra chiquita.'},
+    {pwa:true,title:'Llévate Ruedda contigo',text:'Instálala como una app real: acceso instantáneo, sin barra de navegador, se siente 100% nativa.'}
+  ];
+  let _rdStep=0, _rdSteps=null;
+  window.rdStartTour=function(){
+    _rdStep=0;
+    _rdSteps=RD_TOUR;
+    // [seamless real] el spot y el tip se crean UNA sola vez y persisten durante
+    // todo el tour — antes se destruían y recreaban en cada paso, así que el
+    // transition de la CSS nunca tenía nada que animar (todo arrancaba de cero,
+    // por eso se sentía brusco). Ahora solo se actualiza posición/contenido de los
+    // MISMOS nodos, y el transition:all de .rd-tour-spot/.rd-tour-tip sí anima el
+    // deslizamiento real entre un elemento y el siguiente.
+    const spot=document.createElement('div');spot.className='rd-tour-spot';spot.id='rd-tour-spot';spot.style.opacity='0';
+    const tip=document.createElement('div');tip.className='rd-tour-tip';tip.id='rd-tour-tip';tip.style.opacity='0';
+    tip.innerHTML='<div class="rd-tour-inner" id="rd-tour-inner"></div>';
+    document.body.appendChild(spot);
+    document.body.appendChild(tip);
+    rdShowStep(0);
+  };
+  function rdShowStep(i){
+    if(i>=_rdSteps.length){rdEndTour();return;}
+    const s=_rdSteps[i];
+    if(s.nav){ try{s.nav();}catch(e){} }
+    const inner=document.getElementById('rd-tour-inner');
+    // crossfade del contenido de texto — rapidito, no compite con el slide del spot
+    if(inner){ inner.style.transition='opacity .15s ease'; inner.style.opacity='0'; }
+    setTimeout(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>rdRenderStep(i))),inner?150:0);
+  }
+  function rdRenderStep(i){
+    const s=_rdSteps[i];
+    const isLast=i===_rdSteps.length-1;
+    const spot=document.getElementById('rd-tour-spot');
+    const tip=document.getElementById('rd-tour-tip');
+    if(!spot||!tip)return;
+    let el=null;
+    if(!s.intro&&!s.pwa){ try{el=s.find();}catch(e){el=null;} }
+    if(el){
+      const r=el.getBoundingClientRect();
+      spot.style.top=(r.top-8)+'px';spot.style.left=(r.left-8)+'px';
+      spot.style.width=(r.width+16)+'px';spot.style.height=(r.height+16)+'px';
+      spot.style.opacity='1';
+    } else {
+      spot.style.opacity='0'; // pasos sin elemento (intro/pwa): el anillo se esfuma, no desaparece seco
+    }
+    const pwaBody=s.pwa?rdPwaBody():'';
+    tip.className='rd-tour-tip'+(el?'':' rd-tour-center');
+    tip.style.opacity='1';
+    const inner=document.getElementById('rd-tour-inner');
+    if(inner){
+      inner.innerHTML=`
+        <div class="rd-tour-step-label">paso ${i+1} de ${_rdSteps.length}</div>
+        <h4>${s.title}</h4>
+        <p>${s.text}</p>
+        ${pwaBody}
+        <div class="rd-tour-row">
+          <div class="rd-tour-dots">${_rdSteps.map((_,di)=>`<span class="${di===i?'on':''}"></span>`).join('')}</div>
+          <div class="rd-tour-actions">
+            <button class="rd-tour-skip" onclick="rdEndTour()">saltar</button>
+            <button class="rd-tour-next" onclick="rdTourNext()">${isLast?'listo':'siguiente'}</button>
+          </div>
+        </div>`;
+      requestAnimationFrame(()=>{inner.style.opacity='1';});
+    }
+    if(el){
+      requestAnimationFrame(()=>{
+        const r=el.getBoundingClientRect();
+        const th=tip.offsetHeight;
+        const below=r.bottom+20, above=r.top-20;
+        tip.style.top=(below+th<window.innerHeight-20?below:Math.max(20,above-th))+'px';
+        tip.style.left=Math.min(Math.max(14,r.left),window.innerWidth-tip.offsetWidth-14)+'px';
+      });
+    } else {
+      tip.style.top='50%';tip.style.left='50%';
+    }
+  }
+  window.rdTourNext=function(){ _rdStep++; rdShowStep(_rdStep); };
+  window.rdEndTour=function(){
+    const spot=document.getElementById('rd-tour-spot');
+    const tip=document.getElementById('rd-tour-tip');
+    if(spot)spot.style.opacity='0';
+    if(tip)tip.style.opacity='0';
+    setTimeout(()=>{spot?.remove();tip?.remove();},350);
+  };
+  // ── guía PWA — detecta plataforma real, instrucciones exactas, sin genéricos ──
+  function rdPwaBody(){
+    const ua=navigator.userAgent||'';
+    const isIOS=/iPhone|iPad|iPod/.test(ua);
+    const isStandalone=window.matchMedia?.('(display-mode: standalone)')?.matches||window.navigator.standalone===true;
+    if(isStandalone){
+      return `<div class="rd-pwa-steps"><div class="rd-pwa-step"><span class="rd-pwa-num">✓</span><span>Ya la tienes instalada — estás usando la app real ahora mismo.</span></div></div>`;
+    }
+    if(isIOS){
+      return `<div class="rd-pwa-steps">
+        <div class="rd-pwa-step"><span class="rd-pwa-num">1</span><span>Toca el ícono de <b>compartir</b> (el cuadrado con la flecha ↑) en Safari.</span></div>
+        <div class="rd-pwa-step"><span class="rd-pwa-num">2</span><span>Baja y toca <b>"Agregar a pantalla de inicio"</b>.</span></div>
+        <div class="rd-pwa-step"><span class="rd-pwa-num">3</span><span>Listo. Ruedda queda como una app más, sin Safari alrededor.</span></div>
+      </div>`;
+    }
+    return `<div class="rd-pwa-steps">
+      <div class="rd-pwa-step"><span class="rd-pwa-num">1</span><span>Toca el menú <b>⋮</b> de Chrome, arriba a la derecha.</span></div>
+      <div class="rd-pwa-step"><span class="rd-pwa-num">2</span><span>Selecciona <b>"Instalar app"</b> o <b>"Agregar a pantalla de inicio"</b>.</span></div>
+      <div class="rd-pwa-step"><span class="rd-pwa-num">3</span><span>Listo. Acceso directo, carga instantánea, cero barra de navegador.</span></div>
+    </div>`;
+  }
+  // ── arrancar: solo primera visita, deja que la app respire antes de interrumpir ──
+  // [cambio de flujo] ya no se dispara solo al abrir la app — ahora vive como botón
+  // en Configuración ("tutorial de uso"), gatillado por rdOpenTutorialFromConfig().
+  // rdShowWelcome() queda definida pero sin auto-arranque, por si se quiere reactivar.
+})();
+</script>
