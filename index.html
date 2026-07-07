@@ -62,6 +62,11 @@ html{scrollbar-width:none}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
 #view-detail,#view-market-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
+/* [FIX] view-configuracion nunca tuvo este padding — el bottom-nav fijo tapaba
+   "eliminar cuenta" (el último item), y en Safari/iOS el home indicator
+   (env(safe-area-inset-bottom)) agrava el corte porque ocupa espacio real que
+   otros navegadores no reservan. Mismo tratamiento que ya usa view-cuenta. */
+#view-configuracion{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
 #view-thread .thread-input-bar{padding-bottom:calc(10px + 64px + env(safe-area-inset-bottom))}
 .logo{cursor:pointer;user-select:none;display:flex;align-items:center}
 .logo img{height:32px;width:auto;object-fit:contain}
@@ -12826,7 +12831,7 @@ async function saDeletePub(id){
 }
 
 // ── PATROCINANTES SUPERADMIN ──────────────────────────────
-const _saPatCats = ['market','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
+const _saPatCats = ['market','chocados','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
 let _saPatData = {};
 
 async function saLoadPatrocinantes(){
