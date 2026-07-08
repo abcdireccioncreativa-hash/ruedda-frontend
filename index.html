@@ -2612,12 +2612,30 @@ html{scrollbar-width:none}
 <!-- MARCAS VIEW -->
 <!-- [hot deals] vista completa — pestaña real, no menú desplegable -->
 <div id="view-hotdeals-all" class="view">
+  <!-- [FIX] copia local de los gradientes — antes dependían del <defs> dentro de
+       #hd-head en Market, y Safari/WebKit no siempre resuelve gradientes cuyo <defs>
+       vive en un ancestro con display:none (bug conocido). Esta vista ahora es
+       autosuficiente, sin depender de que Market esté visible en algún lado del DOM. -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="hdFlameGradAll" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="#ff3d1a"/>
+        <stop offset="45%" stop-color="#ff8a1e"/>
+        <stop offset="100%" stop-color="#ffd23d"/>
+      </linearGradient>
+      <linearGradient id="hdGoldGradAll" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#fff3b0"/>
+        <stop offset="40%" stop-color="#ffd700"/>
+        <stop offset="100%" stop-color="#b8860b"/>
+      </linearGradient>
+    </defs>
+  </svg>
   <div class="detail-back" onclick="showView('home');selectSection('market')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>market</span>
   </div>
   <div style="padding:2px 18px 16px;display:flex;align-items:center;gap:8px">
-    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="url(#hdFlameGrad)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>
+    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="url(#hdFlameGradAll)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>
     <h2 style="font-size:22px;font-weight:800;letter-spacing:-.4px">hot deals</h2>
   </div>
   <div id="hotdeals-all-grid" style="padding:0 14px 100px;display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
@@ -4605,8 +4623,8 @@ function openHotDealsAll(){
     const badge=isReal
       ?`<div class="hd-off" style="position:absolute">-${Math.round((l.precioAnterior-l.price)/l.precioAnterior*100)}%</div>`
       :(l.destacado
-        ?`<div class="hd-off hd-off-icon" style="position:absolute"><svg viewBox="0 0 24 24" width="11" height="11"><path fill="url(#hdGoldGrad)" stroke="#8a6200" stroke-width=".4" d="M12 2.5l2.66 5.61 6.09.79-4.46 4.32 1.14 6.06L12 16.4l-5.43 2.88 1.14-6.06-4.46-4.32 6.09-.79z"/></svg>destacado</div>`
-        :`<div class="hd-off hd-off-icon" style="position:absolute"><svg viewBox="0 0 24 24" width="10" height="10"><path fill="url(#hdFlameGrad)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>popular</div>`);
+        ?`<div class="hd-off hd-off-icon" style="position:absolute"><svg viewBox="0 0 24 24" width="11" height="11"><path fill="url(#hdGoldGradAll)" stroke="#8a6200" stroke-width=".4" d="M12 2.5l2.66 5.61 6.09.79-4.46 4.32 1.14 6.06L12 16.4l-5.43 2.88 1.14-6.06-4.46-4.32 6.09-.79z"/></svg>destacado</div>`
+        :`<div class="hd-off hd-off-icon" style="position:absolute"><svg viewBox="0 0 24 24" width="10" height="10"><path fill="url(#hdFlameGradAll)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>popular</div>`);
     const priceRow=isReal
       ?`<span class="hd-old">${fmtBid(l.precioAnterior)}</span><span class="hd-new">${fmtBid(l.price)}</span>`
       :`<span class="hd-new">${fmtBid(l.price)}</span>`;
@@ -10281,6 +10299,33 @@ function _rxToggle(id){
   const open=body.classList.contains('open');
   body.classList.toggle('open',!open);
   if(chev) chev.classList.toggle('open',!open);
+  // [FIX] ninguno de los 12 acordeones estaba conectado a los patrocinantes reales
+  // de Supabase — todos mostraban el mismo "próximamente" estático sin importar
+  // cuántos se subieran desde SuperAdmin. Mapeo explícito porque varios IDs de
+  // acordeón NO coinciden literalmente con el string de categoria real (ej: el
+  // acordeón se llama "asistencia" pero en SuperAdmin la categoría se guarda como
+  // "asistencia vial"). 'vins' y 'fotografos' quedan fuera a propósito: no existen
+  // como categoría de patrocinante en SuperAdmin — "fotografos" en particular es
+  // un directorio real de fotógrafos registrados, un sistema totalmente aparte,
+  // meterlo aquí habría mostrado datos equivocados.
+  const _rxCatMap={gestoria:'gestoria',inspeccion:'inspeccion',aseguradoras:'aseguradoras',asistencia:'asistencia vial',detailing:'detailing',mecanicos:'mecanicos',socios:'socios petrolheads',movilidad:'movilidad por el pais',financiamientos:'financiamientos',rc:'hobbie rc'};
+  if(_rxCatMap[id]&&!open&&!body.dataset.loaded) _rxLoadSponsors(_rxCatMap[id],body);
+}
+async function _rxLoadSponsors(categoria,body){
+  body.dataset.loaded='1';
+  if(!_supa) return;
+  try{
+    const{data,error}=await _supa.from('patrocinantes').select('*').eq('categoria',categoria).order('created_at',{ascending:false});
+    if(error||!data||!data.length) return; // sin data real: se queda el "próximamente", cero contenido inventado
+    body.innerHTML=data.map(p=>`
+      <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:12px 14px;${p.link?'cursor:pointer':''}" ${p.link?`onclick="window.open('${p.link.replace(/'/g,"\\'")}','_blank','noopener')"`:''}>
+        ${p.imagen_url?`<img src="${p.imagen_url}" style="width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--card2)" onerror="this.style.display='none'">`:''}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:#fff">${(p.nombre||'').replace(/</g,'')}</div>
+          ${p.link?'<div style="font-size:11px;color:var(--muted);margin-top:1px">toca para ver más</div>':''}
+        </div>
+      </div>`).join('');
+  }catch(e){console.warn('[ruedda] _rxLoadSponsors',categoria,e?.message||e);}
 }
 function _rxAnimateCards(){
   const cards=document.querySelectorAll('#view-ruedda-extra .rx-menu-card');
