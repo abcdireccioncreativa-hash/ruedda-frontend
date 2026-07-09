@@ -147,6 +147,46 @@ html{scrollbar-width:none}
 
 /* AUCTION CARD */
 .auction-card{background:var(--card);border-radius:var(--radius);overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:transform .15s,border-color .2s;animation:fadeUp .4s ease both}
+
+/* [subastas programadas] portado 1:1 del mockup aprobado */
+.sched-photo{position:relative;aspect-ratio:5/4;display:flex;flex-direction:column}
+.sched-badge{position:absolute;top:16px;left:16px;background:rgba(30,30,30,.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:100px;padding:7px 16px;font-size:13px;font-weight:700;color:#fff}
+.sched-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;color:#fff}
+.sched-starts{font-size:19px;font-weight:700;letter-spacing:-.2px}
+.sched-date{font-size:44px;font-weight:800;letter-spacing:-1.2px;line-height:1.1;margin-top:2px}
+/* [open sauce] peso 400 real (no existe "light"/300 en este proyecto) */
+.sched-countdown{font-size:18px;font-weight:400;color:rgba(255,255,255,.88);margin-top:10px;letter-spacing:.2px}
+.sched-status{display:flex;flex-direction:column;align-items:center;gap:9px;margin-top:22px}
+.sched-status-label{font-size:14px;font-weight:400;color:rgba(255,255,255,.75)}
+/* sacudida ligera y elegante, cada 4.2s — 90% del ciclo quieto, gesto rápido */
+.sched-gavel{width:26px;height:26px;transform-origin:50% 82%;animation:iconShake 4.2s ease-in-out infinite}
+@keyframes iconShake{
+  0%,90%{transform:rotate(0deg) scale(1)}
+  91.5%{transform:rotate(-9deg) scale(1.06)}
+  93%{transform:rotate(7deg) scale(1.06)}
+  94.5%{transform:rotate(-4deg) scale(1.03)}
+  96%{transform:rotate(2deg) scale(1.01)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+.sched-info{padding:16px 16px 18px;display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+.sched-info-left{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+.sched-iso{width:24px;height:24px;object-fit:contain;flex-shrink:0}
+.sched-info-text{min-width:0}
+.sched-title{font-size:15px;font-weight:800;letter-spacing:-.2px;color:#fff}
+.sched-sub{font-size:11px;font-weight:400;color:var(--muted);margin-top:2px;line-height:1.4}
+.sched-cta{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.sched-ver{font-size:14px;font-weight:700;color:#fff}
+.sched-arrow-btn{width:38px;height:38px;border-radius:50%;background:#000;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sched-arrow-btn svg{width:15px;height:15px}
+/* [flecha del dropdown subastas/market/consesionarios] sacudida muy sutil, cada 5s */
+.section-chevron{animation:chevronShake 5s ease-in-out infinite;transform-origin:50% 40%}
+@keyframes chevronShake{
+  0%,88%{transform:translateY(0) rotate(0deg)}
+  90%{transform:translateY(1.5px) rotate(-4deg)}
+  92%{transform:translateY(0) rotate(3deg)}
+  94%{transform:translateY(1px) rotate(-2deg)}
+  100%{transform:translateY(0) rotate(0deg)}
+}
 .auction-card:active{transform:scale(.985)}
 
 /* MARKET GRID */
@@ -509,6 +549,12 @@ html{scrollbar-width:none}
 .toggle-row:first-child{border-top:none}
 .toggle-label{font-size:15px;font-weight:500;color:var(--white)}
 .toggle-sub{font-size:12px;color:var(--muted);margin-top:2px}
+/* [subastas programadas] caja de fecha/hora — mismo despliegue suave del mockup aprobado */
+.prog-datebox{max-height:0;opacity:0;overflow:hidden;transition:max-height .38s cubic-bezier(.22,1,.36,1),opacity .3s ease,margin-top .38s cubic-bezier(.22,1,.36,1)}
+.prog-datebox.open{max-height:220px;opacity:1;margin-top:16px}
+.prog-field{margin-bottom:10px}
+.prog-field:last-child{margin-bottom:0}
+.prog-field label{display:block;font-size:10.5px;font-weight:400;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
 .toggle-switch{position:relative;width:46px;height:26px;flex-shrink:0}
 .toggle-switch input{opacity:0;width:0;height:0;position:absolute}
 .toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.12);border-radius:100px;cursor:pointer;transition:background .25s}
@@ -1381,7 +1427,7 @@ html{scrollbar-width:none}
     <div class="dropdown-wrap">
       <div class="section-title" id="section-title-el" onclick="toggleDropdown()">
         <h1 id="section-title-text">subastas</h1>
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        <svg class="section-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
       </div>
       <div class="dropdown-menu" id="section-dropdown">
         <div class="dropdown-glass">
@@ -1630,6 +1676,14 @@ html{scrollbar-width:none}
             <svg id="watchlist-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
             <span id="watchlist-label">guardar en favoritos</span>
           </button>
+        </div>
+        <!-- [subastas programadas] panel bloqueado — reemplaza el bid-section normal
+             mientras la subasta no ha arrancado. Reutiliza el sistema de códigos de
+             acceso YA EXISTENTE (_showAuctionAccessSheet), no crea uno nuevo. -->
+        <div class="bid-section" id="bid-section-locked" style="position:sticky;top:80px;margin-top:18px;margin-bottom:34px;display:none;text-align:center">
+          <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">empieza en</div>
+          <div class="timer-big-value" id="timer-card-detaillocked" style="font-size:26px;margin-bottom:18px">--</div>
+          <button class="btn-bid" onclick="_showAuctionAccessSheet()">Obtener acceso de subasta</button>
         </div>
       </div>
     </div>
@@ -2186,6 +2240,30 @@ html{scrollbar-width:none}
           <button class="estado-pill" onclick="selectEstado(this)">no enciende</button>
           <button class="estado-pill" onclick="selectEstado(this)">quemado</button>
           <button class="estado-pill" onclick="selectEstado(this)">pérdida total</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRAMAR SUBASTA: solo en subasta -->
+    <div class="form-group" id="field-programada" style="display:none">
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Programar subasta</div>
+          <div class="toggle-sub">Recomendamos que programes tu subasta para que esté un rato captando potenciales interesados hasta la fecha seleccionada.</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="programada-toggle" onchange="toggleProgramada(this)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div id="campo-fecha-programada" class="prog-datebox">
+        <div class="prog-field">
+          <label>Fecha de inicio</label>
+          <input class="form-input" type="date" id="programada-fecha">
+        </div>
+        <div class="prog-field">
+          <label>Hora de inicio</label>
+          <input class="form-input" type="time" id="programada-hora">
         </div>
       </div>
     </div>
@@ -3792,7 +3870,7 @@ let _lastMarketHash = '';
 function renderCards(filter){
   // [v76] dirty check — si los datos y filtro no cambiaron, no re-renderizar
   const hash = currentTab+'|'+(filter||'')+
-    '|'+(currentTab==='chocados'?AUCTIONS_CHOCADOS:AUCTIONS).map(a=>a.id+'_'+a.currentBid+'_'+a.bidCount).join(',');
+    '|'+(currentTab==='chocados'?AUCTIONS_CHOCADOS:AUCTIONS).map(a=>a.id+'_'+a.currentBid+'_'+a.bidCount+'_'+(a.programada?'p':'a')).join(',');
   if(hash===_lastCardsHash && document.getElementById('card-list').children.length>0) return;
   _lastCardsHash=hash;
 
@@ -3841,9 +3919,48 @@ function renderCards(filter){
   if(!data.length){list.innerHTML=window._feedLoaded?.auc?'<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>sin publicaciones disponibles</p></div>':_feedLoaderHTML();return;}
   data.forEach((a,idx)=>{
     const el=document.createElement('div');
-    el.className='auction-card';
     el.style.animationDelay=Math.min(idx,12)*60+'ms';
     el.onclick=()=>openDetail(a.id);
+    // [subastas programadas] card completamente distinta mientras espera su fecha —
+    // igual al mockup aprobado. en cuanto cruza a activada, vuelve a la card normal
+    // de siempre (con el tag "recién publicado" durante las primeras 24h).
+    if(a.programada){
+      el.className='auction-card sched-card';
+      const _fp=new Date(a.fechaInicioProgramada);
+      const _fechaTxt=String(_fp.getDate()).padStart(2,'0')+'/'+String(_fp.getMonth()+1).padStart(2,'0')+'/'+String(_fp.getFullYear()).slice(-2);
+      el.innerHTML=`
+        <div class="sched-photo" style="${a.photoUrls&&a.photoUrls[0]?`background-image:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),url('${a.photoUrls[0]}');background-size:cover;background-position:center`:`background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),linear-gradient(${grads[_gidx(a.id)]})`}">
+          <div class="sched-badge">${a.condicion==='nuevo'?'nuevo':'usado'}</div>
+          <div class="sched-center">
+            <div class="sched-starts">Empieza:</div>
+            <div class="sched-date">${_fechaTxt}</div>
+            <div class="sched-countdown" id="timer-card-${a.id}" data-end="${a.fechaInicioProgramada}">--</div>
+            <div class="sched-status">
+              <div class="sched-status-label">Subasta programada</div>
+              <img class="sched-gavel" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAwCAYAAABuZUjcAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAEUUlEQVR42s2ZW6gVZRSA1+8+55g+aGgqGF4eQvNYHs0X04cs7UZSEoUJxXkJRARBOJmQiEIgoi8hJAj1IIGiGAQeogchTEi6UWkEYYpZ0M3bsUy3Z+/Pl7VyNcye/c9u5jg/bOaf2z/frFn3LVLgAELWfiUHMMpggSeBx9x+qCp0TbfjgA+5Pfba+crBA126nQp8psA39Qeww19XNfWYA/zgoAGabj6g13VXSdIPA78moHHwwzrvv+OSdzo9x8EOkz4MvgGsuCPw6iFMPe7T7Z4W0vajoS/wN7B4ROEV2iS9CbgCPKr7hyPhAf4Aev2XK9UIzZ0BuxzMFWCBvtSxCHhTp7PAvaXCO+AuYJ+DM4ifgenqw79ro+/+3FfAeO+dCjVCBZ4KHEmRqEGcUvDpwC8J1UgbtsZRoMd/0cJ8tM436oOuZ0AcU5VZAAypMcbAHyosujof/ZDLOQ5m6LAde1+vfUKPmTdpNeq63fO/VcZBLwIuAP8Affo5P4mAf1vvf8WpUwz8to7hHfQzwFW3eKwBGvwWXWcgwtP46NqXG94Fln63UCPFAGdkGKDPT9boejsj4O3c0lwu0kEPOIBGhwbYdOrxnK77Xga8qcqgeZi8ecdTbXTSHno4wgDt2DUX4j9Kgbf5fmB0rqrJ6fXmhASIMMCX3fFmixD/OzALuAv4MiWA7e6o1DPnD/QCf+Xwv2aAr2WogcH9CEwGpujcxuZkStFpQbDCGWQzwwskDXBXBPznqsOzNFdZV0jgcSrTn/H50wxwZYQB2rEjeu2EQnMUBz8QmabGGGAS/l29tqfQAtrB78iZY89WA/wiIkBtL7yYUEM1+Hdy5NingUlqgGci4NeXBV9Ta/8gR+QzA7wf+DMjutoLrSoD3tzkGOB4DvhBvX+JJmitomsDuOHKv2LhdTtRc5V21U09kWOvTHigNPu4BDxYeBnnUoKZwE8Z8F6y24Eeve/VDPdq65wDppUJ3wdcTNFdP1/r7KRb529EBKhvgLsLr0Gdp3lES7hGokd4HXghqa/uvt0RPv4o0F1oDZqAeD7x4AutjCzRjzkUAX+glA6vg38ROKF59ANZnsE6YMBo4OMI+LdK6Xal6WA7vXQeagJwMiJAbSoLvuYkOaoDD3U+ovxbW5neuoOfD1xuU/4BvFQleLOTZRq00so/e6E6sKyK8Ksjyr9LwLwR6fBGwluA2pDhaQz+PDCjlCZpQfl/PSO6ngTGV+IfvET+H9N/eVNEJLi2QJniDyLSCCGQ0YMPIlITkUEReVxEhkXEG2NTt1+HEBZW6q9Hlf64RP/Fq8swcELsjYDZIrJVRHqchArh0bWGROT1EMJvQEiTfAihCdRCCEPAsyJyXERmishNx9MlIgf92y5XHbKWWtG/q8DcyNTAAlQv8H1Cz/dZ9hjcDWNVxyhB4jdCCPU8aqNfYKyIPC0i94jItyGET//TqhsJ95L3GS0SuX/XuAW5DfzZFmLQlwAAAABJRU5ErkJggg==" alt="">
+            </div>
+          </div>
+        </div>
+        <div class="sched-info">
+          <div class="sched-info-left">
+            <img class="sched-iso" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAwCAYAAABuZUjcAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAEUUlEQVR42s2ZW6gVZRSA1+8+55g+aGgqGF4eQvNYHs0X04cs7UZSEoUJxXkJRARBOJmQiEIgoi8hJAj1IIGiGAQeogchTEi6UWkEYYpZ0M3bsUy3Z+/Pl7VyNcye/c9u5jg/bOaf2z/frFn3LVLgAELWfiUHMMpggSeBx9x+qCp0TbfjgA+5Pfba+crBA126nQp8psA39Qeww19XNfWYA/zgoAGabj6g13VXSdIPA78moHHwwzrvv+OSdzo9x8EOkz4MvgGsuCPw6iFMPe7T7Z4W0vajoS/wN7B4ROEV2iS9CbgCPKr7hyPhAf4Aev2XK9UIzZ0BuxzMFWCBvtSxCHhTp7PAvaXCO+AuYJ+DM4ifgenqw79ro+/+3FfAeO+dCjVCBZ4KHEmRqEGcUvDpwC8J1UgbtsZRoMd/0cJ8tM436oOuZ0AcU5VZAAypMcbAHyosujof/ZDLOQ5m6LAde1+vfUKPmTdpNeq63fO/VcZBLwIuAP8Affo5P4mAf1vvf8WpUwz8to7hHfQzwFW3eKwBGvwWXWcgwtP46NqXG94Fln63UCPFAGdkGKDPT9boejsj4O3c0lwu0kEPOIBGhwbYdOrxnK77Xga8qcqgeZi8ecdTbXTSHno4wgDt2DUX4j9Kgbf5fmB0rqrJ6fXmhASIMMCX3fFmixD/OzALuAv4MiWA7e6o1DPnD/QCf+Xwv2aAr2WogcH9CEwGpujcxuZkStFpQbDCGWQzwwskDXBXBPznqsOzNFdZV0jgcSrTn/H50wxwZYQB2rEjeu2EQnMUBz8QmabGGGAS/l29tqfQAtrB78iZY89WA/wiIkBtL7yYUEM1+Hdy5NingUlqgGci4NeXBV9Ta/8gR+QzA7wf+DMjutoLrSoD3tzkGOB4DvhBvX+JJmitomsDuOHKv2LhdTtRc5V21U09kWOvTHigNPu4BDxYeBnnUoKZwE8Z8F6y24Eeve/VDPdq65wDppUJ3wdcTNFdP1/r7KRb529EBKhvgLsLr0Gdp3lES7hGokd4HXghqa/uvt0RPv4o0F1oDZqAeD7x4AutjCzRjzkUAX+glA6vg38ROKF59ANZnsE6YMBo4OMI+LdK6Xal6WA7vXQeagJwMiJAbSoLvuYkOaoDD3U+ovxbW5neuoOfD1xuU/4BvFQleLOTZRq00so/e6E6sKyK8Ksjyr9LwLwR6fBGwluA2pDhaQz+PDCjlCZpQfl/PSO6ngTGV+IfvET+H9N/eVNEJLi2QJniDyLSCCGQ0YMPIlITkUEReVxEhkXEG2NTt1+HEBZW6q9Hlf64RP/Fq8swcELsjYDZIrJVRHqchArh0bWGROT1EMJvQEiTfAihCdRCCEPAsyJyXERmishNx9MlIgf92y5XHbKWWtG/q8DcyNTAAlQv8H1Cz/dZ9hjcDWNVxyhB4jdCCPU8aqNfYKyIPC0i94jItyGET//TqhsJ95L3GS0SuX/XuAW5DfzZFmLQlwAAAABJRU5ErkJggg==" alt="Ruedda">
+            <div class="sched-info-text">
+              <div class="sched-title">${_esc(a.title)}</div>
+              <div class="sched-sub">Puedes visualizar y reservar tu código de entrada</div>
+            </div>
+          </div>
+          <div class="sched-cta">
+            <span class="sched-ver">Ver</span>
+            <div class="sched-arrow-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+            </div>
+          </div>
+        </div>`;
+      list.appendChild(el);
+      startCardTimer(a.id,a.fechaInicioProgramada);
+      return;
+    }
+    el.className='auction-card';
     const urgent=isUrgent(a.endTime);
     const days=getDaysLeft(a.endTime);
     el.innerHTML=`
@@ -3853,6 +3970,7 @@ function renderCards(filter){
           :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
         ${a.sinReserva?'<div class="badge-sinreserva">sin reserva</div>':''}
         ${a.chocado?`<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>`:''}
+        ${a.recienActivada?'<div class="badge-sinreserva" style="background:rgba(230,240,59,.85);border-color:rgba(230,240,59,.4);color:#000">recién publicado</div>':''}
         ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:#fff;font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${urgent?'<div class="badge-ending">terminando</div>':''}
         <div class="badge-timer ${urgent?'urgent':days>=1?'days':''}" id="timer-card-${a.id}">--:--:--</div>
@@ -5053,6 +5171,14 @@ function openDetail(id){
   clearTimers();
   showView('detail');
   currentPhotoIndex=0;
+  // [subastas programadas] alterna entre el panel de oferta normal y el bloqueado
+  const _bidNormal=document.querySelector('#view-detail .bid-section:not(#bid-section-locked)');
+  const _bidLocked=document.getElementById('bid-section-locked');
+  if(_bidNormal&&_bidLocked){
+    _bidNormal.style.display=a.programada?'none':'';
+    _bidLocked.style.display=a.programada?'':'none';
+    if(a.programada) startCardTimer('detaillocked',a.fechaInicioProgramada);
+  }
   // [V107] reset del estado "finalizada" heredado de una subasta anterior (SPA: el DOM persiste)
   (function _resetBidCard(){
     const _live=a.endTime-Date.now()>0;
@@ -6873,6 +6999,11 @@ async function publishListing(){
   const traccion=document.getElementById('traccion-select')?.value||'';
   const tipoVeh=document.getElementById('tipo-vehiculo-select')?.value||'';
   const duracion=parseInt(document.getElementById('auction-duration')?.value||'5');
+  // [subastas programadas]
+  const esProgramada=document.getElementById('programada-toggle')?.checked||false;
+  const fechaProg=document.getElementById('programada-fecha')?.value||'';
+  const horaProg=document.getElementById('programada-hora')?.value||'';
+  const fechaInicioProgramada=(esProgramada&&fechaProg&&horaProg)?new Date(`${fechaProg}T${horaProg}:00`):null;
   const getByPH=(ph)=>form?.querySelector(`input[placeholder="${ph}"],textarea[placeholder="${ph}"]`)?.value?.trim()||'';
   const getSelByLabel=(lbl)=>{for(const l of (form?.querySelectorAll('.form-label')||[])){if(l.textContent.trim()===lbl){const s=l.closest('.form-group')?.querySelector('select,input');if(s)return s.value||'';}}return '';};
   const marca=getSelByLabel('marca');   // ← fix: lee el select de marca por su label
@@ -6899,6 +7030,10 @@ async function publishListing(){
   if(!modelo){showToast('ingresa el modelo del vehículo');return;}
   if(!year){showToast('selecciona el año');return;}
   if(tipo==='market'&&!precioFijo){showToast('ingresa el precio de venta');return;}
+  if(esProgramada){
+    if(!fechaInicioProgramada||isNaN(fechaInicioProgramada.getTime())){showToast('selecciona fecha y hora para programar la subasta');return;}
+    if(fechaInicioProgramada.getTime()<=Date.now()){showToast('la fecha programada debe ser en el futuro');return;}
+  }
   if(!_supa){
     showToast('publicación enviada para revisión ✓',true);
     showDealerFab(false);
@@ -6921,7 +7056,9 @@ async function publishListing(){
     const _esBinance = (window._pendingPaymentRef||'').startsWith('BNB-');
     const estadoInicial = _esBinance ? 'pendiente_pago' : 'revision';
     const recordId = crypto.randomUUID();
-    const endTime = (!esListing) ? new Date(Date.now()+duracion*86400000).toISOString() : null;
+    const endTime = (!esListing)
+      ? (esProgramada&&fechaInicioProgramada ? new Date(fechaInicioProgramada.getTime()+duracion*86400000).toISOString() : new Date(Date.now()+duracion*86400000).toISOString())
+      : null;
     // concesionario_id: intentar vincular si es publicación de concesionario
     let concesionarioId = null;
     if(esListing && pendingVenderType==='consesionario'){
@@ -6930,7 +7067,7 @@ async function publishListing(){
     const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,clasificacion:categoria||null,duenos:duenos||null,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
     const payload = esListing
       ? {...payloadBase, concesionario_id:concesionarioId}
-      : {...payloadBase, tipo, sin_reserva:precioRes===0&&(tipo==='subasta'||tipo==='chocado'), duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioBase||0, access_code:(typeof _genAccessCode==='function'?_genAccessCode():null)};
+      : {...payloadBase, tipo, sin_reserva:precioRes===0&&(tipo==='subasta'||tipo==='chocado'), duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioBase||0, access_code:(typeof _genAccessCode==='function'?_genAccessCode():null), es_programada:esProgramada, fecha_inicio_programada:(esProgramada&&fechaInicioProgramada)?fechaInicioProgramada.toISOString():null};
     if(window._DEBUG) console.log('[ruedda publish] tabla:', tabla, '| payload:', JSON.stringify(payload));
     const{error}=await (_supaWrite||_supa).from(tabla).insert(payload);
     if(error) console.error('[ruedda publish] insert error:', error);
@@ -7042,9 +7179,9 @@ function setListingCond(val){
 }
 function openVenderForm(){
   const cfg={
-    particular:{title:'Cuéntanos de tu vehículo.',sub:'Publica tu vehículo como clasificado en el marketplace automotriz más avanzado del país.',btn:'publicar en el market',precioFijo:true,reserva:false,duracion:false,condicion:true,contacto:true,chocado:false},
-    subasta:{title:'¿Vas a subastar? Cuéntanos.',sub:'Tu vehículo sale a subasta en la plataforma más avanzada del país.',btn:'iniciar subasta',precioFijo:false,reserva:true,duracion:true,condicion:false,contacto:false,chocado:true},
-    consesionario:{title:'publicar inventario',sub:'Publica el inventario de tu concesionario.',btn:'publicar vehículo',precioFijo:true,reserva:false,duracion:false,condicion:true,contacto:true,chocado:false}
+    particular:{title:'Cuéntanos de tu vehículo.',sub:'Publica tu vehículo como clasificado en el marketplace automotriz más avanzado del país.',btn:'publicar en el market',precioFijo:true,reserva:false,duracion:false,condicion:true,contacto:true,chocado:false,programada:false},
+    subasta:{title:'¿Vas a subastar? Cuéntanos.',sub:'Tu vehículo sale a subasta en la plataforma más avanzada del país.',btn:'iniciar subasta',precioFijo:false,reserva:true,duracion:true,condicion:false,contacto:false,chocado:true,programada:true},
+    consesionario:{title:'publicar inventario',sub:'Publica el inventario de tu concesionario.',btn:'publicar vehículo',precioFijo:true,reserva:false,duracion:false,condicion:true,contacto:true,chocado:false,programada:false}
   };
   const c=cfg[pendingVenderType]||cfg.particular;
   document.getElementById('vender-hero-title').textContent=c.title;
@@ -7057,8 +7194,12 @@ function openVenderForm(){
   document.getElementById('field-condicion').style.display=c.condicion?'':'none';
   document.getElementById('field-contacto').style.display=c.contacto?'':'none';
   document.getElementById('field-chocado').style.display=c.chocado?'':'none';
+  const _fp=document.getElementById('field-programada'); if(_fp)_fp.style.display=c.programada?'':'none';
   // reset chocado state on form open
   const tog=document.getElementById('chocado-toggle');if(tog){tog.checked=false;document.getElementById('campo-estado-chocado').style.display='none';document.querySelectorAll('.dano-pill,.estado-pill').forEach(p=>p.classList.remove('active'));}
+  // reset programada state on form open
+  const togP=document.getElementById('programada-toggle');
+  if(togP){togP.checked=false;document.getElementById('campo-fecha-programada').classList.remove('open');document.getElementById('programada-fecha').value='';document.getElementById('programada-hora').value='';}
   showView('vender');
 }
 
@@ -7674,6 +7815,9 @@ function toggleChocado(cb){
   const panel=document.getElementById('campo-estado-chocado');
   panel.style.display=cb.checked?'block':'none';
   if(!cb.checked)document.querySelectorAll('.estado-pill').forEach(p=>p.classList.remove('active'));
+}
+function toggleProgramada(cb){
+  document.getElementById('campo-fecha-programada').classList.toggle('open',cb.checked);
 }
 function selectEstado(btn){
   document.querySelectorAll('.estado-pill').forEach(p=>p.classList.remove('active'));
@@ -9962,7 +10106,7 @@ async function _loadAuctions(){
   if(!_supa) return;
   try{
     const _corte48h=new Date(Date.now()-48*3600*1000).toISOString();
-    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id,es_chocado,tipo_dano,estado_chocado,es_destacado').eq('tipo','subasta').eq('estado','activa').or('es_chocado.is.null,es_chocado.eq.false').gte('end_time',_corte48h).order('end_time',{ascending:true});
+    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id,es_chocado,tipo_dano,estado_chocado,es_destacado,es_programada,fecha_inicio_programada').eq('tipo','subasta').eq('estado','activa').or('es_chocado.is.null,es_chocado.eq.false').gte('end_time',_corte48h).order('end_time',{ascending:true});
     window._feedLoaded.auc=true; // [V87] primera carga resuelta
     if(ae){console.error('[ruedda] _loadAuctions:',String(ae?.message||ae?.code||'error'));if(typeof renderCards==='function')renderCards();return;}
     if(!data?.length){if(typeof renderCards==='function')renderCards();return;} // [V87] feed vacio: pintar empty state, no dejar el loader
@@ -9986,7 +10130,16 @@ async function _loadAuctions(){
       const _cl={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'}[a.clasificacion]||a.clasificacion||'';
       const _specsRaw={'transmisión':a.transmision,'combustible':a.combustible,'motor':a.motor,'tracción':a.traccion,'color':a.color,'categoría':a.tipo_vehiculo,'dueños':a.duenos,'estado físico':a.estado_fisico,'condición':a.condicion,'clasificación':_cl};
       const specs={};Object.entries(_specsRaw).forEach(([k,v])=>{if(v!=null&&String(v).trim()!=='')specs[k]=v;});
-      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',clasificacion:a.clasificacion||'',tipoVehiculo:a.tipo_vehiculo||'',viewCount:a.view_count||0,chocado:!!a.es_chocado,destacado:!!a.es_destacado,transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
+      // [subastas programadas] mismo patrón cliente-side que 'ended' (activa->finalizada):
+      // si es_programada=true y la fecha aún no llega, la subasta está "programada"
+      // (bloqueada), aunque en la DB su estado ya diga 'activa' (la aprobación de
+      // SuperAdmin no espera la fecha — solo el comportamiento visual/de acceso sí).
+      const _fechaProg=a.fecha_inicio_programada?new Date(a.fecha_inicio_programada).getTime():null;
+      const _esProgramadaAun=!!a.es_programada&&!!_fechaProg&&_fechaProg>Date.now();
+      // "recién publicado": se activó hace menos de 24h (mismo criterio de gracia
+      // que ya usamos para 'vendido' en market)
+      const _recienActivada=!!a.es_programada&&!!_fechaProg&&!_esProgramadaAun&&(Date.now()-_fechaProg)<24*3600*1000;
+      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',clasificacion:a.clasificacion||'',tipoVehiculo:a.tipo_vehiculo||'',viewCount:a.view_count||0,chocado:!!a.es_chocado,destacado:!!a.es_destacado,programada:_esProgramadaAun,fechaInicioProgramada:_fechaProg,recienActivada:_recienActivada,condicion:a.condicion||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs};
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
     if(typeof renderCards==='function') renderCards();
