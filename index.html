@@ -48,6 +48,7 @@ input[type=number]{-moz-appearance:textfield}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes rdFilterSlideDown{from{transform:translateY(0);opacity:1}to{transform:translateY(100%);opacity:.5}}
 @keyframes slideDown{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
@@ -122,6 +123,55 @@ html{scrollbar-width:none}
 
 /* TABS */
 .tabs{display:flex;gap:24px;padding:10px 18px 0;border-bottom:1px solid var(--border)}
+
+/* ═══════════ [RC] CALENDARIO DESPLEGABLE — Programadas ═══════════ */
+.sched-cal-trigger{display:flex;align-items:center;gap:8px;width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:13px;padding:11px 14px;color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;margin-top:12px;transition:background .15s}
+.sched-cal-trigger:active{background:rgba(255,255,255,.09)}
+.sched-cal-trigger svg:first-child{width:15px;height:15px;opacity:.7;flex-shrink:0}
+.sched-cal-trigger span{flex:1;text-align:left}
+.sched-cal-chev{width:13px;height:13px;flex-shrink:0;transition:transform .22s cubic-bezier(.4,0,.2,1);opacity:.6}
+#sched-cal-wrap.open .sched-cal-chev{transform:rotate(180deg)}
+.sched-cal-panel{max-height:0;overflow:hidden;opacity:0;transition:max-height .28s cubic-bezier(.4,0,.2,1),opacity .22s ease}
+#sched-cal-wrap.open .sched-cal-panel{max-height:360px;opacity:1;margin-top:8px}
+.sched-cal-head{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 10px}
+.sched-cal-title{font-size:13px;font-weight:700;letter-spacing:-.1px;text-transform:capitalize}
+.sched-cal-nav{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.sched-cal-nav svg{width:13px;height:13px}
+.sched-cal-nav:active{background:rgba(255,255,255,.1)}
+.sched-cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:9.5px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.4px;padding-bottom:4px}
+.sched-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px 0}
+.sched-cal-day{position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,.75);border-radius:10px;cursor:default}
+.sched-cal-day.muted{color:rgba(255,255,255,.18)}
+.sched-cal-day.today{background:rgba(255,255,255,.08);font-weight:700;color:#fff}
+.sched-cal-day.has-event{cursor:pointer;color:#fff;font-weight:700}
+.sched-cal-day.has-event:active{background:rgba(230,240,59,.12)}
+.sched-cal-day.has-event::after{content:'';position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#e6f03b;box-shadow:0 0 6px rgba(230,240,59,.6)}
+
+#sched-cal-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:340;align-items:flex-end;justify-content:center}
+#sched-cal-popup-overlay.open{display:flex}
+.sched-cal-popup{width:100%;max-height:78vh;overflow-y:auto;background:#0d0d0d;border:1px solid rgba(255,255,255,.08);border-bottom:none;border-radius:24px 24px 0 0;padding:0 0 30px;transform:translateY(100%);transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
+#sched-cal-popup-overlay.open .sched-cal-popup{transform:translateY(0)}
+.sched-cal-popup-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;position:sticky;top:0;background:#0d0d0d;z-index:2}
+.sched-cal-popup-title{font-size:15px;font-weight:800;letter-spacing:-.2px;text-transform:capitalize}
+.sched-cal-popup-close{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.sched-cal-popup-close svg{width:14px;height:14px}
+.sched-cal-popup-list{display:flex;flex-direction:column;gap:10px;padding:0 16px}
+.sched-pop-card{display:flex;align-items:center;gap:12px;background:var(--card2,#141416);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px}
+.sched-pop-thumb{width:56px;height:56px;border-radius:12px;flex-shrink:0;background-size:cover;background-position:center;overflow:hidden}
+.sched-pop-info{flex:1;min-width:0}
+.sched-pop-title{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sched-pop-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.sched-pop-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sched-pop-ver{background:#e6f03b;color:#000;border:none;border-radius:100px;padding:8px 16px;font-family:var(--font);font-size:12px;font-weight:800;cursor:pointer}
+.sched-pop-bell{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.sched-pop-bell svg{width:14px;height:14px}
+.sched-pop-bell:active{background:rgba(230,240,59,.15)}
+
+/* ═══════════ [RC] PÍLDORA "INICIAR TUTORIAL" — glassmorphism negro, en Cómo Funciona ═══════════ */
+.rd-howto-pill{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.6);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid rgba(255,255,255,.16);border-radius:100px;padding:9px 15px 9px 12px;color:#fff;font-family:var(--font);font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:background .15s,transform .15s;flex-shrink:0}
+.rd-howto-pill:active{transform:scale(.96);background:rgba(0,0,0,.8)}
+.rd-howto-pill svg{width:13px;height:13px;flex-shrink:0;opacity:.95}
+.rd-howto-pill span{white-space:nowrap}
 
 /* [SA REDESIGN] categorías — solo estético, envuelve los mismos 13 tabs de siempre */
 .sa-cat-row{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 18px 14px}
@@ -217,9 +267,9 @@ html{scrollbar-width:none}
 .mkt-hub-btn:active{opacity:.55}
 
 /* SPONSOR SLIDER */
-.sponsor-slider{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;gap:10px;padding:14px 14px 0;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x}
-.sponsor-slider::-webkit-scrollbar{display:none}
-.sponsor-slide{position:relative;flex:0 0 100%;scroll-snap-align:start;aspect-ratio:40/7;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 20px;box-sizing:border-box;cursor:pointer;animation:fadeIn .25s ease both}
+.sponsor-slider{position:relative;overflow:hidden;aspect-ratio:40/7;border-radius:18px;margin:14px 14px 0;touch-action:pan-y}
+.sponsor-slide{position:absolute;inset:0;border-radius:18px;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 20px;box-sizing:border-box;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .5s ease}
+.sponsor-slide.active{opacity:1;pointer-events:auto}
 .sponsor-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .sponsor-slide span{position:relative;z-index:2;font-size:15px;font-weight:800;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.25)}
 .sponsor-dots{display:flex;justify-content:center;gap:6px;padding:10px 0 4px}
@@ -321,6 +371,8 @@ html{scrollbar-width:none}
 .badge-timer.days{color:#fff}
 .badge-bids{position:absolute;bottom:10px;right:10px;background:var(--badge);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:9px;padding:6px 12px;font-size:13px;font-weight:700}
 .badge-sinreserva{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);border-radius:100px;padding:5px 12px;font-size:12px;font-weight:500;border:1px solid rgba(255,255,255,.1)}
+/* [RC] tag "sin reserva" — verde sólido de verdad, no solo borde */
+.badge-sinreserva.verde{background:rgba(31,191,92,.92);border-color:rgba(120,240,170,.45);color:#fff;font-weight:700;box-shadow:0 2px 10px rgba(31,191,92,.3)}
 .badge-ending{position:absolute;top:10px;right:10px;background:rgba(255,60,60,.85);backdrop-filter:blur(8px);border-radius:100px;padding:5px 12px;font-size:12px;font-weight:700}
 .card-body{padding:10px 14px 14px}
 .card-title{font-size:18px;font-weight:700;letter-spacing:-.3px;line-height:1.2;margin-bottom:5px}
@@ -386,6 +438,8 @@ html{scrollbar-width:none}
 .detail-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;margin-bottom:10px}
 .detail-badge{font-size:12px;font-weight:600;padding:5px 12px;border-radius:100px;border:1px solid var(--border);color:var(--muted)}
 .detail-badge.lime{background:rgba(230,240,59,.08);border-color:rgba(230,240,59,.28);color:var(--lime)}
+/* [RC] variante verde — para "sin reserva" en detalle, consistente con la card */
+.detail-badge.verde{background:rgba(31,191,92,.92);border-color:rgba(120,240,170,.45);color:#fff;font-weight:700}
 .detail-title{font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1.15;margin-bottom:0}
 .detail-subtitle{font-size:13px;color:var(--muted);margin-bottom:10px;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
 .detail-subtitle .sep{color:var(--muted2)}
@@ -555,6 +609,15 @@ html{scrollbar-width:none}
 .prog-field{margin-bottom:10px}
 .prog-field:last-child{margin-bottom:0}
 .prog-field label{display:block;font-size:10.5px;font-weight:400;color:var(--muted);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+/* [RC] fixes mobile del picker de programar:
+   1. color-scheme:dark — sin esto, iOS/Android abren el picker nativo en modo claro
+      y en WebKit el valor se pinta oscuro sobre fondo oscuro (parece vacío).
+   2. min-height + appearance:none — iOS colapsa la altura del input date/time vacío.
+   3. ::-webkit-date-and-time-value alineado a la izquierda — iOS lo centra por defecto
+      y desalinea el valor con los demás inputs del form. */
+.prog-field input[type=date],.prog-field input[type=time]{color-scheme:dark;-webkit-appearance:none;appearance:none;min-height:49px;display:block;text-align:left}
+.prog-field input::-webkit-date-and-time-value{text-align:left}
+.prog-field input::-webkit-calendar-picker-indicator{filter:invert(.7);cursor:pointer}
 .toggle-switch{position:relative;width:46px;height:26px;flex-shrink:0}
 .toggle-switch input{opacity:0;width:0;height:0;position:absolute}
 .toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.12);border-radius:100px;cursor:pointer;transition:background .25s}
@@ -598,10 +661,15 @@ html{scrollbar-width:none}
 .noticia-card{flex-shrink:0;width:200px;height:130px;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;scroll-snap-align:start;cursor:pointer;transition:transform .18s;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
 /* [rx-sponsor-banner] mismo lenguaje que .noticia-card pero full-width, 16:9 real —
    banner personalizable por patrocinante, no una fila de ícono+texto. */
-.rx-sponsor-banner{width:100%;aspect-ratio:16/9;background:var(--card2);background-size:cover;background-position:center;border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .2s cubic-bezier(.32,.72,0,1);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+/* [rx-sponsor-banner] mismo lenguaje que .noticia-card pero full-width, 16:9 real —
+   [RC] el aspect-ratio nativo fallaba en algunos WebKit (la card se veía cuadrada
+   porque el flex + contenido pisaba el ratio). El ::before con padding-top:56.25%
+   es el truco clásico que fuerza 16:9 horizontal en TODOS los navegadores. */
+.rx-sponsor-banner{position:relative;width:100%;height:auto;background:var(--card2);background-size:cover;background-position:center;border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .2s cubic-bezier(.32,.72,0,1);display:block;margin-bottom:10px}
+.rx-sponsor-banner::before{content:'';display:block;padding-top:56.25%}
 .rx-sponsor-banner:last-child{margin-bottom:0}
 .rx-sponsor-banner:active{transform:scale(.97)}
-.rx-sponsor-banner-fallback{font-size:15px;font-weight:800;color:rgba(255,255,255,.6);letter-spacing:-.2px}
+.rx-sponsor-banner-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:rgba(255,255,255,.6);letter-spacing:-.2px}
 .noticia-card:active{transform:scale(.97)}
 .noticia-card-wide{width:240px}
 .feedback-grid{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
@@ -1122,7 +1190,7 @@ html{scrollbar-width:none}
 .rx-menu-card.darkened{opacity:.4;pointer-events:none}
 .rx-menu-card.darkened .rx-menu-card-title::after{content:' (próximamente)';font-size:11px;font-weight:600;color:rgba(255,255,255,.3)}
 .rx-accordion-body{max-height:0;overflow:hidden;transition:max-height .32s cubic-bezier(.4,0,.2,1),opacity .25s ease;opacity:0;padding:0 20px}
-.rx-accordion-body.open{max-height:600px;opacity:1;padding:0 20px 20px}
+.rx-accordion-body.open{max-height:1400px;opacity:1;padding:0 20px 20px}
 .rx-accordion-placeholder{min-height:60px;border:1.5px dashed rgba(255,255,255,.08);border-radius:12px;display:flex;align-items:center;justify-content:center}
 .rx-accordion-placeholder span{font-size:12px;color:rgba(255,255,255,.2)}
 .rx-chevron{transition:transform .22s cubic-bezier(.32,.72,0,1);color:rgba(255,255,255,.3)}
@@ -1468,8 +1536,40 @@ html{scrollbar-width:none}
     <div style="padding:2px 18px 12px;font-size:11px;color:#fff;font-weight:300;line-height:1.5;letter-spacing:.3px;opacity:.92">bienvenido al marketplace automotriz mas avanzado de venezuela.</div>
     <div class="tabs">
       <div class="tab active" id="tab-pronto" onclick="switchTab('pronto')">terminando pronto</div>
-      <div class="tab" id="tab-reciente" onclick="switchTab('reciente')">recién publicado</div>
+      <div class="tab" id="tab-reciente" onclick="switchTab('reciente')">programadas</div>
       <div class="tab" id="tab-chocados" onclick="switchTab('chocados')">chocados</div>
+    </div>
+    <!-- [RC] calendario desplegable — solo visible en la pestaña "programadas" -->
+    <div id="sched-cal-wrap" style="display:none;padding:2px 18px 6px">
+      <button class="sched-cal-trigger" id="sched-cal-trigger" onclick="_schedCalToggle()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+        <span>ver calendario</span>
+        <svg class="sched-cal-chev" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 8 5 5 5-5"/></svg>
+      </button>
+      <div class="sched-cal-panel" id="sched-cal-panel">
+        <div class="sched-cal-head">
+          <div class="sched-cal-nav" onclick="_schedCalMonth(-1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          </div>
+          <div class="sched-cal-title" id="sched-cal-title">—</div>
+          <div class="sched-cal-nav" onclick="_schedCalMonth(1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </div>
+        </div>
+        <div class="sched-cal-weekdays"><span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span></div>
+        <div class="sched-cal-grid" id="sched-cal-grid"></div>
+      </div>
+    </div>
+    <div id="sched-cal-popup-overlay" onclick="if(event.target===this)_schedCalClosePopup()">
+      <div class="sched-cal-popup">
+        <div class="sched-cal-popup-head">
+          <div class="sched-cal-popup-title" id="sched-cal-popup-title">—</div>
+          <div class="sched-cal-popup-close" onclick="_schedCalClosePopup()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </div>
+        </div>
+        <div class="sched-cal-popup-list" id="sched-cal-popup-list"></div>
+      </div>
     </div>
     <!-- [banner chocados] idéntico al de market, patrocinantes propios (categoria='chocados').
          solo visible con la pestaña chocados activa — lo controla switchTab(). -->
@@ -2076,10 +2176,16 @@ html{scrollbar-width:none}
 </div>
 
 <!-- COMO FUNCIONA -->
-<div id="view-como-funciona" class="view">
-  <div class="detail-back" onclick="showView('home')">
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
-    <span>volver</span>
+<div id="view-como-funciona" class="view" style="position:relative">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding-right:18px">
+    <div class="detail-back" onclick="showView('home')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+      <span>volver</span>
+    </div>
+    <button id="rd-howto-pill" class="rd-howto-pill" onclick="_rdHowToPillTap()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+      <span>Iniciar tutorial</span>
+    </button>
   </div>
   <div class="cf-hero">
     <h2>cómo funciona ruedda</h2>
@@ -2091,7 +2197,8 @@ html{scrollbar-width:none}
     <div class="cf-step"><div class="cf-step-num">3</div><div class="cf-step-content"><h3>cierra el trato</h3><p>Al ganar, comprador y vendedor coordinan directamente. Ruedda es el canal que los conecta — la legalidad y documentación del traspaso es responsabilidad de las partes. Tú mandas, nosotros facilitamos.</p></div></div>
     <div class="cf-step"><div class="cf-step-num">4</div><div class="cf-step-content"><h3>retira tu vehículo</h3><p>El traslado del vehículo lo coordinan comprador y vendedor. Ruedda no interviene en la logística de transporte — pero te conecta con quien lo hace posible, donde estés en Venezuela.</p></div></div>
   </div>
-  <button class="cf-cta" onclick="showView('home')">explorar subastas →</button>
+  <button class="cf-cta" style="margin-bottom:10px" onclick="showView('home')">explorar subastas →</button>
+  <button class="cf-cta" style="background:rgba(255,255,255,.06);color:#fff;border:1px solid rgba(255,255,255,.12)" onclick="showView('home');selectSection('market')">ir al market →</button>
 </div>
 
 <!-- VENDER FORM -->
@@ -2248,7 +2355,10 @@ html{scrollbar-width:none}
     <div class="form-group" id="field-programada" style="display:none">
       <div class="toggle-row">
         <div>
-          <div class="toggle-label">Programar subasta</div>
+          <div class="toggle-label" style="display:flex;align-items:center;gap:7px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0;opacity:.85"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span>Programar subasta</span>
+          </div>
           <div class="toggle-sub">Recomendamos que programes tu subasta para que esté un rato captando potenciales interesados hasta la fecha seleccionada.</div>
         </div>
         <label class="toggle-switch">
@@ -3093,7 +3203,7 @@ html{scrollbar-width:none}
         </div>
         <div>
           <div style="font-size:15px;font-weight:700;letter-spacing:-.2px;color:#000">reconstrucción del país</div>
-          <div style="font-size:13px;color:rgba(0,0,0,.55);line-height:1.4;margin-top:2px">parte de los ingresos de partners se destina a nuestros programas de apoyo tras los sismos, como Chocados 24J.</div>
+          <div style="font-size:13px;color:rgba(0,0,0,.55);line-height:1.4;margin-top:2px">Parte de los ingresos de nuestros partners se destina a nuestro programa de apoyo tras los sismos. Además, ofrecemos la publicación de vehículos chocados de forma totalmente gratuita.</div>
         </div>
       </div>
       <div style="display:flex;gap:14px;align-items:flex-start">
@@ -3869,8 +3979,11 @@ let _lastMarketHash = '';
 
 function renderCards(filter){
   // [v76] dirty check — si los datos y filtro no cambiaron, no re-renderizar
+  // [RC] 'reciente' (programadas) combina AUCTIONS + AUCTIONS_CHOCADOS, así que ambos
+  // datasets entran al hash para que el dirty-check detecte cambios en cualquiera de los dos.
+  const _hashSrc=currentTab==='chocados'?AUCTIONS_CHOCADOS:currentTab==='reciente'?[...AUCTIONS,...AUCTIONS_CHOCADOS]:AUCTIONS;
   const hash = currentTab+'|'+(filter||'')+
-    '|'+(currentTab==='chocados'?AUCTIONS_CHOCADOS:AUCTIONS).map(a=>a.id+'_'+a.currentBid+'_'+a.bidCount+'_'+(a.programada?'p':'a')).join(',');
+    '|'+_hashSrc.map(a=>a.id+'_'+a.currentBid+'_'+a.bidCount+'_'+(a.programada?'p':'a')).join(',');
   if(hash===_lastCardsHash && document.getElementById('card-list').children.length>0) return;
   _lastCardsHash=hash;
 
@@ -3878,9 +3991,10 @@ function renderCards(filter){
   const list=document.getElementById('card-list');
   list.innerHTML='';
 
-  // chocados tab — dataset separado
+  // chocados tab — dataset separado. [RC] solo chocados ACTIVOS: los programados
+  // se filtran aquí y viven en la pestaña "programadas" hasta que se activan solos.
   if(currentTab==='chocados'){
-    const data=[...AUCTIONS_CHOCADOS];
+    const data=AUCTIONS_CHOCADOS.filter(a=>!a.programada);
     if(!data.length){list.innerHTML=window._feedLoaded?.choc?'<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>sin subastas de chocados activas</p></div>':_feedLoaderHTML();return;}
     data.forEach((a,idx)=>{
       const el=document.createElement('div');
@@ -3909,14 +4023,23 @@ function renderCards(filter){
     return;
   }
 
-  let data=[...AUCTIONS];
-  if(currentTab==='pronto')data.sort((a,b)=>a.endTime-b.endTime);
-  else data.sort((a,b)=>b.id-a.id);
-  if(filter&&filter!=='todos'){
-    if(filter==='sin reserva')data=data.filter(a=>a.sinReserva);
-    else data=data.filter(a=>a.category===filter);
+  let data;
+  if(currentTab==='reciente'){
+    // [RC] "programadas" — todas las subastas programadas, normales Y de chocados,
+    // ordenadas por fecha de inicio más próxima primero.
+    data=[...AUCTIONS.filter(a=>a.programada),...AUCTIONS_CHOCADOS.filter(a=>a.programada)];
+    data.sort((a,b)=>(a.fechaInicioProgramada||0)-(b.fechaInicioProgramada||0));
+    if(typeof _schedCalRender==='function') _schedCalRender(); // [RC] datos recién cargados: refrescar puntos del mes visible
+  } else {
+    data=[...AUCTIONS];
+    if(currentTab==='pronto')data.sort((a,b)=>a.endTime-b.endTime);
+    else data.sort((a,b)=>b.id-a.id);
+    if(filter&&filter!=='todos'){
+      if(filter==='sin reserva')data=data.filter(a=>a.sinReserva);
+      else data=data.filter(a=>a.category===filter);
+    }
   }
-  if(!data.length){list.innerHTML=window._feedLoaded?.auc?'<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>sin publicaciones disponibles</p></div>':_feedLoaderHTML();return;}
+  if(!data.length){list.innerHTML=window._feedLoaded?.auc?`<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>${currentTab==='reciente'?'sin subastas programadas por ahora':'sin publicaciones disponibles'}</p></div>`:_feedLoaderHTML();return;}
   data.forEach((a,idx)=>{
     const el=document.createElement('div');
     el.style.animationDelay=Math.min(idx,12)*60+'ms';
@@ -3968,7 +4091,7 @@ function renderCards(filter){
         ${a.photoUrls&&a.photoUrls[0]
           ?`<img src="${a.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
           :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
-        ${a.sinReserva?'<div class="badge-sinreserva">sin reserva</div>':''}
+        ${a.sinReserva?'<div class="badge-sinreserva verde">sin reserva</div>':''}
         ${a.chocado?`<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>`:''}
         ${a.recienActivada?'<div class="badge-sinreserva" style="background:rgba(230,240,59,.85);border-color:rgba(230,240,59,.4);color:#000">recién publicado</div>':''}
         ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:#fff;font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
@@ -4013,6 +4136,13 @@ function switchTab(tab){
   // [banner chocados] solo visible con esa pestaña activa
   const _cw=document.getElementById('choc-sponsor-wrap');
   if(_cw) _cw.style.display=(tab==='chocados'&&CHOCADOS_SPONSORS.length)?'':'none';
+  // [RC] calendario desplegable — solo existe/tiene sentido en la pestaña "programadas"
+  const _scw=document.getElementById('sched-cal-wrap');
+  if(_scw){
+    _scw.style.display=(tab==='reciente')?'':'none';
+    if(tab==='reciente'){ _schedCalGoToday(); _schedCalRender(); }
+    else { _scw.classList.remove('open'); }
+  }
   renderCards();
 }
 
@@ -4020,6 +4150,116 @@ function filterChip(el){
   document.querySelectorAll('#auctions-section .filter-chip').forEach(c=>c.classList.remove('active'));
   el.classList.add('active');
   renderCards(el.textContent.trim());
+}
+
+// ═══════════════════════════════════════════════════════════
+// [RC] CALENDARIO DESPLEGABLE — pestaña "programadas"
+// ═══════════════════════════════════════════════════════════
+let _schedCalYear=null, _schedCalMonthIdx=null;
+const _SCHED_CAL_MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function _schedCalGoToday(){
+  const now=new Date();
+  _schedCalYear=now.getFullYear();
+  _schedCalMonthIdx=now.getMonth();
+}
+function _schedCalToggle(){
+  const wrap=document.getElementById('sched-cal-wrap');
+  if(!wrap)return;
+  wrap.classList.toggle('open');
+}
+function _schedCalMonth(delta){
+  if(_schedCalYear===null)_schedCalGoToday();
+  _schedCalMonthIdx+=delta;
+  if(_schedCalMonthIdx<0){_schedCalMonthIdx=11;_schedCalYear--;}
+  if(_schedCalMonthIdx>11){_schedCalMonthIdx=0;_schedCalYear++;}
+  _schedCalRender();
+}
+// [RC] junta programadas normales + chocadas programadas — misma regla que renderCards('reciente')
+function _schedCalProgramadas(){
+  return [...AUCTIONS.filter(a=>a.programada),...AUCTIONS_CHOCADOS.filter(a=>a.programada)];
+}
+function _schedCalDateKey(ts){
+  const d=new Date(ts);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function _schedCalRender(){
+  if(_schedCalYear===null)_schedCalGoToday();
+  const titleEl=document.getElementById('sched-cal-title');
+  const gridEl=document.getElementById('sched-cal-grid');
+  if(!titleEl||!gridEl)return;
+  titleEl.textContent=_SCHED_CAL_MESES[_schedCalMonthIdx]+' '+_schedCalYear;
+  // mapa fecha->items, para pintar el punto indicador
+  const eventMap={};
+  _schedCalProgramadas().forEach(a=>{
+    if(!a.fechaInicioProgramada)return;
+    const k=_schedCalDateKey(a.fechaInicioProgramada);
+    if(!eventMap[k])eventMap[k]=[];
+    eventMap[k].push(a);
+  });
+  const firstOfMonth=new Date(_schedCalYear,_schedCalMonthIdx,1);
+  const startWeekday=firstOfMonth.getDay(); // 0=domingo
+  const daysInMonth=new Date(_schedCalYear,_schedCalMonthIdx+1,0).getDate();
+  const daysInPrevMonth=new Date(_schedCalYear,_schedCalMonthIdx,0).getDate();
+  const todayKey=_schedCalDateKey(Date.now());
+  let cells=[];
+  // días finales del mes anterior, solo relleno visual
+  for(let i=startWeekday-1;i>=0;i--){ cells.push({n:daysInPrevMonth-i,muted:true}); }
+  for(let d=1;d<=daysInMonth;d++){
+    const key=_schedCalYear+'-'+String(_schedCalMonthIdx+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    cells.push({n:d,muted:false,key,events:eventMap[key]||null,today:key===todayKey});
+  }
+  // completar hasta múltiplo de 7 con días del mes siguiente
+  while(cells.length%7!==0){ cells.push({n:cells.length,muted:true}); }
+  gridEl.innerHTML=cells.map(c=>{
+    const cls=['sched-cal-day'];
+    if(c.muted)cls.push('muted');
+    if(c.today)cls.push('today');
+    if(c.events&&c.events.length)cls.push('has-event');
+    const click=(c.events&&c.events.length)?`onclick="_schedCalOpenDay('${c.key}')"`:'';
+    return `<div class="${cls.join(' ')}" ${click}>${c.n}</div>`;
+  }).join('');
+}
+function _schedCalOpenDay(key){
+  const eventMap={};
+  _schedCalProgramadas().forEach(a=>{
+    if(!a.fechaInicioProgramada)return;
+    const k=_schedCalDateKey(a.fechaInicioProgramada);
+    if(!eventMap[k])eventMap[k]=[];
+    eventMap[k].push(a);
+  });
+  const items=eventMap[key]||[];
+  if(!items.length)return;
+  const[y,m,d]=key.split('-').map(Number);
+  const dateObj=new Date(y,m-1,d);
+  const titleEl=document.getElementById('sched-cal-popup-title');
+  if(titleEl) titleEl.textContent=dateObj.toLocaleDateString('es-VE',{weekday:'long',day:'numeric',month:'long'});
+  const listEl=document.getElementById('sched-cal-popup-list');
+  if(listEl){
+    listEl.innerHTML=items.map(a=>`
+      <div class="sched-pop-card">
+        <div class="sched-pop-thumb" style="${a.photoUrls&&a.photoUrls[0]?`background-image:url('${a.photoUrls[0]}')`:`background:linear-gradient(${grads[_gidx(a.id)]})`}"></div>
+        <div class="sched-pop-info">
+          <div class="sched-pop-title">${_esc(a.title)}</div>
+          <div class="sched-pop-sub">${a.chocado?'chocado · ':''}empieza ${new Date(a.fechaInicioProgramada).toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+        <div class="sched-pop-actions">
+          <button class="sched-pop-ver" onclick="_schedCalClosePopup();openDetail(${a.id})">Ver</button>
+          <div class="sched-pop-bell" onclick="_schedCalBell(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+  const ov=document.getElementById('sched-cal-popup-overlay');
+  if(ov) ov.classList.add('open');
+}
+function _schedCalClosePopup(){
+  const ov=document.getElementById('sched-cal-popup-overlay');
+  if(ov) ov.classList.remove('open');
+}
+function _schedCalBell(e){
+  if(e) e.stopPropagation();
+  if(typeof showToast==='function') showToast('Se te avisará cuando empiece, recomendamos anotar la fecha.');
 }
 
 // ===================== MENSAJES / THREADS =====================
@@ -4533,6 +4773,7 @@ function _soonToast(msg){
 // ───────────────────────────────────────────
 function _openStore(){
   const ld=document.getElementById('store-loading');
+  sessionStorage.setItem('rd_left_to_store','1'); // [RC] marca de salida — se lee al volver para el toast de swipe-exit
   if(!ld){ location.href='store.html'; return; }
   ld.style.display='flex';
   requestAnimationFrame(()=>ld.classList.add('show'));
@@ -4543,9 +4784,16 @@ function _openStore(){
 // salir — con #store-loading todavía visible diciendo "Abriendo Store."
 // pageshow dispara también en esa restauración, así que lo apagamos ahí
 // para que NUNCA se vea ese texto al salir. Al abrir (entrar) queda intacto.
-window.addEventListener('pageshow',function(){
+window.addEventListener('pageshow',function(e){
   const ld=document.getElementById('store-loading');
   if(ld){ ld.classList.remove('show'); ld.style.display='none'; }
+  // [RC] swipe-exit de Store — al volver vía gesto/atrás desde store.html, el
+  // navegador restaura esta página desde bfcache (event.persisted=true). Si
+  // veníamos de haber entrado a Store, disparamos el toast no intrusivo.
+  if(e.persisted&&sessionStorage.getItem('rd_left_to_store')==='1'){
+    sessionStorage.removeItem('rd_left_to_store');
+    if(typeof _soonToast==='function') _soonToast('Saliendo de store');
+  }
 });
 
 // ───────────────────────────────────────────
@@ -4583,36 +4831,50 @@ function renderSponsorSlider(){
   }
   if(wrap) wrap.style.display='';
   _sponsorIdx=0;
-  track.scrollLeft=0;
-  track.innerHTML=MARKET_SPONSORS.map(s=>`
-    <div class="sponsor-slide" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
+  // [RC] contenedor estático — ya no scrollea: las slides quedan apiladas (position:absolute)
+  // y solo la que tiene .active es visible. El swipe/autoplay cambia la clase, nunca el tamaño
+  // ni la posición del contenedor padre.
+  track.innerHTML=MARKET_SPONSORS.map((s,i)=>`
+    <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
       ${s.imagen_url?`<img src="${s.imagen_url}" alt="${_esc(s.nombre||'')}">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
     </div>`).join('');
   dotsEl.innerHTML=MARKET_SPONSORS.length>1?MARKET_SPONSORS.map((_,i)=>`<div class="sponsor-dot${i===0?' active':''}"></div>`).join(''):'';
   if(MARKET_SPONSORS.length<2) return; // un solo patrocinante: se muestra fijo, sin autoplay ni dots
-  track.addEventListener('scroll',()=>{
-    const i=Math.round(track.scrollLeft/track.clientWidth);
-    if(i!==_sponsorIdx&&i>=0&&i<MARKET_SPONSORS.length){_sponsorIdx=i;_updateSponsorDots();}
-  },{passive:true});
-  track.addEventListener('touchstart',_pauseSponsorAutoplay,{passive:true});
-  timers.sponsor=setInterval(_advanceSponsor,3200);
+  _bindSponsorSwipe(track);
+  timers.sponsor=setInterval(_advanceSponsor,2500);
 }
 function _updateSponsorDots(){
   document.querySelectorAll('#sponsor-dots .sponsor-dot').forEach((d,i)=>d.classList.toggle('active',i===_sponsorIdx));
 }
-function _advanceSponsor(){
-  const track=document.getElementById('sponsor-slider');
-  if(!track||MARKET_SPONSORS.length<2) return;
-  _sponsorIdx=(_sponsorIdx+1)%MARKET_SPONSORS.length;
-  track.scrollTo({left:track.clientWidth*_sponsorIdx,behavior:'smooth'});
+function _goToSponsor(i){
+  if(!MARKET_SPONSORS.length) return;
+  _sponsorIdx=((i%MARKET_SPONSORS.length)+MARKET_SPONSORS.length)%MARKET_SPONSORS.length;
+  document.querySelectorAll('#sponsor-slider .sponsor-slide').forEach((el,idx)=>el.classList.toggle('active',idx===_sponsorIdx));
   _updateSponsorDots();
+}
+function _advanceSponsor(){
+  if(MARKET_SPONSORS.length<2) return;
+  _goToSponsor(_sponsorIdx+1);
 }
 function _pauseSponsorAutoplay(){
   clearInterval(timers.sponsor);
   clearTimeout(_sponsorResumeTimer);
-  _sponsorResumeTimer=setTimeout(()=>{if(MARKET_SPONSORS.length>1)timers.sponsor=setInterval(_advanceSponsor,3200);},5000);
+  _sponsorResumeTimer=setTimeout(()=>{if(MARKET_SPONSORS.length>1)timers.sponsor=setInterval(_advanceSponsor,2500);},5000);
 }
 let _sponsorResumeTimer=null;
+// [RC] swipe manual — contenedor fijo, solo lee deltaX del gesto para decidir dirección
+function _bindSponsorSwipe(track){
+  let sx=0,sy=0,active=false;
+  track.addEventListener('touchstart',e=>{
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;active=true;
+    _pauseSponsorAutoplay();
+  },{passive:true});
+  track.addEventListener('touchend',e=>{
+    if(!active)return; active=false;
+    const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>36&&Math.abs(dx)>Math.abs(dy)){ dx<0?_goToSponsor(_sponsorIdx+1):_goToSponsor(_sponsorIdx-1); }
+  },{passive:true});
+}
 
 // [banner chocados] clon independiente del de market — propia data, propio timer,
 // propios patrocinantes (categoria='chocados'). cero mezcla con MARKET_SPONSORS.
@@ -4646,34 +4908,44 @@ function renderChocSponsorSlider(){
   // solo se muestra si además la pestaña chocados está activa ahora mismo
   if(wrap) wrap.style.display=(typeof currentTab!=='undefined'&&currentTab==='chocados')?'':'none';
   _chocSponsorIdx=0;
-  track.scrollLeft=0;
-  track.innerHTML=CHOCADOS_SPONSORS.map(s=>`
-    <div class="sponsor-slide" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
+  track.innerHTML=CHOCADOS_SPONSORS.map((s,i)=>`
+    <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
       ${s.imagen_url?`<img src="${s.imagen_url}" alt="${_esc(s.nombre||'')}">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
     </div>`).join('');
   dotsEl.innerHTML=CHOCADOS_SPONSORS.length>1?CHOCADOS_SPONSORS.map((_,i)=>`<div class="sponsor-dot${i===0?' active':''}"></div>`).join(''):'';
   if(CHOCADOS_SPONSORS.length<2) return;
-  track.addEventListener('scroll',()=>{
-    const i=Math.round(track.scrollLeft/track.clientWidth);
-    if(i!==_chocSponsorIdx&&i>=0&&i<CHOCADOS_SPONSORS.length){_chocSponsorIdx=i;_updateChocSponsorDots();}
-  },{passive:true});
-  track.addEventListener('touchstart',_pauseChocSponsorAutoplay,{passive:true});
-  timers.chocSponsor=setInterval(_advanceChocSponsor,3200);
+  _bindChocSponsorSwipe(track);
+  timers.chocSponsor=setInterval(_advanceChocSponsor,2500);
 }
 function _updateChocSponsorDots(){
   document.querySelectorAll('#choc-sponsor-dots .sponsor-dot').forEach((d,i)=>d.classList.toggle('active',i===_chocSponsorIdx));
 }
-function _advanceChocSponsor(){
-  const track=document.getElementById('choc-sponsor-slider');
-  if(!track||CHOCADOS_SPONSORS.length<2) return;
-  _chocSponsorIdx=(_chocSponsorIdx+1)%CHOCADOS_SPONSORS.length;
-  track.scrollTo({left:track.clientWidth*_chocSponsorIdx,behavior:'smooth'});
+function _goToChocSponsor(i){
+  if(!CHOCADOS_SPONSORS.length) return;
+  _chocSponsorIdx=((i%CHOCADOS_SPONSORS.length)+CHOCADOS_SPONSORS.length)%CHOCADOS_SPONSORS.length;
+  document.querySelectorAll('#choc-sponsor-slider .sponsor-slide').forEach((el,idx)=>el.classList.toggle('active',idx===_chocSponsorIdx));
   _updateChocSponsorDots();
+}
+function _advanceChocSponsor(){
+  if(CHOCADOS_SPONSORS.length<2) return;
+  _goToChocSponsor(_chocSponsorIdx+1);
 }
 function _pauseChocSponsorAutoplay(){
   clearInterval(timers.chocSponsor);
   clearTimeout(_chocSponsorResumeTimer);
-  _chocSponsorResumeTimer=setTimeout(()=>{if(CHOCADOS_SPONSORS.length>1)timers.chocSponsor=setInterval(_advanceChocSponsor,3200);},5000);
+  _chocSponsorResumeTimer=setTimeout(()=>{if(CHOCADOS_SPONSORS.length>1)timers.chocSponsor=setInterval(_advanceChocSponsor,2500);},5000);
+}
+function _bindChocSponsorSwipe(track){
+  let sx=0,sy=0,active=false;
+  track.addEventListener('touchstart',e=>{
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;active=true;
+    _pauseChocSponsorAutoplay();
+  },{passive:true});
+  track.addEventListener('touchend',e=>{
+    if(!active)return; active=false;
+    const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>36&&Math.abs(dx)>Math.abs(dy)){ dx<0?_goToChocSponsor(_chocSponsorIdx+1):_goToChocSponsor(_chocSponsorIdx-1); }
+  },{passive:true});
 }
 
 // ───────────────────────────────────────────
@@ -5215,7 +5487,7 @@ function openDetail(id){
   // Badges
   const badges=document.getElementById('detail-badges');
   badges.innerHTML='';
-  if(a.sinReserva)badges.innerHTML+='<div class="detail-badge lime">sin reserva</div>';
+  if(a.sinReserva)badges.innerHTML+='<div class="detail-badge verde">sin reserva</div>';
   const _clasifMap={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'};const _clasif=_clasifMap[a.clasificacion]||a.clasificacion||a.category||'';badges.innerHTML+=`<div class="detail-badge">${a.year}</div>${(_clasif&&_clasif!=='undefined')?`<div class="detail-badge">${_clasif}</div>`:''}<div class="detail-badge">${a.location.toLowerCase()}</div>`;
   document.getElementById('detail-title').textContent=a.title;
   document.getElementById('detail-subtitle').innerHTML=`<span>${fmtKm(a.km)}</span>${a.owners?`<span class="sep">·</span><span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}${a.transmission?`<span class="sep">·</span><span>${a.transmission}</span>`:''}${a.fuel?`<span class="sep">·</span><span>${a.fuel}</span>`:''}`; // [V84] segmentos condicionales — sin "undefined" 
@@ -7818,6 +8090,16 @@ function toggleChocado(cb){
 }
 function toggleProgramada(cb){
   document.getElementById('campo-fecha-programada').classList.toggle('open',cb.checked);
+  // [RC] bug fix — el input de fecha permitía elegir días pasados. Al abrir el
+  // toggle se fija min=hoy (hora local del dispositivo, no UTC, para no regalar
+  // ni robar un día según el huso).
+  if(cb.checked){
+    const f=document.getElementById('programada-fecha');
+    if(f&&!f.min){
+      const n=new Date();
+      f.min=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+    }
+  }
 }
 function selectEstado(btn){
   document.querySelectorAll('.estado-pill').forEach(p=>p.classList.remove('active'));
@@ -8027,8 +8309,18 @@ function toggleFilterPanel(ctx){
 }
 
 function closeFilterPanel(){
-  document.getElementById('filter-panel').style.display = 'none';
-  document.getElementById('filter-overlay').style.display = 'none';
+  const panel=document.getElementById('filter-panel');
+  const overlay=document.getElementById('filter-overlay');
+  if(!panel||panel.style.display==='none') return;
+  // [RC] transición fluida de salida — antes desaparecía seco con display:none directo
+  panel.style.animation='rdFilterSlideDown .26s cubic-bezier(.4,0,.2,1) forwards';
+  if(overlay) overlay.style.transition='opacity .22s ease';
+  if(overlay) overlay.style.opacity='0';
+  setTimeout(()=>{
+    panel.style.display='none';
+    panel.style.animation='';
+    if(overlay){ overlay.style.display='none'; overlay.style.opacity=''; overlay.style.transition=''; }
+  },260);
 }
 
 function syncFilterUI(){
@@ -8076,6 +8368,17 @@ function fpSelect(el, key, val, prefix){
   if(btn) btn.style.background = isDefault ? 'rgba(255,255,255,.03)' : 'rgba(230,240,59,.05)';
   // close after picking
   setTimeout(()=>{ el.closest('.fdd-wrap').classList.remove('open'); }, 160);
+  // [RC] menú de marcas — al elegir, cerramos el menú completo (transición fluida ya
+  // incluida en closeFilterPanel) y hacemos scroll automático hacia la sección de filtros.
+  if(key==='marca'){
+    setTimeout(()=>{
+      closeFilterPanel();
+      setTimeout(()=>{
+        const anchor=document.getElementById('market-pill-bar')||document.getElementById(prefix+'-btn');
+        if(anchor) anchor.scrollIntoView({behavior:'smooth',block:'start'});
+      },280);
+    },160);
+  }
 }
 
 function fpToggle(el, key, val){ fpSelect(el, key, val, 'fdd-'+key); } // legacy compat
@@ -10171,7 +10474,7 @@ async function _loadChocados(){
   // chocados queden visibles 30h después de terminar (igual patrón que _loadAuctions
   // usa 48h para subastas normales).
   const _corte30h=new Date(Date.now()-30*3600*1000).toISOString();
-  const{data}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,transmision,combustible,ciudad,descripcion,duenos,user_id,tipo_dano,estado_chocado,auction_photos(url,orden)').eq('es_chocado',true).eq('estado','activa').gte('end_time',_corte30h).order('end_time',{ascending:true}); window._feedLoaded.choc=true;
+  const{data}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,transmision,combustible,ciudad,descripcion,duenos,user_id,tipo_dano,estado_chocado,es_programada,fecha_inicio_programada,auction_photos(url,orden)').eq('es_chocado',true).eq('estado','activa').gte('end_time',_corte30h).order('end_time',{ascending:true}); window._feedLoaded.choc=true;
   if(!data?.length){AUCTIONS_CHOCADOS.splice(0,AUCTIONS_CHOCADOS.length);if(typeof renderCards==='function')renderCards();return;} // [V87] feed vacio: pintar empty state
   // [FIX V124] faltaba el nombre del vendedor — por eso el detalle de chocados mostraba
   // "vendedor anónimo" aunque el resto de la card ya estuviera bien (V121 lo dejó pasar).
@@ -10181,7 +10484,13 @@ async function _loadChocados(){
   (_usersRes||[]).forEach(u=>{ sellerMap[u.id]=u.nombre||'Vendedor'; });
   const mapped=data.map(a=>{
     const sortedPhotos=(a.auction_photos||[]).slice().sort((x,y)=>(x.orden||0)-(y.orden||0));
-    return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),owners:a.duenos||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',chocado:true,desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',specs:{'daño':a.tipo_dano||'—','condición':a.estado_chocado||'—'},bids:[],comments:[]};
+    // [RC] mismo patrón cliente-side que _loadAuctions: un chocado con es_programada=true
+    // y fecha futura queda "programado" (vive en la pestaña programadas) aunque en la DB
+    // su estado ya sea 'activa'. En cuanto la fecha se cumple, este flag da false solo y
+    // el mismo item pasa a listarse como chocado activo normal — sin intervención manual.
+    const _fechaProg=a.fecha_inicio_programada?new Date(a.fecha_inicio_programada).getTime():null;
+    const _esProgramadaAun=!!a.es_programada&&!!_fechaProg&&_fechaProg>Date.now();
+    return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),owners:a.duenos||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',chocado:true,programada:_esProgramadaAun,fechaInicioProgramada:_fechaProg,desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',specs:{'daño':a.tipo_dano||'—','condición':a.estado_chocado||'—'},bids:[],comments:[]};
   });
   AUCTIONS_CHOCADOS.splice(0,AUCTIONS_CHOCADOS.length,...mapped);
   // [FIX V116] antes solo se re-renderizaba en el caso vacío — los chocados nuevos
@@ -13894,6 +14203,14 @@ async function _saDeletePat(id,cat){
     showView('home');
     selectSection('subastas');
     setTimeout(rdStartTour,300);
+  };
+  // [RC] píldora "Iniciar tutorial" (arriba a la derecha en Cómo Funciona) — vuelve
+  // al home primero (el tour resalta elementos de esa vista) y arranca el tour real,
+  // el mismo que ya usa Configuración → "tutorial de uso".
+  window._rdHowToPillTap=function(){
+    const pill=document.getElementById('rd-howto-pill');
+    if(pill){ pill.style.pointerEvents='none'; setTimeout(()=>{pill.style.pointerEvents='';},900); }
+    rdOpenTutorialFromConfig();
   };
 
   // ── tour — 8 pasos, navega la app de verdad mientras explica, estilo producto
