@@ -240,7 +240,8 @@ html{scrollbar-width:none}
 .auction-card:active{transform:scale(.985)}
 
 /* MARKET GRID */
-.market-grid{display:flex;flex-direction:column;gap:12px;padding:10px 14px 100px}
+.market-grid{display:flex;flex-direction:column;gap:12px;padding:10px 14px 100px;transition:opacity .16s ease}
+.market-grid.mode-switching{opacity:0}
 
 .market-card{background:var(--card);border-radius:20px;overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:transform .18s,border-color .2s;animation:fadeUp .3s ease both;display:flex;flex-direction:column;text-align:left}
 .market-card:active{transform:scale(.97)}
@@ -331,12 +332,26 @@ html{scrollbar-width:none}
 .quick-cell svg{width:23px;height:23px;color:#e6f03b}
 .quick-cell span{font-size:11.5px;font-weight:700;text-align:center;line-height:1.25;padding:0 8px}
 
-/* FILA SECUNDARIA: usados/nuevos + ir a marcas */
+/* FILA SECUNDARIA: toolbar unificado (usados/nuevos + vista + ir a marcas + categorías) */
 .mkt-secondary-row{display:flex;align-items:center;justify-content:space-between;padding:18px 14px 0}
-.mkt-marcas-link{text-align:right;cursor:pointer}
-.mkt-marcas-link .ml-title{font-size:14px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:flex-end;gap:3px}
-.mkt-marcas-link .ml-sub{font-size:11px;color:var(--muted);margin-top:1px}
-.mkt-marcas-link svg{width:11px;height:11px}
+/* [RC redesign_toolbar_market] tarjeta única que agrupa toggle+vista+marcas y la fila de categorías */
+.mkt-toolbar-card{width:100%;background:#0c0c0d;border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:12px 12px 10px}
+.mkt-toolbar-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+/* toggle vista grid/lista — reemplaza el link de texto "listado" */
+.mkt-view-toggle{display:flex;gap:2px;background:rgba(255,255,255,.03);border:.5px solid rgba(255,255,255,.06);border-radius:100px;padding:3px;flex-shrink:0}
+.mkt-view-opt{width:30px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:100px;color:rgba(255,255,255,.28);cursor:pointer;transition:all .2s}
+.mkt-view-opt.active{background:rgba(255,255,255,.14);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);border:.5px solid rgba(255,255,255,.12);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.22)}
+.mkt-view-opt svg{width:13px;height:13px}
+/* chip "marcas" — vidrio real: blur pronunciado, tinte solo en texto/ícono */
+.mkt-marcas-chip{margin-left:auto;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);border:.5px solid rgba(255,255,255,.1);border-radius:100px;padding:6px 13px 6px 6px;font-size:11.5px;font-weight:800;color:var(--lime);cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 8px 24px rgba(0,0,0,.22);letter-spacing:-.1px}
+.mmc-icon{width:20px;height:20px;border-radius:50%;flex-shrink:0;background:rgba(230,240,59,.9);display:flex;align-items:center;justify-content:center}
+.mmc-icon svg{width:10px;height:10px;color:#000}
+.mmc-chevron{width:9px;height:9px;flex-shrink:0;color:var(--lime)}
+/* fila de categorías — scoped a #market-pill-bar para no tocar #vitrina-pill-bar (mismas clases .filter-bar/.filter-btn/.mkt-pill) */
+#market-pill-bar{padding:0;gap:7px}
+#market-pill-bar .filter-btn{padding:8px 10px;background:transparent;border:.5px solid rgba(255,255,255,.08)}
+#market-pill-bar .mkt-pill{display:flex;align-items:center;padding:8px 13px;border:.5px solid rgba(255,255,255,.08);background:transparent;border-radius:100px;font-size:12px;font-weight:700;color:rgba(255,255,255,.45);transition:all .2s}
+#market-pill-bar .mkt-pill.active{background:rgba(255,255,255,.14);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);border-color:rgba(255,255,255,.12);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.22)}
 
 /* VISTA MARCAS */
 .marcas-hero{position:relative;background:#000;border-radius:28px 28px 0 0;padding:max(70px,calc(env(safe-area-inset-top) + 26px)) 20px 28px;overflow:hidden;text-align:center}
@@ -1102,6 +1117,17 @@ html{scrollbar-width:none}
   .market-card-title{font-size:13px;font-weight:700;line-height:1.3;white-space:normal}
   .market-card-price{font-size:15px;font-weight:800}
   .market-card-meta{font-size:11px}
+  /* [RC toggle vista grid/lista] modo grid — 2 columnas compactas, MISMO markup de card
+     que ya generan renderMarket()/renderMarketFiltered(), solo se restylea vía CSS scoped
+     a #market-grid.mode-grid. Especificidad de 2 clases + !important le gana a las reglas
+     base de arriba (que también usan !important para forzar 1 columna en mobile). */
+  .market-grid.mode-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;padding:10px 14px 100px!important}
+  .market-grid.mode-grid .market-card-img{aspect-ratio:16/9!important;width:calc(100% - 10px)!important;margin:5px 5px 0!important;border-radius:10px!important}
+  .market-grid.mode-grid .market-card-body{padding:8px 10px 10px!important}
+  .market-grid.mode-grid .market-card-title{font-size:12px!important;line-height:1.25!important}
+  .market-grid.mode-grid .market-card-price{font-size:13px!important}
+  .market-grid.mode-grid .market-card-meta{display:none!important}
+  .market-grid.mode-grid .market-card-body>div:first-child>span{display:none!important}
   /* detail mobile fixes */
   .detail-content{padding:0 16px 24px!important}
   .detail-right-col .bid-section{position:static!important;margin-top:20px;margin-bottom:20px}
@@ -1631,38 +1657,48 @@ html{scrollbar-width:none}
       <div class="hd-track" id="hd-track"></div>
     </div>
 
-    <!-- TOGGLE + LISTADO + IR A MARCAS -->
+    <!-- TOOLBAR: usados/nuevos + vista grid/lista + ir a marcas + categorías, una sola tarjeta -->
     <div class="mkt-secondary-row">
-      <div style="display:flex;align-items:center;gap:14px">
-        <div class="mkt-cond-toggle show" id="mkt-cond-toggle" role="switch" aria-label="filtrar por condición">
-          <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
-          <div class="mkt-cond-track">
-            <div class="mkt-cond-tab active" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
-            <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')" style="padding-left:20px">nuevos</div>
+      <div class="mkt-toolbar-card">
+        <div class="mkt-toolbar-top">
+          <div class="mkt-cond-toggle show" id="mkt-cond-toggle" role="switch" aria-label="filtrar por condición">
+            <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
+            <div class="mkt-cond-track">
+              <div class="mkt-cond-tab active" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
+              <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')" style="padding-left:20px">nuevos</div>
+            </div>
+          </div>
+          <div class="mkt-view-toggle" role="group" aria-label="vista de resultados">
+            <div class="mkt-view-opt active" id="mkt-view-grid" onclick="setMktViewMode('grid')" aria-label="vista en cuadrícula">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </div>
+            <div class="mkt-view-opt" id="mkt-view-list" onclick="setMktViewMode('lista')" aria-label="vista en lista">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </div>
+          </div>
+          <div class="mkt-marcas-chip" onclick="showView('marcas')">
+            <div class="mmc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18M3 12h18"/></svg></div>
+            <span>marcas</span>
+            <svg class="mmc-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 18 6-6-6-6"/></svg>
           </div>
         </div>
-        <span id="mkt-listado-btn" class="section-link" onclick="openMktListado()">listado</span>
-      </div>
-      <div class="mkt-marcas-link" onclick="showView('marcas')">
-        <div class="ml-title">ir a marcas <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2"><path d="m6 4 4 4-4 4"/></svg></div>
-        <div class="ml-sub">busca tu marca de preferencia</div>
-      </div>
-    </div>
 
-    <div class="filter-bar" id="market-pill-bar">
-      <button class="filter-btn" id="market-filter-btn" onclick="toggleFilterPanel('market')">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
-        <span id="market-filter-count"></span>
-      </button>
-      <div class="mkt-pill active" onclick="mktPill(this,'todos')">todos</div>
-      <div class="mkt-pill" onclick="mktPill(this,'comercial')">comerciales</div>
-      <div class="mkt-pill" onclick="mktPill(this,'deportivo')">deportivos</div>
-      <div class="mkt-pill" onclick="mktPill(this,'clasico')">clásicos</div>
-      <div class="mkt-pill" onclick="mktPill(this,'camioneta')">camionetas</div>
-      <div class="mkt-pill" onclick="mktPill(this,'pickup')">pickup</div>
-      <div class="mkt-pill" onclick="mktPill(this,'oferta')">en oferta</div>
+        <div class="filter-bar" id="market-pill-bar">
+          <button class="filter-btn" id="market-filter-btn" onclick="toggleFilterPanel('market')">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+            <span id="market-filter-count"></span>
+          </button>
+          <div class="mkt-pill active" onclick="mktPill(this,'todos')">todos</div>
+          <div class="mkt-pill" onclick="mktPill(this,'comercial')">comerciales</div>
+          <div class="mkt-pill" onclick="mktPill(this,'deportivo')">deportivos</div>
+          <div class="mkt-pill" onclick="mktPill(this,'clasico')">clásicos</div>
+          <div class="mkt-pill" onclick="mktPill(this,'camioneta')">camionetas</div>
+          <div class="mkt-pill" onclick="mktPill(this,'pickup')">pickup</div>
+          <div class="mkt-pill" onclick="mktPill(this,'oferta')">en oferta</div>
+        </div>
+      </div>
     </div>
-    <div class="market-grid" id="market-grid"></div>
+    <div class="market-grid mode-grid" id="market-grid"></div>
   </div>
 
   <!-- TOAST proximamente -->
@@ -4626,7 +4662,7 @@ async function _apiGet(endpoint){
   if(!r.ok) throw new Error(json.error||'error '+r.status);
   return json;
 }
-// ── MARKET LISTADO GRID ──
+// ── MARKET LISTADO GRID ── [RC] función queda intacta sin punto de entrada — ver mktViewMode más abajo
 function openMktListado(){
   document.getElementById('listado-bg').classList.add('open');
   document.getElementById('mkt-listado-overlay').classList.add('open');
@@ -4711,6 +4747,26 @@ function setMktCond(cond){
     if(tabN){tabN.classList.remove('active');}
   }
   renderMarket();
+}
+// ── MARKET VIEW MODE (grid/lista) ── [RC] toggle puramente visual: mismo template
+// de card que ya generan renderMarket()/renderMarketFiltered(), solo cambia la clase
+// del contenedor — no dispara refetch ni reordena datos, cero riesgo sobre el filtrado real.
+let mktViewMode='grid';
+function setMktViewMode(mode){
+  if(mktViewMode===mode) return;
+  mktViewMode=mode;
+  document.getElementById('mkt-view-grid')?.classList.toggle('active',mode==='grid');
+  document.getElementById('mkt-view-list')?.classList.toggle('active',mode==='lista');
+  const grid=document.getElementById('market-grid');
+  if(!grid) return;
+  // [RC transición fluida] animar grid-template-columns/display entre flex↔grid no es
+  // confiable cross-browser (WebKit no interpola cambios de cantidad de tracks). En vez
+  // de eso: fade-out breve, se reacomoda el layout mientras está invisible, fade-in.
+  grid.classList.add('mode-switching');
+  setTimeout(()=>{
+    grid.classList.toggle('mode-grid',mode==='grid');
+    requestAnimationFrame(()=>grid.classList.remove('mode-switching'));
+  },160);
 }
 function renderMarket(){
   // [v76] dirty check — si los datos y filtros no cambiaron, no re-renderizar
