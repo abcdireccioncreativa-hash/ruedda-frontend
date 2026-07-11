@@ -5129,7 +5129,7 @@ function renderHotDeals(){
   const hash=isRealDiscount+'|'+deals.map(l=>l.id+'_'+l.price).join(',');
   if(hash===_lastHotDealsHash) return;
   _lastHotDealsHash=hash;
-  head.style.display='flex'; shell.style.display='block';
+  head.style.display='block'; shell.style.display='block';
   // [fix] el título ya no cambia según el modo — siempre "hot deals", como pediste
   head.querySelector('.hd-title').textContent='hot deals';
   const countEl=document.getElementById('hd-count'); if(countEl) countEl.textContent=deals.length+' disponibles';
