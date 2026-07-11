@@ -294,32 +294,35 @@ html{scrollbar-width:none}
 .trending-panel{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px;aspect-ratio:4/3;background:#000;border-radius:20px;overflow:hidden}
 
 /* [hot deals] misma jerarquía visual que trending-head, con la llama como firma propia */
-.hd-head{display:flex;flex-direction:column;gap:5px;padding:20px 14px 0}
-.hd-subtitle{font-size:10px;color:var(--muted);font-weight:400;letter-spacing:.1px;line-height:1.4}
+.hd-head{padding:20px 14px 0}
+.hd-toprow{display:flex;align-items:baseline;justify-content:space-between}
+.hd-title{font-size:21px;font-weight:700;letter-spacing:-.4px}
+.hd-count{font-size:11px;font-weight:600;color:rgba(255,255,255,.28);margin-left:7px}
+.hd-see-all{font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:3px;flex-shrink:0}
+.hd-see-all svg{width:9px;height:9px}
+.hd-subtitle{font-size:10px;color:var(--muted);font-weight:400;letter-spacing:.1px;line-height:1.4;margin-top:5px}
 .hd-info-link{text-decoration:underline;color:var(--muted);cursor:pointer}
 .hd-info-link:active{color:#e6f03b}
-.hd-title{display:flex;align-items:center;gap:8px;font-size:21px;font-weight:800;letter-spacing:-.4px}
-@keyframes hdFlicker{
-  0%,100%{transform:scale(1) rotate(0deg);filter:brightness(1)}
-  25%{transform:scale(1.05,.97) rotate(-2deg);filter:brightness(1.08)}
-  50%{transform:scale(.96,1.04) rotate(1.5deg);filter:brightness(.96)}
-  75%{transform:scale(1.03,.98) rotate(-1deg);filter:brightness(1.04)}
-}
-.hd-flame{transform-origin:50% 90%;animation:hdFlicker 2.4s ease-in-out infinite;flex-shrink:0}
-.hd-shell{margin-top:10px;overflow:hidden;padding:2px 0 4px}
-.hd-track{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding-left:14px;scrollbar-width:none;padding:0 14px}
+.hd-shell{margin-top:14px;overflow:hidden;padding:2px 0 4px}
+.hd-track{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;scroll-padding-left:14px;scrollbar-width:none;padding:0 14px}
 .hd-track::-webkit-scrollbar{display:none}
-.hd-card{flex:0 0 auto;width:132px;scroll-snap-align:start;scroll-margin-left:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:transform .25s cubic-bezier(.32,.72,0,1)}
-.hd-card:active{transform:scale(.94)}
-.hd-card-img{width:100%;height:92px;object-fit:cover;display:block;background:#161616}
-.hd-off{position:absolute;margin:7px;background:linear-gradient(135deg,#ff5b1a,#ffb020);color:#000;font-size:9.5px;font-weight:800;padding:2.5px 8px;border-radius:100px;letter-spacing:.2px}
-.hd-off-icon{display:flex;align-items:center;gap:4px;background:rgba(10,10,10,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;border:1px solid rgba(255,255,255,.12)}
-.hd-off-icon svg{flex-shrink:0}
-.hd-body{padding:8px 9px 10px}
-.hd-name{font-size:10.5px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hd-prices{display:flex;align-items:baseline;gap:5px;margin-top:3px}
-.hd-old{font-size:9.5px;color:rgba(255,255,255,.32);text-decoration:line-through}
-.hd-new{font-size:12px;font-weight:800;color:#e6f03b}
+.hd-card{flex:0 0 auto;width:158px;scroll-snap-align:start;scroll-margin-left:14px;cursor:pointer;transition:transform .25s cubic-bezier(.32,.72,0,1)}
+.hd-card:active{transform:scale(.96)}
+.hd-img-wrap{position:relative;width:100%;aspect-ratio:4/3;border-radius:16px;overflow:hidden;background:#111}
+.hd-card-img{width:100%;height:100%;object-fit:cover;display:block;background:#161616}
+/* barra de ahorro — reemplaza el sticker de gradiente; comunica el mismo dato de forma
+   cuantitativa y silenciosa: el largo de la barra ES el porcentaje de descuento */
+.hd-savebar{margin-top:9px;height:3px;border-radius:100px;background:rgba(255,255,255,.08);overflow:hidden}
+.hd-savebar i{display:block;height:100%;background:#e6f03b;border-radius:100px}
+.hd-saverow{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.hd-savelabel{font-size:10px;font-weight:700;color:#e6f03b;letter-spacing:.1px}
+.hd-savenum{font-size:10px;font-weight:700;color:rgba(255,255,255,.28);font-variant-numeric:tabular-nums}
+.hd-fallback-tag{margin-top:9px;font-size:10px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:.2px;text-transform:uppercase}
+.hd-body{margin-top:9px}
+.hd-name{font-size:12px;font-weight:600;color:rgba(255,255,255,.88);line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hd-prices{display:flex;align-items:baseline;gap:6px;margin-top:4px}
+.hd-old{font-size:10.5px;color:rgba(255,255,255,.28);text-decoration:line-through;font-variant-numeric:tabular-nums}
+.hd-new{font-size:15px;font-weight:700;letter-spacing:-.2px;color:#fff}
 .trending-cell{position:relative;overflow:hidden;cursor:pointer;background:#161616;display:flex;align-items:flex-end;animation:fadeIn .25s ease both}
 .trending-cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .trending-cell::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,rgba(0,0,0,.72));pointer-events:none}
@@ -1637,28 +1640,10 @@ html{scrollbar-width:none}
 
     <!-- [hot deals] llama retro animada + slider horizontal, debajo de trending hoy -->
     <div class="hd-head" id="hd-head" style="display:none">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <div class="hd-title">
-          <svg class="hd-flame" viewBox="0 0 24 24" width="19" height="19">
-            <defs>
-              <linearGradient id="hdFlameGrad" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0%" stop-color="#ff3d1a"/>
-                <stop offset="45%" stop-color="#ff8a1e"/>
-                <stop offset="100%" stop-color="#ffd23d"/>
-              </linearGradient>
-              <linearGradient id="hdGoldGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#fff3b0"/>
-                <stop offset="40%" stop-color="#ffd700"/>
-                <stop offset="100%" stop-color="#b8860b"/>
-              </linearGradient>
-            </defs>
-            <path fill="url(#hdFlameGrad)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/>
-          </svg>
-          <span>hot deals</span>
-        </div>
-        <span class="trending-link" onclick="openHotDealsAll()">ver todo</span>
+      <div class="hd-toprow">
+        <div><span class="hd-title">hot deals</span><span class="hd-count" id="hd-count"></span></div>
+        <span class="hd-see-all" onclick="openHotDealsAll()">ver todo <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 18 6-6-6-6"/></svg></span>
       </div>
-      <!-- [subtítulo] mismo tamaño que el texto de partners (10px) — info subrayado enlaza a soporte -->
       <div class="hd-subtitle">consigue los mejores deals a nivel nacional. si quieres que tu vehículo aparezca aquí, <span class="hd-info-link" onclick="showView('soporte-ruedda')">info</span></div>
     </div>
     <div class="hd-shell" id="hd-shell" style="display:none">
@@ -2879,33 +2864,14 @@ html{scrollbar-width:none}
 <!-- MARCAS VIEW -->
 <!-- [hot deals] vista completa — pestaña real, no menú desplegable -->
 <div id="view-hotdeals-all" class="view">
-  <!-- [FIX] copia local de los gradientes — antes dependían del <defs> dentro de
-       #hd-head en Market, y Safari/WebKit no siempre resuelve gradientes cuyo <defs>
-       vive en un ancestro con display:none (bug conocido). Esta vista ahora es
-       autosuficiente, sin depender de que Market esté visible en algún lado del DOM. -->
-  <svg width="0" height="0" style="position:absolute">
-    <defs>
-      <linearGradient id="hdFlameGradAll" x1="0" y1="1" x2="0" y2="0">
-        <stop offset="0%" stop-color="#ff3d1a"/>
-        <stop offset="45%" stop-color="#ff8a1e"/>
-        <stop offset="100%" stop-color="#ffd23d"/>
-      </linearGradient>
-      <linearGradient id="hdGoldGradAll" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stop-color="#fff3b0"/>
-        <stop offset="40%" stop-color="#ffd700"/>
-        <stop offset="100%" stop-color="#b8860b"/>
-      </linearGradient>
-    </defs>
-  </svg>
   <div class="detail-back" onclick="showView('home');selectSection('market')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>market</span>
   </div>
-  <div style="padding:2px 18px 16px;display:flex;align-items:center;gap:8px">
-    <svg viewBox="0 0 24 24" width="20" height="20"><path fill="url(#hdFlameGradAll)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>
-    <h2 style="font-size:22px;font-weight:800;letter-spacing:-.4px">hot deals</h2>
+  <div style="padding:2px 18px 16px">
+    <h2 style="font-size:22px;font-weight:700;letter-spacing:-.4px">hot deals</h2>
   </div>
-  <div id="hotdeals-all-grid" style="padding:0 14px 100px;display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+  <div id="hotdeals-all-grid" style="padding:0 14px 100px;display:grid;grid-template-columns:1fr 1fr;gap:14px"></div>
 </div>
 
 <div id="view-marcas" class="view">
@@ -5109,19 +5075,24 @@ function openHotDealsAll(){
   if(!grid)return;
   grid.innerHTML=deals.map(l=>{
     const img=(l.photoUrls&&l.photoUrls[0])?`<img src="${l.photoUrls[0]}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">`:'<div style="width:100%;aspect-ratio:4/3;background:#1c1c1e"></div>';
-    const badge=isReal
-      ?`<div class="hd-off" style="position:absolute">-${Math.round((l.precioAnterior-l.price)/l.precioAnterior*100)}%</div>`
-      :(l.destacado
-        ?`<div class="hd-off hd-off-icon" style="position:absolute"><svg viewBox="0 0 24 24" width="11" height="11"><path fill="url(#hdGoldGradAll)" stroke="#8a6200" stroke-width=".4" d="M12 2.5l2.66 5.61 6.09.79-4.46 4.32 1.14 6.06L12 16.4l-5.43 2.88 1.14-6.06-4.46-4.32 6.09-.79z"/></svg>destacado</div>`
-        :`<div class="hd-off hd-off-icon" style="position:absolute"><svg viewBox="0 0 24 24" width="10" height="10"><path fill="url(#hdFlameGradAll)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>popular</div>`);
-    const priceRow=isReal
-      ?`<span class="hd-old">${fmtBid(l.precioAnterior)}</span><span class="hd-new">${fmtBid(l.price)}</span>`
-      :`<span class="hd-new">${fmtBid(l.price)}</span>`;
-    return `<div onclick="openMarketDetail('${l.id}')" style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;position:relative">
-      ${badge}${img}
-      <div style="padding:8px 9px 10px">
-        <div style="font-size:11px;font-weight:700;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(l.title||'')}</div>
-        <div class="hd-prices" style="margin-top:3px">${priceRow}</div>
+    let belowImg,priceRow;
+    if(isReal){
+      const pct=Math.round((l.precioAnterior-l.price)/l.precioAnterior*100);
+      belowImg=`<div class="hd-savebar"><i style="width:${pct}%"></i></div>
+        <div class="hd-saverow"><span class="hd-savelabel">-${pct}%</span><span class="hd-savenum">ahorras ${fmtBid(l.precioAnterior-l.price)}</span></div>`;
+      priceRow=`<span class="hd-new">${fmtBid(l.price)}</span><span class="hd-old">${fmtBid(l.precioAnterior)}</span>`;
+    } else {
+      belowImg=`<div class="hd-fallback-tag">${l.destacado?'destacado':'popular'}</div>`;
+      priceRow=`<span class="hd-new">${fmtBid(l.price)}</span>`;
+    }
+    return `<div onclick="openMarketDetail('${l.id}')" style="border-radius:16px;overflow:hidden;cursor:pointer">
+      ${img}
+      <div style="padding:0 1px">
+        ${belowImg}
+        <div style="padding-top:9px">
+          <div class="hd-name">${_esc(l.title||'')}</div>
+          <div class="hd-prices">${priceRow}</div>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -5160,21 +5131,25 @@ function renderHotDeals(){
   _lastHotDealsHash=hash;
   head.style.display='flex'; shell.style.display='block';
   // [fix] el título ya no cambia según el modo — siempre "hot deals", como pediste
-  head.querySelector('.hd-title span').textContent='hot deals';
+  head.querySelector('.hd-title').textContent='hot deals';
+  const countEl=document.getElementById('hd-count'); if(countEl) countEl.textContent=deals.length+' disponibles';
   track.innerHTML=deals.map(l=>{
     const img=(l.photoUrls&&l.photoUrls[0])?`<img class="hd-card-img" src="${l.photoUrls[0]}" loading="lazy">`:'<div class="hd-card-img"></div>';
-    // [fix] antes emojis 🔥/⭐ — ahora íconos svg propios, mismo gradiente que la
-    // llama del título (url(#hdFlameGrad)), misma estética, cero emojis
-    const badge=isRealDiscount
-      ? `<div class="hd-off">-${Math.round((l.precioAnterior-l.price)/l.precioAnterior*100)}%</div>`
-      : l.destacado
-      ? `<div class="hd-off hd-off-icon"><svg viewBox="0 0 24 24" width="11" height="11"><path fill="url(#hdGoldGrad)" stroke="#8a6200" stroke-width=".4" d="M12 2.5l2.66 5.61 6.09.79-4.46 4.32 1.14 6.06L12 16.4l-5.43 2.88 1.14-6.06-4.46-4.32 6.09-.79z"/></svg>destacado</div>`
-      : `<div class="hd-off hd-off-icon"><svg viewBox="0 0 24 24" width="10" height="10"><path fill="url(#hdFlameGrad)" d="M12 2c1 3-2.5 4.3-2.5 7.3 0 1.6 1 2.4 2 2.4-1.4-2.6.6-4 .9-6C13.8 7.4 16 9.6 16 13c0 3.9-3.1 7-7 7s-7-3-7-6.6C2 8 5 5.6 6.6 3.4c-.3 2 .7 3 1.7 3.4C7.6 4.8 9.6 3.3 12 2z"/></svg>popular</div>`;
-    const priceRow=isRealDiscount
-      ? `<span class="hd-old">${fmtBid(l.precioAnterior)}</span><span class="hd-new">${fmtBid(l.price)}</span>`
-      : `<span class="hd-new">${fmtBid(l.price)}</span>`;
-    return `<div class="hd-card" onclick="openMarketDetail('${l.id}')" style="position:relative">
-      ${badge}${img}
+    // [RC V6] rediseño — sin flama/gradiente/estrella. la barra de ahorro en lime
+    // comunica el mismo dato (cuánto bajó) de forma cuantitativa y silenciosa.
+    let belowImg,priceRow;
+    if(isRealDiscount){
+      const pct=Math.round((l.precioAnterior-l.price)/l.precioAnterior*100);
+      belowImg=`<div class="hd-savebar"><i style="width:${pct}%"></i></div>
+        <div class="hd-saverow"><span class="hd-savelabel">-${pct}%</span><span class="hd-savenum">ahorras ${fmtBid(l.precioAnterior-l.price)}</span></div>`;
+      priceRow=`<span class="hd-new">${fmtBid(l.price)}</span><span class="hd-old">${fmtBid(l.precioAnterior)}</span>`;
+    } else {
+      belowImg=`<div class="hd-fallback-tag">${l.destacado?'destacado':'popular'}</div>`;
+      priceRow=`<span class="hd-new">${fmtBid(l.price)}</span>`;
+    }
+    return `<div class="hd-card" onclick="openMarketDetail('${l.id}')">
+      <div class="hd-img-wrap">${img}</div>
+      ${belowImg}
       <div class="hd-body">
         <div class="hd-name">${_esc(l.title||'')}</div>
         <div class="hd-prices">${priceRow}</div>
