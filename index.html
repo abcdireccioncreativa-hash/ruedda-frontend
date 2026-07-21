@@ -4216,6 +4216,23 @@ window.addEventListener('popstate',(e)=>{
 if(typeof history!=='undefined'&&history.replaceState) history.replaceState({rueddaView:'home'},'',location.href);
 
 // ===================== SECTION =====================
+// [RC FIX] el cascade .rdv (banner, trending, encuentra, grid, y los 6 bloques
+// de concesionarios) dependía de que el navegador reinicie animaciones CSS
+// solo por el toggle display:none→block — eso NO está garantizado en
+// repetición, y con fill-mode:both el contenido queda congelado en su estado
+// final: en la segunda visita a una sección aparecía "de golpe", sin
+// coreografía. Mismo mecanismo que ya usa _hubPopIn() y es 100% confiable:
+// reset de clase + reflow forzado + re-add, disparado cada vez que la sección
+// se hace visible de verdad (no solo la primera).
+function _rdvReplay(containerId){
+  const c=document.getElementById(containerId);
+  if(!c) return;
+  c.querySelectorAll('.rdv').forEach(el=>{
+    el.classList.remove('rdv');
+    void el.offsetWidth; // fuerza reflow — sin esto el navegador ignora el re-add inmediato
+    el.classList.add('rdv');
+  });
+}
 function renderCurrentSection(){
   clearTimers();
   const s = currentSection;
@@ -4231,11 +4248,13 @@ function renderCurrentSection(){
     renderMarket();
     renderSponsorSlider();
     renderTrendingHoy();
+    _rdvReplay('market-section');
   } else if(s==='consesionarios'){
     renderDealerGrid();
     _consLoadBanner();
     _consLoadPostventaPhoto();
     _consReenterFade(); // [RC] entrada smooth: el banner nunca aparece de golpe
+    _rdvReplay('concesionarios-section');
   }
 }
 // [RC] apertura premium de concesionarios — si la foto del banner ya estaba en
