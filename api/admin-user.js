@@ -14,7 +14,7 @@
 // Variables), NUNCA como NEXT_PUBLIC_ / VITE_ / con prefijo que las exponga al
 // cliente:
 //   SUPABASE_URL              (misma URL que usas en el frontend)
-//   SUPABASE_SERVICE_ROLE_KEY (Supabase Dashboard → Project Settings → API →
+//   SUPABASE_SERVICE_KEY      (Supabase Dashboard → Project Settings → API →
 //                               "service_role" — NO la "anon public")
 
 const { createClient } = require('@supabase/supabase-js');
@@ -26,9 +26,9 @@ module.exports = async (req, res) => {
   }
 
   const SUPABASE_URL = process.env.SUPABASE_URL;
-  const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
   if (!SUPABASE_URL || !SERVICE_KEY) {
-    console.error('[admin-user] faltan env vars SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY');
+    console.error('[admin-user] faltan env vars SUPABASE_URL / SUPABASE_SERVICE_KEY');
     res.status(500).json({ error: 'server misconfigured' });
     return;
   }
