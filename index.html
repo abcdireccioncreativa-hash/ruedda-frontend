@@ -5373,7 +5373,10 @@ let _lastHotDealsHash=null;
 // se queda quieto en vez de aparecer "a medias" o de golpe.
 let _encuentraLoaded=false;
 async function renderEncuentra(){
-  if(_encuentraLoaded||!_supa) return;
+  // [RC HOTFIX] blindaje anti-TDZ: si alguien llama esto antes de que el const
+  // _supa se haya inicializado (boot temprano), no-op silencioso en vez de
+  // rejection. typeof no salva de TDZ con const, solo try/catch.
+  try{ if(_encuentraLoaded||!_supa) return; }catch(e){ return; }
   _encuentraLoaded=true;
   try{
     const{data}=await _supa.from('app_settings').select('key,value').in('key',['encuentra_marcas_url','encuentra_postventa_url','encuentra_agencias_url','encuentra_comunidad_url','encuentra_subastas_url','encuentra_order']);
@@ -10848,7 +10851,13 @@ function dhRepublicar(i){
 
 
 
-renderCurrentSection(); // [RC] pinta la sección default real (market) — antes forzaba renderCards() de subastas
+// [RC HOTFIX] paint inicial diferido un tick — renderCurrentSection() síncrono aquí
+// reventaba: market → renderTrendingHoy → renderEncuentra lee _supa, y _supa es un
+// const declarado ~500 líneas más abajo (TDZ → ReferenceError en pleno boot). Con
+// setTimeout(0) el callback corre cuando todo el top-level de todos los scripts ya
+// ejecutó, _supa ya existe y el paint es seguro. try/catch para que ningún fallo
+// de pintura pueda tumbar el arranque jamás.
+setTimeout(()=>{ try{ renderCurrentSection(); }catch(e){ console.error('[ruedda] paint inicial:',String(e?.message||e)); } },0);
 populateYears();
 document.getElementById('notif-dot').style.display='block';
 
