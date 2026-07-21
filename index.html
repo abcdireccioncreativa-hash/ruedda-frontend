@@ -374,7 +374,7 @@ html{scrollbar-width:none}
 .marcas-search input{flex:1;background:none;border:none;color:#fff;font-family:var(--font);font-size:14px;outline:none;min-width:0}
 .marcas-search svg{width:16px;height:16px;color:var(--muted);flex-shrink:0}
 .marcas-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:18px 14px 100px}
-.marca-card{aspect-ratio:1/1;background:var(--card2);border:1px solid var(--border);border-radius:18px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:transform .15s,border-color .15s;padding:8px}
+.marca-card{aspect-ratio:1/1;background:var(--card2);border:1px solid var(--border);border-radius:18px;display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:transform .15s,border-color .15s;padding:8px;position:relative;overflow:hidden}
 .marca-card:active{transform:scale(.94);border-color:rgba(255,255,255,.25)}
 .marca-card span{font-size:12.5px;font-weight:700;letter-spacing:-.1px;line-height:1.2}
 
@@ -895,7 +895,7 @@ html{scrollbar-width:none}
 .range-slider input[type=range]{position:absolute;top:0;left:0;width:100%;height:36px;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
 .range-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.5);box-shadow:0 2px 10px rgba(0,0,0,.5),0 0 0 4px rgba(255,255,255,.1);cursor:pointer;pointer-events:auto;backdrop-filter:blur(8px)}
 .range-slider input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.5);box-shadow:0 2px 10px rgba(0,0,0,.5),0 0 0 4px rgba(255,255,255,.1);cursor:pointer;pointer-events:auto}
-.fdd-wrap.open .fdd-menu{max-height:600px;opacity:1;border-top-color:rgba(255,255,255,.06)}
+.fdd-wrap.open .fdd-menu{max-height:360px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;opacity:1;border-top-color:rgba(255,255,255,.06)}
 .fdd-item{padding:13px 16px;font-size:14px;font-weight:400;color:rgba(255,255,255,.55);cursor:pointer;transition:all .12s;border-bottom:1px solid rgba(255,255,255,.04);display:flex;align-items:center;justify-content:space-between}
 .fdd-item:last-child{border-bottom:none}
 .fdd-item:hover{background:rgba(255,255,255,.04);color:#fff}
@@ -1133,7 +1133,7 @@ html{scrollbar-width:none}
      a #market-grid.mode-grid. Especificidad de 2 clases + !important le gana a las reglas
      base de arriba (que también usan !important para forzar 1 columna en mobile). */
   .market-grid.mode-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;padding:10px 14px 100px!important}
-  .market-grid.mode-grid .market-card-img{aspect-ratio:16/9!important;width:calc(100% - 10px)!important;margin:5px 5px 0!important;border-radius:10px!important}
+  .market-grid.mode-grid .market-card-img{aspect-ratio:16/9!important;width:100%!important;margin:0!important;border-radius:0!important}
   .market-grid.mode-grid .market-card-body{padding:8px 10px 10px!important}
   .market-grid.mode-grid .market-card-title{font-size:12px!important;line-height:1.25!important}
   .market-grid.mode-grid .market-card-price{font-size:13px!important}
@@ -1779,6 +1779,10 @@ html{scrollbar-width:none}
         </div>
         <div class="enc-title">Red post-venta</div>
       </div>
+      <div class="enc-card" onclick="showView('home');selectSection('subastas')">
+        <div class="enc-title">Subastas</div>
+        <div class="enc-icon-wrap"><div class="enc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div></div>
+      </div>
     </div>
 
     <!-- TOOLBAR: usados/nuevos + vista grid/lista + ir a marcas + categorías, una sola tarjeta -->
@@ -1888,13 +1892,13 @@ html{scrollbar-width:none}
          encuentra_postventa_url) — no un slot nuevo. Sin texto "próximamente"
          fijo: eso solo sale en el toast al hacer click. -->
     <div style="padding:26px 18px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="cons-sq-card enc-photo-card enc-fullphoto" id="cons-postventa-photo" onclick="showToast('Red post-venta — próximamente',true)">
+      <div class="cons-sq-card enc-photo-card enc-fullphoto" id="cons-postventa-photo" onclick="showSoonPill('Red post-venta — próximamente')">
         <div class="enc-photo-placeholder" id="cons-postventa-placeholder">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
         </div>
         <div class="enc-title">Red post-venta</div>
       </div>
-      <div class="cons-sq-card" onclick="showToast('manual de compra — próximamente')">
+      <div class="cons-sq-card" onclick="showSoonPill('manual de compra — próximamente')">
         <div class="enc-icon-wrap"><div class="enc-icon" style="width:44px;height:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></div></div>
         <div class="enc-title">manual de compra</div>
       </div>
@@ -1902,7 +1906,7 @@ html{scrollbar-width:none}
 
     <!-- SER PARTNER -->
     <div style="padding:30px 24px 8px;text-align:center">
-      <p class="hd-subtitle" style="line-height:1.5;font-size:20px">Inscribe tu marca o consesionario para hacer parte de la red post venta del país</p>
+      <p class="hd-subtitle" style="line-height:1.5;font-size:13px">Inscribe tu marca o consesionario para hacer parte de la red post venta del país</p>
       <span onclick="_showPartnerSheet()" style="display:inline-block;margin-top:8px;font-size:13px;font-weight:800;color:#e6f03b;cursor:pointer">Ser partner.</span>
     </div>
 
@@ -2934,7 +2938,7 @@ html{scrollbar-width:none}
         </div>
       </a>
       <!-- WHATSAPP -->
-      <a href="https://wa.me/584120000000?text=Hola,%20quiero%20afiliar%20mi%20concesionario%20a%20Ruedda" target="_blank" style="display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(255,255,255,.2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <a href="https://wa.me/584123921048?text=Hola,%20quiero%20afiliar%20mi%20concesionario%20a%20Ruedda" target="_blank" style="display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(255,255,255,.2)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="width:40px;height:40px;border-radius:12px;background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg fill="rgba(37,211,102,.9)" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
         </div>
@@ -3528,6 +3532,17 @@ html{scrollbar-width:none}
     <button class="search-cancel" onclick="closeSearch()">cancelar</button>
   </div>
   <div id="search-results">
+    <div class="search-cat-label" style="margin-bottom:8px">categorías rápidas</div>
+    <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:20px">
+      <button class="mkt-pill" onclick="applySearch('SUV')">SUV</button>
+      <button class="mkt-pill" onclick="applySearch('Pickup')">Pickup</button>
+      <button class="mkt-pill" onclick="applySearch('Sedán')">Sedán</button>
+      <button class="mkt-pill" onclick="applySearch('Deportivo')">Deportivo</button>
+      <button class="mkt-pill" onclick="applySearch('0km')">0km</button>
+      <button class="mkt-pill" onclick="applySearch('chocado')">Chocados</button>
+    </div>
+    <div class="search-cat-label" style="margin-bottom:8px">marcas populares</div>
+    <div id="search-pop-marcas" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:22px"></div>
     <div class="search-cat-label">búsquedas recientes</div>
     <div class="search-cat-item" onclick="applySearch('BMW M5')">BMW M5</div>
     <div class="search-cat-item" onclick="applySearch('Toyota Land Cruiser')">Toyota Land Cruiser</div>
@@ -4163,7 +4178,7 @@ function showView(name,param){
   if(name==='carspotting')loadCarspotting();
   if(name==='sugerencias'){/* nada que cargar */}
   if(name==='historia')loadHistoria();
-  if(name==='marcas'){_marcasRegionFilter=null;renderMarcasGrid();}
+  if(name==='marcas'){_marcasRegionFilter=null;renderMarcasGrid();_loadMarcaLogos();}
   if(name==='configuracion')_paintDefaultViewSlider();
   if(name==='noticia-detail')loadNoticiaDetail(param);
   if(name==='superadmin'){
@@ -4237,7 +4252,7 @@ function _updateComoFuncionaLink(section){
   if(!cl) return;
   if(section==='consesionarios'){
     cl.innerHTML='<span style="color:var(--lime);font-weight:700;font-size:14px">Mapas</span> <span style="font-weight:700;color:#fff;font-size:14px">de agencias</span>';
-    cl.onclick=function(){ showToast('mapa de agencias — próximamente'); };
+    cl.onclick=function(){ showSoonPill('mapa de agencias — próximamente'); };
   }else{
     cl.textContent='como funciona';
     cl.onclick=function(){ showView('como-funciona'); };
@@ -5514,13 +5529,55 @@ const MARCAS_REGIONS={
   'Honda':'asiaticas','Hyundai':'asiaticas','Infiniti':'asiaticas','Kia':'asiaticas','Mazda':'asiaticas','Mitsubishi':'asiaticas','Nissan':'asiaticas','SsangYong':'asiaticas','Subaru':'asiaticas','Suzuki':'asiaticas','Toyota':'asiaticas',
 };
 let _marcasRegionFilter=null;
+// [FIX] cada card cuadrada de Marcas ahora es un contenedor de foto real —
+// mismo crossfade que Encuentra/Concesionarios (<img> absoluto en opacity:0,
+// fade a 1 solo al decodificar). Sin logo todavía, se ve el nombre de la
+// marca (mismo look de siempre) como placeholder.
+function _marcaSlug(m){ return String(m).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'); }
+let MARCA_LOGOS={};
+let _marcaLogosLoaded=false;
+async function _loadMarcaLogos(){
+  if(_marcaLogosLoaded||!_supa) return;
+  _marcaLogosLoaded=true;
+  try{
+    const{data}=await _supa.from('marca_logos').select('marca,logo_url');
+    (data||[]).forEach(r=>{ MARCA_LOGOS[r.marca]=r.logo_url; });
+    Object.keys(MARCA_LOGOS).forEach(m=>_marcaSetLogo(m,MARCA_LOGOS[m]));
+  }catch(e){console.warn('[ruedda] _loadMarcaLogos',e?.message||e);}
+}
+function _marcaSetLogo(marca,url){
+  if(!url) return;
+  const slug=_marcaSlug(marca);
+  const card=document.getElementById('marca-card-'+slug);
+  const placeholder=document.getElementById('marca-ph-'+slug);
+  if(!card) return; // puede no estar en el DOM si el filtro actual lo esconde
+  const _prev=card.querySelector('.marca-card-img');
+  if(_prev&&_prev.src===url) return;
+  const img=document.createElement('img');
+  img.className='marca-card-img';
+  img.alt=''; img.decoding='async';
+  img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:16%;box-sizing:border-box;opacity:0;transition:opacity .4s ease;z-index:0;pointer-events:none';
+  img.onload=()=>{
+    requestAnimationFrame(()=>{img.style.opacity='1';});
+    if(placeholder){placeholder.style.opacity='0';}
+    if(_prev) setTimeout(()=>{_prev.remove();},450);
+  };
+  img.onerror=()=>{img.remove();};
+  card.insertBefore(img,card.firstChild);
+  img.src=url;
+}
 function renderMarcasGrid(filterText){
   const grid=document.getElementById('marcas-grid');
   if(!grid) return;
   const q=(filterText||'').toLowerCase().trim();
   let list=q?MARCAS_LIST.filter(m=>m.toLowerCase().includes(q)):MARCAS_LIST;
   if(_marcasRegionFilter) list=list.filter(m=>MARCAS_REGIONS[m]===_marcasRegionFilter);
-  grid.innerHTML=list.length?list.map(m=>`<div class="marca-card" onclick="goToMarcaFilter('${m.replace(/'/g,"\\'")}')"><span>${_esc(m)}</span></div>`).join(''):'<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:30px 0">sin resultados</div>';
+  grid.innerHTML=list.length?list.map(m=>{
+    const slug=_marcaSlug(m);
+    return `<div class="marca-card" id="marca-card-${slug}" onclick="goToMarcaFilter('${m.replace(/'/g,"\\'")}')"><span id="marca-ph-${slug}" style="position:relative;z-index:1;transition:opacity .35s ease">${_esc(m)}</span></div>`;
+  }).join(''):'<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:30px 0">sin resultados</div>';
+  // repinta logos ya cargados en memoria (si el usuario re-filtra, vuelve a construir el DOM)
+  Object.keys(MARCA_LOGOS).forEach(m=>_marcaSetLogo(m,MARCA_LOGOS[m]));
 }
 function filterMarcas(val){ renderMarcasGrid(val); }
 // [BLOQUE 5] filtro dinámico por región — Americanas/Chinas/Europeas/Asiáticas
@@ -5543,6 +5600,8 @@ function goToMarcaFilter(marca){
     if(valEl){valEl.textContent=marca;valEl.classList.add('show');}
   }
   showView('home');selectSection('market');
+  // [FIX] antes no scrolleaba — misma UX que el toggle de consesionarios.
+  setTimeout(()=>{ document.getElementById('market-grid')?.scrollIntoView({behavior:'smooth',block:'start'}); },60);
 }
 
 // ───────────────────────────────────────────
@@ -6937,7 +6996,7 @@ function _confettiBurst(){
   const old=document.getElementById('rd-confetti-layer'); if(old) old.remove();
   const layer=document.createElement('div');
   layer.id='rd-confetti-layer';
-  layer.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:99997;overflow:hidden';
+  layer.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:99999;overflow:hidden';
   const colors=['#e6f03b','#2e6b3e']; // amarillo ruedda / verde bertone — planas, sin glow
   let html='';
   for(let i=0;i<64;i++){
@@ -6971,9 +7030,13 @@ function _showWinPopup(auction,variant){
     </div>`:'';
   const sellerId=auction.ownerId||'';
   const auctionId=auction.id||'';
+  // [FIX] snapshot del vendedor apenas se muestra ESTE popup (cualquiera de sus
+  // 2 orígenes: celebración en vivo o notificación después) — así, si luego la
+  // publicación se borra, _msgAuctionSeller puede recuperarlo de acá.
+  if(sellerId&&auctionId){ try{ localStorage.setItem('ruedda_won_seller_'+auctionId,String(sellerId)); }catch(e){} }
   const titleEsc=(auction.title||'subasta').replace(/'/g,"\\'");
   const msgBtn=`<button onclick="document.getElementById('rd-win-modal')?.remove();_msgAuctionSeller('${sellerId}','${auctionId}','${titleEsc}')" style="flex:1;background:#fff;border:none;border-radius:10px;padding:12px;font-family:var(--font);font-size:12.5px;font-weight:800;color:#000;cursor:pointer">enviar mensaje</button>`;
-  const waBtn=`<button onclick="window.open('https://wa.me/584120000000?text='+encodeURIComponent('Hola, gané la subasta de ${titleEsc}'),'_blank')" style="flex:1;background:#fff;border:none;border-radius:10px;padding:12px;font-family:var(--font);font-size:12.5px;font-weight:800;color:#000;cursor:pointer">whatsapp</button>`;
+  const waBtn=`<button onclick="window.open('https://wa.me/584123921048?text='+encodeURIComponent('Hola, gané la subasta de ${titleEsc}'),'_blank')" style="flex:1;background:#fff;border:none;border-radius:10px;padding:12px;font-family:var(--font);font-size:12.5px;font-weight:800;color:#000;cursor:pointer">whatsapp</button>`;
   const okBtn=isFull?`<button onclick="document.getElementById('rd-win-modal')?.remove()" style="width:100%;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:11px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,255,255,.6);cursor:pointer;margin-top:8px">ok</button>`:'';
   const overlay=document.createElement('div');
   overlay.id='rd-win-modal';
@@ -7031,13 +7094,43 @@ function markNotifRead(id){
 
 // ===================== SEARCH =====================
 
-function openSearch(){document.getElementById('search-overlay').classList.add('open');setTimeout(()=>document.getElementById('search-input').focus(),150)}
+function openSearch(){document.getElementById('search-overlay').classList.add('open');setTimeout(()=>document.getElementById('search-input').focus(),150);_loadMarcaLogos().then(_renderSearchPopMarcas);}
 function closeSearch(){document.getElementById('search-overlay').classList.remove('open');document.getElementById('search-input').value='';resetSearchResults()}
 function resetSearchResults(){
-  document.getElementById('search-results').innerHTML=`<div class="search-cat-label">búsquedas recientes</div>
+  document.getElementById('search-results').innerHTML=`<div class="search-cat-label" style="margin-bottom:8px">categorías rápidas</div>
+    <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:20px">
+      <button class="mkt-pill" onclick="applySearch('SUV')">SUV</button>
+      <button class="mkt-pill" onclick="applySearch('Pickup')">Pickup</button>
+      <button class="mkt-pill" onclick="applySearch('Sedán')">Sedán</button>
+      <button class="mkt-pill" onclick="applySearch('Deportivo')">Deportivo</button>
+      <button class="mkt-pill" onclick="applySearch('0km')">0km</button>
+      <button class="mkt-pill" onclick="applySearch('chocado')">Chocados</button>
+    </div>
+    <div class="search-cat-label" style="margin-bottom:8px">marcas populares</div>
+    <div id="search-pop-marcas" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:22px"></div>
+    <div class="search-cat-label">búsquedas recientes</div>
     <div class="search-cat-item" onclick="applySearch('BMW M5')">BMW M5</div>
     <div class="search-cat-item" onclick="applySearch('Toyota Land Cruiser')">Toyota Land Cruiser</div>
     <div class="search-cat-item" onclick="applySearch('Ford Mustang')">Ford Mustang</div>`;
+  _renderSearchPopMarcas();
+}
+// [FIX] búsqueda premium — chips de marcas populares con logo real (reusa
+// MARCA_LOGOS de la vista Marcas, misma fuente de datos, cero duplicación).
+// Fallback a inicial si el logo no ha cargado todavía — no rompe nada.
+const _searchPopMarcasList=['Toyota','Chevrolet','Ford','Jeep','Hyundai','Kia','Honda','Nissan'];
+function _renderSearchPopMarcas(){
+  const wrap=document.getElementById('search-pop-marcas');
+  if(!wrap) return;
+  wrap.innerHTML=_searchPopMarcasList.map(m=>{
+    const url=MARCA_LOGOS[m];
+    const avatar=url
+      ?`<img src="${url}" style="width:100%;height:100%;object-fit:contain;padding:8px;box-sizing:border-box" loading="lazy">`
+      :`<span style="font-size:15px;font-weight:800;color:rgba(255,255,255,.4)">${_esc(m.charAt(0))}</span>`;
+    return `<div onclick="closeSearch();goToMarcaFilter('${m}')" style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;width:56px">
+      <div style="width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden">${avatar}</div>
+      <span style="font-size:10px;color:rgba(255,255,255,.5);font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56px">${_esc(m)}</span>
+    </div>`;
+  }).join('');
 }
 function _searchCardHtml(a,kind){
   const isAuction=kind==='subasta';
@@ -8639,13 +8732,22 @@ function deleteListing(id){
 }
 
 
-function showFinanciamientoSoon(){
+// [FIX] pill único reutilizable — antes cada "próximamente" de concesionarios
+// tenía su propio toast feo; ahora todos usan EXACTAMENTE el mismo elemento
+// que Financiamiento en el menú hamburguesa (mismo glassmorphism, mismo
+// ícono, mismo timing), solo cambia el texto.
+function showSoonPill(text){
   const t = document.getElementById('drawer-soon-toast');
   if(!t) return;
-  closeDrawer();
+  if(typeof closeDrawer==='function') closeDrawer();
+  const txt=document.getElementById('drawer-soon-text');
+  if(txt) txt.textContent = text||'próximamente disponible';
   t.classList.add('visible');
   clearTimeout(t._timer);
   t._timer = setTimeout(()=>t.classList.remove('visible'), 2600);
+}
+function showFinanciamientoSoon(){
+  showSoonPill('próximamente disponible');
 }
 
 function toggleChocado(cb){
@@ -9158,6 +9260,10 @@ let currentDealer = null;
 // [CONS HUB v1] estado del segmented toggle de los hero cards
 let _consTipoFilter = 'agencia';
 function _consSelectTipo(tipo){
+  // [FIX] antes quedaba pegado en amarillo sin forma de deseleccionar — si tocas
+  // el mismo tipo que ya está activo, vuelve al default (agencia) en vez de
+  // quedarse fijo.
+  if(_consTipoFilter===tipo) tipo='agencia';
   _consTipoFilter = tipo;
   const elA=document.getElementById('cons-hero-agencia'), elM=document.getElementById('cons-hero-marca');
   if(elA) elA.style.background = tipo==='agencia' ? 'rgba(230,240,59,.1)' : 'rgba(255,255,255,.04)';
@@ -9774,6 +9880,49 @@ async function _saUploadEncuentraPhoto(input,slot){
   if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:contain">`;
   showToast('foto actualizada',true);
 }
+// [FIX] SA — logos de marcas. Reusa MARCAS_LIST (las 56 marcas reales de la
+// app, ni una menos) y MARCA_LOGOS ya cargado por _loadMarcaLogos si el admin
+// ya visitó la vista Marcas antes; si no, lo carga de una vez.
+async function saLoadMarcaLogos(filterText){
+  if(!_marcaLogosLoaded) await _loadMarcaLogos();
+  const list=document.getElementById('sa-logos-list');
+  if(!list) return;
+  const q=(filterText||'').toLowerCase().trim();
+  const marcas=q?MARCAS_LIST.filter(m=>m.toLowerCase().includes(q)):MARCAS_LIST;
+  if(!marcas.length){list.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">sin resultados</div>';return;}
+  list.innerHTML=marcas.map(m=>{
+    const slug=_marcaSlug(m);
+    const url=MARCA_LOGOS[m];
+    return `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:9px 12px;display:flex;align-items:center;gap:12px">
+      <div id="sa-logo-prev-${slug}" onclick="document.getElementById('sa-logo-file-${slug}').click()" style="width:40px;height:40px;flex-shrink:0;border-radius:9px;background:#111;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:rgba(255,255,255,.25)">
+        ${url?`<img src="${url}" style="width:100%;height:100%;object-fit:contain;padding:4px;box-sizing:border-box">`:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:16px;height:16px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>`}
+      </div>
+      <div style="flex:1;font-size:13px;font-weight:600">${_esc(m)}</div>
+      <input type="file" id="sa-logo-file-${slug}" accept="image/*" style="display:none" onchange="_saUploadMarcaLogo(this,'${m.replace(/'/g,"\\'")}')">
+      <button onclick="document.getElementById('sa-logo-file-${slug}').click()" style="flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:11.5px;font-weight:700;color:rgba(255,255,255,.6);cursor:pointer">${url?'cambiar':'subir'}</button>
+    </div>`;
+  }).join('');
+}
+async function _saUploadMarcaLogo(input,marca){
+  const file=input.files?.[0];
+  if(!file||!_supa) return;
+  const slug=_marcaSlug(marca);
+  showToast('subiendo logo...');
+  const ext=(file.name.split('.').pop()||'png').toLowerCase();
+  const path=`marca-logo-${slug}_${Date.now()}.${ext}`;
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  if(upErr){showToast('error: '+upErr.message);return;}
+  const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('marca_logos').upsert({marca,logo_url:urlData.publicUrl,updated_at:new Date().toISOString()},{onConflict:'marca'});
+  if(dbErr){showToast('error guardando: '+dbErr.message);return;}
+  MARCA_LOGOS[marca]=urlData.publicUrl;
+  const prev=document.getElementById('sa-logo-prev-'+slug);
+  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:contain;padding:4px;box-sizing:border-box">`;
+  _marcaSetLogo(marca,urlData.publicUrl); // refresca en vivo la card real si está montada
+  showToast('logo actualizado',true);
+}
+
 async function _saLoadConsBannerPreview(){
   if(!_supa) return;
   const{data}=await _supa.from('app_settings').select('value').eq('key','concesionarios_banner_url').maybeSingle();
@@ -9854,7 +10003,7 @@ function saCategory(cat){
   saTab(SA_CATEGORIES[cat]);
 }
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -9874,6 +10023,7 @@ function saTab(tab){
   if(tab==='mensajes'){ saLoadRueddaTeamAvatarPreview(); saLoadRueddaTeamMessages(); }
   if(tab==='documentos') saLoadDocumentos();
   if(tab==='solicitudes') saLoadSolicitudes('car');
+  if(tab==='logos') saLoadMarcaLogos();
 }
 
 let saCatalogoLinks = [];
@@ -13201,6 +13351,12 @@ function _renderNotifItem(n){
 // [V83] ganador de subasta → chat directo con el vendedor (thread existente o panel nuevo)
 async function _msgAuctionSeller(sellerId,auctionId,title){
   if(isGuest()){showToast('inicia sesión para enviar mensajes');return;}
+  // [FIX] si sellerId viene vacío (p.ej. la publicación ya se borró y la vista
+  // que abrió esto no lo pudo cargar en vivo), recuperar el snapshot guardado
+  // apenas se ganó la subasta — así el chat sigue abriendo igual.
+  if(!sellerId&&auctionId){
+    try{ sellerId=localStorage.getItem('ruedda_won_seller_'+auctionId)||''; }catch(e){}
+  }
   if(!sellerId){showToast('vendedor no disponible');return;}
   for(let i=0;i<40&&window._pmLoading;i++){await new Promise(r=>setTimeout(r,100));}
   await _loadPrivateMessages(true);
@@ -14049,6 +14205,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div class="tab" id="sa-tab-publicaciones" onclick="saTab('publicaciones')" style="white-space:nowrap;flex-shrink:0">publicaciones</div>
       <div class="tab" id="sa-tab-comunidad" onclick="saTab('comunidad')" style="white-space:nowrap;flex-shrink:0">comunidad</div>
       <div class="tab" id="sa-tab-documentos" onclick="saTab('documentos')" style="white-space:nowrap;flex-shrink:0">documentos</div>
+      <div class="tab" id="sa-tab-logos" onclick="saTab('logos')" style="white-space:nowrap;flex-shrink:0">logos marcas</div>
     </div>
   </div>
   <div class="sa-tabgroup" data-cat="dinero" style="display:none">
@@ -14284,6 +14441,18 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
   </div>
 
   <!-- PUBLICACIONES -->
+  <!-- [FIX] LOGOS DE MARCAS — 56 marcas de MARCAS_LIST, ninguna se puede quedar
+       fuera. Lista compacta (no cards grandes, sería demasiado scroll) con
+       thumbnail + botón de subida por fila. -->
+  <div id="sa-logos" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Logos de marcas</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Sube el logo de cada marca para la vista "Marcas". Se ven en la app apenas se suben, carga suave automática.</div>
+    <input type="text" id="sa-logos-search" placeholder="buscar marca..." oninput="saLoadMarcaLogos(this.value)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;box-sizing:border-box">
+    <div id="sa-logos-list" style="display:flex;flex-direction:column;gap:8px">
+      <div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
+    </div>
+  </div>
+
   <div id="sa-documentos" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Documentos — verificación "Auditado por Ruedda"</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Revisa los documentos contra las fotos del vehículo. Si apruebas, el card se lleva el sello. Si niegas, no pasa nada — simplemente no lo obtiene.</div>
@@ -14855,7 +15024,7 @@ async function _saDeletePat(id,cat){
     <div style="font-size:28px;font-weight:800;letter-spacing:-.5px">soporte Ruedda</div>
     <p style="font-size:15px;color:var(--muted);line-height:1.7;max-width:280px">estamos aquí para ayudarte. escríbenos y te respondemos a la brevedad.</p>
     <a href="mailto:empresa@ruedda.info" style="font-size:16px;font-weight:700;color:#e6f03b;text-decoration:none">empresa@ruedda.info</a>
-    <a href="https://wa.me/584120000000" target="_blank" style="background:#e6f03b;color:#000;border:none;border-radius:13px;padding:14px 28px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;margin-top:6px">contactar por WhatsApp</a>
+    <a href="https://wa.me/584123921048" target="_blank" style="background:#e6f03b;color:#000;border:none;border-radius:13px;padding:14px 28px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;margin-top:6px">contactar por WhatsApp</a>
   </div>
 </div>
 
@@ -15034,7 +15203,7 @@ async function _saDeletePat(id,cat){
 
 <div class="drawer-soon" id="drawer-soon-toast">
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4l3 3"/></svg>
-  próximamente disponible
+  <span id="drawer-soon-text">próximamente disponible</span>
 </div>
 <div class="listado-bg" id="listado-bg" onclick="closeMktListado()"></div>
 <div class="listado-ov" id="mkt-listado-overlay">
