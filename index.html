@@ -1072,7 +1072,7 @@ html{scrollbar-width:none}
   #bnav-favoritos svg{width:19px;height:19px}
   /* labels solo desktop, sin tocar el markup mobile */
   .bnav-item::after{font-family:var(--font);font-size:13.5px;font-weight:600;letter-spacing:-.1px}
-  #bnav-home::after{content:'Subastas'}
+  #bnav-home::after{content:'Inicio'}
   #bnav-notificaciones::after{content:'Alertas'}
   #bnav-ruedda::after{content:'Ruedda Extra'}
   #bnav-favoritos::after{content:'Favoritos'}
@@ -4142,7 +4142,12 @@ function showView(name,param){
     // salir de una publicación con swipe. Ahora respeta el override si ya se sabe
     // a qué sección hay que ir, y pinta la correcta de una sola vez, sin pasar
     // nunca por subastas cuando no corresponde.
-    const _target=window._homeSectionOverride||'subastas';
+    // [RC FIX] antes caía siempre a 'subastas' cuando no había override — eso
+    // hacía que el botón home mandara a subastas de forma inconsistente
+    // (dependía de si un popstate previo había alcanzado a setear el override).
+    // Ahora preserva la sección donde ya estabas por defecto: home = "sube al
+    // tope de donde estás", no "resetea a una sección fija".
+    const _target=window._homeSectionOverride||currentSection||'market';
     window._homeSectionOverride=null;
     currentSection=_target;
     const _hub=document.getElementById('mkt-hub-actions');if(_hub)_hub.style.display=_target==='market'?'flex':'none';
@@ -10263,12 +10268,17 @@ async function renderSAUsuarios(query=''){
 async function saDeleteUser(id, label){
   if(!confirm('¿Eliminar usuario '+label+'? Esta acción no se puede deshacer.')) return;
   if(!_supa) return;
-  // 1. Eliminar de tabla users
-  await _supa.from('users').delete().eq('id',id);
-  // 2. Eliminar de Auth (requiere Edge Function con permisos de admin)
-  const{error}=await _supa.auth.admin.deleteUser(id);
-  if(error) console.warn('[ruedda] auth delete:',error.message);
-  showToast('usuario eliminado',true);
+  try{
+    // [RC FIX] mismo motivo que saCrearConcesionario — auth.admin.deleteUser
+    // exige service_role key, imposible desde el navegador. La función
+    // serverless borra la fila de users Y el usuario de Auth en un solo paso.
+    await _apiPost('/api/admin-user',{action:'delete',id});
+    showToast('usuario eliminado',true);
+  }catch(e){
+    console.error('[ruedda] saDeleteUser:',e.message);
+    showToast('error eliminando: '+e.message);
+    return;
+  }
   const q=document.getElementById('sa-user-search')?.value||'';
   renderSAUsuarios(q);
 }
@@ -10531,16 +10541,21 @@ async function saCrearConcesionario(){
   const btn=document.querySelector('[onclick="saCrearConcesionario()"]');
   if(btn){btn.textContent='creando...';btn.disabled=true;}
   try{
-    // 1. crear usuario en Supabase Auth (requiere Edge Function con permisos de admin)
-    const{data:authData,error:authErr}=await _supa.auth.admin.createUser({
-      email,password:pass,email_confirm:true,
-      user_metadata:{role:'concesionario'}
+    // [RC FIX] auth.admin.createUser() NUNCA funciona desde el navegador —
+    // Supabase exige service_role key para esos endpoints, y esa key no
+    // puede vivir en un HTML público (cualquiera la leería del código
+    // fuente). Por eso pegaba "User not allowed" siempre, sin importar
+    // permisos dentro de la app. Ahora se delega a una función serverless
+    // (/api/admin-user, deploy en Vercel) que sí tiene la key y además
+    // verifica que quien llama sea superadmin de verdad antes de ejecutar.
+    const result=await _apiPost('/api/admin-user',{
+      action:'create',email,password:pass,
+      nombre:rep||nombre,
+      username:username||nombre.toLowerCase().replace(/\s+/g,'_'),
+      role:'concesionario'
     });
-    if(authErr) throw new Error('Auth: '+authErr.message);
-    const uid=authData.user.id;
-    // 2. crear fila en users
-    await _supa.from('users').upsert({id:uid,nombre:rep||nombre,email,username:username||nombre.toLowerCase().replace(/\s+/g,'_'),role:'concesionario'},{onConflict:'id'});
-    // fila en concesionarios la crea el dealer desde su panel
+    const uid=result.user_id;
+    void uid; // la fila en concesionarios la crea el dealer desde su propio panel
     showToast('cuenta concesionario creada: '+nombre+' ✓',true);
     ['sa-d-nombre','sa-d-rep','sa-d-email','sa-d-username','sa-d-ubicacion','sa-d-cedula','sa-d-pass'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   }catch(e){
@@ -10923,7 +10938,12 @@ function simularRol(role, dealerActive){
 }
 
 function goHome(){
-  if(currentView==='home' && currentSection==='subastas'){
+  // [RC FIX] antes solo hacía scroll-to-top si currentSection==='subastas' —
+  // relíquia de cuando subastas era la sección por defecto. Con market como
+  // default, ese chequeo casi nunca se cumplía y terminaba SIEMPRE llamando
+  // showView('home'), que forzaba subastas por el fallback hardcodeado de abajo.
+  // Ahora: si ya estás en home (sin importar la sección), solo sube al tope.
+  if(currentView==='home'){
     window.scrollTo({top:0,behavior:'smooth'});
     return;
   }
