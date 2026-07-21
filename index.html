@@ -1950,7 +1950,7 @@ html{scrollbar-width:none}
     <!-- MEJORES AGENCIAS -->
     <div class="rdv" style="animation-delay:.24s;padding:30px 18px 8px;display:flex;align-items:center;justify-content:space-between">
       <h2 id="cons-grid-title" style="font-size:20px;font-weight:800;letter-spacing:-.3px">Mejores agencias</h2>
-      <button id="dealer-city-btn" onclick="toggleDealerCityMenu()" style="background:#000;border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:7px 14px;font-family:var(--font);font-size:12px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .15s;position:relative" onmouseover="this.style.borderColor='rgba(255,255,255,.35)'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)'">
+      <div id="dealer-city-btn" role="button" tabindex="0" onclick="toggleDealerCityMenu()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDealerCityMenu();}" style="background:#000;border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:7px 14px;font-family:var(--font);font-size:12px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .15s;position:relative" onmouseover="this.style.borderColor='rgba(255,255,255,.35)'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)'">
         <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;opacity:.6"><path d="M8 2C5.79 2 4 4.24 4 7c0 3.5 4 7 4 7s4-3.5 4-7c0-2.76-1.79-5-4-5z"/><circle cx="8" cy="7" r="1.5"/></svg>
         <span id="dealer-city-label">ciudad</span>
         <svg fill="none" viewBox="0 0 10 10" stroke="rgba(255,255,255,.4)" stroke-width="2" style="width:8px;height:8px"><path d="m2 3.5 3 3 3-3"/></svg>
@@ -1958,7 +1958,7 @@ html{scrollbar-width:none}
         <div id="dealer-city-menu" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:#161616;border:1px solid rgba(255,255,255,.1);border-radius:14px;overflow:hidden;overflow-y:auto;max-height:280px;z-index:99;min-width:160px;box-shadow:0 12px 40px rgba(0,0,0,.7);text-align:left">
           <div onclick="setDealerCity(event,'todas')" style="padding:11px 16px;font-size:13px;font-weight:500;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.06)'" onmouseout="this.style.background='transparent'">todas las ciudades</div>
         </div>
-      </button>
+      </div>
     </div>
     <div class="dealer-grid" id="dealer-grid"></div>
   </div>
@@ -2921,6 +2921,10 @@ html{scrollbar-width:none}
     <!-- [BLOQUE 4] CIUDAD — antes no existía este campo; la vitrina quedaba con ciudad vacía para siempre -->
     <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">ciudad</div>
     <select id="dh-ciudad-select" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:13px 15px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box;appearance:none;-webkit-appearance:none"></select>
+
+    <!-- [RC] DESCRIPCIÓN — aparece debajo del nombre dentro de la vitrina -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">descripción</div>
+    <textarea id="dh-descripcion-input" placeholder="una línea corta sobre tu concesionario (aparece debajo del nombre en tu vitrina)" maxlength="140" rows="2" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:13px 15px;font-family:var(--font);font-size:14px;color:#fff;outline:none;transition:border-color .15s;box-sizing:border-box;resize:none;line-height:1.5" onfocus="this.style.borderColor='rgba(255,255,255,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"></textarea>
 
     <!-- LOGO -->
     <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">logo del concesionario</div>
@@ -4295,6 +4299,22 @@ function _hubPopIn(){
     b.classList.add('hub-pop-in');
   });
 }
+// [RC FIX] la cascada RDV (fade+rise de sponsor-wrap/trending/encuentra/market-grid,
+// y del banner/hero-cards/etc de concesionarios) solo dispara vía @keyframes en la
+// inserción inicial del DOM — esos wrappers son estáticos y persisten entre secciones,
+// así que un simple display:none→block al volver a entrar NO la vuelve a reproducir
+// (mismo motivo por el que _hubPopIn existe para los 3 botones). Mismo truco: sacar
+// la clase, forzar reflow, y volver a ponerla — el animation-delay inline de cada
+// bloque queda intacto, así que la cascada se ve idéntica a la del primer load.
+function _rdvReplay(root){
+  if(!root) return;
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  root.querySelectorAll('.rdv').forEach(el=>{
+    el.classList.remove('rdv');
+    void el.offsetWidth; // fuerza reflow — sin esto el navegador ignora el re-add inmediato
+    el.classList.add('rdv');
+  });
+}
 function selectSection(s){
   // show/hide acciones de market en el header
   const cl=document.getElementById('section-como-funciona-link');
@@ -4311,6 +4331,10 @@ function selectSection(s){
   document.getElementById('section-title-el').classList.remove('open');
   document.querySelectorAll('.dropdown-item').forEach(i=>i.classList.toggle('active',i.dataset.sec===s));
   renderCurrentSection();
+  // [RC FIX] re-dispara la cascada RDV de la sección a la que se entra — antes solo
+  // el pop de los 3 botones se repetía, la coreografía de fondo se quedaba muda.
+  if(s==='market') _rdvReplay(document.getElementById('market-section'));
+  else if(s==='consesionarios') _rdvReplay(document.getElementById('concesionarios-section'));
 }
 
 document.addEventListener('click',e=>{
@@ -5085,11 +5109,24 @@ function setMktViewMode(mode){
   // [RC transición fluida] animar grid-template-columns/display entre flex↔grid no es
   // confiable cross-browser (WebKit no interpola cambios de cantidad de tracks). En vez
   // de eso: fade-out breve, se reacomoda el layout mientras está invisible, fade-in.
+  // [RC FIX] antes el reacomodo esperaba un setTimeout fijo (160ms) calzado a ojo con
+  // la duración de la transición CSS — si el hilo principal estaba ocupado (fotos
+  // decodificando, etc.) el timer disparaba antes de que la opacidad llegara realmente
+  // a 0, y el cambio de layout se veía brusco/parpadeante. Ahora espera el evento real
+  // transitionend de la propiedad opacity, con el setTimeout solo como respaldo por si
+  // el evento no llega a disparar (transición interrumpida).
   grid.classList.add('mode-switching');
-  setTimeout(()=>{
+  let _swapped=false;
+  const _doSwap=()=>{
+    if(_swapped) return;
+    _swapped=true;
+    grid.removeEventListener('transitionend',_onFadeOut);
     grid.classList.toggle('mode-grid',mode==='grid');
     requestAnimationFrame(()=>grid.classList.remove('mode-switching'));
-  },160);
+  };
+  const _onFadeOut=(e)=>{ if(e.target===grid&&e.propertyName==='opacity') _doSwap(); };
+  grid.addEventListener('transitionend',_onFadeOut);
+  setTimeout(_doSwap,220);
 }
 function renderMarket(){
   // [v76] dirty check — si los datos y filtros no cambiaron, no re-renderizar
@@ -9343,7 +9380,7 @@ function renderDealerFiltered(){
   if(f.tipo !== 'todos') dealers = dealers.filter(d=>(d.tag||'').includes(f.tipo));
   grid.innerHTML = dealers.length
     ? dealers.map((d,i)=>`<div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
-        <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1'">`:d.initial}</div>
+        <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<div class="rdv-skel" style="position:absolute;inset:0"></div><img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1';const s=this.previousElementSibling;if(s){s.style.transition='opacity .3s ease';s.style.opacity='0';setTimeout(()=>s.remove(),300);}">`:d.initial}</div>
         <div class="dealer-info"><div class="dealer-name" style="display:flex;align-items:center;gap:0">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="dealer-meta">${d.ciudad.toLowerCase()}</div><div class="dealer-count">${d.autos} vehículos</div></div>
       </div>`).join('')
     : '<div class="empty-state" style="grid-column:1/-1"><p>sin concesionarios con estos filtros</p></div>';
@@ -9399,7 +9436,7 @@ function renderDealerGrid(){
   }
   grid.innerHTML = data.map((d,i) => `
     <div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
-      <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1'">`:d.initial}</div>
+      <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<div class="rdv-skel" style="position:absolute;inset:0"></div><img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1';const s=this.previousElementSibling;if(s){s.style.transition='opacity .3s ease';s.style.opacity='0';setTimeout(()=>s.remove(),300);}">`:d.initial}</div>
       <div class="dealer-info">
         <div class="dealer-name" style="display:flex;align-items:center">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="dealer-meta">${d.ciudad.toLowerCase()}</div>
@@ -9605,9 +9642,16 @@ function openVitrina(id){
     if(vc){vc.textContent='';if(_supa)_supa.from('listings').select('id',{count:'exact',head:true}).eq('concesionario_id',d.id).eq('estado','activa').then(({count})=>{const c2=document.getElementById('vitrina-count');if(c2)c2.textContent=(count||0)+' vehículos.';}).catch(()=>{});}
     const dir=document.getElementById('vitrina-direccion');
     if(dir){
-      const txt=d.direccion||d.ciudad||'';
-      dir.textContent=txt; dir.style.display=txt?'block':'none';
+      // [RC FIX] antes caía a d.ciudad si no había descripción — como esa columna
+      // nunca existió realmente, SIEMPRE mostraba la ciudad acá, duplicada con la
+      // que ya aparece en vitrina-meta justo arriba. Ahora usa solo d.descripcion;
+      // sin descripción, se oculta para todos salvo el dueño (que ve la invitación
+      // a completarla).
       const own=USER_STATE.concesionarioId&&String(USER_STATE.concesionarioId)===String(d.id);
+      const txt=d.descripcion||'';
+      dir.textContent=txt||(own?'+ agregar descripción':'');
+      dir.style.display=(txt||own)?'block':'none';
+      dir.style.opacity=txt?'1':'.55';
       dir.style.cursor=own?'pointer':'default';
       dir.onclick=own&&typeof handleEditarVitrina==='function'?()=>handleEditarVitrina():null;
     }
@@ -10761,6 +10805,9 @@ function handleEditarVitrina(){
   const inp=document.getElementById('dh-nombre-input');
   if(inp && currentDealer?.nombre) inp.value=currentDealer.nombre;
   else if(inp && USER_STATE.nombre) inp.value=USER_STATE.nombre;
+  // [RC] poblar descripción actual (si el dealer todavía no tiene, queda vacío)
+  const descInp=document.getElementById('dh-descripcion-input');
+  if(descInp) descInp.value=currentDealer?.descripcion||'';
   // [BLOQUE 4] poblar select de ciudad con la lista canónica y preseleccionar la actual
   const ciudadSel=document.getElementById('dh-ciudad-select');
   if(ciudadSel&&typeof CIUDADES_VE!=='undefined'){
@@ -10839,17 +10886,18 @@ async function saveDealerProfile(){
   const nombre=document.getElementById('dh-nombre-input')?.value.trim();
   if(!nombre){ showToast('escribe el nombre del concesionario'); return; }
   const ciudad=document.getElementById('dh-ciudad-select')?.value||'';
+  const descripcion=document.getElementById('dh-descripcion-input')?.value.trim()||'';
   const btn=document.querySelector('#dh-content-vitrina button[onclick="saveDealerProfile()"]');
   if(btn){ btn.textContent='guardando...'; btn.disabled=true; btn.style.opacity='.7'; }
   if(_supa && USER_STATE.concesionarioId){
-    const{error}=await _supa.from('concesionarios').update({nombre,ciudad}).eq('id',USER_STATE.concesionarioId);
+    const{error}=await _supa.from('concesionarios').update({nombre,ciudad,descripcion}).eq('id',USER_STATE.concesionarioId);
     if(error){
       console.error('[ruedda] saveDealerProfile:',error.message);
       showToast('error al guardar: '+error.message);
       if(btn){ btn.textContent='guardar cambios'; btn.disabled=false; btn.style.opacity='1'; }
       return;
     }
-    if(currentDealer){currentDealer.nombre=nombre;currentDealer.ciudad=ciudad;}
+    if(currentDealer){currentDealer.nombre=nombre;currentDealer.ciudad=ciudad;currentDealer.descripcion=descripcion;}
     USER_STATE.dealerNombre=nombre;
   }
   if(btn){ btn.textContent='guardar cambios'; btn.disabled=false; btn.style.opacity='1'; }
