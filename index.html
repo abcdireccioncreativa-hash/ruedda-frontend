@@ -948,6 +948,7 @@ html{scrollbar-width:none}
    DESKTOP LAYOUT  (≥ 768px)
 ═══════════════════════════════════════════ */
 @media(min-width:768px){
+  :root{--logo-wordmark:url("data:image/png;base64,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")}
   body{background:#000}
 
   /* LANDING PAGE */
@@ -1033,45 +1034,60 @@ html{scrollbar-width:none}
   .detail-left-col{min-width:0;order:0!important;display:flex;flex-direction:column}
   .detail-right-col{min-width:0;order:0!important}
 
-  /* BOTTOM NAV → liquid glass sidebar on desktop */
+  /* ── SIDEBAR DESKTOP [RC16.1] ──
+     BUG RAÍZ que rompía todo el desktop: la regla base mobile de .bottom-nav
+     (pill flotante) trae left:50% + transform:translateX(-50%) + border-radius:100px
+     + bottom:22px + max-width, y este bloque nunca los reseteaba → el "sidebar"
+     quedaba mitad fuera de pantalla, en forma de píldora, translúcido y con el
+     contenido pasándole por debajo. Aquí se resetea TODO explícitamente. */
   .bottom-nav{
-    position:fixed;top:0;left:0;bottom:0;right:auto;width:200px;
-    flex-direction:column;justify-content:flex-start;align-items:flex-start;
-    padding:88px 14px 32px;
-    border-top:none;border-right:none;
-    background:rgba(255,255,255,.032);
-    backdrop-filter:blur(28px) saturate(160%);
-    -webkit-backdrop-filter:blur(28px) saturate(160%);
-    border-right:1px solid rgba(255,255,255,.07);
-    box-shadow:inset -1px 0 0 rgba(255,255,255,.04), 4px 0 32px rgba(0,0,0,.4);
-    gap:4px
+    position:fixed;top:0;left:0;bottom:0;right:auto;width:228px;
+    max-width:none;transform:none;border-radius:0;
+    flex-direction:column;justify-content:flex-start;align-items:stretch;
+    padding:86px 12px 20px;
+    border:none;border-right:1px solid rgba(255,255,255,.07);
+    background:#0a0a0a; /* opaco: tapa cualquier contenido que sangre debajo */
+    backdrop-filter:none;-webkit-backdrop-filter:none;
+    box-shadow:inset -1px 0 0 rgba(255,255,255,.03);
+    gap:3px;z-index:110
   }
   .bnav-item{
-    flex-direction:row;padding:11px 14px;width:100%;font-size:13px;font-weight:500;
-    gap:11px;border-radius:12px;letter-spacing:-.1px;
-    transition:background .18s,color .18s,box-shadow .18s;
-    justify-content:flex-start
+    flex-direction:row;padding:11px 13px;width:100%;font-size:13.5px;font-weight:500;
+    gap:12px;border-radius:11px;letter-spacing:-.1px;color:rgba(255,255,255,.55);
+    transition:background .16s,color .16s;justify-content:flex-start;box-sizing:border-box
   }
-  .bnav-item:hover{background:rgba(255,255,255,.06)}
-  .bnav-item.active{
-    background:rgba(255,255,255,.09);
-    color:#fff;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.1), 0 2px 16px rgba(0,0,0,.25);
-  }
+  .bnav-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.85)}
+  .bnav-item.active{background:rgba(255,255,255,.08);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.09)}
+  .bnav-item.active svg{stroke:#e6f03b}
   .bnav-item svg{width:19px;height:19px;flex-shrink:0}
+  #bnav-favoritos svg{width:19px;height:19px}
+  /* labels solo desktop, sin tocar el markup mobile */
+  .bnav-item::after{font-family:var(--font);font-size:13.5px;font-weight:600;letter-spacing:-.1px}
+  #bnav-home::after{content:'Subastas'}
+  #bnav-notificaciones::after{content:'Alertas'}
+  #bnav-ruedda::after{content:'Ruedda Extra'}
+  #bnav-favoritos::after{content:'Favoritos'}
+  #bnav-cuenta::after{content:'Cuenta'}
+  #bnav-ruedda{margin:8px 0;background:rgba(230,240,59,.06);box-shadow:inset 0 0 0 1px rgba(230,240,59,.18);color:rgba(255,255,255,.85)}
+  #bnav-ruedda::after{color:#e6f03b}
+  #bnav-ruedda:hover{background:rgba(230,240,59,.1)}
+  #bnav-ruedda img{width:20px;height:20px;opacity:1}
   .notif-dot{top:50%;transform:translateY(-50%);right:12px}
 
-  /* sidebar logo area */
+  /* header del sidebar: wordmark real (mismo asset del navbar), no franja vacía */
   .bottom-nav::before{
-    content:'';position:absolute;top:0;left:0;right:0;
-    height:72px;
-    background:rgba(255,255,255,.02);
-    border-bottom:1px solid rgba(255,255,255,.05);
+    content:'';position:absolute;top:0;left:0;right:0;height:64px;
+    background-image:var(--logo-wordmark);
+    background-repeat:no-repeat;background-position:22px center;background-size:auto 24px;
+    border-bottom:1px solid rgba(255,255,255,.06);
   }
 
   /* push content right of sidebar */
-  body{padding-left:200px}
+  body{padding-left:228px}
+  /* navbar sin logo duplicado (la marca vive en el sidebar): barra utilitaria */
   .navbar{padding-left:24px}
+  .navbar .logo{display:none}
+  .navbar{justify-content:flex-end}
 
   /* FORMS */
   .vender-form{max-width:700px;margin:0 auto;padding:24px 0 100px}
@@ -1113,6 +1129,18 @@ html{scrollbar-width:none}
 
   /* VENDER TIPO MODAL */
   .vender-sheet-title{font-size:24px}
+
+  /* ── polish desktop [RC16.1] ── */
+  .auction-card,.market-card{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;cursor:pointer}
+  .auction-card:hover,.market-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.18);box-shadow:0 10px 32px rgba(0,0,0,.45)}
+  .enc-card{cursor:pointer}
+  .enc-card:hover{transform:translateY(-2px)}
+  .section-header{padding:36px 0 10px}
+  .tabs{border-bottom:1px solid rgba(255,255,255,.06)}
+  /* scrollbars discretos coherentes con el tema */
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:8px;border:2px solid #000}
+  ::-webkit-scrollbar-track{background:transparent}
 }
 
 @media(max-width:767px){
@@ -3911,58 +3939,6 @@ html{scrollbar-width:none}
   </div>
 </div>
 
-<!-- PLAN DETAIL SHEET -->
-<div class="modal-overlay" id="plan-detail-sheet" onclick="if(event.target.id==='plan-detail-sheet')closePlanDetailSheet()" style="align-items:flex-end">
-  <div style="background:#0a0a0a;border-radius:26px 26px 0 0;padding:0 0 48px;width:100%;border:1px solid rgba(255,255,255,.07);border-bottom:none;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
-    <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:#222;border-radius:2px"></div></div>
-    <div style="padding:22px 22px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <div><div id="pds-name" style="font-size:22px;font-weight:800;letter-spacing:-.4px"></div><div id="pds-price" style="font-size:15px;color:rgba(255,255,255,.4);margin-top:3px"></div></div>
-      <button onclick="closePlanDetailSheet()" style="background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:8px;border-radius:50%;display:flex"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-    </div>
-    <div id="pds-code-section" style="margin:0 22px 16px;transition:opacity .25s">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:rgba(255,255,255,.3);margin-bottom:8px">código de invitación</div>
-      <div style="display:flex;gap:8px">
-        <input id="pds-code-input" type="text" placeholder="ingresa tu código" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-family:var(--font);font-size:14px;color:#fff;outline:none">
-        <button onclick="redeemPlanCode()" style="background:#e6f03b;color:#000;border:none;border-radius:12px;padding:13px 18px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">aplicar</button>
-      </div>
-      <div id="pds-code-msg" style="display:none;font-size:12px;margin-top:7px;font-weight:600"></div>
-    </div>
-    <div id="pds-divider" style="display:flex;align-items:center;gap:12px;margin:0 22px 16px">
-      <div style="flex:1;height:1px;background:rgba(255,255,255,.07)"></div>
-      <span style="font-size:12px;color:rgba(255,255,255,.25)">o paga con</span>
-      <div style="flex:1;height:1px;background:rgba(255,255,255,.07)"></div>
-    </div>
-    <div style="margin:0 22px;display:flex;gap:8px">
-      <button id="pds-tab-bnc" onclick="pdsSwitchTab('bnc')" style="flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px;font-family:var(--font);font-size:13px;font-weight:700;color:#fff;cursor:pointer;transition:all .15s">USDT · Binance</button>
-      <button id="pds-tab-bcv" onclick="pdsSwitchTab('bcv')" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;font-family:var(--font);font-size:13px;font-weight:600;color:rgba(255,255,255,.4);cursor:pointer;transition:all .15s">Bs. · pago móvil</button>
-    </div>
-    <div id="pds-content-bnc" style="margin:14px 22px 0;display:flex;flex-direction:column;gap:10px">
-      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:16px 18px">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-          <div style="width:38px;height:38px;border-radius:10px;background:rgba(243,186,47,.1);border:1px solid rgba(243,186,47,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" fill="#F3BA2F" style="width:18px;height:18px"><path d="M12 0L7.5 4.5 3 9l4.5 4.5L12 18l4.5-4.5L21 9l-4.5-4.5zm0 3.5L17 8.5 12 13.5 7 8.5z"/><path d="M12 6.5L9 9.5l3 3 3-3z"/></svg></div>
-          <div><div style="font-size:13px;font-weight:700">Binance</div><div style="font-size:12px;color:rgba(255,255,255,.35)">envía USDT</div></div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div><div style="font-size:11px;color:rgba(255,255,255,.3);margin-bottom:3px">Binance ID</div><div style="font-size:18px;font-weight:800">358420048</div></div>
-          <button onclick="navigator.clipboard?.writeText('358420048');showToast('copiado',true)" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:8px 14px;font-family:var(--font);font-size:12px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer">copiar</button>
-        </div>
-      </div>
-      <input class="form-input" id="pds-txid" type="text" placeholder="ID de transacción Binance" style="width:100%">
-    </div>
-    <div id="pds-content-bcv" style="display:none;margin:14px 22px 0;flex-direction:column;gap:10px">
-      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:15px 16px;display:flex;flex-direction:column;gap:8px">
-        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px">datos pago móvil</div>
-        <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">banco</span><span style="font-weight:600" id="pds-banco">Banesco</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">teléfono</span><span style="font-weight:600" id="pds-tel">0412-0000000</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">monto</span><span style="font-weight:700;color:#e6f03b" id="pds-ves-amount">Bs. —</span></div>
-      </div>
-      <input class="form-input" id="pds-ref" type="text" placeholder="referencia Banesco" style="width:100%">
-    </div>
-    <div style="padding:18px 22px 0">
-      <button id="pds-pay-btn" onclick="processPlanPayment()" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:14px;padding:17px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;transition:all .15s" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'">pagar y publicar</button>
-    </div>
-  </div>
-</div>
 
 <!-- PRICING SHEET -->
 <div class="modal-overlay" id="pricing-sheet" onclick="if(event.target.id==='pricing-sheet')closePricingSheet()" style="align-items:flex-end">
@@ -5352,7 +5328,7 @@ function renderTrendingHoy(){
     const precio=isSubasta?(item.currentBid||item.bid_count||0):(item.price||0);
     const title=isSubasta?item.title:`${item.year} ${item.marca||''} ${item.modelo||item.title}`;
     return `
-    <div class="trending-cell" onclick="${isSubasta?`openAuctionDetail('${item.id}')`:`openMarketDetail('${item.id}')`}">
+    <div class="trending-cell" onclick="${isSubasta?`openDetail('${item.id}')`:`openMarketDetail('${item.id}')`}">
       ${photoUrl?`<img src="${photoUrl}" loading="lazy">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
       <div class="trending-rank">#${i+1}</div>
       <div class="trending-info">
@@ -13953,7 +13929,7 @@ async function _saRejectAccess(reqId,btn){
 
 // ── SUPERADMIN: subastas activas + sus códigos ──
 async function renderSAAuctionCodes(){
-  const list=document.getElementById('sa-codes-list'); if(!list) return;
+  const list=document.getElementById('sa-aucodes-list'); if(!list) return;
   list.innerHTML='<div style="color:var(--muted);font-size:13px;font-weight:300">cargando subastas…</div>';
   try{
     const{data:aucs,error}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,access_code,estado').eq('estado','activa').order('created_at',{ascending:false});
@@ -14353,7 +14329,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
   </div>
   <div id="sa-aucodigos" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
     <div style="font-size:13px;color:var(--muted);font-weight:300">cada subasta tiene su código de acceso. cópialo para entregarlo, o regenéralo.</div>
-    <div id="sa-codes-list" style="display:flex;flex-direction:column;gap:10px"></div>
+    <div id="sa-aucodes-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
   <div id="sa-kyc" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
     <div style="font-size:13px;color:var(--muted);font-weight:300">solicitudes de verificación pendientes — compara el nombre registrado con la cédula de las fotos.</div>
