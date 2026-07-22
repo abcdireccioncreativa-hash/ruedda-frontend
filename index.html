@@ -12147,23 +12147,23 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
       // a su estado base ya mismo, mientras el splash todavía tapa todo.
       hub.querySelectorAll('.mkt-hub-btn').forEach(b=>b.classList.remove('hub-pop-in'));
     }
-    // fallback genérico: solo para lo que NO tiene coreografía propia en la app
-    // (ej: la landing de desktop). En mobile, .section-header y .soon-toast se
-    // dejan tal cual — no tienen fade propio al cambiar de tab, así que tampoco
-    // les invento uno acá.
+    // [v5] investigado a fondo qué pasa realmente al estar en notificaciones y
+    // tocar la casita (goHome→showView→renderCurrentSection): NADA se mueve ni
+    // sube desde abajo. .section-header no se toca nunca. Lo único que anima es
+    // la sección activa (fadeIn) + sus .rdv (rdvIn, rise chico de 9px) + el pop
+    // del hub + (si la sección es concesionarios) el crossfade del banner via
+    // _consReenterFade. Eso y solo eso es "la misma coreografía" — nada de un
+    // rise de 14px inventado por mí en todo el bloque.
+    // El fallback genérico (con rise) queda SOLO para desktop (view-landing),
+    // que no tiene un mecanismo real de la app para reusar.
     const fallbackKids=isHome?[]:[...container.children].filter(el=>{
       const cs=getComputedStyle(el);
       return cs.display!=='none'&&cs.visibility!=='hidden';
     });
     if(!reduceMotion){
       if(activeSection){
-        // [FIX QUIRÚRGICO] antes ocultaba la sección con display:none y confiaba
-        // en que volver a display:block reiniciara su fadeIn + el rdvIn de sus
-        // hijos — funciona en Chromium de escritorio pero es frágil en mobile
-        // real (el toggle de display no siempre reinicia animation de forma
-        // confiable ahí). Uso la MISMA técnica que ya probé sólida para el pop
-        // de historias/partners/store: apagar la animation, forzar reflow, y
-        // restaurarla — eso sí reinicia consistente en cualquier navegador.
+        // misma técnica confiable (animation:none + reflow + restaurar) que ya
+        // probé sólida para el pop del hub — no depende del toggle de display.
         activeSection.style.animation='none';
         activeSection.style.opacity='0';
         rdvKids.forEach(el=>{ el.style.animation='none'; el.style.opacity='0'; });
@@ -12180,6 +12180,7 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
       activeSection.style.animation=origSectionAnim; // dispara el fadeIn real de la sección
       activeSection.style.opacity='';
       rdvKids.forEach(el=>{ el.style.animation=''; el.style.opacity=''; }); // vuelve a heredar rdvIn de la clase .rdv, con su propio delay ya escalonado
+      if(activeSection.id==='concesionarios-section'&&typeof _consReenterFade==='function') _consReenterFade(); // mismo crossfade del banner que usa renderCurrentSection()
     }
     if(hubVisible&&typeof _hubPopIn==='function') _hubPopIn(); // mismo pop escalonado que usa showView('home')
     fallbackKids.forEach((el,i)=>{
