@@ -12123,10 +12123,15 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
   function _prepCascade(container){
     const reduceMotion=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isHome=container.id==='view-home';
-    const activeSection=isHome?['auctions-section','market-section','concesionarios-section']
+    let activeSection=isHome?['auctions-section','market-section','concesionarios-section']
       .map(id=>document.getElementById(id))
       .find(el=>el&&getComputedStyle(el).display!=='none'):null;
-    const origDisplay=activeSection?activeSection.style.display:null;
+    // [FIX defensivo] si por algún motivo (timing real de red/datos) no se detecta
+    // ninguna sección visible en mobile, no dejamos el home sin coreografía —
+    // caemos a #market-section, la sección por defecto de la app.
+    if(isHome&&!activeSection) activeSection=document.getElementById('market-section');
+    const rdvKids=activeSection?[...activeSection.querySelectorAll('.rdv')]:[];
+    const origSectionAnim=activeSection?(activeSection.style.animation||''):'';
     // [pop de historias/partners/store] viven en #mkt-hub-actions, DENTRO de
     // .section-header — no de la sección activa. Tienen su propia coreografía
     // (_hubPopIn, la misma que usa showView('home') y selectSection()) y ya
@@ -12151,15 +12156,31 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
       return cs.display!=='none'&&cs.visibility!=='hidden';
     });
     if(!reduceMotion){
-      if(activeSection) activeSection.style.display='none';
+      if(activeSection){
+        // [FIX QUIRÚRGICO] antes ocultaba la sección con display:none y confiaba
+        // en que volver a display:block reiniciara su fadeIn + el rdvIn de sus
+        // hijos — funciona en Chromium de escritorio pero es frágil en mobile
+        // real (el toggle de display no siempre reinicia animation de forma
+        // confiable ahí). Uso la MISMA técnica que ya probé sólida para el pop
+        // de historias/partners/store: apagar la animation, forzar reflow, y
+        // restaurarla — eso sí reinicia consistente en cualquier navegador.
+        activeSection.style.animation='none';
+        activeSection.style.opacity='0';
+        rdvKids.forEach(el=>{ el.style.animation='none'; el.style.opacity='0'; });
+      }
       fallbackKids.forEach(el=>{ el.style.transition='none'; el.style.opacity='0'; el.style.transform='translateY(14px)'; });
     }
-    return {fallbackKids,activeSection,origDisplay,hubVisible,reduceMotion};
+    return {fallbackKids,activeSection,rdvKids,origSectionAnim,hubVisible,reduceMotion};
   }
 
-  function _playCascade({fallbackKids,activeSection,origDisplay,hubVisible,reduceMotion}){
+  function _playCascade({fallbackKids,activeSection,rdvKids,origSectionAnim,hubVisible,reduceMotion}){
     if(reduceMotion) return;
-    if(activeSection) activeSection.style.display=origDisplay; // fadeIn + rdvIn reales de la sección
+    if(activeSection){
+      void activeSection.offsetWidth; // fuerza reflow — sin esto el navegador puede no registrar el "none" antes de restaurar
+      activeSection.style.animation=origSectionAnim; // dispara el fadeIn real de la sección
+      activeSection.style.opacity='';
+      rdvKids.forEach(el=>{ el.style.animation=''; el.style.opacity=''; }); // vuelve a heredar rdvIn de la clase .rdv, con su propio delay ya escalonado
+    }
     if(hubVisible&&typeof _hubPopIn==='function') _hubPopIn(); // mismo pop escalonado que usa showView('home')
     fallbackKids.forEach((el,i)=>{
       setTimeout(()=>{
