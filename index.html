@@ -16281,3 +16281,109 @@ async function _saDeletePat(id,cat){
   });
 })();
 </script>
+<script>
+/* ============================================================
+   [RC-X][nav-click-sound] sonido de click en la bottom-nav.
+   - bloque 100% aislado: no toca ni un onclick existente
+     (goHome / showView / _toggleRueddaExtra siguen intactos),
+     corre en paralelo vía event delegation sobre .bottom-nav.
+   - asset embebido en base64 (42ms / ~5KB): cero requests,
+     cero dependencias externas, funciona offline y no depende
+     de que el deploy suba un archivo aparte.
+   - Web Audio con buffer precargado: latencia ~0 y soporta
+     taps rápidos consecutivos sin cortarse (un <audio> normal
+     se pisa a sí mismo). fallback a HTMLAudioElement si el
+     navegador no trae AudioContext.
+   - todo envuelto en try/catch: si el navegador bloquea audio
+     falla en silencio absoluto, la nav sigue funcionando igual.
+   - respeta prefers-reduced-motion y honra localStorage
+     'rd_nav_sound' === 'off' por si algún día quieres el toggle.
+   ============================================================ */
+(function(){
+  var SND_B64='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DABRADIABwC9/6f/zf8TAEUAMwDr/7z/xf/n/x4AQwBMAAEAxv/F/wAASgBeAEIA9//H/8r/8v8dACAA8f/K/7T/x/8CADQAUQAiAOb/uv/J/wsALwAzAAMA0f+6/9v/AwAyACUAAwDQ/9P/+f8aACQAEgD6/9//0//4/y8ATgBAAPn/w//J/+j/HgAjABIA7P/S/+b/CQA0ADoAGQDu/9D/1f8BAA8ACADw/9v/w//Q//v/JAA6ABIA7v/a/+H/CAAWABUA/f/n/9//9f8WADcAMgAbAOf/1v/3/x8AMwApAPr/2f/L/+b/AwAkACIA+//U/8v/7f8jADQAFgDp/9L/2v/9/ycAMwATAOf/zv/c/w0ALgA6AAwA6//O/9P/CAAmAC8A9//W/9j/7P8PACAAGAD1/9D/yP/p/xcALwAXAOz/y//V/wAAIgAzACMAAQDk/+j/BgAhACoABwDj/8b/3P///ycAJQANAOP/0v/p/xkAOQAsAP7/2v/X//T/FgAiABEA5v/L/8z/5/8YAB8ABgDc/9T/5f8NACoALQAaAPb/5f/w/xEALQAqAAQA3//h//T/CwAbABUAAQDh/9j/6v8IABwAEQDz/8//1P/y/wwAKAARAP//5P/p/wMAHQAcAA0A9f/i/+j//f8SABQABQDm/9r/6v8AABsAGAAAAO7/6v/z/wkAGAAVAAMA8f/o//P/DwAWAAkA8P/i/+T/+v8MABkAEAD5/+//9P8LABQAFwAJAPX/6v/u//r/BQAIAP//7//m//D/AQANAAsA/v/v//D/AQARAB0AEQADAPH/7v/7/wgADAACAPP/6//v//v/CgAJAAYA9P/v//T/CQARABAAAwDv//H/9v8EABAACQABAPr/+f8CAAQACQAEAPz/8//v//f/BQABAP7/9v/z//j/AwAFAAoA///5//H/+f8EAAYABAD+//r/+//7/wEAAAAEAP///P/7/wAABQAFAAIAAAD5//3//v8CAAMABAD+//v//f/+/wUAAwACAP7//f/9/wEABQAEAAMA+//8//v/AQABAAQAAAD+//z//v8BAAMAAQACAAEA/P/+/wMAAgADAP///v/+////AAACAAAAAQD8//3/AAD//wQAAwABAP7/AAD//wIAAQABAAAA/v/+////AQABAAAA////////AAAAAAIAAAD//wAA/v8BAAAAAgAAAAAA/v8BAP7/AgABAP///v8AAP//AQAAAAAA///+/wEAAAABAP//AAAAAAAAAAD//wEAAAABAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAP////8AAAEAAAABAP//AAD+/wAAAAABAAAAAAD//wAAAAABAAAAAAAAAAAAAQAAAAAAAAA=';
+  var _ctx=null,_buf=null,_fallback=null,_decoding=false;
+
+  function _enabled(){
+    try{ if(localStorage.getItem('rd_nav_sound')==='off') return false; }catch(e){}
+    return true;
+  }
+  function _b64ToBytes(b64){
+    var bin=atob(b64), len=bin.length, bytes=new Uint8Array(len);
+    for(var i=0;i<len;i++) bytes[i]=bin.charCodeAt(i);
+    return bytes.buffer;
+  }
+  function _getCtx(){
+    if(_ctx) return _ctx;
+    try{
+      var AC=window.AudioContext||window.webkitAudioContext;
+      if(!AC) return null;
+      _ctx=new AC();
+    }catch(e){ return null; }
+    return _ctx;
+  }
+  function _prime(){
+    if(_buf||_decoding) return;
+    var ctx=_getCtx();
+    if(!ctx) return;
+    _decoding=true;
+    try{
+      var p=ctx.decodeAudioData(_b64ToBytes(SND_B64), function(b){_buf=b;_decoding=false;}, function(){_decoding=false;});
+      if(p&&p.then) p.then(function(b){_buf=b;_decoding=false;}).catch(function(){_decoding=false;});
+    }catch(e){ _decoding=false; }
+  }
+  function _getFallback(){
+    if(_fallback) return _fallback;
+    try{
+      _fallback=new Audio('data:audio/wav;base64,'+SND_B64);
+      _fallback.preload='auto';
+      _fallback.volume=0.55;
+    }catch(e){ return null; }
+    return _fallback;
+  }
+  function _play(){
+    if(!_enabled()) return;
+    var ctx=_getCtx();
+    if(ctx&&_buf){
+      try{
+        if(ctx.state==='suspended') ctx.resume().catch(function(){});
+        var src=ctx.createBufferSource(), g=ctx.createGain();
+        src.buffer=_buf;
+        g.gain.value=0.55;
+        src.connect(g); g.connect(ctx.destination);
+        src.start(0);
+        return;
+      }catch(e){}
+    }
+    if(ctx&&!_buf) _prime();
+    try{
+      var a=_getFallback();
+      if(a){ a.currentTime=0; var pr=a.play(); if(pr&&pr.catch) pr.catch(function(){}); }
+    }catch(e){}
+  }
+
+  /* precarga en el primer gesto del usuario (iOS exige gesto para
+     desbloquear el audio; este listener se autodestruye) */
+  ['pointerdown','touchstart','click'].forEach(function(ev){
+    document.addEventListener(ev,function _once(){
+      _prime();
+      var c=_getCtx(); if(c&&c.state==='suspended') c.resume().catch(function(){});
+      ['pointerdown','touchstart','click'].forEach(function(e2){document.removeEventListener(e2,_once,true);});
+    },{capture:true,passive:true});
+  });
+
+  function _bind(){
+    var nav=document.querySelector('.bottom-nav');
+    if(!nav||nav.dataset.rdSnd==='1') return;
+    nav.dataset.rdSnd='1';
+    /* capture:true -> suena al instante del tap, antes de que la vista
+       cambie. NO llama preventDefault ni stopPropagation: el onclick
+       original del .bnav-item se ejecuta exactamente igual que siempre. */
+    nav.addEventListener('click',function(e){
+      try{ if(e.target.closest('.bnav-item')) _play(); }catch(err){}
+    },true);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',_bind);
+  else _bind();
+})();
+</script>
+
