@@ -2,6 +2,5 @@
   "version": 2,
   "buildCommand": "npm install",
   "installCommand": "npm install",
-  "outputDirectory": ".",
-  "crons": [{ "path": "/api/auction-close", "schedule": "*/5 * * * *" }]
+  "outputDirectory": "."
 }
