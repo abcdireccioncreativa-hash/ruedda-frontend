@@ -8021,8 +8021,11 @@ function validateVenderForm(){
   const errors = [];
 
   // [FIX] antes leia clasificacion-select (categoria comercial/deportivo), no la marca real.
-  // Ahora usa el mismo getSelByLabel('marca') que publishListing, misma fuente de verdad.
-  const getSelByLabel = (lbl) => { for (const l of (form?.querySelectorAll('.form-label') || [])) { if (l.textContent.trim() === lbl) { const s = l.closest('.form-group')?.querySelector('select,input'); if (s) return s.value || ''; } } return ''; };
+  // [FIX 2] getSelByLabel comparaba textContent tal cual contra 'marca' en minuscula sin punto,
+  // pero el label real es "Marca." (mayuscula + punto) -> nunca hacia match, siempre vacio.
+  // Se normaliza minusculas y se quita el punto final en ambos lados antes de comparar.
+  const _norm = (s) => String(s||'').trim().toLowerCase().replace(/\.+$/,'');
+  const getSelByLabel = (lbl) => { for (const l of (form?.querySelectorAll('.form-label') || [])) { if (_norm(l.textContent) === _norm(lbl)) { const s = l.closest('.form-group')?.querySelector('select,input'); if (s) return s.value || ''; } } return ''; };
   const marca = getSelByLabel('marca');
   const year  = document.getElementById('year-select')?.value||'';
   const getByPH = (ph) => form?.querySelector(`input[placeholder="${ph}"],textarea[placeholder="${ph}"]`)?.value?.trim()||'';
@@ -8084,7 +8087,11 @@ async function publishListing(){
   const horaProg=document.getElementById('programada-hora')?.value||'';
   const fechaInicioProgramada=(esProgramada&&fechaProg&&horaProg)?new Date(`${fechaProg}T${horaProg}:00`):null;
   const getByPH=(ph)=>form?.querySelector(`input[placeholder="${ph}"],textarea[placeholder="${ph}"]`)?.value?.trim()||'';
-  const getSelByLabel=(lbl)=>{for(const l of (form?.querySelectorAll('.form-label')||[])){if(l.textContent.trim()===lbl){const s=l.closest('.form-group')?.querySelector('select,input');if(s)return s.value||'';}}return '';};
+  // [FIX RAIZ] comparaba textContent tal cual contra el label en minuscula sin punto
+  // ("Marca." vs 'marca' nunca matcheaba) -> marca/ciudad/transmision/combustible/duenos
+  // se leian siempre vacios. Se normaliza minusculas + sin punto final en ambos lados.
+  const _norm=(s)=>String(s||'').trim().toLowerCase().replace(/\.+$/,'');
+  const getSelByLabel=(lbl)=>{for(const l of (form?.querySelectorAll('.form-label')||[])){if(_norm(l.textContent)===_norm(lbl)){const s=l.closest('.form-group')?.querySelector('select,input');if(s)return s.value||'';}}return '';};
   const marca=getSelByLabel('marca');   // ← fix: lee el select de marca por su label
   const modelo=getByPH('ej. Corolla XLI');
   const km=parseInt(getByPH('km')||'0');
