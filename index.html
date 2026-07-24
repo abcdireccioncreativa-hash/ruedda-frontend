@@ -2028,6 +2028,21 @@ html{scrollbar-width:none}
   </div>
 </div>
 
+<!-- [subastas programadas] acceso anticipado — mismo patron visual que publish-for-me-sheet, solo whatsapp -->
+<div id="auction-waitlist-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease" onclick="if(event.target===this)_closeAuctionWaitlistSheet()">
+  <div id="aws-inner" style="background:#000;border-top:1px solid rgba(255,255,255,.08);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+    <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:rgba(255,255,255,.2)"></div></div>
+    <div style="width:54px;height:54px;border-radius:50%;background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
+      <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    </div>
+    <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:#fff">acceso anticipado</div>
+    <div style="font-size:13px;font-weight:300;color:rgba(255,255,255,.55);text-align:center;margin-top:10px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto">Déjanos tu número de WhatsApp y te contactamos antes de que arranque la subasta.</div>
+    <input id="aws-whatsapp" type="tel" placeholder="tu número de whatsapp" style="width:100%;margin-top:22px;background:#0e0e10;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box">
+    <button id="aws-send-btn" onclick="_submitAuctionWaitlist(this)" style="width:100%;margin-top:14px;background:#e6f03b;color:#000;border:none;border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer">enviar</button>
+    <button onclick="_closeAuctionWaitlistSheet()" style="width:100%;margin-top:10px;background:none;border:none;color:rgba(255,255,255,.4);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;padding:8px">cancelar</button>
+  </div>
+</div>
+
 <!-- DETAIL VIEW -->
 <div id="view-detail" class="view">
   <div class="detail-back" onclick="showView('home')">
@@ -2131,7 +2146,25 @@ html{scrollbar-width:none}
         <div class="bid-section" id="bid-section-locked" style="position:sticky;top:80px;margin-top:18px;margin-bottom:34px;display:none;text-align:center">
           <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">empieza en</div>
           <div class="timer-big-value" id="timer-card-detaillocked" style="font-size:26px;margin-bottom:18px">--</div>
-          <button class="btn-bid" onclick="_showAuctionAccessSheet()">Obtener acceso de subasta</button>
+          <div style="display:flex;gap:10px">
+            <button class="btn-watchlist" id="watchlist-btn-locked" style="flex:1" onclick="toggleWatchlist()">
+              <svg id="watchlist-icon-locked" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
+              <span id="watchlist-label-locked">favoritos</span>
+            </button>
+            <button class="btn-watchlist" id="like-btn-locked" style="flex:1" onclick="toggleAuctionLike()">
+              <svg id="like-icon-locked" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M7 11v9H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3zm0 0 4.5-8.5A2 2 0 0 1 13 1.5v0a2 2 0 0 1 2 2V8h4.5a2 2 0 0 1 1.98 2.27l-1 7A2 2 0 0 1 18.52 19H10a3 3 0 0 1-3-3"/></svg>
+              <span id="like-label-locked">me gusta</span>
+            </button>
+          </div>
+          <div style="margin-top:16px;font-size:13px;font-weight:500;color:rgba(255,255,255,.55)">
+            <span onclick="_showAuctionWaitlistSheet()" style="color:#e6f03b;font-weight:700;cursor:pointer">solicitar acceso anticipado</span>
+            <span style="color:rgba(255,255,255,.25);margin:0 6px">·</span>
+            <span onclick="_showAuctionAccessSheet()" style="color:rgba(255,255,255,.5);font-weight:600;cursor:pointer;font-size:12px">entrar</span>
+          </div>
+          <div style="margin-top:18px;background:rgba(230,240,59,.05);border:1px solid rgba(230,240,59,.18);border-radius:14px;padding:13px 16px;text-align:left;display:flex;align-items:center;gap:10px">
+            <svg fill="none" viewBox="0 0 20 20" stroke="#e6f03b" stroke-width="1.6" style="width:16px;height:16px;flex-shrink:0"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l2.5 2.5"/></svg>
+            <p style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.5;font-weight:400;margin:0">esta subasta empezará en precio base de: <span id="locked-precio-base" style="color:#e6f03b;font-weight:800">--</span></p>
+          </div>
         </div>
       </div>
     </div>
@@ -6096,7 +6129,14 @@ function openDetail(id){
   if(_bidNormal&&_bidLocked){
     _bidNormal.style.display=a.programada?'none':'';
     _bidLocked.style.display=a.programada?'':'none';
-    if(a.programada) startCardTimer('detaillocked',a.fechaInicioProgramada);
+    if(a.programada){
+      startCardTimer('detaillocked',a.fechaInicioProgramada);
+      // [subastas programadas] precio base = current_bid antes de que arranque (aun no hay pujas)
+      const pb=document.getElementById('locked-precio-base');
+      if(pb) pb.textContent=fmtBid(a.currentBid||0);
+      updateWatchlistBtn();
+      updateAuctionLikeBtn();
+    }
   }
   // [V107] reset del estado "finalizada" heredado de una subasta anterior (SPA: el DOM persiste)
   (function _resetBidCard(){
@@ -6358,6 +6398,35 @@ function updateWatchlistBtn(){
   icon.style.stroke=saved?'#e6f03b':'currentColor';
   lbl.textContent=saved?'en favoritos':'guardar en favoritos';
   document.getElementById('watchlist-btn').style.color=saved?'var(--lime)':'';
+  // [subastas programadas] sincroniza tambien el boton del panel bloqueado, si existe en el DOM
+  const iconL=document.getElementById('watchlist-icon-locked');
+  const lblL=document.getElementById('watchlist-label-locked');
+  const btnL=document.getElementById('watchlist-btn-locked');
+  if(iconL){iconL.style.fill=saved?'#e6f03b':'none';iconL.style.stroke=saved?'#e6f03b':'currentColor';}
+  if(lblL) lblL.textContent=saved?'en favoritos':'favoritos';
+  if(btnL) btnL.style.color=saved?'var(--lime)':'';
+}
+
+// [subastas programadas] "like" — toggle 100% local (localStorage), aditivo, no toca watchlist ni Supabase
+let auctionLikes=new Set();
+try{ auctionLikes=new Set(JSON.parse(localStorage.getItem('rd_auction_likes')||'[]')); }catch(e){}
+function toggleAuctionLike(){
+  if(!currentAuction)return;
+  const id=currentAuction.id;
+  if(auctionLikes.has(id)){ auctionLikes.delete(id); showToast('quitaste el me gusta'); }
+  else{ auctionLikes.add(id); showToast('¡te gusta esta subasta!',true); }
+  try{ localStorage.setItem('rd_auction_likes',JSON.stringify([...auctionLikes])); }catch(e){}
+  updateAuctionLikeBtn();
+}
+function updateAuctionLikeBtn(){
+  if(!currentAuction)return;
+  const liked=auctionLikes.has(currentAuction.id);
+  const icon=document.getElementById('like-icon-locked');
+  const lbl=document.getElementById('like-label-locked');
+  const btn=document.getElementById('like-btn-locked');
+  if(icon){icon.style.fill=liked?'#e6f03b':'none';icon.style.stroke=liked?'#e6f03b':'currentColor';}
+  if(lbl) lbl.textContent=liked?'te gusta':'me gusta';
+  if(btn) btn.style.color=liked?'var(--lime)':'';
 }
 // hash seguro para cualquier tipo de id (number o UUID string)
 function _favGradIdx(id){
@@ -6930,7 +6999,7 @@ function openBidModal(){
 }
 function _openBidModalReal(){
   if(!currentAuction)return;
-  const min=currentAuction.currentBid+500;
+  const min=Math.max(150,currentAuction.currentBid);
   document.getElementById('modal-subtitle').textContent=currentAuction.title;
   document.getElementById('bid-min-display').textContent=fmtBid(min);
   document.getElementById('bid-input-field').value='';
@@ -6968,9 +7037,9 @@ function closeBidModalOutside(e){if(e.target.id==='bid-modal')closeBidModal()}
 function adjustBid(delta){
   const f = document.getElementById('bid-input-field');
   if(!f) return;
-  const min = currentAuction ? currentAuction.currentBid + 500 : 80;
+  const min = currentAuction ? Math.max(150,currentAuction.currentBid) : 150;
   let val = parseFloat(f.value) || min;
-  val = Math.max(80, val + delta);
+  val = Math.max(min, val + delta);
   f.value = val;
 }
 
@@ -6978,10 +7047,10 @@ function confirmBidCheck(){
   if(isGuest()){ closeModal('bid-modal'); triggerGuestBlock('oferta'); return; }
   if(!currentAuction) return;
   const val = parseFloat(document.getElementById('bid-input-field').value);
-  const min = currentAuction.currentBid + 500;
+  const min = Math.max(150,currentAuction.currentBid);
   if(!Number.isFinite(val) || !Number.isInteger(val)){ showToast('monto inválido'); return; }
   if(val > 5000000){ showToast('monto fuera de rango'); return; }
-  if(!val || val < 80){ showToast('mínimo $80'); return; }
+  if(!val || val < 150){ showToast('mínimo $150'); return; }
   if(val < min){ showToast('mínimo: '+fmtBid(min)); return; }
 
   // Double confirm
@@ -7005,7 +7074,7 @@ async function confirmBid(){
   if(isGuest()){closeModal('bid-modal');triggerGuestBlock('oferta');return;}
   if(!currentAuction)return;
   const val=parseFloat(document.getElementById('bid-input-field').value);
-  const min=currentAuction.currentBid+500;
+  const min=Math.max(150,currentAuction.currentBid);
   if(!Number.isFinite(val) || !Number.isInteger(val)){ showToast('monto inválido'); return; }
   if(val > 5000000){ showToast('monto fuera de rango'); return; }
   if(!val||val<min){showToast('mínimo: '+fmtBid(min));return;}
@@ -9697,6 +9766,41 @@ async function _submitPublishForMe(btn){
       showToast('listo ✓ te escribimos a la brevedad',true);
       const el=document.getElementById('pfm-whatsapp'); if(el) el.value='';
       setTimeout(_closePublishForMeSheet,600);
+    }
+  }catch(e){ showToast('error enviando la solicitud'); }
+  if(btn){btn.textContent='enviar';btn.disabled=false;btn.style.opacity='1';}
+}
+
+// [subastas programadas] acceso anticipado — mismo patron que _showPublishForMeSheet, tabla propia
+function _showAuctionWaitlistSheet(){
+  const m=document.getElementById('auction-waitlist-sheet');
+  if(!m) return;
+  m.style.display='flex';
+  requestAnimationFrame(()=>{m.style.opacity='1';const i=document.getElementById('aws-inner');if(i)i.style.transform='translateY(0)';});
+}
+function _closeAuctionWaitlistSheet(){
+  const m=document.getElementById('auction-waitlist-sheet');
+  if(!m) return;
+  const i=document.getElementById('aws-inner'); if(i)i.style.transform='translateY(100%)';
+  m.style.opacity='0';
+  setTimeout(()=>{m.style.display='none';},380);
+}
+async function _submitAuctionWaitlist(btn){
+  const wa=(document.getElementById('aws-whatsapp')?.value||'').trim();
+  if(!wa){showToast('déjanos tu número de whatsapp');return;}
+  if(!currentAuction){showToast('subasta no encontrada');return;}
+  if(!_supa){showToast('no disponible en modo demo');return;}
+  if(btn){btn.textContent='enviando...';btn.disabled=true;btn.style.opacity='.6';}
+  try{
+    const{error}=await _supa.from('auction_early_access_leads').insert({
+      user_id:(USER_STATE&&!isGuest()&&USER_STATE.id)?USER_STATE.id:null,
+      auction_id:currentAuction.id,whatsapp:wa
+    });
+    if(error){showToast('no se pudo enviar: '+error.message);}
+    else{
+      showToast('listo ✓ te escribimos antes de que arranque',true);
+      const el=document.getElementById('aws-whatsapp'); if(el) el.value='';
+      setTimeout(_closeAuctionWaitlistSheet,600);
     }
   }catch(e){ showToast('error enviando la solicitud'); }
   if(btn){btn.textContent='enviar';btn.disabled=false;btn.style.opacity='1';}
