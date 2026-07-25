@@ -2168,6 +2168,12 @@ html{scrollbar-width:none}
             <p style="font-size:12.5px;color:rgba(255,255,255,.7);line-height:1.5;font-weight:400;margin:0">esta subasta empezará en precio base de: <span id="locked-precio-base" style="color:#e6f03b;font-weight:800">--</span></p>
           </div>
         </div>
+        <!-- [reserva] aviso estetico entre el card de ofertar y especificaciones — mismo estilo/tamaño que mkt-financiamiento-card -->
+        <div id="reserva-info-card" style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 15px;display:flex;flex-direction:column;gap:6px;margin-top:14px">
+          <img src="data:image/png;base64,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" alt="" style="width:22px;height:22px;object-fit:contain">
+          <div id="reserva-info-title" style="font-size:14px;font-weight:700;color:#fff"></div>
+          <div id="reserva-info-sub" style="font-size:11.5px;font-weight:400;color:rgba(255,255,255,.5);line-height:1.5;margin-top:1px"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -6120,7 +6126,7 @@ function openDetail(id){
   currentAuction=AUCTIONS.find(a=>a.id==id||String(a.id)===String(id))||AUCTIONS_CHOCADOS.find(a=>a.id==id||String(a.id)===String(id));
   if(!currentAuction)return;
   // [V87] vista real del comprador + chip (tras reasignar currentAuction al correcto)
-  setTimeout(()=>{const a=currentAuction;const tm=document.getElementById('detail-timer');if(tm&&a){_registerRealView('auctions',a);let c=document.getElementById('detail-views-chip');if(!c){tm.insertAdjacentHTML('afterend','<span id="detail-views-chip" style="display:flex;justify-content:flex-end;margin-top:7px"></span>');c=document.getElementById('detail-views-chip');}c.innerHTML=_viewsChip(a.viewCount);const sv=document.getElementById('detail-stats-vistas');if(sv)sv.textContent=((a.viewCount||0)).toLocaleString();}},80);
+  setTimeout(()=>{const a=currentAuction;const tm=document.getElementById('detail-timer');if(tm&&a){_registerRealView('auctions',a);let c=document.getElementById('detail-views-chip');if(!c){tm.insertAdjacentHTML('afterend','<span id="detail-views-chip" style="display:flex;justify-content:flex-end;margin-top:7px"></span>');c=document.getElementById('detail-views-chip');}c.innerHTML=_viewsChip(a.viewCount);const sv=document.getElementById('detail-stats-vistas');if(sv)sv.textContent=(((a.viewCount||0))*VIEW_DISPLAY_FACTOR).toLocaleString();}},80);
   const a=currentAuction;
   clearTimers();
   showView('detail');
@@ -6178,6 +6184,7 @@ function openDetail(id){
   const badges=document.getElementById('detail-badges');
   badges.innerHTML='';
   if(a.sinReserva)badges.innerHTML+='<div class="detail-badge verde">sin reserva</div>';
+  _renderReservaInfoCard(a);
   const _clasifMap={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'};const _clasif=_clasifMap[a.clasificacion]||a.clasificacion||a.category||'';badges.innerHTML+=`<div class="detail-badge">${a.year}</div>${(_clasif&&_clasif!=='undefined')?`<div class="detail-badge">${_clasif}</div>`:''}<div class="detail-badge">${a.location.toLowerCase()}</div>`;
   document.getElementById('detail-title').textContent=a.title;
   document.getElementById('detail-subtitle').innerHTML=`<span>${fmtKm(a.km)}</span>${a.owners?`<span class="sep">·</span><span>${a.owners} ${String(a.owners)==='1'?'dueño':'dueños'}</span>`:''}${a.transmission?`<span class="sep">·</span><span>${a.transmission}</span>`:''}${a.fuel?`<span class="sep">·</span><span>${a.fuel}</span>`:''}`; // [V84] segmentos condicionales — sin "undefined" 
@@ -6256,6 +6263,23 @@ function openDetail(id){
   if(a.endTime-Date.now()<=0) renderDetailAuctionEnded();
 }
 
+// [reserva] card entre "ofertar/guardar en favoritos" y "especificaciones" —
+// mensaje distinto segun si la subasta tiene precio de reserva privado o no
+function _renderReservaInfoCard(a){
+  const box=document.getElementById('reserva-info-card');
+  if(!box||!a) return;
+  const t=document.getElementById('reserva-info-title');
+  const s=document.getElementById('reserva-info-sub');
+  if(!t||!s) return;
+  if(a.sinReserva){
+    t.textContent='Este vehículo no tiene precio de reserva';
+    s.textContent='No hay un mínimo oculto: la oferta más alta al cierre de la subasta se lleva el vehículo.';
+  }else{
+    t.textContent='Este carro cuenta con un precio de reserva privado';
+    s.textContent='Si las pujas no llegan al precio de reserva, el vehículo queda a disposición del dueño.';
+  }
+}
+
 // [V91] card de stats estilo Ruedda bajo el historial de ofertas
 function _renderDetailStatsCard(a){
   const box=document.getElementById('detail-stats-card');
@@ -6268,7 +6292,7 @@ function _renderDetailStatsCard(a){
   const dEnd=new Date(a.endTime);
   const fecha=dEnd.toLocaleDateString('es-VE',{weekday:'short',day:'numeric',month:'short'}).replace(/\./g,'');
   const hora=dEnd.toLocaleTimeString('es-VE',{hour:'numeric',minute:'2-digit'});
-  const vistas=((a.viewCount||0)).toLocaleString();
+  const vistas=(((a.viewCount||0))*VIEW_DISPLAY_FACTOR).toLocaleString();
   const lbl='font-size:13px;font-weight:700;color:#fff;letter-spacing:-.1px';
   const val='display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.85);font-weight:400';
   const row='display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06)';
@@ -6285,7 +6309,7 @@ function _renderDetailStatsCard(a){
   </div>`;
   if(_supa){
     const keys=['mkt-'+a.id,String(a.id)];
-    _supa.from('user_favorites').select('id',{count:'exact',head:true}).in('item_id',keys).then(({count})=>{
+    _supa.from('user_favorites').select('item_id',{count:'exact',head:true}).in('item_id',keys).then(({count})=>{
       const el=document.getElementById('detail-fav-count');
       if(el){const n=count||0;el.textContent=n===1?'1 persona lo tiene en favoritos':n+' personas lo tienen en favoritos';}
     }).catch(()=>{});
