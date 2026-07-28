@@ -5497,31 +5497,39 @@ function _bindChocSponsorSwipe(track){
 // [FIX quirúrgico] el caché anterior era por DÍA CALENDARIO (rd_trending_cache.date),
 // guardado en localStorage — es decir, por DISPOSITIVO. El primer visitante del día
 // congelaba el top4 de ESE dispositivo hasta la medianoche, sin importar que después
-// una subasta (ej: recién salida de "programada", o que simplemente acumuló vistas)
-// terminara con MÁS vistas que las 4 ya cacheadas. Por eso una subasta con 213 vistas
-// podía no aparecer en trending aunque todas las que sí salían tuvieran menos vistas:
-// no era la subasta programada, era el caché de 24h pisándola. Se cambia la validez
-// del caché de "mismo día" a "últimos 20 minutos" — sigue evitando recálculo/parpadeo
-// en cada render, pero se autocorrige rápido en vez de quedar pegado todo el día.
+// una subasta terminara con MÁS vistas que las 4 ya cacheadas. Se cambió la validez
+// del caché de "mismo día" a "últimos 20 minutos".
 const _TRENDING_CACHE_TTL_MS=20*60*1000;
+// [FIX quirúrgico #3 — el definitivo] _loadMarket() y _loadAuctions() cargan en
+// paralelo. _loadMarket() casi siempre termina primero (menos joins) y llama
+// renderTrendingHoy() → esa primera llamada cachea el top4 usando SOLO market
+// (porque AUCTIONS aún está vacío). Cuando _loadAuctions() termina un instante
+// después y vuelve a llamar renderTrendingHoy(), el chequeo de "¿el caché ya
+// tiene 4 items?" seguía dando true (4>=4) — el caché recién escrito hace
+// milisegundos SIEMPRE "parecía" suficiente, así el pool total ya hubiera
+// crecido con la subasta nueva. Por eso una subasta con más vistas que todo
+// market nunca llegaba a competir, en NINGUNA carga de página, sin importar
+// el TTL. Ahora el caché solo se LEE o se ESCRIBE una vez que ambos feeds
+// (window._feedLoaded.mkt Y .auc) ya resolvieron — mientras falte alguno,
+// siempre se calcula en vivo con lo que haya, sin persistir nada a medias.
 function _trendingTop4(){
   // mezclar subastas y market primero, así sabemos cuánta data hay disponible AHORA
   const allItems=[];
   AUCTIONS.forEach(a=>{allItems.push({...a,source:'subasta',viewCount:a.viewCount||0});});
   MARKET_LISTINGS.forEach(l=>{allItems.push({...l,source:'market',viewCount:l.viewCount||0});});
-  try{
-    const cache=JSON.parse(localStorage.getItem('rd_trending_cache')||'null');
-    // [FIX] antes, si el caché de hoy existía con MENOS de 4 items (ej: se calculó
-    // apenas cargó market pero antes de que subastas terminara), se quedaba pegado
-    // así todo el día sin volver a intentar. Ahora solo se respeta el caché si ya
-    // tiene tantos items como la data disponible permite (hasta 4) — si no, se ignora
-    // y se recalcula con todo lo que ya cargó.
-    if(cache&&typeof cache.ts==='number'&&(Date.now()-cache.ts)<_TRENDING_CACHE_TTL_MS&&Array.isArray(cache.items)&&cache.items.length>=Math.min(4,allItems.length)){
-      return cache.items;
-    }
-  }catch(e){}
+  const _bothFeedsReady=!!(window._feedLoaded?.mkt&&window._feedLoaded?.auc);
+  if(_bothFeedsReady){
+    try{
+      const cache=JSON.parse(localStorage.getItem('rd_trending_cache_v2')||'null');
+      if(cache&&typeof cache.ts==='number'&&(Date.now()-cache.ts)<_TRENDING_CACHE_TTL_MS&&Array.isArray(cache.items)&&cache.items.length>=Math.min(4,allItems.length)){
+        return cache.items;
+      }
+    }catch(e){}
+  }
   const top4=allItems.sort((a,b)=>(b.viewCount||0)-(a.viewCount||0)).slice(0,4);
-  try{localStorage.setItem('rd_trending_cache',JSON.stringify({ts:Date.now(),items:top4}));}catch(e){}
+  if(_bothFeedsReady){
+    try{localStorage.setItem('rd_trending_cache_v2',JSON.stringify({ts:Date.now(),items:top4}));}catch(e){}
+  }
   return top4;
 }
 let _lastTrendingIds=null;
