@@ -12032,6 +12032,15 @@ async function _loadAuctions(){
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
     if(typeof renderCards==='function') renderCards();
+    // [FIX quirúrgico #2] _loadMarket() sí dispara renderTrendingHoy() cuando termina
+    // de cargar — _loadAuctions() no lo hacía. Como _loadMarket() casi siempre resuelve
+    // primero (menos joins), trending se calculaba y cacheaba con SOLO market, antes de
+    // que las subastas llegaran. Resultado: una subasta con más vistas que todo market
+    // (como esta, 79 vs 44/40/39/30) nunca competía por el top4, en NINGUNA carga de
+    // página — no importaba cuánto durara el caché, porque el cálculo siempre corría
+    // en el momento equivocado. Con esta línea, cuando las subastas terminan de cargar,
+    // trending se recalcula también.
+    if(typeof renderTrendingHoy==='function') renderTrendingHoy();
     _subscribeToAuctions();
   }catch(e){console.error('[ruedda] _loadAuctions catch:',String(e?.message||e));}
 }
