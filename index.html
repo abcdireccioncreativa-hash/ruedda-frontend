@@ -5491,10 +5491,20 @@ function _bindChocSponsorSwipe(track){
 }
 
 // ───────────────────────────────────────────
-// TRENDING HOY — top 4 por vistas, cache diario (un solo cálculo por día)
+// TRENDING HOY — top 4 por vistas, cache corto (20 min) para evitar parpadeo
+// sin dejar un ítem con más vistas bloqueado hasta el día siguiente
 // ───────────────────────────────────────────
+// [FIX quirúrgico] el caché anterior era por DÍA CALENDARIO (rd_trending_cache.date),
+// guardado en localStorage — es decir, por DISPOSITIVO. El primer visitante del día
+// congelaba el top4 de ESE dispositivo hasta la medianoche, sin importar que después
+// una subasta (ej: recién salida de "programada", o que simplemente acumuló vistas)
+// terminara con MÁS vistas que las 4 ya cacheadas. Por eso una subasta con 213 vistas
+// podía no aparecer en trending aunque todas las que sí salían tuvieran menos vistas:
+// no era la subasta programada, era el caché de 24h pisándola. Se cambia la validez
+// del caché de "mismo día" a "últimos 20 minutos" — sigue evitando recálculo/parpadeo
+// en cada render, pero se autocorrige rápido en vez de quedar pegado todo el día.
+const _TRENDING_CACHE_TTL_MS=20*60*1000;
 function _trendingTop4(){
-  const today=new Date().toISOString().slice(0,10);
   // mezclar subastas y market primero, así sabemos cuánta data hay disponible AHORA
   const allItems=[];
   AUCTIONS.forEach(a=>{allItems.push({...a,source:'subasta',viewCount:a.viewCount||0});});
@@ -5506,12 +5516,12 @@ function _trendingTop4(){
     // así todo el día sin volver a intentar. Ahora solo se respeta el caché si ya
     // tiene tantos items como la data disponible permite (hasta 4) — si no, se ignora
     // y se recalcula con todo lo que ya cargó.
-    if(cache&&cache.date===today&&Array.isArray(cache.items)&&cache.items.length>=Math.min(4,allItems.length)){
+    if(cache&&typeof cache.ts==='number'&&(Date.now()-cache.ts)<_TRENDING_CACHE_TTL_MS&&Array.isArray(cache.items)&&cache.items.length>=Math.min(4,allItems.length)){
       return cache.items;
     }
   }catch(e){}
   const top4=allItems.sort((a,b)=>(b.viewCount||0)-(a.viewCount||0)).slice(0,4);
-  try{localStorage.setItem('rd_trending_cache',JSON.stringify({date:today,items:top4}));}catch(e){}
+  try{localStorage.setItem('rd_trending_cache',JSON.stringify({ts:Date.now(),items:top4}));}catch(e){}
   return top4;
 }
 let _lastTrendingIds=null;
