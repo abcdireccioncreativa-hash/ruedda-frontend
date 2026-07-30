@@ -3051,6 +3051,13 @@ html{scrollbar-width:none}
     <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">ciudad</div>
     <select id="dh-ciudad-select" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:13px 15px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box;appearance:none;-webkit-appearance:none"></select>
 
+    <!-- [FIX] descripción de la vitrina — antes este espacio (debajo del nombre en
+         la vitrina pública) siempre repetía la ciudad porque no existía forma de
+         escribir nada ahí. -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">descripción</div>
+    <textarea id="dh-descripcion-input" rows="3" maxlength="160" placeholder="ej. concesionario especializado en vehículos de lujo y deportivos, 15 años en el mercado." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:13px 15px;font-family:var(--font);font-size:14px;color:#fff;outline:none;transition:border-color .15s;box-sizing:border-box;resize:none" onfocus="this.style.borderColor='rgba(255,255,255,0.3)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"></textarea>
+    <div style="font-size:11px;color:var(--muted);margin-top:-8px">aparece justo debajo del nombre en tu vitrina. si la dejas vacía, se muestra la ciudad.</div>
+
     <!-- LOGO -->
     <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">logo del concesionario</div>
     <div style="display:flex;align-items:center;gap:14px">
@@ -9944,7 +9951,11 @@ function openVitrina(id){
     if(vc){vc.textContent='';if(_supa)_supa.from('listings').select('id',{count:'exact',head:true}).eq('concesionario_id',d.id).eq('estado','activa').then(({count})=>{const c2=document.getElementById('vitrina-count');if(c2)c2.textContent=(count||0)+' vehículos.';}).catch(()=>{});}
     const dir=document.getElementById('vitrina-direccion');
     if(dir){
-      const txt=d.direccion||d.ciudad||'';
+      // [FIX] antes este slot caía siempre a d.ciudad (nunca se traía 'direccion' de
+      // Supabase) y se veía duplicado con el chip de abajo (que también muestra
+      // ciudad). Ahora prioriza la descripción real de la vitrina si el dueño la
+      // escribió; si no hay ninguna, sigue cayendo a ciudad — cero regresión.
+      const txt=d.descripcion||d.direccion||d.ciudad||'';
       dir.textContent=txt; dir.style.display=txt?'block':'none';
       const own=USER_STATE.concesionarioId&&String(USER_STATE.concesionarioId)===String(d.id);
       dir.style.cursor=own?'pointer':'default';
@@ -11100,6 +11111,9 @@ function handleEditarVitrina(){
   const inp=document.getElementById('dh-nombre-input');
   if(inp && currentDealer?.nombre) inp.value=currentDealer.nombre;
   else if(inp && USER_STATE.nombre) inp.value=USER_STATE.nombre;
+  // [FIX descripción vitrina] precargar lo ya guardado (si hay)
+  const descInp=document.getElementById('dh-descripcion-input');
+  if(descInp) descInp.value=currentDealer?.descripcion||'';
   // [BLOQUE 4] poblar select de ciudad con la lista canónica y preseleccionar la actual
   const ciudadSel=document.getElementById('dh-ciudad-select');
   if(ciudadSel&&typeof CIUDADES_VE!=='undefined'){
@@ -11178,17 +11192,25 @@ async function saveDealerProfile(){
   const nombre=document.getElementById('dh-nombre-input')?.value.trim();
   if(!nombre){ showToast('escribe el nombre del concesionario'); return; }
   const ciudad=document.getElementById('dh-ciudad-select')?.value||'';
+  const descripcion=document.getElementById('dh-descripcion-input')?.value.trim()||'';
   const btn=document.querySelector('#dh-content-vitrina button[onclick="saveDealerProfile()"]');
   if(btn){ btn.textContent='guardando...'; btn.disabled=true; btn.style.opacity='.7'; }
   if(_supa && USER_STATE.concesionarioId){
-    const{error}=await _supa.from('concesionarios').update({nombre,ciudad}).eq('id',USER_STATE.concesionarioId);
+    let{error}=await _supa.from('concesionarios').update({nombre,ciudad,descripcion}).eq('id',USER_STATE.concesionarioId);
+    // [FIX descripción vitrina] si la columna 'descripcion' aún no existe en Supabase
+    // (falta correr la migración), reintenta SOLO con nombre+ciudad para que ese
+    // guardado nunca se rompa por culpa del campo nuevo — cero regresión.
+    if(error&&/descripcion/i.test(String(error?.message||''))){
+      ({error}=await _supa.from('concesionarios').update({nombre,ciudad}).eq('id',USER_STATE.concesionarioId));
+      if(!error) showToast('nombre y ciudad guardados — la descripción necesita una migración pendiente en Supabase, avísale a Claude Code');
+    }
     if(error){
       console.error('[ruedda] saveDealerProfile:',error.message);
       showToast('error al guardar: '+error.message);
       if(btn){ btn.textContent='guardar cambios'; btn.disabled=false; btn.style.opacity='1'; }
       return;
     }
-    if(currentDealer){currentDealer.nombre=nombre;currentDealer.ciudad=ciudad;}
+    if(currentDealer){currentDealer.nombre=nombre;currentDealer.ciudad=ciudad;currentDealer.descripcion=descripcion;}
     USER_STATE.dealerNombre=nombre;
   }
   if(btn){ btn.textContent='guardar cambios'; btn.disabled=false; btn.style.opacity='1'; }
@@ -12113,10 +12135,22 @@ async function _loadConcesionarios(){
   // [CONSESIONARIOS V2] la columna tipo ('agencia' | 'marca_oficial') puede no existir
   // todavía en Supabase — si la query truena por eso, se reintenta SIN la columna y
   // todo se trata como 'agencia'. Cero regresión mientras se corre consesionarios_v2.sql.
-  const _cols='id,nombre,tag,ciudad,color,logo_url,banner_url,telefono,instagram,whatsapp,user_id,activo,plan_expiry';
+  // [FIX descripción vitrina] antes solo se traía nombre/tag/ciudad/etc — 'direccion'
+  // nunca se seleccionaba, así que ese slot siempre caía a ciudad y se veía duplicado
+  // con el chip de abajo. Se agrega 'descripcion' con el mismo patrón defensivo que
+  // ya usa 'tipo': si la columna aún no existe en Supabase, reintenta sin ella —
+  // cero regresión mientras se corre la migración.
+  const _cols='id,nombre,tag,ciudad,color,logo_url,banner_url,telefono,instagram,whatsapp,user_id,activo,plan_expiry,descripcion';
   let{data,error}=await _supa.from('concesionarios').select(_cols+',tipo').eq('activo',true).order('created_at',{ascending:false});
   if(error&&/tipo/i.test(String(error?.message||''))){
     ({data,error}=await _supa.from('concesionarios').select(_cols).eq('activo',true).order('created_at',{ascending:false}));
+  }
+  if(error&&/descripcion/i.test(String(error?.message||''))){
+    const _colsNoDesc=_cols.replace(',descripcion','');
+    ({data,error}=await _supa.from('concesionarios').select(_colsNoDesc+',tipo').eq('activo',true).order('created_at',{ascending:false}));
+    if(error&&/tipo/i.test(String(error?.message||''))){
+      ({data,error}=await _supa.from('concesionarios').select(_colsNoDesc).eq('activo',true).order('created_at',{ascending:false}));
+    }
   }
   if(error){console.error('[ruedda] _loadConcesionarios: '+String(error?.message||'error'));return;}
   // contar vehículos activos por concesionario
@@ -12127,7 +12161,7 @@ async function _loadConcesionarios(){
     (counts||[]).forEach(r=>{ countMap[r.concesionario_id]=(countMap[r.concesionario_id]||0)+1; });
   }
   const _mapped=(data||[]).map(d=>({
-    id:d.id,nombre:d.nombre,tag:d.tag||'',ciudad:d.ciudad||'',
+    id:d.id,nombre:d.nombre,tag:d.tag||'',ciudad:d.ciudad||'',descripcion:d.descripcion||'',
     color:d.color||'135deg,#1a1a2e,#16213e',initial:(d.nombre||'C')[0].toUpperCase(),
     autos:countMap[d.id]||0,autos_ids:[],logo:d.logo_url,banner:d.banner_url,
     telefono:d.telefono,instagram:d.instagram,whatsapp:d.whatsapp,user_id:d.user_id,
@@ -13922,7 +13956,7 @@ async function _openVitrinaByUserId(userId){
     let d=CONCESIONARIOS.find(c=>String(c.id)===String(r.id));
     if(!d){
       // autoconstruir con el mismo shape de _loadConcesionarios — no depende de que la lista este cargada
-      d={id:r.id,nombre:r.nombre,tag:r.tag||'',ciudad:r.ciudad||'',color:r.color||'135deg,#1a1a2e,#16213e',initial:(r.nombre||'C')[0].toUpperCase(),autos:0,autos_ids:[],logo:r.logo_url,banner:r.banner_url,telefono:r.telefono,instagram:r.instagram,whatsapp:r.whatsapp,user_id:r.user_id,tipo:r.tipo||'agencia',rating:0,ratingCount:0};
+      d={id:r.id,nombre:r.nombre,tag:r.tag||'',ciudad:r.ciudad||'',descripcion:r.descripcion||'',color:r.color||'135deg,#1a1a2e,#16213e',initial:(r.nombre||'C')[0].toUpperCase(),autos:0,autos_ids:[],logo:r.logo_url,banner:r.banner_url,telefono:r.telefono,instagram:r.instagram,whatsapp:r.whatsapp,user_id:r.user_id,tipo:r.tipo||'agencia',rating:0,ratingCount:0};
       CONCESIONARIOS.push(d);
     }
     showView('concesionarios');
