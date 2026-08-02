@@ -4485,6 +4485,14 @@ function carPlaceholder(id,size='large'){
 // [v76] cache hashes para evitar re-render innecesario al volver del detalle
 let _lastCardsHash = '';
 let _lastMarketHash = '';
+// [fix render paginado] renderMarket() pintaba TODAS las cards filtradas en un
+// solo forEach síncrono — con más listings activos eso bloqueaba el hilo y las
+// cards/íconos aparecían de golpe. Ahora pinta de a MKT_BATCH_SIZE y el resto
+// entra con scroll infinito (ver _mktSetupSentinel/_mktLoadMoreMarket).
+const MKT_BATCH_SIZE = 24;
+let _mktRenderedCount = MKT_BATCH_SIZE;
+let _mktCurrentData = [];
+let _mktObserver = null;
 
 function renderCards(filter){
   // [v76] dirty check — si los datos y filtro no cambiaron, no re-renderizar
@@ -4513,7 +4521,7 @@ function renderCards(filter){
       el.innerHTML=`
         <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
           ${a.photoUrls&&a.photoUrls[0]
-            ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+            ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
             :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
           <div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>
           ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:#fff;font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
@@ -4598,7 +4606,7 @@ function renderCards(filter){
     el.innerHTML=`
       <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
         ${a.photoUrls&&a.photoUrls[0]
-          ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+          ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
           :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
         ${a.sinReserva?'<div class="badge-sinreserva verde">sin reserva</div>':''}
         ${a.chocado?`<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>`:''}
@@ -5155,7 +5163,7 @@ function _filterListadoGrid(q){
     const badgeColor=esNuevo?'rgba(100,200,255,.9)':'rgba(255,255,255,.75)';
     const isFav=watchlist.has('mkt-'+String(l.id))||watchlist.has(l.id)||watchlist.has(String(l.id));
     const img=l.photoUrls&&l.photoUrls[0]
-      ?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+      ?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
       :(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
     return `<div class="listado-card" onclick="openMarketDetail('${l.id}','listado')" style="animation-delay:${idx*20}ms">
       <div class="listado-card-img" style="background:linear-gradient(${grads2[_gidx(l.id)%grads2.length]})">
@@ -5277,14 +5285,23 @@ function renderMarket(){
   }
   const grid=document.getElementById('market-grid');
   grid.innerHTML='';
-  if(!data.length){grid.innerHTML=window._feedLoaded?.mkt?'<div class="empty-state" style="grid-column:1/-1"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>sin resultados</p></div>':_feedLoaderHTML();return;}
-  data.forEach((l,idx)=>{
+  _mktCurrentData=data;
+  _mktRenderedCount=Math.min(MKT_BATCH_SIZE,data.length);
+  if(!data.length){grid.innerHTML=window._feedLoaded?.mkt?'<div class="empty-state" style="grid-column:1/-1"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>sin resultados</p></div>':_feedLoaderHTML();_mktSetupSentinel();return;}
+  _mktAppendCards(data.slice(0,_mktRenderedCount),0);
+  _mktSetupSentinel();
+}
+function _mktAppendCards(list,startIdx){
+  const grid=document.getElementById('market-grid');
+  if(!grid) return;
+  list.forEach((l,i)=>{
+    const idx=startIdx+i;
     const el=document.createElement('div');
     el.className='market-card';
     el.style.animationDelay=(idx*40)+'ms';
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;text-transform:uppercase">vendido</span></div>':''}
@@ -5296,6 +5313,36 @@ function renderMarket(){
       </div>`;
     grid.appendChild(el);
   });
+}
+// [fix render paginado] arma (o rearma) el centinela al final del grid. Siempre
+// desconecta el observer anterior primero — nunca quedan dos vivos ni uno
+// mirando un nodo que ya se removió del DOM.
+function _mktSetupSentinel(){
+  const grid=document.getElementById('market-grid');
+  if(!grid) return;
+  if(_mktObserver){ _mktObserver.disconnect(); _mktObserver=null; }
+  const old=document.getElementById('market-grid-sentinel');
+  if(old) old.remove();
+  if(_mktRenderedCount>=_mktCurrentData.length) return; // ya está todo pintado, no hace falta observer
+  const sentinel=document.createElement('div');
+  sentinel.id='market-grid-sentinel';
+  sentinel.setAttribute('aria-hidden','true');
+  sentinel.style.cssText='height:1px;width:100%;grid-column:1/-1;pointer-events:none';
+  grid.appendChild(sentinel);
+  _mktObserver=new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting) _mktLoadMoreMarket();
+  },{rootMargin:'600px'});
+  _mktObserver.observe(sentinel);
+}
+function _mktLoadMoreMarket(){
+  if(_mktRenderedCount>=_mktCurrentData.length) return;
+  const startIdx=_mktRenderedCount;
+  const next=_mktCurrentData.slice(startIdx,startIdx+MKT_BATCH_SIZE);
+  _mktRenderedCount+=next.length;
+  const sentinel=document.getElementById('market-grid-sentinel');
+  if(sentinel) sentinel.remove(); // se re-crea al final, después de las cards nuevas
+  _mktAppendCards(next,startIdx);
+  _mktSetupSentinel();
 }
 // ───────────────────────────────────────────
 // TOAST "próximamente" — partners/store por ahora
@@ -5903,8 +5950,11 @@ async function openTopUsuarios(){
 }
 
 let mktDetailOrigin='market';
-function openMarketDetail(id, origin){
-  const l=MARKET_LISTINGS.find(x=>x.id===id);
+async function openMarketDetail(id, origin){
+  // [fix egress] con _loadMarket topeado, un id fuera del top 300 (link
+  // compartido, notificación, favorito viejo) no está en el array — se trae puntual.
+  let l=MARKET_LISTINGS.find(x=>x.id===id);
+  if(!l) l=await _ensureMarketListing(id);
   if(!l)return;
   mktDetailOrigin=origin||'market';
   currentMarketListing=l;
@@ -5944,6 +5994,7 @@ function openMarketDetail(id, origin){
     dots.appendChild(d);
   }
   mktPhotoIdx=0;
+  if(inner) inner.style.transform='translateX(0%)'; // [fix foto equivocada] el transform quedaba heredado de la publicación anterior
   _mktPreloadAround(0); // [fix runner] fuerza carga de la 1ra + 2da apenas se arma la galería
   document.getElementById('mkt-photo-counter').textContent='1 / '+slides;
   setupMktSwipe();
@@ -6260,6 +6311,7 @@ function openDetail(id){
     dot.onclick=()=>goToSlide(i);
     dots.appendChild(dot);
   }
+  inner.style.transform='translateX(0%)'; // [fix foto equivocada] el transform quedaba heredado de la publicación anterior
   updatePhotoCounter();
   setupSwipe();
   // Badges
@@ -6622,6 +6674,18 @@ function renderFavoritos(){
     }catch(e){console.error('[fav render auction]',e);return '';}
   }).join('');
 
+  // [fix egress] favoritos (prefijo mkt-) que cayeron fuera del top 300 de
+  // _loadMarket no están todavía en MARKET_LISTINGS — se traen puntual y se
+  // vuelve a pintar solo si llega algo nuevo. _favBackfillAttempted evita
+  // reintentar en cada render un id que ya se confirmó ausente/vencido.
+  window._favBackfillAttempted=window._favBackfillAttempted||new Set();
+  const _favMissingIds=[...watchlist].filter(k=>k.startsWith('mkt-')).map(k=>k.slice(4)).filter(id=>!MARKET_LISTINGS.find(x=>String(x.id)===id)&&!window._favBackfillAttempted.has(id));
+  if(_favMissingIds.length){
+    _favMissingIds.forEach(id=>window._favBackfillAttempted.add(id));
+    Promise.all(_favMissingIds.map(id=>_ensureMarketListing(id))).then(results=>{
+      if(results.some(Boolean)) renderFavoritos();
+    });
+  }
   // market y concesionarios
   const mktFavs=MARKET_LISTINGS.filter(l=>watchlist.has('mkt-'+String(l.id))||watchlist.has(String(l.id)));
   const mktCards=mktFavs.map((l,i)=>{
@@ -10904,22 +10968,22 @@ async function modApprove(id){
       return;
     }
   }
-  // [V125] aprobar = autorizar Y subir. Todos (dealer y particular) van directo a
-  // 'activa': la pasarela de pago del usuario queda bypasseada, ya no hace falta que
-  // el dueño presione "subir" manualmente. Un solo botón cierra el flujo completo.
-  const nuevoEstado='activa';
+  // dealers → activa (va al market directo); particulares → aprobada (espera pago del usuario)
+  const nuevoEstado=esDealer?'activa':'aprobada';
   const{error}=await _supa.from(tbl).update({estado:nuevoEstado}).eq('id',id);
   if(error){showToast('error al aprobar: '+error.message);return;}
-  showToast('publicación aprobada y publicada ✓',true);
+  showToast('publicación aprobada ✓',true);
   // [V84] notificación persistente al dueño — llega por realtime si está online, queda en bandeja si no
   if(item?.user_id){
-    const _nbody=`${item.titulo||'Tu publicación'} fue aprobada y ya está activa en el market.`;
+    const _nbody=esDealer
+      ?`${item.titulo||'Tu publicación'} fue aprobada y ya está activa en el market.`
+      :`${item.titulo||'Tu publicación'} fue aprobada. Ve a Mis publicaciones y presiona "subir" para activarla.`;
     _supa.from('notifications').insert({user_id:item.user_id,tipo:'aprobacion',titulo:'¡Publicación aprobada!',body:_nbody,icon:'lime',source_id:String(id),source_type:tbl==='listings'?'listing':'auction'}).then(({error:ne})=>{if(ne)console.warn('[notif aprobacion]',ne.message);});
   }
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
-  // ya está activa para todos → recargar market/chocados siempre para que aparezca al instante
-  await Promise.allSettled([_loadMarket(),_loadChocados()]);
+  // solo recargar market si es dealer (ya está activa)
+  if(esDealer) await Promise.allSettled([_loadMarket(),_loadChocados()]);
 }
 
 async function modReject(id){
@@ -11446,7 +11510,7 @@ function _updateCuentaSlider(){
   const tc=document.getElementById('slider-consesionario');
   if(!tp||!tc) return;
   const role=USER_STATE.role;
-  const isDealer=(role==='consesionario');
+  const isDealer=(role==='consesionario'||role==='concesionario');
   tp.className='cnt-slider-tab '+(isDealer?'inactive':'active');
   tc.className='cnt-slider-tab '+(isDealer?'active':'inactive');
   // ocultar slider para superadmin
@@ -11916,7 +11980,7 @@ async function _rueddaLogin(email,pass){
   const{data:profile,error:pe}=await _supa.from('users').select('*').eq('id',data.user.id).single();
   if(pe||!profile) throw new Error('perfil no encontrado');
   // si es concesionario, cargar su perfil de vitrina
-  if(profile.role==='concesionario'){
+  if(profile.role==='concesionario'||profile.role==='consesionario'){
     const{data:dealer}=await _supa.from('concesionarios').select('id,activo,plan_expiry').eq('user_id',data.user.id).maybeSingle();
     if(dealer){
       USER_STATE.concesionarioId=dealer.id;
@@ -12137,12 +12201,15 @@ async function _loadMarket(){
   if(!_supa) return;
   try{
     const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda';
-    let{data:rawData,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').eq('estado','activa').order('created_at',{ascending:false});
+    // [fix egress] techo de 300 filas más recientes — antes bajaba la tabla 'activa'
+    // completa en cada carga. openMarketDetail/renderFavoritos traen bajo demanda
+    // (_ensureMarketListing) lo que caiga fuera de este top 300 si hace falta.
+    let{data:rawData,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').eq('estado','activa').order('created_at',{ascending:false}).limit(300);
     // [defensivo] igual patrón que _loadConcesionarios: si las columnas de
     // financiamiento aún no existen en Supabase, reintenta sin ellas — no rompe
     // el feed mientras se corre la migración.
     if(error&&/financiamiento/i.test(String(error?.message||''))){
-      ({data:rawData,error}=await _supa.from('listings').select(_mktCols).eq('estado','activa').order('created_at',{ascending:false}));
+      ({data:rawData,error}=await _supa.from('listings').select(_mktCols).eq('estado','activa').order('created_at',{ascending:false}).limit(300));
     }
     window._feedLoaded.mkt=true; // [V87] primera carga resuelta
     if(error){console.error('[ruedda] _loadMarket:',String(error?.message||error?.code||'error'));if(typeof renderMarket==='function')renderMarket();return;}
@@ -12156,6 +12223,31 @@ async function _loadMarket(){
     if(typeof renderMarket==='function') renderMarket();
     if(typeof renderTrendingHoy==='function') renderTrendingHoy();
   }catch(e){console.error('[ruedda] _loadMarket catch:',String(e?.message||e));}
+}
+
+// [fix egress] con _loadMarket topeado a 300, un listing viejo (link compartido,
+// notificación, favorito) puede no estar en MARKET_LISTINGS. Antes de asumir que
+// no existe, esta función lo trae puntual por id y lo agrega al array — mismo
+// mapeo de campos que _loadMarket, una sola fila.
+async function _ensureMarketListing(id){
+  if(!id) return null;
+  const existing=MARKET_LISTINGS.find(x=>x.id===id);
+  if(existing) return existing;
+  if(!_supa) return null;
+  try{
+    const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda';
+    let{data:l,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').eq('estado','activa').eq('id',id).maybeSingle();
+    if(error&&/financiamiento/i.test(String(error?.message||''))){
+      ({data:l,error}=await _supa.from('listings').select(_mktCols).eq('estado','activa').eq('id',id).maybeSingle());
+    }
+    if(error||!l) return null;
+    const _cutoffVendido=Date.now()-24*3600*1000;
+    if(l.vendido&&!(l.vendido_at&&new Date(l.vendido_at).getTime()>_cutoffVendido)) return null;
+    const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);
+    const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||''};
+    if(!MARKET_LISTINGS.find(x=>x.id===mapped.id)) MARKET_LISTINGS.push(mapped);
+    return mapped;
+  }catch(e){console.error('[ruedda] _ensureMarketListing catch:',String(e?.message||e));return null;}
 }
 
 async function _loadChocados(){
@@ -12389,23 +12481,33 @@ window._rueddaBootPromise = (async function _rueddaInit(){
     _supa.auth.onAuthStateChange((event)=>{ if(event==='PASSWORD_RECOVERY') _showResetPasswordSheet(); });
     if(window.location.hash&&window.location.hash.indexOf('type=recovery')>-1) setTimeout(()=>_showResetPasswordSheet(),400);
   }catch(e){}
-  const{data:{session}}=await _supa.auth.getSession();
-  if(session?.user){
-    const{data:profile}=await _supa.from('users').select('*').eq('id',session.user.id).single();
-    if(profile){
-      if(profile.role==='concesionario'){
-        const{data:dealer}=await _supa.from('concesionarios').select('id,activo,plan_expiry').eq('user_id',session.user.id).maybeSingle();
-        if(dealer){
-          USER_STATE.concesionarioId=dealer.id;
-          USER_STATE.dealerActive=true;
-          USER_STATE.dealerExpiry=dealer.plan_expiry||null;
+  // [fix boot serial] la cadena de sesión/perfil/dealer no la lee ninguna de las
+  // 9 funciones de contenido (verificado: cero referencias a USER_STATE en
+  // _loadAuctions/_loadMarket/_loadChocados/_loadConcesionarios/_loadFotografos/
+  // _loadMarketSponsors/_loadChocadosSponsors/_consLoadBanner/_consLoadPostventaPhoto),
+  // así que corren en paralelo en vez de esperar a que la sesión resuelva primero.
+  // De paso: antes, si getSession()/select users fallaba, el contenido nunca
+  // llegaba a cargar porque el Promise.allSettled quedaba después en la secuencia.
+  const _contentBoot=Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors(),_consLoadBanner(),_consLoadPostventaPhoto()]);
+  const _authBoot=(async()=>{
+    const{data:{session}}=await _supa.auth.getSession();
+    if(session?.user){
+      const{data:profile}=await _supa.from('users').select('*').eq('id',session.user.id).single();
+      if(profile){
+        if(profile.role==='concesionario'||profile.role==='consesionario'){
+          const{data:dealer}=await _supa.from('concesionarios').select('id,activo,plan_expiry').eq('user_id',session.user.id).maybeSingle();
+          if(dealer){
+            USER_STATE.concesionarioId=dealer.id;
+            USER_STATE.dealerActive=true;
+            USER_STATE.dealerExpiry=dealer.plan_expiry||null;
+          }
         }
+        _rueddaApplySession(profile);
+        _rueddaLoadUserData(session.user.id,profile.role);
       }
-      _rueddaApplySession(profile);
-      _rueddaLoadUserData(session.user.id,profile.role);
     }
-  }
-  await Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors(),_consLoadBanner(),_consLoadPostventaPhoto()]);
+  })().catch(e=>console.error('[ruedda] auth boot chain:',String(e?.message||e)));
+  await Promise.all([_contentBoot,_authBoot]);
   if(document.getElementById('market-section')?.style.display!=='none') renderTrendingHoy();
   // [V123] deep-link: si llegaste por un link compartido (?auction=ID o ?market=ID),
   // abre directo esa publicación en vez de quedarte en el home.
@@ -14861,8 +14963,9 @@ function _goToSource(sourceId,sourceType){
       const a=AUCTIONS.find(x=>String(x.id)===String(sourceId))||AUCTIONS_CHOCADOS.find(x=>String(x.id)===String(sourceId));
       if(a) openDetail(a.id);
     } else {
-      const l=MARKET_LISTINGS.find(x=>String(x.id)===String(sourceId));
-      if(l) openMarketDetail(l.id,'market');
+      // [fix egress] no pre-chequear en MARKET_LISTINGS — openMarketDetail ya
+      // trae el listing bajo demanda (_ensureMarketListing) si no está en el array.
+      openMarketDetail(String(sourceId),'market');
     }
   },150);
 }
