@@ -12488,7 +12488,14 @@ window._rueddaBootPromise = (async function _rueddaInit(){
   // así que corren en paralelo en vez de esperar a que la sesión resuelva primero.
   // De paso: antes, si getSession()/select users fallaba, el contenido nunca
   // llegaba a cargar porque el Promise.allSettled quedaba después en la secuencia.
-  const _contentBoot=Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors(),_consLoadBanner(),_consLoadPostventaPhoto()]);
+  const _pAuctions=_loadAuctions(), _pMarket=_loadMarket();
+  // [fix splash] lo único que la primera pantalla necesita es trending (que
+  // _loadAuctions/_loadMarket disparan solos al terminar, línea arriba en cada
+  // función) y el primer lote de market — el splash espera SOLO esto. Chocados,
+  // concesionarios, fotógrafos, sponsors y banners siguen cargando en paralelo
+  // pero no bloquean la salida.
+  window._rueddaFirstScreenReady=Promise.allSettled([_pAuctions,_pMarket]);
+  const _contentBoot=Promise.allSettled([_pAuctions,_pMarket,_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors(),_consLoadBanner(),_consLoadPostventaPhoto()]);
   const _authBoot=(async()=>{
     const{data:{session}}=await _supa.auth.getSession();
     if(session?.user){
@@ -12531,8 +12538,12 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
 // Piso: que el splash nunca se sienta como un parpadeo. Techo: red de seguridad
 // absoluta para que jamás se quede colgado si la red falla del todo.
 (function _bootSplashOrchestrate(){
-  const MIN_MS=1300, MAX_MS=6000, IMG_BUDGET_MS=2500;
-  const bootReady=(window._rueddaBootPromise||Promise.resolve()).catch(()=>{});
+  const MIN_MS=1000, MAX_MS=4000, IMG_BUDGET_MS=2500;
+  // [fix splash] antes esperaba TODO el boot (chocados/concesionarios/fotógrafos/
+  // sponsors/banners incluidos) para recién ahí mirar imágenes visibles. Ahora
+  // espera solo _rueddaFirstScreenReady (trending + primer lote de market, ver
+  // _rueddaInit) — el resto del contenido sigue cargando por detrás sin retener el splash.
+  const bootReady=(window._rueddaFirstScreenReady||window._rueddaBootPromise||Promise.resolve()).catch(()=>{});
   const floor=new Promise(res=>setTimeout(res,MIN_MS));
   let revealed=false;
 
