@@ -276,7 +276,7 @@ html{scrollbar-width:none}
 .auction-card:active{transform:scale(.985)}
 
 /* MARKET GRID */
-.market-grid{display:flex;flex-direction:column;gap:12px;padding:10px 14px 100px;transition:opacity .16s ease}
+.market-grid{display:flex;flex-direction:column;gap:12px;padding:10px 14px 100px;transition:opacity .2s cubic-bezier(.4,0,.2,1)}
 .market-grid.mode-switching{opacity:0}
 
 .market-card{background:var(--card);border-radius:20px;overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:transform .18s,border-color .2s;animation:fadeUp .3s ease both;display:flex;flex-direction:column;text-align:left}
@@ -4356,6 +4356,10 @@ window.addEventListener('popstate',(e)=>{
   }
   finally{ _navigatingFromPopstate=false; }
 });
+// [scroll fix] el navegador restaura solo la posición de scroll en cada popstate
+// (back del sistema / swipe-back) y peleaba contra el scrollTop=0 de showView, dejando
+// la vista "colgada" a media altura al salir de una publicación. En manual, manda showView.
+if(typeof history!=='undefined'&&'scrollRestoration' in history) history.scrollRestoration='manual';
 if(typeof history!=='undefined'&&history.replaceState) history.replaceState({rueddaView:'home'},'',location.href);
 
 // ===================== SECTION =====================
@@ -4509,7 +4513,7 @@ function renderCards(filter){
       el.innerHTML=`
         <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
           ${a.photoUrls&&a.photoUrls[0]
-            ?`<img src="${a.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+            ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
             :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
           <div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>
           ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:#fff;font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
@@ -4594,7 +4598,7 @@ function renderCards(filter){
     el.innerHTML=`
       <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
         ${a.photoUrls&&a.photoUrls[0]
-          ?`<img src="${a.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+          ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
           :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
         ${a.sinReserva?'<div class="badge-sinreserva verde">sin reserva</div>':''}
         ${a.chocado?`<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>`:''}
@@ -5151,7 +5155,7 @@ function _filterListadoGrid(q){
     const badgeColor=esNuevo?'rgba(100,200,255,.9)':'rgba(255,255,255,.75)';
     const isFav=watchlist.has('mkt-'+String(l.id))||watchlist.has(l.id)||watchlist.has(String(l.id));
     const img=l.photoUrls&&l.photoUrls[0]
-      ?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+      ?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
       :(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
     return `<div class="listado-card" onclick="openMarketDetail('${l.id}','listado')" style="animation-delay:${idx*20}ms">
       <div class="listado-card-img" style="background:linear-gradient(${grads2[_gidx(l.id)%grads2.length]})">
@@ -5223,19 +5227,31 @@ function setMktCond(cond){
 let mktViewMode='grid';
 function setMktViewMode(mode){
   if(mktViewMode===mode) return;
+  const grid=document.getElementById('market-grid');
+  if(grid&&grid._switching) return; // en plena transición: ignora toques rápidos
   mktViewMode=mode;
   document.getElementById('mkt-view-grid')?.classList.toggle('active',mode==='grid');
   document.getElementById('mkt-view-list')?.classList.toggle('active',mode==='lista');
-  const grid=document.getElementById('market-grid');
   if(!grid) return;
-  // [RC transición fluida] animar grid-template-columns/display entre flex↔grid no es
-  // confiable cross-browser (WebKit no interpola cambios de cantidad de tracks). En vez
-  // de eso: fade-out breve, se reacomoda el layout mientras está invisible, fade-in.
-  grid.classList.add('mode-switching');
-  setTimeout(()=>{
+  // [RC transición fluida v2] flex↔grid no interpola (WebKit no anima cambios de tracks).
+  // Antes: setTimeout fijo que removía la clase en el mismo frame del reflow → el reflow
+  // pesado (cambio de aspect-ratio de las imágenes) coincidía con el fade y se veía "de
+  // golpe". Ahora: fade-out real → transitionend → reacomodo invisible + reflow forzado →
+  // fade-in en frame propio. El reflow nunca coincide con el fade.
+  grid._switching=true;
+  const swap=()=>{
     grid.classList.toggle('mode-grid',mode==='grid');
-    requestAnimationFrame(()=>grid.classList.remove('mode-switching'));
-  },160);
+    void grid.offsetHeight; // fuerza reflow: aísla el cambio de layout del fade-in
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      grid.classList.remove('mode-switching');
+      grid._switching=false;
+    }));
+  };
+  let done=false;
+  const onEnd=e=>{ if(done||e.target!==grid||e.propertyName!=='opacity') return; done=true; grid.removeEventListener('transitionend',onEnd); swap(); };
+  grid.addEventListener('transitionend',onEnd);
+  requestAnimationFrame(()=>grid.classList.add('mode-switching')); // dispara el fade-out en su frame
+  setTimeout(()=>{ if(done) return; done=true; grid.removeEventListener('transitionend',onEnd); swap(); },260); // fallback
 }
 function renderMarket(){
   // [v76] dirty check — si los datos y filtros no cambiaron, no re-renderizar
@@ -5268,7 +5284,7 @@ function renderMarket(){
     el.style.animationDelay=(idx*40)+'ms';
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;text-transform:uppercase">vendido</span></div>':''}
@@ -5683,7 +5699,7 @@ function openHotDealsAll(){
   const grid=document.getElementById('hotdeals-all-grid');
   if(!grid)return;
   grid.innerHTML=deals.map(l=>{
-    const img=(l.photoUrls&&l.photoUrls[0])?`<img src="${l.photoUrls[0]}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">`:'<div style="width:100%;aspect-ratio:4/3;background:#1c1c1e"></div>';
+    const img=(l.photoUrls&&l.photoUrls[0])?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">`:'<div style="width:100%;aspect-ratio:4/3;background:#1c1c1e"></div>';
     let belowImg,priceRow;
     if(isReal){
       const pct=Math.round((l.precioAnterior-l.price)/l.precioAnterior*100);
@@ -5743,7 +5759,7 @@ function renderHotDeals(){
   head.querySelector('.hd-title').textContent='hot deals';
   const countEl=document.getElementById('hd-count'); if(countEl) countEl.textContent=deals.length+' disponibles';
   track.innerHTML=deals.map(l=>{
-    const img=(l.photoUrls&&l.photoUrls[0])?`<img class="hd-card-img" src="${l.photoUrls[0]}" loading="lazy">`:'<div class="hd-card-img"></div>';
+    const img=(l.photoUrls&&l.photoUrls[0])?`<img class="hd-card-img" src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" loading="lazy">`:'<div class="hd-card-img"></div>';
     // [RC V6] rediseño — sin flama/gradiente/estrella. la barra de ahorro en lime
     // comunica el mismo dato (cuánto bajó) de forma cuantitativa y silenciosa.
     let belowImg,priceRow;
@@ -5917,7 +5933,7 @@ function openMarketDetail(id, origin){
     s.className='photo-slide';
     s.style.background='linear-gradient('+grads[_gidx(l.id)]+')';
     if(hasPhotos){
-      s.innerHTML=`<img src="${l.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onclick="openPhotoViewer(currentMarketListing.photoUrls,${i},{type:'market',id:currentMarketListing.id,title:currentMarketListing.title})"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
+      s.innerHTML=`<img src="${_tImg(l.photoUrls[i],{width:1280,quality:80})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="${i<2?'eager':'lazy'}" decoding="async" fetchpriority="${i<2?'high':'low'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onclick="openPhotoViewer(currentMarketListing.photoUrls,${i},{type:'market',id:currentMarketListing.id,title:currentMarketListing.title})"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
     } else {
       s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'</div>';
     }
@@ -5928,6 +5944,7 @@ function openMarketDetail(id, origin){
     dots.appendChild(d);
   }
   mktPhotoIdx=0;
+  _mktPreloadAround(0); // [fix runner] fuerza carga de la 1ra + 2da apenas se arma la galería
   document.getElementById('mkt-photo-counter').textContent='1 / '+slides;
   setupMktSwipe();
   // content
@@ -6060,12 +6077,22 @@ function openMarketDetail(id, origin){
 }
 
 let mktPhotoIdx=0,currentMarketListing=null;
+function _mktPreloadSlide(idx){
+  const inner=document.getElementById('mkt-gallery-inner');
+  if(!inner||idx<0) return;
+  const slide=inner.children[idx];
+  if(!slide) return;
+  const img=slide.querySelector('img');
+  if(img && !img.complete){ img.loading='eager'; img.setAttribute('fetchpriority','high'); }
+}
+function _mktPreloadAround(i){ _mktPreloadSlide(i-1); _mktPreloadSlide(i); _mktPreloadSlide(i+1); }
 function goToMktSlide(i){
   if(!currentMarketListing)return;
   const slides=(currentMarketListing.photoUrls?.length)||currentMarketListing.photos||1;
   mktPhotoIdx=Math.max(0,Math.min(i,slides-1));
   const inner=document.getElementById('mkt-gallery-inner');
   if(inner) inner.style.transform='translateX(-'+mktPhotoIdx*100+'%)';
+  _mktPreloadAround(mktPhotoIdx); // [fix runner] asegura foto actual + vecinas cargadas
   document.querySelectorAll('#mkt-gallery-dots .gallery-dot').forEach((d,idx)=>d.classList.toggle('active',idx===mktPhotoIdx));
   const ctr=document.getElementById('mkt-photo-counter');
   if(ctr) ctr.textContent=(mktPhotoIdx+1)+' / '+slides;
@@ -6223,7 +6250,7 @@ function openDetail(id){
     slide.className='photo-slide';
     slide.style.background=`linear-gradient(${grads[_gidx(a.id)]})`;
     if(_hasPhotos){
-      slide.innerHTML=`<img src="${a.photoUrls[i]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'" onclick="openPhotoViewer(currentAuction.photoUrls,${i},{type:'auction',id:currentAuction.id,title:currentAuction.title})">`;
+      slide.innerHTML=`<img src="${_tImg(a.photoUrls[i],{width:1280,quality:80})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="${i<2?'eager':'lazy'}" decoding="async" fetchpriority="${i<2?'high':'low'}" onload="this.style.opacity='1'" onerror="this.style.display='none'" onclick="openPhotoViewer(currentAuction.photoUrls,${i},{type:'auction',id:currentAuction.id,title:currentAuction.title})">`;
     } else {
       slide.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.4"><div>${carPlaceholder(a.id)}</div><div style="font-size:12px;color:#555">foto ${i+1} de ${_slideCount}</div></div>`;
     }
@@ -6723,8 +6750,8 @@ function openPhotoViewer(photos,startIndex,shareInfo){
   const ov=document.getElementById('photo-viewer-overlay');
   const inner=document.getElementById('pv-inner');
   const thumbs=document.getElementById('pv-thumbs');
-  inner.innerHTML=_pvPhotos.map((url,i)=>`<div class="pv-slide" data-i="${i}"><img src="${url}" loading="${Math.abs(i-_pvIndex)<=1?'eager':'lazy'}"></div>`).join('');
-  thumbs.innerHTML=_pvPhotos.length>1?_pvPhotos.map((url,i)=>`<img src="${url}" class="pv-thumb${i===_pvIndex?' active':''}" onclick="_pvGoTo(${i})" loading="lazy">`).join(''):'';
+  inner.innerHTML=_pvPhotos.map((url,i)=>`<div class="pv-slide" data-i="${i}"><img src="${_tImg(url,{width:2000,quality:85,resize:'contain'})}" loading="${Math.abs(i-_pvIndex)<=1?'eager':'lazy'}"></div>`).join('');
+  thumbs.innerHTML=_pvPhotos.length>1?_pvPhotos.map((url,i)=>`<img src="${_tImg(url,{width:200,quality:65})}" class="pv-thumb${i===_pvIndex?' active':''}" onclick="_pvGoTo(${i})" loading="lazy">`).join(''):'';
   thumbs.style.display=_pvPhotos.length>1?'flex':'none';
   document.getElementById('pv-arrow-prev').style.display=_pvPhotos.length>1?'flex':'none';
   document.getElementById('pv-arrow-next').style.display=_pvPhotos.length>1?'flex':'none';
@@ -7514,7 +7541,7 @@ function _renderSearchPopMarcas(){
 function _searchCardHtml(a,kind){
   const isAuction=kind==='subasta';
   const img=a.photoUrls&&a.photoUrls[0]
-    ?`<img src="${a.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager">`
+    ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager">`
     :carPlaceholder(a.id,isAuction?'large':'small');
   if(isAuction){
     return `<div class="auction-card" onclick="closeSearch();openDetail('${a.id}')">
@@ -8461,6 +8488,37 @@ async function _uploadVenderVideos(recordId,userId,isListing=false){
   console.log('[ruedda] videos subidos:',videoItems.length);
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// [INTERRUPTOR DE IMÁGENES] Ponlo en true SOLO cuando el proyecto esté en plan
+// Supabase Pro. En Free las transformaciones no existen y el endpoint /render/
+// devuelve error → imágenes rotas. Mientras esté en false, _tImg devuelve la URL
+// original intacta (full calidad) y la app funciona normal. Al actualizar a Pro,
+// cambia esta línea a true y despliega — nada más que tocar.
+window.RUEDDA_IMG_TRANSFORMS = false;
+// ────────────────────────────────────────────────────────────────────────────
+
+// [perf/calidad] _tImg: reescribe una URL pública de Supabase Storage a su endpoint
+// de transformación on-the-fly (imgproxy detrás del CDN). NO toca el archivo original
+// —que queda intacto en máxima calidad— solo pide una versión del tamaño exacto que se
+// va a mostrar, servida como webp/avif automáticamente. Esto es lo que hace que cargue
+// seamless sin perder estética: la grilla pide ~800px, el detalle ~1280px, y el visor
+// a pantalla completa (zoom) pide el master en 2000px. Defensivo: si el interruptor está
+// apagado (Free), o la URL no es de Supabase Storage, o algo falla, devuelve la URL tal cual.
+function _tImg(url,opts){
+  try{
+    if(!window.RUEDDA_IMG_TRANSFORMS) return url; // plan Free: original intacto, sin transformar
+    if(!url||typeof url!=='string') return url;
+    const MARK='/storage/v1/object/public/';
+    if(url.indexOf(MARK)===-1) return url; // no es storage público de supabase → intacta
+    const o=opts||{};
+    const base=url.replace(MARK,'/storage/v1/render/image/public/');
+    const params=['width='+(o.width||800),'quality='+(o.quality||72)];
+    if(o.height) params.push('height='+o.height);
+    params.push('resize='+(o.resize||'cover'));
+    return base+(base.indexOf('?')===-1?'?':'&')+params.join('&');
+  }catch(e){ return url; }
+}
+
 async function _uploadVenderPhotos(recordId,userId,isListing=false){
   if(!_supa) return;
   // fuente de verdad: photoItems (UI) con fallback a _venderPhotos
@@ -8910,7 +8968,7 @@ function _renderMisPubGrid(){
     return `<div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
         ${l.photoUrl
-          ?`<img src="${l.photoUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
+          ?`<img src="${_tImg(l.photoUrl,{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.06) 25%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.06) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
           :`<svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
         <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${badgeColor2||badgeColor}">${badgeLabel}</span>
@@ -9629,7 +9687,7 @@ function renderMarketFiltered(){
     // vieja (sin badges, sin views, precio antes de ciudad) y la grid cambiaba de estilo
     // según cuál de las dos funciones la pintara. Ahora es UNA sola apariencia siempre.
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${l.photoUrls[0]}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;text-transform:uppercase">vendido</span></div>':''}
@@ -10846,22 +10904,22 @@ async function modApprove(id){
       return;
     }
   }
-  // dealers → activa (va al market directo); particulares → aprobada (espera pago del usuario)
-  const nuevoEstado=esDealer?'activa':'aprobada';
+  // [V125] aprobar = autorizar Y subir. Todos (dealer y particular) van directo a
+  // 'activa': la pasarela de pago del usuario queda bypasseada, ya no hace falta que
+  // el dueño presione "subir" manualmente. Un solo botón cierra el flujo completo.
+  const nuevoEstado='activa';
   const{error}=await _supa.from(tbl).update({estado:nuevoEstado}).eq('id',id);
   if(error){showToast('error al aprobar: '+error.message);return;}
-  showToast('publicación aprobada ✓',true);
+  showToast('publicación aprobada y publicada ✓',true);
   // [V84] notificación persistente al dueño — llega por realtime si está online, queda en bandeja si no
   if(item?.user_id){
-    const _nbody=esDealer
-      ?`${item.titulo||'Tu publicación'} fue aprobada y ya está activa en el market.`
-      :`${item.titulo||'Tu publicación'} fue aprobada. Ve a Mis publicaciones y presiona "subir" para activarla.`;
+    const _nbody=`${item.titulo||'Tu publicación'} fue aprobada y ya está activa en el market.`;
     _supa.from('notifications').insert({user_id:item.user_id,tipo:'aprobacion',titulo:'¡Publicación aprobada!',body:_nbody,icon:'lime',source_id:String(id),source_type:tbl==='listings'?'listing':'auction'}).then(({error:ne})=>{if(ne)console.warn('[notif aprobacion]',ne.message);});
   }
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
-  // solo recargar market si es dealer (ya está activa)
-  if(esDealer) await Promise.allSettled([_loadMarket(),_loadChocados()]);
+  // ya está activa para todos → recargar market/chocados siempre para que aparezca al instante
+  await Promise.allSettled([_loadMarket(),_loadChocados()]);
 }
 
 async function modReject(id){
@@ -11249,7 +11307,7 @@ async function renderDhPubs(){
     return `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer" onclick="openMarketDetail('${l.id}','vitrina')">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
         ${l.photoUrl
-          ?`<img src="${l.photoUrl}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none';const s=this.nextElementSibling;if(s)s.style.display='none'">
+          ?`<img src="${_tImg(l.photoUrl,{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none';const s=this.nextElementSibling;if(s)s.style.display='none'">
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.06) 25%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.06) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
           :`<svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
         <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:100px;padding:3px 8px;font-size:10px;font-weight:700;color:${badgeColor}">${badgeLabel}</div>
@@ -11706,15 +11764,14 @@ async function _sendForgotPassword(btn){
   const email=(document.getElementById('fpw-email')?.value||'').trim();
   if(!email||!email.includes('@')){showToast('ingresa un correo válido');return;}
   if(btn){btn.textContent='enviando...';btn.disabled=true;btn.style.opacity='.6';}
-  // [RC v8] backend conectado de verdad: resetPasswordForEmail con redirectTo fijo a
-  // producción (nunca al origen desde donde se probó, para que el link del correo
-  // jamás caiga en localhost). El link trae #access_token=...&type=recovery — supabase-js
+  // [RC v8] backend conectado de verdad: resetPasswordForEmail con redirectTo a esta
+  // misma página. El link del correo trae #access_token=...&type=recovery — supabase-js
   // lo detecta solo (detectSessionInUrl default true) y dispara PASSWORD_RECOVERY,
   // que abre _showResetPasswordSheet() (registrado en _rueddaInit). El toast es
   // genérico a propósito: no se confirma si el correo existe o no (anti-enumeración).
   try{
     if(_supa&&_supa.auth&&_supa.auth.resetPasswordForEmail){
-      const{error}=await _supa.auth.resetPasswordForEmail(email,{redirectTo:'https://ruedda.app/'});
+      const{error}=await _supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
       if(error) console.warn('[ruedda] resetPasswordForEmail:',error.message);
     }
   }catch(e){ console.warn('[ruedda] resetPasswordForEmail catch:',String(e?.message||e)); }
@@ -12382,8 +12439,22 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
 
   function _waitVisibleImages(){
     const active=document.querySelector('.view.active');
-    const imgs=active?[...active.querySelectorAll('img')].filter(img=>!img.complete):[];
+    if(!active) return Promise.resolve();
+    // [free-plan perf] solo esperar las <img> que están REALMENTE en pantalla (o a un
+    // scroll de distancia). Antes esperaba TODAS las de la vista, así una foto pesada de
+    // las últimas publicaciones (abajo del fold, cruda sin CDN en Free) reventaba el
+    // presupuesto y el splash revelaba con esas cargando. Ahora suelta limpio apenas lo
+    // visible está listo; el resto entra con lazy al hacer scroll.
+    const vh=window.innerHeight||800;
+    const imgs=[...active.querySelectorAll('img')].filter(img=>{
+      if(img.complete) return false;
+      const r=img.getBoundingClientRect();
+      return r.bottom>0 && r.top < vh*1.2 && r.width>0; // (casi) en pantalla
+    });
     if(!imgs.length) return Promise.resolve();
+    // empuja las portadas visibles a cargar YA (por si estaban en lazy) — el splash
+    // no revela hasta tenerlas, así nunca abre sobre placeholders vacíos.
+    imgs.forEach(img=>{ img.loading='eager'; img.setAttribute('fetchpriority','high'); });
     return Promise.all(imgs.map(img=>Promise.race([
       new Promise(res=>{ img.addEventListener('load',res,{once:true}); img.addEventListener('error',res,{once:true}); }),
       new Promise(res=>setTimeout(res,IMG_BUDGET_MS)) // una foto lenta no traba a las demás
