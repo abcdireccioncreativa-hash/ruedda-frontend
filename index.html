@@ -11706,14 +11706,15 @@ async function _sendForgotPassword(btn){
   const email=(document.getElementById('fpw-email')?.value||'').trim();
   if(!email||!email.includes('@')){showToast('ingresa un correo válido');return;}
   if(btn){btn.textContent='enviando...';btn.disabled=true;btn.style.opacity='.6';}
-  // [RC v8] backend conectado de verdad: resetPasswordForEmail con redirectTo a esta
-  // misma página. El link del correo trae #access_token=...&type=recovery — supabase-js
+  // [RC v8] backend conectado de verdad: resetPasswordForEmail con redirectTo fijo a
+  // producción (nunca al origen desde donde se probó, para que el link del correo
+  // jamás caiga en localhost). El link trae #access_token=...&type=recovery — supabase-js
   // lo detecta solo (detectSessionInUrl default true) y dispara PASSWORD_RECOVERY,
   // que abre _showResetPasswordSheet() (registrado en _rueddaInit). El toast es
   // genérico a propósito: no se confirma si el correo existe o no (anti-enumeración).
   try{
     if(_supa&&_supa.auth&&_supa.auth.resetPasswordForEmail){
-      const{error}=await _supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+      const{error}=await _supa.auth.resetPasswordForEmail(email,{redirectTo:'https://ruedda.app/'});
       if(error) console.warn('[ruedda] resetPasswordForEmail:',error.message);
     }
   }catch(e){ console.warn('[ruedda] resetPasswordForEmail catch:',String(e?.message||e)); }
