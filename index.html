@@ -98,6 +98,14 @@ html{scrollbar-width:none}
 .view{padding-top:58px}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
 #view-detail,#view-market-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
+/* [swipe-exit OFF] el gesto nativo de "volver" de Safari/iOS (edge-swipe) sigue
+   activo porque esta app navega con history.pushState — el motor JS propio de
+   más abajo nunca lo controló, solo corría en paralelo. touch-action:pan-y le
+   quita al navegador el gesto horizontal en esta vista (solo permite scroll
+   vertical), que es lo único que realmente lo bloquea. #mkt-gallery mantiene su
+   propio swipe horizontal de fotos, sin tocar. */
+#view-market-detail{touch-action:pan-y}
+#view-market-detail #mkt-gallery{touch-action:pan-x pan-y}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
 /* [FIX] view-configuracion nunca tuvo este padding — el bottom-nav fijo tapaba
    "eliminar cuenta" (el último item), y en Safari/iOS el home indicator
