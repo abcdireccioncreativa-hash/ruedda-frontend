@@ -12511,28 +12511,42 @@ async function _ensureMarketListing(id){
 
 // ── [comparativa de precios] ────────────────────────────────────────────────
 // Se alimenta de la tabla price_comparisons (marca, modelo, payload jsonb),
-// administrada desde Super Admin. Si no hay data cargada para esta marca+modelo,
-// la sección entera queda oculta — nunca se muestra vacía ni rota. Cero
-// dependencias externas, SVG puro, mismo patrón de card que financiamiento.
+// administrada desde Super Admin. Cero dependencias externas, SVG puro, mismo
+// patrón de card que financiamiento.
+// [self-seed] mientras Super Admin no tenga cargada la comparativa real de esa
+// marca+modelo, la sección YA aparece igual, arrancando con el propio precio de
+// la publicación (actual, y el anterior si hubo una baja registrada) — así se
+// puede ver funcionando desde ya y se va "entrenando": en cuanto haya data real
+// curada, esta pasa a tener prioridad automáticamente sobre el self-seed.
 async function _loadPriceComparison(l){
   const sec=document.getElementById('mkt-pricecmp-section');
   const wrap=document.getElementById('mkt-pricecmp-widget');
   if(!sec||!wrap) return;
   sec.style.display='none'; wrap.innerHTML='';
-  if(!_supa||!l.marca||!l.modelo) return;
-  try{
-    const{data,error}=await _supa.from('price_comparisons')
-      .select('payload')
-      .eq('marca',String(l.marca).toLowerCase().trim())
-      .eq('modelo',String(l.modelo).toLowerCase().trim())
-      .maybeSingle();
-    if(error||!data?.payload) return;
-    const ranges=data.payload;
-    const validKeys=['3m','6m','1a','3a','5a'].filter(k=>ranges[k]?.p?.length>1);
-    if(!validKeys.length) return;
-    sec.style.display='block';
-    _renderPriceComparisonChart(wrap, ranges, validKeys, `${l.year} ${l.marca} ${l.modelo}`.toLowerCase());
-  }catch(e){ console.warn('[ruedda] _loadPriceComparison:',e?.message||e); }
+  const price=Number(l.price)||0;
+  if(!l.marca||!l.modelo||price<=0) return;
+  let ranges=null, validKeys=[];
+  if(_supa){
+    try{
+      const{data,error}=await _supa.from('price_comparisons')
+        .select('payload')
+        .eq('marca',String(l.marca).toLowerCase().trim())
+        .eq('modelo',String(l.modelo).toLowerCase().trim())
+        .maybeSingle();
+      if(!error&&data?.payload){
+        const keys=['3m','6m','1a','3a','5a'].filter(k=>data.payload[k]?.p?.length>1);
+        if(keys.length){ ranges=data.payload; validKeys=keys; }
+      }
+    }catch(e){ console.warn('[ruedda] _loadPriceComparison:',e?.message||e); }
+  }
+  if(!ranges){
+    const prev=Number(l.precioAnterior)||0;
+    const hadDrop=prev>0&&prev!==price;
+    ranges={actual:{p:hadDrop?[prev,price]:[price,price],labels:hadDrop?['antes','ahora']:['','ahora']}};
+    validKeys=['actual'];
+  }
+  sec.style.display='block';
+  _renderPriceComparisonChart(wrap, ranges, validKeys, `${l.year} ${l.marca} ${l.modelo}`.toLowerCase());
 }
 
 function _renderPriceComparisonChart(container, ranges, validKeys, carName){
@@ -12684,20 +12698,27 @@ function _renderPriceComparisonChart(container, ranges, validKeys, carName){
   hit.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')hoverT=null;});
   hit.addEventListener('pointercancel',()=>{hoverT=null;});
 
-  // pills de rango — solo se muestran los que sí tienen data válida cargada
+  // pills de rango — solo se muestran los que sí tienen data válida cargada.
+  // 'actual' = self-seed (sin comparativa real cargada aún en Super Admin todavía).
+  // con un solo rango disponible no tiene sentido mostrar el selector (no hay
+  // nada entre qué elegir), así que se oculta solo.
   const rangesEl=document.getElementById(uid+'-ranges');
-  const rangeLabels={'3m':'3m','6m':'6m','1a':'1a','3a':'3a','5a':'5a'};
+  const rangeLabels={'3m':'3m','6m':'6m','1a':'1a','3a':'3a','5a':'5a','actual':'actual'};
   const rangeCls=uid+'-range';
-  rangesEl.innerHTML=validKeys.map(k=>
-    `<div class="${rangeCls}" data-r="${k}" style="flex:1;text-align:center;font-size:11px;font-weight:600;color:${k===defaultKey?'#fff':'rgba(255,255,255,.32)'};background:${k===defaultKey?'rgba(255,255,255,.09)':'transparent'};padding:6px 0;border-radius:8px;cursor:pointer;user-select:none">${rangeLabels[k]}</div>`
-  ).join('');
-  rangesEl.querySelectorAll('.'+rangeCls).forEach(el=>{
-    el.onclick=()=>{
-      rangesEl.querySelectorAll('.'+rangeCls).forEach(r=>{r.style.color='rgba(255,255,255,.32)';r.style.background='transparent';});
-      el.style.color='#fff'; el.style.background='rgba(255,255,255,.09)';
-      renderRange(el.dataset.r);
-    };
-  });
+  if(validKeys.length<2){
+    rangesEl.style.display='none';
+  } else {
+    rangesEl.innerHTML=validKeys.map(k=>
+      `<div class="${rangeCls}" data-r="${k}" style="flex:1;text-align:center;font-size:11px;font-weight:600;color:${k===defaultKey?'#fff':'rgba(255,255,255,.32)'};background:${k===defaultKey?'rgba(255,255,255,.09)':'transparent'};padding:6px 0;border-radius:8px;cursor:pointer;user-select:none">${rangeLabels[k]}</div>`
+    ).join('');
+    rangesEl.querySelectorAll('.'+rangeCls).forEach(el=>{
+      el.onclick=()=>{
+        rangesEl.querySelectorAll('.'+rangeCls).forEach(r=>{r.style.color='rgba(255,255,255,.32)';r.style.background='transparent';});
+        el.style.color='#fff'; el.style.background='rgba(255,255,255,.09)';
+        renderRange(el.dataset.r);
+      };
+    });
+  }
 
   renderRange(defaultKey);
 }
@@ -17182,12 +17203,19 @@ async function _saDeletePat(id,cat){
     }
     if(!isHorizontal)return;
     if(_dx<0)return; // solo hacia la derecha (gesto de "volver"), izquierda se ignora
+    // [fix pantalla negra] sin este preventDefault, el gesto nativo de edge-swipe-back
+    // de iOS Safari corre EN PARALELO a este motor propio (los listeners eran passive,
+    // que por definición no pueden bloquear nada) — de ahí el flash en negro que se
+    // veía mientras se deslizaba, aunque el comentario de arriba diga "cero negro".
+    // Con preventDefault (y el listener registrado como passive:false más abajo) el
+    // gesto nativo queda anulado apenas confirmamos que es horizontal hacia la derecha.
+    e.preventDefault();
     dx=Math.min(_dx,window.innerWidth);
     const v=el(); if(!v)return;
     v.classList.add('rd-swiping');
     v.style.transform=`translateX(${dx}px)`;
     v.style.opacity=String(Math.max(.35,1-dx/window.innerWidth*0.6));
-  },{passive:true});
+  },{passive:false});
   document.addEventListener('touchend',()=>{
     if(!dragging)return;
     dragging=false;
@@ -17196,15 +17224,22 @@ async function _saDeletePat(id,cat){
     v.classList.remove('rd-swiping');
     if(dx>THRESH){
       // completa el gesto: la vista se desliza fuera de pantalla con nuestra propia
-      // animación (cero snapshot de iOS, cero negro) y AL TERMINAR dispara el mismo
-      // botón "volver" de siempre — mismo destino exacto, cero lógica duplicada.
+      // animación. [fix "aparece de golpe"] antes se disparaba el click de "volver"
+      // RECIÉN a los 300ms, cuando la animación ya había terminado — en esos 300ms no
+      // había nada real pintado detrás (solo el fondo negro del body, porque la vista
+      // destino seguía en display:none hasta ese instante), y al terminar showView()
+      // la mostraba de un salto, sin transición. Ahora: sacamos esta vista del flujo
+      // normal (position:fixed, por encima) ANTES de disparar el back, así la vista
+      // destino queda pintada y visible por debajo desde el primer frame, mientras
+      // esta sigue deslizándose encima con su propia animación de siempre.
+      v.style.position='fixed';v.style.inset='0';v.style.zIndex='50';
       v.classList.add('rd-swipe-return');
       v.style.transform=`translateX(100%)`;
       v.style.opacity='0';
+      document.getElementById('mkt-detail-back')?.click();
       setTimeout(()=>{
-        document.getElementById('mkt-detail-back')?.click();
         v.classList.remove('rd-swipe-return');
-        v.style.transform='';v.style.opacity='';
+        v.style.transform='';v.style.opacity='';v.style.position='';v.style.inset='';v.style.zIndex='';
       },300);
     } else {
       // no llegó al umbral: regresa suave a su lugar
