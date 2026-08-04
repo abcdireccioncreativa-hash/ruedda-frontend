@@ -2088,7 +2088,7 @@ html{scrollbar-width:none}
 
 <!-- DETAIL VIEW -->
 <div id="view-detail" class="view">
-  <div class="detail-back" onclick="showView('home')">
+  <div class="detail-back" onclick="_rdExitAuctionDetail()">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>volver</span>
   </div>
@@ -2224,7 +2224,7 @@ html{scrollbar-width:none}
 
 <!-- MARKET DETAIL VIEW -->
 <div id="view-market-detail" class="view">
-  <div class="detail-back" id="mkt-detail-back" onclick="mktDetailOrigin==='vitrina'?openVitrina(currentMarketListing&&currentMarketListing.dealerId?currentMarketListing.dealerId:currentDealer&&currentDealer.id):mktDetailOrigin==='listado'?(showView('home'),selectSection('market'),openMktListado()):(showView('home'),selectSection('market'))">
+  <div class="detail-back" id="mkt-detail-back" onclick="_rdExitMarketDetail()">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>volver</span>
   </div>
@@ -2353,7 +2353,7 @@ html{scrollbar-width:none}
 <!-- CONCESIONARIOS LIST VIEW -->
 <!-- VITRINA DE CONCESIONARIO -->
 <div id="view-vitrina" class="view">
-  <div class="detail-back" onclick="showView('home');selectSection('consesionarios')">
+  <div class="detail-back" onclick="_rdExitVitrina()">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>concesionarios</span>
   </div>
@@ -4363,11 +4363,28 @@ function showView(name,param){
 }
 let _navigatingFromPopstate=false;
 window.addEventListener('popstate',(e)=>{
-  _navigatingFromPopstate=true;
   const st=e.state;
   const _prevSection=currentSection; // sección activa antes del back del sistema
+  const target=st&&st.rueddaView?st.rueddaView:'home';
+  // [swipe-exit splash] el gesto NATIVO de "volver" (edge-swipe de iOS, back de
+  // Android) no pasa por nuestro JS de touch — dispara este popstate directo. Si no
+  // se intercepta acá, a veces ganaba la carrera contra nuestro motor de swipe propio
+  // y la vista cambiaba de golpe ANTES del splash. Estas 3 funciones son las MISMAS
+  // que usa el botón "volver" y nuestro swipe — un solo camino, siempre con splash.
+  const _exitFn = currentView==='market-detail'&&target!=='market-detail' ? _rdExitMarketDetail
+                : currentView==='detail'&&target!=='detail' ? _rdExitAuctionDetail
+                : currentView==='vitrina'&&target!=='vitrina' ? _rdExitVitrina
+                : null;
+  if(typeof _exitFn==='function'){
+    // el flag se mantiene en true hasta que la navegación real (adentro del splash,
+    // ~1.3s después) termine — si no, showView() de acá adentro dispararía OTRO
+    // pushState de más, porque para entonces esta función ya habría vuelto.
+    _navigatingFromPopstate=true;
+    _exitFn(()=>{ _navigatingFromPopstate=false; });
+    return;
+  }
+  _navigatingFromPopstate=true;
   try{
-    const target=st&&st.rueddaView?st.rueddaView:'home';
     // [FIX] antes se llamaba showView('home') [pintaba subastas siempre] y DESPUÉS
     // se corregía con selectSection() — esa ventana intermedia era el "mezclado"
     // visual al salir de una publicación con swipe. Ahora el override se fija ANTES
@@ -17172,33 +17189,28 @@ async function _saDeletePat(id,cat){
 </script>
 
 <!-- ═══════════ SWIPE-EXIT — market / subastas / concesionarios ═══════════
-     Gesto propio (no el nativo de iOS/Safari, que muestra su propio flash y no se
-     puede controlar desde JS de forma confiable, y además touch-action:pan-y de abajo
-     lo bloquea también a nivel de navegador — doble seguro). Al completar el swipe:
-     splash negro (#000), mismo ring+check y timing que
-     _showPublicacionRevisionSplash/_showLoginSplash, y debajo suyo se navega y se
-     prepara la coreografía de cascada — igual técnica que usa el boot splash de
-     arranque (_prepCascade/_playCascade, expuestas más arriba). Cuando el splash se
-     retira, la sección ya está pintada y entra con su cascada, sin salto. Un solo
-     motor reusado 3 veces — misma lógica, 3 vistas, cero duplicación. -->
+     Splash negro (#000) + cascada al salir de una vista de detalle — mismo ring+check
+     y timing que _showPublicacionRevisionSplash/_showLoginSplash. Un solo punto de
+     salida por vista (_rdExitMarketDetail/_rdExitAuctionDetail/_rdExitVitrina), y LAS
+     3 rutas posibles de salida llaman a esa misma función:
+       1) tap en el botón "volver" (antes navegaba directo, ahora pasa por el splash)
+       2) nuestro gesto de swipe propio, cuando lo detecta a tiempo
+       3) el gesto NATIVO de "volver" del sistema (edge-swipe iOS / back de Android) —
+          éste no pasa por nuestro JS de touch en absoluto, dispara un popstate real.
+          Si no se intercepta ahí también, a veces gana la carrera contra nuestro JS y
+          el navegador cambia de vista instantáneo ANTES de que alcancemos a mostrar
+          el splash — eso era el "primero sale el market de golpe y después el splash".
+          Con el popstate interceptado más abajo, no importa quién gane: siempre pasa
+          por el mismo splash. touch-action:pan-y sigue puesto como primera línea de
+          defensa (evita que el gesto nativo arranque en la mayoría de los casos), el
+          popstate es la red de seguridad para lo que se le escape. -->
 <style>
-/* [fix "a veces sí, a veces no"] preventDefault en touchmove depende de que nuestro
-   JS decida "es horizontal" ANTES de que el reconocedor nativo de gestos de iOS/Safari
-   ya haya comprometido su propio swipe-back — es una carrera contra el sistema, y
-   por eso a veces ganaba el gesto nativo y a veces el nuestro. touch-action:pan-y lo
-   resuelve de raíz: el navegador queda avisado, a nivel de compositor (antes de que
-   se despache un solo evento táctil), de que el gesto horizontal en estas vistas NO
-   es suyo — nunca compite. .photo-gallery mantiene su propio swipe horizontal. */
 #view-market-detail,#view-detail,#view-vitrina{touch-action:pan-y}
 .photo-gallery{touch-action:pan-x pan-y}
 </style>
 <script>
-// splash negro + cascada al completar un swipe de salida — mismo negro #000, mismo
-// ring+check, mismo timing y misma técnica de reveal (doble requestAnimationFrame,
-// no uno solo) que _showPublicacionRevisionSplash/_showLoginSplash. Sin esto el
-// primer frame a veces se pintaba ya en opacity:1 directo (un solo rAF no siempre
-// alcanza a registrar el opacity:0 inicial antes de que arranque la transición) —
-// de ahí el "a veces aparece de golpe, a veces no".
+// splash negro + cascada — mismo negro #000, mismo ring+check, mismo timing y misma
+// técnica de reveal (doble requestAnimationFrame) que _showPublicacionRevisionSplash.
 function _rdSwipeExitSplash(label,iconHtml,navigateFn){
   let sp=document.getElementById('rd-swipe-splash'); if(sp) sp.remove();
   sp=document.createElement('div');
@@ -17222,8 +17234,35 @@ function _rdSwipeExitSplash(label,iconHtml,navigateFn){
     setTimeout(()=>{ sp.remove(); if(kids&&typeof _playCascade==='function') _playCascade(kids); },300);
   },1300);
 }
-// motor de gesto — reusado para las 3 vistas de detalle
-function _rdSetupSwipeExit(viewId,backSelector,getLabel,iconHtml,matchView){
+
+const _RD_GAVEL_ICON='<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAwCAYAAABuZUjcAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAEUUlEQVR42s2ZW6gVZRSA1+8+55g+aGgqGF4eQvNYHs0X04cs7UZSEoUJxXkJRARBOJmQiEIgoi8hJAj1IIGiGAQeogchTEi6UWkEYYpZ0M3bsUy3Z+/Pl7VyNcye/c9u5jg/bOaf2z/frFn3LVLgAELWfiUHMMpggSeBx9x+qCp0TbfjgA+5Pfba+crBA126nQp8psA39Qeww19XNfWYA/zgoAGabj6g13VXSdIPA78moHHwwzrvv+OSdzo9x8EOkz4MvgGsuCPw6iFMPe7T7Z4W0vajoS/wN7B4ROEV2iS9CbgCPKr7hyPhAf4Aev2XK9UIzZ0BuxzMFWCBvtSxCHhTp7PAvaXCO+AuYJ+DM4ifgenqw79ro+/+3FfAeO+dCjVCBZ4KHEmRqEGcUvDpwC8J1UgbtsZRoMd/0cJ8tM436oOuZ0AcU5VZAAypMcbAHyosujof/ZDLOQ5m6LAde1+vfUKPmTdpNeq63fO/VcZBLwIuAP8Affo5P4mAf1vvf8WpUwz8to7hHfQzwFW3eKwBGvwWXWcgwtP46NqXG94Fln63UCPFAGdkGKDPT9boejsj4O3c0lwu0kEPOIBGhwbYdOrxnK77Xga8qcqgeZi8ecdTbXTSHno4wgDt2DUX4j9Kgbf5fmB0rqrJ6fXmhASIMMCX3fFmixD/OzALuAv4MiWA7e6o1DPnD/QCf+Xwv2aAr2WogcH9CEwGpujcxuZkStFpQbDCGWQzwwskDXBXBPznqsOzNFdZV0jgcSrTn/H50wxwZYQB2rEjeu2EQnMUBz8QmabGGGAS/l29tqfQAtrB78iZY89WA/wiIkBtL7yYUEM1+Hdy5NingUlqgGci4NeXBV9Ta/8gR+QzA7wf+DMjutoLrSoD3tzkGOB4DvhBvX+JJmitomsDuOHKv2LhdTtRc5V21U09kWOvTHigNPu4BDxYeBnnUoKZwE8Z8F6y24Eeve/VDPdq65wDppUJ3wdcTNFdP1/r7KRb529EBKhvgLsLr0Gdp3lES7hGokd4HXghqa/uvt0RPv4o0F1oDZqAeD7x4AutjCzRjzkUAX+glA6vg38ROKF59ANZnsE6YMBo4OMI+LdK6Xal6WA7vXQeagJwMiJAbSoLvuYkOaoDD3U+ovxbW5neuoOfD1xuU/4BvFQleLOTZRq00so/e6E6sKyK8Ksjyr9LwLwR6fBGwluA2pDhaQz+PDCjlCZpQfl/PSO6ngTGV+IfvET+H9N/eVNEJLi2QJniDyLSCCGQ0YMPIlITkUEReVxEhkXEG2NTt1+HEBZW6q9Hlf64RP/Fq8swcELsjYDZIrJVRHqchArh0bWGROT1EMJvQEiTfAihCdRCCEPAsyJyXERmishNx9MlIgf92y5XHbKWWtG/q8DcyNTAAlQv8H1Cz/dZ9hjcDWNVxyhB4jdCCPU8aqNfYKyIPC0i94jItyGET//TqhsJ95L3GS0SuX/XuAW5DfzZFmLQlwAAAABJRU5ErkJggg==" alt="" style="width:48px;height:48px">';
+
+// ── punto único de salida por vista — todo lo que saca de la publicación pasa por acá ──
+function _rdExitMarketDetail(afterNav){
+  const label=(typeof mktDetailOrigin!=='undefined'&&mktDetailOrigin==='vitrina')?'volviendo a concesionarios':'volviendo a market';
+  _rdSwipeExitSplash(label,'',()=>{
+    if(mktDetailOrigin==='vitrina') openVitrina(currentMarketListing&&currentMarketListing.dealerId?currentMarketListing.dealerId:(currentDealer&&currentDealer.id));
+    else if(mktDetailOrigin==='listado'){ showView('home'); selectSection('market'); openMktListado(); }
+    else { showView('home'); selectSection('market'); }
+    if(typeof afterNav==='function') afterNav();
+  });
+}
+function _rdExitAuctionDetail(afterNav){
+  _rdSwipeExitSplash('volviendo a subastas',_RD_GAVEL_ICON,()=>{
+    showView('home');
+    if(typeof afterNav==='function') afterNav();
+  });
+}
+function _rdExitVitrina(afterNav){
+  _rdSwipeExitSplash('volviendo a concesionarios','',()=>{
+    showView('home'); selectSection('consesionarios');
+    if(typeof afterNav==='function') afterNav();
+  });
+}
+
+// motor de gesto — reusado para las 3 vistas de detalle. Llama DIRECTO a la función
+// de salida de la vista (misma que usa el botón "volver"), nada de simular un click.
+function _rdSetupSwipeExit(viewId,exitFn,matchView){
   let sx=0,sy=0,dx=0,dragging=false,decided=false,isHorizontal=false;
   const THRESH=90;
   function el(){ return document.getElementById(viewId); }
@@ -17245,7 +17284,7 @@ function _rdSetupSwipeExit(viewId,backSelector,getLabel,iconHtml,matchView){
     }
     if(!isHorizontal)return;
     if(_dx<0)return;
-    e.preventDefault(); // bloquea el gesto nativo de "volver" del navegador
+    e.preventDefault();
     dx=Math.min(_dx,window.innerWidth);
     const v=el(); if(!v)return;
     v.style.transition='none';
@@ -17258,15 +17297,7 @@ function _rdSetupSwipeExit(viewId,backSelector,getLabel,iconHtml,matchView){
     if(!isHorizontal)return;
     const v=el(); if(!v)return;
     if(dx>THRESH){
-      // completa el gesto: fade rápido de la publicación y el splash blanco toma el
-      // control — navega y arma la cascada debajo suyo, invisible hasta que se retire.
-      v.style.transition='opacity .16s ease';
-      v.style.opacity='0';
-      _rdSwipeExitSplash(getLabel(),iconHtml,()=>{ document.querySelector(backSelector)?.click(); });
-      // limpia recién cuando el splash ya está 100% opaco (reveal de doble rAF + .3s
-      // ease ≈ 320ms) — antes esto pasaba a los 260ms, ANTES de que el splash terminara
-      // de taparlo del todo, y por eso a veces se veía un flash de la publicación
-      // reapareciendo debajo del negro todavía semi-transparente.
+      exitFn();
       setTimeout(()=>{ v.style.transition='';v.style.transform='';v.style.opacity=''; },420);
     } else {
       v.style.transition='transform .32s cubic-bezier(.32,.72,0,1)';
@@ -17286,23 +17317,9 @@ function _rdSetupSwipeExit(viewId,backSelector,getLabel,iconHtml,matchView){
   });
 }
 
-// market: "volviendo a market", o "volviendo a concesionarios" si esta publicación
-// se abrió desde la vitrina de un concesionario (mismo destino que ya usaba el botón
-// "volver" vía mktDetailOrigin — el splash ahora refleja el destino real).
-_rdSetupSwipeExit('view-market-detail','#mkt-detail-back',
-  ()=>typeof mktDetailOrigin!=='undefined'&&mktDetailOrigin==='vitrina'?'volviendo a concesionarios':'volviendo a market',
-  '', 'market-detail');
-
-// subastas: ícono martillo, mismo PNG que ya usa la app en el resto de la UI de subastas
-_rdSetupSwipeExit('view-detail','#view-detail .detail-back',
-  ()=>'volviendo a subastas',
-  '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAwCAYAAABuZUjcAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAEUUlEQVR42s2ZW6gVZRSA1+8+55g+aGgqGF4eQvNYHs0X04cs7UZSEoUJxXkJRARBOJmQiEIgoi8hJAj1IIGiGAQeogchTEi6UWkEYYpZ0M3bsUy3Z+/Pl7VyNcye/c9u5jg/bOaf2z/frFn3LVLgAELWfiUHMMpggSeBx9x+qCp0TbfjgA+5Pfba+crBA126nQp8psA39Qeww19XNfWYA/zgoAGabj6g13VXSdIPA78moHHwwzrvv+OSdzo9x8EOkz4MvgGsuCPw6iFMPe7T7Z4W0vajoS/wN7B4ROEV2iS9CbgCPKr7hyPhAf4Aev2XK9UIzZ0BuxzMFWCBvtSxCHhTp7PAvaXCO+AuYJ+DM4ifgenqw79ro+/+3FfAeO+dCjVCBZ4KHEmRqEGcUvDpwC8J1UgbtsZRoMd/0cJ8tM436oOuZ0AcU5VZAAypMcbAHyosujof/ZDLOQ5m6LAde1+vfUKPmTdpNeq63fO/VcZBLwIuAP8Affo5P4mAf1vvf8WpUwz8to7hHfQzwFW3eKwBGvwWXWcgwtP46NqXG94Fln63UCPFAGdkGKDPT9boejsj4O3c0lwu0kEPOIBGhwbYdOrxnK77Xga8qcqgeZi8ecdTbXTSHno4wgDt2DUX4j9Kgbf5fmB0rqrJ6fXmhASIMMCX3fFmixD/OzALuAv4MiWA7e6o1DPnD/QCf+Xwv2aAr2WogcH9CEwGpujcxuZkStFpQbDCGWQzwwskDXBXBPznqsOzNFdZV0jgcSrTn/H50wxwZYQB2rEjeu2EQnMUBz8QmabGGGAS/l29tqfQAtrB78iZY89WA/wiIkBtL7yYUEM1+Hdy5NingUlqgGci4NeXBV9Ta/8gR+QzA7wf+DMjutoLrSoD3tzkGOB4DvhBvX+JJmitomsDuOHKv2LhdTtRc5V21U09kWOvTHigNPu4BDxYeBnnUoKZwE8Z8F6y24Eeve/VDPdq65wDppUJ3wdcTNFdP1/r7KRb529EBKhvgLsLr0Gdp3lES7hGokd4HXghqa/uvt0RPv4o0F1oDZqAeD7x4AutjCzRjzkUAX+glA6vg38ROKF59ANZnsE6YMBo4OMI+LdK6Xal6WA7vXQeagJwMiJAbSoLvuYkOaoDD3U+ovxbW5neuoOfD1xuU/4BvFQleLOTZRq00so/e6E6sKyK8Ksjyr9LwLwR6fBGwluA2pDhaQz+PDCjlCZpQfl/PSO6ngTGV+IfvET+H9N/eVNEJLi2QJniDyLSCCGQ0YMPIlITkUEReVxEhkXEG2NTt1+HEBZW6q9Hlf64RP/Fq8swcELsjYDZIrJVRHqchArh0bWGROT1EMJvQEiTfAihCdRCCEPAsyJyXERmishNx9MlIgf92y5XHbKWWtG/q8DcyNTAAlQv8H1Cz/dZ9hjcDWNVxyhB4jdCCPU8aqNfYKyIPC0i94jItyGET//TqhsJ95L3GS0SuX/XuAW5DfzZFmLQlwAAAABJRU5ErkJggg==" alt="" style="width:48px;height:48px">',
-  'detail');
-
-// concesionarios: salir de la vitrina de un concesionario vuelve a la sección concesionarios
-_rdSetupSwipeExit('view-vitrina','#view-vitrina .detail-back',
-  ()=>'volviendo a concesionarios',
-  '', 'vitrina');
+_rdSetupSwipeExit('view-market-detail',_rdExitMarketDetail,'market-detail');
+_rdSetupSwipeExit('view-detail',_rdExitAuctionDetail,'detail');
+_rdSetupSwipeExit('view-vitrina',_rdExitVitrina,'vitrina');
 </script>
 <script>
 /* ============================================================
