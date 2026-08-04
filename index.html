@@ -2259,6 +2259,14 @@ html{scrollbar-width:none}
           <div class="detail-section-title">videos</div>
           <div id="mkt-videos-grid" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
+        <!-- [comparativa de precios] se esconde sola si no hay data cargada en Super Admin para esta marca+modelo — nunca se ve vacía -->
+        <div class="detail-section" id="mkt-pricecmp-section" style="display:none">
+          <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between">
+            <span>comparativa de precios</span>
+            <img src="data:image/png;base64,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" alt="" style="width:22px;height:22px;opacity:.55;filter:brightness(0) invert(1)">
+          </div>
+          <div id="mkt-pricecmp-widget"></div>
+        </div>
         <div class="detail-section">
           <div class="detail-section-title">descripción</div>
           <p style="font-size:14px;color:var(--muted);line-height:1.75" id="mkt-desc"></p>
@@ -6124,6 +6132,7 @@ async function openMarketDetail(id, origin){
     +_pill('clasificación',_clasifLbl);
   document.getElementById('mkt-desc').textContent=l.desc||'Descripción disponible al conectar con el backend.';
   if(typeof _updateMktFinanciamientoCard==='function') _updateMktFinanciamientoCard(l);
+  if(typeof _loadPriceComparison==='function') _loadPriceComparison(l);
   // seller
   const dealerId=l.dealerId||(mktDetailOrigin==='vitrina'&&currentDealer?currentDealer.id:null);
   const dealerName=mktDetailOrigin==='vitrina'&&currentDealer?currentDealer.nombre:l.seller;
@@ -9087,42 +9096,146 @@ function closeMisPub(){
   setTimeout(()=>s.remove(),280);
 }
 
-function openEditListingModal(id){
+// [REDISEÑO] modal de editar publicación — antes leía de un array local recortado
+// (MOCK_MY_LISTINGS) que ni siquiera traía descripcion/marca/modelo/etc de Supabase;
+// ahora trae la fila completa y real antes de abrir, así cada campo parte con su
+// valor verdadero. Mismas opciones que el formulario de publicar — nada inventado.
+async function openEditListingModal(id){
   const _idStr=String(id);
-  const l=MOCK_MY_LISTINGS.find(x=>String(x.id)===_idStr)||DEALER_LISTINGS_OWN.find(x=>String(x.id)===_idStr);
-  if(!l){ console.warn('[ruedda] openEditListingModal: id no encontrado',id); showToast('publicación no encontrada'); return; }
   let modal=document.getElementById('edit-listing-modal');
   if(modal) modal.remove();
   modal=document.createElement('div');
   modal.id='edit-listing-modal';
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:9995;display:flex;align-items:flex-end;justify-content:center';
   modal.onclick=e=>{if(e.target===modal)modal.remove();};
-  modal.innerHTML=`
-    <div style="background:#111;border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px 18px 44px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-        <div style="font-size:15px;font-weight:700">editar publicación</div>
-        <button onclick="document.getElementById('edit-listing-modal').remove()" style="background:rgba(255,255,255,.07);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(255,255,255,.5)">×</button>
+  modal.innerHTML=`<div style="background:#111;border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;display:flex;align-items:center;justify-content:center;padding:60px 20px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)"><div class="save-spinner"></div></div>`;
+  document.body.appendChild(modal);
+  if(!_supa){ modal.remove(); showToast('sin conexión a Supabase'); return; }
+  const{data:l,error}=await _supa.from('listings').select('*').eq('id',_idStr).maybeSingle();
+  if(error||!l){ modal.remove(); showToast('publicación no encontrada'); return; }
+
+  const marcasOpts=['Alfa Romeo','Audi','BAIC','Bentley','Bera','BMW','BYD','Cadillac','Changan','Chery','Chevrolet','Chrysler','Citroën','Dodge','Ferrari','Fiat','Ford','GAC','Geely','GMC','Great Wall','Honda','Hummer','Hyundai','Infiniti','JAC','Jaguar','Jeep','Kia','Lamborghini','Land Rover','Lexus','Lincoln','Maserati','Mazda','Mercedes-Benz','MINI','Mitsubishi','Nissan','Peugeot','Pontiac','Porsche','Ram','Renault','Rolls-Royce','SAIC','Saturn','Seat','Skoda','Smart','SsangYong','Subaru','Suzuki','Tesla','Toyota','Volkswagen','Volvo','Zotye','Otro'];
+  const transOpts=['automática','automática con levas','auto CVT','DSG','DCT','sincrónica','secuencial'];
+  const combOpts=['gasolina','diesel','eléctrico','híbrido'];
+  const motorOpts=['3 cyl','4 cyl','5 cyl','6 cyl','8 cyl','10 cyl','12 cyl','rotativo','eléctrico'];
+  const traccOpts=[['RWD','RWD'],['FWD','FWD'],['AWD','AWD'],['4x4','4x4'],['unknown','No lo sé.']];
+  const tipoVehOpts=[['sedan','Sedan'],['hatchback','Hatchback'],['coupe','Coupe'],['fastback','Fastback'],['pickup','Pickup'],['camioneta','Camioneta'],['suv','SUV'],['crossover','Crossover'],['descapotable','Descapotable'],['roadster','Roadster'],['targa','Targa'],['hothatch','HotHatch'],['liftback','Liftback'],['wagon','Wagon'],['minivan','Minivan'],['van','Van'],['buggy','Buggy']];
+  const clasifOpts=[['comercial','Comercial'],['deportivo','Deportivo'],['clasico','Clásico'],['nicho','De nicho']];
+  const estadoFisicoOpts=['impecable','excelente','bueno','con detalles','para reparar'];
+  const ciudades=(typeof CIUDADES_VE!=='undefined')?CIUDADES_VE:[];
+
+  const sel=(cur,v)=>String(cur||'').toLowerCase()===String(v).toLowerCase()?'selected':'';
+  const opt=(v,label)=>`<option value="${v}" ${sel(l.tipo_vehiculo,v)}>${label}</option>`;
+  const duenosActual=String(l.duenos||'');
+  const duenosEsExacto=duenosActual&&!['1','2','3','4+'].includes(duenosActual);
+  let yearOpts='';
+  for(let y=2026;y>=1950;y--) yearOpts+=`<option value="${y}" ${Number(l.year)===y?'selected':''}>${y}</option>`;
+
+  const inner=modal.querySelector('div');
+  inner.style.padding='0';
+  inner.innerHTML=`
+    <div style="padding:20px 18px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div style="font-size:15px;font-weight:700">editar publicación</div>
+      <button onclick="document.getElementById('edit-listing-modal').remove()" style="background:rgba(255,255,255,.07);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(255,255,255,.5)">×</button>
+    </div>
+    <div style="display:flex;gap:6px;padding:0 18px 14px;flex-shrink:0">
+      <div class="edit-tab-btn active" data-t="basico" style="flex:1;text-align:center;background:rgba(230,240,59,.15);border:1px solid rgba(230,240,59,.3);border-radius:10px;padding:9px;font-size:12px;font-weight:700;color:#e6f03b;cursor:pointer;transition:all .15s">básico</div>
+      <div class="edit-tab-btn" data-t="detalles" style="flex:1;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:12px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer;transition:all .15s">detalles</div>
+      <div class="edit-tab-btn" data-t="fotos" style="flex:1;text-align:center;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:12px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer;transition:all .15s">fotos</div>
+    </div>
+    <div style="overflow-y:auto;padding:4px 18px 18px;flex:1">
+
+      <div id="edit-panel-basico" class="form-group" style="display:flex;flex-direction:column;gap:14px">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Marca.</label>
+            <select class="form-select" id="edit-marca">${marcasOpts.map(m=>`<option ${sel(l.marca,m)}>${m}</option>`).join('')}</select>
+          </div>
+          <div class="form-group"><label class="form-label">Año.</label><select class="form-select" id="edit-year">${yearOpts}</select></div>
+        </div>
+        <div class="form-group"><label class="form-label">Modelo.</label><input class="form-input" type="text" id="edit-modelo" value="${(l.modelo||'').replace(/"/g,'&quot;')}" placeholder="ej. Corolla XLI"></div>
+        <div class="form-group"><label class="form-label">Precio (USD).</label><input class="form-input" type="number" inputmode="numeric" id="edit-precio" value="${Number(l.precio_usd||0)}" placeholder="precio de venta"></div>
+        <div class="form-group">
+          <label class="form-label">¿Cómo clasificas tu carro?</label>
+          <select class="form-select" id="edit-clasificacion"><option value="">seleccionar</option>${clasifOpts.map(([v,lb])=>`<option value="${v}" ${sel(l.clasificacion,v)}>${lb}</option>`).join('')}</select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado.</label>
+          <div style="display:flex;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden">
+            <button type="button" id="edit-cond-usado" onclick="_setEditCond('usado')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;border-radius:13px 0 0 13px;background:${l.condicion==='nuevo'?'none':'var(--lime)'};color:${l.condicion==='nuevo'?'rgba(255,255,255,.45)':'#000'}">usado</button>
+            <button type="button" id="edit-cond-nuevo" onclick="_setEditCond('nuevo')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;border-radius:0 13px 13px 0;background:${l.condicion==='nuevo'?'var(--lime)':'none'};color:${l.condicion==='nuevo'?'#000':'rgba(255,255,255,.45)'}">nuevo</button>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Descripción.</label><textarea class="form-textarea" id="edit-desc" rows="4" placeholder="describe tu vehículo...">${(l.descripcion||'')}</textarea></div>
       </div>
-      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">nombre del vehículo</div>
-      <input id="edit-titulo" type="text" value="${l.title||l.titulo||''}" placeholder="ej. 2020 Toyota Corolla" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box;margin-bottom:14px" onfocus="this.style.borderColor='rgba(255,255,255,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
-      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">precio (USD)</div>
-      <input id="edit-precio" type="number" inputmode="numeric" value="${String(l.price).replace(/[^0-9.]/g,'')}" placeholder="ej. 12000" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:15px;color:#fff;outline:none;box-sizing:border-box;margin-bottom:14px" onfocus="this.style.borderColor='rgba(255,255,255,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
-      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">descripción</div>
-      <textarea id="edit-desc" placeholder="describe tu vehículo..." rows="4" style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;resize:none;box-sizing:border-box;margin-bottom:14px;line-height:1.5" onfocus="this.style.borderColor='rgba(255,255,255,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">${l.desc||''}</textarea>
-      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">fotos actuales</div>
-      <div id="edit-current-photos" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
-        <div style="font-size:12px;color:rgba(255,255,255,.25);padding:8px 0">cargando fotos...</div>
+
+      <div id="edit-panel-detalles" class="form-group" style="display:none;flex-direction:column;gap:14px">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="number" inputmode="numeric" id="edit-km" value="${Number(l.km||0)}" placeholder="km"></div>
+          <div class="form-group"><label class="form-label">Dueños previos.</label>
+            <select class="form-select" id="edit-duenos" onchange="document.getElementById('edit-duenos-exacto').style.display=this.value==='4+'?'block':'none'">
+              <option value="1" ${sel(duenosEsExacto?'':duenosActual,'1')}>1</option>
+              <option value="2" ${sel(duenosEsExacto?'':duenosActual,'2')}>2</option>
+              <option value="3" ${sel(duenosEsExacto?'':duenosActual,'3')}>3</option>
+              <option value="4+" ${(duenosActual==='4+'||duenosEsExacto)?'selected':''}>4+</option>
+            </select>
+            <input class="form-input" type="number" id="edit-duenos-exacto" placeholder="cantidad exacta" min="4" value="${duenosEsExacto?duenosActual:''}" style="display:${(duenosActual==='4+'||duenosEsExacto)?'block':'none'};margin-top:8px">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Transmisión.</label><select class="form-select" id="edit-transmision"><option value="">seleccionar</option>${transOpts.map(t=>`<option ${sel(l.transmision,t)}>${t}</option>`).join('')}</select></div>
+          <div class="form-group"><label class="form-label">Combustible.</label><select class="form-select" id="edit-combustible">${combOpts.map(c=>`<option ${sel(l.combustible,c)}>${c}</option>`).join('')}</select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Motor.</label><select class="form-select" id="edit-motor"><option value="">seleccionar</option>${motorOpts.map(m=>`<option ${sel(l.motor,m)}>${m}</option>`).join('')}</select></div>
+          <div class="form-group"><label class="form-label">Tracción.</label><select class="form-select" id="edit-traccion"><option value="">seleccionar</option>${traccOpts.map(([v,lb])=>`<option value="${v}" ${sel(l.traccion,v)}>${lb}</option>`).join('')}</select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Color.</label><input class="form-input" type="text" id="edit-color" value="${(l.color||'').replace(/"/g,'&quot;')}" placeholder="ej. negro mate"></div>
+          <div class="form-group"><label class="form-label">Ciudad.</label><select class="form-select" id="edit-ciudad"><option value="">seleccionar</option>${ciudades.map(c=>`<option ${sel(l.ciudad,c)}>${c}</option>`).join('')}</select></div>
+        </div>
+        <div class="form-group"><label class="form-label">Tipo de carrocería.</label><select class="form-select" id="edit-tipo-vehiculo"><option value="">seleccionar</option>${tipoVehOpts.map(([v,lb])=>opt(v,lb)).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Estado físico.</label><select class="form-select" id="edit-estado-fisico"><option value="">seleccionar</option>${estadoFisicoOpts.map(e=>`<option ${sel(l.estado_fisico,e)}>${e}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">WhatsApp de contacto.</label><input class="form-input" type="tel" id="edit-whatsapp" value="${(l.whatsapp||'').replace(/"/g,'&quot;')}" placeholder="+58 412 000 0000"></div>
       </div>
-      <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px">agregar fotos</div>
-      <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.12);border-radius:12px;padding:14px;cursor:pointer;margin-bottom:18px;transition:border-color .15s" onmouseover="this.style.borderColor='rgba(230,240,59,.35)'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)'">
-        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.5" style="width:22px;height:22px;flex-shrink:0"><path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
-        <span style="font-size:13px;color:rgba(255,255,255,.4)">reemplazar fotos del vehículo</span>
-        <input type="file" accept="image/*" multiple style="display:none" onchange="handleEditPhotos(this,'${id}')">
-      </label>
+
+      <div id="edit-panel-fotos" style="display:none;flex-direction:column;gap:8px">
+        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px">fotos actuales</div>
+        <div id="edit-current-photos" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px">
+          <div style="font-size:12px;color:rgba(255,255,255,.25);padding:8px 0">cargando fotos...</div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">agregar fotos</div>
+        <label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1.5px dashed rgba(255,255,255,.12);border-radius:12px;padding:14px;cursor:pointer" onmouseover="this.style.borderColor='rgba(230,240,59,.35)'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)'">
+          <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.4)" stroke-width="1.5" style="width:22px;height:22px;flex-shrink:0"><path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+          <span id="edit-photos-label" style="font-size:13px;color:rgba(255,255,255,.4)">agregar fotos del vehículo</span>
+          <input type="file" accept="image/*" multiple style="display:none" onchange="handleEditPhotos(this,'${id}')">
+        </label>
+      </div>
+
+    </div>
+    <div style="padding:14px 18px;border-top:1px solid var(--border);flex-shrink:0">
       <button id="save-listing-btn" onclick="saveListingEdit('${id}')" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s">guardar cambios</button>
     </div>`;
-  document.body.appendChild(modal);
-  // cargar fotos existentes desde Supabase
+  inner.style.cssText='background:#111;border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)';
+
+  // tabs
+  modal.querySelectorAll('.edit-tab-btn').forEach(btn=>{
+    btn.onclick=()=>{
+      modal.querySelectorAll('.edit-tab-btn').forEach(b=>{
+        b.classList.remove('active');
+        b.style.background='rgba(255,255,255,.05)'; b.style.borderColor='var(--border)'; b.style.color='rgba(255,255,255,.5)';
+      });
+      btn.classList.add('active');
+      btn.style.background='rgba(230,240,59,.15)'; btn.style.borderColor='rgba(230,240,59,.3)'; btn.style.color='#e6f03b';
+      ['basico','detalles','fotos'].forEach(t=>{
+        const p=document.getElementById('edit-panel-'+t);
+        if(p) p.style.display = t===btn.dataset.t ? 'flex' : 'none';
+      });
+    };
+  });
+
+  window._editListingCond = l.condicion==='nuevo' ? 'nuevo' : 'usado';
+  window._editPhotosFiles = null;
+
   if(_supa){
     _supa.from('listing_photos').select('id,url,orden').eq('listing_id',_idStr).order('orden',{ascending:true}).then(({data:photos})=>{
       const cont=document.getElementById('edit-current-photos');
@@ -9136,6 +9249,13 @@ function openEditListingModal(id){
     });
   }
 }
+function _setEditCond(val){
+  window._editListingCond=val;
+  const btnU=document.getElementById('edit-cond-usado');
+  const btnN=document.getElementById('edit-cond-nuevo');
+  if(btnU){btnU.style.background=val==='usado'?'var(--lime)':'none';btnU.style.color=val==='usado'?'#000':'rgba(255,255,255,.45)';}
+  if(btnN){btnN.style.background=val==='nuevo'?'var(--lime)':'none';btnN.style.color=val==='nuevo'?'#000':'rgba(255,255,255,.45)';}
+}
 async function _deleteEditPhoto(photoId, listingId, el){
   if(!_supa) return;
   el.style.opacity='.4';
@@ -9146,36 +9266,86 @@ async function _deleteEditPhoto(photoId, listingId, el){
 }
 function handleEditPhotos(input, id){
   if(!input.files?.length) return;
-  showToast(input.files.length+' foto(s) seleccionada(s) — se subirán al guardar',true);
+  const lbl=document.getElementById('edit-photos-label');
+  if(lbl) lbl.textContent=input.files.length+' foto(s) lista(s) — se suben al guardar';
   window._editPhotosFiles=input.files;
+}
+// [FIX subida fantasma] handleEditPhotos guardaba los archivos en window._editPhotosFiles
+// pero saveListingEdit nunca los leía — el toast decía "se subirán al guardar" y no
+// pasaba nada. Ahora sí se suben: se agregan después de las fotos existentes (orden
+// continuo, no pisa nada), mismo bucket/tabla que el resto de la app.
+async function _uploadEditPhotos(listingId,userId){
+  const files=window._editPhotosFiles;
+  if(!files||!files.length||!_supa) return;
+  try{
+    const{data:existing}=await _supa.from('listing_photos').select('orden').eq('listing_id',listingId).order('orden',{ascending:false}).limit(1);
+    let nextOrden=(existing&&existing[0]?Number(existing[0].orden)+1:0);
+    for(let i=0;i<files.length;i++){
+      const file=files[i];
+      if(!file) continue;
+      const ext=(file.name||'jpg').split('.').pop()||'jpg';
+      const path=`${userId}/${listingId}/${nextOrden}_${Date.now()}.${ext}`;
+      const{error:upErr}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true});
+      if(upErr){ console.error('[ruedda] edit foto upload',i,upErr.message); continue; }
+      const{data:{publicUrl}}=_supa.storage.from('car-photos').getPublicUrl(path);
+      await _supa.from('listing_photos').insert({listing_id:listingId,url:publicUrl,orden:nextOrden});
+      nextOrden++;
+    }
+    window._editPhotosFiles=null;
+  }catch(e){ console.error('[ruedda] _uploadEditPhotos catch:',e?.message||e); }
 }
 async function saveListingEdit(id){
   const _idStr=String(id);
-  // mostrar spinner en el botón
   const btn=document.getElementById('save-listing-btn');
   if(btn){btn.innerHTML='<div class="save-spinner"></div>';btn.disabled=true;btn.style.opacity='.7';}
-  const precio=document.getElementById('edit-precio')?.value.trim();
-  const desc=document.getElementById('edit-desc')?.value.trim();
-  const titulo=document.getElementById('edit-titulo')?.value.trim();
-  const lMock=MOCK_MY_LISTINGS.find(x=>String(x.id)===_idStr);
-  const lDealer=DEALER_LISTINGS_OWN.find(x=>String(x.id)===_idStr);
-  if(lMock){ if(titulo) lMock.title=titulo; if(precio) lMock.price='$'+Number(precio).toLocaleString(); if(desc!==undefined) lMock.desc=desc; }
-  if(lDealer){ if(titulo) lDealer.title=titulo; if(precio) lDealer.price=Number(precio); if(desc!==undefined) lDealer.desc=desc; }
-  if(_supa && precio){
-    const upd={precio_usd:Number(precio),descripcion:desc||null};
-    if(titulo) upd.titulo=titulo;
-    // [V87] deteccion de oferta: precio nuevo menor → registrar anterior; si sube → limpiar flag
+  const val=sel=>document.getElementById(sel)?.value?.trim()??'';
+  const marca=val('edit-marca'), modelo=val('edit-modelo'), year=Number(val('edit-year')||0);
+  const precio=val('edit-precio'), desc=val('edit-desc');
+  const duenosSel=val('edit-duenos'), duenosExacto=val('edit-duenos-exacto');
+  const duenos=(duenosSel==='4+'&&duenosExacto)?duenosExacto:duenosSel;
+
+  if(!marca||!modelo||!precio||Number(precio)<=0){
+    showToast('marca, modelo y precio son obligatorios');
+    if(btn){btn.innerHTML='guardar cambios';btn.disabled=false;btn.style.opacity='1';}
+    return;
+  }
+
+  const upd={
+    marca, modelo, year: year||null,
+    precio_usd: Number(precio),
+    titulo: `${year||''} ${marca} ${modelo}`.trim(),
+    km: Number(val('edit-km')||0)||null,
+    duenos: duenos||null,
+    transmision: val('edit-transmision')||null,
+    combustible: val('edit-combustible')||null,
+    motor: val('edit-motor')||null,
+    traccion: val('edit-traccion')||null,
+    color: val('edit-color')||null,
+    ciudad: val('edit-ciudad')||null,
+    tipo_vehiculo: val('edit-tipo-vehiculo')||null,
+    clasificacion: val('edit-clasificacion')||null,
+    estado_fisico: val('edit-estado-fisico')||null,
+    whatsapp: val('edit-whatsapp')||null,
+    condicion: window._editListingCond||'usado',
+  };
+  // [FIX descripción fantasma] solo se toca si el usuario dejó algo escrito — nunca
+  // se manda null solo porque el campo llegó vacío por un dato local desactualizado.
+  if(desc) upd.descripcion=desc;
+
+  if(_supa){
     try{
-      const{data:cur}=await _supa.from('listings').select('precio_usd').eq('id',_idStr).maybeSingle();
+      const{data:cur}=await _supa.from('listings').select('precio_usd,user_id').eq('id',_idStr).maybeSingle();
       const prevPrice=Number(cur?.precio_usd||0);
       if(prevPrice>0&&Number(precio)<prevPrice) upd.precio_anterior=prevPrice;
       else if(Number(precio)>=prevPrice) upd.precio_anterior=null;
+      const{error}=await _supa.from('listings').update(upd).eq('id',_idStr);
+      if(error){ showToast('error al guardar: '+error.message); if(btn){btn.innerHTML='guardar cambios';btn.disabled=false;btn.style.opacity='1';} return; }
+      if(cur?.user_id) await _uploadEditPhotos(_idStr,cur.user_id);
       const ml=MARKET_LISTINGS.find(x=>String(x.id)===_idStr);
-      if(ml){ml.price=Number(precio);ml.precioAnterior=Number(upd.precio_anterior||0);}
-    }catch(e){}
-    await _supa.from('listings').update(upd).eq('id',_idStr).then(null,e=>console.error('[ruedda] saveListingEdit:',e.message));
+      if(ml){ ml.price=Number(precio); ml.precioAnterior=Number(upd.precio_anterior||0); ml.marca=marca; ml.modelo=modelo; ml.year=year; ml.title=`${year} ${marca} ${modelo}`; if(desc) ml.desc=desc; }
+    }catch(e){ console.error('[ruedda] saveListingEdit:',e?.message||e); showToast('error al guardar'); if(btn){btn.innerHTML='guardar cambios';btn.disabled=false;btn.style.opacity='1';} return; }
   }
-  // slide down del modal con animación
+
   const modal=document.getElementById('edit-listing-modal');
   const inner=modal?.querySelector('div');
   if(inner){inner.style.transition='transform .3s cubic-bezier(.4,0,.2,1)';inner.style.transform='translateY(100%)';}
@@ -9183,6 +9353,7 @@ async function saveListingEdit(id){
   await new Promise(r=>setTimeout(r,280));
   modal?.remove();
   showToast('publicación actualizada ✓',true);
+  const lDealer=DEALER_LISTINGS_OWN.find(x=>String(x.id)===_idStr);
   if(lDealer){ renderDhPubs(); }
   else { openMisPublicaciones(); }
 }
@@ -10668,7 +10839,7 @@ function saCategory(cat){
   saTab(SA_CATEGORIES[cat]);
 }
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -10689,6 +10860,69 @@ function saTab(tab){
   if(tab==='documentos') saLoadDocumentos();
   if(tab==='solicitudes') saLoadSolicitudes('car');
   if(tab==='logos') saLoadMarcaLogos();
+  if(tab==='comparativa') saLoadComparativa();
+}
+
+// ── [comparativa de precios] admin — súper simple: marca+modelo+JSON, upsert.
+// La tabla price_comparisons debe existir en Supabase (marca text, modelo text,
+// payload jsonb, unique(marca,modelo)) — ver nota de despliegue.
+async function saLoadComparativa(){
+  const list=document.getElementById('sa-cmp-list');
+  if(!list||!_supa) return;
+  list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>';
+  try{
+    const{data,error}=await _supa.from('price_comparisons').select('marca,modelo,payload,updated_at').order('updated_at',{ascending:false});
+    if(error){ list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,100,100,.7);font-size:12px">'+error.message+'</div>'; return; }
+    if(!data?.length){ list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px">sin entradas todavía</div>'; return; }
+    list.innerHTML=data.map(r=>{
+      const rangos=Object.keys(r.payload||{}).filter(k=>r.payload[k]?.p?.length).join(', ')||'—';
+      return `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="min-width:0">
+          <div style="font-size:13px;font-weight:700;text-transform:capitalize">${r.marca} ${r.modelo}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">rangos: ${rangos}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button onclick="saEditComparativa('${r.marca}','${r.modelo}')" style="background:rgba(255,255,255,.07);border:none;border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:11px;font-weight:700;color:rgba(255,255,255,.7);cursor:pointer">editar</button>
+          <button onclick="saDeleteComparativa('${r.marca}','${r.modelo}')" style="background:rgba(255,40,40,.1);border:none;border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:11px;font-weight:700;color:rgba(255,80,80,.85);cursor:pointer">borrar</button>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){ list.innerHTML='<div style="text-align:center;padding:20px;color:rgba(255,100,100,.7);font-size:12px">'+(e?.message||e)+'</div>'; }
+}
+function saEditComparativa(marca,modelo){
+  _supa.from('price_comparisons').select('payload').eq('marca',marca).eq('modelo',modelo).maybeSingle().then(({data})=>{
+    document.getElementById('sa-cmp-marca').value=marca;
+    document.getElementById('sa-cmp-modelo').value=modelo;
+    document.getElementById('sa-cmp-payload').value=data?.payload?JSON.stringify(data.payload,null,2):'';
+    document.getElementById('sa-cmp-marca').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+async function saDeleteComparativa(marca,modelo){
+  if(!confirm(`¿Borrar comparativa de ${marca} ${modelo}?`)) return;
+  const{error}=await _supa.from('price_comparisons').delete().eq('marca',marca).eq('modelo',modelo);
+  if(error){ showToast('error al borrar: '+error.message); return; }
+  showToast('entrada borrada ✓',true);
+  saLoadComparativa();
+}
+async function saSaveComparativa(){
+  const marca=document.getElementById('sa-cmp-marca')?.value.trim().toLowerCase();
+  const modelo=document.getElementById('sa-cmp-modelo')?.value.trim().toLowerCase();
+  const raw=document.getElementById('sa-cmp-payload')?.value.trim();
+  if(!marca||!modelo){ showToast('marca y modelo son obligatorios'); return; }
+  let payload;
+  try{ payload=JSON.parse(raw); }
+  catch(e){ showToast('el JSON no es válido: '+e.message); return; }
+  const validKeys=['3m','6m','1a','3a','5a'];
+  const hasValid=validKeys.some(k=>payload[k]?.p?.length>1);
+  if(!hasValid){ showToast('necesita al menos un rango con 2+ precios (p)'); return; }
+  if(!_supa){ showToast('sin conexión a Supabase'); return; }
+  const{error}=await _supa.from('price_comparisons').upsert({marca,modelo,payload,updated_at:new Date().toISOString()},{onConflict:'marca,modelo'});
+  if(error){ showToast('error al guardar: '+error.message); return; }
+  showToast('comparativa guardada ✓',true);
+  document.getElementById('sa-cmp-marca').value='';
+  document.getElementById('sa-cmp-modelo').value='';
+  document.getElementById('sa-cmp-payload').value='';
+  saLoadComparativa();
 }
 
 let saCatalogoLinks = [];
@@ -12243,7 +12477,7 @@ async function _loadMarket(){
     const _cutoffVendido=Date.now()-24*3600*1000;
     const data=rawData.filter(l=>!l.vendido||(l.vendido_at&&new Date(l.vendido_at).getTime()>_cutoffVendido));
     if(!data.length){if(typeof renderMarket==='function')renderMarket();return;}
-    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||''};});
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,marca:l.marca||'',modelo:l.modelo||'',location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||''};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
     if(typeof renderTrendingHoy==='function') renderTrendingHoy();
@@ -12269,10 +12503,203 @@ async function _ensureMarketListing(id){
     const _cutoffVendido=Date.now()-24*3600*1000;
     if(l.vendido&&!(l.vendido_at&&new Date(l.vendido_at).getTime()>_cutoffVendido)) return null;
     const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);
-    const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||''};
+    const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,marca:l.marca||'',modelo:l.modelo||'',location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||''};
     if(!MARKET_LISTINGS.find(x=>x.id===mapped.id)) MARKET_LISTINGS.push(mapped);
     return mapped;
   }catch(e){console.error('[ruedda] _ensureMarketListing catch:',String(e?.message||e));return null;}
+}
+
+// ── [comparativa de precios] ────────────────────────────────────────────────
+// Se alimenta de la tabla price_comparisons (marca, modelo, payload jsonb),
+// administrada desde Super Admin. Si no hay data cargada para esta marca+modelo,
+// la sección entera queda oculta — nunca se muestra vacía ni rota. Cero
+// dependencias externas, SVG puro, mismo patrón de card que financiamiento.
+async function _loadPriceComparison(l){
+  const sec=document.getElementById('mkt-pricecmp-section');
+  const wrap=document.getElementById('mkt-pricecmp-widget');
+  if(!sec||!wrap) return;
+  sec.style.display='none'; wrap.innerHTML='';
+  if(!_supa||!l.marca||!l.modelo) return;
+  try{
+    const{data,error}=await _supa.from('price_comparisons')
+      .select('payload')
+      .eq('marca',String(l.marca).toLowerCase().trim())
+      .eq('modelo',String(l.modelo).toLowerCase().trim())
+      .maybeSingle();
+    if(error||!data?.payload) return;
+    const ranges=data.payload;
+    const validKeys=['3m','6m','1a','3a','5a'].filter(k=>ranges[k]?.p?.length>1);
+    if(!validKeys.length) return;
+    sec.style.display='block';
+    _renderPriceComparisonChart(wrap, ranges, validKeys, `${l.year} ${l.marca} ${l.modelo}`.toLowerCase());
+  }catch(e){ console.warn('[ruedda] _loadPriceComparison:',e?.message||e); }
+}
+
+function _renderPriceComparisonChart(container, ranges, validKeys, carName){
+  const uid='pc'+Math.random().toString(36).slice(2,9); // id único por render — evita colisión al reabrir publicaciones
+  const defaultKey = validKeys.includes('6m')?'6m':validKeys[0];
+  container.innerHTML=`
+    <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px 15px">
+      <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,.32);text-transform:lowercase;margin-bottom:2px">${carName}</div>
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <div id="${uid}-price" style="font-size:26px;font-weight:800;letter-spacing:-.02em;color:#fff"></div>
+        <div id="${uid}-change" style="display:inline-flex;align-items:center;gap:3px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:100px"></div>
+      </div>
+      <div id="${uid}-ranges" style="display:flex;gap:4px;margin:16px 0 2px"></div>
+      <div style="position:relative;height:120px;margin:10px 0 0;touch-action:pan-y">
+        <svg id="${uid}-svg" viewBox="0 0 320 120" preserveAspectRatio="none" style="width:100%;height:100%;overflow:visible;display:block">
+          <defs><linearGradient id="${uid}-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+          </linearGradient></defs>
+          <g id="${uid}-grid"></g>
+          <path id="${uid}-area" fill="url(#${uid}-fill)" stroke="none" opacity="0"/>
+          <path id="${uid}-line" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <line id="${uid}-hoverline" x1="0" y1="0" x2="0" y2="120" stroke="rgba(255,255,255,.18)" stroke-width="1" opacity="0"/>
+          <circle id="${uid}-dot" r="4.5" fill="#fff" stroke="#000" stroke-width="2" opacity="0"/>
+          <circle id="${uid}-dotend" r="4" fill="#fff" stroke="#000" stroke-width="2" opacity="0"/>
+          <rect id="${uid}-hit" x="0" y="0" width="320" height="120" fill="transparent"/>
+        </svg>
+        <div id="${uid}-tooltip" style="position:absolute;top:-8px;transform:translate(-50%,-100%);background:#1c1c1c;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px 10px;font-size:11px;white-space:nowrap;pointer-events:none;opacity:0;z-index:5">
+          <b id="${uid}-tipprice" style="color:#fff;display:block;font-size:12px;font-weight:700"></b>
+          <span id="${uid}-tipdate" style="color:rgba(255,255,255,.32);font-size:9px"></span>
+        </div>
+      </div>
+      <div id="${uid}-axis" style="display:flex;justify-content:space-between;padding:0 2px;margin-top:2px"></div>
+      <div style="margin-top:12px;font-size:8px;color:rgba(255,255,255,.32);text-align:center;line-height:1.5">estimado sobre comportamiento histórico del mercado venezolano</div>
+    </div>`;
+
+  const W=320,H=120;
+  let xs=[],ys=[],currentPoints=[];
+
+  function smoothPath(points){
+    const min=Math.min(...points),max=Math.max(...points);
+    const pad=(max-min)*0.18||1;
+    const lo=min-pad,hi=max+pad;
+    const n=points.length;
+    const _xs=points.map((_,i)=>(i/(n-1))*W);
+    const _ys=points.map(v=>H-((v-lo)/(hi-lo))*H);
+    let d=`M${_xs[0]},${_ys[0]}`;
+    for(let i=0;i<n-1;i++){const cx=(_xs[i]+_xs[i+1])/2;d+=` C${cx},${_ys[i]} ${cx},${_ys[i+1]} ${_xs[i+1]},${_ys[i+1]}`;}
+    return{d,_xs,_ys};
+  }
+
+  function renderRange(key){
+    const range=ranges[key]; if(!range?.p?.length) return;
+    const points=range.p, labels=range.labels||[];
+    currentPoints=points;
+    const{d,_xs,_ys}=smoothPath(points);
+    xs=_xs; ys=_ys;
+    const lineEl=document.getElementById(uid+'-line');
+    const areaEl=document.getElementById(uid+'-area');
+    if(!lineEl||!areaEl) return; // el DOM pudo desmontarse si el usuario navegó rápido
+    lineEl.setAttribute('d',d);
+    areaEl.setAttribute('d',d+` L${xs[xs.length-1]},${H} L0,${H} Z`);
+    const dotEnd=document.getElementById(uid+'-dotend');
+    dotEnd.setAttribute('cx',xs[xs.length-1]); dotEnd.setAttribute('cy',ys[ys.length-1]);
+
+    const len=lineEl.getTotalLength();
+    lineEl.style.transition='none';
+    lineEl.style.strokeDasharray=len;
+    lineEl.style.strokeDashoffset=len;
+    areaEl.style.opacity=0; dotEnd.style.opacity=0;
+    lineEl.getBoundingClientRect();
+    lineEl.style.transition='stroke-dashoffset .7s cubic-bezier(.16,1,.3,1)';
+    lineEl.style.strokeDashoffset=0;
+    setTimeout(()=>{
+      if(!document.body.contains(areaEl)) return;
+      areaEl.style.transition='opacity .5s ease'; areaEl.style.opacity=1;
+      dotEnd.style.transition='opacity .3s ease'; dotEnd.style.opacity=1;
+    },400);
+
+    const gridEl=document.getElementById(uid+'-grid');
+    if(gridEl) gridEl.innerHTML=[0.25,0.5,0.75].map(f=>
+      `<line x1="0" y1="${H*f}" x2="${W}" y2="${H*f}" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`).join('');
+
+    const first=points[0],last=points[points.length-1];
+    const pct=((last-first)/first*100);
+    const priceEl=document.getElementById(uid+'-price');
+    if(priceEl) priceEl.textContent='$'+last.toLocaleString();
+    const chEl=document.getElementById(uid+'-change');
+    if(chEl){
+      chEl.style.color=pct>=0?'#4ade80':'#f87171';
+      chEl.style.background=pct>=0?'rgba(74,222,128,.1)':'rgba(248,113,113,.1)';
+      chEl.textContent=(pct>=0?'+':'')+pct.toFixed(1)+'%';
+    }
+    const axisEl=document.getElementById(uid+'-axis');
+    if(axisEl) axisEl.innerHTML=labels.map(lb=>`<span style="font-size:9px;color:rgba(255,255,255,.32);text-transform:lowercase">${lb}</span>`).join('');
+  }
+
+  // crosshair suave — persigue el puntero con lerp (no salta entre puntos), pointer events unificados mouse+touch
+  const svg=document.getElementById(uid+'-svg');
+  const hit=document.getElementById(uid+'-hit');
+  const hoverLine=document.getElementById(uid+'-hoverline');
+  const dot=document.getElementById(uid+'-dot');
+  const dotEnd2=document.getElementById(uid+'-dotend');
+  const tooltip=document.getElementById(uid+'-tooltip');
+  const tipPrice=document.getElementById(uid+'-tipprice');
+  const tipDate=document.getElementById(uid+'-tipdate');
+  let hoverT=null, curX=null;
+
+  function lerp(a,b,t){return a+(b-a)*t;}
+  function valueAtX(svgX){
+    const n=currentPoints.length;
+    const ratio=Math.max(0,Math.min(1,svgX/W));
+    const idx=ratio*(n-1);
+    const i0=Math.floor(idx), i1=Math.min(n-1,i0+1), f=idx-i0;
+    return{price:currentPoints[i0]+(currentPoints[i1]-currentPoints[i0])*f, y:ys[i0]+(ys[i1]-ys[i0])*f};
+  }
+  function tick(){
+    // [cleanup] cubre dos casos: (1) el usuario navegó a otra publicación → este nodo
+    // ya no está en el DOM (el render siguiente reemplaza innerHTML completo); (2) el
+    // usuario salió de la vista de market-detail sin abrir otra publicación → el nodo
+    // sigue en el DOM (las vistas de esta app se ocultan con display:none, no se
+    // destruyen) pero container.offsetParent es null porque algún ancestro quedó
+    // display:none. Sin este segundo check el loop quedaba corriendo en segundo plano
+    // indefinidamente cada vez que se abandonaba la vista sin abrir otro detalle.
+    if(!container.isConnected || container.offsetParent===null) return;
+    if(hoverT!==null){
+      curX=curX===null?hoverT:lerp(curX,hoverT,0.3);
+      const{price,y}=valueAtX(curX);
+      hoverLine.setAttribute('x1',curX); hoverLine.setAttribute('x2',curX); hoverLine.setAttribute('opacity',1);
+      dot.setAttribute('cx',curX); dot.setAttribute('cy',y); dot.setAttribute('opacity',1);
+      dotEnd2.style.opacity=0;
+      tooltip.style.opacity=1; tooltip.style.left=(curX/W*100)+'%';
+      tipPrice.textContent='$'+Math.round(price).toLocaleString();
+      tipDate.textContent='período seleccionado';
+    } else if(curX!==null){
+      hoverLine.setAttribute('opacity',0); dot.setAttribute('opacity',0); dotEnd2.style.opacity=1; tooltip.style.opacity=0; curX=null;
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  function svgXFromClient(clientX){
+    const rect=svg.getBoundingClientRect();
+    return((clientX-rect.left)/rect.width)*W;
+  }
+  hit.addEventListener('pointerdown',e=>{hit.setPointerCapture(e.pointerId);hoverT=svgXFromClient(e.clientX);});
+  hit.addEventListener('pointermove',e=>{hoverT=svgXFromClient(e.clientX);});
+  hit.addEventListener('pointerup',()=>{hoverT=null;});
+  hit.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')hoverT=null;});
+  hit.addEventListener('pointercancel',()=>{hoverT=null;});
+
+  // pills de rango — solo se muestran los que sí tienen data válida cargada
+  const rangesEl=document.getElementById(uid+'-ranges');
+  const rangeLabels={'3m':'3m','6m':'6m','1a':'1a','3a':'3a','5a':'5a'};
+  const rangeCls=uid+'-range';
+  rangesEl.innerHTML=validKeys.map(k=>
+    `<div class="${rangeCls}" data-r="${k}" style="flex:1;text-align:center;font-size:11px;font-weight:600;color:${k===defaultKey?'#fff':'rgba(255,255,255,.32)'};background:${k===defaultKey?'rgba(255,255,255,.09)':'transparent'};padding:6px 0;border-radius:8px;cursor:pointer;user-select:none">${rangeLabels[k]}</div>`
+  ).join('');
+  rangesEl.querySelectorAll('.'+rangeCls).forEach(el=>{
+    el.onclick=()=>{
+      rangesEl.querySelectorAll('.'+rangeCls).forEach(r=>{r.style.color='rgba(255,255,255,.32)';r.style.background='transparent';});
+      el.style.color='#fff'; el.style.background='rgba(255,255,255,.09)';
+      renderRange(el.dataset.r);
+    };
+  });
+
+  renderRange(defaultKey);
 }
 
 async function _loadChocados(){
@@ -15143,6 +15570,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div class="tab" id="sa-tab-comunidad" onclick="saTab('comunidad')" style="white-space:nowrap;flex-shrink:0">comunidad</div>
       <div class="tab" id="sa-tab-documentos" onclick="saTab('documentos')" style="white-space:nowrap;flex-shrink:0">documentos</div>
       <div class="tab" id="sa-tab-logos" onclick="saTab('logos')" style="white-space:nowrap;flex-shrink:0">logos marcas</div>
+      <div class="tab" id="sa-tab-comparativa" onclick="saTab('comparativa')" style="white-space:nowrap;flex-shrink:0">comparativa precios</div>
     </div>
   </div>
   <div class="sa-tabgroup" data-cat="dinero" style="display:none">
@@ -15387,6 +15815,22 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <input type="text" id="sa-logos-search" placeholder="buscar marca..." oninput="saLoadMarcaLogos(this.value)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;box-sizing:border-box">
     <div id="sa-logos-list" style="display:flex;flex-direction:column;gap:8px">
       <div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
+    </div>
+  </div>
+
+  <!-- [comparativa de precios] data que alimenta el chart del detalle de market. súper simple:
+       marca+modelo + un JSON con los rangos. sin entrada acá, el chart no aparece en la app — no rompe nada. -->
+  <div id="sa-comparativa" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Comparativa de precios</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Alimenta el chart que aparece en el detalle de cada publicación de market (no subastas), entre especificaciones y descripción. Se busca por marca+modelo exacto. Si no hay entrada cargada para esa combinación, el chart simplemente no se muestra.</div>
+    <input type="text" id="sa-cmp-marca" placeholder="marca (ej. toyota)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;box-sizing:border-box">
+    <input type="text" id="sa-cmp-modelo" placeholder="modelo (ej. corolla)" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;box-sizing:border-box">
+    <textarea id="sa-cmp-payload" rows="8" placeholder='{"3m":{"p":[13500,13700,14200],"labels":["may","jun","jul"]},"6m":{"p":[13350,13500,13800,14200],"labels":["mar","may","jul","ago"]}}' style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 14px;font-family:monospace;font-size:12px;color:#fff;outline:none;resize:vertical;box-sizing:border-box;line-height:1.5"></textarea>
+    <div style="font-size:11px;color:rgba(255,255,255,.3);line-height:1.5">rangos válidos: 3m, 6m, 1a, 3a, 5a — cada uno con "p" (array de precios) y "labels" (array de textos del eje, mismo largo que "p"). solo hace falta llenar los rangos que quieras mostrar; los demás se ocultan solos.</div>
+    <button onclick="saSaveComparativa()" style="width:100%;background:#e6f03b;color:#000;border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer">guardar</button>
+    <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-top:10px;text-transform:uppercase;letter-spacing:.4px">entradas cargadas</div>
+    <div id="sa-cmp-list" style="display:flex;flex-direction:column;gap:8px">
+      <div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
     </div>
   </div>
 
