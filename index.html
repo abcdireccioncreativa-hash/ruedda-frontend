@@ -17173,42 +17173,54 @@ async function _saDeletePat(id,cat){
 
 <!-- ═══════════ SWIPE-EXIT — market / subastas / concesionarios ═══════════
      Gesto propio (no el nativo de iOS/Safari, que muestra su propio flash y no se
-     puede controlar desde JS de forma confiable — de ahí el preventDefault de abajo,
-     necesario para que el navegador no dispute el gesto en paralelo). Al completar el
-     swipe: splash blanco tipo fintech (mismo lenguaje visual que el de login, en
-     blanco) y, debajo suyo, se navega y se prepara la coreografía de cascada — igual
-     técnica que usa el boot splash de arranque (_prepCascade/_playCascade, expuestas
-     más arriba). Cuando el splash se retira, la sección ya está pintada y entra con
-     su cascada, sin salto y sin negro. Un solo motor reusado 3 veces — misma lógica,
-     3 vistas, cero duplicación. -->
+     puede controlar desde JS de forma confiable, y además touch-action:pan-y de abajo
+     lo bloquea también a nivel de navegador — doble seguro). Al completar el swipe:
+     splash negro (#000), mismo ring+check y timing que
+     _showPublicacionRevisionSplash/_showLoginSplash, y debajo suyo se navega y se
+     prepara la coreografía de cascada — igual técnica que usa el boot splash de
+     arranque (_prepCascade/_playCascade, expuestas más arriba). Cuando el splash se
+     retira, la sección ya está pintada y entra con su cascada, sin salto. Un solo
+     motor reusado 3 veces — misma lógica, 3 vistas, cero duplicación. -->
 <style>
-@keyframes rdSwipeBar{from{width:0%}to{width:100%}}
+/* [fix "a veces sí, a veces no"] preventDefault en touchmove depende de que nuestro
+   JS decida "es horizontal" ANTES de que el reconocedor nativo de gestos de iOS/Safari
+   ya haya comprometido su propio swipe-back — es una carrera contra el sistema, y
+   por eso a veces ganaba el gesto nativo y a veces el nuestro. touch-action:pan-y lo
+   resuelve de raíz: el navegador queda avisado, a nivel de compositor (antes de que
+   se despache un solo evento táctil), de que el gesto horizontal en estas vistas NO
+   es suyo — nunca compite. .photo-gallery mantiene su propio swipe horizontal. */
+#view-market-detail,#view-detail,#view-vitrina{touch-action:pan-y}
+.photo-gallery{touch-action:pan-x pan-y}
 </style>
 <script>
-// splash blanco + cascada al completar un swipe de salida
+// splash negro + cascada al completar un swipe de salida — mismo negro #000, mismo
+// ring+check, mismo timing y misma técnica de reveal (doble requestAnimationFrame,
+// no uno solo) que _showPublicacionRevisionSplash/_showLoginSplash. Sin esto el
+// primer frame a veces se pintaba ya en opacity:1 directo (un solo rAF no siempre
+// alcanza a registrar el opacity:0 inicial antes de que arranque la transición) —
+// de ahí el "a veces aparece de golpe, a veces no".
 function _rdSwipeExitSplash(label,iconHtml,navigateFn){
   let sp=document.getElementById('rd-swipe-splash'); if(sp) sp.remove();
   sp=document.createElement('div');
   sp.id='rd-swipe-splash';
-  sp.style.cssText='position:fixed;inset:0;z-index:100000;background:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .22s ease';
+  sp.style.cssText='position:fixed;inset:0;z-index:100000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity .3s ease';
   sp.innerHTML=`
-    <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
-      ${iconHtml||''}
-      <div style="font-size:15px;font-weight:700;letter-spacing:-.2px;color:#0a0a0a;opacity:0;animation:splashFade .28s ease .05s forwards">${label}</div>
-      <div style="width:110px;height:2.5px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden">
-        <div style="height:100%;width:0%;background:#0a0a0a;border-radius:99px;animation:rdSwipeBar .4s cubic-bezier(.22,1,.36,1) .05s forwards"></div>
-      </div>
-    </div>`;
+    ${iconHtml||`<svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+      <circle cx="26" cy="26" r="25" stroke="rgba(230,240,59,.15)" stroke-width="1.5"/>
+      <circle cx="26" cy="26" r="25" stroke="#e6f03b" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
+      <path d="M17 26l6 6 12-12" stroke="#e6f03b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
+    </svg>`}
+    <div style="font-size:20px;font-weight:800;letter-spacing:-.4px;color:#fff;opacity:0;animation:splashFade .4s ease .15s forwards">${label}</div>`;
   document.body.appendChild(sp);
-  requestAnimationFrame(()=>{ sp.style.opacity='1'; });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ sp.style.opacity='1'; }));
   setTimeout(()=>{
     navigateFn();
     // arma la coreografía de la sección destino MIENTRAS el splash sigue tapando todo
     const active=document.querySelector('.view.active');
     const kids=(active&&typeof _prepCascade==='function')?_prepCascade(active):null;
     sp.style.opacity='0';
-    setTimeout(()=>{ sp.remove(); if(kids&&typeof _playCascade==='function') _playCascade(kids); },230);
-  },380);
+    setTimeout(()=>{ sp.remove(); if(kids&&typeof _playCascade==='function') _playCascade(kids); },300);
+  },1300);
 }
 // motor de gesto — reusado para las 3 vistas de detalle
 function _rdSetupSwipeExit(viewId,backSelector,getLabel,iconHtml,matchView){
@@ -17251,7 +17263,11 @@ function _rdSetupSwipeExit(viewId,backSelector,getLabel,iconHtml,matchView){
       v.style.transition='opacity .16s ease';
       v.style.opacity='0';
       _rdSwipeExitSplash(getLabel(),iconHtml,()=>{ document.querySelector(backSelector)?.click(); });
-      setTimeout(()=>{ v.style.transition='';v.style.transform='';v.style.opacity=''; },260);
+      // limpia recién cuando el splash ya está 100% opaco (reveal de doble rAF + .3s
+      // ease ≈ 320ms) — antes esto pasaba a los 260ms, ANTES de que el splash terminara
+      // de taparlo del todo, y por eso a veces se veía un flash de la publicación
+      // reapareciendo debajo del negro todavía semi-transparente.
+      setTimeout(()=>{ v.style.transition='';v.style.transform='';v.style.opacity=''; },420);
     } else {
       v.style.transition='transform .32s cubic-bezier(.32,.72,0,1)';
       v.style.transform=''; v.style.opacity='';
@@ -17280,7 +17296,7 @@ _rdSetupSwipeExit('view-market-detail','#mkt-detail-back',
 // subastas: ícono martillo, mismo PNG que ya usa la app en el resto de la UI de subastas
 _rdSetupSwipeExit('view-detail','#view-detail .detail-back',
   ()=>'volviendo a subastas',
-  '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAwCAYAAABuZUjcAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAEUUlEQVR42s2ZW6gVZRSA1+8+55g+aGgqGF4eQvNYHs0X04cs7UZSEoUJxXkJRARBOJmQiEIgoi8hJAj1IIGiGAQeogchTEi6UWkEYYpZ0M3bsUy3Z+/Pl7VyNcye/c9u5jg/bOaf2z/frFn3LVLgAELWfiUHMMpggSeBx9x+qCp0TbfjgA+5Pfba+crBA126nQp8psA39Qeww19XNfWYA/zgoAGabj6g13VXSdIPA78moHHwwzrvv+OSdzo9x8EOkz4MvgGsuCPw6iFMPe7T7Z4W0vajoS/wN7B4ROEV2iS9CbgCPKr7hyPhAf4Aev2XK9UIzZ0BuxzMFWCBvtSxCHhTp7PAvaXCO+AuYJ+DM4ifgenqw79ro+/+3FfAeO+dCjVCBZ4KHEmRqEGcUvDpwC8J1UgbtsZRoMd/0cJ8tM436oOuZ0AcU5VZAAypMcbAHyosujof/ZDLOQ5m6LAde1+vfUKPmTdpNeq63fO/VcZBLwIuAP8Affo5P4mAf1vvf8WpUwz8to7hHfQzwFW3eKwBGvwWXWcgwtP46NqXG94Fln63UCPFAGdkGKDPT9boejsj4O3c0lwu0kEPOIBGhwbYdOrxnK77Xga8qcqgeZi8ecdTbXTSHno4wgDt2DUX4j9Kgbf5fmB0rqrJ6fXmhASIMMCX3fFmixD/OzALuAv4MiWA7e6o1DPnD/QCf+Xwv2aAr2WogcH9CEwGpujcxuZkStFpQbDCGWQzwwskDXBXBPznqsOzNFdZV0jgcSrTn/H50wxwZYQB2rEjeu2EQnMUBz8QmabGGGAS/l29tqfQAtrB78iZY89WA/wiIkBtL7yYUEM1+Hdy5NingUlqgGci4NeXBV9Ta/8gR+QzA7wf+DMjutoLrSoD3tzkGOB4DvhBvX+JJmitomsDuOHKv2LhdTtRc5V21U09kWOvTHigNPu4BDxYeBnnUoKZwE8Z8F6y24Eeve/VDPdq65wDppUJ3wdcTNFdP1/r7KRb529EBKhvgLsLr0Gdp3lES7hGokd4HXghqa/uvt0RPv4o0F1oDZqAeD7x4AutjCzRjzkUAX+glA6vg38ROKF59ANZnsE6YMBo4OMI+LdK6Xal6WA7vXQeagJwMiJAbSoLvuYkOaoDD3U+ovxbW5neuoOfD1xuU/4BvFQleLOTZRq00so/e6E6sKyK8Ksjyr9LwLwR6fBGwluA2pDhaQz+PDCjlCZpQfl/PSO6ngTGV+IfvET+H9N/eVNEJLi2QJniDyLSCCGQ0YMPIlITkUEReVxEhkXEG2NTt1+HEBZW6q9Hlf64RP/Fq8swcELsjYDZIrJVRHqchArh0bWGROT1EMJvQEiTfAihCdRCCEPAsyJyXERmishNx9MlIgf92y5XHbKWWtG/q8DcyNTAAlQv8H1Cz/dZ9hjcDWNVxyhB4jdCCPU8aqNfYKyIPC0i94jItyGET//TqhsJ95L3GS0SuX/XuAW5DfzZFmLQlwAAAABJRU5ErkJggg==" alt="" style="width:40px;height:40px">',
+  '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAwCAYAAABuZUjcAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAEUUlEQVR42s2ZW6gVZRSA1+8+55g+aGgqGF4eQvNYHs0X04cs7UZSEoUJxXkJRARBOJmQiEIgoi8hJAj1IIGiGAQeogchTEi6UWkEYYpZ0M3bsUy3Z+/Pl7VyNcye/c9u5jg/bOaf2z/frFn3LVLgAELWfiUHMMpggSeBx9x+qCp0TbfjgA+5Pfba+crBA126nQp8psA39Qeww19XNfWYA/zgoAGabj6g13VXSdIPA78moHHwwzrvv+OSdzo9x8EOkz4MvgGsuCPw6iFMPe7T7Z4W0vajoS/wN7B4ROEV2iS9CbgCPKr7hyPhAf4Aev2XK9UIzZ0BuxzMFWCBvtSxCHhTp7PAvaXCO+AuYJ+DM4ifgenqw79ro+/+3FfAeO+dCjVCBZ4KHEmRqEGcUvDpwC8J1UgbtsZRoMd/0cJ8tM436oOuZ0AcU5VZAAypMcbAHyosujof/ZDLOQ5m6LAde1+vfUKPmTdpNeq63fO/VcZBLwIuAP8Affo5P4mAf1vvf8WpUwz8to7hHfQzwFW3eKwBGvwWXWcgwtP46NqXG94Fln63UCPFAGdkGKDPT9boejsj4O3c0lwu0kEPOIBGhwbYdOrxnK77Xga8qcqgeZi8ecdTbXTSHno4wgDt2DUX4j9Kgbf5fmB0rqrJ6fXmhASIMMCX3fFmixD/OzALuAv4MiWA7e6o1DPnD/QCf+Xwv2aAr2WogcH9CEwGpujcxuZkStFpQbDCGWQzwwskDXBXBPznqsOzNFdZV0jgcSrTn/H50wxwZYQB2rEjeu2EQnMUBz8QmabGGGAS/l29tqfQAtrB78iZY89WA/wiIkBtL7yYUEM1+Hdy5NingUlqgGci4NeXBV9Ta/8gR+QzA7wf+DMjutoLrSoD3tzkGOB4DvhBvX+JJmitomsDuOHKv2LhdTtRc5V21U09kWOvTHigNPu4BDxYeBnnUoKZwE8Z8F6y24Eeve/VDPdq65wDppUJ3wdcTNFdP1/r7KRb529EBKhvgLsLr0Gdp3lES7hGokd4HXghqa/uvt0RPv4o0F1oDZqAeD7x4AutjCzRjzkUAX+glA6vg38ROKF59ANZnsE6YMBo4OMI+LdK6Xal6WA7vXQeagJwMiJAbSoLvuYkOaoDD3U+ovxbW5neuoOfD1xuU/4BvFQleLOTZRq00so/e6E6sKyK8Ksjyr9LwLwR6fBGwluA2pDhaQz+PDCjlCZpQfl/PSO6ngTGV+IfvET+H9N/eVNEJLi2QJniDyLSCCGQ0YMPIlITkUEReVxEhkXEG2NTt1+HEBZW6q9Hlf64RP/Fq8swcELsjYDZIrJVRHqchArh0bWGROT1EMJvQEiTfAihCdRCCEPAsyJyXERmishNx9MlIgf92y5XHbKWWtG/q8DcyNTAAlQv8H1Cz/dZ9hjcDWNVxyhB4jdCCPU8aqNfYKyIPC0i94jItyGET//TqhsJ95L3GS0SuX/XuAW5DfzZFmLQlwAAAABJRU5ErkJggg==" alt="" style="width:48px;height:48px">',
   'detail');
 
 // concesionarios: salir de la vitrina de un concesionario vuelve a la sección concesionarios
