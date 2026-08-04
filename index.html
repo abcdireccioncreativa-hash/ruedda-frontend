@@ -98,14 +98,6 @@ html{scrollbar-width:none}
 .view{padding-top:58px}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
 #view-detail,#view-market-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
-/* [swipe-exit OFF] el gesto nativo de "volver" de Safari/iOS (edge-swipe) sigue
-   activo porque esta app navega con history.pushState — el motor JS propio de
-   más abajo nunca lo controló, solo corría en paralelo. touch-action:pan-y le
-   quita al navegador el gesto horizontal en esta vista (solo permite scroll
-   vertical), que es lo único que realmente lo bloquea. #mkt-gallery mantiene su
-   propio swipe horizontal de fotos, sin tocar. */
-#view-market-detail{touch-action:pan-y}
-#view-market-detail #mkt-gallery{touch-action:pan-x pan-y}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
 /* [FIX] view-configuracion nunca tuvo este padding — el bottom-nav fijo tapaba
    "eliminar cuenta" (el último item), y en Safari/iOS el home indicator
@@ -13146,6 +13138,11 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
       },i*70);
     });
   }
+  // [swipe-exit splash] expuestas para reusar la misma coreografía del boot al
+  // volver de un swipe en market/subastas/concesionarios — mismo patrón exacto,
+  // cero lógica duplicada. No cambia nada de cómo se usan acá arriba.
+  window._prepCascade=_prepCascade;
+  window._playCascade=_playCascade;
 })();
 
 // ── PUBLICACIÓN REVISIÓN SPLASH ──
@@ -17174,35 +17171,53 @@ async function _saDeletePat(id,cat){
 })();
 </script>
 
-<!-- ═══════════ SWIPE-EXIT PROPIO — market detail ═══════════
-     Reemplaza la dependencia del gesto nativo de iOS Safari para "volver" en esta
-     vista específica. El gesto nativo de iOS muestra una vista previa en negro
-     mientras desliza (porque Ruedda es una sola página con vistas mostradas/ocultas,
-     no rutas reales — iOS no tiene una "foto" real de lo de atrás que enseñar hasta
-     que termina el gesto). Este motor toma el control completo del gesto y la
-     animación, controlada 100% por nuestro JS — cero negro, cero espera.
-     100% aislado: solo actúa dentro de #view-market-detail, nada más se toca. -->
+<!-- ═══════════ SWIPE-EXIT — market / subastas / concesionarios ═══════════
+     Gesto propio (no el nativo de iOS/Safari, que muestra su propio flash y no se
+     puede controlar desde JS de forma confiable — de ahí el preventDefault de abajo,
+     necesario para que el navegador no dispute el gesto en paralelo). Al completar el
+     swipe: splash blanco tipo fintech (mismo lenguaje visual que el de login, en
+     blanco) y, debajo suyo, se navega y se prepara la coreografía de cascada — igual
+     técnica que usa el boot splash de arranque (_prepCascade/_playCascade, expuestas
+     más arriba). Cuando el splash se retira, la sección ya está pintada y entra con
+     su cascada, sin salto y sin negro. Un solo motor reusado 3 veces — misma lógica,
+     3 vistas, cero duplicación. -->
 <style>
-#view-market-detail.rd-swiping{transition:none!important}
-#view-market-detail.rd-swipe-return{transition:transform .32s cubic-bezier(.32,.72,0,1)}
+@keyframes rdSwipeBar{from{width:0%}to{width:100%}}
 </style>
 <script>
-(function(){
-  // [DESACTIVADO] el gesto seguía dando problemas (pantalla negra / pop) incluso
-  // después del intento de arreglo — se apaga por completo hasta reescribirlo bien.
-  // Cero listeners registrados: no hay forma de que este código interfiera con nada.
-  // Salir de una publicación de market queda SOLO por el botón "volver"
-  // (#mkt-detail-back). Para reactivar cuando esté realmente arreglado, borrar este
-  // return y el bloque de arriba queda funcionando tal cual estaba.
-  return;
-  let sx=0, sy=0, dx=0, dragging=false, decided=false, isHorizontal=false;
-  const THRESH=90; // px para considerar "swipe completo"
-  function el(){ return document.getElementById('view-market-detail'); }
+// splash blanco + cascada al completar un swipe de salida
+function _rdSwipeExitSplash(label,iconHtml,navigateFn){
+  let sp=document.getElementById('rd-swipe-splash'); if(sp) sp.remove();
+  sp=document.createElement('div');
+  sp.id='rd-swipe-splash';
+  sp.style.cssText='position:fixed;inset:0;z-index:100000;background:#fff;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .22s ease';
+  sp.innerHTML=`
+    <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
+      ${iconHtml||''}
+      <div style="font-size:15px;font-weight:700;letter-spacing:-.2px;color:#0a0a0a;opacity:0;animation:splashFade .28s ease .05s forwards">${label}</div>
+      <div style="width:110px;height:2.5px;background:rgba(0,0,0,.08);border-radius:99px;overflow:hidden">
+        <div style="height:100%;width:0%;background:#0a0a0a;border-radius:99px;animation:rdSwipeBar .4s cubic-bezier(.22,1,.36,1) .05s forwards"></div>
+      </div>
+    </div>`;
+  document.body.appendChild(sp);
+  requestAnimationFrame(()=>{ sp.style.opacity='1'; });
+  setTimeout(()=>{
+    navigateFn();
+    // arma la coreografía de la sección destino MIENTRAS el splash sigue tapando todo
+    const active=document.querySelector('.view.active');
+    const kids=(active&&typeof _prepCascade==='function')?_prepCascade(active):null;
+    sp.style.opacity='0';
+    setTimeout(()=>{ sp.remove(); if(kids&&typeof _playCascade==='function') _playCascade(kids); },230);
+  },380);
+}
+// motor de gesto — reusado para las 3 vistas de detalle
+function _rdSetupSwipeExit(viewId,backSelector,getLabel,iconHtml,matchView){
+  let sx=0,sy=0,dx=0,dragging=false,decided=false,isHorizontal=false;
+  const THRESH=90;
+  function el(){ return document.getElementById(viewId); }
   document.addEventListener('touchstart',e=>{
-    if(currentView!=='market-detail')return;
-    // no interceptar gestos que arrancan dentro de la galería de fotos (esa ya
-    // tiene su propio swipe horizontal para pasar fotos — no hay que pelearle)
-    if(e.target.closest('.photo-gallery,.photo-gallery-inner'))return;
+    if(currentView!==matchView)return;
+    if(e.target.closest('.photo-gallery,.photo-gallery-inner'))return; // esa ya tiene su propio swipe horizontal
     const t=e.touches[0];
     sx=t.clientX; sy=t.clientY; dx=0; dragging=true; decided=false; isHorizontal=false;
   },{passive:true});
@@ -17211,23 +17226,17 @@ async function _saDeletePat(id,cat){
     const t=e.touches[0];
     const _dx=t.clientX-sx, _dy=t.clientY-sy;
     if(!decided){
-      if(Math.abs(_dx)<8&&Math.abs(_dy)<8)return; // muy chico para decidir aún
+      if(Math.abs(_dx)<8&&Math.abs(_dy)<8)return;
       decided=true;
-      isHorizontal=Math.abs(_dx)>Math.abs(_dy)*1.3; // claramente horizontal, no scroll vertical
-      if(!isHorizontal){dragging=false;return;} // deja pasar el scroll normal
+      isHorizontal=Math.abs(_dx)>Math.abs(_dy)*1.3;
+      if(!isHorizontal){dragging=false;return;}
     }
     if(!isHorizontal)return;
-    if(_dx<0)return; // solo hacia la derecha (gesto de "volver"), izquierda se ignora
-    // [fix pantalla negra] sin este preventDefault, el gesto nativo de edge-swipe-back
-    // de iOS Safari corre EN PARALELO a este motor propio (los listeners eran passive,
-    // que por definición no pueden bloquear nada) — de ahí el flash en negro que se
-    // veía mientras se deslizaba, aunque el comentario de arriba diga "cero negro".
-    // Con preventDefault (y el listener registrado como passive:false más abajo) el
-    // gesto nativo queda anulado apenas confirmamos que es horizontal hacia la derecha.
-    e.preventDefault();
+    if(_dx<0)return;
+    e.preventDefault(); // bloquea el gesto nativo de "volver" del navegador
     dx=Math.min(_dx,window.innerWidth);
     const v=el(); if(!v)return;
-    v.classList.add('rd-swiping');
+    v.style.transition='none';
     v.style.transform=`translateX(${dx}px)`;
     v.style.opacity=String(Math.max(.35,1-dx/window.innerWidth*0.6));
   },{passive:false});
@@ -17236,40 +17245,48 @@ async function _saDeletePat(id,cat){
     dragging=false;
     if(!isHorizontal)return;
     const v=el(); if(!v)return;
-    v.classList.remove('rd-swiping');
     if(dx>THRESH){
-      // completa el gesto: la vista se desliza fuera de pantalla con nuestra propia
-      // animación. [fix "aparece de golpe"] antes se disparaba el click de "volver"
-      // RECIÉN a los 300ms, cuando la animación ya había terminado — en esos 300ms no
-      // había nada real pintado detrás (solo el fondo negro del body, porque la vista
-      // destino seguía en display:none hasta ese instante), y al terminar showView()
-      // la mostraba de un salto, sin transición. Ahora: sacamos esta vista del flujo
-      // normal (position:fixed, por encima) ANTES de disparar el back, así la vista
-      // destino queda pintada y visible por debajo desde el primer frame, mientras
-      // esta sigue deslizándose encima con su propia animación de siempre.
-      v.style.position='fixed';v.style.inset='0';v.style.zIndex='50';
-      v.classList.add('rd-swipe-return');
-      v.style.transform=`translateX(100%)`;
+      // completa el gesto: fade rápido de la publicación y el splash blanco toma el
+      // control — navega y arma la cascada debajo suyo, invisible hasta que se retire.
+      v.style.transition='opacity .16s ease';
       v.style.opacity='0';
-      document.getElementById('mkt-detail-back')?.click();
-      setTimeout(()=>{
-        v.classList.remove('rd-swipe-return');
-        v.style.transform='';v.style.opacity='';v.style.position='';v.style.inset='';v.style.zIndex='';
-      },300);
+      _rdSwipeExitSplash(getLabel(),iconHtml,()=>{ document.querySelector(backSelector)?.click(); });
+      setTimeout(()=>{ v.style.transition='';v.style.transform='';v.style.opacity=''; },260);
     } else {
-      // no llegó al umbral: regresa suave a su lugar
-      v.classList.add('rd-swipe-return');
-      v.style.transform='';v.style.opacity='';
-      setTimeout(()=>v.classList.remove('rd-swipe-return'),320);
+      v.style.transition='transform .32s cubic-bezier(.32,.72,0,1)';
+      v.style.transform=''; v.style.opacity='';
+      setTimeout(()=>{ v.style.transition=''; },320);
     }
   });
   document.addEventListener('touchcancel',()=>{
     if(!dragging)return;
     dragging=false;
     const v=el();
-    if(v&&isHorizontal){v.classList.add('rd-swipe-return');v.style.transform='';v.style.opacity='';setTimeout(()=>v.classList.remove('rd-swipe-return'),320);}
+    if(v&&isHorizontal){
+      v.style.transition='transform .32s cubic-bezier(.32,.72,0,1)';
+      v.style.transform=''; v.style.opacity='';
+      setTimeout(()=>{ v.style.transition=''; },320);
+    }
   });
-})();
+}
+
+// market: "volviendo a market", o "volviendo a concesionarios" si esta publicación
+// se abrió desde la vitrina de un concesionario (mismo destino que ya usaba el botón
+// "volver" vía mktDetailOrigin — el splash ahora refleja el destino real).
+_rdSetupSwipeExit('view-market-detail','#mkt-detail-back',
+  ()=>typeof mktDetailOrigin!=='undefined'&&mktDetailOrigin==='vitrina'?'volviendo a concesionarios':'volviendo a market',
+  '', 'market-detail');
+
+// subastas: ícono martillo, mismo PNG que ya usa la app en el resto de la UI de subastas
+_rdSetupSwipeExit('view-detail','#view-detail .detail-back',
+  ()=>'volviendo a subastas',
+  '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC4AAAAwCAYAAABuZUjcAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAEUUlEQVR42s2ZW6gVZRSA1+8+55g+aGgqGF4eQvNYHs0X04cs7UZSEoUJxXkJRARBOJmQiEIgoi8hJAj1IIGiGAQeogchTEi6UWkEYYpZ0M3bsUy3Z+/Pl7VyNcye/c9u5jg/bOaf2z/frFn3LVLgAELWfiUHMMpggSeBx9x+qCp0TbfjgA+5Pfba+crBA126nQp8psA39Qeww19XNfWYA/zgoAGabj6g13VXSdIPA78moHHwwzrvv+OSdzo9x8EOkz4MvgGsuCPw6iFMPe7T7Z4W0vajoS/wN7B4ROEV2iS9CbgCPKr7hyPhAf4Aev2XK9UIzZ0BuxzMFWCBvtSxCHhTp7PAvaXCO+AuYJ+DM4ifgenqw79ro+/+3FfAeO+dCjVCBZ4KHEmRqEGcUvDpwC8J1UgbtsZRoMd/0cJ8tM436oOuZ0AcU5VZAAypMcbAHyosujof/ZDLOQ5m6LAde1+vfUKPmTdpNeq63fO/VcZBLwIuAP8Affo5P4mAf1vvf8WpUwz8to7hHfQzwFW3eKwBGvwWXWcgwtP46NqXG94Fln63UCPFAGdkGKDPT9boejsj4O3c0lwu0kEPOIBGhwbYdOrxnK77Xga8qcqgeZi8ecdTbXTSHno4wgDt2DUX4j9Kgbf5fmB0rqrJ6fXmhASIMMCX3fFmixD/OzALuAv4MiWA7e6o1DPnD/QCf+Xwv2aAr2WogcH9CEwGpujcxuZkStFpQbDCGWQzwwskDXBXBPznqsOzNFdZV0jgcSrTn/H50wxwZYQB2rEjeu2EQnMUBz8QmabGGGAS/l29tqfQAtrB78iZY89WA/wiIkBtL7yYUEM1+Hdy5NingUlqgGci4NeXBV9Ta/8gR+QzA7wf+DMjutoLrSoD3tzkGOB4DvhBvX+JJmitomsDuOHKv2LhdTtRc5V21U09kWOvTHigNPu4BDxYeBnnUoKZwE8Z8F6y24Eeve/VDPdq65wDppUJ3wdcTNFdP1/r7KRb529EBKhvgLsLr0Gdp3lES7hGokd4HXghqa/uvt0RPv4o0F1oDZqAeD7x4AutjCzRjzkUAX+glA6vg38ROKF59ANZnsE6YMBo4OMI+LdK6Xal6WA7vXQeagJwMiJAbSoLvuYkOaoDD3U+ovxbW5neuoOfD1xuU/4BvFQleLOTZRq00so/e6E6sKyK8Ksjyr9LwLwR6fBGwluA2pDhaQz+PDCjlCZpQfl/PSO6ngTGV+IfvET+H9N/eVNEJLi2QJniDyLSCCGQ0YMPIlITkUEReVxEhkXEG2NTt1+HEBZW6q9Hlf64RP/Fq8swcELsjYDZIrJVRHqchArh0bWGROT1EMJvQEiTfAihCdRCCEPAsyJyXERmishNx9MlIgf92y5XHbKWWtG/q8DcyNTAAlQv8H1Cz/dZ9hjcDWNVxyhB4jdCCPU8aqNfYKyIPC0i94jItyGET//TqhsJ95L3GS0SuX/XuAW5DfzZFmLQlwAAAABJRU5ErkJggg==" alt="" style="width:40px;height:40px">',
+  'detail');
+
+// concesionarios: salir de la vitrina de un concesionario vuelve a la sección concesionarios
+_rdSetupSwipeExit('view-vitrina','#view-vitrina .detail-back',
+  ()=>'volviendo a concesionarios',
+  '', 'vitrina');
 </script>
 <script>
 /* ============================================================
