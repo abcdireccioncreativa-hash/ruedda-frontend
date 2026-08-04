@@ -17180,6 +17180,13 @@ async function _saDeletePat(id,cat){
 </style>
 <script>
 (function(){
+  // [DESACTIVADO] el gesto seguía dando problemas (pantalla negra / pop) incluso
+  // después del intento de arreglo — se apaga por completo hasta reescribirlo bien.
+  // Cero listeners registrados: no hay forma de que este código interfiera con nada.
+  // Salir de una publicación de market queda SOLO por el botón "volver"
+  // (#mkt-detail-back). Para reactivar cuando esté realmente arreglado, borrar este
+  // return y el bloque de arriba queda funcionando tal cual estaba.
+  return;
   let sx=0, sy=0, dx=0, dragging=false, decided=false, isHorizontal=false;
   const THRESH=90; // px para considerar "swipe completo"
   function el(){ return document.getElementById('view-market-detail'); }
