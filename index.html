@@ -17333,15 +17333,18 @@ function _rdSetupSwipeExit(viewId,exitFn,matchView){
     if(!isHorizontal)return;
     const v=el(); if(!v)return;
     if(dx>THRESH){
-      // [fix "titila rápido a veces"] antes el reset de estos estilos corría en un
-      // setTimeout ciego a los 420ms, apostando a que para entonces el splash ya
-      // estaba 100% opaco. En un dispositivo lento (o con el hilo principal ocupado
-      // cargando fotos/el gráfico de comparativa) el splash podía tardar más que eso
-      // en taparlo del todo — y entre medio, el post volvía a opacity:1 de golpe,
-      // visible un instante antes de que el negro alcanzara a cubrirlo. Ahora el
-      // reset corre DENTRO de afterNav, en el mismo tick exacto en que showView() ya
-      // sacó esta vista de 'active' (display:none) — cero apuesta de timing, cero
-      // ventana donde pueda verse.
+      // [fix real del titileo] la causa exacta: durante el drag, esta vista queda
+      // con transform/opacity a mitad de camino (donde soltaste el dedo — ej.
+      // translateX(140px), opacity .7). El splash tarda ~2 frames + .3s en volverse
+      // 100% opaco (para que su propia entrada sea suave, no de golpe) — y en ESA
+      // ventana, este post semi-transparente y corrido seguía ahí, visible por
+      // debajo, hasta que el negro alcanzaba a taparlo del todo. Por eso solo
+      // pasaba con el swipe y nunca con el botón "volver" (ese nunca deja la vista
+      // a mitad de un drag). Ahora, apenas se decide que el gesto se completa, esta
+      // vista salta a invisible al instante (sin transición) — cero remanente del
+      // drag que pueda asomarse mientras el splash todavía se está formando.
+      v.style.transition='none';
+      v.style.opacity='0';
       exitFn(()=>{ v.style.transition='';v.style.transform='';v.style.opacity=''; });
     } else {
       v.style.transition='transform .32s cubic-bezier(.32,.72,0,1)';
