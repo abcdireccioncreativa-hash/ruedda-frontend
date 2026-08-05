@@ -17234,8 +17234,16 @@ async function _saDeletePat(id,cat){
 // splash negro + cascada — mismo negro #000, mismo ring+check, mismo timing y misma
 // técnica de reveal (doble requestAnimationFrame) que _showPublicacionRevisionSplash.
 function _rdSwipeExitSplash(label,iconHtml,navigateFn){
-  let sp=document.getElementById('rd-swipe-splash'); if(sp) sp.remove();
-  sp=document.createElement('div');
+  // [fix pantalla negra + titileo de la publicación] a veces el gesto nativo del
+  // sistema y nuestro propio motor de swipe se disparan los DOS para el mismo
+  // gesto (el touch-action:pan-y no siempre alcanza a bloquear el nativo a tiempo).
+  // Antes, la segunda llamada borraba el splash del primero a mitad de camino y
+  // creaba uno nuevo — ese remove() exponía un frame de lo que hubiera debajo (la
+  // publicación) antes de que el segundo splash arrancara a taparla de nuevo: el
+  // negro-titileo-negro que se reportó. Ahora, si ya hay un splash en curso, esta
+  // llamada no hace nada — se deja que el primero termine su propio recorrido.
+  if(document.getElementById('rd-swipe-splash')) return;
+  let sp=document.createElement('div');
   sp.id='rd-swipe-splash';
   sp.style.cssText='position:fixed;inset:0;z-index:100000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity .3s ease';
   sp.innerHTML=`
