@@ -5744,6 +5744,16 @@ function _encuentraApplyOrder(raw){
       const card=grid.querySelector('[data-enc="'+key+'"]');
       if(card) grid.appendChild(card);
     });
+    // [fix "card nueva se va adelante"] appendChild mueve cada card de la lista
+    // guardada al final, en orden — pero una card agregada DESPUÉS de que ya
+    // existía un orden guardado (ej: Repuestos) no está en ese array, nunca se
+    // mueve, y como todas sus hermanas sí se van moviendo hacia el final, termina
+    // varada primera por descarte. Cualquier card que no esté en el orden guardado
+    // se manda también al final acá, respetando su posición relativa del HTML
+    // entre las demás "nuevas" — así nunca salta al frente sola.
+    [...grid.querySelectorAll('[data-enc]')].forEach(card=>{
+      if(!order.includes(card.dataset.enc)) grid.appendChild(card);
+    });
   }catch(e){console.warn('[ruedda] _encuentraApplyOrder',e?.message||e);}
 }
 function _encuentraSetPhoto(slot,url){
@@ -17246,11 +17256,14 @@ function _rdSwipeExitSplash(label,iconHtml,navigateFn){
     // (clase .rdv) en el mismo tick — con pocas cards (trending, hot deals) el
     // navegador lo pinta oculto casi al instante, pero el grid completo debajo de
     // los filtros puede traer muchas más cards acumuladas por scroll infinito, y
-    // ese recalculo de estilos tarda más de un frame en pintarse. Si el splash
-    // arrancaba su fade-out en el mismo tick, a veces el negro empezaba a
-    // transparentarse ANTES de que el navegador terminara de pintar el grid oculto
-    // — eso era el flicker del post "a veces". Con este frame extra de margen, el
-    // ocultamiento ya quedó pintado antes de que el splash empiece a irse.
+    // ese recalculo de estilos tarda más en un dispositivo real. Dos refuerzos:
+    // 1) forzar el layout AHORA (leer offsetHeight) en vez de esperar a que el
+    //    navegador decida cuándo — así el "oculto" queda 100% calculado, no solo
+    //    pedido, antes de seguir; 2) doble rAF, para asegurar que ese layout ya
+    //    forzado también se haya PINTADO en pantalla. Sin las dos cosas juntas
+    //    a veces el negro empezaba a transparentarse antes de que el grid
+    //    terminara de ocultarse — el flicker del post "a veces".
+    if(active) void active.offsetHeight;
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       sp.style.opacity='0';
       setTimeout(()=>{ sp.remove(); if(kids&&typeof _playCascade==='function') _playCascade(kids); },300);
