@@ -17314,6 +17314,16 @@ function _rdSetupSwipeExit(viewId,exitFn,matchView){
     if(currentView!==matchView)return;
     if(e.target.closest('.photo-gallery,.photo-gallery-inner'))return; // esa ya tiene su propio swipe horizontal
     const t=e.touches[0];
+    // [fix real del negro+titileo] muy cerca del borde izquierdo es territorio del
+    // gesto nativo de "volver" del sistema — ahí ni touch-action:pan-y ni
+    // preventDefault lo bloquean de forma confiable en iOS (el sistema ya empieza
+    // a reconocerlo antes de que a nuestro JS le dé tiempo de decidir "es
+    // horizontal" y recién ahí llamar preventDefault). Competir en esa franja es
+    // justo lo que causaba la secuencia negro→titileo→splash: el nativo alcanza a
+    // mostrar su propia animación a medias antes de que ganemos la carrera. Acá ya
+    // ni se arranca a competir — se deja pasar de largo, y el popstate interceptado
+    // más abajo lo atrapa igual, limpio, con nuestro mismo splash.
+    if(t.clientX<24) return;
     sx=t.clientX; sy=t.clientY; dx=0; dragging=true; decided=false; isHorizontal=false;
   },{passive:true});
   document.addEventListener('touchmove',e=>{
