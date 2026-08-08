@@ -3,19 +3,17 @@
   "buildCommand": "npm install",
   "installCommand": "npm install",
   "outputDirectory": ".",
-  "rewrites": [
+  "routes": [
     {
-      "source": "/",
+      "src": "^/$",
       "missing": [
         { "type": "header", "key": "user-agent", "value": ".*(Mobile|iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini).*" }
       ],
-      "destination": "/desktop.html"
+      "dest": "/desktop.html"
     },
-    { "source": "/subastas", "destination": "/index.html" },
-    { "source": "/subastas/", "destination": "/index.html" },
-    { "source": "/market", "destination": "/index.html" },
-    { "source": "/market/", "destination": "/index.html" },
-    { "source": "/concesionarios", "destination": "/index.html" },
-    { "source": "/concesionarios/", "destination": "/index.html" }
+    { "handle": "filesystem" },
+    { "src": "^/subastas/?$", "dest": "/index.html" },
+    { "src": "^/market/?$", "dest": "/index.html" },
+    { "src": "^/concesionarios/?$", "dest": "/index.html" }
   ]
 }
