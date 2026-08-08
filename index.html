@@ -2974,6 +2974,12 @@ html{scrollbar-width:none}
     </svg>
   </div>
 
+  <!-- COVER 4:3 — mismo patrón de app_settings key/value + crossfade que el resto de fotos
+       editables (_encuentraSetPhoto). Editable desde Super Admin > Encuentra — fotos. -->
+  <div id="fotografos-cover" style="width:calc(100% - 28px);margin:14px 14px 0;aspect-ratio:4/3;border-radius:var(--radius);overflow:hidden;position:relative;background:var(--card)">
+    <img decoding="async" id="fotografos-cover-img" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'">
+  </div>
+
   <!-- FILTRO CIUDAD -->
   <div style="padding:14px 18px 6px;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none" id="foto-city-filter">
     <div class="filter-chip active" onclick="filterFotos(this,'todas')" style="color:#000;background:#fff;border-color:#fff">todas</div>
@@ -10534,11 +10540,18 @@ function contratarFotografo(nombre){
   showToast('contactando a '+nombre+'...', true);
 }
 
+function _fotografosCoverSetPhoto(url){
+  const img=document.getElementById('fotografos-cover-img');
+  if(img&&url) img.src=url;
+}
 let _fotosOrigin = 'home';
 function openFotografos(origin){
   _fotosOrigin = origin || 'home';
   showView('fotografos');
   renderFotos('todas');
+  if(_supa&&!document.getElementById('fotografos-cover-img').src){
+    _supa.from('app_settings').select('value').eq('key','fotografos_cover_url').maybeSingle().then(({data})=>{ if(data?.value) _fotografosCoverSetPhoto(data.value); }).catch(()=>{});
+  }
   // update back button
   const backBtn = document.querySelector('#view-fotografos .detail-back');
   if(backBtn){
