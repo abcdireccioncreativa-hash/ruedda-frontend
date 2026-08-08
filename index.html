@@ -4229,7 +4229,17 @@ function _syncNotifBadge(){
 }
 
 // ===================== STATE =====================
-let currentView='home', currentTab='pronto', currentSection='market'; // [RC] la app abre directo en market
+// [URL cosmético] si se entra directo por /subastas, /market o /concesionarios
+// (hard refresh o link externo), arranca en esa sección — el rewrite de
+// vercel.json sirve index.html en esas rutas, y esto lee el path para saber
+// cuál pintar. Cualquier otro path (o "/") cae al default de siempre.
+let currentView='home', currentTab='pronto', currentSection=(function(){
+  var p=(location.pathname||'').replace(/\/+$/,'');
+  if(p==='/subastas') return 'subastas';
+  if(p==='/market') return 'market';
+  if(p==='/concesionarios') return 'consesionarios';
+  return 'market';
+})(); // [RC] la app abre directo en market
 let PAYMENT_DATA={banco:'Banesco',telefono:'0412-0000000',cedula:'V-00000000',cuenta:''};
 const PAID_TYPES={}; // tracks which venderType the user has paid for
 
@@ -4363,7 +4373,10 @@ function showView(name,param){
   if(!_navigatingFromPopstate){
     // [FIX] Android PWA: sin esto, el botón atrás del sistema no tiene historial
     // dentro del WebView y cierra la app entera en vez de regresar a la vista anterior.
-    if(name==='home') history.replaceState({rueddaView:'home'},'',location.href);
+    // [merge, no overwrite] si la entrada actual ya traía rueddaSection (dejado por
+    // selectSection), lo preservamos — si no, cada "volver a home" sin cambiar de
+    // sección (ej. detail-back) borraba silenciosamente esa marca del historial.
+    if(name==='home'){ var _hs=(history.state&&typeof history.state==='object')?history.state:{}; history.replaceState(Object.assign({},_hs,{rueddaView:'home'}),'',location.href); }
     else history.pushState({rueddaView:name,param:param!==undefined?param:null},'',location.href);
   }
 }
@@ -4395,7 +4408,7 @@ window.addEventListener('popstate',(e)=>{
     // se corregía con selectSection() — esa ventana intermedia era el "mezclado"
     // visual al salir de una publicación con swipe. Ahora el override se fija ANTES
     // de renderizar, así showView pinta la sección correcta de una sola pasada.
-    if(target==='home'&&_prevSection&&_prevSection!=='subastas') window._homeSectionOverride=_prevSection;
+    if(target==='home') window._homeSectionOverride=(st&&st.rueddaSection)?st.rueddaSection:((_prevSection&&_prevSection!=='subastas')?_prevSection:null);
     showView(target, st?st.param:undefined);
   }
   finally{ _navigatingFromPopstate=false; }
@@ -4404,7 +4417,7 @@ window.addEventListener('popstate',(e)=>{
 // (back del sistema / swipe-back) y peleaba contra el scrollTop=0 de showView, dejando
 // la vista "colgada" a media altura al salir de una publicación. En manual, manda showView.
 if(typeof history!=='undefined'&&'scrollRestoration' in history) history.scrollRestoration='manual';
-if(typeof history!=='undefined'&&history.replaceState) history.replaceState({rueddaView:'home'},'',location.href);
+if(typeof history!=='undefined'&&history.replaceState) history.replaceState({rueddaView:'home',rueddaSection:currentSection},'',location.href);
 
 // ===================== SECTION =====================
 function renderCurrentSection(){
@@ -4505,6 +4518,15 @@ function selectSection(s){
   document.getElementById('section-title-el').classList.remove('open');
   document.querySelectorAll('.dropdown-item').forEach(i=>i.classList.toggle('active',i.dataset.sec===s));
   renderCurrentSection();
+  // [URL cosmético] solo pushState — nunca dispara request de red ni recarga.
+  // Si venimos de un popstate (back/forward) no repujamos, si no se duplica
+  // la entrada en el historial y el botón atrás queda pegado en el mismo lugar.
+  if(!_navigatingFromPopstate){
+    try{
+      var _path='/'+(s==='consesionarios'?'concesionarios':s);
+      if(location.pathname!==_path) history.pushState({rueddaView:'home',rueddaSection:s},'',_path);
+    }catch(e){}
+  }
 }
 
 document.addEventListener('click',e=>{
