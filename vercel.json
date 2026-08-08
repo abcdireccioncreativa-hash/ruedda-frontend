@@ -4,6 +4,13 @@
   "installCommand": "npm install",
   "outputDirectory": ".",
   "rewrites": [
+    {
+      "source": "/",
+      "missing": [
+        { "type": "header", "key": "user-agent", "value": ".*(Mobile|iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini).*" }
+      ],
+      "destination": "/desktop.html"
+    },
     { "source": "/subastas", "destination": "/index.html" },
     { "source": "/subastas/", "destination": "/index.html" },
     { "source": "/market", "destination": "/index.html" },
