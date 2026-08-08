@@ -11,21 +11,60 @@
 <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<!-- [PERF] handshake anticipado. antes, la primera peticion a supabase pagaba DNS +
+     TCP + TLS completo en serie antes de que saliera un solo byte de datos. -->
+<link rel="preconnect" href="https://ltodsegzbbdcaublkgtp.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://ltodsegzbbdcaublkgtp.supabase.co">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
+
+<script>
+/* ─── [PERF] tier de efectos ───────────────────────────────────────────────
+   mide el equipo real antes de decidir nada. si la maquina aguanta, esta
+   funcion no hace absolutamente nada y el diseno queda intacto al pixel.
+   solo en equipos que no dan la talla se agrega la clase 'lowfx', que apaga
+   el backdrop-filter de los badges que van repetidos por card (~96 capas de
+   composicion simultaneas en la grilla). los menus, la navbar, el bottom-nav,
+   los drawers y los dropdowns conservan su vidrio siempre, en todos los equipos.
+   corre en el head para que la clase este puesta antes del primer paint.
+─────────────────────────────────────────────────────────────────────────── */
+(function _rueddaFxTier(){
+  try{
+    var dm=navigator.deviceMemory||8;
+    var hc=navigator.hardwareConcurrency||8;
+    var cn=navigator.connection||{};
+    var slowNet=/(^|\b)(slow-)?2g\b/.test(cn.effectiveType||'')||cn.saveData===true;
+    var go=function(){
+      var r=document.documentElement;
+      if(r.className.indexOf('lowfx')===-1) r.className+=' lowfx';
+    };
+    if(dm<=4||hc<=4||slowNet){ go(); return; }
+    // sonda de framerate en reposo: 24 frames reales. si no llega a 45fps,
+    // es un equipo que no va a poder con la grilla difuminada.
+    var n=0, t0=(performance&&performance.now)?performance.now():Date.now();
+    (function probe(t){
+      if(++n<24){ requestAnimationFrame(probe); return; }
+      if(n*1000/((t||Date.now())-t0)<45) go();
+    })(t0);
+  }catch(e){}
+})();
+</script>
 <title>Ruedda: Inicio</title>
-<meta name="description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
+<meta name="description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Efficiency. Transparency. Value.">
 <link rel="canonical" href="https://www.ruedda.app/">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ruedda">
 <meta property="og:title" content="Ruedda: Inicio">
-<meta property="og:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
+<meta property="og:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Efficiency. Transparency. Value.">
 <meta property="og:url" content="https://www.ruedda.app/">
 <meta property="og:image" content="https://www.ruedda.app/icon-192.png">
 <meta property="og:locale" content="es_VE">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Ruedda: Inicio">
-<meta name="twitter:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
+<meta name="twitter:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Efficiency. Transparency. Value.">
 <meta name="twitter:image" content="https://www.ruedda.app/icon-192.png">
 
 <script type="application/ld+json">
@@ -3162,7 +3201,7 @@ html{scrollbar-width:none}
   <!-- COVER 4:3 — mismo patrón de app_settings key/value + crossfade que el resto de fotos
        editables (_encuentraSetPhoto). Editable desde Super Admin > Encuentra — fotos. -->
   <div id="fotografos-cover" style="width:calc(100% - 28px);margin:14px 14px 0;aspect-ratio:4/3;border-radius:var(--radius);overflow:hidden;position:relative;background:var(--card)">
-    <img id="fotografos-cover-img" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'">
+    <img decoding="async" id="fotografos-cover-img" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'">
   </div>
 
   <!-- FILTRO CIUDAD -->
@@ -4359,21 +4398,21 @@ async function _loadRueddaTeamConfig(){
       // dirty-check de esa función (agregado para matar el titileo de fotos) compara
       // un hash basado en THREADS, que nunca cambia por esto, así que el refresh
       // quedaba bloqueado: la lista se quedaba pegada mostrando la "R" de respaldo
-      // aunque el logo real ya hubiera cargado. Ahora se actualiza el <img> del DOM
+      // aunque el logo real ya hubiera cargado. Ahora se actualiza el <img decoding="async"> del DOM
       // directamente, sin pasar por el re-render completo ni el dirty-check.
-      // [RC v8] anti-titileo: si el <img> ya muestra ESTE mismo logo, no se re-inyecta
+      // [RC v8] anti-titileo: si el <img decoding="async"> ya muestra ESTE mismo logo, no se re-inyecta
       // (re-inyectar el mismo src causaba el parpadeo). Y cuando sí hay que pintar,
       // entra en opacity:0 y hace fade al confirmar onload — nunca aparece de golpe.
       document.querySelectorAll('.msg-avatar.official-ring').forEach(av=>{
         const _cur=av.querySelector('img');
         if(_cur&&_cur.src===data.value) return;
-        av.innerHTML=`<img src="${data.value}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
+        av.innerHTML=`<img decoding="async" src="${data.value}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
       });
       const _threadAv=document.getElementById('thread-avatar');
       if(_threadAv&&currentThread?.isOfficial){
         const _curT=_threadAv.querySelector('img');
         if(!_curT||_curT.src!==data.value){
-          _threadAv.innerHTML=`<img src="${data.value}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
+          _threadAv.innerHTML=`<img decoding="async" src="${data.value}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
         }
       }
     }
@@ -4420,38 +4459,7 @@ function _syncNotifBadge(){
 }
 
 // ===================== STATE =====================
-var _bootPath=(location.pathname||'').replace(/\/+$/,'');
-var _bootIsDedicatedSectionPath=(_bootPath==='/subastas'||_bootPath==='/market'||_bootPath==='/concesionarios');
-let currentView='home', currentTab='pronto', currentSection=(function(){
-  if(_bootPath==='/subastas') return 'subastas';
-  if(_bootPath==='/market') return 'market';
-  if(_bootPath==='/concesionarios') return 'consesionarios';
-  return 'market';
-})(); // [RC] la app abre directo en market
-
-// [SEO] title + meta description por sección — Google ejecuta JS y lee esto
-// después del render, así /subastas, /market y /concesionarios indexan con
-// copy propio en vez de repetir el de home. OG/twitter quedan estáticos
-// (los crawlers de redes sociales no ejecutan JS, así que no vale la pena).
-var SEO_COPY={
-  subastas:{title:'Ruedda: Subastas',desc:'Subasta tu vehículo hoy en Venezuela desde tu celular o web. Con estándares élite.'},
-  market:{title:'Ruedda: Market',desc:'Compra y vende vehículos verificados.'},
-  consesionarios:{title:'Ruedda: Concesionarios',desc:'Los mejores concesionarios de Venezuela, verificados por Ruedda.'}
-};
-var SEO_HOME={title:'Ruedda: Inicio',desc:'El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.'};
-function _updateSeoMeta(section){
-  try{
-    var copy=SEO_COPY[section]||SEO_HOME;
-    document.title=copy.title;
-    var m=document.querySelector('meta[name="description"]');
-    if(m) m.setAttribute('content',copy.desc);
-  }catch(e){}
-}
-// en "/" (o cualquier path no dedicado) el título queda "Inicio" aunque la
-// sección que se pinte por default sea market — la URL raíz es la home, no
-// la página de market, aunque visualmente arranquen mostrando lo mismo.
-_updateSeoMeta(_bootIsDedicatedSectionPath ? currentSection : null);
-
+let currentView='home', currentTab='pronto', currentSection='market'; // [RC] la app abre directo en market
 let PAYMENT_DATA={banco:'Banesco',telefono:'0412-0000000',cedula:'V-00000000',cuenta:''};
 const PAID_TYPES={}; // tracks which venderType the user has paid for
 
@@ -4542,7 +4550,6 @@ function showView(name,param){
     const _target=window._homeSectionOverride||currentSection||'market';
     window._homeSectionOverride=null;
     currentSection=_target;
-    _updateSeoMeta(_target);
     const _hub=document.getElementById('mkt-hub-actions');if(_hub)_hub.style.display=_target==='market'?'flex':'none';
     if(_target==='market'&&typeof _hubPopIn==='function') _hubPopIn(); // [RC FIX] consistente con selectSection: pop cada vez que se entra a market
     const _cl=document.getElementById('section-como-funciona-link');if(_cl)_cl.style.display=_target==='market'?'none':'inline';
@@ -4586,10 +4593,7 @@ function showView(name,param){
   if(!_navigatingFromPopstate){
     // [FIX] Android PWA: sin esto, el botón atrás del sistema no tiene historial
     // dentro del WebView y cierra la app entera en vez de regresar a la vista anterior.
-    // [merge, no overwrite] si la entrada actual ya traía rueddaSection (dejado por
-    // selectSection), lo preservamos — si no, cada "volver a home" sin cambiar de
-    // sección (ej. detail-back) borraba silenciosamente esa marca del historial.
-    if(name==='home'){ var _hs=(history.state&&typeof history.state==='object')?history.state:{}; history.replaceState(Object.assign({},_hs,{rueddaView:'home'}),'',location.href); }
+    if(name==='home') history.replaceState({rueddaView:'home'},'',location.href);
     else history.pushState({rueddaView:name,param:param!==undefined?param:null},'',location.href);
   }
 }
@@ -4621,7 +4625,7 @@ window.addEventListener('popstate',(e)=>{
     // se corregía con selectSection() — esa ventana intermedia era el "mezclado"
     // visual al salir de una publicación con swipe. Ahora el override se fija ANTES
     // de renderizar, así showView pinta la sección correcta de una sola pasada.
-    if(target==='home') window._homeSectionOverride=(st&&st.rueddaSection)?st.rueddaSection:((_prevSection&&_prevSection!=='subastas')?_prevSection:null);
+    if(target==='home'&&_prevSection&&_prevSection!=='subastas') window._homeSectionOverride=_prevSection;
     showView(target, st?st.param:undefined);
   }
   finally{ _navigatingFromPopstate=false; }
@@ -4630,7 +4634,7 @@ window.addEventListener('popstate',(e)=>{
 // (back del sistema / swipe-back) y peleaba contra el scrollTop=0 de showView, dejando
 // la vista "colgada" a media altura al salir de una publicación. En manual, manda showView.
 if(typeof history!=='undefined'&&'scrollRestoration' in history) history.scrollRestoration='manual';
-if(typeof history!=='undefined'&&history.replaceState) history.replaceState({rueddaView:'home',rueddaSection:currentSection},'',location.href);
+if(typeof history!=='undefined'&&history.replaceState) history.replaceState({rueddaView:'home'},'',location.href);
 
 // ===================== SECTION =====================
 function renderCurrentSection(){
@@ -4729,21 +4733,11 @@ function selectSection(s){
   if(s==='market'&&hub) _hubPopIn();
   if(s==='market'&&typeof _storyRefreshBadge==='function')_storyRefreshBadge();
   currentSection=s;
-  _updateSeoMeta(s);
   document.getElementById('section-title-text').textContent=s==='consesionarios'?'concesionarios':s;
   document.getElementById('section-dropdown').classList.remove('open');
   document.getElementById('section-title-el').classList.remove('open');
   document.querySelectorAll('.dropdown-item').forEach(i=>i.classList.toggle('active',i.dataset.sec===s));
   renderCurrentSection();
-  // [URL cosmético] solo pushState — nunca dispara request de red ni recarga.
-  // Si venimos de un popstate (back/forward) no repujamos, si no se duplica
-  // la entrada en el historial y el botón atrás queda pegado en el mismo lugar.
-  if(!_navigatingFromPopstate){
-    try{
-      var _path='/'+(s==='consesionarios'?'concesionarios':s);
-      if(location.pathname!==_path) history.pushState({rueddaView:'home',rueddaSection:s},'',_path);
-    }catch(e){}
-  }
 }
 
 document.addEventListener('click',e=>{
@@ -4812,7 +4806,7 @@ function renderCards(filter){
       el.innerHTML=`
         <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
           ${a.photoUrls&&a.photoUrls[0]
-            ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+            ?`<img decoding="async" src="${_tImg(a.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
             :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
           <div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>
           ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:#fff;font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
@@ -4897,7 +4891,7 @@ function renderCards(filter){
     el.innerHTML=`
       <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
         ${a.photoUrls&&a.photoUrls[0]
-          ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+          ?`<img decoding="async" src="${_tImg(a.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
           :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
         ${a.sinReserva?'<div class="badge-sinreserva verde">sin reserva</div>':''}
         ${a.chocado?`<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>`:''}
@@ -4928,10 +4922,20 @@ function renderCards(filter){
 }
 
 function startCardTimer(id,endTime){ const el=document.getElementById('timer-card-'+id); if(el) el.dataset.end=endTime; }
+// [PERF] dos guardas sobre el tick de cuenta regresiva:
+//  1. no corre con la pestana en background (antes seguia repintando invisible).
+//  2. no escribe si el texto no cambio. cada escritura sobre un badge con
+//     backdrop-filter invalida la region y obliga a recalcular el blur, asi que
+//     escribir de gratis costaba ~24 re-blurs por segundo durante el scroll.
 if(!window._cardTick) window._cardTick=setInterval(()=>{
-  document.querySelectorAll('[id^="timer-card-"]').forEach(el=>{
-    if(el.dataset.end) el.textContent=fmtCountdown(+el.dataset.end-Date.now());
-  });
+  if(document.hidden) return;
+  const _els=document.querySelectorAll('[id^="timer-card-"]');
+  for(let _i=0;_i<_els.length;_i++){
+    const _el=_els[_i], _e=_el.dataset.end;
+    if(!_e) continue;
+    const _txt=fmtCountdown(+_e-Date.now());
+    if(_el.textContent!==_txt) _el.textContent=_txt;
+  }
 },1000);
 
 function clearTimers(){Object.values(timers).forEach(clearInterval);timers={};}
@@ -5204,7 +5208,7 @@ function saBankLogoUpload(input){
   if(!input.files||!input.files[0]) return;
   const url=URL.createObjectURL(input.files[0]);
   const p=document.getElementById('sa-bank-logo-preview');
-  if(p) p.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`;
+  if(p) p.innerHTML=`<img decoding="async" src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`;
 }
 
 function submitRef(userId,refNum,amountUSD,extra){
@@ -5454,7 +5458,7 @@ function _filterListadoGrid(q){
     const badgeColor=esNuevo?'rgba(100,200,255,.9)':'rgba(255,255,255,.75)';
     const isFav=watchlist.has('mkt-'+String(l.id))||watchlist.has(l.id)||watchlist.has(String(l.id));
     const img=l.photoUrls&&l.photoUrls[0]
-      ?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+      ?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
       :(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
     return `<div class="listado-card" onclick="openMarketDetail('${l.id}','listado')" style="animation-delay:${idx*20}ms">
       <div class="listado-card-img" style="background:linear-gradient(${grads2[_gidx(l.id)%grads2.length]})">
@@ -5605,11 +5609,11 @@ function _mktRenderHero(data){
 }
 function _mktHeroSlideHTML(hero,i){
   const photos=(hero.photoUrls||[]).filter(Boolean);
-  const mainImg=photos[0]?_tImg(photos[0],{width:1200,quality:78}):'';
+  const mainImg=photos[0]?_tImg(photos[0],{width:880}):'';
   const sideImgs=[photos[1],photos[2],photos[3],photos[4]];
   const bg=`background:linear-gradient(${grads[_gidx(hero.id)]})`;
   return `<div class="market-hero-slide${i===0?' active':''}" onclick="openMarketDetail('${hero.id}')">
-    <div class="market-hero-main" style="${bg}">${mainImg?`<img src="${mainImg}" loading="${i===0?'eager':'lazy'}" style="opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'" onerror="this.remove()">`:carPlaceholder(hero.id,'large')}
+    <div class="market-hero-main" style="${bg}">${mainImg?`<img decoding="async" src="${mainImg}" loading="${i===0?'eager':'lazy'}" style="opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'" onerror="this.remove()">`:carPlaceholder(hero.id,'large')}
       <div class="market-hero-badge">destacado</div>
       <div class="market-hero-titlebox">
         <div class="market-hero-title">${hero.title||''}</div>
@@ -5618,7 +5622,7 @@ function _mktHeroSlideHTML(hero,i){
       <div class="market-hero-pill"><span>${(hero.condicion==='nuevo'||hero.condicion==='0km')?'nuevo':'usado'}</span><span class="market-hero-pill-sep"></span><span>${fmtBid(hero.price)}</span></div>
     </div>
     <div class="market-hero-side">
-      ${sideImgs.map(p=>p?`<div style="${bg}"><img src="${_tImg(p,{width:700,quality:68})}" loading="lazy" style="opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'" onerror="this.remove()"></div>`:`<div class="market-hero-side-empty"></div>`).join('')}
+      ${sideImgs.map(p=>p?`<div style="${bg}"><img decoding="async" src="${_tImg(p,{width:270})}" loading="lazy" style="opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'" onerror="this.remove()"></div>`:`<div class="market-hero-side-empty"></div>`).join('')}
     </div>
   </div>`;
 }
@@ -5639,7 +5643,7 @@ function _mktRenderRail(data){
   const picks=data.filter(l=>l.id!==heroId).slice(0,9);
   if(!picks.length){el.innerHTML='';return;}
   el.innerHTML='<div class="market-rail-title">m\u00e1s destacados</div>'+picks.map(l=>{
-    const img=l.photoUrls&&l.photoUrls[0]?`<img class="market-rail-thumb" src="${_tImg(l.photoUrls[0],{width:160,quality:60})}" loading="lazy">`:`<div class="market-rail-thumb"></div>`;
+    const img=l.photoUrls&&l.photoUrls[0]?`<img decoding="async" class="market-rail-thumb" src="${_tImg(l.photoUrls[0],{width:60})}" loading="lazy">`:`<div class="market-rail-thumb"></div>`;
     return `<div class="market-rail-card" onclick="openMarketDetail('${l.id}')">${img}<div class="market-rail-info"><div class="rt">${l.title||''}</div><div class="rp">${fmtBid(l.price)}</div><div class="rm">${(l.location||'').toLowerCase()}</div></div></div>`;
   }).join('');
 }
@@ -5653,7 +5657,7 @@ function _mktAppendCards(list,startIdx){
     el.style.animationDelay=(idx*40)+'ms';
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;text-transform:uppercase">vendido</span></div>':''}
@@ -5793,7 +5797,7 @@ function renderSponsorSlider(){
   // ni la posición del contenedor padre.
   track.innerHTML=MARKET_SPONSORS.map((s,i)=>`
     <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
-      ${s.imagen_url?`<img src="${s.imagen_url}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
+      ${s.imagen_url?`<img decoding="async" src="${s.imagen_url}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
     </div>`).join('');
   // [RDV] crossfade skeleton→foto: el shimmer se re-monta ENCIMA de las slides y
   // se desvanece; la imagen ya está haciendo su propio fade al decodificar debajo.
@@ -5874,7 +5878,7 @@ function renderChocSponsorSlider(){
   _chocSponsorIdx=0;
   track.innerHTML=CHOCADOS_SPONSORS.map((s,i)=>`
     <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
-      ${s.imagen_url?`<img src="${s.imagen_url}" alt="${_esc(s.nombre||'')}">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
+      ${s.imagen_url?`<img decoding="async" src="${s.imagen_url}" alt="${_esc(s.nombre||'')}">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
     </div>`).join('');
   dotsEl.innerHTML=CHOCADOS_SPONSORS.length>1?CHOCADOS_SPONSORS.map((_,i)=>`<div class="sponsor-dot${i===0?' active':''}"></div>`).join(''):'';
   if(CHOCADOS_SPONSORS.length<2) return;
@@ -5989,7 +5993,7 @@ function renderTrendingHoy(){
     return `
     <div class="trending-cell" style="animation:rdvIn .6s cubic-bezier(.22,.61,.36,1) ${i*70}ms both" onclick="${isSubasta?`openDetail('${item.id}')`:`openMarketDetail('${item.id}')`}">
       <div class="trending-photo">
-        ${photoUrl?`<img src="${photoUrl}" loading="lazy" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
+        ${photoUrl?`<img decoding="async" src="${photoUrl}" loading="lazy" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
         <div class="trending-rank">#${i+1}</div>
         <div class="trending-pill">${fmtBid(precio)}</div>
       </div>
@@ -6073,7 +6077,7 @@ function _encuentraSetPhoto(slot,url){
   if(!card)return;
   // [RC v8 FIX] antes se seteaba background-image en onload y la foto aparecía DE
   // GOLPE al deslizar (background-image no se puede transicionar en CSS). Ahora se
-  // inyecta un <img> absoluto en opacity:0 que hace crossfade a 1 solo cuando el
+  // inyecta un <img decoding="async"> absoluto en opacity:0 que hace crossfade a 1 solo cuando el
   // navegador ya la decodificó — carga suave de verdad, mismo patrón de fade que
   // las cards de mis publicaciones. Queda en z-index:0, debajo del gradiente
   // (::after, z:1) y del título (z:2), así el texto siempre se lee.
@@ -6103,7 +6107,7 @@ function openEncuentraAll(){
   // [RC FIX] el innerHTML crudo duplicaba los IDs (enc-agencias-photo, etc.) y
   // el panel "ver todo" quedaba con cards rotas: los loaders de fotos apuntaban
   // al primer ID del DOM. Clonamos nodo a nodo quitando TODOS los ids — las
-  // <img> ya cargadas viajan en el clon con su opacity:1 inline, cero flash.
+  // <img decoding="async"> ya cargadas viajan en el clon con su opacity:1 inline, cero flash.
   grid.innerHTML='';
   [...src.children].forEach(c=>{
     const n=c.cloneNode(true);
@@ -6123,7 +6127,7 @@ function openHotDealsAll(){
   const grid=document.getElementById('hotdeals-all-grid');
   if(!grid)return;
   grid.innerHTML=deals.map(l=>{
-    const img=(l.photoUrls&&l.photoUrls[0])?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">`:'<div style="width:100%;aspect-ratio:4/3;background:#1c1c1e"></div>';
+    const img=(l.photoUrls&&l.photoUrls[0])?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:380})}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">`:'<div style="width:100%;aspect-ratio:4/3;background:#1c1c1e"></div>';
     let belowImg,priceRow;
     if(isReal){
       const pct=Math.round((l.precioAnterior-l.price)/l.precioAnterior*100);
@@ -6183,7 +6187,7 @@ function renderHotDeals(){
   head.querySelector('.hd-title').textContent='hot deals';
   const countEl=document.getElementById('hd-count'); if(countEl) countEl.textContent=deals.length+' disponibles';
   track.innerHTML=deals.map(l=>{
-    const img=(l.photoUrls&&l.photoUrls[0])?`<img class="hd-card-img" src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" loading="lazy">`:'<div class="hd-card-img"></div>';
+    const img=(l.photoUrls&&l.photoUrls[0])?`<img decoding="async" class="hd-card-img" src="${_tImg(l.photoUrls[0],{width:380})}" loading="lazy">`:'<div class="hd-card-img"></div>';
     // [RC V6] rediseño — sin flama/gradiente/estrella. la barra de ahorro en lime
     // comunica el mismo dato (cuánto bajó) de forma cuantitativa y silenciosa.
     let belowImg,priceRow;
@@ -6220,7 +6224,7 @@ const MARCAS_REGIONS={
 };
 let _marcasRegionFilter=null;
 // [FIX] cada card cuadrada de Marcas ahora es un contenedor de foto real —
-// mismo crossfade que Encuentra/Concesionarios (<img> absoluto en opacity:0,
+// mismo crossfade que Encuentra/Concesionarios (<img decoding="async"> absoluto en opacity:0,
 // fade a 1 solo al decodificar). Sin logo todavía, se ve el nombre de la
 // marca (mismo look de siempre) como placeholder.
 function _marcaSlug(m){ return String(m).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'); }
@@ -6310,7 +6314,7 @@ async function openTopUsuarios(){
     el.innerHTML=data.map((u,i)=>{
       const nombre=u.nombre||u.username||'usuario';
       const initial=_esc(nombre).charAt(0).toUpperCase();
-      const avatarHtml=u.avatar_url?`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:initial;
+      const avatarHtml=u.avatar_url?`<img decoding="async" src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:initial;
       return `
       <div style="display:flex;align-items:center;gap:13px;padding:13px 14px;background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;cursor:pointer" onclick="openUserProfile('${u.user_id}')">
         <div style="font-size:15px;font-weight:800;color:var(--muted);width:20px;flex-shrink:0;text-align:center">${i+1}</div>
@@ -6335,13 +6339,13 @@ function _mktRenderCbGallery(l){
   const photos=(l.photoUrls||[]).filter(Boolean);
   if(!photos.length){wrap.style.display='none';return;}
   wrap.style.display='grid';
-  main.innerHTML=`<img src="${_tImg(photos[0],{width:1400,quality:80})}" loading="eager">${l.destacado?'<div class="mkt-cb-badge">destacado</div>':''}`;
+  main.innerHTML=`<img decoding="async" src="${_tImg(photos[0],{width:880})}" loading="eager">${l.destacado?'<div class="mkt-cb-badge">destacado</div>':''}`;
   main.onclick=()=>goToMktSlide(0);
   const rest=photos.slice(1,5);
   const totalMore=photos.length-5;
   grid.innerHTML=rest.map((p,i)=>{
     const isLast=i===rest.length-1&&totalMore>0;
-    return `<div class="mkt-cb-cell" onclick="goToMktSlide(${i+1})"><img src="${_tImg(p,{width:700,quality:68})}" loading="lazy">${isLast?`<div class="mkt-cb-more">Ver las ${photos.length} fotos</div>`:''}</div>`;
+    return `<div class="mkt-cb-cell" onclick="goToMktSlide(${i+1})"><img decoding="async" src="${_tImg(p,{width:270})}" loading="lazy">${isLast?`<div class="mkt-cb-more">Ver las ${photos.length} fotos</div>`:''}</div>`;
   }).join('');
   _mktRenderRelated(l);
 }
@@ -6352,7 +6356,7 @@ function _mktRenderRelated(l){
   const pool=picks.length?picks:MARKET_LISTINGS.filter(x=>x.id!==l.id).slice(0,6);
   if(!pool.length){wrap.innerHTML='';return;}
   wrap.innerHTML='<div class="mkt-related-title">también te puede interesar</div><div class="mkt-related-grid">'+pool.map(x=>{
-    const img=x.photoUrls&&x.photoUrls[0]?`<img src="${_tImg(x.photoUrls[0],{width:400,quality:68})}" loading="lazy">`:carPlaceholder(x.id,'small');
+    const img=x.photoUrls&&x.photoUrls[0]?`<img decoding="async" src="${_tImg(x.photoUrls[0],{width:220})}" loading="lazy">`:carPlaceholder(x.id,'small');
     return `<div class="mkt-related-tile" onclick="openMarketDetail('${x.id}')"><div class="mkt-related-tile-img">${img}<div class="mkt-related-tile-badge">${fmtBid(x.price)}</div></div><div class="mkt-related-tile-title">${x.title||''}</div><div class="mkt-related-tile-meta">${(x.location||'').toLowerCase()}</div></div>`;
   }).join('')+'</div>';
 }
@@ -6389,7 +6393,7 @@ async function openMarketDetail(id, origin){
     s.className='photo-slide';
     s.style.background='linear-gradient('+grads[_gidx(l.id)]+')';
     if(hasPhotos){
-      s.innerHTML=`<img src="${_tImg(l.photoUrls[i],{width:1280,quality:80})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="${i<2?'eager':'lazy'}" decoding="async" fetchpriority="${i<2?'high':'low'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onclick="openPhotoViewer(currentMarketListing.photoUrls,${i},{type:'market',id:currentMarketListing.id,title:currentMarketListing.title})"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
+      s.innerHTML=`<img src="${_tImg(l.photoUrls[i],{width:900})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="${i<2?'eager':'lazy'}" decoding="async" fetchpriority="${i<2?'high':'low'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'" onclick="openPhotoViewer(currentMarketListing.photoUrls,${i},{type:'market',id:currentMarketListing.id,title:currentMarketListing.title})"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`;
     } else {
       s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'</div>';
     }
@@ -6454,7 +6458,7 @@ async function openMarketDetail(id, origin){
             if(cd?.logo_url) logoUrl=cd.logo_url;
           }catch(e){}
         }
-        const _img=logoUrl?`<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:null;
+        const _img=logoUrl?`<img decoding="async" src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:null;
         if(_av){ if(_img){_av.innerHTML=_img;_av.style.overflow='hidden';} else {_av.textContent=ini;_av.style.background=`hsl(${(ini.charCodeAt(0)*47)%360},40%,28%)`;} }
         if(_av2){ if(_img){_av2.innerHTML=_img;_av2.style.overflow='hidden';} else {_av2.textContent=ini;} }
         // sello: estrella lime para dealer, azul para particular verificado KYC
@@ -6661,7 +6665,7 @@ function sendMktComment(){
   if(list.querySelector('.comment-empty'))list.innerHTML='';
   const div=document.createElement('div');
   div.className='comment-item';
-  const _myAv=USER_STATE.avatar?'<div class="comment-avatar" style="overflow:hidden"><img src="'+USER_STATE.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>':'<div class="comment-avatar">T</div>';
+  const _myAv=USER_STATE.avatar?'<div class="comment-avatar" style="overflow:hidden"><img decoding="async" src="'+USER_STATE.avatar+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>':'<div class="comment-avatar">T</div>';
   div.innerHTML='<div class="comment-header">'+_myAv+'<span class="comment-name">tú'+(USER_STATE.kycVerified?'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>':'')+'</span><span class="comment-time">ahora mismo</span></div><div class="comment-text">'+_escLine(text)+'</div>';
   list.prepend(div);
   input.value='';input.style.height='auto';
@@ -6715,7 +6719,7 @@ function openDetail(id){
     slide.className='photo-slide';
     slide.style.background=`linear-gradient(${grads[_gidx(a.id)]})`;
     if(_hasPhotos){
-      slide.innerHTML=`<img src="${_tImg(a.photoUrls[i],{width:1280,quality:80})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="${i<2?'eager':'lazy'}" decoding="async" fetchpriority="${i<2?'high':'low'}" onload="this.style.opacity='1'" onerror="this.style.display='none'" onclick="openPhotoViewer(currentAuction.photoUrls,${i},{type:'auction',id:currentAuction.id,title:currentAuction.title})">`;
+      slide.innerHTML=`<img src="${_tImg(a.photoUrls[i],{width:900})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease;cursor:pointer" loading="${i<2?'eager':'lazy'}" decoding="async" fetchpriority="${i<2?'high':'low'}" onload="this.style.opacity='1'" onerror="this.style.display='none'" onclick="openPhotoViewer(currentAuction.photoUrls,${i},{type:'auction',id:currentAuction.id,title:currentAuction.title})">`;
     } else {
       slide.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.4"><div>${carPlaceholder(a.id)}</div><div style="font-size:12px;color:#555">foto ${i+1} de ${_slideCount}</div></div>`;
     }
@@ -6781,7 +6785,7 @@ function openDetail(id){
   // [V91] foto real del publicante en "publicado por"
   if(_supa&&a.ownerId){
     _supa.from('users').select('avatar_url,kyc_verified,role').eq('id',a.ownerId).maybeSingle().then(({data:u})=>{
-      if(u?.avatar_url&&sellerAv) sellerAv.innerHTML=`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      if(u?.avatar_url&&sellerAv) sellerAv.innerHTML=`<img decoding="async" src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
       if(u?.kyc_verified&&sellerNm) sellerNm.innerHTML=(a.seller||'Vendedor anónimo')+'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>';
       // [V116] click en la card abre el perfil — vitrina si es dealer, perfil público si es particular
       const sellerCard=document.getElementById('detail-seller-card');
@@ -7077,7 +7081,7 @@ function renderFavoritos(){
       const endTime=a?.endTime||Date.now();
       return `<div class="fav-thumb-card" style="animation-delay:${i*55}ms;cursor:pointer" onclick="openDetail('${a.id}')">
         <div class="fav-thumb-img" style="background:linear-gradient(${grads[_favGradIdx(a.id)]})">
-          ${imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
+          ${imgUrl?`<img decoding="async" src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
           <div class="fav-thumb-badge-timer${isUrgent(endTime)?' urgent':''}" style="pointer-events:none">${fmtCountdown(endTime-Date.now())}</div>
         </div>
         <div class="fav-thumb-body">
@@ -7111,7 +7115,7 @@ function renderFavoritos(){
       const lid=String(l?.id||i);
       return `<div class="fav-thumb-card" style="animation-delay:${(favAuctions.length+i)*55}ms" onclick="openMarketDetail('${lid}','market')">
         <div class="fav-thumb-img" style="background:linear-gradient(${grads[_favGradIdx(lid)]})">
-          ${imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(i,'small'))}
+          ${imgUrl?`<img decoding="async" src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(i,'small'))}
         </div>
         <div class="fav-thumb-body">
           <div class="fav-thumb-title">${titulo}</div>
@@ -7228,8 +7232,8 @@ function openPhotoViewer(photos,startIndex,shareInfo){
   const ov=document.getElementById('photo-viewer-overlay');
   const inner=document.getElementById('pv-inner');
   const thumbs=document.getElementById('pv-thumbs');
-  inner.innerHTML=_pvPhotos.map((url,i)=>`<div class="pv-slide" data-i="${i}"><img src="${_tImg(url,{width:2000,quality:85,resize:'contain'})}" loading="${Math.abs(i-_pvIndex)<=1?'eager':'lazy'}"></div>`).join('');
-  thumbs.innerHTML=_pvPhotos.length>1?_pvPhotos.map((url,i)=>`<img src="${_tImg(url,{width:200,quality:65})}" class="pv-thumb${i===_pvIndex?' active':''}" onclick="_pvGoTo(${i})" loading="lazy">`).join(''):'';
+  inner.innerHTML=_pvPhotos.map((url,i)=>`<div class="pv-slide" data-i="${i}"><img decoding="async" src="${_tImg(url,{width:1600,resize:'contain'})}" loading="${Math.abs(i-_pvIndex)<=1?'eager':'lazy'}"></div>`).join('');
+  thumbs.innerHTML=_pvPhotos.length>1?_pvPhotos.map((url,i)=>`<img decoding="async" src="${_tImg(url,{width:100})}" class="pv-thumb${i===_pvIndex?' active':''}" onclick="_pvGoTo(${i})" loading="lazy">`).join(''):'';
   thumbs.style.display=_pvPhotos.length>1?'flex':'none';
   document.getElementById('pv-arrow-prev').style.display=_pvPhotos.length>1?'flex':'none';
   document.getElementById('pv-arrow-next').style.display=_pvPhotos.length>1?'flex':'none';
@@ -7339,7 +7343,7 @@ async function loadCarspotting(tab){
       window._csOwnerMap[s.id]=s.user_id;
       return `
       <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden">
-        <img src="${s.image_url}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:pointer" loading="lazy" onclick="openPhotoViewer(['${s.image_url}'],0)">
+        <img decoding="async" src="${s.image_url}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block;cursor:pointer" loading="lazy" onclick="openPhotoViewer(['${s.image_url}'],0)">
         <div style="padding:12px 14px">
           ${s.description?`<div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.5;margin-bottom:6px">${_escLine(s.description)}</div>`:''}
           <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px">
@@ -7404,7 +7408,7 @@ function previewCsFile(input){
   const preview=document.getElementById('cs-preview');
   const reader=new FileReader();
   reader.onload=e=>{
-    preview.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+    preview.innerHTML=`<img decoding="async" src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
   };
   reader.readAsDataURL(file);
 }
@@ -7446,7 +7450,7 @@ async function submitCarspotting(){
   const ext=file.name.split('.').pop();
   const path=`${USER_STATE.id}/${Date.now()}.${ext}`;
   showToast('subiendo...');
-  const{error:upErr}=await _supa.storage.from('carspotting').upload(path,file,{upsert:false});
+  const{error:upErr}=await _supa.storage.from('carspotting').upload(path,file,{upsert:false,cacheControl:'31536000'});
   // [FIX V122] antes el toast decía "error subiendo foto" genérico — ahora muestra el motivo
   // real (ej: bucket sin permisos), para poder diagnosticar sin adivinar.
   if(upErr){showToast('error subiendo foto: '+(upErr.message||upErr.error||'desconocido'));console.error('[carspotting upload]',upErr);if(btn){btn.disabled=false;btn.textContent='publicar';}return;}
@@ -7481,7 +7485,7 @@ async function loadNoticiaDetail(id){
     }
     el.innerHTML=`
       <div style="width:100%;aspect-ratio:16/9;background:var(--card);overflow:hidden">
-        <img src="${data.banner_image_url}" style="width:100%;height:100%;object-fit:cover;display:block">
+        <img decoding="async" src="${data.banner_image_url}" style="width:100%;height:100%;object-fit:cover;display:block">
       </div>
       <div style="padding:20px 16px 0">
         ${data.titulo?`<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px">
@@ -7906,7 +7910,7 @@ function _showWinPopup(auction,variant){
   const photo=(auction.photoUrls&&auction.photoUrls[0])||'';
   const cardHtml=isFull?`
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:9px;display:flex;gap:10px;align-items:center;margin:14px 0;text-align:left">
-      <div style="width:50px;height:50px;border-radius:10px;background:linear-gradient(135deg,#1a1a2e,#16213e);flex-shrink:0;overflow:hidden">${photo?`<img src="${_esc(photo)}" style="width:100%;height:100%;object-fit:cover">`:''}</div>
+      <div style="width:50px;height:50px;border-radius:10px;background:linear-gradient(135deg,#1a1a2e,#16213e);flex-shrink:0;overflow:hidden">${photo?`<img decoding="async" src="${_esc(photo)}" style="width:100%;height:100%;object-fit:cover">`:''}</div>
       <div style="overflow:hidden">
         <div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(auction.title||'subasta')}</div>
         ${auction.currentBid?`<div style="font-size:13px;font-weight:800;color:#e6f03b">${fmtBid(auction.currentBid)}</div>`:''}
@@ -8008,7 +8012,7 @@ function _renderSearchPopMarcas(){
   wrap.innerHTML=_searchPopMarcasList.map(m=>{
     const url=MARCA_LOGOS[m];
     const avatar=url
-      ?`<img src="${url}" style="width:100%;height:100%;object-fit:contain;padding:8px;box-sizing:border-box" loading="lazy">`
+      ?`<img decoding="async" src="${url}" style="width:100%;height:100%;object-fit:contain;padding:8px;box-sizing:border-box" loading="lazy">`
       :`<span style="font-size:15px;font-weight:800;color:rgba(255,255,255,.4)">${_esc(m.charAt(0))}</span>`;
     return `<div onclick="closeSearch();goToMarcaFilter('${m}')" style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;width:56px">
       <div style="width:52px;height:52px;border-radius:16px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden">${avatar}</div>
@@ -8019,7 +8023,7 @@ function _renderSearchPopMarcas(){
 function _searchCardHtml(a,kind){
   const isAuction=kind==='subasta';
   const img=a.photoUrls&&a.photoUrls[0]
-    ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager">`
+    ?`<img decoding="async" src="${_tImg(a.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager">`
     :carPlaceholder(a.id,isAuction?'large':'small');
   if(isAuction){
     return `<div class="auction-card" onclick="closeSearch();openDetail('${a.id}')">
@@ -8045,7 +8049,7 @@ function _searchCardHtml(a,kind){
 }
 function _searchDealerHtml(d){
   return `<div class="search-cat-item" style="display:flex;align-items:center;gap:10px" onclick="closeSearch();goToVitrinaFromSearch('${d.id}')">
-    ${d.logo_url?`<img src="${d.logo_url}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0">`:''}
+    ${d.logo_url?`<img decoding="async" src="${d.logo_url}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0">`:''}
     <span>${_esc(d.nombre)} <span style="color:var(--muted);font-weight:400;font-size:12px">— concesionario${d.ciudad?' · '+_esc(String(d.ciudad).toLowerCase()):''}</span></span>
   </div>`;
 }
@@ -8936,7 +8940,7 @@ async function _uploadVenderDocs(recordId,userId,isListing=false){
     const ext=(file.name||'doc').split('.').pop()||'doc';
     const path=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`;
     try{
-      const{error}=await _supa.storage.from('vehicle-documents').upload(path,file,{upsert:true});
+      const{error}=await _supa.storage.from('vehicle-documents').upload(path,file,{upsert:true,cacheControl:'31536000'});
       if(error){console.error('[ruedda] doc upload',i,error.message);continue;}
       const{data:{publicUrl}}=_supa.storage.from('vehicle-documents').getPublicUrl(path);
       await (_supaWrite||_supa).from('vehicle_documents').insert({item_id:recordId,item_type:itemType,user_id:userId,file_url:publicUrl,file_name:file.name||'',estado:'pendiente'});
@@ -8956,7 +8960,7 @@ async function _uploadVenderVideos(recordId,userId,isListing=false){
     const ext=(file.name||'mp4').split('.').pop()||'mp4';
     const path=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`;
     try{
-      const{error}=await _supa.storage.from('car-videos').upload(path,file,{upsert:true});
+      const{error}=await _supa.storage.from('car-videos').upload(path,file,{upsert:true,cacheControl:'31536000'});
       if(error){console.error('[ruedda] video upload',i,error.message);continue;}
       const{data:{publicUrl}}=_supa.storage.from('car-videos').getPublicUrl(path);
       const videoPayload=isListing?{listing_id:recordId,url:publicUrl,orden:i}:{auction_id:recordId,url:publicUrl,orden:i};
@@ -8972,7 +8976,7 @@ async function _uploadVenderVideos(recordId,userId,isListing=false){
 // devuelve error → imágenes rotas. Mientras esté en false, _tImg devuelve la URL
 // original intacta (full calidad) y la app funciona normal. Al actualizar a Pro,
 // cambia esta línea a true y despliega — nada más que tocar.
-window.RUEDDA_IMG_TRANSFORMS = false;
+window.RUEDDA_IMG_TRANSFORMS = true;
 // ────────────────────────────────────────────────────────────────────────────
 
 // [perf/calidad] _tImg: reescribe una URL pública de Supabase Storage a su endpoint
@@ -8982,19 +8986,144 @@ window.RUEDDA_IMG_TRANSFORMS = false;
 // seamless sin perder estética: la grilla pide ~800px, el detalle ~1280px, y el visor
 // a pantalla completa (zoom) pide el master en 2000px. Defensivo: si el interruptor está
 // apagado (Free), o la URL no es de Supabase Storage, o algo falla, devuelve la URL tal cual.
+// [PERF] escalera fija de anchos. antes se pedian 9 anchos distintos x 7 calidades,
+// lo que fragmentaba el cache del Smart CDN en decenas de variantes por foto. ahora
+// cualquier ancho solicitado se redondea hacia arriba al peldano mas cercano y la
+// calidad se deriva del ancho, no se pide a mano. resultado: 5 variantes por foto
+// como maximo, muchisimos mas cache hits, y bien dentro del fair-use de supabase.
+// [PERF v3] o.width es el ancho REAL de la caja en pixeles CSS, no el ancho del
+// archivo que se quiere pedir. la funcion se encarga de traducirlo a pixeles
+// fisicos segun la pantalla de quien mira.
+//
+// por que importa: en una retina (dpr 2) una caja de 340px CSS ocupa 680 pixeles
+// fisicos. si le entregas una imagen de 480px, el navegador la agranda para
+// llenar la caja y el resultado se ve ampliado y blando. eso es exactamente el
+// "se ve con zoom". al multiplicar por el dpr, la retina recibe nitidez completa
+// y una pantalla normal (dpr 1) recibe la mitad del peso, que es justo lo que
+// necesita el equipo de bajos recursos.
 function _tImg(url,opts){
   try{
-    if(!window.RUEDDA_IMG_TRANSFORMS) return url; // plan Free: original intacto, sin transformar
+    if(!window.RUEDDA_IMG_TRANSFORMS) return url; // interruptor global: si esta off, original intacto
     if(!url||typeof url!=='string') return url;
     const MARK='/storage/v1/object/public/';
     if(url.indexOf(MARK)===-1) return url; // no es storage público de supabase → intacta
     const o=opts||{};
+    // la escalera vive dentro de la funcion a proposito: _tImg esta hoisteada y se
+    // invoca desde plantillas de render que aparecen antes en el archivo, asi que
+    // una const a nivel de bloque podria quedar en zona muerta temporal.
+    const LADDER=[480,960,1440,1920,2500]; // 2500 es el techo que acepta supabase
+    const dpr=Math.min(Math.max(window.devicePixelRatio||1,1),2);
+    const want=Math.min(Math.ceil((o.width||400)*dpr),2500);
+    const w=LADDER.find(x=>x>=want)||2500;
+    // calidad alta a proposito: en un marketplace de carros la foto ES el producto.
+    // webp en este rango es indistinguible del original a simple vista.
+    const q=w<=480?80:(w<=960?84:(w<=1440?86:88));
     const base=url.replace(MARK,'/storage/v1/render/image/public/');
-    const params=['width='+(o.width||800),'quality='+(o.quality||72)];
-    if(o.height) params.push('height='+o.height);
-    params.push('resize='+(o.resize||'cover'));
+    const params=['width='+w,'quality='+q];
+    if(o.height) params.push('height='+Math.min(Math.ceil(o.height*dpr),2500));
+    // 'contain' garantiza que supabase NO recorte del lado del servidor: entrega la
+    // foto completa reescalada y el encuadre lo sigue decidiendo el object-fit del
+    // CSS, exactamente igual que cuando no habia transformaciones. asi el recorte
+    // nunca se aplica dos veces.
+    params.push('resize='+(o.resize||'contain'));
     return base+(base.indexOf('?')===-1?'?':'&')+params.join('&');
   }catch(e){ return url; }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// [SEGURIDAD] RED DE RESPALDO DE LAS TRANSFORMACIONES
+// ═══════════════════════════════════════════════════════════════════════════
+// supabase rechaza transformar archivos de mas de 25MB o de mas de 50 megapixeles,
+// y algun formato raro (un HEIC subido crudo, por ejemplo) tambien puede fallar.
+// como las plantillas resuelven el onerror con display:none, esa foto no se veria
+// degradada: desapareceria. antes esto no podia pasar porque las transformaciones
+// estaban apagadas y siempre llegaba el original.
+//
+// este listener corre en fase de captura sobre window, o sea que se ejecuta ANTES
+// que el onerror de la propia imagen. si la que fallo era una URL transformada,
+// la reintenta una sola vez contra el original intacto y corta la propagacion
+// para que el onerror de la plantilla no la esconda. si el original tambien falla,
+// la URL ya no lleva la marca de transformacion, este handler se hace a un lado
+// y el onerror original hace su trabajo como siempre.
+window.addEventListener('error',function(ev){
+  try{
+    const el=ev.target;
+    if(!el||el.tagName!=='IMG') return;
+    const src=el.currentSrc||el.src||'';
+    const MARK='/storage/v1/render/image/public/';
+    if(src.indexOf(MARK)===-1) return;      // no es transformada: no me meto
+    if(el.dataset.rdFallback) return;       // ya se reintento una vez: dejar pasar
+    el.dataset.rdFallback='1';
+    ev.stopImmediatePropagation();          // frena el display:none de la plantilla
+    console.warn('[ruedda] transformacion fallo, cayendo al original:',src.split('?')[0]);
+    el.src=src.replace(MARK,'/storage/v1/object/public/').split('?')[0];
+  }catch(e){}
+},true);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// [PERF] PRECALENTADO DEL FEED — corre por detras del splash
+// ═══════════════════════════════════════════════════════════════════════════
+// el problema que resuelve: la data del market ya cargaba durante el splash,
+// pero las fotos no. las cards de la segunda fila en adelante llevan
+// loading="lazy", y una imagen lazy dentro de un contenedor en display:none o
+// fuera de pantalla NO se descarga nunca hasta que aparece. resultado: entrabas
+// al market y ahi recien arrancaban a bajar.
+//
+// esta funcion baja esas portadas con new Image(), que ignora por completo el
+// lazy y la visibilidad del DOM. la URL que pide es identica byte a byte a la
+// que despues va a pedir la card, asi que cuando la card aparece el navegador
+// la saca del cache y se pinta al instante.
+//
+// no compite con lo visible: fetchPriority low + un tope de descargas en
+// paralelo, para que las fotos que el splash esta esperando pasen primero.
+function _rdWarmFeedImages(){  if(window._rdWarmed) return;
+  window._rdWarmed=true;
+  try{
+    const cn=navigator.connection||{};
+    if(cn.saveData===true) return; // ahorro de datos activado: no gastarle megas a nadie
+    const slow=/(^|\b)(slow-)?2g\b/.test(cn.effectiveType||'');
+    const low=document.documentElement.className.indexOf('lowfx')!==-1;
+    // en equipo lento o red mala se precalienta menos: mas alla de eso el
+    // precalentado deja de ayudar y empieza a estorbar.
+    const CARDS=slow?6:(low?10:24);
+    const MAXPAR=slow?2:4;
+
+    const urls=[];
+    const add=(u,o)=>{ if(u) urls.push(_tImg(u,o)); };
+    const mkt=(typeof MARKET_LISTINGS!=='undefined'?MARKET_LISTINGS:[]);
+    const auc=(typeof AUCTIONS!=='undefined'?AUCTIONS:[]);
+
+    // 1. el hero del market primero: es la foto mas grande y la primera que se ve
+    const dest=mkt.filter(l=>l.destacado);
+    const pool=(dest.length?dest:mkt).slice(0,5);
+    pool.forEach(l=>add(l.photoUrls&&l.photoUrls[0],{width:880}));
+    // las cuatro celdas laterales del hero salen de la primera publicacion
+    if(pool[0]&&pool[0].photoUrls) pool[0].photoUrls.slice(1,5).forEach(u=>add(u,{width:270}));
+    // 2. el primer lote de cards del market
+    mkt.slice(0,CARDS).forEach(l=>add(l.photoUrls&&l.photoUrls[0],{width:380}));
+    // 3. las cards de subastas: esa seccion vive en display:none hasta que la
+    //    abres, o sea que sus lazy jamas se disparaban por su cuenta
+    auc.slice(0,CARDS).forEach(a=>add(a.photoUrls&&a.photoUrls[0],{width:380}));
+
+    const seen={}, list=[];
+    for(let i=0;i<urls.length;i++){ const u=urls[i]; if(u&&!seen[u]){seen[u]=1;list.push(u);} }
+    if(!list.length) return;
+
+    let idx=0, active=0;
+    (function pump(){
+      while(active<MAXPAR&&idx<list.length){
+        const img=new Image();
+        img.decoding='async';
+        try{ img.fetchPriority='low'; }catch(e){}
+        active++;
+        const done=()=>{ active--; pump(); };
+        img.addEventListener('load',done,{once:true});
+        img.addEventListener('error',done,{once:true});
+        img.src=list[idx++];
+      }
+      if(idx>=list.length&&active===0) console.log('[ruedda] feed precalentado:',list.length,'fotos');
+    })();
+  }catch(e){}
 }
 
 async function _uploadVenderPhotos(recordId,userId,isListing=false){
@@ -9017,7 +9146,7 @@ async function _uploadVenderPhotos(recordId,userId,isListing=false){
     const ext=(file.name||'jpg').split('.').pop()||'jpg';
     const path=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`;
     try{
-      const{data,error}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true});
+      const{data,error}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true,cacheControl:'31536000'});
       if(error){console.error('[ruedda] foto upload',i,error.message);continue;}
       const{data:{publicUrl}}=_supa.storage.from('car-photos').getPublicUrl(path);
       const photoPayload=isListing?{listing_id:recordId,url:publicUrl,orden:i}:{auction_id:recordId,url:publicUrl,orden:i};
@@ -9150,7 +9279,7 @@ async function openMiPerfil(){
   document.getElementById('mi-perfil-nombre-input').value=USER_STATE.nombre||'';
   document.getElementById('mi-perfil-username-input').value=USER_STATE.username||'';
   const avEl=document.getElementById('mi-perfil-avatar');
-  if(avEl) avEl.innerHTML=USER_STATE.avatar?`<img src="${USER_STATE.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(USER_STATE.nombre||'?').charAt(0).toUpperCase();
+  if(avEl) avEl.innerHTML=USER_STATE.avatar?`<img decoding="async" src="${USER_STATE.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(USER_STATE.nombre||'?').charAt(0).toUpperCase();
   document.getElementById('mi-perfil-descripcion-input').value='';
   document.getElementById('mi-perfil-dreamcars-list').innerHTML='<div style="font-size:13px;color:var(--muted)">cargando...</div>';
   try{
@@ -9160,7 +9289,7 @@ async function openMiPerfil(){
     ]);
     document.getElementById('mi-perfil-descripcion-input').value=u?.descripcion||'';
     if(u?.username) document.getElementById('mi-perfil-username-input').value=u.username;
-    if(u?.avatar_url&&avEl) avEl.innerHTML=`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+    if(u?.avatar_url&&avEl) avEl.innerHTML=`<img decoding="async" src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
     const list=document.getElementById('mi-perfil-dreamcars-list');
     list.innerHTML='';
     (dreamCars||[]).forEach(d=>_addDreamCarInput(d.modelo));
@@ -9446,7 +9575,7 @@ function _renderMisPubGrid(){
     return `<div onclick="openEditListingModal('${l.id}')" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
         ${l.photoUrl
-          ?`<img src="${_tImg(l.photoUrl,{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
+          ?`<img decoding="async" src="${_tImg(l.photoUrl,{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.06) 25%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.06) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
           :`<svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
         <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${badgeColor2||badgeColor}">${badgeLabel}</span>
@@ -9623,7 +9752,7 @@ async function openEditListingModal(id){
       if(!photos?.length){cont.innerHTML='<div style="font-size:12px;color:rgba(255,255,255,.25);padding:4px 0;grid-column:1/-1">sin fotos aún</div>';return;}
       cont.innerHTML=photos.map(p=>`
         <div style="position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#1a1a1a">
-          <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;display:block">
+          <img decoding="async" src="${p.url}" style="width:100%;height:100%;object-fit:cover;display:block">
           <button onclick="_deleteEditPhoto('${p.id}','${_idStr}',this.closest('div[style*=relative]'))" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">×</button>
         </div>`).join('');
     });
@@ -9665,7 +9794,7 @@ async function _uploadEditPhotos(listingId,userId){
       if(!file) continue;
       const ext=(file.name||'jpg').split('.').pop()||'jpg';
       const path=`${userId}/${listingId}/${nextOrden}_${Date.now()}.${ext}`;
-      const{error:upErr}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true});
+      const{error:upErr}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true,cacheControl:'31536000'});
       if(upErr){ console.error('[ruedda] edit foto upload',i,upErr.message); continue; }
       const{data:{publicUrl}}=_supa.storage.from('car-photos').getPublicUrl(path);
       await _supa.from('listing_photos').insert({listing_id:listingId,url:publicUrl,orden:nextOrden});
@@ -10008,7 +10137,7 @@ function renderPhotoPreview(){
     const thumb=document.createElement('div');
     thumb.className='photo-thumb';
     thumb.style.cssText='position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:#111';
-    thumb.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover"><button onclick="removePhoto(${i})" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:22px;height:22px;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>`;
+    thumb.innerHTML=`<img decoding="async" src="${url}" style="width:100%;height:100%;object-fit:cover"><button onclick="removePhoto(${i})" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:22px;height:22px;color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>`;
     grid.insertBefore(thumb,addBtn);
   });
   const hint=document.getElementById('photo-count-hint');
@@ -10048,7 +10177,7 @@ function renderPhotoGrid(){
     cell.dataset.idx=i;
     const isFirst=i===0;
     cell.innerHTML=`
-      <img src="${item.src}" style="width:100%;height:100%;object-fit:cover;pointer-events:none">
+      <img decoding="async" src="${item.src}" style="width:100%;height:100%;object-fit:cover;pointer-events:none">
       ${isFirst?'<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.55));padding:6px 8px;font-size:9px;font-weight:800;color:#e6f03b;letter-spacing:.5px;text-transform:uppercase">portada</div>':''}
       <button onclick="removePhoto(${i})" style="position:absolute;top:5px;right:5px;width:22px;height:22px;background:rgba(0,0,0,.65);border:none;border-radius:50%;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .15s" onmouseover="this.style.background='rgba(255,60,60,.8)'" onmouseout="this.style.background='rgba(0,0,0,.65)'">×</button>
     `;
@@ -10329,7 +10458,7 @@ function renderMarketFiltered(){
     // vieja (sin badges, sin views, precio antes de ciudad) y la grid cambiaba de estilo
     // según cuál de las dos funciones la pintara. Ahora es UNA sola apariencia siempre.
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.25);color:#fff;text-transform:uppercase">vendido</span></div>':''}
@@ -10354,7 +10483,7 @@ function renderDealerFiltered(){
   if(f.tipo !== 'todos') dealers = dealers.filter(d=>(d.tag||'').includes(f.tipo));
   grid.innerHTML = dealers.length
     ? dealers.map((d,i)=>`<div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
-        <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1'">`:d.initial}</div>
+        <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img decoding="async" src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1'">`:d.initial}</div>
         <div class="dealer-info"><div class="dealer-name" style="display:flex;align-items:center;gap:0">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="dealer-meta">${d.ciudad.toLowerCase()}</div><div class="dealer-count">${d.autos} vehículos</div></div>
       </div>`).join('')
     : '<div class="empty-state" style="grid-column:1/-1"><p>sin concesionarios con estos filtros</p></div>';
@@ -10410,7 +10539,7 @@ function renderDealerGrid(){
   }
   grid.innerHTML = data.map((d,i) => `
     <div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
-      <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1'">`:d.initial}</div>
+      <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img decoding="async" src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" onload="this.style.opacity='1'">`:d.initial}</div>
       <div class="dealer-info">
         <div class="dealer-name" style="display:flex;align-items:center">${d.nombre}<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#000" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="dealer-meta">${d.ciudad.toLowerCase()}</div>
@@ -10420,7 +10549,7 @@ function renderDealerGrid(){
 }
 
 // [CONS HUB v1] banner patrocinante — una sola foto fija (app_settings key/value),
-// mismo crossfade real que _encuentraSetPhoto: <img> absoluto en opacity:0 que
+// mismo crossfade real que _encuentraSetPhoto: <img decoding="async"> absoluto en opacity:0 que
 // hace fade a 1 solo cuando decodificó, nunca aparece de golpe.
 let _consBannerLoaded=false;
 async function _consLoadBanner(){
@@ -10453,7 +10582,7 @@ function _consSetBannerPhoto(url){
 }
 // [FIX] "red post-venta" en concesionarios es un DUPLICADO real de la card de
 // Market — misma key de app_settings (encuentra_postventa_url), no un slot
-// nuevo. Mismo crossfade real (<img> absoluto, fade a opacity 1 solo al
+// nuevo. Mismo crossfade real (<img decoding="async"> absoluto, fade a opacity 1 solo al
 // decodificar) que _encuentraSetPhoto, parametrizado por ids para no pisar
 // el card original de Market.
 let _consPostventaLoaded=false;
@@ -10490,13 +10619,13 @@ async function _saUploadConsBanner(input){
   showToast('subiendo imagen...');
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
   const path=`cons-banner_${Date.now()}.${ext}`;
-  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false,cacheControl:'31536000'});
   if(upErr){showToast('error: '+upErr.message);return;}
   const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
   const{error:dbErr}=await _supa.from('app_settings').upsert({key:'concesionarios_banner_url',value:urlData.publicUrl,updated_at:new Date().toISOString()});
   if(dbErr){showToast('error guardando: '+dbErr.message);return;}
   const prev=document.getElementById('sa-cons-banner-preview');
-  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  if(prev) prev.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
   _consSetBannerPhoto(urlData.publicUrl);
   showToast('banner actualizado',true);
 }
@@ -10664,7 +10793,7 @@ function openVitrina(id){
   },0);
   // Banner SVG dinámico
   document.getElementById('vitrina-banner').innerHTML = d.banner
-    ? `<img src="${d.banner}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager">`
+    ? `<img decoding="async" src="${d.banner}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager">`
     : `\n    <svg width="100%" height="100%" viewBox="0 0 800 220" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="vb-${d.id}" x1="0" y1="0" x2="1" y2="1">
@@ -10738,7 +10867,7 @@ async function renderVitrinavGrid(filter){
         const esNuevo=(l.condicion==='nuevo'||l.condicion==='0km');
         const badge=esNuevo?'nuevo':'usado';
         const badgeColor=esNuevo?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)';
-        const img=imgUrl?`<img src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
+        const img=imgUrl?`<img decoding="async" src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
         return `<div class="listado-card" onclick="openMarketDetail('${l.id}','vitrina')" style="animation-delay:${i*40}ms">
           <div class="listado-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]})">
             ${img}
@@ -10881,7 +11010,7 @@ async function saUploadClipThumb(input){
     const dataUrl=await _kycCompress(file,900);
     const blob=await(await fetch(dataUrl)).blob();
     const path='clip_'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
-    const{error:upErr}=await _supa.storage.from('clips').upload(path,blob,{upsert:false,contentType:'image/jpeg'});
+    const{error:upErr}=await _supa.storage.from('clips').upload(path,blob,{upsert:false,contentType:'image/jpeg',cacheControl:'31536000'});
     if(upErr)throw upErr;
     const{data:urlData}=_supa.storage.from('clips').getPublicUrl(path);
     document.getElementById('sa-clip-thumb').value=urlData.publicUrl;
@@ -10934,7 +11063,7 @@ function previewNoticiaImg(input){
   const preview=document.getElementById('sa-noticia-preview');
   const reader=new FileReader();
   reader.onload=e=>{
-    preview.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
+    preview.innerHTML=`<img decoding="async" src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`;
   };
   reader.readAsDataURL(file);
 }
@@ -10949,7 +11078,7 @@ async function saAddNoticia(){
   const ext=file.name.split('.').pop();
   const path=`noticia_${Date.now()}.${ext}`;
   showToast('subiendo imagen...');
-  const{error:upErr}=await _supa.storage.from('noticias').upload(path,file,{upsert:false});
+  const{error:upErr}=await _supa.storage.from('noticias').upload(path,file,{upsert:false,cacheControl:'31536000'});
   if(upErr){console.error('[sa-noticias-upload]',upErr);showToast('error: '+upErr.message);return;}
   const{data:urlData}=_supa.storage.from('noticias').getPublicUrl(path);
   const{error:dbErr}=await _supa.from('noticias').insert({banner_image_url:urlData.publicUrl,titulo:tituloVal||null,autor:autorVal,content:contentVal||null});
@@ -10971,7 +11100,7 @@ async function saLoadNoticiasList(){
   list.innerHTML=data.map(n=>`
     <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
       <div style="width:52px;height:34px;border-radius:8px;background:var(--bg);overflow:hidden;flex-shrink:0">
-        <img src="${n.banner_image_url}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+        <img decoding="async" src="${n.banner_image_url}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
       </div>
       <span style="flex:1;font-size:12px;color:rgba(255,255,255,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.content?n.content.substring(0,60)+'...':'sin contenido'}</span>
       <button onclick="saDeleteNoticia('${n.id}')" style="flex-shrink:0;background:rgba(255,60,60,.08);border:1px solid rgba(255,80,80,.2);border-radius:9px;padding:7px 10px;cursor:pointer;display:flex;align-items:center">
@@ -10992,7 +11121,7 @@ async function saLoadRueddaTeamAvatarPreview(){
   const prev=document.getElementById('sa-rtm-avatar-preview');
   if(!prev||!_supa) return;
   const{data}=await _supa.from('app_settings').select('value').eq('key','ruedda_team_avatar_url').maybeSingle();
-  if(data?.value) prev.innerHTML=`<img src="${data.value}" style="width:100%;height:100%;object-fit:cover">`;
+  if(data?.value) prev.innerHTML=`<img decoding="async" src="${data.value}" style="width:100%;height:100%;object-fit:cover">`;
 }
 
 async function saUploadRueddaTeamAvatar(input){
@@ -11001,24 +11130,24 @@ async function saUploadRueddaTeamAvatar(input){
   showToast('subiendo imagen...');
   const ext=file.name.split('.').pop();
   const path=`ruedda-team-avatar_${Date.now()}.${ext}`;
-  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false,cacheControl:'31536000'});
   if(upErr){showToast('error: '+upErr.message);return;}
   const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
   const{error:dbErr}=await _supa.from('app_settings').upsert({key:'ruedda_team_avatar_url',value:urlData.publicUrl,updated_at:new Date().toISOString()});
   if(dbErr){showToast('error guardando: '+dbErr.message);return;}
   const prev=document.getElementById('sa-rtm-avatar-preview');
-  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  if(prev) prev.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
   window._rueddaTeamLogoUrl=urlData.publicUrl; // refresca en memoria para la lista de mensajes
   // [RC v8 FIX] mismo refresh de DOM que _loadRueddaTeamConfig — antes solo se
   // actualizaba memoria + preview del panel, y los avatares ya pintados en la lista
   // de mensajes se quedaban con el logo viejo (o la "R") hasta un re-render completo,
   // por eso "a veces ni cargaba". Con fade para que no aparezca de golpe.
   document.querySelectorAll('.msg-avatar.official-ring').forEach(av=>{
-    av.innerHTML=`<img src="${urlData.publicUrl}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
+    av.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
   });
   const _threadAv=document.getElementById('thread-avatar');
   if(_threadAv&&typeof currentThread!=='undefined'&&currentThread?.isOfficial){
-    _threadAv.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
+    _threadAv.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
   }
   showToast('foto del canal actualizada',true);
 }
@@ -11035,12 +11164,12 @@ async function _saUploadEncuentraPhoto(input,slot){
   showToast('subiendo imagen...');
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
   const path=`encuentra-${slot}_${Date.now()}.${ext}`;
-  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false,cacheControl:'31536000'});
   if(upErr){showToast('error: '+upErr.message);return;}
   const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
   const{error:dbErr}=await _supa.from('app_settings').upsert({key,value:urlData.publicUrl,updated_at:new Date().toISOString()});
   if(dbErr){showToast('error guardando: '+dbErr.message);return;}
-  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:contain">`;
+  if(prev) prev.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:contain">`;
   showToast('foto actualizada',true);
 }
 async function _saUploadFotografosCover(input){
@@ -11050,12 +11179,12 @@ async function _saUploadFotografosCover(input){
   showToast('subiendo imagen...');
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
   const path=`fotografos-cover_${Date.now()}.${ext}`;
-  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false,cacheControl:'31536000'});
   if(upErr){showToast('error: '+upErr.message);return;}
   const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
   const{error:dbErr}=await _supa.from('app_settings').upsert({key:'fotografos_cover_url',value:urlData.publicUrl,updated_at:new Date().toISOString()});
   if(dbErr){showToast('error guardando: '+dbErr.message);return;}
-  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  if(prev) prev.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
   showToast('foto actualizada',true);
 }
 // [FIX] SA — logos de marcas. Reusa MARCAS_LIST (las 56 marcas reales de la
@@ -11074,7 +11203,7 @@ async function saLoadMarcaLogos(filterText){
     return `
     <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:9px 12px;display:flex;align-items:center;gap:12px">
       <div id="sa-logo-prev-${slug}" onclick="document.getElementById('sa-logo-file-${slug}').click()" style="width:40px;height:40px;flex-shrink:0;border-radius:9px;background:#111;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:rgba(255,255,255,.25)">
-        ${url?`<img src="${url}" style="width:100%;height:100%;object-fit:contain;padding:4px;box-sizing:border-box">`:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:16px;height:16px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>`}
+        ${url?`<img decoding="async" src="${url}" style="width:100%;height:100%;object-fit:contain;padding:4px;box-sizing:border-box">`:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:16px;height:16px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>`}
       </div>
       <div style="flex:1;font-size:13px;font-weight:600">${_esc(m)}</div>
       <input type="file" id="sa-logo-file-${slug}" accept="image/*" style="display:none" onchange="_saUploadMarcaLogo(this,'${m.replace(/'/g,"\\'")}')">
@@ -11089,14 +11218,14 @@ async function _saUploadMarcaLogo(input,marca){
   showToast('subiendo logo...');
   const ext=(file.name.split('.').pop()||'png').toLowerCase();
   const path=`marca-logo-${slug}_${Date.now()}.${ext}`;
-  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false,cacheControl:'31536000'});
   if(upErr){showToast('error: '+upErr.message);return;}
   const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
   const{error:dbErr}=await _supa.from('marca_logos').upsert({marca,logo_url:urlData.publicUrl,updated_at:new Date().toISOString()},{onConflict:'marca'});
   if(dbErr){showToast('error guardando: '+dbErr.message);return;}
   MARCA_LOGOS[marca]=urlData.publicUrl;
   const prev=document.getElementById('sa-logo-prev-'+slug);
-  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:contain;padding:4px;box-sizing:border-box">`;
+  if(prev) prev.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:contain;padding:4px;box-sizing:border-box">`;
   _marcaSetLogo(marca,urlData.publicUrl); // refresca en vivo la card real si está montada
   showToast('logo actualizado',true);
 }
@@ -11105,7 +11234,7 @@ async function _saLoadConsBannerPreview(){
   if(!_supa) return;
   const{data}=await _supa.from('app_settings').select('value').eq('key','concesionarios_banner_url').maybeSingle();
   const prev=document.getElementById('sa-cons-banner-preview');
-  if(prev&&data?.value) prev.innerHTML=`<img src="${data.value}" style="width:100%;height:100%;object-fit:cover">`;
+  if(prev&&data?.value) prev.innerHTML=`<img decoding="async" src="${data.value}" style="width:100%;height:100%;object-fit:cover">`;
 }
 async function _saLoadEncuentraPreviews(){
   if(!_supa) return;
@@ -11114,10 +11243,10 @@ async function _saLoadEncuentraPreviews(){
   (data||[]).forEach(row=>{
     if(!row.value) return;
     if(row.key==='encuentra_order'){ try{order=JSON.parse(row.value);}catch(e){} return; }
-    if(row.key==='fotografos_cover_url'){ const p=document.getElementById('sa-fotografos-cover-preview'); if(p) p.innerHTML=`<img src="${row.value}" style="width:100%;height:100%;object-fit:cover">`; return; }
+    if(row.key==='fotografos_cover_url'){ const p=document.getElementById('sa-fotografos-cover-preview'); if(p) p.innerHTML=`<img decoding="async" src="${row.value}" style="width:100%;height:100%;object-fit:cover">`; return; }
     const slot=row.key.replace('encuentra_','').replace('_url','');
     const prev=document.getElementById('sa-enc-'+slot+'-preview');
-    if(prev) prev.innerHTML=`<img src="${row.value}" style="width:100%;height:100%;object-fit:contain">`;
+    if(prev) prev.innerHTML=`<img decoding="async" src="${row.value}" style="width:100%;height:100%;object-fit:contain">`;
   });
   saRenderEncOrder(order);
 }
@@ -11607,7 +11736,7 @@ async function openModReview(id){
         <div style="font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">${item.title}</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:14px">${item.user} · ${item.ciudad} · ${item.km}</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
-          ${item.fotos.map((src,i)=>src.startsWith('http')?`<div style="aspect-ratio:4/3;border-radius:10px;overflow:hidden"><img src="${src}" style="width:100%;height:100%;object-fit:cover;display:block"></div>`:`<div style="aspect-ratio:4/3;background:${src};border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.3)">${i===0?'sin fotos':'foto '+(i+1)}</div>`).join('')}
+          ${item.fotos.map((src,i)=>src.startsWith('http')?`<div style="aspect-ratio:4/3;border-radius:10px;overflow:hidden"><img decoding="async" src="${src}" style="width:100%;height:100%;object-fit:cover;display:block"></div>`:`<div style="aspect-ratio:4/3;background:${src};border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,.3)">${i===0?'sin fotos':'foto '+(i+1)}</div>`).join('')}
         </div>
         <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;color:rgba(255,255,255,.7);line-height:1.6;margin-bottom:18px">${item.desc}</div>
         <div style="display:flex;gap:10px">
@@ -11953,13 +12082,13 @@ async function dhUpload(input, type){
   // preview inmediato
   const localUrl=URL.createObjectURL(file);
   const el=document.getElementById('dh-'+type+'-preview');
-  if(el) el.innerHTML=`<img src="${localUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  if(el) el.innerHTML=`<img decoding="async" src="${localUrl}" style="width:100%;height:100%;object-fit:cover">`;
   showToast('subiendo '+type+'...', false);
   if(!_supa){ showToast('sin conexión'); return; }
   const ext=file.name.split('.').pop();
   const path=`${USER_STATE.concesionarioId}/${type}_${Date.now()}.${ext}`;
   const bucket=type==='logo'?'logos-concesionarios':'banners-concesionarios';
-  const{error:upErr}=await _supa.storage.from(bucket).upload(path,file,{upsert:true});
+  const{error:upErr}=await _supa.storage.from(bucket).upload(path,file,{upsert:true,cacheControl:'31536000'});
   if(upErr){ showToast('error subiendo imagen'); console.error(upErr); return; }
   const{data:urlData}=_supa.storage.from(bucket).getPublicUrl(path);
   const col=type==='logo'?'logo_url':'banner_url';
@@ -12035,7 +12164,7 @@ async function renderDhPubs(){
     return `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer" onclick="openMarketDetail('${l.id}','vitrina')">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
         ${l.photoUrl
-          ?`<img src="${_tImg(l.photoUrl,{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none';const s=this.nextElementSibling;if(s)s.style.display='none'">
+          ?`<img decoding="async" src="${_tImg(l.photoUrl,{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none';const s=this.nextElementSibling;if(s)s.style.display='none'">
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,rgba(255,255,255,.06) 25%,rgba(255,255,255,.12) 50%,rgba(255,255,255,.06) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
           :`<svg fill="none" viewBox="0 0 40 30" stroke="rgba(255,255,255,.12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
         <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:100px;padding:3px 8px;font-size:10px;font-weight:700;color:${badgeColor}">${badgeLabel}</div>
@@ -12398,10 +12527,10 @@ function handleAvatarUpload(input){
 function _paintAvatar(src){
   if(!src) return;
   const av=document.getElementById('cuenta-avatar');
-  if(av) av.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  if(av) av.innerHTML=`<img decoding="async" src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
   // [V116] mismo avatar, si la vista de "ver perfil" está abierta
   const av2=document.getElementById('mi-perfil-avatar');
-  if(av2) av2.innerHTML=`<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+  if(av2) av2.innerHTML=`<img decoding="async" src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
 }
 
 function updateAuthTerms(input){
@@ -13386,6 +13515,10 @@ window._rueddaBootPromise = (async function _rueddaInit(){
   // concesionarios, fotógrafos, sponsors y banners siguen cargando en paralelo
   // pero no bloquean la salida.
   window._rueddaFirstScreenReady=Promise.allSettled([_pAuctions,_pMarket]);
+  // [PERF] apenas llega la data del feed arranca el precalentado de portadas por
+  // detras, todavia con el splash puesto. no se le hace await a proposito: el
+  // splash no debe esperarlo, solo aprovechar el tiempo que ya iba a estar ahi.
+  window._rueddaFirstScreenReady.then(()=>{ try{ _rdWarmFeedImages(); }catch(e){} });
   const _contentBoot=Promise.allSettled([_pAuctions,_pMarket,_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors(),_consLoadBanner(),_consLoadPostventaPhoto()]);
   const _authBoot=(async()=>{
     const{data:{session}}=await _supa.auth.getSession();
@@ -13424,7 +13557,7 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
 // ── [BOOT SPLASH] orquestación — v0.2 de prueba ──
 // v0 solo esperaba la data (JSON de Supabase) antes de revelar. Eso dejaba las
 // fotos de las cards cargando DESPUÉS del splash — se veía "como si nada hubiese
-// cargado". Ahora, tras resolver la data real, además espera a que las <img> de
+// cargado". Ahora, tras resolver la data real, además espera a que las <img decoding="async"> de
 // la vista que se va a mostrar terminen de cargar (o fallen) antes de revelar.
 // Piso: que el splash nunca se sienta como un parpadeo. Techo: red de seguridad
 // absoluta para que jamás se quede colgado si la red falla del todo.
@@ -13444,7 +13577,7 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
   function _waitVisibleImages(){
     const active=document.querySelector('.view.active');
     if(!active) return Promise.resolve();
-    // [free-plan perf] solo esperar las <img> que están REALMENTE en pantalla (o a un
+    // [free-plan perf] solo esperar las <img decoding="async"> que están REALMENTE en pantalla (o a un
     // scroll de distancia). Antes esperaba TODAS las de la vista, así una foto pesada de
     // las últimas publicaciones (abajo del fold, cruda sin CDN en Free) reventaba el
     // presupuesto y el splash revelaba con esas cargando. Ahora suelta limpio apenas lo
@@ -13751,7 +13884,7 @@ async function _loadComments(sourceType,sourceId,listId,explicitOwnerId){
     const dealerName=isDealer?((window.CONCESIONARIOS||[]).find(d=>d.user_id===c.user_id)?.nombre||_full):null;
     const displayName=isAdmin?'Ruedda':isOwner?_full:isDealer?dealerName:('@'+_uname);
     const avSrc=_cu.avatar_url;
-    const avEl=avSrc?`<div class="comment-avatar" style="overflow:hidden"><img src="${avSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`:`<div class="comment-avatar">${_full[0].toUpperCase()}</div>`;
+    const avEl=avSrc?`<div class="comment-avatar" style="overflow:hidden"><img decoding="async" src="${avSrc}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`:`<div class="comment-avatar">${_full[0].toUpperCase()}</div>`;
     const badge=isAdmin?'<span style=\"font-size:10px;font-weight:700;background:rgba(29,155,240,.15);color:#1d9bf0;padding:2px 8px;border-radius:100px;display:inline-flex;align-items:center;gap:4px;vertical-align:middle\"><svg viewBox=\"0 0 24 24\" style=\"width:12px;height:12px;flex-shrink:0\"><circle cx=\"12\" cy=\"12\" r=\"11\" fill=\"#1d9bf0\"/><path fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M7.5 12.3l3 3 6-6.5\"/></svg>admin</span>'
       :isOwner?'<span style=\"font-size:10px;font-weight:700;background:rgba(29,155,240,.15);color:#1d9bf0;padding:2px 8px;border-radius:100px;display:inline-flex;align-items:center;gap:4px;vertical-align:middle\"><svg viewBox=\"0 0 24 24\" style=\"width:12px;height:12px;flex-shrink:0\"><circle cx=\"12\" cy=\"12\" r=\"11\" fill=\"#1d9bf0\"/><path fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M7.5 12.3l3 3 6-6.5\"/></svg>verificado</span>'
       :isDealer?'<span style=\"font-size:10px;font-weight:700;background:rgba(29,155,240,.15);color:#1d9bf0;padding:2px 8px;border-radius:100px;display:inline-flex;align-items:center;gap:4px;vertical-align:middle\"><svg viewBox=\"0 0 24 24\" style=\"width:12px;height:12px;flex-shrink:0\"><circle cx=\"12\" cy=\"12\" r=\"11\" fill=\"#1d9bf0\"/><path fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M7.5 12.3l3 3 6-6.5\"/></svg>verificado</span>'
@@ -13767,7 +13900,7 @@ async function _loadComments(sourceType,sourceId,listId,explicitOwnerId){
       const rNombre=rUname;
       const rDealerName=rDealer?((window.CONCESIONARIOS||[]).find(d=>d.user_id===r.user_id)?.nombre||rFull):null;
       const rDisplay=rIsAdmin?'Ruedda':rOwner?rFull:rDealer?rDealerName:('@'+rUname);
-      const rAvImg=_ru.avatar_url?`<img src="${_ru.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:rNombre[0].toUpperCase();
+      const rAvImg=_ru.avatar_url?`<img decoding="async" src="${_ru.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:rNombre[0].toUpperCase();
       const rAvEl=_ru.avatar_url?`<div class="comment-avatar" style="width:22px;height:22px;font-size:10px;overflow:hidden">${rAvImg}</div>`:`<div class="comment-avatar" style="width:22px;height:22px;font-size:10px">${rAvImg}</div>`;
       const rBadge=rIsAdmin?'<span style=\"font-size:10px;font-weight:700;background:rgba(29,155,240,.15);color:#1d9bf0;padding:2px 8px;border-radius:100px;display:inline-flex;align-items:center;gap:4px;vertical-align:middle\"><svg viewBox=\"0 0 24 24\" style=\"width:12px;height:12px;flex-shrink:0\"><circle cx=\"12\" cy=\"12\" r=\"11\" fill=\"#1d9bf0\"/><path fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M7.5 12.3l3 3 6-6.5\"/></svg>admin</span>'
         :rOwner?'<span style=\"font-size:10px;font-weight:700;background:rgba(29,155,240,.15);color:#1d9bf0;padding:2px 8px;border-radius:100px;display:inline-flex;align-items:center;gap:4px;vertical-align:middle\"><svg viewBox=\"0 0 24 24\" style=\"width:12px;height:12px;flex-shrink:0\"><circle cx=\"12\" cy=\"12\" r=\"11\" fill=\"#1d9bf0\"/><path fill=\"none\" stroke=\"#fff\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M7.5 12.3l3 3 6-6.5\"/></svg>verificado</span>'
@@ -13856,7 +13989,7 @@ async function openUserProfile(userId){
 
     const nombre=u.nombre||u.username||'usuario';
     const initial=nombre.charAt(0).toUpperCase();
-    const avatarHtml=u.avatar_url?`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:initial;
+    const avatarHtml=u.avatar_url?`<img decoding="async" src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:initial;
     const avgScore=ratings?.length?(ratings.reduce((s,r)=>s+r.score,0)/ratings.length):0;
     const myRating=ratings?.find(r=>r.rater_id===USER_STATE?.id)?.score||0;
     const amIFollowing=!!myFollow;
@@ -14390,7 +14523,7 @@ async function openStories(){
       </button>
     </div>
     <div id="story-stage" style="flex:1;position:relative;margin:0 10px 10px;border-radius:24px;overflow:hidden;background:#0a0a0a">
-      <img id="story-img" style="width:100%;height:100%;object-fit:cover;display:block">
+      <img decoding="async" id="story-img" style="width:100%;height:100%;object-fit:cover;display:block">
       <div id="story-tap-left" style="position:absolute;left:0;top:0;width:45%;height:100%"></div>
       <div id="story-tap-right" style="position:absolute;right:0;top:0;width:55%;height:100%"></div>
     </div>
@@ -14451,7 +14584,7 @@ function _storyPlaySegment(idx){
   const dispName=story._displayName||u.nombre||u.username||'usuario';
   const dispAvatar=story._displayAvatar||u.avatar_url;
   const avEl=document.getElementById('story-avatar');
-  if(avEl)avEl.innerHTML=dispAvatar?`<img src="${dispAvatar}" style="width:100%;height:100%;object-fit:cover">`:'';
+  if(avEl)avEl.innerHTML=dispAvatar?`<img decoding="async" src="${dispAvatar}" style="width:100%;height:100%;object-fit:cover">`:'';
   const badge=u.kyc_verified?'<span style="display:inline-flex;align-items:center;flex-shrink:0"><svg viewBox="0 0 24 24" style="width:12px;height:12px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>':'';
   const unEl=document.getElementById('story-username');
   if(unEl)unEl.innerHTML=`<span>@${_esc(u.username||dispName)}</span>${badge}`;
@@ -14564,7 +14697,7 @@ async function _storyPublishFlow(){
       const dataUrl=await _kycCompress(file,1080);
       const blob=await (await fetch(dataUrl)).blob();
       const path=`${USER_STATE.id}/${Date.now()}.jpg`;
-      const{error:upErr}=await _supa.storage.from('stories').upload(path,blob,{contentType:'image/jpeg'});
+      const{error:upErr}=await _supa.storage.from('stories').upload(path,blob,{contentType:'image/jpeg',cacheControl:'31536000'});
       if(upErr)throw upErr;
       const{data:pub}=_supa.storage.from('stories').getPublicUrl(path);
       const{error:insErr}=await _supa.from('stories').insert({user_id:USER_STATE.id,media_url:pub.publicUrl});
@@ -14848,7 +14981,7 @@ function renderMensajesList(){
   if(!THREADS.length){
     const _rl=window._rueddaTeamLogoUrl;
     list.innerHTML=`<div class="msg-item official" onclick="openRueddaTeamThread()">
-      <div class="msg-avatar official-ring"><img src="${_rl}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
+      <div class="msg-avatar official-ring"><img decoding="async" src="${_rl}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
       <div style="flex:1;min-width:0">
         <div class="msg-name">Ruedda Team<span class="msg-pin"><svg viewBox="0 0 24 24" style="width:13px;height:13px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span></div>
         <div class="msg-model">canal oficial · novedades y soporte</div>
@@ -14867,7 +15000,7 @@ function renderMensajesList(){
   // ── canal oficial fijado: Ruedda Team (siempre arriba) ──
   const _rueddaLogo=window._rueddaTeamLogoUrl;
   const officialRow=`<div class="msg-item official" onclick="openRueddaTeamThread()">
-      <div class="msg-avatar official-ring"><img src="${_rueddaLogo}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
+      <div class="msg-avatar official-ring"><img decoding="async" src="${_rueddaLogo}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
       <div style="flex:1;min-width:0">
         <div class="msg-name">Ruedda Team<span class="msg-pin"><svg viewBox="0 0 24 24" style="width:13px;height:13px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span></div>
         <div class="msg-model">canal oficial · novedades y soporte</div>
@@ -14890,7 +15023,7 @@ function renderMensajesList(){
     const nameStr=t.isPM?t.otherName:otherDisplay;
     // avatar: imagen si existe, fallback inicial
     const avatarInner=t.otherAvatar
-      ?`<img src="${t.otherAvatar}" alt="" loading="lazy" onerror="this.parentElement.textContent='${(otherDisplay||'?')[0].toUpperCase()}'"/>`
+      ?`<img decoding="async" src="${t.otherAvatar}" alt="" loading="lazy" onerror="this.parentElement.textContent='${(otherDisplay||'?')[0].toUpperCase()}'"/>`
       :(otherDisplay||'?')[0].toUpperCase();
     const dealerBadge=(isDealer||t.otherKyc)?`<span style="display:inline-flex;align-items:center;margin-left:4px"><svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>`:'';
     const pmTag=t.isPM?`<span style="font-size:9px;font-weight:600;background:rgba(255,255,255,.06);color:var(--muted);padding:1px 5px;border-radius:4px;margin-left:5px">privado</span>`:'';
@@ -14936,7 +15069,7 @@ function openRueddaTeamThread(){
     av.style.cursor='default';av.onclick=null;
     av.style.border='1.5px solid rgba(230,240,59,.55)';
     av.style.boxShadow='0 0 0 3px rgba(230,240,59,.07)';
-    av.innerHTML=`<img src="${window._rueddaTeamLogoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
+    av.innerHTML=`<img decoding="async" src="${window._rueddaTeamLogoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'">`;
   }
   const callBtn=document.getElementById('thread-call-btn');
   if(callBtn) callBtn.style.display='none';
@@ -14979,7 +15112,7 @@ function openThread(id){
     _supa.from('concesionarios').select('*').eq('user_id',currentThread.otherId).maybeSingle().then(async({data:cd})=>{
       if(cd){
         const logo=cd.logo_url||cd.logo||'';
-        if(logo&&av) av.innerHTML=`<img src="${logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+        if(logo&&av) av.innerHTML=`<img decoding="async" src="${logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
       }
       let tel=String(cd?.telefono||cd?.whatsapp||'').replace(/[^0-9+]/g,'');
       // [V87] fallback: whatsapp de la publicación origen (obligatorio al publicar)
@@ -14999,7 +15132,7 @@ function openThread(id){
   } else if(_supa&&currentThread.otherId){
     // [V90] interlocutor particular: foto de perfil real si la tiene
     _supa.from('users').select('avatar_url').eq('id',currentThread.otherId).maybeSingle().then(({data:u})=>{
-      if(u?.avatar_url&&av) av.innerHTML=`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      if(u?.avatar_url&&av) av.innerHTML=`<img decoding="async" src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
     }).catch(()=>{});
   }
   renderThreadMessages();
@@ -15402,7 +15535,7 @@ async function _kycFilePicked(input,which){
     const bx=document.getElementById('kyc-box-'+which);
     if(bx){
       let im=bx.querySelector('.kyc-preview');
-      if(!im){bx.insertAdjacentHTML('beforeend','<img class="kyc-preview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.05);transition:opacity .45s ease,transform .45s ease">');im=bx.querySelector('.kyc-preview');}
+      if(!im){bx.insertAdjacentHTML('beforeend','<img decoding="async" class="kyc-preview" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transform:scale(1.05);transition:opacity .45s ease,transform .45s ease">');im=bx.querySelector('.kyc-preview');}
       im.src=dataUrl;
       requestAnimationFrame(()=>{im.style.opacity='1';im.style.transform='scale(1)';});
       bx.style.borderColor='rgba(230,240,59,.55)';bx.style.borderStyle='solid';
@@ -15715,7 +15848,7 @@ async function renderSAAccessRequests(){
       <div style="background:#101013;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:14px">
         <div style="font-size:14px;font-weight:700;letter-spacing:-.2px">${r.auction_title||'subasta'}</div>
         <div style="font-size:11px;color:var(--muted);margin:4px 0 10px;font-weight:300">tel: ${r.phone||'—'} · CI: V-${r.cedula||'—'} · ${new Date(r.created_at).toLocaleDateString('es-VE',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}</div>
-        <img src="${r.comprobante_b64}" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in;max-height:280px;object-fit:contain;background:#000" onclick="window.open(this.src)">
+        <img decoding="async" src="${r.comprobante_b64}" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in;max-height:280px;object-fit:contain;background:#000" onclick="window.open(this.src)">
         <div style="display:flex;gap:8px;margin-top:13px">
           <button onclick="_saSendAccessCode('${r.id}','${r.user_id}','${r.auction_id}',this)" style="flex:1;background:#e6f03b;color:#000;border:none;border-radius:100px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">enviar código</button>
           <button onclick="_saRejectAccess('${r.id}',this)" style="flex:1;background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14);border-radius:100px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">rechazar</button>
@@ -15832,8 +15965,8 @@ async function renderSAKyc(){
         <div style="font-size:15px;font-weight:700;letter-spacing:-.2px">${nm}</div>
         <div style="font-size:11px;color:var(--muted);margin:3px 0 12px;font-weight:300">${new Date(s.created_at).toLocaleDateString('es-VE',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700">documento</div><img src="${s.doc_b64}" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in" onclick="window.open(this.src)"></div>
-          <div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700">selfie</div><img src="${s.selfie_b64}" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in" onclick="window.open(this.src)"></div>
+          <div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700">documento</div><img decoding="async" src="${s.doc_b64}" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in" onclick="window.open(this.src)"></div>
+          <div><div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;font-weight:700">selfie</div><img decoding="async" src="${s.selfie_b64}" style="width:100%;border-radius:10px;border:1px solid rgba(255,255,255,.1);cursor:zoom-in" onclick="window.open(this.src)"></div>
         </div>
         <div style="display:flex;gap:8px;margin-top:13px">
           <button onclick="_saKycResolve('${s.id}','${s.user_id}',true,this)" style="flex:1;background:#e6f03b;color:#000;border:none;border-radius:100px;padding:11px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer">aprobar</button>
@@ -16635,7 +16768,7 @@ function _renderPatrocinantes(){
       <div id="sa-pat-list-${cat}" style="display:flex;flex-direction:column;gap:8px">
         ${(_saPatData[cat]||[]).map(p=>`
           <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
-            <img src="${p.imagen_url||''}" onerror="this.style.display='none'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--card2)">
+            <img decoding="async" src="${p.imagen_url||''}" onerror="this.style.display='none'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--card2)">
             <div style="flex:1;min-width:0">
               <div style="font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.nombre||'—'}</div>
               <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.link||'—'}</div>
@@ -16670,12 +16803,12 @@ async function _saUploadPatImg(input,cat){
   try{
     const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
     const path=`patrocinante-${safeId}_${Date.now()}.${ext}`;
-    const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+    const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false,cacheControl:'31536000'});
     if(upErr){showToast('error subiendo: '+upErr.message);if(box)box.innerHTML='<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg><span>subir imagen</span>';return;}
     const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
     const hidden=document.getElementById('sa-pat-img-'+cat);
     if(hidden) hidden.value=urlData.publicUrl;
-    if(box) box.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+    if(box) box.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
     showToast('imagen lista, dale agregar',true);
   }catch(e){showToast('error subiendo imagen');console.error(e);}
 }
@@ -18047,3 +18180,59 @@ _rdSetupSwipeExit('view-vitrina',_rdExitVitrina,'vitrina');
 })();
 </script>
 
+<style id="ruedda-lowfx">
+/* ══════════════════════════════════════════════════════════════════════════
+   [PERF] LOWFX — solo se aplica en equipos que no aguantan el compositor.
+   en cualquier maquina decente la clase 'lowfx' nunca se agrega al <html>
+   y ni una sola de estas reglas llega a tocar el render.
+
+   alcance deliberadamente acotado: SOLO los badges que se repiten por card.
+   con 24 cards en pantalla eso son ~96 capas de backdrop-filter simultaneas,
+   que es lo que realmente mata a una GPU integrada.
+
+   lo que NO se toca, en ningun equipo:
+     navbar, navbar-shell, bottom-nav, drawer, drawer-soon, dropdown-glass,
+     modal-sheet, mfilter-dd-glass, listado-ov, listado-hdr, quick-cell,
+     pv-arrow, rx-hdr, rd-onb-card, rd-tour-tip, soon-toast.
+   todos esos conservan su vidrio siempre.
+   ══════════════════════════════════════════════════════════════════════════ */
+html.lowfx .badge-timer,
+html.lowfx .badge-bids,
+html.lowfx .badge-sinreserva,
+html.lowfx .badge-ending,
+html.lowfx .photo-counter,
+html.lowfx .trending-rank,
+html.lowfx .trending-hammer,
+html.lowfx .sched-badge,
+html.lowfx .fav-thumb-badge-timer,
+html.lowfx .mkt-cb-badge,
+html.lowfx .mkt-cb-cell-tag,
+html.lowfx .market-hero-badge,
+html.lowfx .market-hero-pill,
+html.lowfx #mkt-related-section .mkt-related-tile-badge{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+/* compensacion de opacidad: sin el blur detras, el badge necesita un pelin mas
+   de cuerpo para mantener exactamente el mismo contraste de lectura sobre foto. */
+html.lowfx .badge-timer,
+html.lowfx .badge-bids{background:rgba(0,0,0,.84)}
+html.lowfx .badge-sinreserva{background:rgba(0,0,0,.86)}
+html.lowfx .badge-ending{background:rgba(255,60,60,.92)}
+html.lowfx .market-hero-badge,
+html.lowfx .market-hero-pill{background:rgba(0,0,0,.86)}
+html.lowfx .mkt-cb-badge{background:rgba(0,0,0,.84)}
+html.lowfx .mkt-cb-cell-tag{background:rgba(0,0,0,.8)}
+html.lowfx .trending-rank,
+html.lowfx .trending-hammer{background:rgba(0,0,0,.7)}
+html.lowfx .sched-badge{background:rgba(0,0,0,.9)}
+html.lowfx .fav-thumb-badge-timer{background:rgba(0,0,0,.84)}
+
+/* la entrada escalonada de cards es barata en GPU dedicada y cara en integrada:
+   son 24 elementos animando opacity + transform a la vez justo cuando el hilo
+   principal esta decodificando imagenes. */
+html.lowfx .auction-card,
+html.lowfx .market-card{animation:none}
+html.lowfx .card-loading-ring{animation-duration:1.6s}
+</style>
