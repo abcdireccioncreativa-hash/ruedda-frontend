@@ -12,20 +12,20 @@
 <link rel="manifest" href="/manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ruedda: Inicio</title>
-<meta name="description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Efficiency. Transparency. Value.">
+<meta name="description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <link rel="canonical" href="https://www.ruedda.app/">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ruedda">
 <meta property="og:title" content="Ruedda: Inicio">
-<meta property="og:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Efficiency. Transparency. Value.">
+<meta property="og:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <meta property="og:url" content="https://www.ruedda.app/">
 <meta property="og:image" content="https://www.ruedda.app/icon-192.png">
 <meta property="og:locale" content="es_VE">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Ruedda: Inicio">
-<meta name="twitter:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Efficiency. Transparency. Value.">
+<meta name="twitter:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <meta name="twitter:image" content="https://www.ruedda.app/icon-192.png">
 
 <script type="application/ld+json">
@@ -4233,13 +4233,38 @@ function _syncNotifBadge(){
 // (hard refresh o link externo), arranca en esa sección — el rewrite de
 // vercel.json sirve index.html en esas rutas, y esto lee el path para saber
 // cuál pintar. Cualquier otro path (o "/") cae al default de siempre.
+var _bootPath=(location.pathname||'').replace(/\/+$/,'');
+var _bootIsDedicatedSectionPath=(_bootPath==='/subastas'||_bootPath==='/market'||_bootPath==='/concesionarios');
 let currentView='home', currentTab='pronto', currentSection=(function(){
-  var p=(location.pathname||'').replace(/\/+$/,'');
-  if(p==='/subastas') return 'subastas';
-  if(p==='/market') return 'market';
-  if(p==='/concesionarios') return 'consesionarios';
+  if(_bootPath==='/subastas') return 'subastas';
+  if(_bootPath==='/market') return 'market';
+  if(_bootPath==='/concesionarios') return 'consesionarios';
   return 'market';
 })(); // [RC] la app abre directo en market
+
+// [SEO] title + meta description por sección — Google ejecuta JS y lee esto
+// después del render, así /subastas, /market y /concesionarios indexan con
+// copy propio en vez de repetir el de home. OG/twitter quedan estáticos
+// (los crawlers de redes sociales no ejecutan JS, así que no vale la pena).
+var SEO_COPY={
+  subastas:{title:'Ruedda: Subastas',desc:'Subasta tu vehículo hoy en Venezuela desde tu celular o web. Con estándares élite.'},
+  market:{title:'Ruedda: Market',desc:'Compra y vende vehículos verificados.'},
+  consesionarios:{title:'Ruedda: Concesionarios',desc:'Los mejores concesionarios de Venezuela, verificados por Ruedda.'}
+};
+var SEO_HOME={title:'Ruedda: Inicio',desc:'El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.'};
+function _updateSeoMeta(section){
+  try{
+    var copy=SEO_COPY[section]||SEO_HOME;
+    document.title=copy.title;
+    var m=document.querySelector('meta[name="description"]');
+    if(m) m.setAttribute('content',copy.desc);
+  }catch(e){}
+}
+// en "/" (o cualquier path no dedicado) el título queda "Inicio" aunque la
+// sección que se pinte por default sea market — la URL raíz es la home, no
+// la página de market, aunque visualmente arranquen mostrando lo mismo.
+_updateSeoMeta(_bootIsDedicatedSectionPath ? currentSection : null);
+
 let PAYMENT_DATA={banco:'Banesco',telefono:'0412-0000000',cedula:'V-00000000',cuenta:''};
 const PAID_TYPES={}; // tracks which venderType the user has paid for
 
@@ -4330,6 +4355,7 @@ function showView(name,param){
     const _target=window._homeSectionOverride||currentSection||'market';
     window._homeSectionOverride=null;
     currentSection=_target;
+    _updateSeoMeta(_target);
     const _hub=document.getElementById('mkt-hub-actions');if(_hub)_hub.style.display=_target==='market'?'flex':'none';
     if(_target==='market'&&typeof _hubPopIn==='function') _hubPopIn(); // [RC FIX] consistente con selectSection: pop cada vez que se entra a market
     const _cl=document.getElementById('section-como-funciona-link');if(_cl)_cl.style.display=_target==='market'?'none':'inline';
@@ -4513,6 +4539,7 @@ function selectSection(s){
   if(s==='market'&&hub) _hubPopIn();
   if(s==='market'&&typeof _storyRefreshBadge==='function')_storyRefreshBadge();
   currentSection=s;
+  _updateSeoMeta(s);
   document.getElementById('section-title-text').textContent=s==='consesionarios'?'concesionarios':s;
   document.getElementById('section-dropdown').classList.remove('open');
   document.getElementById('section-title-el').classList.remove('open');
