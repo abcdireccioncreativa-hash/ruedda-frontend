@@ -16741,20 +16741,18 @@ async function saOpenCoverPicker(id){
     </div>`).join('');
 }
 async function saSetCoverPhoto(itemId,photoId){
-  if(!_supa) return;
+  // [fix RLS] el update directo desde el cliente (key anónima) quedaba
+  // bloqueado en silencio por RLS cuando la publicación es de otro usuario
+  // (no tiraba error, pero tampoco cambiaba nada). Se hace vía API con
+  // service key, mismo patrón que /api/mod-listing.
   const isListing=_saPubTable==='listings';
-  const photoTable=isListing?'listing_photos':'auction_photos';
-  const fkCol=isListing?'listing_id':'auction_id';
-  const{data:photos,error}=await _supa.from(photoTable).select('id,orden').eq(fkCol,itemId).order('orden',{ascending:true});
-  if(error||!photos?.length){ showToast('error cargando fotos'); return; }
-  const current=photos[0];
-  const target=photos.find(ph=>ph.id===photoId);
-  if(!target||target.id===current.id) return;
-  const{error:e1}=await _supa.from(photoTable).update({orden:current.orden}).eq('id',target.id);
-  const{error:e2}=await _supa.from(photoTable).update({orden:target.orden}).eq('id',current.id);
-  if(e1||e2){ showToast('error actualizando portada'); return; }
-  showToast('portada actualizada ✓',true);
-  saOpenCoverPicker(itemId);
+  try{
+    await _apiPost('/api/set-cover-photo',{item_id:itemId,item_type:isListing?'listing':'auction',photo_id:photoId});
+    showToast('portada actualizada ✓',true);
+    saOpenCoverPicker(itemId);
+  }catch(e){
+    showToast('error actualizando portada: '+e.message);
+  }
 }
 // [BLOQUE 5] SuperAdmin — asignar/quitar el tag "SELECCION DEL EDITOR" a cualquier publicación
 async function saToggleDestacado(id,current){
