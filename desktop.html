@@ -2542,7 +2542,7 @@ html{scrollbar-width:none}
       </div>
       <!-- RIGHT COL: price + contact -->
       <div class="detail-right-col">
-        <div class="bid-section" style="position:sticky;top:80px">
+        <div class="bid-section" style="position:sticky;top:80px;margin-top:18px">
           <div class="bid-top" style="margin-bottom:18px">
             <div>
               <div class="bid-amount-label">precio</div>
@@ -4066,10 +4066,7 @@ html{scrollbar-width:none}
     <div style="font-size:11px;color:var(--muted2);margin-bottom:10px">ruedda™ · venezuela · 2025</div>
       <span style="font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.4px;font-weight:400">powered by</span>
       <div style="display:flex;align-items:center;gap:5px">
-        <span style="font-size:13px;font-weight:800;color:#fff;letter-spacing:-.2px;font-family:var(--font)">Cubica</span>
-        <div style="width:13px;height:13px;background:#e6f03b;border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <div style="width:5px;height:5px;background:#000;border-radius:1px"></div>
-        </div>
+        <svg width="31" height="14" style="flex-shrink:0"><use href="#csym"/></svg>
       </div>
     </div>
   </div>
@@ -6382,12 +6379,12 @@ function _mktRenderCbGallery(l){
   if(!photos.length){wrap.style.display='none';return;}
   wrap.style.display='grid';
   main.innerHTML=`<img decoding="async" src="${_tImg(photos[0],{width:880})}" loading="eager">${l.destacado?'<div class="mkt-cb-badge">destacado</div>':''}`;
-  main.onclick=()=>goToMktSlide(0);
+  main.onclick=()=>openPhotoViewer(l.photoUrls,0,{type:'market',id:l.id,title:l.title});
   const rest=photos.slice(1,5);
   const totalMore=photos.length-5;
   grid.innerHTML=rest.map((p,i)=>{
     const isLast=i===rest.length-1&&totalMore>0;
-    return `<div class="mkt-cb-cell" onclick="goToMktSlide(${i+1})"><img decoding="async" src="${_tImg(p,{width:270})}" loading="lazy">${isLast?`<div class="mkt-cb-more">Ver las ${photos.length} fotos</div>`:''}</div>`;
+    return `<div class="mkt-cb-cell" onclick="openPhotoViewer(currentMarketListing.photoUrls,${i+1},{type:'market',id:currentMarketListing.id,title:currentMarketListing.title})"><img decoding="async" src="${_tImg(p,{width:270})}" loading="lazy">${isLast?`<div class="mkt-cb-more">Ver las ${photos.length} fotos</div>`:''}</div>`;
   }).join('');
   _mktRenderRelated(l);
 }
@@ -16701,9 +16698,63 @@ async function saLoadPublicaciones(tbl){
         <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.year||''} ${p.marca||''} ${p.modelo||p.titulo||'—'}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${p.ciudad||'—'} · <span style="color:${p.estado==='activa'?'rgba(100,220,150,.8)':p.estado==='revision'?'rgba(100,200,255,.7)':'rgba(255,255,255,.3)'}">${p.estado||'—'}</span></div>
       </div>
+      <button onclick="saOpenCoverPicker('${p.id}')" style="flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer">portada</button>
       <button onclick="saToggleDestacado('${p.id}',${!!p.es_destacado})" style="flex-shrink:0;background:${p.es_destacado?'rgba(230,240,59,.12)':'rgba(255,255,255,.05)'};border:1px solid ${p.es_destacado?'rgba(230,240,59,.3)':'var(--border)'};border-radius:10px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;color:${p.es_destacado?'#e6f03b':'rgba(255,255,255,.5)'};cursor:pointer">${p.es_destacado?'★ destacado':'destacar'}</button>
       <button onclick="saDeletePub('${p.id}')" style="flex-shrink:0;background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.2);border-radius:10px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,80,80,.9);cursor:pointer">eliminar</button>
     </div>`).join('');
+}
+// [portada Super Admin] deja elegir cuál de las fotos ya subidas es la portada
+// de la publicación — swap de "orden" con la foto que hoy está de primera,
+// mismo criterio que usa toda la app para decidir qué foto mostrar en cards.
+async function saOpenCoverPicker(id){
+  if(!_supa) return;
+  const isListing=_saPubTable==='listings';
+  const photoTable=isListing?'listing_photos':'auction_photos';
+  const fkCol=isListing?'listing_id':'auction_id';
+  let modal=document.getElementById('sa-cover-modal');
+  if(modal) modal.remove();
+  modal=document.createElement('div');
+  modal.id='sa-cover-modal';
+  modal.dataset.itemId=id;
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:9996;display:flex;align-items:flex-end;justify-content:center';
+  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.innerHTML=`<div style="background:#111;border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;padding:20px 18px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:15px;font-weight:700">elegir portada</div>
+      <button onclick="document.getElementById('sa-cover-modal').remove()" style="background:rgba(255,255,255,.07);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(255,255,255,.5)">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">toca la foto que quieres que aparezca como portada.</div>
+    <div id="sa-cover-grid" style="overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px">cargando fotos...</div>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  const{data:photos,error}=await _supa.from(photoTable).select('id,url,orden').eq(fkCol,id).order('orden',{ascending:true});
+  const grid=document.getElementById('sa-cover-grid');
+  if(!grid) return;
+  if(error){ grid.innerHTML=`<div style="grid-column:1/-1;color:rgba(255,80,80,.8);font-size:12px">${error.message}</div>`; return; }
+  if(!photos?.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px">esta publicación no tiene fotos</div>'; return; }
+  grid.innerHTML=photos.map((ph,i)=>`
+    <div onclick="saSetCoverPhoto('${id}','${ph.id}')" style="position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:#1a1a1a;cursor:pointer;border:2px solid ${i===0?'#e6f03b':'transparent'}">
+      <img decoding="async" src="${ph.url}" style="width:100%;height:100%;object-fit:cover;display:block">
+      ${i===0?'<div style="position:absolute;bottom:4px;left:4px;background:rgba(230,240,59,.92);color:#000;font-size:9px;font-weight:800;padding:2px 6px;border-radius:100px">portada</div>':''}
+    </div>`).join('');
+}
+async function saSetCoverPhoto(itemId,photoId){
+  if(!_supa) return;
+  const isListing=_saPubTable==='listings';
+  const photoTable=isListing?'listing_photos':'auction_photos';
+  const fkCol=isListing?'listing_id':'auction_id';
+  const{data:photos,error}=await _supa.from(photoTable).select('id,orden').eq(fkCol,itemId).order('orden',{ascending:true});
+  if(error||!photos?.length){ showToast('error cargando fotos'); return; }
+  const current=photos[0];
+  const target=photos.find(ph=>ph.id===photoId);
+  if(!target||target.id===current.id) return;
+  const{error:e1}=await _supa.from(photoTable).update({orden:current.orden}).eq('id',target.id);
+  const{error:e2}=await _supa.from(photoTable).update({orden:target.orden}).eq('id',current.id);
+  if(e1||e2){ showToast('error actualizando portada'); return; }
+  showToast('portada actualizada ✓',true);
+  saOpenCoverPicker(itemId);
 }
 // [BLOQUE 5] SuperAdmin — asignar/quitar el tag "SELECCION DEL EDITOR" a cualquier publicación
 async function saToggleDestacado(id,current){
