@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script>
+// [Android app perf] backdrop-filter es carísimo de componer en el WebView de
+// Chromium/Android (iOS lo acelera casi gratis vía Core Animation). Marcamos
+// <html> solo cuando corremos dentro de la app Android (Capacitor) para que
+// el CSS de más abajo pueda apagar el blur ahí sin afectar web ni iOS.
+(function(){
+  function rdMarkAndroidApp(){
+    try{
+      if(window.Capacitor && typeof window.Capacitor.getPlatform==='function' && window.Capacitor.getPlatform()==='android'){
+        document.documentElement.classList.add('rd-android-app');
+      }
+    }catch(e){}
+  }
+  rdMarkAndroidApp();
+  document.addEventListener('DOMContentLoaded', rdMarkAndroidApp);
+})();
+</script>
 <meta charset="UTF-8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1439,6 +1456,23 @@ html{scrollbar-width:none}
 }
 .cons-sq-card:active{transform:scale(.96)}
 .cons-sq-card .enc-title{font-size:10px}
+
+/* [Android app perf] Apaga backdrop-filter solo dentro de la app Android:
+   navbar y bottom-nav están siempre en pantalla durante el scroll y son los
+   que más cuestan (recomposición de blur en cada frame). Los badges de las
+   cards se repiten decenas de veces en la grilla y suman. Se ajusta la opacidad
+   del bottom-nav para compensar visualmente la falta de blur. Web e iOS, sin cambios. */
+html.rd-android-app .navbar{backdrop-filter:none;-webkit-backdrop-filter:none}
+html.rd-android-app .bottom-nav{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(18,18,20,.94)}
+html.rd-android-app .badge-timer,
+html.rd-android-app .badge-bids,
+html.rd-android-app .badge-sinreserva,
+html.rd-android-app .badge-ending,
+html.rd-android-app .trending-rank,
+html.rd-android-app .trending-hammer,
+html.rd-android-app .photo-counter,
+html.rd-android-app .fav-thumb-badge-timer,
+html.rd-android-app .sched-badge{backdrop-filter:none;-webkit-backdrop-filter:none}
 </style>
 <link rel="prefetch" href="store.html" as="document">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
