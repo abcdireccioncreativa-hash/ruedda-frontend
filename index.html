@@ -5801,21 +5801,30 @@ let _lastHotDealsHash=null;
   io.observe(grid);
 })();
 let _encuentraLoaded=false;
-async function renderEncuentra(){
+async function renderEncuentra(retriesLeft){
   // [RC HOTFIX] blindaje anti-TDZ: si alguien llama esto antes de que el const
   // _supa se haya inicializado (boot temprano), no-op silencioso en vez de
   // rejection. typeof no salva de TDZ con const, solo try/catch.
   try{ if(_encuentraLoaded||!_supa) return; }catch(e){ return; }
-  _encuentraLoaded=true;
+  if(retriesLeft===undefined) retriesLeft=2;
   try{
-    const{data}=await _supa.from('app_settings').select('key,value').in('key',['encuentra_marcas_url','encuentra_postventa_url','encuentra_agencias_url','encuentra_comunidad_url','encuentra_subastas_url','encuentra_repuestos_url','encuentra_order']);
+    const{data,error}=await _supa.from('app_settings').select('key,value').in('key',['encuentra_marcas_url','encuentra_postventa_url','encuentra_agencias_url','encuentra_comunidad_url','encuentra_subastas_url','encuentra_repuestos_url','encuentra_order']);
+    if(error) throw error;
+    // [fix "fotos de encuentra a veces no cargan"] antes se marcaba
+    // _encuentraLoaded=true ANTES del fetch — un solo fallo de red (timeout,
+    // blip) dejaba la bandera trabada para siempre y nunca reintentaba.
+    // Ahora solo se marca tras éxito real, y si falla reintenta un par de veces.
+    _encuentraLoaded=true;
     (data||[]).forEach(row=>{
       if(!row.value) return;
       if(row.key==='encuentra_order'){ _encuentraApplyOrder(row.value); return; }
       const slot=row.key.replace('encuentra_','').replace('_url','');
       if(['marcas','postventa','agencias','comunidad','subastas','repuestos'].includes(slot)) _encuentraSetPhoto(slot,row.value);
     });
-  }catch(e){console.warn('[ruedda] renderEncuentra',e?.message||e);}
+  }catch(e){
+    console.warn('[ruedda] renderEncuentra',e?.message||e);
+    if(retriesLeft>0) setTimeout(()=>renderEncuentra(retriesLeft-1),1500);
+  }
 }
 // [RC] orden de los cards de Encuentra — lo define el SuperAdmin arrastrando.
 // Reordena por data-enc con appendChild (mueve nodos vivos, no re-renderiza:
@@ -6140,6 +6149,15 @@ async function openMarketDetail(id, origin){
       s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'</div>';
     }
     inner.appendChild(s);
+    // [fix "loading pegado sobre la foto"] en Safari/WebKit mobile, si la foto
+    // ya está en cache el evento "load" a veces no llega a dispararse para un
+    // <img> insertado vía innerHTML — la foto se ve pero el pill de carga se
+    // queda ahí para siempre porque nunca "detecta" que terminó. Si al insertar
+    // ya está completo, se dispara el mismo onload a mano.
+    if(hasPhotos){
+      const _img=s.querySelector('img');
+      if(_img&&_img.complete&&_img.onload) _img.onload();
+    }
     const d=document.createElement('div');
     d.className='gallery-dot'+(i===0?' active':'');
     d.onclick=(function(idx){return function(){goToMktSlide(idx)}})(i);
