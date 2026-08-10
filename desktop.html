@@ -1325,13 +1325,13 @@ html{scrollbar-width:none}
   .mkt-detail-heading .detail-title{font-size:30px}
   .mkt-detail-heading .detail-subtitle{font-size:15px;margin-top:4px}
   #view-market-detail>.photo-gallery,#view-market-detail>.gallery-dots,#view-market-detail .detail-header-block{display:none!important}
-  .mkt-cb-gallery{display:grid!important;grid-template-columns:1.7fr 1fr;gap:6px;max-width:1400px;margin:0 auto 22px;height:560px;position:relative}
+  .mkt-cb-gallery{display:grid!important;grid-template-columns:1.7fr 1fr;grid-template-rows:minmax(0,1fr);gap:6px;max-width:1400px;margin:0 auto 22px;height:560px;position:relative}
   .detail-content{position:relative;z-index:1}
-  .mkt-cb-main{position:relative;border-radius:14px;overflow:hidden;background:#111;cursor:pointer}
+  .mkt-cb-main{position:relative;height:100%;min-height:0;border-radius:14px;overflow:hidden;background:#111;cursor:pointer}
   .mkt-cb-main img{width:100%;height:100%;object-fit:cover;display:block}
   .mkt-cb-badge{position:absolute;top:16px;left:16px;background:rgba(20,20,20,.75);backdrop-filter:blur(8px);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#e6f03b}
-  .mkt-cb-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,1fr);gap:6px}
-  .mkt-cb-cell{position:relative;border-radius:14px;overflow:hidden;background:#161616;cursor:pointer}
+  .mkt-cb-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:repeat(2,minmax(0,1fr));gap:6px;height:100%;min-height:0}
+  .mkt-cb-cell{position:relative;height:100%;min-height:0;border-radius:14px;overflow:hidden;background:#161616;cursor:pointer}
   .mkt-cb-cell img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease}
   .mkt-cb-cell:hover img{transform:scale(1.04)}
   .mkt-cb-cell-tag{position:absolute;top:10px;left:10px;background:rgba(20,20,20,.7);backdrop-filter:blur(6px);border-radius:5px;padding:3px 9px;font-size:10.5px;font-weight:700;color:#fff}
