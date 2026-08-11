@@ -6094,6 +6094,44 @@ async function renderEncuentra(retriesLeft){
     if(retriesLeft>0) setTimeout(()=>renderEncuentra(retriesLeft-1),1500);
   }
 }
+// [foto portada landing] Super Admin > contenido > "foto portada" — reemplaza
+// el SVG del carro del hero por una foto real, mismo patrón de app_settings +
+// crossfade que renderEncuentra/_encuentraSetPhoto. Si no hay foto guardada,
+// el SVG se queda tal cual (cero cambio visual por defecto).
+let _landingPortadaLoaded=false;
+async function renderLandingPortada(retriesLeft){
+  try{ if(_landingPortadaLoaded||!_supa) return; }catch(e){ return; }
+  if(retriesLeft===undefined) retriesLeft=2;
+  try{
+    const{data,error}=await _supa.from('app_settings').select('value').eq('key','landing_portada_url').maybeSingle();
+    if(error) throw error;
+    _landingPortadaLoaded=true;
+    if(data?.value) _landingPortadaSetPhoto(data.value);
+  }catch(e){
+    console.warn('[ruedda] renderLandingPortada',e?.message||e);
+    if(retriesLeft>0) setTimeout(()=>renderLandingPortada(retriesLeft-1),1500);
+  }
+}
+function _landingPortadaSetPhoto(url){
+  const visual=document.querySelector('.landing-visual');
+  if(!visual||!url) return;
+  let img=visual.querySelector('.landing-portada-img');
+  if(img&&img.src===url) return;
+  if(!img){
+    img=document.createElement('img');
+    img.className='landing-portada-img';
+    img.alt='';
+    img.decoding='async';
+    img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:var(--radius);opacity:0;transition:opacity .5s ease;z-index:0;pointer-events:none';
+    visual.insertBefore(img,visual.firstChild);
+  }
+  img.onload=()=>{
+    requestAnimationFrame(()=>{ img.style.opacity='1'; });
+    const svg=visual.querySelector('svg');
+    if(svg) svg.style.display='none';
+  };
+  img.src=url;
+}
 // [RC] orden de los cards de Encuentra — lo define el SuperAdmin arrastrando.
 // Reordena por data-enc con appendChild (mueve nodos vivos, no re-renderiza:
 // las fotos ya cargadas y sus crossfades quedan intactos).
@@ -7465,6 +7503,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // [RUEDDA v61] carga inicial: notifs persistidas → badge visible antes del auth
   _loadNotifsFromStorage();
   _syncNotifBadge();
+  if(typeof renderLandingPortada==='function') renderLandingPortada();
 
   const descInput=document.getElementById('cs-desc-input');
   const counter=document.getElementById('cs-char-count');
@@ -11235,6 +11274,31 @@ async function _saUploadFotografosCover(input){
   if(prev) prev.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
   showToast('foto actualizada',true);
 }
+// [foto portada landing] mismo patrón que _saUploadFotografosCover — sube a
+// bucket 'assets', guarda la URL en app_settings.landing_portada_url, y
+// refresca tanto el preview del admin como el hero real si está abierto.
+async function saLoadLandingPortadaPreview(){
+  const prev=document.getElementById('sa-portada-preview');
+  if(!prev||!_supa) return;
+  const{data}=await _supa.from('app_settings').select('value').eq('key','landing_portada_url').maybeSingle();
+  if(data?.value) prev.innerHTML=`<img decoding="async" src="${data.value}" style="width:100%;height:100%;object-fit:cover">`;
+}
+async function saUploadLandingPortada(input){
+  const file=input.files?.[0];
+  if(!file||!_supa) return;
+  const prev=document.getElementById('sa-portada-preview');
+  showToast('subiendo imagen...');
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+  const path=`landing-portada_${Date.now()}.${ext}`;
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false,cacheControl:'31536000'});
+  if(upErr){showToast('error: '+upErr.message);return;}
+  const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('app_settings').upsert({key:'landing_portada_url',value:urlData.publicUrl,updated_at:new Date().toISOString()});
+  if(dbErr){showToast('error guardando: '+dbErr.message);return;}
+  if(prev) prev.innerHTML=`<img decoding="async" src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  if(typeof _landingPortadaSetPhoto==='function') _landingPortadaSetPhoto(urlData.publicUrl);
+  showToast('foto de portada actualizada',true);
+}
 // [FIX] SA — logos de marcas. Reusa MARCAS_LIST (las 56 marcas reales de la
 // app, ni una menos) y MARCA_LOGOS ya cargado por _loadMarcaLogos si el admin
 // ya visitó la vista Marcas antes; si no, lo carga de una vez.
@@ -11421,7 +11485,7 @@ function saCategory(cat){
   saTab(SA_CATEGORIES[cat]);
 }
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa','portada'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -11443,6 +11507,7 @@ function saTab(tab){
   if(tab==='solicitudes') saLoadSolicitudes('car');
   if(tab==='logos') saLoadMarcaLogos();
   if(tab==='comparativa') saLoadComparativa();
+  if(tab==='portada') saLoadLandingPortadaPreview();
 }
 
 // ── [comparativa de precios] admin — súper simple: marca+modelo+JSON, upsert.
@@ -16196,6 +16261,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div class="tab" id="sa-tab-documentos" onclick="saTab('documentos')" style="white-space:nowrap;flex-shrink:0">documentos</div>
       <div class="tab" id="sa-tab-logos" onclick="saTab('logos')" style="white-space:nowrap;flex-shrink:0">logos marcas</div>
       <div class="tab" id="sa-tab-comparativa" onclick="saTab('comparativa')" style="white-space:nowrap;flex-shrink:0">comparativa precios</div>
+      <div class="tab" id="sa-tab-portada" onclick="saTab('portada')" style="white-space:nowrap;flex-shrink:0">foto portada</div>
     </div>
   </div>
   <div class="sa-tabgroup" data-cat="dinero" style="display:none">
@@ -16456,6 +16522,19 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-top:10px;text-transform:uppercase;letter-spacing:.4px">entradas cargadas</div>
     <div id="sa-cmp-list" style="display:flex;flex-direction:column;gap:8px">
       <div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
+    </div>
+  </div>
+
+  <!-- [foto portada landing] reemplaza el SVG del carro del hero (desktop) por una
+       foto real, mismo patrón app_settings key/value + crossfade que fotógrafos/encuentra. -->
+  <div id="sa-portada" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Foto de portada — landing</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Reemplaza el dibujo del carro en el hero de la página de inicio (desktop) por una foto real. Toca el cuadro para subir.</div>
+    <div style="max-width:320px">
+      <div id="sa-portada-preview" onclick="document.getElementById('sa-portada-file').click()" style="width:100%;aspect-ratio:16/9;border-radius:16px;background:var(--card);border:1.5px dashed rgba(230,240,59,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:rgba(255,255,255,.3)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:26px;height:26px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+      </div>
+      <input type="file" id="sa-portada-file" accept="image/*" style="display:none" onchange="saUploadLandingPortada(this)">
     </div>
   </div>
 
