@@ -4624,6 +4624,16 @@ let _mktRenderedCount = MKT_BATCH_SIZE;
 let _mktCurrentData = [];
 let _mktObserver = null;
 
+// [fix "loading pegado sobre la foto"] bug conocido de Safari/WebKit mobile:
+// si la imagen ya está en cache, el evento "load" a veces no llega a
+// disparar para un <img> recién insertado vía innerHTML, y el pill de carga
+// se queda pegado encima para siempre aunque la foto ya se vea. Se llama
+// justo después de insertar cualquier card/grid con fotos para forzar el
+// mismo onload a mano en las que ya terminaron.
+function _rdFireLoadedImgs(root){
+  if(!root) return;
+  root.querySelectorAll('img').forEach(img=>{ if(img.complete&&img.onload) img.onload(); });
+}
 function renderCards(filter){
   // [v76] dirty check — si los datos y filtro no cambiaron, no re-renderizar
   // [RC] 'reciente' (programadas) combina AUCTIONS + AUCTIONS_CHOCADOS, así que ambos
@@ -4665,6 +4675,7 @@ function renderCards(filter){
           <div class="card-chips">${a.transmission?`<div class="chip-sm">${_esc(a.transmission)}</div>`:''}${a.fuel?`<div class="chip-sm">${_esc(a.fuel)}</div>`:''}${a.year?`<div class="chip-sm">${a.year}</div>`:''}</div>
         </div>`;
       list.appendChild(el);
+      _rdFireLoadedImgs(el);
       startCardTimer(a.id,a.endTime);
     });
     return;
@@ -4762,6 +4773,7 @@ function renderCards(filter){
         </div>
       </div>`;
     list.appendChild(el);
+    _rdFireLoadedImgs(el);
     startCardTimer(a.id,a.endTime);
   });
 }
@@ -5311,6 +5323,7 @@ function _filterListadoGrid(q){
       </div>
     </div>`;
   }).join('');
+  _rdFireLoadedImgs(grid);
 }
 function closeMktListado(){
   document.getElementById('listado-bg').classList.remove('open');
@@ -5442,6 +5455,7 @@ function _mktAppendCards(list,startIdx){
         <div class="market-card-price" style="${l.vendido?'color:rgba(255,255,255,.35);text-decoration:line-through':''}">${fmtBid(l.price)}</div>
       </div>`;
     grid.appendChild(el);
+    _rdFireLoadedImgs(el);
   });
 }
 // [fix render paginado] arma (o rearma) el centinela al final del grid. Siempre
@@ -6111,11 +6125,21 @@ async function openTopUsuarios(){
 }
 
 let mktDetailOrigin='market';
+// [fix "carga de golpe / pantalla negra"] sin esto, si el usuario entra a una
+// publicación que no está precargada (necesita _ensureMarketListing, un round
+// trip real a Supabase) y navega a otra ANTES de que responda, la respuesta
+// tardía llegaba de todos modos y pisaba la publicación correcta con datos de
+// la anterior — título/galería en blanco un instante y luego todo cambiaba de
+// golpe. Cada llamada saca un token; si al resolver ya no es la más reciente,
+// se aborta sin tocar el DOM.
+let _mktDetailToken=0;
 async function openMarketDetail(id, origin){
+  const _myMktToken=++_mktDetailToken;
   // [fix egress] con _loadMarket topeado, un id fuera del top 300 (link
   // compartido, notificación, favorito viejo) no está en el array — se trae puntual.
   let l=MARKET_LISTINGS.find(x=>x.id===id);
   if(!l) l=await _ensureMarketListing(id);
+  if(_myMktToken!==_mktDetailToken) return; // ya se abrió otra publicación mientras esperábamos
   if(!l)return;
   mktDetailOrigin=origin||'market';
   currentMarketListing=l;
@@ -10095,6 +10119,7 @@ function renderMarketFiltered(){
         <div class="market-card-price" style="${l.vendido?'color:rgba(255,255,255,.35);text-decoration:line-through':''}">${fmtBid(l.price)}</div>
       </div>`;
     grid.appendChild(el);
+    _rdFireLoadedImgs(el);
   });
 }
 

@@ -11,6 +11,13 @@
       ],
       "dest": "/desktop.html"
     },
+    {
+      "src": "^/(subastas|market|concesionarios)/?$",
+      "missing": [
+        { "type": "header", "key": "user-agent", "value": ".*(Mobile|iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini).*" }
+      ],
+      "dest": "/desktop.html"
+    },
     { "handle": "filesystem" },
     { "src": "^/subastas/?$", "dest": "/index.html" },
     { "src": "^/market/?$", "dest": "/index.html" },
