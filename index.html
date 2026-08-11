@@ -4624,27 +4624,23 @@ let _mktRenderedCount = MKT_BATCH_SIZE;
 let _mktCurrentData = [];
 let _mktObserver = null;
 
-// [fix "loading pegado sobre la foto"] bug de Safari/WebKit mobile: el evento
-// "load" a veces no dispara para un <img> recién insertado vía innerHTML —
-// tanto si ya estaba en cache (dispara antes de que el handler quede pegado)
-// como, según se confirmó narrowing en vivo, a veces incluso para una foto
-// que sí terminó de cargar normal. Un solo chequeo de img.complete al insertar
-// no alcanza porque en ese instante casi siempre AÚN no terminó. Por eso esto
-// además arranca un poll corto (200ms, hasta ~8s) que llama el mismo onload a
-// mano en cuanto detecta que sí completó, sin depender de que el evento dispare.
+// [fix "loading pegado sobre la foto"] el <img> insertado vía innerHTML no es
+// confiable en Safari/WebKit mobile: ni el evento "load" nativo, ni un chequeo
+// (o poll) de img.complete garantizan detectar cuándo terminó de verdad. La
+// forma confiable es un sensor aparte: un Image() creado por JS puro apuntando
+// a la MISMA url — ese sí dispara load/error de forma consistente siempre
+// (es el patrón estándar para esto), y en cuanto dispara, se llama a mano el
+// mismo onload/onerror que ya tenía el <img> real.
 function _rdFireLoadedImgs(root){
   if(!root) return;
   root.querySelectorAll('img').forEach(_rdWatchImgLoad);
 }
 function _rdWatchImgLoad(img){
-  if(!img) return;
-  if(img.complete){ if(img.onload) img.onload(); return; }
-  let tries=0;
-  const iv=setInterval(()=>{
-    tries++;
-    if(img.complete){ clearInterval(iv); if(img.onload) img.onload(); }
-    else if(tries>40){ clearInterval(iv); } // ~8s: si para entonces no cargó, algo más pasa (red caída) — no seguir pollando para siempre
-  },200);
+  if(!img||!img.src) return;
+  const probe=new Image();
+  probe.onload=()=>{ if(img.onload) img.onload(); };
+  probe.onerror=()=>{ if(img.onerror) img.onerror(); };
+  probe.src=img.src;
 }
 function renderCards(filter){
   // [v76] dirty check — si los datos y filtro no cambiaron, no re-renderizar
