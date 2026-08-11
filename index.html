@@ -4710,7 +4710,7 @@ function renderCards(filter){
       const _fp=new Date(a.fechaInicioProgramada);
       const _fechaTxt=String(_fp.getDate()).padStart(2,'0')+'/'+String(_fp.getMonth()+1).padStart(2,'0')+'/'+String(_fp.getFullYear()).slice(-2);
       el.innerHTML=`
-        <div class="sched-photo" style="${a.photoUrls&&a.photoUrls[0]?`background-image:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),url('${a.photoUrls[0]}');background-size:cover;background-position:center`:`background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),linear-gradient(${grads[_gidx(a.id)]})`}">
+        <div class="sched-photo" style="${a.photoUrls&&a.photoUrls[0]?`background-image:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),url('${_tImg(a.photoUrls[0],{width:800,quality:72})}');background-size:cover;background-position:center`:`background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),linear-gradient(${grads[_gidx(a.id)]})`}">
           <div class="sched-badge">${a.condicion==='nuevo'?'nuevo':'usado'}</div>
           <div class="sched-center">
             <div class="sched-starts">Empieza:</div>
@@ -4896,7 +4896,7 @@ function _schedCalOpenDay(key){
   if(listEl){
     listEl.innerHTML=items.map(a=>`
       <div class="sched-pop-card">
-        <div class="sched-pop-thumb" style="${a.photoUrls&&a.photoUrls[0]?`background-image:url('${a.photoUrls[0]}')`:`background:linear-gradient(${grads[_gidx(a.id)]})`}"></div>
+        <div class="sched-pop-thumb" style="${a.photoUrls&&a.photoUrls[0]?`background-image:url('${_tImg(a.photoUrls[0],{width:200,quality:70})}')`:`background:linear-gradient(${grads[_gidx(a.id)]})`}"></div>
         <div class="sched-pop-info">
           <div class="sched-pop-title">${_esc(a.title)}</div>
           <div class="sched-pop-sub">${a.chocado?'chocado · ':''}empieza ${new Date(a.fechaInicioProgramada).toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'})}</div>
@@ -8773,8 +8773,15 @@ function _tImg(url,opts){
     if(url.indexOf(MARK)===-1) return url; // no es storage público de supabase → intacta
     const o=opts||{};
     const base=url.replace(MARK,'/storage/v1/render/image/public/');
-    const params=['width='+(o.width||800),'quality='+(o.quality||72)];
-    if(o.height) params.push('height='+o.height);
+    // [fix "fotos zoomeadas/recortadas raro"] el endpoint /render/ de Supabase
+    // devuelve dimensiones absurdas si se manda SOLO width o SOLO height (ej:
+    // width=800 solo → salía un recorte de 800x4032, una tira vertical). Con
+    // ambos presentes siempre sale correcto — por eso height ya no es opcional,
+    // se calcula 4:3 si no lo mandó el caller. object-fit:cover del lado del
+    // navegador se encarga del recorte final exacto a cada card de todos modos.
+    const w=o.width||800;
+    const h=o.height||Math.round(w*0.75);
+    const params=['width='+w,'height='+h,'quality='+(o.quality||72)];
     params.push('resize='+(o.resize||'cover'));
     return base+(base.indexOf('?')===-1?'?':'&')+params.join('&');
   }catch(e){ return url; }
