@@ -6127,8 +6127,14 @@ function _landingPortadaSetPhoto(url){
   }
   img.onload=()=>{
     requestAnimationFrame(()=>{ img.style.opacity='1'; });
+    // [fix "foto quedaba chiquitica"] .landing-visual no tiene alto propio —
+    // lo determina el SVG (en flujo normal). display:none lo saca del flujo y
+    // el contenedor se colapsa a solo el padding (80px), dejando la foto (que
+    // es position:absolute, no cuenta para el alto) como una tira delgada.
+    // visibility:hidden lo mantiene invisible pero sigue "ocupando" su espacio,
+    // así el contenedor conserva su alto real y la foto se ve completa.
     const svg=visual.querySelector('svg');
-    if(svg) svg.style.display='none';
+    if(svg) svg.style.visibility='hidden';
   };
   img.src=url;
 }
