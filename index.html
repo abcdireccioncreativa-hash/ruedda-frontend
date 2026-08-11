@@ -4624,15 +4624,27 @@ let _mktRenderedCount = MKT_BATCH_SIZE;
 let _mktCurrentData = [];
 let _mktObserver = null;
 
-// [fix "loading pegado sobre la foto"] bug conocido de Safari/WebKit mobile:
-// si la imagen ya está en cache, el evento "load" a veces no llega a
-// disparar para un <img> recién insertado vía innerHTML, y el pill de carga
-// se queda pegado encima para siempre aunque la foto ya se vea. Se llama
-// justo después de insertar cualquier card/grid con fotos para forzar el
-// mismo onload a mano en las que ya terminaron.
+// [fix "loading pegado sobre la foto"] bug de Safari/WebKit mobile: el evento
+// "load" a veces no dispara para un <img> recién insertado vía innerHTML —
+// tanto si ya estaba en cache (dispara antes de que el handler quede pegado)
+// como, según se confirmó narrowing en vivo, a veces incluso para una foto
+// que sí terminó de cargar normal. Un solo chequeo de img.complete al insertar
+// no alcanza porque en ese instante casi siempre AÚN no terminó. Por eso esto
+// además arranca un poll corto (200ms, hasta ~8s) que llama el mismo onload a
+// mano en cuanto detecta que sí completó, sin depender de que el evento dispare.
 function _rdFireLoadedImgs(root){
   if(!root) return;
-  root.querySelectorAll('img').forEach(img=>{ if(img.complete&&img.onload) img.onload(); });
+  root.querySelectorAll('img').forEach(_rdWatchImgLoad);
+}
+function _rdWatchImgLoad(img){
+  if(!img) return;
+  if(img.complete){ if(img.onload) img.onload(); return; }
+  let tries=0;
+  const iv=setInterval(()=>{
+    tries++;
+    if(img.complete){ clearInterval(iv); if(img.onload) img.onload(); }
+    else if(tries>40){ clearInterval(iv); } // ~8s: si para entonces no cargó, algo más pasa (red caída) — no seguir pollando para siempre
+  },200);
 }
 function renderCards(filter){
   // [v76] dirty check — si los datos y filtro no cambiaron, no re-renderizar
@@ -6173,14 +6185,12 @@ async function openMarketDetail(id, origin){
       s.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35">'+carPlaceholder(l.id)+'</div>';
     }
     inner.appendChild(s);
-    // [fix "loading pegado sobre la foto"] en Safari/WebKit mobile, si la foto
-    // ya está en cache el evento "load" a veces no llega a dispararse para un
-    // <img> insertado vía innerHTML — la foto se ve pero el pill de carga se
-    // queda ahí para siempre porque nunca "detecta" que terminó. Si al insertar
-    // ya está completo, se dispara el mismo onload a mano.
+    // [fix "loading pegado sobre la foto"] ver _rdWatchImgLoad: no basta un
+    // chequeo único al insertar, hace falta seguir vigilando hasta que
+    // realmente complete.
     if(hasPhotos){
       const _img=s.querySelector('img');
-      if(_img&&_img.complete&&_img.onload) _img.onload();
+      if(_img) _rdWatchImgLoad(_img);
     }
     const d=document.createElement('div');
     d.className='gallery-dot'+(i===0?' active':'');
