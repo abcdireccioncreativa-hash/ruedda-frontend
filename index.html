@@ -1897,6 +1897,18 @@ html.rd-android-app .sched-badge{backdrop-filter:none;-webkit-backdrop-filter:no
       <div class="hd-track" id="hd-track"></div>
     </div>
 
+    <!-- [price drops] separado de hot deals — mismas cards de descuento que antes
+         vivían adentro de hot deals, ahora en su propia sección aparte. -->
+    <div class="hd-head rdv" id="pd-head" style="display:none;animation-delay:.15s">
+      <div class="hd-toprow">
+        <div><span class="hd-title">price drops</span></div>
+      </div>
+      <div class="hd-subtitle">ajustes de mercado y oportunidades</div>
+    </div>
+    <div class="hd-shell rdv" id="pd-shell" style="display:none;animation-delay:.18s">
+      <div class="hd-track" id="pd-track"></div>
+    </div>
+
     <!-- [ENCUENTRA] submenu de accesos directos — debajo de hot deals, mismo patron
          de carga que hot deals (enganchado a renderTrendingHoy). Comunidad y
          Agencias navegan directo; Busca por marcas y Red post-venta cargan su foto
@@ -5757,6 +5769,7 @@ function _trendingTop4(){
 let _lastTrendingIds=null;
 function renderTrendingHoy(){
   if(typeof renderHotDeals==='function') renderHotDeals();
+  if(typeof renderPriceDrops==='function') renderPriceDrops();
   if(typeof renderEncuentra==='function') renderEncuentra();
   const wrap=document.getElementById('trending-panel-1');
   if(!wrap) return;
@@ -5967,41 +5980,60 @@ function openHotDealsAll(){
 function renderHotDeals(){
   const head=document.getElementById('hd-head'), shell=document.getElementById('hd-shell'), track=document.getElementById('hd-track');
   if(!head||!shell||!track||typeof MARKET_LISTINGS==='undefined') return;
-  let deals=MARKET_LISTINGS.filter(l=>l.precioAnterior&&l.precioAnterior>l.price)
-    .sort((a,b)=>(b.precioAnterior-b.price)/b.precioAnterior-(a.precioAnterior-a.price)/a.precioAnterior);
-  let isRealDiscount=deals.length>0;
-  // [fallback] mientras la comunidad no llene precio_anterior, la sección no se queda
-  // vacía: cae a destacados/más vistos. nunca inventa un "-XX%" que no existe — el
-  // badge cambia a un ícono honesto (no dice "rebaja" si no la hay).
-  if(!isRealDiscount){
-    deals=[...MARKET_LISTINGS].filter(l=>!l.vendido)
-      .sort((a,b)=>((b.viewCount||0)+(b.destacado?1000:0))-((a.viewCount||0)+(a.destacado?1000:0)));
-  }
+  // [fix "hot deals se vaciaba con un precio bajado"] antes, apenas existía UN
+  // carro con precio_anterior>price, esta sección dejaba de mostrar destacados/
+  // más vistos y mostraba SOLO los descuentos — perdiendo el resto de las cards.
+  // Hot Deals ahora es siempre destacados/más vistos; los descuentos tienen su
+  // propia sección aparte, ver renderPriceDrops().
+  let deals=[...MARKET_LISTINGS].filter(l=>!l.vendido)
+    .sort((a,b)=>((b.viewCount||0)+(b.destacado?1000:0))-((a.viewCount||0)+(a.destacado?1000:0)));
   if(!deals.length){ head.style.display='none'; shell.style.display='none'; return; }
   // [ver todo] guarda el set completo (sin el tope de 12) para el panel de "ver todo"
-  window._hotDealsFull=deals; window._hotDealsIsReal=isRealDiscount;
+  window._hotDealsFull=deals; window._hotDealsIsReal=false;
   deals=deals.slice(0,12);
-  const hash=isRealDiscount+'|'+deals.map(l=>l.id+'_'+l.price).join(',');
+  const hash=deals.map(l=>l.id+'_'+l.price).join(',');
   if(hash===_lastHotDealsHash) return;
   _lastHotDealsHash=hash;
   head.style.display='block'; shell.style.display='block';
-  // [fix] el título ya no cambia según el modo — siempre "hot deals", como pediste
   head.querySelector('.hd-title').textContent='hot deals';
   const countEl=document.getElementById('hd-count'); if(countEl) countEl.textContent=deals.length+' disponibles';
   track.innerHTML=deals.map(l=>{
     const img=(l.photoUrls&&l.photoUrls[0])?`<img class="hd-card-img" src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" loading="lazy">`:'<div class="hd-card-img"></div>';
-    // [RC V6] rediseño — sin flama/gradiente/estrella. la barra de ahorro en lime
-    // comunica el mismo dato (cuánto bajó) de forma cuantitativa y silenciosa.
-    let belowImg,priceRow;
-    if(isRealDiscount){
-      const pct=Math.round((l.precioAnterior-l.price)/l.precioAnterior*100);
-      belowImg=`<div class="hd-savebar"><i style="width:${pct}%"></i></div>
-        <div class="hd-saverow"><span class="hd-savelabel">-${pct}%</span><span class="hd-savenum">ahorras ${fmtBid(l.precioAnterior-l.price)}</span></div>`;
-      priceRow=`<span class="hd-new">${fmtBid(l.price)}</span><span class="hd-old">${fmtBid(l.precioAnterior)}</span>`;
-    } else {
-      belowImg=`<div class="hd-fallback-tag">${l.destacado?'destacado':'popular'}</div>`;
-      priceRow=`<span class="hd-new">${fmtBid(l.price)}</span>`;
-    }
+    const belowImg=`<div class="hd-fallback-tag">${l.destacado?'destacado':'popular'}</div>`;
+    const priceRow=`<span class="hd-new">${fmtBid(l.price)}</span>`;
+    return `<div class="hd-card" onclick="openMarketDetail('${l.id}')">
+      <div class="hd-img-wrap">${img}</div>
+      ${belowImg}
+      <div class="hd-body">
+        <div class="hd-name">${_esc(l.title||'')}</div>
+        <div class="hd-prices">${priceRow}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+// [price drops] separado de hot deals — antes vivía adentro de renderHotDeals y
+// hacía que esa sección perdiera destacados/más vistos apenas había un precio
+// bajado. Misma lógica de descuentos exacta que tenía antes, solo que ahora en
+// su propia sección debajo de hot deals. Se esconde solo si no hay ninguno.
+let _lastPriceDropsHash=null;
+function renderPriceDrops(){
+  const head=document.getElementById('pd-head'), shell=document.getElementById('pd-shell'), track=document.getElementById('pd-track');
+  if(!head||!shell||!track||typeof MARKET_LISTINGS==='undefined') return;
+  let deals=MARKET_LISTINGS.filter(l=>l.precioAnterior&&l.precioAnterior>l.price)
+    .sort((a,b)=>(b.precioAnterior-b.price)/b.precioAnterior-(a.precioAnterior-a.price)/a.precioAnterior);
+  if(!deals.length){ head.style.display='none'; shell.style.display='none'; return; }
+  window._priceDropsFull=deals;
+  deals=deals.slice(0,12);
+  const hash=deals.map(l=>l.id+'_'+l.price).join(',');
+  if(hash===_lastPriceDropsHash) return;
+  _lastPriceDropsHash=hash;
+  head.style.display='block'; shell.style.display='block';
+  track.innerHTML=deals.map(l=>{
+    const img=(l.photoUrls&&l.photoUrls[0])?`<img class="hd-card-img" src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" loading="lazy">`:'<div class="hd-card-img"></div>';
+    const pct=Math.round((l.precioAnterior-l.price)/l.precioAnterior*100);
+    const belowImg=`<div class="hd-savebar"><i style="width:${pct}%"></i></div>
+      <div class="hd-saverow"><span class="hd-savelabel">-${pct}%</span><span class="hd-savenum">ahorras ${fmtBid(l.precioAnterior-l.price)}</span></div>`;
+    const priceRow=`<span class="hd-new">${fmtBid(l.price)}</span><span class="hd-old">${fmtBid(l.precioAnterior)}</span>`;
     return `<div class="hd-card" onclick="openMarketDetail('${l.id}')">
       <div class="hd-img-wrap">${img}</div>
       ${belowImg}
