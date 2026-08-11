@@ -6113,27 +6113,30 @@ async function renderLandingPortada(retriesLeft){
   }
 }
 function _landingPortadaSetPhoto(url){
+  // [fix "foto con límites cortados"] antes la foto vivía dentro de
+  // .landing-visual (la cajita chica pensada para el dibujo del carro,
+  // max-width:580px). Ahora se inserta en .landing-hero-right (el panel
+  // completo, de punta a punta entre el header y el footer) para que la
+  // foto sea a sangre, no una tarjetita flotando en el medio.
+  const heroRight=document.querySelector('.landing-hero-right');
   const visual=document.querySelector('.landing-visual');
-  if(!visual||!url) return;
-  let img=visual.querySelector('.landing-portada-img');
+  if(!heroRight||!url) return;
+  let img=heroRight.querySelector('.landing-portada-img');
   if(img&&img.src===url) return;
   if(!img){
     img=document.createElement('img');
     img.className='landing-portada-img';
     img.alt='';
     img.decoding='async';
-    img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:var(--radius);opacity:0;transition:opacity .5s ease;z-index:0;pointer-events:none';
-    visual.insertBefore(img,visual.firstChild);
+    img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s ease;z-index:0;pointer-events:none';
+    heroRight.insertBefore(img,heroRight.firstChild);
   }
   img.onload=()=>{
     requestAnimationFrame(()=>{ img.style.opacity='1'; });
-    // [fix "foto quedaba chiquitica"] .landing-visual no tiene alto propio —
-    // lo determina el SVG (en flujo normal). display:none lo saca del flujo y
-    // el contenedor se colapsa a solo el padding (80px), dejando la foto (que
-    // es position:absolute, no cuenta para el alto) como una tira delgada.
-    // visibility:hidden lo mantiene invisible pero sigue "ocupando" su espacio,
-    // así el contenedor conserva su alto real y la foto se ve completa.
-    const svg=visual.querySelector('svg');
+    // El SVG se esconde con visibility (no display:none) para que
+    // .landing-visual conserve su tamaño y el badge flotante ("subasta
+    // activa"), que se posiciona relativo a esa caja, no salte de lugar.
+    const svg=visual?visual.querySelector('svg'):null;
     if(svg) svg.style.visibility='hidden';
   };
   img.src=url;
