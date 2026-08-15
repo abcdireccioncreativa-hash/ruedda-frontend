@@ -1514,6 +1514,18 @@ html{scrollbar-width:none}
    de repartirse el espacio disponible */
 .encuentra-grid{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 14px 4px}
 .encuentra-grid::-webkit-scrollbar{display:none}
+/* [cascada sincronizada con hot deals] la card no revela hasta que el feed de
+   market/subastas está listo (ver JS _encuentraTryReveal) — mismo momento en que
+   hot deals sale del skeleton, así entran juntos en vez de a destiempo. */
+.enc-card{opacity:0;transform:translateX(32px);transition:opacity .38s ease-out,transform .42s cubic-bezier(.22,.61,.36,1)}
+.encuentra-grid.enc-in .enc-card{opacity:1;transform:none}
+.encuentra-grid.enc-in .enc-card:nth-child(1){transition-delay:0ms}
+.encuentra-grid.enc-in .enc-card:nth-child(2){transition-delay:45ms}
+.encuentra-grid.enc-in .enc-card:nth-child(3){transition-delay:90ms}
+.encuentra-grid.enc-in .enc-card:nth-child(4){transition-delay:135ms}
+.encuentra-grid.enc-in .enc-card:nth-child(5){transition-delay:180ms}
+.encuentra-grid.enc-in .enc-card:nth-child(6){transition-delay:225ms}
+@media (prefers-reduced-motion:reduce){.enc-card{opacity:1!important;transform:none!important;transition:none!important}}
 
 /* [mas grandes, de verdad] proporciones tipo la referencia: card grande, titulo
    con presencia real, icono ocupando la mayoria del espacio */
@@ -6003,6 +6015,7 @@ function renderTrendingHoy(){
   if(typeof renderHotDeals==='function') renderHotDeals();
   if(typeof renderPriceDrops==='function') renderPriceDrops();
   if(typeof renderEncuentra==='function') renderEncuentra();
+  if(typeof _encuentraTryReveal==='function') _encuentraTryReveal(); // mismo momento en que hot deals sale del skeleton
   const wrap=document.getElementById('trending-panel-1');
   if(!wrap) return;
   const top4=_trendingTop4();
@@ -6058,6 +6071,40 @@ let _lastHotDealsHash=null;
 // real: la foto entra en opacity:0, solo se vuelve visible cuando el navegador
 // confirma que efectivamente cargó (onload) — si tarda o falla, el placeholder
 // se queda quieto en vez de aparecer "a medias" o de golpe.
+// [cascada sincronizada con hot deals] en vez de revelar la cascada apenas el
+// grid entra al viewport (eso fue lo que se veía bugueado — a veces las fotos
+// ni habían arrancado a cargar), ahora se exige TAMBIÉN que el feed de
+// market/subastas ya haya resuelto (window._feedLoaded.mkt) — el mismo momento
+// exacto en que renderTrendingHoy() saca a hot deals de su skeleton. Como las
+// fotos de Encuentra arrancan a pedirse desde el boot (mucho antes, en paralelo
+// con auctions/market), para cuando el feed de market resuelve ya llevan rato
+// cargando. Dos gatillos posibles (scroll y feed listo), lo que llegue último
+// dispara — one-shot, guardado por _encuentraRevealed.
+let _encuentraRevealed=false;
+function _encuentraTryReveal(){
+  if(_encuentraRevealed) return;
+  const grid=document.getElementById('encuentra-grid');
+  if(!grid||!grid.dataset.encInView||!window._feedLoaded?.mkt) return;
+  _encuentraRevealed=true;
+  // fuerza el reflow del estado inicial antes de togglear la clase — mismo
+  // patrón que setMktViewMode(), garantiza que la transición siempre se vea.
+  void grid.offsetHeight;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ grid.classList.add('enc-in'); }));
+}
+(function _encuentraScrollTrigger(){
+  const grid=document.getElementById('encuentra-grid');
+  if(!grid||typeof IntersectionObserver==='undefined') return;
+  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      io.disconnect();
+      grid.dataset.encInView='1';
+      _encuentraTryReveal();
+    });
+  },{threshold:0});
+  io.observe(grid);
+})();
 let _encuentraLoaded=false;
 async function renderEncuentra(retriesLeft){
   // [RC HOTFIX] blindaje anti-TDZ: si alguien llama esto antes de que el const
@@ -6166,16 +6213,8 @@ function _encuentraSetPhoto(slot,url){
   // navegador ya la decodificó — carga suave de verdad, mismo patrón de fade que
   // las cards de mis publicaciones. Queda en z-index:0, debajo del gradiente
   // (::after, z:1) y del título (z:2), así el texto siempre se lee.
-  // [fix "fotos de Encuentra tardan en cargar"] la card mide 118x116px pero acá
-  // se estaba bajando la foto ORIGINAL sin pasar por _tImg — un archivo de varios
-  // MB (resolución de cámara) para un cuadrito del tamaño de una estampilla. Se
-  // usan los mismos width/quality que ya usa hot deals (_mktAppendCards /
-  // renderHotDeals) para sus thumbnails — 800px cubre de sobra hasta 3x retina
-  // en una card chica, y ya se ve nítido en el resto de la app con ese mismo
-  // valor. El peso baja de MBs a unos KB igual, solo que sin quedar borroso.
-  const _url=_tImg(url,{width:800,quality:72});
   const _prev=card.querySelector('.enc-photo-img');
-  if(_prev&&_prev.src===_url) return; // ya muestra esta foto — no re-flashear
+  if(_prev&&_prev.src===url) return; // ya muestra esta foto — no re-flashear
   const img=document.createElement('img');
   img.className='enc-photo-img';
   img.alt='';
@@ -6188,7 +6227,7 @@ function _encuentraSetPhoto(slot,url){
   };
   img.onerror=()=>{ img.remove(); console.warn('[ruedda] foto de',slot,'no cargó, se queda el placeholder'); };
   card.insertBefore(img,card.firstChild);
-  img.src=_url;
+  img.src=url;
 }
 
 // [ver todo] vista completa de Encuentra — hoy muestra los 4 accesos fijos, lista
