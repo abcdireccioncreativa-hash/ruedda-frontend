@@ -13685,7 +13685,15 @@ window._rueddaBootPromise = (async function _rueddaInit(){
   // detras, todavia con el splash puesto. no se le hace await a proposito: el
   // splash no debe esperarlo, solo aprovechar el tiempo que ya iba a estar ahi.
   window._rueddaFirstScreenReady.then(()=>{ try{ _rdWarmFeedImages(); }catch(e){} });
-  const _contentBoot=Promise.allSettled([_pAuctions,_pMarket,_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors(),_consLoadBanner(),_consLoadPostventaPhoto()]);
+  // [fix fotos Encuentra lentas] antes renderEncuentra() solo se disparaba cuando
+  // _loadMarket() terminaba y llamaba a renderTrendingHoy() — quedaba en la cola
+  // detrás de la consulta más pesada del boot (hasta 300 listings). Como no lee
+  // nada de auctions/market/sesión (solo app_settings), arranca acá en paralelo
+  // desde el boot: para cuando el usuario baja hasta Encuentra, las 3 fotos ya
+  // llevan rato cargando (o ya cargaron). renderEncuentra() ya es idempotente
+  // (_encuentraLoaded) así que la llamada posterior desde renderTrendingHoy() no
+  // vuelve a pedir nada.
+  const _contentBoot=Promise.allSettled([_pAuctions,_pMarket,_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors(),_consLoadBanner(),_consLoadPostventaPhoto(),renderEncuentra()]);
   const _authBoot=(async()=>{
     const{data:{session}}=await _supa.auth.getSession();
     if(session?.user){
