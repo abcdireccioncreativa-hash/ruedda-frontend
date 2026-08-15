@@ -5873,8 +5873,15 @@ function _encuentraSetPhoto(slot,url){
   // navegador ya la decodificó — carga suave de verdad, mismo patrón de fade que
   // las cards de mis publicaciones. Queda en z-index:0, debajo del gradiente
   // (::after, z:1) y del título (z:2), así el texto siempre se lee.
+  // [fix "fotos de Encuentra tardan en cargar"] la card mide 118x116px pero acá
+  // se estaba bajando la foto ORIGINAL sin pasar por _tImg — un archivo de varios
+  // MB (resolución de cámara) para un cuadrito del tamaño de una estampilla. Con
+  // _tImg de por medio, Supabase la sirve ya redimensionada/comprimida (240px,
+  // de sobra para 2x retina) — el peso baja de MBs a unos KB, mismo mecanismo
+  // que ya usan las cards del market.
+  const _url=_tImg(url,{width:240,quality:70});
   const _prev=card.querySelector('.enc-photo-img');
-  if(_prev&&_prev.src===url) return; // ya muestra esta foto — no re-flashear
+  if(_prev&&_prev.src===_url) return; // ya muestra esta foto — no re-flashear
   const img=document.createElement('img');
   img.className='enc-photo-img';
   img.alt='';
@@ -5887,7 +5894,7 @@ function _encuentraSetPhoto(slot,url){
   };
   img.onerror=()=>{ img.remove(); console.warn('[ruedda] foto de',slot,'no cargó, se queda el placeholder'); };
   card.insertBefore(img,card.firstChild);
-  img.src=url;
+  img.src=_url;
 }
 
 // [ver todo] vista completa de Encuentra — hoy muestra los 4 accesos fijos, lista
