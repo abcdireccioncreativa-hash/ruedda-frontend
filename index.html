@@ -5473,7 +5473,7 @@ function _mktAppendCards(list,startIdx){
       </div>
       <div class="market-card-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="market-card-title" style="min-width:0">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
-        <div class="market-card-meta">${l.location.toLowerCase()}</div>
+        <div class="market-card-meta">${(l.location||"").toLowerCase()}</div>
         <div class="market-card-price" style="${l.vendido?'color:rgba(255,255,255,.35);text-decoration:line-through':''}">${fmtBid(l.price)}</div>
       </div>`;
     grid.appendChild(el);
@@ -6234,7 +6234,7 @@ async function openMarketDetail(id, origin){
   setupMktSwipe();
   // content
   if(mktDetailOrigin!=='vitrina') _registerRealView('listings',l); // [V87] click real de comprador
-  document.getElementById('mkt-badges').innerHTML='<div class="detail-badge">'+l.year+'</div><div class="detail-badge">'+l.category+'</div><div class="detail-badge">'+l.location.toLowerCase()+'</div><div class="detail-badge lime">market</div>'+(l.vendido?'<div class="detail-badge" style="background:rgba(255,255,255,.12);color:#fff;font-weight:800">vendido</div>':'')+'<span style="margin-left:10px;display:inline-flex;align-items:center;vertical-align:middle">'+_viewsChip(l.viewCount)+'</span>';
+  document.getElementById('mkt-badges').innerHTML='<div class="detail-badge">'+l.year+'</div><div class="detail-badge">'+l.category+'</div><div class="detail-badge">'+(l.location||"").toLowerCase()+'</div><div class="detail-badge lime">market</div>'+(l.vendido?'<div class="detail-badge" style="background:rgba(255,255,255,.12);color:#fff;font-weight:800">vendido</div>':'')+'<span style="margin-left:10px;display:inline-flex;align-items:center;vertical-align:middle">'+_viewsChip(l.viewCount)+'</span>';
   document.getElementById('mkt-title').textContent=l.title;
   document.getElementById('mkt-subtitle').innerHTML='<span>'+fmtNum(l.km)+' km</span><span class="sep">·</span><span>'+(l.transmission||'automática')+'</span><span class="sep">·</span><span>'+(l.fuel||'gasolina')+'</span>';
   // [V87] precio en oferta: anterior tachado + nuevo resaltado
@@ -10166,7 +10166,7 @@ function renderMarketFiltered(){
       </div>
       <div class="market-card-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="market-card-title" style="min-width:0">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
-        <div class="market-card-meta">${l.location.toLowerCase()}</div>
+        <div class="market-card-meta">${(l.location||"").toLowerCase()}</div>
         <div class="market-card-price" style="${l.vendido?'color:rgba(255,255,255,.35);text-decoration:line-through':''}">${fmtBid(l.price)}</div>
       </div>`;
     grid.appendChild(el);
