@@ -5875,11 +5875,12 @@ function _encuentraSetPhoto(slot,url){
   // (::after, z:1) y del título (z:2), así el texto siempre se lee.
   // [fix "fotos de Encuentra tardan en cargar"] la card mide 118x116px pero acá
   // se estaba bajando la foto ORIGINAL sin pasar por _tImg — un archivo de varios
-  // MB (resolución de cámara) para un cuadrito del tamaño de una estampilla. Con
-  // _tImg de por medio, Supabase la sirve ya redimensionada/comprimida (240px,
-  // de sobra para 2x retina) — el peso baja de MBs a unos KB, mismo mecanismo
-  // que ya usan las cards del market.
-  const _url=_tImg(url,{width:240,quality:70});
+  // MB (resolución de cámara) para un cuadrito del tamaño de una estampilla. Se
+  // usan los mismos width/quality que ya usa hot deals (_mktAppendCards /
+  // renderHotDeals) para sus thumbnails — 800px cubre de sobra hasta 3x retina
+  // en una card chica, y ya se ve nítido en el resto de la app con ese mismo
+  // valor. El peso baja de MBs a unos KB igual, solo que sin quedar borroso.
+  const _url=_tImg(url,{width:800,quality:72});
   const _prev=card.querySelector('.enc-photo-img');
   if(_prev&&_prev.src===_url) return; // ya muestra esta foto — no re-flashear
   const img=document.createElement('img');
