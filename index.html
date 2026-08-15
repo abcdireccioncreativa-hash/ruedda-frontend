@@ -1361,13 +1361,14 @@ html{scrollbar-width:none}
    esa animación ya terminó y aparecen de golpe. Este estado arranca oculto y
    _encuentraScrollCascade (JS) agrega .enc-in la primera vez que el grid entra al
    viewport, sin importar cuándo llegues. nth-child da el escalonado, sin JS por card. */
-.enc-card{opacity:0;transform:translateY(14px);transition:opacity .38s ease,transform .42s cubic-bezier(.22,.61,.36,1)}
+.enc-card{opacity:0;transform:translateX(18px);transition:opacity .3s ease,transform .34s cubic-bezier(.16,1,.3,1)}
 .encuentra-grid.enc-in .enc-card{opacity:1;transform:none}
 .encuentra-grid.enc-in .enc-card:nth-child(1){transition-delay:0ms}
-.encuentra-grid.enc-in .enc-card:nth-child(2){transition-delay:55ms}
-.encuentra-grid.enc-in .enc-card:nth-child(3){transition-delay:110ms}
-.encuentra-grid.enc-in .enc-card:nth-child(4){transition-delay:165ms}
-.encuentra-grid.enc-in .enc-card:nth-child(5){transition-delay:220ms}
+.encuentra-grid.enc-in .enc-card:nth-child(2){transition-delay:40ms}
+.encuentra-grid.enc-in .enc-card:nth-child(3){transition-delay:80ms}
+.encuentra-grid.enc-in .enc-card:nth-child(4){transition-delay:120ms}
+.encuentra-grid.enc-in .enc-card:nth-child(5){transition-delay:160ms}
+.encuentra-grid.enc-in .enc-card:nth-child(6){transition-delay:200ms}
 @media (prefers-reduced-motion:reduce){.enc-card{opacity:1!important;transform:none!important;transition:none!important}}
 
 /* [mas grandes, de verdad] proporciones tipo la referencia: card grande, titulo
@@ -5833,8 +5834,17 @@ let _lastHotDealsHash=null;
   if(!grid||typeof IntersectionObserver==='undefined') return;
   if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const io=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{ if(e.isIntersecting){ grid.classList.add('enc-in'); io.disconnect(); } });
-  },{threshold:.2});
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      io.disconnect();
+      // [fix "a veces no anima"] fuerza el reflow del estado inicial (opacity:0)
+      // antes de agregar la clase — sin esto, el navegador a veces pinta directo
+      // el estado final (sobre todo si el grid ya estaba cerca del viewport al
+      // cargar) y la cascada nunca se llega a ver. Mismo patrón que setMktViewMode().
+      void grid.offsetHeight;
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ grid.classList.add('enc-in'); }));
+    });
+  },{threshold:0});
   io.observe(grid);
 })();
 let _encuentraLoaded=false;
