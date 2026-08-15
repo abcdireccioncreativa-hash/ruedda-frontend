@@ -1356,20 +1356,6 @@ html{scrollbar-width:none}
    de repartirse el espacio disponible */
 .encuentra-grid{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 14px 4px}
 .encuentra-grid::-webkit-scrollbar{display:none}
-/* [fix cascada scroll] las cards solo heredaban el fade del contenedor .rdv, que
-   se dispara una vez al abrir el splash — si scrolleas rápido y llegás acá después,
-   esa animación ya terminó y aparecen de golpe. Este estado arranca oculto y
-   _encuentraScrollCascade (JS) agrega .enc-in la primera vez que el grid entra al
-   viewport, sin importar cuándo llegues. nth-child da el escalonado, sin JS por card. */
-.enc-card{opacity:0;transform:translateX(32px);transition:opacity .38s ease-out,transform .42s cubic-bezier(.22,.61,.36,1)}
-.encuentra-grid.enc-in .enc-card{opacity:1;transform:none}
-.encuentra-grid.enc-in .enc-card:nth-child(1){transition-delay:0ms}
-.encuentra-grid.enc-in .enc-card:nth-child(2){transition-delay:45ms}
-.encuentra-grid.enc-in .enc-card:nth-child(3){transition-delay:90ms}
-.encuentra-grid.enc-in .enc-card:nth-child(4){transition-delay:135ms}
-.encuentra-grid.enc-in .enc-card:nth-child(5){transition-delay:180ms}
-.encuentra-grid.enc-in .enc-card:nth-child(6){transition-delay:225ms}
-@media (prefers-reduced-motion:reduce){.enc-card{opacity:1!important;transform:none!important;transition:none!important}}
 
 /* [mas grandes, de verdad] proporciones tipo la referencia: card grande, titulo
    con presencia real, icono ocupando la mayoria del espacio */
@@ -5826,27 +5812,6 @@ let _lastHotDealsHash=null;
 // real: la foto entra en opacity:0, solo se vuelve visible cuando el navegador
 // confirma que efectivamente cargó (onload) — si tarda o falla, el placeholder
 // se queda quieto en vez de aparecer "a medias" o de golpe.
-// [fix cascada scroll] dispara la entrada en cascada de las cards (ver CSS .enc-card)
-// la primera vez que el grid entra al viewport — no depende del splash ni de datos
-// async, el grid ya existe en el HTML estático. One-shot: se desconecta apenas se dispara.
-(function _encuentraScrollCascade(){
-  const grid=document.getElementById('encuentra-grid');
-  if(!grid||typeof IntersectionObserver==='undefined') return;
-  if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const io=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      if(!e.isIntersecting) return;
-      io.disconnect();
-      // [fix "a veces no anima"] fuerza el reflow del estado inicial (opacity:0)
-      // antes de agregar la clase — sin esto, el navegador a veces pinta directo
-      // el estado final (sobre todo si el grid ya estaba cerca del viewport al
-      // cargar) y la cascada nunca se llega a ver. Mismo patrón que setMktViewMode().
-      void grid.offsetHeight;
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{ grid.classList.add('enc-in'); }));
-    });
-  },{threshold:0});
-  io.observe(grid);
-})();
 let _encuentraLoaded=false;
 async function renderEncuentra(retriesLeft){
   // [RC HOTFIX] blindaje anti-TDZ: si alguien llama esto antes de que el const
@@ -16127,6 +16092,13 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <button onclick="saLoadPublicaciones('listings')" id="sa-pub-tab-listings" style="flex:1;background:rgba(230,240,59,.15);border:1px solid rgba(230,240,59,.3);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:#e6f03b;cursor:pointer">market</button>
       <button onclick="saLoadPublicaciones('auctions')" id="sa-pub-tab-auctions" style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer">subastas</button>
     </div>
+    <!-- [subir aprobadas huérfanas] publicaciones que SuperAdmin aprobó pero el
+         dueño nunca tocó "subir" en mis publicaciones — quedan en estado='aprobada'
+         invisibles para siempre. Este botón las activa directo (bypass del checkout
+         del dueño), en lotes chicos y secuenciales para no repetir la carga pesada
+         que rompió el market la vez pasada. Opera sobre la tabla que esté activa
+         en el toggle de arriba (market/subastas). -->
+    <button onclick="saSubirAprobadas()" id="sa-pub-subir-btn" style="width:100%;background:rgba(230,240,59,.1);border:1px solid rgba(230,240,59,.25);border-radius:10px;padding:10px;font-family:var(--font);font-size:12px;font-weight:700;color:#e6f03b;cursor:pointer;margin-bottom:2px">⬆ subir aprobadas que el dueño nunca subió</button>
     <div id="sa-pub-list" style="display:flex;flex-direction:column;gap:8px">
       <div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
     </div>
@@ -16248,6 +16220,48 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
 <script>
 // ── SA GESTOR GLOBAL DE PUBLICACIONES ─────────────────────
 let _saPubTable = 'listings';
+// [subir aprobadas huérfanas] activa de una vez estado='aprobada' → 'activa' para
+// publicaciones que SuperAdmin ya aprobó pero cuyo dueño nunca tocó "subir" en
+// mis publicaciones (ver _subirPublicacion/_activarTrasSubir) — bypass del
+// checkout, exactamente lo que hacía ese flujo al final sin el paso de pago.
+// [blindado] trae solo columnas mínimas (nada de fotos/joins), tope 200, y
+// actualiza en lotes chicos y secuenciales con pausa entre lotes — nunca un
+// update gigante ni N pedidos en paralelo, para no repetir la carga pesada que
+// rompió el market la vez pasada. Un lote que falla no frena a los demás.
+let _saSubiendoAprobadas=false;
+async function saSubirAprobadas(){
+  if(_saSubiendoAprobadas||!_supa) return;
+  const tbl=_saPubTable;
+  const btn=document.getElementById('sa-pub-subir-btn');
+  const label='⬆ subir aprobadas que el dueño nunca subió';
+  _saSubiendoAprobadas=true;
+  if(btn){btn.disabled=true;btn.style.opacity='.5';btn.textContent='buscando...';}
+  try{
+    const{data,error}=await _supa.from(tbl).select('id,titulo,marca,modelo,year').eq('estado','aprobada').order('created_at',{ascending:true}).limit(200);
+    if(error){ showToast('error buscando: '+error.message); return; }
+    if(!data?.length){ showToast('no hay publicaciones aprobadas sin subir'); return; }
+    const nombres=data.slice(0,5).map(p=>`${p.year||''} ${p.marca||''} ${p.modelo||p.titulo||''}`.trim()).join(', ');
+    const extra=data.length>5?` y ${data.length-5} más`:'';
+    if(!confirm(`¿Subir ${data.length} publicación(es) aprobadas que el dueño nunca subió?\n\n${nombres}${extra}\n\nQuedan activas de inmediato para todos, sin pasar por el checkout del dueño.`)) return;
+    const CHUNK=10;
+    let ok=0, fail=0;
+    for(let i=0;i<data.length;i+=CHUNK){
+      const chunk=data.slice(i,i+CHUNK).map(p=>p.id);
+      if(btn) btn.textContent=`subiendo ${i}/${data.length}...`;
+      try{
+        const{error:updErr}=await _supa.from(tbl).update({estado:'activa'}).in('id',chunk);
+        if(updErr){ fail+=chunk.length; console.error('[ruedda] saSubirAprobadas chunk:',updErr.message); }
+        else ok+=chunk.length;
+      }catch(e){ fail+=chunk.length; console.error('[ruedda] saSubirAprobadas chunk catch:',e?.message||e); }
+      if(i+CHUNK<data.length) await new Promise(r=>setTimeout(r,200)); // respiro entre lotes
+    }
+    showToast(fail?`${ok} subidas ✓ — ${fail} fallaron, revisa consola`:`${ok} publicación(es) subidas ✓`,!fail);
+    saLoadPublicaciones();
+  }finally{
+    _saSubiendoAprobadas=false;
+    if(btn){btn.disabled=false;btn.style.opacity='1';btn.textContent=label;}
+  }
+}
 // [RC V5] cola de revisión de documentos — aprobar pone auditado_ruedda=true en la publicación,
 // negar solo marca el documento como negado (el card se queda tal cual, sin sello, sin más drama).
 async function saLoadDocumentos(){
