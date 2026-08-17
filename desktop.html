@@ -1184,7 +1184,7 @@ html{scrollbar-width:none}
   .hd-card:hover .hd-img-wrap{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.5)}
 
   /* ── ENCUENTRA: de fila de chips diminutos a grid real de accesos ── */
-  .encuentra-grid{display:grid!important;grid-template-columns:repeat(6,1fr)!important;gap:12px!important;overflow:visible!important}
+  .encuentra-grid{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:12px!important;overflow:visible!important}
   .enc-card{width:100%!important;height:150px!important}
   .enc-title{font-size:12px}
   .enc-photo-placeholder svg{width:22px;height:22px}
@@ -1525,6 +1525,8 @@ html{scrollbar-width:none}
 .encuentra-grid.enc-in .enc-card:nth-child(4){transition-delay:135ms}
 .encuentra-grid.enc-in .enc-card:nth-child(5){transition-delay:180ms}
 .encuentra-grid.enc-in .enc-card:nth-child(6){transition-delay:225ms}
+.encuentra-grid.enc-in .enc-card:nth-child(7){transition-delay:270ms}
+.encuentra-grid.enc-in .enc-card:nth-child(8){transition-delay:315ms}
 @media (prefers-reduced-motion:reduce){.enc-card{opacity:1!important;transform:none!important;transition:none!important}}
 
 /* [mas grandes, de verdad] proporciones tipo la referencia: card grande, titulo
@@ -2086,6 +2088,18 @@ html{scrollbar-width:none}
       <div class="hd-track" id="pd-track"></div>
     </div>
 
+    <!-- [ALQUILERES] scroll horizontal tipo hot-deals — solo aparece si hay
+         vehículos en alquiler publicados. Mismo patrón exacto de renderHotDeals. -->
+    <div class="hd-head rdv" id="rent-head" style="display:none">
+      <div class="hd-toprow">
+        <div><span class="hd-title">¿buscando alquilar?</span></div>
+        <span class="hd-see-all" onclick="showView('alquileres')">ver todo <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg></span>
+      </div>
+    </div>
+    <div class="hd-shell rdv" id="rent-shell" style="display:none">
+      <div class="hd-track" id="rent-track"></div>
+    </div>
+
     <!-- [ENCUENTRA] submenu de accesos directos — debajo de hot deals, mismo patron
          de carga que hot deals (enganchado a renderTrendingHoy). Comunidad y
          Agencias navegan directo; Busca por marcas y Red post-venta cargan su foto
@@ -2107,6 +2121,18 @@ html{scrollbar-width:none}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
         </div>
         <div class="enc-title">Red post-venta</div>
+      </div>
+      <div class="enc-card enc-photo-card enc-fullphoto" data-enc="alquileres" id="enc-alquileres-photo" onclick="showView('alquileres')">
+        <div class="enc-photo-placeholder" id="enc-alquileres-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+        </div>
+        <div class="enc-title">Alquileres</div>
+      </div>
+      <div class="enc-card enc-photo-card enc-fullphoto" data-enc="importaciones" id="enc-importaciones-photo" onclick="showView('importaciones')">
+        <div class="enc-photo-placeholder" id="enc-importaciones-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+        </div>
+        <div class="enc-title">Importaciones</div>
       </div>
       <div class="enc-card enc-photo-card enc-fullphoto" data-enc="subastas" id="enc-subastas-photo" onclick="showView('home');selectSection('subastas')">
         <div class="enc-title">Subastas</div>
@@ -3280,6 +3306,31 @@ html{scrollbar-width:none}
   </div>
 </div>
 
+<!-- CONDUCIENDO EL MERCADO — chat global, mismo shell visual que view-thread
+     pero many-to-many: cada mensaje trae el nombre de quien lo envió, sin
+     concepto de "counterpart". Realtime vía tabla public_chat_messages;
+     se poda sola en la DB a los últimos 35 mensajes por room. -->
+<div id="view-global-chat" class="view" style="overflow:hidden">
+  <div class="detail-back" onclick="showView('notificaciones');switchNotifTab('mensajes')" style="flex-shrink:0">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>mensajes</span>
+  </div>
+  <div style="padding:0 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:12px">
+    <div style="width:40px;height:40px;border-radius:50%;background:rgba(230,240,59,.12);color:#e6f03b;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:19px;height:19px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    </div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:16px;font-weight:700;letter-spacing:-.2px">conduciendo el mercado</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">chat global · toda la comunidad Ruedda</div>
+    </div>
+  </div>
+  <div id="global-chat-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 175px;overflow-y:auto;flex:1;min-height:0"></div>
+  <div style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:rgba(0,0,0,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;z-index:200">
+    <textarea id="global-chat-input" placeholder="escribe al mercado..." maxlength="500" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;resize:none;min-height:44px;max-height:96px;line-height:1.5;transition:border-color .2s" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,96)+'px'" onfocus="this.style.borderColor='rgba(230,240,59,.35)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    <button onclick="sendGlobalChatMessage()" style="background:#e6f03b;color:#000;border:none;border-radius:10px;padding:11px 16px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all .15s;align-self:flex-end" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'">enviar</button>
+  </div>
+</div>
+
 <!-- DEALER HUB VIEW -->
 <div id="view-dealer-hub" class="view">
   <div class="detail-back" onclick="showView('cuenta')">
@@ -3372,13 +3423,13 @@ html{scrollbar-width:none}
 
     <div style="width:100%;display:flex;flex-direction:column;gap:12px;max-width:360px">
       <!-- EMAIL -->
-      <a href="mailto:empresa@ruedda.info" style="display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(255,255,255,.2)'" onmouseout="this.style.borderColor='var(--border)'">
+      <a href="mailto:contactoruedda@gmail.com" style="display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='rgba(255,255,255,.2)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="width:40px;height:40px;border-radius:12px;background:#111;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg fill="none" viewBox="0 0 24 24" stroke="rgba(255,255,255,.7)" stroke-width="1.8" style="width:18px;height:18px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </div>
         <div style="text-align:left">
           <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:2px">escríbenos</div>
-          <div style="font-size:15px;font-weight:600;color:#fff">empresa@ruedda.info</div>
+          <div style="font-size:15px;font-weight:600;color:#fff">contactoruedda@gmail.com</div>
         </div>
       </a>
       <!-- WHATSAPP -->
@@ -3432,7 +3483,7 @@ html{scrollbar-width:none}
 
   <!-- BOTTOM NOTE -->
   <div style="text-align:center;padding:32px 24px 100px">
-    <div style="font-size:12px;color:rgba(255,255,255,.2);line-height:1.7">¿quieres colaborar o tienes algo que contar?<br><span style="color:rgba(255,255,255,.35)">empresa@ruedda.info</span></div>
+    <div style="font-size:12px;color:rgba(255,255,255,.2);line-height:1.7">¿quieres colaborar o tienes algo que contar?<br><span style="color:rgba(255,255,255,.35)">contactoruedda@gmail.com</span></div>
   </div>
 </div>
 
@@ -3616,6 +3667,86 @@ html{scrollbar-width:none}
     <div style="font-size:12.5px;color:var(--muted);margin-top:3px">ranking por actividad y confianza en la comunidad Ruedda</div>
   </div>
   <div id="usuarios-top-list" style="padding:8px 16px 100px"></div>
+</div>
+
+<!-- IMPORTACIONES VIEW — placeholder Xendora. Foto del card (grid Encuentra) editable
+     desde SuperAdmin > Encuentra — fotos (slot 'importaciones'), igual que el resto. -->
+<div id="view-importaciones" class="view" style="background:#000">
+  <div class="notif-header" style="display:flex;align-items:center;gap:10px;justify-content:flex-start">
+    <button onclick="showView('home')" style="background:none;border:none;color:var(--white);cursor:pointer;padding:0;display:flex;align-items:center">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:22px;height:22px"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h2 style="margin:0">importaciones</h2>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:90px 28px;min-height:55vh">
+    <div style="font-size:26px;font-weight:800;letter-spacing:-.5px;color:var(--white)">próximamente</div>
+    <div style="font-size:13.5px;color:var(--muted);margin-top:10px;max-width:280px;line-height:1.5">importaciones con Xendora está en camino. muy pronto podrás traer tu vehículo desde afuera con Ruedda.</div>
+  </div>
+</div>
+
+<!-- ALQUILERES VIEW — hub de vehículos en alquiler -->
+<div id="view-alquileres" class="view">
+  <div class="notif-header" style="display:flex;align-items:center;gap:10px;justify-content:flex-start">
+    <button onclick="showView('home')" style="background:none;border:none;color:var(--white);cursor:pointer;padding:0;display:flex;align-items:center">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:22px;height:22px"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h2 style="margin:0">alquileres</h2>
+  </div>
+  <div style="padding:0 16px 14px;max-width:640px">
+    <div style="font-size:13px;color:var(--muted);line-height:1.5">¿quieres impresionar a tu pareja, recorrer Caracas o necesitas un carro por trabajo? chequea nuestras opciones.</div>
+  </div>
+  <div id="alquileres-list" style="padding:0 16px 16px;display:flex;flex-direction:column;gap:12px;max-width:640px"></div>
+  <div style="padding:4px 16px 100px;max-width:640px">
+    <button onclick="openAlquilerForm()" style="width:100%;background:var(--lime);color:#000;border:none;border-radius:14px;padding:15px;font-family:var(--font);font-size:14.5px;font-weight:800;cursor:pointer">ofrecer mi vehículo en alquiler</button>
+  </div>
+</div>
+
+<!-- ALQUILER FORM VIEW — publicar vehículo en alquiler -->
+<div id="view-alquiler-form" class="view">
+  <div class="notif-header" style="display:flex;align-items:center;gap:10px;justify-content:flex-start">
+    <button onclick="showView('alquileres')" style="background:none;border:none;color:var(--white);cursor:pointer;padding:0;display:flex;align-items:center">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:22px;height:22px"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <h2 style="margin:0">ofrecer en alquiler</h2>
+  </div>
+  <div style="padding:0 16px 100px;display:flex;flex-direction:column;gap:16px;max-width:520px">
+    <div class="form-group">
+      <label class="form-label">marca</label>
+      <input class="form-input" id="af-marca" type="text" placeholder="ej. Toyota">
+    </div>
+    <div class="form-group">
+      <label class="form-label">modelo</label>
+      <input class="form-input" id="af-modelo" type="text" placeholder="ej. Corolla">
+    </div>
+    <div class="form-group">
+      <label class="form-label">año</label>
+      <input class="form-input" id="af-year" type="number" placeholder="ej. 2020" min="1960" max="2027">
+    </div>
+    <div class="form-group">
+      <label class="form-label">fotos</label>
+      <div id="af-photos-grid" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      <div id="af-photos-add" onclick="document.getElementById('af-photos-file').click()" style="width:100%;background:var(--card);border:1.5px dashed rgba(230,240,59,.4);border-radius:12px;padding:16px;text-align:center;cursor:pointer;color:var(--muted);font-size:13px;box-sizing:border-box">+ agregar fotos</div>
+      <input type="file" id="af-photos-file" accept="image/*" multiple style="display:none" onchange="_afAddPhotos(this)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">dónde se recoge (dirección)</label>
+      <input class="form-input" id="af-direccion" type="text" placeholder="ej. Las Mercedes, Caracas">
+    </div>
+    <div class="form-group">
+      <label class="form-label">precio por día (USD)</label>
+      <input class="form-input" id="af-precio" type="number" placeholder="ej. 40" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">descripción del vehículo</label>
+      <textarea class="form-textarea" id="af-descripcion" placeholder="cuéntale al que lo va a alquilar sobre tu carro..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">requisitos</label>
+      <div style="font-size:12px;color:var(--muted);margin-top:-2px">coloca qué requisitos mínimos necesita la persona para alquilar tu vehículo</div>
+      <textarea class="form-textarea" id="af-requisitos" placeholder="ej. mayor de 25 años, licencia vigente, depósito de garantía..."></textarea>
+    </div>
+    <button id="af-submit-btn" onclick="submitAlquilerForm()" style="width:100%;background:var(--lime);color:#000;border:none;border-radius:14px;padding:15px;font-family:var(--font);font-size:14.5px;font-weight:800;cursor:pointer;margin-top:6px">publicar en alquiler</button>
+  </div>
 </div>
 
 <!-- SUGERENCIAS VIEW -->
@@ -3911,6 +4042,15 @@ html{scrollbar-width:none}
       <div class="vender-type-info">
         <h3>concesionario</h3>
         <p class="vt-sub">soy un negocio o dealer</p>
+      </div>
+    </div>
+    <div class="vender-type-btn" id="vender-btn-alquiler" onclick="handleVenderClick('alquiler')">
+      <div class="vender-type-icon">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M20.4 14.5 16 10 4 20"/><path d="m3 4 7 7"/><circle cx="18" cy="18" r="3"/><path d="M14.5 9.5 18 6"/></svg>
+      </div>
+      <div class="vender-type-info">
+        <h3>poner mi vehículo en alquiler</h3>
+        <p class="vt-sub">gana dinero con tu carro cuando no lo estés usando</p>
       </div>
     </div>
   </div>
@@ -4573,7 +4713,7 @@ function showView(name,param){
   document.getElementById('view-'+name).classList.add('active');
   currentView=name;
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos',marcas:'bnav-home','usuarios-top':'bnav-home','hotdeals-all':'bnav-home','encuentra-all':'bnav-home'};
+  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos',marcas:'bnav-home','usuarios-top':'bnav-home','hotdeals-all':'bnav-home','encuentra-all':'bnav-home',alquileres:'bnav-home','alquiler-form':'bnav-home',importaciones:'bnav-home'};
   if(map[name])document.getElementById(map[name]).classList.add('active');
   if(name==='home'){
     clearTimers();
@@ -4604,7 +4744,7 @@ function showView(name,param){
     });
     renderCurrentSection();
     // refetch desde DB para que listings aprobados aparezcan sin recargar la página
-    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors(),_loadChocadosSponsors()]).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
+    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors(),_loadChocadosSponsors(),_loadRentals()]).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
     // [config] respeta "al iniciar sesión mostrar siempre" — solo usuarios logueados, guest siempre subastas
     if(_target==='subastas'&&isLoggedIn&&USER_STATE.defaultView==='market') selectSection('market');
   } else {}
@@ -4613,6 +4753,7 @@ function showView(name,param){
   if(name==='notificaciones'){renderNotifications();document.getElementById('notif-dot').style.display='none';}
   if(name==='favoritos')renderFavoritos();
   if(name==='carspotting')loadCarspotting();
+  if(name==='alquileres')_loadRentals();
   if(name==='sugerencias'){/* nada que cargar */}
   if(name==='historia')loadHistoria();
   if(name==='marcas'){_marcasRegionFilter=null;renderMarcasGrid();_loadMarcaLogos();}
@@ -5896,6 +6037,234 @@ function _bindSponsorSwipe(track){
   },{passive:true});
 }
 
+// ═══════════════════════════════════════════════════════════
+// ALQUILERES — tabla dedicada "rentals" (separada de listings, que es solo
+// venta). Hub en view-alquileres, scroll horizontal en home tipo hot-deals
+// (solo visible con data real, mismo patrón display:none de renderHotDeals),
+// y form simple en view-alquiler-form.
+// ═══════════════════════════════════════════════════════════
+let RENTALS=[];
+async function _loadRentals(){
+  if(!_supa) return;
+  try{
+    const{data,error}=await _supa.from('rentals').select('*').eq('estado','activa').order('created_at',{ascending:false});
+    if(error){
+      console.error('[ruedda] _loadRentals',error.message||error);
+      RENTALS=[]; renderAlquileresList(); renderAlquilerHome(); // [fix] sin esto la vista quedaba en blanco (sin ni siquiera el empty-state) si la tabla aún no existe
+      return;
+    }
+    RENTALS=data||[];
+    renderAlquileresList();
+    renderAlquilerHome();
+  }catch(e){
+    console.error('[ruedda] _loadRentals catch',e?.message||e);
+    RENTALS=[]; renderAlquileresList(); renderAlquilerHome();
+  }
+}
+function renderAlquileresList(){
+  const list=document.getElementById('alquileres-list');
+  if(!list) return;
+  if(!RENTALS.length){ list.innerHTML='<div class="com-empty">no hay carros disponibles</div>'; return; }
+  list.innerHTML=RENTALS.map(r=>`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+      ${(r.fotos&&r.fotos[0])?`<img src="${_tImg(r.fotos[0],{width:700,quality:75})}" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">`:''}
+      <div style="padding:12px 14px">
+        <div style="font-size:15px;font-weight:800">${_esc(r.marca||'')} ${_esc(r.modelo||'')} ${r.year||''}</div>
+        ${r.direccion_recogida?`<div style="font-size:12.5px;color:var(--muted);margin-top:3px">se recoge en ${_esc(r.direccion_recogida)}</div>`:''}
+        ${r.descripcion?`<div style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.4">${_esc(r.descripcion)}</div>`:''}
+        <div style="font-size:17px;font-weight:800;color:#e6f03b;margin-top:9px">${fmtBid(r.precio_dia)}<span style="font-size:12px;color:var(--muted);font-weight:600"> / día</span></div>
+      </div>
+    </div>`).join('');
+}
+function renderAlquilerHome(){
+  const head=document.getElementById('rent-head'), shell=document.getElementById('rent-shell'), track=document.getElementById('rent-track');
+  if(!head||!shell||!track) return;
+  if(!RENTALS.length){ head.style.display='none'; shell.style.display='none'; return; }
+  head.style.display='block'; shell.style.display='block';
+  track.innerHTML=RENTALS.slice(0,12).map(r=>{
+    const img=(r.fotos&&r.fotos[0])?`<img class="hd-card-img" src="${_tImg(r.fotos[0],{width:380})}" loading="lazy">`:'<div class="hd-card-img"></div>';
+    return `<div class="hd-card" onclick="showView('alquileres')">
+      <div class="hd-img-wrap">${img}</div>
+      <div class="hd-body">
+        <div class="hd-name">${_esc(r.marca||'')} ${_esc(r.modelo||'')}</div>
+        <div class="hd-prices"><span class="hd-new">${fmtBid(r.precio_dia)}/día</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+// form — multi-foto simple, sube a bucket 'assets' (mismo que encuentra/patrocinantes)
+let _afPhotos=[]; // [{file, dataUrl}]
+function openAlquilerForm(){
+  _afPhotos=[];
+  ['af-marca','af-modelo','af-year','af-direccion','af-precio','af-descripcion','af-requisitos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  _afRenderPhotosGrid();
+  showView('alquiler-form');
+}
+function _afRenderPhotosGrid(){
+  const grid=document.getElementById('af-photos-grid');
+  if(!grid) return;
+  grid.innerHTML=_afPhotos.map((p,i)=>`
+    <div style="position:relative;width:72px;height:72px;border-radius:10px;overflow:hidden;flex-shrink:0">
+      <img src="${p.dataUrl}" style="width:100%;height:100%;object-fit:cover">
+      <div onclick="_afRemovePhoto(${i})" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg fill="none" viewBox="0 0 16 16" stroke="#fff" stroke-width="2" style="width:9px;height:9px"><path d="m3 3 10 10M13 3 3 13"/></svg>
+      </div>
+    </div>`).join('');
+}
+function _afAddPhotos(input){
+  const files=[...(input.files||[])];
+  input.value='';
+  files.forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=()=>{ _afPhotos.push({file,dataUrl:reader.result}); _afRenderPhotosGrid(); };
+    reader.readAsDataURL(file);
+  });
+}
+function _afRemovePhoto(i){ _afPhotos.splice(i,1); _afRenderPhotosGrid(); }
+async function submitAlquilerForm(){
+  if(isGuest()){ showToast('inicia sesión para publicar'); return; }
+  const marca=document.getElementById('af-marca').value.trim();
+  const modelo=document.getElementById('af-modelo').value.trim();
+  const year=parseInt(document.getElementById('af-year').value,10)||null;
+  const direccion=document.getElementById('af-direccion').value.trim();
+  const precio=parseFloat(document.getElementById('af-precio').value);
+  const descripcion=document.getElementById('af-descripcion').value.trim();
+  const requisitos=document.getElementById('af-requisitos').value.trim();
+  if(!marca||!modelo){ showToast('completa marca y modelo'); return; }
+  if(!precio||precio<=0){ showToast('coloca un precio por día válido'); return; }
+  const btn=document.getElementById('af-submit-btn');
+  if(btn){ btn.disabled=true; btn.textContent='publicando...'; }
+  try{
+    const fotos=[];
+    for(const p of _afPhotos){
+      const ext=(p.file.name.split('.').pop()||'jpg').toLowerCase();
+      const path=`rental-${USER_STATE.id}_${Date.now()}_${fotos.length}.${ext}`;
+      const{error:upErr}=await _supa.storage.from('assets').upload(path,p.file,{upsert:false});
+      if(upErr){ console.error('[ruedda] rental photo upload',upErr.message); continue; }
+      const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
+      fotos.push(urlData.publicUrl);
+    }
+    const{error}=await _supa.from('rentals').insert({
+      user_id:USER_STATE.id, marca, modelo, year, fotos,
+      direccion_recogida:direccion||null, precio_dia:precio,
+      descripcion:descripcion||null, requisitos:requisitos||null
+    });
+    if(error){ showToast('error publicando: '+error.message); if(btn){btn.disabled=false;btn.textContent='publicar en alquiler';} return; }
+    showToast('vehículo publicado en alquiler',true);
+    await _loadRentals();
+    showView('alquileres');
+  }catch(e){
+    console.error('[ruedda] submitAlquilerForm',e?.message||e);
+    showToast('error publicando');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='publicar en alquiler'; }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONDUCIENDO EL MERCADO — chat público global, tabla dedicada
+// public_chat_messages (lectura pública + insert autenticado, se poda sola
+// a los últimos 35 mensajes por room vía trigger en la DB). Reusa el shell
+// visual de thread-bubble/bubble-body, pero cada mensaje trae su propio
+// remitente (no hay concepto de "mine" vs "counterpart" único).
+// ═══════════════════════════════════════════════════════════
+const GLOBAL_CHAT_ROOM='conduciendo-el-mercado';
+let GLOBAL_CHAT_MSGS=[];
+let _globalChatUsersCache={};
+async function _loadGlobalChatMessages(){
+  if(!_supa) return;
+  try{
+    const{data,error}=await _supa.from('public_chat_messages').select('*').eq('room',GLOBAL_CHAT_ROOM).order('created_at',{ascending:true}).limit(35);
+    if(error){
+      console.error('[ruedda] _loadGlobalChatMessages',error.message||error);
+      GLOBAL_CHAT_MSGS=[]; renderGlobalChatMessages(); // [fix] sin esto la vista quedaba en blanco en vez del empty-state
+      return;
+    }
+    GLOBAL_CHAT_MSGS=data||[];
+    const missingIds=[...new Set(GLOBAL_CHAT_MSGS.map(m=>m.user_id).filter(id=>!_globalChatUsersCache[id]))];
+    if(missingIds.length){
+      const{data:users}=await _supa.from('users').select('id,nombre,username,avatar_url').in('id',missingIds);
+      (users||[]).forEach(u=>{_globalChatUsersCache[u.id]=u;});
+    }
+    renderGlobalChatMessages();
+  }catch(e){
+    console.error('[ruedda] _loadGlobalChatMessages catch',e?.message||e);
+    GLOBAL_CHAT_MSGS=[]; renderGlobalChatMessages();
+  }
+}
+function _globalChatSenderName(userId){
+  if(userId===USER_STATE.id) return USER_STATE.nombre||USER_STATE.username||'tú';
+  const u=_globalChatUsersCache[userId];
+  return u?.nombre||u?.username||'usuario Ruedda';
+}
+function renderGlobalChatMessages(){
+  const box=document.getElementById('global-chat-messages');
+  if(!box) return;
+  if(!GLOBAL_CHAT_MSGS.length){
+    box.innerHTML='<div class="com-empty">sé el primero en escribir aquí</div>';
+    return;
+  }
+  box.innerHTML=GLOBAL_CHAT_MSGS.map(m=>{
+    const mine=m.user_id===USER_STATE.id;
+    const name=_globalChatSenderName(m.user_id);
+    const time=m.created_at?new Date(m.created_at).toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'}):'';
+    return `<div class="thread-bubble ${mine?'mine':'theirs'}">
+      ${!mine?`<div style="font-size:11.5px;font-weight:700;color:#e6f03b;margin-bottom:3px;padding:0 4px">${_esc(name)}</div>`:''}
+      <div class="bubble-body">${_esc(m.text||'')}</div>
+      <div class="bubble-time">${time}</div>
+    </div>`;
+  }).join('');
+  box.scrollTop=box.scrollHeight;
+}
+function openGlobalChat(){
+  showView('global-chat');
+  _loadGlobalChatMessages();
+  _subscribeGlobalChat();
+}
+async function sendGlobalChatMessage(){
+  if(isGuest()){ showToast('inicia sesión para escribir'); return; }
+  const input=document.getElementById('global-chat-input');
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';input.style.height='44px';input.focus();
+  const optimistic={id:'tmp_'+Date.now(),room:GLOBAL_CHAT_ROOM,user_id:USER_STATE.id,text,created_at:new Date().toISOString()};
+  GLOBAL_CHAT_MSGS.push(optimistic);
+  renderGlobalChatMessages();
+  const{error}=await _supa.from('public_chat_messages').insert({room:GLOBAL_CHAT_ROOM,user_id:USER_STATE.id,text});
+  if(error){
+    showToast('error enviando');
+    GLOBAL_CHAT_MSGS=GLOBAL_CHAT_MSGS.filter(m=>m.id!==optimistic.id);
+    input.value=text;
+    renderGlobalChatMessages();
+  }
+}
+function _subscribeGlobalChat(){
+  if(!_supa) return;
+  if(window._gcChannel){try{window._gcChannel.unsubscribe();_supa.removeChannel(window._gcChannel);}catch(e){}window._gcChannel=null;}
+  const ch=_supa.channel(`ruedda-global-chat-${Date.now()}`)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'public_chat_messages',filter:`room=eq.${GLOBAL_CHAT_ROOM}`},async payload=>{
+      const m=payload.new;
+      if(GLOBAL_CHAT_MSGS.some(x=>x.id===m.id)) return;
+      // reemplaza el optimistic propio si aplica (mismo texto+user, id temporal)
+      GLOBAL_CHAT_MSGS=GLOBAL_CHAT_MSGS.filter(x=>!(String(x.id).indexOf('tmp_')===0&&x.user_id===m.user_id&&x.text===m.text));
+      if(!_globalChatUsersCache[m.user_id]&&m.user_id!==USER_STATE.id){
+        const{data:u}=await _supa.from('users').select('id,nombre,username,avatar_url').eq('id',m.user_id).maybeSingle();
+        if(u)_globalChatUsersCache[u.id]=u;
+      }
+      GLOBAL_CHAT_MSGS.push(m);
+      if(GLOBAL_CHAT_MSGS.length>35) GLOBAL_CHAT_MSGS=GLOBAL_CHAT_MSGS.slice(-35);
+      if(currentView==='global-chat') renderGlobalChatMessages();
+    })
+    .subscribe(status=>{
+      if(window._gcChannel!==ch) return;
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+        clearTimeout(window._gcResubT);
+        window._gcResubT=setTimeout(()=>{ if(window._gcChannel===ch)_subscribeGlobalChat(); },4000);
+      }
+    });
+  window._gcChannel=ch;
+}
+
 // [banner chocados] clon independiente del de market — propia data, propio timer,
 // propios patrocinantes (categoria='chocados'). cero mezcla con MARKET_SPONSORS.
 let CHOCADOS_SPONSORS=[];
@@ -6113,7 +6482,7 @@ async function renderEncuentra(retriesLeft){
   try{ if(_encuentraLoaded||!_supa) return; }catch(e){ return; }
   if(retriesLeft===undefined) retriesLeft=2;
   try{
-    const{data,error}=await _supa.from('app_settings').select('key,value').in('key',['encuentra_marcas_url','encuentra_postventa_url','encuentra_agencias_url','encuentra_comunidad_url','encuentra_subastas_url','encuentra_repuestos_url','encuentra_order']);
+    const{data,error}=await _supa.from('app_settings').select('key,value').in('key',['encuentra_marcas_url','encuentra_postventa_url','encuentra_agencias_url','encuentra_comunidad_url','encuentra_subastas_url','encuentra_repuestos_url','encuentra_alquileres_url','encuentra_importaciones_url','encuentra_order']);
     if(error) throw error;
     // [fix "fotos de encuentra a veces no cargan"] antes se marcaba
     // _encuentraLoaded=true ANTES del fetch — un solo fallo de red (timeout,
@@ -6124,7 +6493,7 @@ async function renderEncuentra(retriesLeft){
       if(!row.value) return;
       if(row.key==='encuentra_order'){ _encuentraApplyOrder(row.value); return; }
       const slot=row.key.replace('encuentra_','').replace('_url','');
-      if(['marcas','postventa','agencias','comunidad','subastas','repuestos'].includes(slot)) _encuentraSetPhoto(slot,row.value);
+      if(['marcas','postventa','agencias','comunidad','subastas','repuestos','alquileres','importaciones'].includes(slot)) _encuentraSetPhoto(slot,row.value);
     });
   }catch(e){
     console.warn('[ruedda] renderEncuentra',e?.message||e);
@@ -11415,7 +11784,7 @@ async function _saLoadConsBannerPreview(){
 }
 async function _saLoadEncuentraPreviews(){
   if(!_supa) return;
-  const{data}=await _supa.from('app_settings').select('key,value').in('key',['encuentra_marcas_url','encuentra_postventa_url','encuentra_agencias_url','encuentra_comunidad_url','encuentra_subastas_url','encuentra_repuestos_url','encuentra_order','fotografos_cover_url']);
+  const{data}=await _supa.from('app_settings').select('key,value').in('key',['encuentra_marcas_url','encuentra_postventa_url','encuentra_agencias_url','encuentra_comunidad_url','encuentra_subastas_url','encuentra_repuestos_url','encuentra_alquileres_url','encuentra_importaciones_url','encuentra_order','fotografos_cover_url']);
   let order=null;
   (data||[]).forEach(row=>{
     if(!row.value) return;
@@ -11430,7 +11799,7 @@ async function _saLoadEncuentraPreviews(){
 // [RC] panel de orden de Encuentra — lista arrastrable con pointer events
 // (mouse + touch). Al soltar guarda el JSON en app_settings y lo aplica en
 // vivo al grid real de Market vía _encuentraApplyOrder.
-const _ENC_SLOTS={comunidad:'Comunidad',agencias:'Agencias',marcas:'Busca por marcas',postventa:'Red post-venta',subastas:'Subastas',repuestos:'Repuestos'};
+const _ENC_SLOTS={comunidad:'Comunidad',agencias:'Agencias',marcas:'Busca por marcas',postventa:'Red post-venta',subastas:'Subastas',repuestos:'Repuestos',alquileres:'Alquileres',importaciones:'Importaciones'};
 function saRenderEncOrder(order){
   const list=document.getElementById('sa-enc-order-list');
   if(!list) return;
@@ -12458,6 +12827,7 @@ function handleVenderClick(type){
   }
   if(role === 'particular' && type === 'consesionario') return; // disabled
   closeVenderModal();
+  if(type === 'alquiler'){ openAlquilerForm(); return; }
   selectVenderType(type);
 }
 
@@ -13705,7 +14075,7 @@ window._rueddaBootPromise = (async function _rueddaInit(){
   // llevan rato cargando (o ya cargaron). renderEncuentra() ya es idempotente
   // (_encuentraLoaded) así que la llamada posterior desde renderTrendingHoy() no
   // vuelve a pedir nada.
-  const _contentBoot=Promise.allSettled([_pAuctions,_pMarket,_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors(),_consLoadBanner(),_consLoadPostventaPhoto(),renderEncuentra()]);
+  const _contentBoot=Promise.allSettled([_pAuctions,_pMarket,_loadChocados(),_loadConcesionarios(),_loadFotografos(),_loadMarketSponsors(),_loadChocadosSponsors(),_loadRentals(),_consLoadBanner(),_consLoadPostventaPhoto(),renderEncuentra()]);
   const _authBoot=(async()=>{
     const{data:{session}}=await _supa.auth.getSession();
     if(session?.user){
@@ -15175,6 +15545,15 @@ function renderMensajesList(){
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0"><div class="msg-time">Ruedda</div></div>
     </div>
+    <div class="msg-item official" onclick="openGlobalChat()">
+      <div class="msg-avatar official-ring" style="background:rgba(230,240,59,.12);color:#e6f03b;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:19px;height:19px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <div class="msg-name">conduciendo el mercado<span class="msg-pin"><svg viewBox="0 0 24 24" style="width:13px;height:13px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span></div>
+        <div class="msg-model">chat global · toda la comunidad Ruedda</div>
+        <div class="msg-preview">únete a la conversación</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0"><div class="msg-time">Ruedda</div></div>
+    </div>
     <div style="text-align:center;padding:40px 20px 20px;color:var(--muted);font-size:13px;font-weight:400">aún no tienes conversaciones con vendedores</div>`;
     return;
   }
@@ -15196,13 +15575,24 @@ function renderMensajesList(){
         <div class="msg-time">Ruedda</div>
       </div>
     </div>`;
+  const globalChatRow=`<div class="msg-item official" onclick="openGlobalChat()">
+      <div class="msg-avatar official-ring" style="background:rgba(230,240,59,.12);color:#e6f03b;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:19px;height:19px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <div class="msg-name">conduciendo el mercado<span class="msg-pin"><svg viewBox="0 0 24 24" style="width:13px;height:13px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span></div>
+        <div class="msg-model">chat global · toda la comunidad Ruedda</div>
+        <div class="msg-preview">únete a la conversación</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
+        <div class="msg-time">Ruedda</div>
+      </div>
+    </div>`;
   // [FIX] dirty-check — evita reconstruir la lista (y titilar los avatares) cuando
   // se llama 2 veces seguidas con los mismos datos (ej: _loadPrivateMessages(true)
   // seguido de switchNotifTab, mismo patrón ya resuelto en el banner de sponsors).
   const _msgHash=THREADS.map(t=>t.id+'_'+t.messages.length+'_'+(t.messages[t.messages.length-1]?.text||'')+'_'+(t.unread?1:0)).join(',');
   if(_msgHash===window._lastMsgListHash&&list.childElementCount)return;
   window._lastMsgListHash=_msgHash;
-  list.innerHTML=officialRow+THREADS.map(t=>{
+  list.innerHTML=officialRow+globalChatRow+THREADS.map(t=>{
     const last=t.messages[t.messages.length-1];
     const isDealer=t.otherIsDealer||(t.otherRole==='concesionario'||t.otherRole==='consesionario');
     const otherDisplay=t.isPM?t.otherName:((t.participants||[]).find(p=>!p.isSeller)||{user:'?'}).user;
@@ -16749,6 +17139,24 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
         <div style="font-size:11.5px;color:var(--muted);margin-top:8px">repuestos</div>
       </div>
     </div>
+    <!-- [RC] fila 3 — Alquileres e Importaciones -->
+    <div style="display:flex;gap:14px;margin-top:14px">
+      <div style="flex:1;text-align:center">
+        <div id="sa-enc-alquileres-preview" onclick="document.getElementById('sa-enc-alquileres-file').click()" style="width:100%;aspect-ratio:1/1;border-radius:16px;background:var(--card);border:1.5px dashed rgba(230,240,59,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:rgba(255,255,255,.3)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:26px;height:26px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+        </div>
+        <input type="file" id="sa-enc-alquileres-file" accept="image/*" style="display:none" onchange="_saUploadEncuentraPhoto(this,'alquileres')">
+        <div style="font-size:11.5px;color:var(--muted);margin-top:8px">alquileres</div>
+      </div>
+      <div style="flex:1;text-align:center">
+        <div id="sa-enc-importaciones-preview" onclick="document.getElementById('sa-enc-importaciones-file').click()" style="width:100%;aspect-ratio:1/1;border-radius:16px;background:var(--card);border:1.5px dashed rgba(230,240,59,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:rgba(255,255,255,.3)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:26px;height:26px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+        </div>
+        <input type="file" id="sa-enc-importaciones-file" accept="image/*" style="display:none" onchange="_saUploadEncuentraPhoto(this,'importaciones')">
+        <div style="font-size:11.5px;color:var(--muted);margin-top:8px">importaciones</div>
+      </div>
+      <div style="flex:1"></div>
+    </div>
 
     <div style="height:1px;background:var(--border);margin:22px 0"></div>
 
@@ -17315,7 +17723,7 @@ async function _saDeletePat(id,cat){
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px;text-align:center;gap:16px">
     <div style="font-size:32px;font-weight:800;letter-spacing:-.6px">sé parte de<br>Ruedda.</div>
     <p style="font-size:15px;color:var(--muted);line-height:1.7;max-width:280px">¿quieres colaborar, invertir o trabajar con nosotros? escríbenos.</p>
-    <a href="mailto:empresa@ruedda.info" style="margin-top:8px;font-size:17px;font-weight:700;color:#e6f03b;text-decoration:none;letter-spacing:-.2px">empresa@ruedda.info</a>
+    <a href="mailto:contactoruedda@gmail.com" style="margin-top:8px;font-size:17px;font-weight:700;color:#e6f03b;text-decoration:none;letter-spacing:-.2px">contactoruedda@gmail.com</a>
   </div>
 </div>
 
@@ -17328,7 +17736,7 @@ async function _saDeletePat(id,cat){
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px;text-align:center;gap:16px">
     <div style="font-size:28px;font-weight:800;letter-spacing:-.5px">soporte Ruedda</div>
     <p style="font-size:15px;color:var(--muted);line-height:1.7;max-width:280px">estamos aquí para ayudarte. escríbenos y te respondemos a la brevedad.</p>
-    <a href="mailto:empresa@ruedda.info" style="font-size:16px;font-weight:700;color:#e6f03b;text-decoration:none">empresa@ruedda.info</a>
+    <a href="mailto:contactoruedda@gmail.com" style="font-size:16px;font-weight:700;color:#e6f03b;text-decoration:none">contactoruedda@gmail.com</a>
     <a href="https://wa.me/584123921048" target="_blank" style="background:#e6f03b;color:#000;border:none;border-radius:13px;padding:14px 28px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;margin-top:6px">contactar por WhatsApp</a>
   </div>
 </div>
