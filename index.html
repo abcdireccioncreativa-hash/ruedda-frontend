@@ -3593,7 +3593,81 @@ html.rd-android-app .sched-badge{backdrop-filter:none;-webkit-backdrop-filter:no
       <div style="font-size:12px;color:var(--muted);margin-top:-2px">coloca qué requisitos mínimos necesita la persona para alquilar tu vehículo</div>
       <textarea class="form-textarea" id="af-requisitos" placeholder="ej. mayor de 25 años, licencia vigente, depósito de garantía..."></textarea>
     </div>
+    <div class="form-group">
+      <label class="form-label">disponibilidad</label>
+      <div style="font-size:12px;color:var(--muted);margin-top:-2px">marca los días en que tu vehículo está disponible para alquilar</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:6px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <button type="button" onclick="_afCalMonth(-1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;display:flex"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <div id="af-cal-title" style="font-size:13.5px;font-weight:700;text-transform:capitalize"></div>
+          <button type="button" onclick="_afCalMonth(1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;display:flex"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+        <div id="af-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
+      </div>
+      <div id="af-cal-count" style="font-size:11.5px;color:var(--muted);margin-top:8px">0 días seleccionados</div>
+    </div>
     <button id="af-submit-btn" onclick="submitAlquilerForm()" style="width:100%;background:var(--lime);color:#000;border:none;border-radius:14px;padding:15px;font-family:var(--font);font-size:14.5px;font-weight:800;cursor:pointer;margin-top:6px">publicar en alquiler</button>
+  </div>
+</div>
+
+<!-- ALQUILER DETAIL VIEW — reusa el mismo lenguaje visual que el detalle de
+     market (photo-gallery, detail-section, bid-section) pero con "reservar"
+     en vez de contactar/pujar, y un calendario de disponibilidad real
+     (rental_availability = lo que marcó el dueño, rental_bookings = lo que
+     ya está reservado). -->
+<div id="view-alquiler-detail" class="view">
+  <div class="detail-back" onclick="showView('alquileres')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>alquileres</span>
+  </div>
+  <div class="photo-gallery" id="ard-gallery">
+    <div class="photo-gallery-inner" id="ard-gallery-inner"></div>
+    <div class="photo-counter" id="ard-photo-counter">1 / 1</div>
+  </div>
+  <div class="gallery-dots" id="ard-gallery-dots"></div>
+  <div class="detail-content" style="padding-bottom:120px">
+    <div class="detail-header-block">
+      <h2 class="detail-title" id="ard-title"></h2>
+      <div class="detail-subtitle" id="ard-subtitle"></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">especificaciones</div>
+      <div class="specs-grid" id="ard-specs"></div>
+    </div>
+    <div class="detail-section" id="ard-desc-wrap" style="display:none">
+      <div class="detail-section-title">descripción</div>
+      <div id="ard-desc" style="font-size:14px;color:rgba(255,255,255,.75);line-height:1.6;white-space:pre-wrap"></div>
+    </div>
+    <div class="detail-section" id="ard-req-wrap" style="display:none">
+      <div class="detail-section-title">requisitos</div>
+      <div id="ard-req" style="font-size:14px;color:rgba(255,255,255,.75);line-height:1.6;white-space:pre-wrap"></div>
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">disponibilidad</div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <button onclick="_ardCalMonth(-1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;display:flex"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <div id="ard-cal-title" style="font-size:13.5px;font-weight:700;text-transform:capitalize"></div>
+          <button onclick="_ardCalMonth(1)" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px;display:flex"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+        <div id="ard-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px"></div>
+      </div>
+      <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--muted)">
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:#e6f03b;margin-right:4px;vertical-align:-1px"></span>disponible</span>
+        <span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:rgba(255,255,255,.12);margin-right:4px;vertical-align:-1px"></span>reservado</span>
+      </div>
+    </div>
+    <div class="bid-section">
+      <div class="bid-top">
+        <div><div class="bid-amount-label">precio</div><div class="bid-amount" id="ard-price"></div></div>
+        <div><div class="bid-amount-label">recogida</div><div id="ard-pickup" style="font-size:13px;font-weight:600;max-width:150px"></div></div>
+      </div>
+      <button class="btn-bid" id="ard-reservar-btn" onclick="_ardReservar()">reservar</button>
+      <button class="btn-watchlist" onclick="_ardContactOwner()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        escribir al dueño
+      </button>
+    </div>
   </div>
 </div>
 
@@ -4565,7 +4639,7 @@ function showView(name,param){
   document.getElementById('view-'+name).classList.add('active');
   currentView=name;
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos',marcas:'bnav-home','usuarios-top':'bnav-home','hotdeals-all':'bnav-home','encuentra-all':'bnav-home',alquileres:'bnav-home','alquiler-form':'bnav-home',importaciones:'bnav-home'};
+  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos',marcas:'bnav-home','usuarios-top':'bnav-home','hotdeals-all':'bnav-home','encuentra-all':'bnav-home',alquileres:'bnav-home','alquiler-form':'bnav-home','alquiler-detail':'bnav-home',importaciones:'bnav-home'};
   if(map[name])document.getElementById(map[name]).classList.add('active');
   if(name==='home'){
     clearTimers();
@@ -5928,7 +6002,7 @@ function renderAlquileresList(){
   if(!list) return;
   if(!RENTALS.length){ list.innerHTML='<div class="com-empty">no hay carros disponibles</div>'; return; }
   list.innerHTML=RENTALS.map(r=>`
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden">
+    <div onclick="openAlquilerDetail('${r.id}')" style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer">
       ${(r.fotos&&r.fotos[0])?`<img src="${_tImg(r.fotos[0],{width:700,quality:75})}" loading="lazy" style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block">`:''}
       <div style="padding:12px 14px">
         <div style="font-size:15px;font-weight:800">${_esc(r.marca||'')} ${_esc(r.modelo||'')} ${r.year||''}</div>
@@ -5945,7 +6019,7 @@ function renderAlquilerHome(){
   head.style.display='block'; shell.style.display='block';
   track.innerHTML=RENTALS.slice(0,12).map(r=>{
     const img=(r.fotos&&r.fotos[0])?`<img class="hd-card-img" src="${_tImg(r.fotos[0],{width:800,quality:72})}" loading="lazy">`:'<div class="hd-card-img"></div>';
-    return `<div class="hd-card" onclick="showView('alquileres')">
+    return `<div class="hd-card" onclick="openAlquilerDetail('${r.id}')">
       <div class="hd-img-wrap">${img}</div>
       <div class="hd-body">
         <div class="hd-name">${_esc(r.marca||'')} ${_esc(r.modelo||'')}</div>
@@ -5960,7 +6034,51 @@ function openAlquilerForm(){
   _afPhotos=[];
   ['af-marca','af-modelo','af-year','af-direccion','af-precio','af-descripcion','af-requisitos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   _afRenderPhotosGrid();
+  _afCalInit();
   showView('alquiler-form');
+}
+// [disponibilidad] calendario simple mes-a-mes — toca un día para marcarlo
+// disponible. Mismo cálculo de offset/relleno que el calendario de subastas
+// programadas (_schedCalRender), pero toggle multi-select en vez de eventos.
+let _afCalYear,_afCalMonthIdx,_afSelectedDates=new Set();
+const _RD_MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const _RD_WD=['D','L','M','M','J','V','S'];
+function _rdDateKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _afCalInit(){
+  const now=new Date();
+  _afCalYear=now.getFullYear(); _afCalMonthIdx=now.getMonth();
+  _afSelectedDates=new Set();
+  _afRenderCal();
+}
+function _afCalMonth(delta){
+  _afCalMonthIdx+=delta;
+  if(_afCalMonthIdx<0){_afCalMonthIdx=11;_afCalYear--;}
+  if(_afCalMonthIdx>11){_afCalMonthIdx=0;_afCalYear++;}
+  _afRenderCal();
+}
+function _afToggleDate(key){
+  if(_afSelectedDates.has(key)) _afSelectedDates.delete(key); else _afSelectedDates.add(key);
+  _afRenderCal();
+}
+function _afRenderCal(){
+  const grid=document.getElementById('af-cal-grid'), title=document.getElementById('af-cal-title'), countEl=document.getElementById('af-cal-count');
+  if(!grid||!title) return;
+  title.textContent=_RD_MESES[_afCalMonthIdx]+' '+_afCalYear;
+  const first=new Date(_afCalYear,_afCalMonthIdx,1);
+  const startOffset=first.getDay();
+  const daysInMonth=new Date(_afCalYear,_afCalMonthIdx+1,0).getDate();
+  const todayStart=new Date(); todayStart.setHours(0,0,0,0);
+  let html=_RD_WD.map(w=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:700;padding-bottom:4px">${w}</div>`).join('');
+  for(let i=0;i<startOffset;i++) html+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const dt=new Date(_afCalYear,_afCalMonthIdx,d);
+    const key=_rdDateKey(dt);
+    const isPast=dt<todayStart;
+    const sel=_afSelectedDates.has(key);
+    html+=`<div ${isPast?'':`onclick="_afToggleDate('${key}')"`} style="aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:12px;font-weight:600;cursor:${isPast?'default':'pointer'};color:${isPast?'rgba(255,255,255,.2)':sel?'#000':'#fff'};background:${sel?'var(--lime)':'rgba(255,255,255,.04)'}">${d}</div>`;
+  }
+  grid.innerHTML=html;
+  if(countEl) countEl.textContent=_afSelectedDates.size+' día'+(_afSelectedDates.size===1?'':'s')+' seleccionado'+(_afSelectedDates.size===1?'':'s');
 }
 function _afRenderPhotosGrid(){
   const grid=document.getElementById('af-photos-grid');
@@ -6006,12 +6124,17 @@ async function submitAlquilerForm(){
       const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
       fotos.push(urlData.publicUrl);
     }
-    const{error}=await _supa.from('rentals').insert({
+    const{data:newRental,error}=await _supa.from('rentals').insert({
       user_id:USER_STATE.id, marca, modelo, year, fotos,
       direccion_recogida:direccion||null, precio_dia:precio,
       descripcion:descripcion||null, requisitos:requisitos||null
-    });
+    }).select().single();
     if(error){ showToast('error publicando: '+error.message); if(btn){btn.disabled=false;btn.textContent='publicar en alquiler';} return; }
+    if(_afSelectedDates.size&&newRental?.id){
+      const rows=[..._afSelectedDates].map(date=>({rental_id:newRental.id,date}));
+      const{error:availErr}=await _supa.from('rental_availability').insert(rows);
+      if(availErr) console.warn('[ruedda] rental_availability insert',availErr.message);
+    }
     showToast('vehículo publicado en alquiler',true);
     await _loadRentals();
     showView('alquileres');
@@ -6021,6 +6144,149 @@ async function submitAlquilerForm(){
   }finally{
     if(btn){ btn.disabled=false; btn.textContent='publicar en alquiler'; }
   }
+}
+
+// ═══════════════════════════════════════════════════════════
+// ALQUILER DETAIL — post real al hacer click en una card de alquiler, mismo
+// lenguaje visual que openMarketDetail (photo-gallery, detail-section,
+// bid-section) pero con "reservar" + calendario real: rental_availability
+// (lo que marcó el dueño) vs rental_bookings (lo que ya reservaron).
+// ═══════════════════════════════════════════════════════════
+let ARD_CURRENT=null,_ardToken=0,_ardIdx=0,_ardAvailability=[],_ardBookings=[],_ardCalYear,_ardCalMonthIdx,_ardSelectedDate=null;
+async function openAlquilerDetail(id){
+  const myToken=++_ardToken;
+  _ardSelectedDate=null; ARD_CURRENT=null; _ardIdx=0;
+  const galleryEl=document.getElementById('ard-gallery-inner');
+  if(galleryEl){ galleryEl.style.transform='translateX(0%)'; galleryEl.innerHTML='<div class="photo-slide" style="background:var(--card2)"></div>'; }
+  const titleEl=document.getElementById('ard-title'); if(titleEl) titleEl.textContent='cargando...';
+  const subEl=document.getElementById('ard-subtitle'); if(subEl) subEl.textContent='';
+  const specsEl=document.getElementById('ard-specs'); if(specsEl) specsEl.innerHTML='';
+  const descWrap=document.getElementById('ard-desc-wrap'); if(descWrap) descWrap.style.display='none';
+  const reqWrap=document.getElementById('ard-req-wrap'); if(reqWrap) reqWrap.style.display='none';
+  const calGrid=document.getElementById('ard-cal-grid'); if(calGrid) calGrid.innerHTML='';
+  const btn=document.getElementById('ard-reservar-btn'); if(btn){ btn.disabled=false; btn.textContent='reservar'; }
+  showView('alquiler-detail');
+  _ardBindSwipe();
+  const[{data:r,error},{data:avail},{data:bookings}]=await Promise.all([
+    _supa.from('rentals').select('*').eq('id',id).maybeSingle(),
+    _supa.from('rental_availability').select('date').eq('rental_id',id),
+    _supa.from('rental_bookings').select('date').eq('rental_id',id)
+  ]);
+  if(myToken!==_ardToken) return; // el usuario abrió otro alquiler mientras esto cargaba
+  if(error||!r){ if(titleEl) titleEl.textContent='no se pudo cargar'; console.error('[ruedda] openAlquilerDetail',error?.message); return; }
+  ARD_CURRENT=r;
+  _ardAvailability=(avail||[]).map(a=>a.date);
+  _ardBookings=(bookings||[]).map(b=>b.date);
+  const now=new Date();
+  _ardCalYear=now.getFullYear(); _ardCalMonthIdx=now.getMonth();
+
+  const fotos=r.fotos||[];
+  if(galleryEl) galleryEl.innerHTML=(fotos.length?fotos:[null]).map((f,i)=>`<div class="photo-slide">${f?`<img src="${_tImg(f,{width:900,quality:78})}" loading="${i===0?'eager':'lazy'}" style="width:100%;height:100%;object-fit:cover">`:''}</div>`).join('');
+  const counterEl=document.getElementById('ard-photo-counter'); if(counterEl) counterEl.textContent=`1 / ${Math.max(fotos.length,1)}`;
+  const dotsEl=document.getElementById('ard-gallery-dots'); if(dotsEl) dotsEl.innerHTML=fotos.length>1?fotos.map((_,i)=>`<div class="gallery-dot${i===0?' active':''}"></div>`).join(''):'';
+
+  if(titleEl) titleEl.textContent=`${r.marca||''} ${r.modelo||''} ${r.year||''}`.trim();
+  if(subEl) subEl.textContent=r.direccion_recogida?('se recoge en '+r.direccion_recogida):'';
+  if(specsEl) specsEl.innerHTML=[['marca',r.marca],['modelo',r.modelo],['año',r.year],['precio por día',r.precio_dia?fmtBid(r.precio_dia):null]].filter(([,v])=>v).map(([l,v])=>`<div class="spec-item"><div class="spec-label">${l}</div><div class="spec-value">${_esc(String(v))}</div></div>`).join('');
+  if(r.descripcion&&descWrap){ descWrap.style.display=''; const d=document.getElementById('ard-desc'); if(d) d.textContent=r.descripcion; }
+  if(r.requisitos&&reqWrap){ reqWrap.style.display=''; const rq=document.getElementById('ard-req'); if(rq) rq.textContent=r.requisitos; }
+  const priceEl=document.getElementById('ard-price'); if(priceEl) priceEl.textContent=r.precio_dia?fmtBid(r.precio_dia)+'/día':'—';
+  const pickupEl=document.getElementById('ard-pickup'); if(pickupEl) pickupEl.textContent=r.direccion_recogida||'—';
+  _ardRenderCal();
+}
+function _ardGoToSlide(i){
+  const inner=document.getElementById('ard-gallery-inner');
+  const fotos=(ARD_CURRENT?.fotos)||[];
+  const n=Math.max(fotos.length,1);
+  _ardIdx=Math.max(0,Math.min(n-1,i));
+  if(inner) inner.style.transform=`translateX(-${_ardIdx*100}%)`;
+  const counterEl=document.getElementById('ard-photo-counter'); if(counterEl) counterEl.textContent=`${_ardIdx+1} / ${n}`;
+  document.querySelectorAll('#ard-gallery-dots .gallery-dot').forEach((d,idx)=>d.classList.toggle('active',idx===_ardIdx));
+}
+function _ardBindSwipe(){
+  const gal=document.getElementById('ard-gallery');
+  if(!gal||gal._ardBound) return;
+  gal._ardBound=true;
+  let sx=0,active=false;
+  gal.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;active=true;},{passive:true});
+  gal.addEventListener('touchend',e=>{
+    if(!active) return; active=false;
+    const dx=e.changedTouches[0].clientX-sx;
+    if(Math.abs(dx)>40){ dx<0?_ardGoToSlide(_ardIdx+1):_ardGoToSlide(_ardIdx-1); }
+  },{passive:true});
+}
+function _ardCalMonth(delta){
+  _ardCalMonthIdx+=delta;
+  if(_ardCalMonthIdx<0){_ardCalMonthIdx=11;_ardCalYear--;}
+  if(_ardCalMonthIdx>11){_ardCalMonthIdx=0;_ardCalYear++;}
+  _ardRenderCal();
+}
+function _ardSelectDate(key){
+  if(!_ardAvailability.includes(key)||_ardBookings.includes(key)) return;
+  _ardSelectedDate=_ardSelectedDate===key?null:key;
+  _ardRenderCal();
+  _ardUpdateReservarBtn();
+}
+function _ardUpdateReservarBtn(){
+  const btn=document.getElementById('ard-reservar-btn');
+  if(!btn) return;
+  btn.textContent=_ardSelectedDate?`reservar ${_ardSelectedDate}`:'reservar';
+}
+function _ardRenderCal(){
+  const grid=document.getElementById('ard-cal-grid'), title=document.getElementById('ard-cal-title');
+  if(!grid||!title) return;
+  title.textContent=_RD_MESES[_ardCalMonthIdx]+' '+_ardCalYear;
+  const first=new Date(_ardCalYear,_ardCalMonthIdx,1);
+  const startOffset=first.getDay();
+  const daysInMonth=new Date(_ardCalYear,_ardCalMonthIdx+1,0).getDate();
+  const todayStart=new Date(); todayStart.setHours(0,0,0,0);
+  let html=_RD_WD.map(w=>`<div style="text-align:center;font-size:10px;color:var(--muted);font-weight:700;padding-bottom:4px">${w}</div>`).join('');
+  for(let i=0;i<startOffset;i++) html+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const dt=new Date(_ardCalYear,_ardCalMonthIdx,d);
+    const key=_rdDateKey(dt);
+    const isPast=dt<todayStart;
+    const isAvail=_ardAvailability.includes(key)&&!isPast;
+    const isBooked=_ardBookings.includes(key);
+    const sel=_ardSelectedDate===key;
+    let bg='transparent',color='rgba(255,255,255,.2)',cursor='default',onclick='';
+    if(isBooked){ bg='rgba(255,255,255,.12)'; color='rgba(255,255,255,.35)'; }
+    else if(isAvail){ bg=sel?'var(--lime)':'rgba(230,240,59,.16)'; color=sel?'#000':'#e6f03b'; cursor='pointer'; onclick=`onclick="_ardSelectDate('${key}')"`; }
+    else if(!isPast){ color='rgba(255,255,255,.4)'; }
+    html+=`<div ${onclick} style="aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:12px;font-weight:600;cursor:${cursor};color:${color};background:${bg}">${d}</div>`;
+  }
+  grid.innerHTML=html;
+}
+async function _ardReservar(){
+  if(!ARD_CURRENT) return;
+  if(isGuest()){ showToast('inicia sesión para reservar'); return; }
+  if(ARD_CURRENT.user_id===USER_STATE.id){ showToast('no puedes reservar tu propio vehículo'); return; }
+  if(!_ardSelectedDate){ showToast('selecciona un día disponible en el calendario'); return; }
+  const btn=document.getElementById('ard-reservar-btn');
+  if(btn){ btn.disabled=true; btn.textContent='reservando...'; }
+  const{error}=await _supa.from('rental_bookings').insert({rental_id:ARD_CURRENT.id,user_id:USER_STATE.id,date:_ardSelectedDate});
+  if(error){
+    showToast(error.code==='23505'?'ese día ya lo reservó alguien más':'error reservando');
+    if(btn){ btn.disabled=false; btn.textContent='reservar'; }
+    _ardBookings.push(_ardSelectedDate); _ardSelectedDate=null; _ardRenderCal();
+    return;
+  }
+  const titulo=`${ARD_CURRENT.marca||''} ${ARD_CURRENT.modelo||''}`.trim();
+  _supa.from('notifications').insert({user_id:ARD_CURRENT.user_id,tipo:'rental_booking',titulo:'¡Reservaron tu vehículo!',body:`${USER_STATE.nombre||USER_STATE.username||'Un usuario'} reservó tu ${titulo} para el ${_ardSelectedDate}`,icon:'lime',source_id:String(ARD_CURRENT.id),source_type:'rental'}).then(({error:ne})=>{if(ne)console.warn('[rental booking notif]',ne.message);});
+  _supa.from('private_messages').insert({sender_id:USER_STATE.id,receiver_id:ARD_CURRENT.user_id,source_id:String(ARD_CURRENT.id),source_type:'rental',source_title:titulo,text:`Reservé tu ${titulo} para el ${_ardSelectedDate}. ¡Coordinemos la entrega!`}).then(({error:pe})=>{if(pe)console.warn('[rental booking pm]',pe.message);});
+  _ardBookings.push(_ardSelectedDate); _ardSelectedDate=null;
+  showToast('¡reservado! le avisamos al dueño',true);
+  if(btn){ btn.disabled=false; btn.textContent='reservar'; }
+  _ardRenderCal();
+}
+function _ardContactOwner(){
+  if(!ARD_CURRENT) return;
+  if(isGuest()){ showToast('inicia sesión para escribir'); return; }
+  if(ARD_CURRENT.user_id===USER_STATE.id){ showToast('este es tu propio vehículo'); return; }
+  const titulo=`${ARD_CURRENT.marca||''} ${ARD_CURRENT.modelo||''}`.trim();
+  _supa.from('users').select('nombre,username').eq('id',ARD_CURRENT.user_id).maybeSingle().then(({data:u})=>{
+    _openPmPanel(ARD_CURRENT.user_id,u?.nombre||u?.username||'usuario',ARD_CURRENT.id,'rental',titulo,false);
+  });
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -7704,13 +7970,25 @@ async function loadCarspotting(tab){
     // .order('likes',...) sobre una columna que no existe en carspotting — el query
     // fallaba ENTERO y la pestaña quedaba siempre vacía. Ahora ordena por created_at
     // (columna segura) y los likes se calculan en vivo desde carspotting_likes.
-    let q=_supa.from('carspotting').select('*,users(nombre,username,avatar_url,role)').order('created_at',{ascending:false});
+    let q=_supa.from('carspotting').select('*').order('created_at',{ascending:false});
     if(_csTab==='mis'){
       if(isGuest()||!USER_STATE?.id){feed.innerHTML='<div class="com-empty">inicia sesión para ver tus spots</div>';return;}
       q=q.eq('user_id',USER_STATE.id);
     }
     let{data,error}=await q.limit(_csTab==='mis'?30:60);
     if(error||!data||data.length===0){feed.innerHTML=`<div class="com-empty">${_csTab==='mis'?'aún no has subido spots':'sin spots aún. ¡sé el primero!'}</div>`;if(error)console.warn('[ruedda carspotting]',error.message);return;}
+    // [FIX] resuelve autores por separado — el embed carspotting.users(...) fallaba
+    // (400 en TODA la query, feed vacío pese a haber spots reales) porque PostgREST
+    // no tiene registrada esa relación FK en su cache de esquema.
+    try{
+      const _csUserIds=[...new Set(data.map(s=>s.user_id).filter(Boolean))];
+      if(_csUserIds.length){
+        const{data:_csUsers}=await _supa.from('users').select('id,nombre,username,avatar_url,role').in('id',_csUserIds);
+        const _csById={};
+        (_csUsers||[]).forEach(u=>{_csById[u.id]=u;});
+        data.forEach(s=>{s.users=_csById[s.user_id]||null;});
+      }
+    }catch(e){}
     // estado de like propio, para pintar el corazón ya marcado
     let likedSet=new Set();
     if(_supa&&USER_STATE?.id&&!isGuest()){
@@ -16757,6 +17035,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div style="display:flex;gap:8px;margin-bottom:4px">
       <button onclick="saLoadPublicaciones('listings')" id="sa-pub-tab-listings" style="flex:1;background:rgba(230,240,59,.15);border:1px solid rgba(230,240,59,.3);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:#e6f03b;cursor:pointer">market</button>
       <button onclick="saLoadPublicaciones('auctions')" id="sa-pub-tab-auctions" style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer">subastas</button>
+      <button onclick="saLoadPublicaciones('rentals')" id="sa-pub-tab-rentals" style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,255,255,.5);cursor:pointer">alquileres</button>
     </div>
     <!-- [subir aprobadas huérfanas] publicaciones que SuperAdmin aprobó pero el
          dueño nunca tocó "subir" en mis publicaciones — quedan en estado='aprobada'
@@ -17019,7 +17298,7 @@ async function saDenyDoc(itemType,itemId){
 async function saLoadPublicaciones(tbl){
   _saPubTable = tbl || _saPubTable;
   // toggle button styles
-  ['listings','auctions'].forEach(t=>{
+  ['listings','auctions','rentals'].forEach(t=>{
     const btn=document.getElementById('sa-pub-tab-'+t);
     if(!btn) return;
     const active=t===_saPubTable;
@@ -17030,13 +17309,24 @@ async function saLoadPublicaciones(tbl){
   const list=document.getElementById('sa-pub-list');
   if(!list||!_supa) return;
   list.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>';
+  const isRental=_saPubTable==='rentals';
+  // [alquileres] no tiene titulo/ciudad/es_destacado/tabla de fotos separada
+  // como listings/auctions — columnas y card propias, mismo _saPubTable/
+  // saDeletePub genéricos (ya funcionan sin cambios, delete().eq('id',id)).
   const{data,error}=await _supa.from(_saPubTable)
-    .select('id,titulo,marca,modelo,year,estado,ciudad,created_at,user_id,es_destacado')
+    .select(isRental?'id,marca,modelo,year,estado,created_at,user_id,precio_dia,direccion_recogida':'id,titulo,marca,modelo,year,estado,ciudad,created_at,user_id,es_destacado')
     .order('created_at',{ascending:false})
     .limit(100);
   if(error){list.innerHTML=`<div style="color:rgba(255,80,80,.8);font-size:12px;padding:12px">${error.message}</div>`;return;}
   if(!data?.length){list.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">sin publicaciones</div>';return;}
-  list.innerHTML=data.map(p=>`
+  list.innerHTML=data.map(p=>isRental?`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.year||''} ${p.marca||''} ${p.modelo||'—'}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${p.direccion_recogida||'—'} · ${p.precio_dia?fmtBid(p.precio_dia)+'/día':'—'} · <span style="color:${p.estado==='activa'?'rgba(100,220,150,.8)':'rgba(255,255,255,.3)'}">${p.estado||'—'}</span></div>
+      </div>
+      <button onclick="saDeletePub('${p.id}')" style="flex-shrink:0;background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.2);border-radius:10px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(255,80,80,.9);cursor:pointer">eliminar</button>
+    </div>`:`
     <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.year||''} ${p.marca||''} ${p.modelo||p.titulo||'—'}</div>
