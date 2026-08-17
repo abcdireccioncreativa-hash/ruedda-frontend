@@ -3316,18 +3316,38 @@ html{scrollbar-width:none}
     <span>mensajes</span>
   </div>
   <div style="padding:0 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:12px">
-    <div style="width:40px;height:40px;border-radius:50%;background:rgba(230,240,59,.12);color:#e6f03b;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:19px;height:19px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <div class="msg-avatar official-ring" style="width:40px;height:40px">
+      <img id="gc-header-avatar" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.style.display='none'">
     </div>
     <div style="flex:1;min-width:0">
       <div style="font-size:16px;font-weight:700;letter-spacing:-.2px">conduciendo el mercado</div>
       <div style="font-size:12px;color:var(--muted);margin-top:3px">chat global · toda la comunidad Ruedda</div>
     </div>
   </div>
-  <div id="global-chat-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 175px;overflow-y:auto;flex:1;min-height:0"></div>
-  <div style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:rgba(0,0,0,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;z-index:200">
-    <textarea id="global-chat-input" placeholder="escribe al mercado..." maxlength="500" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;resize:none;min-height:44px;max-height:96px;line-height:1.5;transition:border-color .2s" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,96)+'px'" onfocus="this.style.borderColor='rgba(230,240,59,.35)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-    <button onclick="sendGlobalChatMessage()" style="background:#e6f03b;color:#000;border:none;border-radius:10px;padding:11px 16px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all .15s;align-self:flex-end" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'">enviar</button>
+  <div id="global-chat-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 190px;overflow-y:auto;flex:1;min-height:0"></div>
+  <div style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:rgba(0,0,0,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;z-index:200">
+    <div id="gc-photo-preview" style="display:none;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <div style="position:relative;flex-shrink:0">
+        <button id="gc-attach-btn" onclick="_gcToggleAttachMenu(event)" style="background:var(--card);border:1px solid var(--border);border-radius:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <div id="gc-attach-menu" style="display:none;position:absolute;bottom:52px;left:0;background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:6px;min-width:170px;box-shadow:0 10px 30px rgba(0,0,0,.5)">
+          <div onclick="_gcPickPhoto('camera')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:600">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:17px;height:17px;flex-shrink:0"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            cámara
+          </div>
+          <div onclick="_gcPickPhoto('gallery')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:600">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:17px;height:17px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            galería
+          </div>
+        </div>
+        <input type="file" id="gc-photo-camera" accept="image/*" capture="environment" style="display:none" onchange="_gcOnPhotoSelected(this)">
+        <input type="file" id="gc-photo-gallery" accept="image/*" style="display:none" onchange="_gcOnPhotoSelected(this)">
+      </div>
+      <textarea id="global-chat-input" placeholder="escribe al mercado..." maxlength="500" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none;resize:none;min-height:44px;max-height:96px;line-height:1.5;transition:border-color .2s" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,96)+'px'" onfocus="this.style.borderColor='rgba(230,240,59,.35)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+      <button onclick="sendGlobalChatMessage()" style="background:#e6f03b;color:#000;border:none;border-radius:10px;padding:11px 16px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all .15s;align-self:flex-end" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'">enviar</button>
+    </div>
   </div>
 </div>
 
@@ -3502,9 +3522,15 @@ html{scrollbar-width:none}
     <!-- Header Comunidad -->
     <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:20px">
       <span style="font-size:14px;font-weight:600;color:var(--muted);letter-spacing:.3px">Comunidad</span>
-      <div onclick="isGuest()?triggerGuestBlock('tu perfil'):openUserProfile(USER_STATE.id)" style="display:flex;align-items:center;gap:6px;cursor:pointer">
-        <span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.55)">mi perfil</span>
-        <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;opacity:.85"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div onclick="openTopUsuarios()" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.55)">usuarios top</span>
+          <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" style="width:18px;height:18px;opacity:.85"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a2 2 0 0 0 0 4h1.5M17 6h3a2 2 0 0 1 0 4h-1.5"/></svg>
+        </div>
+        <div onclick="isGuest()?triggerGuestBlock('tu perfil'):openUserProfile(USER_STATE.id)" style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <span style="font-size:12px;font-weight:400;color:rgba(255,255,255,.55)">mi perfil</span>
+          <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;opacity:.85"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
       </div>
     </div>
 
@@ -4046,7 +4072,7 @@ html{scrollbar-width:none}
     </div>
     <div class="vender-type-btn" id="vender-btn-alquiler" onclick="handleVenderClick('alquiler')">
       <div class="vender-type-icon">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M20.4 14.5 16 10 4 20"/><path d="m3 4 7 7"/><circle cx="18" cy="18" r="3"/><path d="M14.5 9.5 18 6"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2 11.4 11.6"/><path d="M15.5 7.5l3 3L22 7l-3-3"/></svg>
       </div>
       <div class="vender-type-info">
         <h3>poner mi vehículo en alquiler</h3>
@@ -6201,36 +6227,111 @@ function renderGlobalChatMessages(){
   const box=document.getElementById('global-chat-messages');
   if(!box) return;
   if(!GLOBAL_CHAT_MSGS.length){
-    box.innerHTML='<div class="com-empty">sé el primero en escribir aquí</div>';
+    box.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:320px;text-align:center;gap:14px;padding:20px">
+      <div style="width:56px;height:56px;border-radius:50%;background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.15);display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e6f03b" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:700">sé el primero en escribir aquí</div>
+        <div style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5;max-width:220px">todos los que usan Ruedda pueden ver y responder este chat</div>
+      </div>
+    </div>`;
     return;
   }
   box.innerHTML=GLOBAL_CHAT_MSGS.map(m=>{
     const mine=m.user_id===USER_STATE.id;
     const name=_globalChatSenderName(m.user_id);
     const time=m.created_at?new Date(m.created_at).toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'}):'';
+    const av=_globalChatUsersCache[m.user_id]?.avatar_url;
+    const avatarHtml=`<div style="width:26px;height:26px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;overflow:hidden;flex-shrink:0">${av?`<img src="${av}" style="width:100%;height:100%;object-fit:cover">`:_esc(name).charAt(0).toUpperCase()}</div>`;
+    const imgHtml=m.image_url?`<img src="${_tImg(m.image_url,{width:500,quality:75})}" loading="lazy" style="width:100%;max-width:220px;border-radius:10px;display:block;${m.text?'margin-bottom:6px':''}">`:'';
     return `<div class="thread-bubble ${mine?'mine':'theirs'}">
-      ${!mine?`<div style="font-size:11.5px;font-weight:700;color:#e6f03b;margin-bottom:3px;padding:0 4px">${_esc(name)}</div>`:''}
-      <div class="bubble-body">${_esc(m.text||'')}</div>
-      <div class="bubble-time">${time}</div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-direction:${mine?'row-reverse':'row'}">
+        ${!mine?avatarHtml:''}
+        <div style="display:flex;flex-direction:column;${mine?'align-items:flex-end':'align-items:flex-start'}">
+          ${!mine?`<div style="font-size:11.5px;font-weight:700;color:#e6f03b;margin-bottom:3px;padding:0 4px">${_esc(name)}</div>`:''}
+          <div class="bubble-body">${imgHtml}${m.text?_esc(m.text):''}</div>
+          <div class="bubble-time">${time}</div>
+        </div>
+      </div>
     </div>`;
   }).join('');
   box.scrollTop=box.scrollHeight;
 }
 function openGlobalChat(){
+  const av=document.getElementById('gc-header-avatar');
+  if(av) av.src=window._rueddaTeamLogoUrl||'';
+  _gcPendingPhoto=null; _gcRenderPhotoPreview();
   showView('global-chat');
   _loadGlobalChatMessages();
   _subscribeGlobalChat();
 }
+// [+] adjuntar foto — dropdown cámara/galería, sube al mismo bucket 'assets' que el resto de la app
+let _gcPendingPhoto=null; // {file, dataUrl}
+function _gcToggleAttachMenu(e){
+  e.stopPropagation();
+  const menu=document.getElementById('gc-attach-menu');
+  if(!menu) return;
+  const show=menu.style.display==='none'||!menu.style.display;
+  menu.style.display=show?'block':'none';
+  if(show){
+    const closeOnOutside=(ev)=>{
+      if(!menu.contains(ev.target)&&ev.target.id!=='gc-attach-btn'){ menu.style.display='none'; document.removeEventListener('click',closeOnOutside); }
+    };
+    setTimeout(()=>document.addEventListener('click',closeOnOutside),0);
+  }
+}
+function _gcPickPhoto(source){
+  document.getElementById('gc-attach-menu').style.display='none';
+  document.getElementById(source==='camera'?'gc-photo-camera':'gc-photo-gallery').click();
+}
+function _gcOnPhotoSelected(input){
+  const file=input.files?.[0];
+  input.value='';
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{ _gcPendingPhoto={file,dataUrl:reader.result}; _gcRenderPhotoPreview(); };
+  reader.readAsDataURL(file);
+}
+function _gcRenderPhotoPreview(){
+  const box=document.getElementById('gc-photo-preview');
+  if(!box) return;
+  if(!_gcPendingPhoto){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display='block';
+  box.innerHTML=`<div style="position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden">
+    <img src="${_gcPendingPhoto.dataUrl}" style="width:100%;height:100%;object-fit:cover">
+    <div onclick="_gcRemovePendingPhoto()" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <svg fill="none" viewBox="0 0 16 16" stroke="#fff" stroke-width="2" style="width:9px;height:9px"><path d="m3 3 10 10M13 3 3 13"/></svg>
+    </div>
+  </div>`;
+}
+function _gcRemovePendingPhoto(){ _gcPendingPhoto=null; _gcRenderPhotoPreview(); }
 async function sendGlobalChatMessage(){
   if(isGuest()){ showToast('inicia sesión para escribir'); return; }
   const input=document.getElementById('global-chat-input');
   const text=input.value.trim();
-  if(!text) return;
+  const photo=_gcPendingPhoto;
+  if(!text&&!photo) return;
   input.value='';input.style.height='44px';input.focus();
-  const optimistic={id:'tmp_'+Date.now(),room:GLOBAL_CHAT_ROOM,user_id:USER_STATE.id,text,created_at:new Date().toISOString()};
+  _gcPendingPhoto=null; _gcRenderPhotoPreview();
+  const optimistic={id:'tmp_'+Date.now(),room:GLOBAL_CHAT_ROOM,user_id:USER_STATE.id,text:text||null,image_url:photo?photo.dataUrl:null,created_at:new Date().toISOString()};
   GLOBAL_CHAT_MSGS.push(optimistic);
   renderGlobalChatMessages();
-  const{error}=await _supa.from('public_chat_messages').insert({room:GLOBAL_CHAT_ROOM,user_id:USER_STATE.id,text});
+  let imageUrl=null;
+  if(photo){
+    const ext=(photo.file.name.split('.').pop()||'jpg').toLowerCase();
+    const path=`chat-${USER_STATE.id}_${Date.now()}.${ext}`;
+    const{error:upErr}=await _supa.storage.from('assets').upload(path,photo.file,{upsert:false});
+    if(upErr){
+      showToast('error subiendo foto: '+upErr.message);
+      GLOBAL_CHAT_MSGS=GLOBAL_CHAT_MSGS.filter(m=>m.id!==optimistic.id);
+      renderGlobalChatMessages();
+      return;
+    }
+    const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
+    imageUrl=urlData.publicUrl;
+  }
+  const{error}=await _supa.from('public_chat_messages').insert({room:GLOBAL_CHAT_ROOM,user_id:USER_STATE.id,text:text||null,image_url:imageUrl});
   if(error){
     showToast('error enviando');
     GLOBAL_CHAT_MSGS=GLOBAL_CHAT_MSGS.filter(m=>m.id!==optimistic.id);
@@ -6831,17 +6932,23 @@ async function openTopUsuarios(){
     const{data,error}=await _supa.rpc('get_top_users_ranking',{p_limit:10});
     if(error) throw error;
     if(!data||!data.length){el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">todavía no hay suficiente actividad pa armar el ranking.</div>';return;}
+    const _rankMedal=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
     el.innerHTML=data.map((u,i)=>{
       const nombre=u.nombre||u.username||'usuario';
       const initial=_esc(nombre).charAt(0).toUpperCase();
       const avatarHtml=u.avatar_url?`<img decoding="async" src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:initial;
+      const levelBadge=u.nivel?`<div style="width:16px;height:16px;border-radius:50%;overflow:hidden;flex-shrink:0;background:rgba(230,240,59,.15);border:1px solid rgba(230,240,59,.35);display:flex;align-items:center;justify-content:center">${u.badge_url?`<img src="${u.badge_url}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:8px;font-weight:800;color:#e6f03b">${u.nivel}</span>`}</div>`:'';
       return `
       <div style="display:flex;align-items:center;gap:13px;padding:13px 14px;background:var(--card);border:1px solid var(--border);border-radius:16px;margin-bottom:10px;cursor:pointer" onclick="openUserProfile('${u.user_id}')">
-        <div style="font-size:15px;font-weight:800;color:var(--muted);width:20px;flex-shrink:0;text-align:center">${i+1}</div>
+        <div style="font-size:${i<3?'19px':'15px'};font-weight:800;color:${i<3?'#fff':'var(--muted)'};width:24px;flex-shrink:0;text-align:center">${_rankMedal(i)}</div>
         <div style="width:44px;height:44px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;overflow:hidden;flex-shrink:0">${avatarHtml}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:5px">${_esc(nombre)}${u.kyc_verified?'<svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg>':''}</div>
           <div style="font-size:11.5px;color:var(--muted);margin-top:1px">${u.followers_count||0} seguidores${u.avg_rating?` · ★ ${Number(u.avg_rating).toFixed(1)}`:''}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+          <div style="display:flex;align-items:center;gap:5px">${levelBadge}<span style="font-size:11px;font-weight:700;color:#e6f03b;text-transform:capitalize">${_esc(u.nivel_nombre||'')}</span></div>
+          <div style="font-size:10px;color:var(--muted)">${u.xp||0} XP</div>
         </div>
       </div>`;
     }).join('');
@@ -11776,6 +11883,38 @@ async function _saUploadMarcaLogo(input,marca){
   showToast('logo actualizado',true);
 }
 
+// [XP/NIVELES] insignias por nivel — filas ya existen (seed de la migración
+// xp_levels), acá solo se actualiza badge_url por level. Mismo bucket 'assets'.
+async function _saLoadLevelBadges(){
+  if(!_supa) return;
+  const{data}=await _supa.from('user_levels').select('*').order('level',{ascending:true});
+  const grid=document.getElementById('sa-levels-grid');
+  if(!grid) return;
+  grid.innerHTML=(data||[]).map(l=>`
+    <div style="text-align:center">
+      <div id="sa-level-${l.level}-preview" onclick="document.getElementById('sa-level-${l.level}-file').click()" style="width:100%;aspect-ratio:1/1;border-radius:14px;background:var(--card);border:1.5px dashed rgba(230,240,59,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:rgba(255,255,255,.3)">
+        ${l.badge_url?`<img src="${l.badge_url}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:15px;font-weight:800;color:rgba(255,255,255,.25)">${l.level}</span>`}
+      </div>
+      <input type="file" id="sa-level-${l.level}-file" accept="image/png,image/svg+xml" style="display:none" onchange="_saUploadLevelBadge(this,${l.level})">
+      <div style="font-size:10.5px;color:var(--muted);margin-top:6px;text-transform:capitalize;line-height:1.3">nv.${l.level}<br>${_esc(l.nombre||'')}</div>
+    </div>`).join('');
+}
+async function _saUploadLevelBadge(input,level){
+  const file=input.files?.[0];
+  if(!file||!_supa) return;
+  const prev=document.getElementById('sa-level-'+level+'-preview');
+  showToast('subiendo insignia...');
+  const ext=(file.name.split('.').pop()||'png').toLowerCase();
+  const path=`badge-level-${level}_${Date.now()}.${ext}`;
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  if(upErr){showToast('error: '+upErr.message);return;}
+  const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('user_levels').update({badge_url:urlData.publicUrl,updated_at:new Date().toISOString()}).eq('level',level);
+  if(dbErr){showToast('error guardando: '+dbErr.message);return;}
+  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  showToast('insignia actualizada',true);
+}
+
 async function _saLoadConsBannerPreview(){
   if(!_supa) return;
   const{data}=await _supa.from('app_settings').select('value').eq('key','concesionarios_banner_url').maybeSingle();
@@ -11939,7 +12078,7 @@ function saTab(tab){
   if(tab==='mensajes'){ saLoadRueddaTeamAvatarPreview(); saLoadRueddaTeamMessages(); }
   if(tab==='documentos') saLoadDocumentos();
   if(tab==='solicitudes') saLoadSolicitudes('car');
-  if(tab==='logos') saLoadMarcaLogos();
+  if(tab==='logos'){ saLoadMarcaLogos(); _saLoadLevelBadges(); }
   if(tab==='comparativa') saLoadComparativa();
   if(tab==='portada') saLoadLandingPortadaPreview();
 }
@@ -14518,7 +14657,7 @@ async function openUserProfile(userId){
   const isMe=USER_STATE?.id===userId;
 
   try{
-    const[{data:u},{data:dreamCars},{count:followersCount},{count:followingCount},{data:myFollow},{data:ratings},{data:soldAuctions},{data:topBid},{count:favCount},{count:commentsCount},{count:spotCount},{data:publishedListings},{data:publishedAuctions}]=await Promise.all([
+    const[{data:u},{data:dreamCars},{count:followersCount},{count:followingCount},{data:myFollow},{data:ratings},{data:soldAuctions},{data:topBid},{count:favCount},{count:commentsCount},{count:spotCount},{data:publishedListings},{data:publishedAuctions},{count:activeListingsCount},{count:activeAuctionsCount},{data:allLevels}]=await Promise.all([
       _supa.from('users').select('nombre,username,avatar_url,kyc_verified,descripcion,role').eq('id',userId).maybeSingle(),
       _supa.from('user_dream_cars').select('modelo').eq('user_id',userId).order('orden',{ascending:true}),
       _supa.from('user_follows').select('*',{count:'exact',head:true}).eq('followed_id',userId),
@@ -14535,7 +14674,11 @@ async function openUserProfile(userId){
       _supa.from('carspotting').select('*',{count:'exact',head:true}).eq('user_id',userId),
       // [RC V5] "carros publicados" — sus listings y subastas ACTIVAS ahora mismo (no solo vendidas)
       _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,listing_photos(url,orden)').eq('user_id',userId).eq('estado','activa').order('created_at',{ascending:false}).limit(12),
-      _supa.from('auctions').select('id,titulo,marca,modelo,year,current_bid,end_time,auction_photos(url,orden)').eq('user_id',userId).eq('estado','activa').order('created_at',{ascending:false}).limit(12)
+      _supa.from('auctions').select('id,titulo,marca,modelo,year,current_bid,end_time,auction_photos(url,orden)').eq('user_id',userId).eq('estado','activa').order('created_at',{ascending:false}).limit(12),
+      // [XP/niveles] conteos exactos (sin límite) para la fórmula de XP — mismo peso que compute_user_xp() en la DB
+      _supa.from('listings').select('*',{count:'exact',head:true}).eq('user_id',userId).eq('estado','activa'),
+      _supa.from('auctions').select('*',{count:'exact',head:true}).eq('user_id',userId).eq('estado','activa'),
+      _supa.from('user_levels').select('*').order('level',{ascending:true})
     ]);
 
     // si mientras cargaba el usuario abrió OTRO perfil, no pintamos esto encima del nuevo
@@ -14551,6 +14694,33 @@ async function openUserProfile(userId){
     const amIFollowing=!!myFollow;
     const safeName=_esc(nombre).replace(/'/g,"\\'");
     const topBidAmount=topBid?.[0]?.amount||0;
+
+    // [XP/niveles] mismo peso EXACTO que compute_user_xp() en la migración
+    // 20260816000002_xp_levels.sql — si se ajusta el peso allá, ajustar acá también.
+    const userXp=(followersCount||0)*10+(favCount||0)*1+(commentsCount||0)*2+(spotCount||0)*5+(activeListingsCount||0)*15+(activeAuctionsCount||0)*15+(u.kyc_verified?50:0);
+    const levels=allLevels||[];
+    const curLevel=[...levels].reverse().find(l=>l.xp_required<=userXp)||levels[0];
+    const nextLevel=levels.find(l=>l.xp_required>userXp);
+    const xpIntoLevel=curLevel?userXp-curLevel.xp_required:0;
+    const xpForNext=nextLevel?nextLevel.xp_required-(curLevel?.xp_required||0):0;
+    const xpPct=nextLevel&&xpForNext>0?Math.min(100,Math.round(xpIntoLevel/xpForNext*100)):100;
+    const levelBadgeHtml=curLevel?`
+      <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+        <div style="width:22px;height:22px;border-radius:50%;overflow:hidden;flex-shrink:0;background:rgba(230,240,59,.12);border:1px solid rgba(230,240,59,.3);display:flex;align-items:center;justify-content:center">
+          ${curLevel.badge_url?`<img src="${curLevel.badge_url}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:10px;font-weight:800;color:#e6f03b">${curLevel.level}</span>`}
+        </div>
+        <span style="font-size:12px;font-weight:700;color:#e6f03b;text-transform:capitalize">nivel ${curLevel.level} · ${_esc(curLevel.nombre||'')}</span>
+      </div>`:'';
+    const xpMeterHtml=curLevel?`
+      <div style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+          <span style="font-size:11.5px;color:var(--muted)">${userXp} XP</span>
+          <span style="font-size:11px;color:var(--muted)">${nextLevel?`faltan ${xpForNext-xpIntoLevel} XP para nivel ${nextLevel.level} · ${_esc(nextLevel.nombre||'')}`:'nivel máximo alcanzado'}</span>
+        </div>
+        <div style="height:7px;border-radius:100px;background:rgba(255,255,255,.06);overflow:hidden">
+          <div style="height:100%;width:${xpPct}%;background:linear-gradient(90deg,#a8b82c,#e6f03b);border-radius:100px;transition:width .5s ease"></div>
+        </div>
+      </div>`:'';
 
     // [V117] tier de métricas — 4 cards glassmorph, mismo lenguaje visual que .bottom-nav/.dropdown-glass
     const _metricCard=(label,value,iconPath)=>`
@@ -14577,8 +14747,10 @@ async function openUserProfile(userId){
           <div style="font-size:20px;font-weight:800;letter-spacing:-.3px">${_esc(nombre)}</div>
           ${u.username?`<div style="font-size:13px;color:var(--muted);margin-top:2px">@${_esc(u.username)}</div>`:''}
           ${u.kyc_verified?`<div style="display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;color:rgba(255,255,255,.5)">usuario verificado en Ruedda <svg viewBox="0 0 24 24" style="width:13px;height:13px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></div>`:''}
+          ${levelBadgeHtml}
         </div>
       </div>
+      ${xpMeterHtml}
       <div style="display:flex;gap:22px;margin-top:18px">
         <div><span style="font-weight:800;font-size:15px">${followersCount||0}</span> <span style="color:var(--muted);font-size:13px">seguidores</span></div>
         <div><span style="font-weight:800;font-size:15px">${followingCount||0}</span> <span style="color:var(--muted);font-size:13px">siguiendo</span></div>
@@ -15535,17 +15707,7 @@ function renderMensajesList(){
     return;
   }
   if(!THREADS.length){
-    const _rl=window._rueddaTeamLogoUrl;
-    list.innerHTML=`<div class="msg-item official" onclick="openRueddaTeamThread()">
-      <div class="msg-avatar official-ring"><img decoding="async" src="${_rl}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
-      <div style="flex:1;min-width:0">
-        <div class="msg-name">Ruedda Team<span class="msg-pin"><svg viewBox="0 0 24 24" style="width:13px;height:13px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span></div>
-        <div class="msg-model">canal oficial · novedades y soporte</div>
-        <div class="msg-preview">bienvenido a Ruedda — toca para escribirnos</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0"><div class="msg-time">Ruedda</div></div>
-    </div>
-    <div class="msg-item official" onclick="openGlobalChat()">
+    list.innerHTML=`<div class="msg-item official" onclick="openGlobalChat()">
       <div class="msg-avatar official-ring" style="background:rgba(230,240,59,.12);color:#e6f03b;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:19px;height:19px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
       <div style="flex:1;min-width:0">
         <div class="msg-name">conduciendo el mercado<span class="msg-pin"><svg viewBox="0 0 24 24" style="width:13px;height:13px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span></div>
@@ -15562,19 +15724,7 @@ function renderMensajesList(){
   // el titileo. Ahora se oculta ANTES de pintar, así nunca se ve el contenido sin estilo.
   const firstPaint=!list.childElementCount||!list.classList.contains('loaded');
   if(firstPaint){list.classList.remove('loaded');list.classList.add('msg-list-fade');}
-  // ── canal oficial fijado: Ruedda Team (siempre arriba) ──
-  const _rueddaLogo=window._rueddaTeamLogoUrl;
-  const officialRow=`<div class="msg-item official" onclick="openRueddaTeamThread()">
-      <div class="msg-avatar official-ring"><img decoding="async" src="${_rueddaLogo}" alt="Ruedda" loading="lazy" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#e6f03b';this.parentElement.style.fontWeight='800'"/></div>
-      <div style="flex:1;min-width:0">
-        <div class="msg-name">Ruedda Team<span class="msg-pin"><svg viewBox="0 0 24 24" style="width:13px;height:13px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span></div>
-        <div class="msg-model">canal oficial · novedades y soporte</div>
-        <div class="msg-preview">bienvenido a Ruedda — toca para escribirnos</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
-        <div class="msg-time">Ruedda</div>
-      </div>
-    </div>`;
+  // ── canal fijado: chat global "conduciendo el mercado" (siempre arriba) ──
   const globalChatRow=`<div class="msg-item official" onclick="openGlobalChat()">
       <div class="msg-avatar official-ring" style="background:rgba(230,240,59,.12);color:#e6f03b;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:19px;height:19px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
       <div style="flex:1;min-width:0">
@@ -15592,7 +15742,7 @@ function renderMensajesList(){
   const _msgHash=THREADS.map(t=>t.id+'_'+t.messages.length+'_'+(t.messages[t.messages.length-1]?.text||'')+'_'+(t.unread?1:0)).join(',');
   if(_msgHash===window._lastMsgListHash&&list.childElementCount)return;
   window._lastMsgListHash=_msgHash;
-  list.innerHTML=officialRow+globalChatRow+THREADS.map(t=>{
+  list.innerHTML=globalChatRow+THREADS.map(t=>{
     const last=t.messages[t.messages.length-1];
     const isDealer=t.otherIsDealer||(t.otherRole==='concesionario'||t.otherRole==='consesionario');
     const otherDisplay=t.isPM?t.otherName:((t.participants||[]).find(p=>!p.isSeller)||{user:'?'}).user;
@@ -17179,6 +17329,16 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Encuentra — orden</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Arrastra los cards para reordenar cómo aparecen en Market. Se guarda automáticamente al soltar.</div>
     <div id="sa-enc-order-list" style="display:flex;flex-direction:column;gap:8px"></div>
+
+    <div style="height:1px;background:var(--border);margin:22px 0"></div>
+
+    <!-- [XP/NIVELES] insignia por nivel — PNG/SVG ultra ligero. Los 16 niveles
+         ya existen (tabla user_levels, migración 20260816000002_xp_levels.sql);
+         acá solo se sube la imagen, mismo patrón upsert-por-key que marca_logos.
+         Aparece junto al nombre al abrir un perfil y en "usuarios top". -->
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Insignias por nivel</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Una insignia por cada nivel del sistema de XP. Sube PNG o SVG ultra liviano — toca el cuadro.</div>
+    <div id="sa-levels-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
   </div>
 
   </div>
