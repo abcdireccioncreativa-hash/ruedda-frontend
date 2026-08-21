@@ -1979,6 +1979,31 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   document.documentElement.classList.add('rd-intro-lock');
   root.classList.add('rd-on');
   go(0);
+
+  /* ── fotos editables desde SuperAdmin > Intro ────────────────
+     mismo patrón app_settings key/value que Encuentra (ver
+     _saUploadIntroFoto). Va en background con setTimeout(0): para
+     cuando corre, _supa (declarado mucho más abajo en el documento)
+     ya existe — TDZ solo bloquea el acceso síncrono, no uno diferido.
+     Si no hay override no pasa nada: se queda la foto de /intro-N.jpg. */
+  setTimeout(function(){
+    try{
+      if(typeof _supa === 'undefined' || !_supa) return;
+      var keys = SLIDES.map(function(_, i){ return 'intro_' + (i + 1) + '_url'; });
+      _supa.from('app_settings').select('key,value').in('key', keys).then(function(res){
+        var rows = res && res.data;
+        if(!rows || !rows.length) return;
+        rows.forEach(function(row){
+          if(!row.value) return;
+          var i = parseInt(row.key.replace('intro_', '').replace('_url', ''), 10) - 1;
+          if(!SLIDES[i]) return;
+          SLIDES[i].src = row.value;
+          var el = slides[i] && slides[i].querySelector('img,video');
+          if(el && el.src !== row.value) el.src = row.value;
+        });
+      }).catch(function(){});
+    }catch(e){}
+  }, 0);
 })();
 </script>
 
@@ -12404,6 +12429,47 @@ async function _saUploadMarcaLogo(input,marca){
   showToast('logo actualizado',true);
 }
 
+// [ONBOARDING NATIVO] 7 fotos de #rd-intro — mismo patrón app_settings
+// key/value + bucket 'assets' que Encuentra/logos. Las lee en runtime el IIFE
+// del intro (ver setTimeout al final de ese bloque) y las pinta acá.
+const SA_INTRO_SLIDES=[1,2,3,4,5,6,7];
+async function saLoadIntroFotos(){
+  const list=document.getElementById('sa-intro-list');
+  if(!list||!_supa) return;
+  const keys=SA_INTRO_SLIDES.map(n=>'intro_'+n+'_url');
+  const{data}=await _supa.from('app_settings').select('key,value').in('key',keys);
+  const urls={};
+  (data||[]).forEach(row=>{ if(row.value) urls[row.key]=row.value; });
+  list.innerHTML=SA_INTRO_SLIDES.map(n=>{
+    const key='intro_'+n+'_url';
+    const url=urls[key];
+    return `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:9px 12px;display:flex;align-items:center;gap:12px">
+      <div id="sa-intro-prev-${n}" onclick="document.getElementById('sa-intro-file-${n}').click()" style="width:52px;height:52px;flex-shrink:0;border-radius:10px;background:#111;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:rgba(255,255,255,.25)">
+        ${url?`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:13px;font-weight:800;color:rgba(255,255,255,.25)">${n}</span>`}
+      </div>
+      <div style="flex:1;font-size:13px;font-weight:600">Slide ${n}${url?'':' · usando /intro-'+n+'.jpg (por defecto)'}</div>
+      <input type="file" id="sa-intro-file-${n}" accept="image/*" style="display:none" onchange="_saUploadIntroFoto(this,${n})">
+      <button onclick="document.getElementById('sa-intro-file-${n}').click()" style="flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:11.5px;font-weight:700;color:rgba(255,255,255,.6);cursor:pointer">${url?'cambiar':'subir'}</button>
+    </div>`;
+  }).join('');
+}
+async function _saUploadIntroFoto(input,n){
+  const file=input.files?.[0];
+  if(!file||!_supa) return;
+  showToast('subiendo foto...');
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+  const path=`intro-${n}_${Date.now()}.${ext}`;
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  if(upErr){showToast('error: '+upErr.message);return;}
+  const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('app_settings').upsert({key:'intro_'+n+'_url',value:urlData.publicUrl,updated_at:new Date().toISOString()});
+  if(dbErr){showToast('error guardando: '+dbErr.message);return;}
+  const prev=document.getElementById('sa-intro-prev-'+n);
+  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  showToast('foto de la intro actualizada',true);
+}
+
 // [XP/NIVELES] insignias por nivel — filas ya existen (seed de la migración
 // xp_levels), acá solo se actualiza badge_url por level. Mismo bucket 'assets'.
 async function _saLoadLevelBadges(){
@@ -12578,7 +12644,7 @@ function saCategory(cat){
   saTab(SA_CATEGORIES[cat]);
 }
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa','intro'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -12600,6 +12666,7 @@ function saTab(tab){
   if(tab==='solicitudes') saLoadSolicitudes('car');
   if(tab==='logos'){ saLoadMarcaLogos(); _saLoadLevelBadges(); }
   if(tab==='comparativa') saLoadComparativa();
+  if(tab==='intro') saLoadIntroFotos();
 }
 
 // ── [comparativa de precios] admin — súper simple: marca+modelo+JSON, upsert.
@@ -17510,6 +17577,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div class="tab" id="sa-tab-documentos" onclick="saTab('documentos')" style="white-space:nowrap;flex-shrink:0">documentos</div>
       <div class="tab" id="sa-tab-logos" onclick="saTab('logos')" style="white-space:nowrap;flex-shrink:0">logos marcas</div>
       <div class="tab" id="sa-tab-comparativa" onclick="saTab('comparativa')" style="white-space:nowrap;flex-shrink:0">comparativa precios</div>
+      <div class="tab" id="sa-tab-intro" onclick="saTab('intro')" style="white-space:nowrap;flex-shrink:0">intro app</div>
     </div>
   </div>
   <div class="sa-tabgroup" data-cat="dinero" style="display:none">
@@ -17770,6 +17838,17 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.4);margin-top:10px;text-transform:uppercase;letter-spacing:.4px">entradas cargadas</div>
     <div id="sa-cmp-list" style="display:flex;flex-direction:column;gap:8px">
       <div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
+    </div>
+  </div>
+
+  <!-- [ONBOARDING NATIVO] fotos del intro (#rd-intro) — solo se ve en la app
+       nativa o instalada como PWA (showOnWeb:false), pero las 7 fotos y sus
+       textos se editan desde acá igual que cualquier otra foto de la app. -->
+  <div id="sa-intro" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Intro de la app (onboarding)</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Las 7 fotos de la portada que ve quien abre la app nativa por primera vez. No aparece en el navegador — solo en la app instalada. Subir una foto la reemplaza al instante para todos, sin republicar.</div>
+    <div id="sa-intro-list" style="display:flex;flex-direction:column;gap:8px">
+      <div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
     </div>
   </div>
 
