@@ -1489,11 +1489,499 @@ html.rd-android-app .trending-hammer,
 html.rd-android-app .photo-counter,
 html.rd-android-app .fav-thumb-badge-timer,
 html.rd-android-app .sched-badge{backdrop-filter:none;-webkit-backdrop-filter:none}
+
+/* ═══════════════════════════════════════════════════════════════
+   [INTRO / ONBOARDING] — portada de la app nativa.
+   Vive por encima del boot-splash (z 100000) y lo tapa mientras la
+   app carga por detrás: el usuario lee el intro y para cuando toca
+   un CTA el home ya está montado. Cero tiempo muerto percibido.
+   No toca ningún estilo existente: todo va namespaced en #rd-intro.
+
+   Dirección: la foto es atmósfera, no protagonista — va desaturada
+   y bajo un scrim pesado para que mande la tipografía. El lima se
+   reserva para dos cosas: el progreso y la acción primaria.
+   ═══════════════════════════════════════════════════════════════ */
+html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-behavior:none}
+
+#rd-intro{
+  position:fixed;inset:0;z-index:100002;background:#000;
+  display:none;flex-direction:column;justify-content:flex-end;
+  font-family:var(--font);
+  opacity:1;transition:opacity .45s cubic-bezier(.32,.72,0,1);
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+}
+#rd-intro.rd-on{display:flex}
+#rd-intro.rd-out{opacity:0;pointer-events:none}
+
+/* ── media: la foto como material, no como catálogo ── */
+#rd-intro-media{position:absolute;inset:0;overflow:hidden;background:#000}
+.rd-slide{position:absolute;inset:0;opacity:0;transition:opacity 1s cubic-bezier(.4,0,.2,1)}
+.rd-slide.rd-cur{opacity:1}
+.rd-slide>img,.rd-slide>video{
+  width:100%;height:100%;object-fit:cover;display:block;
+  object-position:var(--rd-pos,center center);
+  /* desatura y sube el contraste: la foto pasa a ser textura */
+  filter:grayscale(.3) saturate(.86) contrast(1.05);
+  transform:scale(1.001);
+}
+.rd-slide.rd-cur>img,.rd-slide.rd-cur>video{animation:rdKen 9.5s ease-out forwards}
+@keyframes rdKen{from{transform:scale(1.085) translateY(.9%)}to{transform:scale(1) translateY(0)}}
+/* fallback si la foto no existe todavía: degradado + tinte. Nunca se ve roto. */
+.rd-slide.rd-nomedia>img,.rd-slide.rd-nomedia>video{display:none}
+.rd-slide.rd-nomedia::after{
+  content:'';position:absolute;inset:0;
+  background:var(--rd-slide-fallback,radial-gradient(120% 80% at 50% 18%,#16170c 0%,#0a0a0a 60%,#000 100%));
+}
+
+/* ── scrim: viñeta + caída a negro. Sube el contraste del texto ── */
+#rd-intro-scrim{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(125% 80% at 50% 40%,rgba(0,0,0,0) 32%,rgba(0,0,0,.46) 100%),
+    linear-gradient(to bottom,rgba(0,0,0,.52) 0%,rgba(0,0,0,.14) 19%,rgba(0,0,0,.07) 34%,rgba(0,0,0,.7) 63%,#000 92%);
+}
+
+/* ── barra superior: marca + saltar ── */
+#rd-intro-top{
+  position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;
+  padding:max(16px,calc(env(safe-area-inset-top) + 12px)) 22px 0;
+}
+#rd-intro-logo{height:20px;width:auto;display:block;opacity:.94}
+#rd-intro-skip{
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.72);
+  font-family:inherit;font-size:12px;font-weight:600;letter-spacing:.2px;
+  padding:7px 14px;border-radius:99px;cursor:pointer;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+#rd-intro-skip:active{transform:scale(.95)}
+
+/* ── índice: 01 ──────── 06. Reemplaza las barras de stories:
+      el paginado segmentado lee a red social, la regla con cifras
+      lee a producto financiero. Y comunica avance total, no local. ── */
+#rd-intro-idx{
+  position:relative;z-index:2;display:flex;align-items:center;gap:13px;
+  padding:19px 22px 0;
+}
+#rd-intro-num,#rd-intro-tot{
+  font-size:10.5px;font-weight:700;letter-spacing:.7px;
+  font-variant-numeric:tabular-nums;font-feature-settings:'tnum' 1;
+}
+#rd-intro-num{color:rgba(255,255,255,.92)}
+#rd-intro-tot{color:rgba(255,255,255,.28)}
+#rd-intro-rule{flex:1;height:1px;background:rgba(255,255,255,.15);overflow:hidden}
+#rd-intro-rule>i{display:block;height:100%;width:0;background:var(--lime)}
+
+/* ── zona de tap/swipe: solo el área de la foto, nunca sobre los CTA ── */
+#rd-intro-touch{position:relative;z-index:2;flex:1;min-height:0}
+
+/* ── copy ── */
+#rd-intro-copy{position:relative;z-index:2;padding:0 22px 24px}
+#rd-intro-eyebrow{
+  font-size:10.5px;font-weight:600;letter-spacing:1.8px;
+  color:rgba(255,255,255,.42);margin-bottom:14px;
+}
+
+/* ── glifo: un icono monolínea por slide, arriba del eyebrow.
+      Monolínea blanco para todos; el sello de verificado es la única
+      excepción a color porque es un token real del producto, no una
+      decoración — es el mismo azul que lleva el perfil en la app. ── */
+#rd-intro-icon{width:27px;height:27px;margin-bottom:14px;color:rgba(255,255,255,.92)}
+#rd-intro-icon svg{width:100%;height:100%;display:block;overflow:visible}
+
+/* damero de la bienvenida: un pulso recorre los cuatro cuadros en sentido
+   horario, como el indicador de carga de la terminal.
+   El desfase es exactamente ciclo/4 (1.2s / 4 = .3s) y el pulso ocupa
+   medio ciclo: así los picos caen parejos en .3 .6 .9 1.2 y la cola de
+   uno se solapa con la entrada del siguiente. Rotación continua, sin
+   tiempo muerto entre vueltas.
+   'backwards' hace que sostengan el 0% durante su retardo inicial.
+   Los atributos opacity de los rects se mantienen: con reduced-motion la
+   animación se apaga y el damero vuelve a su contraste original. */
+#rd-intro-icon .rd-ck{animation:rdChase 1.2s cubic-bezier(.45,0,.55,1) infinite backwards}
+#rd-intro-icon .rd-ck2{animation-delay:.3s}
+#rd-intro-icon .rd-ck3{animation-delay:.6s}
+#rd-intro-icon .rd-ck4{animation-delay:.9s}
+@keyframes rdChase{
+  0%{opacity:.2}
+  25%{opacity:1}
+  50%{opacity:.2}
+  100%{opacity:.2}
+}
+
+/* sello de verificado: el disco entra con rebote y el check se dibuja */
+#rd-intro-icon .rd-vb{
+  transform-box:fill-box;transform-origin:center;transform:scale(0);
+  animation:rdBadge .52s cubic-bezier(.34,1.56,.64,1) .12s forwards;
+}
+#rd-intro-icon .rd-vc{
+  stroke-dasharray:15;stroke-dashoffset:15;
+  animation:rdCheck .42s cubic-bezier(.65,0,.35,1) .4s forwards;
+}
+@keyframes rdBadge{to{transform:scale(1)}}
+@keyframes rdCheck{to{stroke-dashoffset:0}}
+
+/* vapor del café: dos trazos que suben desfasados, en loop lento */
+#rd-intro-icon .rd-steam{
+  transform-box:fill-box;transform-origin:center bottom;opacity:0;
+  animation:rdSteam 3s ease-in-out .35s infinite;
+}
+#rd-intro-icon .rd-steam2{animation-delay:1.1s}
+@keyframes rdSteam{
+  0%{opacity:0;transform:translateY(2.5px) scaleY(.85)}
+  28%{opacity:.8}
+  100%{opacity:0;transform:translateY(-3.5px) scaleY(1.08)}
+}
+#rd-intro-title{
+  font-size:clamp(28px,8.2vw,38px);font-weight:800;line-height:1.06;letter-spacing:-1.5px;
+  color:#fff;margin:0 0 12px;
+}
+#rd-intro-sub{
+  font-size:14px;font-weight:400;line-height:1.55;color:rgba(255,255,255,.55);
+  margin:0;max-width:325px;
+}
+.rd-anim{opacity:0;transform:translateY(11px)}
+.rd-in{animation:rdUp .7s cubic-bezier(.22,.61,.36,1) forwards}
+#rd-intro-title.rd-in{animation-delay:.07s}
+#rd-intro-sub.rd-in{animation-delay:.14s}
+@keyframes rdUp{to{opacity:1;transform:translateY(0)}}
+
+/* ── acciones: la regla de canto a canto separa lectura de acción ── */
+#rd-intro-cta{
+  position:relative;z-index:3;display:flex;flex-direction:column;gap:9px;
+  padding:19px 22px max(20px,calc(env(safe-area-inset-bottom) + 14px));
+}
+#rd-intro-cta::before{
+  content:'';position:absolute;left:0;right:0;top:0;height:1px;
+  background:rgba(255,255,255,.09);
+}
+#rd-intro-cta button{
+  width:100%;height:52px;border-radius:14px;font-family:inherit;
+  font-size:15px;font-weight:700;letter-spacing:-.1px;cursor:pointer;
+  transition:transform .16s cubic-bezier(.32,.72,0,1),opacity .16s ease;
+}
+#rd-intro-cta button:active{transform:scale(.978)}
+#rd-intro-register{border:0;background:var(--lime);color:#000;font-weight:800}
+#rd-intro-market{
+  background:rgba(255,255,255,.055);color:rgba(255,255,255,.88);
+  border:1px solid rgba(255,255,255,.13);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);font-weight:600;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .rd-slide.rd-cur>img,.rd-slide.rd-cur>video{animation:none}
+  #rd-intro-icon .rd-ck{animation:none}
+  #rd-intro-icon .rd-vb{transform:none;animation:none}
+  #rd-intro-icon .rd-vc{stroke-dashoffset:0;animation:none}
+  #rd-intro-icon .rd-steam{opacity:.7;animation:none}
+  .rd-anim{opacity:1;transform:none}
+  .rd-in{animation:none}
+}
+/* pantallas cortas (SE): comprime sin romper */
+@media(max-height:680px){
+  #rd-intro-title{font-size:26px;letter-spacing:-1.1px}
+  #rd-intro-sub{font-size:13px}
+  #rd-intro-cta button{height:48px}
+  #rd-intro-copy{padding-bottom:18px}
+  #rd-intro-icon{width:24px;height:24px;margin-bottom:11px}
+}
+
 </style>
 <link rel="prefetch" href="store.html" as="document">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
+
+<!-- ═══ [INTRO / ONBOARDING] portada de la app nativa — ver CSS #rd-intro ═══ -->
+<div id="rd-intro" role="dialog" aria-label="bienvenido a ruedda">
+  <div id="rd-intro-media"></div>
+  <div id="rd-intro-scrim"></div>
+  <div id="rd-intro-top">
+    <img id="rd-intro-logo" src="data:image/png;base64,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" alt="ruedda">
+    <button id="rd-intro-skip" type="button">saltar</button>
+  </div>
+  <div id="rd-intro-idx">
+    <span id="rd-intro-num">01</span>
+    <div id="rd-intro-rule"><i></i></div>
+    <span id="rd-intro-tot">06</span>
+  </div>
+  <div id="rd-intro-touch"></div>
+  <div id="rd-intro-copy">
+    <div id="rd-intro-icon" class="rd-anim"></div>
+    <div id="rd-intro-eyebrow" class="rd-anim"></div>
+    <h1 id="rd-intro-title" class="rd-anim"></h1>
+    <p id="rd-intro-sub" class="rd-anim"></p>
+  </div>
+  <div id="rd-intro-cta">
+    <button id="rd-intro-register" type="button">crear cuenta</button>
+    <button id="rd-intro-market" type="button">explorar el market</button>
+  </div>
+</div>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   [INTRO] Corre inline en el tope del body para pintar en el primer
+   frame — si esperara al final del documento se vería un parpadeo
+   del boot-splash antes del intro. No depende de nada del resto de
+   la app; los handlers de los CTA usan typeof por si acaso.
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+
+  /* ── CONFIG ──────────────────────────────────────────────────
+     Para cambiar fotos/copy: edita SLIDES. Nada más.
+     · src   : ruta absoluta desde la raíz de www/ (ej '/intro-1.jpg').
+               sirve .jpg .png .webp .gif — y .mp4 poniendo type:'video'.
+     · tint  : color del degradado de respaldo si la foto aún no existe.
+     · pos   : encuadre (object-position). ej 'center 35%' sube el foco.
+     · icon  : clave del set ICONS (checker, carro, reloj, tienda,
+               verificado, cafe, entrar).
+     Preview en navegador: agrega ?intro=1 a la URL.
+     Resetear el "ya lo vi":  agrega ?intro=reset
+     ──────────────────────────────────────────────────────────── */
+  var CFG = {
+    key:        'rd_intro_v1',   // sube a v2 y todos vuelven a verlo
+    slideMs:    4100,            // duración de cada slide
+    showOnWeb:  false            // true = también en navegador de escritorio/móvil
+  };
+
+  /* set monolínea, viewBox 24 uniforme. 'verificado' y 'cafe' llevan
+     animación propia definida en el CSS (#rd-intro-icon). */
+  var S0='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">';
+  var ICONS = {
+    checker : '<svg viewBox="0 0 24 24" fill="currentColor"><rect class="rd-ck rd-ck1" x="3.2" y="3.2" width="8" height="8" rx="1.6"/><rect class="rd-ck rd-ck2" x="12.8" y="3.2" width="8" height="8" rx="1.6" opacity=".28"/><rect class="rd-ck rd-ck3" x="12.8" y="12.8" width="8" height="8" rx="1.6"/><rect class="rd-ck rd-ck4" x="3.2" y="12.8" width="8" height="8" rx="1.6" opacity=".28"/></svg>',
+
+    carro   : S0+'<path d="M2.8 13.4 4.5 8.3a2.4 2.4 0 0 1 2.3-1.6h10.4a2.4 2.4 0 0 1 2.3 1.6l1.7 5.1"/><path d="M2.8 13.4h18.4v4a1 1 0 0 1-1 1h-1.7a1 1 0 0 1-1-1v-.9H6.5v.9a1 1 0 0 1-1 1H3.8a1 1 0 0 1-1-1z"/><circle cx="6.9" cy="15.6" r=".95" fill="currentColor" stroke="none"/><circle cx="17.1" cy="15.6" r=".95" fill="currentColor" stroke="none"/></svg>',
+
+    reloj   : S0+'<circle cx="12" cy="13.8" r="7.4"/><path d="M12 10.2v3.6l2.3 1.5"/><path d="M9.7 2.9h4.6"/><path d="M12 2.9v2.4"/></svg>',
+
+    tienda  : S0+'<path d="M2.9 9.4 4.6 4.7a1 1 0 0 1 .95-.7h12.9a1 1 0 0 1 .95.7l1.7 4.7"/><path d="M4.4 9.4V19a1 1 0 0 0 1 1h13.2a1 1 0 0 0 1-1V9.4"/><path d="M4.4 9.4h15.2"/><path d="M9.5 20v-5.6h5V20"/></svg>',
+
+    verificado : '<svg viewBox="0 0 24 24"><circle class="rd-vb" cx="12" cy="12" r="9.6" fill="#1d9bf0"/><path class="rd-vc" d="M7.7 12.3l2.9 2.9 5.7-6.1" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+
+    cafe    : S0+'<path class="rd-steam" d="M8.4 5.5c0-1.1 1.1-1.3 1.1-2.4"/><path class="rd-steam rd-steam2" d="M12 5.5c0-1.1 1.1-1.3 1.1-2.4"/><path d="M3.6 8.9h13.1v5.9a4.3 4.3 0 0 1-4.3 4.3H7.9a4.3 4.3 0 0 1-4.3-4.3z"/><path d="M16.7 10.4h1.5a2.4 2.4 0 0 1 0 4.9h-1.5"/><path d="M2.6 21.2h15.1"/></svg>',
+
+    entrar  : S0+'<path d="M3.4 12h14.1"/><path d="M12.6 6.6 18 12l-5.4 5.4"/></svg>'
+  };
+
+  var SLIDES = [
+    {
+      src:'/intro-1.jpg', type:'image', tint:'#16120a', pos:'center 35%', icon:'checker',
+      eyebrow:'bienvenida',
+      title:'bienvenido a la\napp automotriz\nde venezuela.',
+      sub:'comprar, vender y subastar. un solo lugar, un solo estándar.'
+    },
+    {
+      src:'/intro-2.jpg', type:'image', tint:'#1a0c0c', pos:'center 38%', icon:'carro',
+      eyebrow:'el market',
+      title:'solo vehículos.\nnada más.',
+      sub:'no barcos, no inmuebles, no motos. un catálogo dedicado y curado por especialistas.'
+    },
+    {
+      src:'/intro-3.jpg', type:'image', tint:'#0b1119', pos:'center 50%', icon:'reloj',
+      eyebrow:'las subastas',
+      title:'y también\npuedes subastar.',
+      sub:'lote publicado, reloj corriendo, adjudicación al mejor postor. de 3 a 25 días, tú fijas el cierre.'
+    },
+    {
+      src:'/intro-4.jpg', type:'image', tint:'#14120d', pos:'center 58%', icon:'tienda',
+      eyebrow:'concesionarios',
+      title:'los concesionarios,\ncon vitrina propia.',
+      sub:'inventario completo, perfil con sello y contacto directo con la agencia.'
+    },
+    {
+      src:'/intro-5.jpg', type:'image', tint:'#131313', pos:'center center', icon:'verificado',
+      eyebrow:'verificación',
+      title:'aquí todos\nestán verificados.',
+      sub:'cédula validada y sello azul junto al nombre. cada lote revisado, cada postor identificado.'
+    },
+    {
+      src:'/intro-6.jpg', type:'image', tint:'#16130d', pos:'center 38%', icon:'cafe',
+      eyebrow:'nuestros espacios',
+      title:'tómate un café\ny conócenos.',
+      sub:'te esperamos en nuestros espacios. ven, pregunta y revisa los vehículos en persona.'
+    },
+    {
+      src:'/intro-7.jpg', type:'image', tint:'#0d0d0f', pos:'center 55%', icon:'entrar',
+      eyebrow:'listo',
+      title:'ya estás\nadentro.',
+      sub:'market, subastas, concesionarios, repuestos y post-venta. el ecosistema completo de tu vehículo.'
+    }
+  ];
+
+
+  /* ── ¿toca mostrarlo? ─────────────────────────────────────── */
+  var root = document.getElementById('rd-intro');
+  if(!root) return;
+
+  var qs = '';
+  try{ qs = String(window.location.search||''); }catch(e){}
+  var forced = /[?&]intro=1/.test(qs);
+  if(/[?&]intro=reset/.test(qs)){ try{ localStorage.removeItem(CFG.key); }catch(e){} }
+
+  function seen(){ try{ return localStorage.getItem(CFG.key)==='1'; }catch(e){ return false; } }
+  function isNative(){
+    try{
+      var C = window.Capacitor;
+      if(!C) return false;
+      if(typeof C.isNativePlatform === 'function') return !!C.isNativePlatform();
+      if(typeof C.getPlatform === 'function') return C.getPlatform() !== 'web';
+    }catch(e){}
+    return false;
+  }
+  function isStandalone(){
+    try{
+      if(window.navigator.standalone === true) return true;
+      return !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    }catch(e){ return false; }
+  }
+
+  var eligible = isNative() || isStandalone() || CFG.showOnWeb;
+  if(!forced && (seen() || !eligible)) return;
+
+  /* ── montaje ──────────────────────────────────────────────── */
+  var media   = document.getElementById('rd-intro-media');
+  var numEl   = document.getElementById('rd-intro-num');
+  var totEl   = document.getElementById('rd-intro-tot');
+  var ruleEl  = document.querySelector('#rd-intro-rule > i');
+  var iconEl  = document.getElementById('rd-intro-icon');
+  var eyeEl   = document.getElementById('rd-intro-eyebrow');
+  var titleEl = document.getElementById('rd-intro-title');
+  var subEl   = document.getElementById('rd-intro-sub');
+  var touch   = document.getElementById('rd-intro-touch');
+  var slides = [], cur = -1, timer = null, dead = false;
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  totEl.textContent = pad(SLIDES.length);
+
+  SLIDES.forEach(function(s,i){
+    var d = document.createElement('div');
+    d.className = 'rd-slide';
+    d.style.setProperty('--rd-slide-fallback',
+      'radial-gradient(120% 80% at 50% 18%,'+(s.tint||'#141414')+' 0%,#0a0a0a 60%,#000 100%)');
+    if(s.pos) d.style.setProperty('--rd-pos', s.pos);
+
+    var el;
+    if(s.type === 'video'){
+      el = document.createElement('video');
+      el.muted = true; el.loop = true; el.playsInline = true;
+      el.setAttribute('playsinline',''); el.setAttribute('muted','');
+      el.preload = i === 0 ? 'auto' : 'metadata';
+    }else{
+      el = document.createElement('img');
+      el.alt = '';
+      el.decoding = 'async';
+      el.loading = i === 0 ? 'eager' : 'lazy';
+    }
+    // si el archivo todavía no está en www/, cae al degradado en vez de romperse
+    el.addEventListener('error', function(){ d.classList.add('rd-nomedia'); }, {once:true});
+    el.src = s.src;
+    d.appendChild(el);
+    media.appendChild(d);
+    slides.push(d);
+  });
+
+  var reduce = false;
+  try{ reduce = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }catch(e){}
+
+  /* la regla avanza sobre el total, no sobre el slide: el usuario ve
+     cuánto le falta para terminar, no cuánto le falta para el próximo. */
+  function paintProgress(idx){
+    numEl.textContent = pad(idx + 1);
+    var from = (idx / SLIDES.length) * 100;
+    var to   = ((idx + 1) / SLIDES.length) * 100;
+    ruleEl.style.transition = 'none';
+    ruleEl.style.width = from + '%';
+    void ruleEl.offsetWidth; // reflow: sin esto el reset se colapsa y no anima
+    ruleEl.style.transition = 'width ' + CFG.slideMs + 'ms linear';
+    ruleEl.style.width = to + '%';
+  }
+
+  function cascade(){
+    [iconEl,eyeEl,titleEl,subEl].forEach(function(el){
+      el.classList.remove('rd-in');
+      void el.offsetWidth;
+      el.classList.add('rd-in');
+    });
+  }
+
+  function go(i){
+    if(dead) return;
+    i = (i + SLIDES.length) % SLIDES.length;
+    if(i === cur) return;
+    cur = i;
+    var s = SLIDES[i];
+
+    slides.forEach(function(d,k){ d.classList.toggle('rd-cur', k === i); });
+    var v = slides[i].querySelector('video');
+    if(v){ try{ v.currentTime = 0; v.play().catch(function(){}); }catch(e){} }
+
+    // reinyectar el SVG reinicia sus animaciones sin trucos extra
+    iconEl.innerHTML  = ICONS[s.icon] || '';
+    eyeEl.textContent = s.eyebrow;
+    titleEl.innerHTML = esc(s.title).replace(/\n/g,'<br>');
+    subEl.textContent = s.sub;
+    cascade();
+    paintProgress(i);
+
+    clearTimeout(timer);
+    timer = setTimeout(function(){ go(cur + 1); }, CFG.slideMs);
+  }
+
+  /* ── salida ───────────────────────────────────────────────── */
+  function dismiss(then){
+    if(dead) return; dead = true;
+    clearTimeout(timer);
+    try{ localStorage.setItem(CFG.key,'1'); }catch(e){}
+    root.classList.add('rd-out');
+    document.documentElement.classList.remove('rd-intro-lock');
+    setTimeout(function(){
+      if(root.parentNode) root.parentNode.removeChild(root);
+      if(typeof then === 'function'){ try{ then(); }catch(e){} }
+    }, 460);
+  }
+
+  document.getElementById('rd-intro-skip').addEventListener('click', function(){ dismiss(); });
+
+  document.getElementById('rd-intro-market').addEventListener('click', function(){
+    dismiss(function(){
+      if(typeof showView === 'function') showView('home');
+      if(typeof selectSection === 'function') selectSection('market');
+    });
+  });
+
+  document.getElementById('rd-intro-register').addEventListener('click', function(){
+    dismiss(function(){
+      if(typeof showMobileAuth === 'function') showMobileAuth('register');
+      else if(typeof showLandingAuth === 'function') showLandingAuth('register');
+    });
+  });
+
+  /* ── swipe / tap en la zona de la foto ────────────────────── */
+  var x0 = 0, y0 = 0, t0 = 0;
+  touch.addEventListener('touchstart', function(e){
+    var t = e.changedTouches[0]; x0 = t.clientX; y0 = t.clientY; t0 = Date.now();
+  }, {passive:true});
+  touch.addEventListener('touchend', function(e){
+    var t = e.changedTouches[0];
+    var dx = t.clientX - x0, dy = t.clientY - y0;
+    if(Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)){ go(cur + (dx < 0 ? 1 : -1)); return; }
+    if(Math.abs(dx) < 12 && Math.abs(dy) < 12 && Date.now() - t0 < 400){
+      go(cur + (t.clientX < window.innerWidth * 0.33 ? -1 : 1));
+    }
+  }, {passive:true});
+  touch.addEventListener('click', function(e){
+    if(!('ontouchstart' in window)) go(cur + (e.clientX < window.innerWidth * 0.33 ? -1 : 1));
+  });
+
+  /* ── arranque ─────────────────────────────────────────────── */
+  document.documentElement.classList.add('rd-intro-lock');
+  root.classList.add('rd-on');
+  go(0);
+})();
+</script>
+
 
 <!-- BOOT SPLASH — versión de prueba: isotipo + dot lima. Estética final pendiente. -->
 <div id="boot-splash">
@@ -11575,13 +12063,13 @@ function renderFotos(filter){
         </div>
         <div style="text-align:right">
           <div style="font-size:13px;font-weight:700;color:#e6f03b">${f.rating} ★</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:2px">${f.trabajos} trabajos</div>
+          ${f.precio?`<div style="font-size:11px;color:var(--muted);margin-top:2px">desde $${f.precio}</div>`:(f.fotos&&f.fotos.length?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${f.fotos.length} ${f.fotos.length===1?'trabajo':'trabajos'}</div>`:'')}
         </div>
       </div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:14px;padding:7px 11px;background:rgba(255,255,255,.03);border-radius:8px;border:1px solid var(--border)">${f.especialidad}</div>
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:13px;color:var(--muted);cursor:pointer;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted)'">ver catálogo</span>
-        <button style="background:#e6f03b;color:#000;border:none;border-radius:100px;padding:10px 22px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s,box-shadow .2s" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'" onmouseover="this.style.boxShadow='0 0 16px rgba(230,240,59,.35)'" onmouseout="this.style.boxShadow='none'" onclick="contratarFotografo('${f.nombre}')">contratar</button>
+        ${_fotoTieneCatalogo(f)?`<span style="font-size:13px;color:var(--muted);cursor:pointer;transition:color .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted)'" onclick="verCatalogoFotografo('${_esc(f.id)}')">ver catálogo</span>`:'<span></span>'}
+        <button style="background:#e6f03b;color:#000;border:none;border-radius:100px;padding:10px 22px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s,box-shadow .2s" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'" onmouseover="this.style.boxShadow='0 0 16px rgba(230,240,59,.35)'" onmouseout="this.style.boxShadow='none'" onclick="contratarFotografo('${_esc(f.id)}')">contratar</button>
       </div>
     </div>`).join('');
 }
@@ -11600,8 +12088,68 @@ function filterFotos(el, ciudad){
   renderFotos(ciudad);
 }
 
-function contratarFotografo(nombre){
-  showToast('contactando a '+nombre+'...', true);
+// [FIX] contratarFotografo solo mostraba un toast — nunca abría nada, así que el
+// botón se sentía roto. Y "ver catálogo" era un <span> sin onclick: puro adorno.
+// Ahora ambos resuelven contra los datos reales que carga _loadFotografos()
+// desde Supabase (whatsapp, instagram, fotos_url), buscando por id y no por
+// nombre: un nombre con apóstrofe rompía el onclick generado.
+function _fotoById(id){
+  return FOTOGRAFOS.find(f=>String(f.id)===String(id));
+}
+
+// normaliza a formato internacional para wa.me. Venezuela por defecto, porque
+// es como los cargan en el panel: 0414-1234567, 414 1234567, +58 414...
+function _waNumber(tel){
+  let d=String(tel||'').replace(/[^0-9]/g,'');
+  if(!d) return '';
+  if(d.startsWith('00')) d=d.slice(2);
+  if(d.startsWith('58')) return d.length>=12?d:'';
+  if(d.startsWith('0')) d=d.slice(1);
+  if(d.length===10) return '58'+d;
+  if(d.length>=11) return d;
+  return '';
+}
+
+function _fotoUrl(u){
+  const s=String(u||'').trim();
+  if(!s) return '';
+  return /^https?:\/\//i.test(s)?s:'https://'+s;
+}
+
+function _igUrl(h){
+  const s=String(h||'').trim();
+  if(!s) return '';
+  if(/^https?:\/\//i.test(s)) return s;
+  return 'https://instagram.com/'+s.replace(/^@/,'');
+}
+
+// si no hay nada que abrir, la tarjeta no dibuja el enlace: mejor sin afordancia
+// que con una que no responde
+function _fotoTieneCatalogo(f){
+  return !!((f.fotos&&f.fotos.some(Boolean))||f.instagram);
+}
+
+function contratarFotografo(id){
+  const f=_fotoById(id);
+  if(!f){showToast('no encontramos a ese fotógrafo');return;}
+  const wa=_waNumber(f.whatsapp);
+  if(wa){
+    const msg=encodeURIComponent(`Hola ${f.nombre}, te contacto desde Ruedda. Quiero cotizar una sesión de fotos para mi vehículo.`);
+    window.open(`https://wa.me/${wa}?text=${msg}`,'_blank','noopener');
+    return;
+  }
+  const ig=_igUrl(f.instagram);
+  if(ig){ window.open(ig,'_blank','noopener'); return; }
+  showToast('este fotógrafo aún no dejó datos de contacto');
+}
+
+function verCatalogoFotografo(id){
+  const f=_fotoById(id);
+  if(!f) return;
+  const link=(f.fotos||[]).find(Boolean);
+  const url=link?_fotoUrl(link):_igUrl(f.instagram);
+  if(!url){ showToast('este fotógrafo aún no cargó su catálogo'); return; }
+  window.open(url,'_blank','noopener');
 }
 
 function _fotografosCoverSetPhoto(url){
