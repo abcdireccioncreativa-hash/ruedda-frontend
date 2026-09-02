@@ -353,11 +353,11 @@ html{scrollbar-width:none}
    precios en mobile; en desktop vive en el right-col, debajo del price card, mismo ancho
    (380px, ver .detail-layout-desktop grid). Mismo lenguaje/comportamiento que
    .promo-banner-slider (fade, swipe, autoplay) pero compacto y como card, no edge-to-edge. */
-.mini-banner-slider{position:relative;overflow:hidden;aspect-ratio:3.6/1;border-radius:14px;background:var(--card2)}
+.mini-banner-slider{width:100%;box-sizing:border-box;flex-shrink:0;position:relative;overflow:hidden;aspect-ratio:3.6/1;border-radius:18px;background:var(--card2)}
 .mini-banner-slide{position:absolute;inset:0;overflow:hidden;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .6s cubic-bezier(.4,0,.2,1)}
 .mini-banner-slide.active{opacity:1;pointer-events:auto}
 .mini-banner-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-#mkt-minibanner-wrap,#detail-minibanner-wrap{display:none}
+#mkt-minibanner-wrap,#detail-minibanner-wrap{display:none;width:100%;flex-shrink:0;box-sizing:border-box}
 #mkt-minibanner-wrap.mb-has-data,#detail-minibanner-wrap.mb-has-data{display:block}
 #mkt-minibanner-wrap-desktop,#detail-minibanner-wrap-desktop{display:none}
 #mkt-minibanner-wrap-desktop.mb-has-data,#detail-minibanner-wrap-desktop.mb-has-data{display:block}
@@ -6586,7 +6586,7 @@ function _renderMiniBannerInto(trackId,wrapId){
   _miniBannerIdx[trackId]=0;
   track.innerHTML=MINI_BANNER.map((s,i)=>`
     <div class="mini-banner-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
-      ${s.imagen_url?`<img src="${_tImg(s.imagen_url,{width:900,quality:82})}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'" onerror="this.closest('.mini-banner-slide').style.display='none'">`:''}
+      ${s.imagen_url?`<img src="${_tImg(s.imagen_url,{width:1200,quality:85})}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'" onerror="this.closest('.mini-banner-slide').style.display='none'">`:''}
     </div>`).join('');
   if(MINI_BANNER.length<2) return; // una sola foto: fija, sin autoplay
   _bindMiniBannerSwipe(track,trackId);
