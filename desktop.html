@@ -530,6 +530,16 @@ html{scrollbar-width:none}
 .detail-left-col{order:1;display:flex;flex-direction:column}
 .bid-section{margin-bottom:34px}
 
+/* [MINI BANNER] banner chico patrocinado, debajo del price card (right-col), mismo
+   ancho (380px). Mismo lenguaje/comportamiento que un sponsor slider (fade, swipe,
+   autoplay) pero compacto y como card. Ver mismo feature en index.html (mobile). */
+.mini-banner-slider{position:relative;overflow:hidden;aspect-ratio:3.6/1;border-radius:14px;background:var(--card2)}
+.mini-banner-slide{position:absolute;inset:0;overflow:hidden;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .6s cubic-bezier(.4,0,.2,1)}
+.mini-banner-slide.active{opacity:1;pointer-events:auto}
+.mini-banner-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#mkt-minibanner-wrap,#detail-minibanner-wrap{display:none}
+#mkt-minibanner-wrap.mb-has-data,#detail-minibanner-wrap.mb-has-data{display:block}
+
 .detail-back{display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--white);font-size:14px;font-weight:300;padding:16px 10px 16px;transition:opacity .2s;width:fit-content}
 .detail-back svg{width:20px;height:20px;flex-shrink:0}
 .detail-back:hover{opacity:.7}
@@ -2477,6 +2487,10 @@ html{scrollbar-width:none}
           <div id="reserva-info-title" style="font-size:14px;font-weight:700;color:#fff"></div>
           <div id="reserva-info-sub" style="font-size:11.5px;font-weight:400;color:rgba(255,255,255,.5);line-height:1.5;margin-top:1px"></div>
         </div>
+        <!-- [MINI BANNER] debajo del price card, mismo ancho -->
+        <div id="detail-minibanner-wrap" style="margin-top:20px">
+          <div class="mini-banner-slider" id="detail-minibanner-slider"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -2612,6 +2626,10 @@ html{scrollbar-width:none}
               <div style="font-size:11px;color:var(--muted);margin-top:2px" id="mkt-seller-type-bid"></div>
             </div>
           </div>
+        </div>
+        <!-- [MINI BANNER] debajo del price card, mismo ancho. Cubre market y listings de concesionario (mismo template, concesionario_id) -->
+        <div id="mkt-minibanner-wrap" style="margin-top:20px">
+          <div class="mini-banner-slider" id="mkt-minibanner-slider"></div>
         </div>
         <div id="mkt-related-section"></div>
       </div>
@@ -4844,7 +4862,7 @@ function showView(name,param){
     });
     renderCurrentSection();
     // refetch desde DB para que listings aprobados aparezcan sin recargar la página
-    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors(),_loadChocadosSponsors(),_loadRentals()]).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
+    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors(),_loadChocadosSponsors(),_loadMiniBanner(),_loadRentals()]).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
     // [config] respeta "al iniciar sesión mostrar siempre" — solo usuarios logueados, guest siempre subastas
     if(_target==='subastas'&&isLoggedIn&&USER_STATE.defaultView==='market') selectSection('market');
   } else {}
@@ -6134,6 +6152,75 @@ function _bindSponsorSwipe(track){
     if(!active)return; active=false;
     const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
     if(Math.abs(dx)>36&&Math.abs(dx)>Math.abs(dy)){ dx<0?_goToSponsor(_sponsorIdx+1):_goToSponsor(_sponsorIdx-1); }
+  },{passive:true});
+}
+
+// [MINI BANNER] banner chico patrocinado — debajo del price card en cada publicación
+// (market, subastas, y listings de concesionario que reusan el template de market).
+// Mismo patrocinante (categoria='mini banner detalle') que alimenta el equivalente
+// mobile en index.html. Hasta 5 fotos, fade cada 3.2s, swipeable, sin dots.
+let MINI_BANNER=[];
+let _lastMiniBannerHash=null;
+const _miniBannerIdx={};
+const _miniBannerResumeTimer={};
+const _MINI_BANNER_TARGETS=[
+  {wrap:'mkt-minibanner-wrap',track:'mkt-minibanner-slider'},
+  {wrap:'detail-minibanner-wrap',track:'detail-minibanner-slider'}
+];
+async function _loadMiniBanner(){
+  if(!_supa) return;
+  try{
+    const{data,error}=await _supa.from('patrocinantes').select('*').eq('categoria','mini banner detalle').order('created_at',{ascending:false}).limit(5);
+    if(error){console.error('[ruedda] _loadMiniBanner:',String(error?.message||error));renderMiniBanner();return;}
+    const hash=(data||[]).map(s=>s.id+'_'+(s.imagen_url||'')).join(',');
+    if(hash===_lastMiniBannerHash) return;
+    _lastMiniBannerHash=hash;
+    MINI_BANNER=data||[];
+    renderMiniBanner();
+  }catch(e){console.error('[ruedda] _loadMiniBanner catch:',String(e?.message||e));}
+}
+function renderMiniBanner(){
+  _MINI_BANNER_TARGETS.forEach(t=>_renderMiniBannerInto(t.track,t.wrap));
+}
+function _renderMiniBannerInto(trackId,wrapId){
+  const track=document.getElementById(trackId), wrap=document.getElementById(wrapId);
+  if(!track||!wrap) return;
+  clearInterval(timers['miniBanner_'+trackId]);
+  wrap.classList.toggle('mb-has-data',MINI_BANNER.length>0);
+  if(!MINI_BANNER.length){ track.innerHTML=''; return; }
+  _miniBannerIdx[trackId]=0;
+  track.innerHTML=MINI_BANNER.map((s,i)=>`
+    <div class="mini-banner-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
+      ${s.imagen_url?`<img src="${_tImg(s.imagen_url,{width:900,quality:82})}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'" onerror="this.closest('.mini-banner-slide').style.display='none'">`:''}
+    </div>`).join('');
+  if(MINI_BANNER.length<2) return; // una sola foto: fija, sin autoplay
+  _bindMiniBannerSwipe(track,trackId);
+  timers['miniBanner_'+trackId]=setInterval(()=>_advanceMiniBanner(trackId),3200);
+}
+function _goToMiniBanner(trackId,i){
+  if(!MINI_BANNER.length) return;
+  const idx=((i%MINI_BANNER.length)+MINI_BANNER.length)%MINI_BANNER.length;
+  _miniBannerIdx[trackId]=idx;
+  document.querySelectorAll('#'+trackId+' .mini-banner-slide').forEach((el,k)=>el.classList.toggle('active',k===idx));
+}
+function _advanceMiniBanner(trackId){
+  _goToMiniBanner(trackId,(_miniBannerIdx[trackId]||0)+1);
+}
+function _pauseMiniBannerAutoplay(trackId){
+  clearInterval(timers['miniBanner_'+trackId]);
+  clearTimeout(_miniBannerResumeTimer[trackId]);
+  _miniBannerResumeTimer[trackId]=setTimeout(()=>{if(MINI_BANNER.length>1)timers['miniBanner_'+trackId]=setInterval(()=>_advanceMiniBanner(trackId),3200);},5000);
+}
+function _bindMiniBannerSwipe(track,trackId){
+  let sx=0,sy=0,active=false;
+  track.addEventListener('touchstart',e=>{
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;active=true;
+    _pauseMiniBannerAutoplay(trackId);
+  },{passive:true});
+  track.addEventListener('touchend',e=>{
+    if(!active)return; active=false;
+    const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>36&&Math.abs(dx)>Math.abs(dy)){ dx<0?_goToMiniBanner(trackId,(_miniBannerIdx[trackId]||0)+1):_goToMiniBanner(trackId,(_miniBannerIdx[trackId]||0)-1); }
   },{passive:true});
 }
 
@@ -17907,7 +17994,7 @@ async function _saDeleteSolicitud(tbl,id){
 }
 
 // ── PATROCINANTES SUPERADMIN ──────────────────────────────
-const _saPatCats = ['market','chocados','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
+const _saPatCats = ['market','mini banner detalle','chocados','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
 let _saPatData = {};
 
 async function saLoadPatrocinantes(){
