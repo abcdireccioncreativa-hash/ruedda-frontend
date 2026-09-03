@@ -2992,7 +2992,7 @@ html{scrollbar-width:none}
     </div>
     <div class="form-group"><label class="form-label">Modelo.</label><input class="form-input" type="text" placeholder="ej. Corolla XLI"></div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="number" inputmode="numeric" placeholder="km"></div>
+      <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="text" inputmode="numeric" placeholder="km" oninput="_milesInputHandler(this)"></div>
       <div class="form-group"><label class="form-label">Dueños previos.</label>
         <select class="form-select" id="duenos-select" onchange="_toggleDuenosExacto(this.value)"><option>1</option><option>2</option><option>3</option><option>4+</option></select>
         <input class="form-input" type="number" inputmode="numeric" id="duenos-exacto-input" placeholder="cantidad exacta" min="4" style="display:none;margin-top:8px">
@@ -3052,15 +3052,15 @@ html{scrollbar-width:none}
     <!-- PRECIO: particular muestra precio fijo, subasta muestra reserva -->
     <div class="form-group" id="field-precio-fijo">
       <label class="form-label">Precio (USD).</label>
-      <input class="form-input" type="number" inputmode="numeric" placeholder="precio de venta">
+      <input class="form-input" type="text" inputmode="numeric" placeholder="precio de venta" oninput="_milesInputHandler(this)">
     </div>
     <div class="form-group" id="field-precio-reserva" style="display:none">
       <label class="form-label">Precio base de subasta (USD).</label>
-      <input class="form-input" type="number" inputmode="numeric" id="precio-base-input" placeholder="ej: 5000 — arranca en 0 si se deja vacío" min="0">
+      <input class="form-input" type="text" inputmode="numeric" id="precio-base-input" placeholder="ej: 5.000 — arranca en 0 si se deja vacío" oninput="_milesInputHandler(this)">
     </div>
     <div class="form-group" id="field-reserva-oculta" style="display:none">
       <label class="form-label">Precio de reserva (USD) · solo lo ves tú.</label>
-      <input class="form-input" type="number" inputmode="numeric" id="precio-reserva-input" placeholder="opcional: mínimo para vender — no se muestra en la publicación" min="0">
+      <input class="form-input" type="text" inputmode="numeric" id="precio-reserva-input" placeholder="opcional: mínimo para vender — no se muestra en la publicación" oninput="_milesInputHandler(this)">
     </div>
 
     <!-- DURACIÓN: solo aparece en subasta -->
@@ -4526,6 +4526,7 @@ html{scrollbar-width:none}
         <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px">datos de pago móvil Ruedda</div>
         <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">banco</span><span style="font-weight:600" id="checkout-banco">Banesco</span></div>
         <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">teléfono</span><span style="font-weight:600;cursor:pointer" data-pay-telefono onclick="navigator.clipboard?.writeText(document.getElementById('checkout-banco-tel').textContent);showToast('copiado',true)" id="checkout-banco-tel">0412-0000000</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">cédula</span><span style="font-weight:600;cursor:pointer" data-pay-cedula onclick="navigator.clipboard?.writeText(document.getElementById('checkout-banco-cedula').textContent);showToast('copiado',true)" id="checkout-banco-cedula">V-28187688</span></div>
         <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">monto exacto</span><span style="font-weight:700;color:#e6f03b" id="checkout-ves-exact">Bs. —</span></div>
       </div>
       <input class="form-input" type="text" id="checkout-ref" placeholder="número de referencia Banesco" maxlength="20">
@@ -4560,6 +4561,14 @@ html{scrollbar-width:none}
 <div class="modal-overlay" id="pricing-sheet" onclick="if(event.target.id==='pricing-sheet')closePricingSheet()" style="align-items:flex-end">
   <div style="background:#0a0a0a;border-radius:26px 26px 0 0;padding:0 0 48px;width:100%;border:1px solid rgba(255,255,255,.08);border-bottom:none;animation:slideUp .35s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
     <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:#222;border-radius:2px"></div></div>
+
+    <!-- [V135] banner 16:9 editable desde Super Admin (ej. "código gratis
+         del día") — oculto si no hay foto subida, no deja hueco vacío. -->
+    <div id="pricing-banner-wrap" style="display:none;padding:16px 16px 0">
+      <div style="width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--card)">
+        <img id="pricing-banner-img" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+    </div>
 
     <!-- HEADER -->
     <div style="padding:28px 22px 20px;text-align:center">
@@ -4695,6 +4704,38 @@ function _updateSeoMeta(section){
 _updateSeoMeta(_bootIsDedicatedSectionPath ? currentSection : null);
 
 let PAYMENT_DATA={banco:'Banesco',telefono:'04123921048',cedula:'28187688',cuenta:''};
+// [V135] miles con puntos, estilo venezolano (20000 -> 20.000) — a mano con
+// regex en vez de toLocaleString() para no depender del locale del navegador
+// de cada quien (podía dar comas en vez de puntos según el dispositivo).
+function _milesFmt(n){
+  if(n===null||n===undefined||n==='') return '';
+  var s=String(n).replace(/\D/g,'');
+  if(!s) return '';
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+function _fmtCedula(c){
+  if(!c) return '—';
+  return 'V-'+_milesFmt(c);
+}
+// [V135] "20000 -> 20.000" mientras se escribe, en vivo, preservando dónde
+// estaba el cursor (contando dígitos a la izquierda del cursor antes de
+// reformatear, y recolocándolo después del mismo conteo de dígitos) — así
+// no salta al final del campo cada vez que se corrige algo en el medio.
+function _milesInputHandler(el){
+  var caret=el.selectionStart;
+  var digitsBeforeCaret=el.value.slice(0,caret).replace(/\D/g,'').length;
+  var digits=el.value.replace(/\D/g,'');
+  el.value=_milesFmt(digits);
+  var count=0,pos=0;
+  for(pos=0;pos<el.value.length&&count<digitsBeforeCaret;pos++){
+    if(/\d/.test(el.value[pos]))count++;
+  }
+  el.setSelectionRange(pos,pos);
+}
+// [V135] quita los puntos de miles antes de parsear — los campos de precio/km
+// ahora muestran "20.000" en vivo, pero el valor real para guardar en la
+// base debe ser el número limpio.
+function _numClean(s){ return String(s||'').replace(/\./g,''); }
 // [V126] persistido de verdad en app_settings (antes vivía solo en memoria del
 // navegador del admin — se perdía al recargar y nunca llegaba a los usuarios).
 async function _loadPaymentData(){
@@ -4706,6 +4747,10 @@ async function _loadPaymentData(){
       Object.assign(PAYMENT_DATA,saved);
       if(document.getElementById('checkout-banco')) document.getElementById('checkout-banco').textContent=PAYMENT_DATA.banco;
       if(document.getElementById('checkout-banco-tel')) document.getElementById('checkout-banco-tel').textContent=PAYMENT_DATA.telefono;
+      // [V135 FIX] la cédula de pago móvil se guardaba y se podía editar desde
+      // Super Admin, pero el checkout nunca tenía un elemento para mostrarla —
+      // el comprador jamás la veía aunque estuviera bien guardada en la base.
+      if(document.getElementById('checkout-banco-cedula')) document.getElementById('checkout-banco-cedula').textContent=_fmtCedula(PAYMENT_DATA.cedula);
     }
   }catch(e){console.warn('[ruedda] _loadPaymentData:',e?.message||e);}
 }
@@ -5461,6 +5506,7 @@ async function savePaymentData(){
   PAYMENT_DATA.cuenta=document.getElementById('sa-pay-cuenta')?.value||PAYMENT_DATA.cuenta;
   if(document.getElementById('checkout-banco')) document.getElementById('checkout-banco').textContent=PAYMENT_DATA.banco;
   if(document.getElementById('checkout-banco-tel')) document.getElementById('checkout-banco-tel').textContent=PAYMENT_DATA.telefono;
+  if(document.getElementById('checkout-banco-cedula')) document.getElementById('checkout-banco-cedula').textContent=_fmtCedula(PAYMENT_DATA.cedula);
   // [V126] persistir de verdad — antes esto solo vivía en memoria del navegador
   // del admin y se perdía al recargar, todos los demás usuarios seguían viendo
   // el default hardcodeado.
@@ -5476,6 +5522,61 @@ function saBankLogoUpload(input){
   const url=URL.createObjectURL(input.files[0]);
   const p=document.getElementById('sa-bank-logo-preview');
   if(p) p.innerHTML=`<img decoding="async" src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`;
+}
+
+// [V135] comprime/redimensiona en el navegador (canvas, sin librerías) ANTES
+// de subir — mismo helper que ya existe en index.html para las fotos del
+// intro, portado acá porque no existía en este archivo.
+function _compressImageFile(file, maxDim, quality){
+  return new Promise(resolve => {
+    try{
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let w = img.naturalWidth, h = img.naturalHeight;
+        const scale = Math.min(1, maxDim / Math.max(w, h));
+        w = Math.round(w * scale); h = Math.round(h * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+      };
+      img.onerror = () => resolve(file); // si falla, sube el original tal cual
+      img.src = url;
+    }catch(e){ resolve(file); }
+  });
+}
+// [V135] banner 16:9 del selector de plan (app_settings key 'pricing_banner_url')
+async function _saLoadPricingBannerPreview(){
+  const prev=document.getElementById('sa-pricing-banner-preview');
+  if(!prev||!_supa) return;
+  const{data}=await _supa.from('app_settings').select('value').eq('key','pricing_banner_url').maybeSingle();
+  if(data?.value) prev.innerHTML=`<img src="${data.value}" style="width:100%;height:100%;object-fit:cover">`;
+  else prev.innerHTML='<span style="font-size:13px;color:var(--muted)">toca para subir (ej. "código gratis del día")</span>';
+}
+async function _saUploadPricingBanner(input){
+  const file=input.files?.[0];
+  if(!file||!_supa) return;
+  showToast('subiendo banner...');
+  const compressed=await _compressImageFile(file,1600,0.85);
+  const path=`pricing-banner_${Date.now()}.jpg`;
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,compressed,{upsert:false,contentType:'image/jpeg'});
+  if(upErr){showToast('error: '+upErr.message);return;}
+  const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('app_settings').upsert({key:'pricing_banner_url',value:urlData.publicUrl,updated_at:new Date().toISOString()});
+  if(dbErr){showToast('error guardando: '+dbErr.message);return;}
+  const prev=document.getElementById('sa-pricing-banner-preview');
+  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  showToast('banner actualizado',true);
+}
+async function _saRemovePricingBanner(){
+  if(!_supa) return;
+  const{error}=await _supa.from('app_settings').upsert({key:'pricing_banner_url',value:'',updated_at:new Date().toISOString()});
+  if(error){showToast('error: '+error.message);return;}
+  _saLoadPricingBannerPreview();
+  showToast('banner quitado',true);
 }
 
 function submitRef(userId,refNum,amountUSD,extra){
@@ -9254,6 +9355,23 @@ function openPricingSheet(){
 
   document.getElementById('pricing-sheet').classList.add('open');
   _syncPagosUrl();
+  _loadPricingBanner();
+}
+// [V135] banner 16:9 arriba del todo en el selector de plan — simple
+// contenedor de foto editable desde Super Admin (ej. "código gratis del
+// día"). Se esconde solo si no hay foto subida, sin dejar hueco vacío.
+async function _loadPricingBanner(){
+  const wrap=document.getElementById('pricing-banner-wrap');
+  if(!wrap||!_supa){ if(wrap) wrap.style.display='none'; return; }
+  try{
+    const{data}=await _supa.from('app_settings').select('value').eq('key','pricing_banner_url').maybeSingle();
+    if(data?.value){
+      document.getElementById('pricing-banner-img').src=_tImg(data.value,{width:700,quality:80});
+      wrap.style.display='block';
+    } else {
+      wrap.style.display='none';
+    }
+  }catch(e){ wrap.style.display='none'; }
 }
 
 // [V126] mientras el usuario elige plan / paga, la URL en la barra dice
@@ -9349,6 +9467,7 @@ function openCheckout(){
   // sync payment data
   if(document.getElementById('checkout-banco')) document.getElementById('checkout-banco').textContent=PAYMENT_DATA.banco;
   if(document.getElementById('checkout-banco-tel')) document.getElementById('checkout-banco-tel').textContent=PAYMENT_DATA.telefono;
+  if(document.getElementById('checkout-banco-cedula')) document.getElementById('checkout-banco-cedula').textContent=_fmtCedula(PAYMENT_DATA.cedula);
   switchPayTab('usd');
   fetchBCVRate(price);
   document.getElementById('checkout-modal').classList.add('open');
@@ -9677,7 +9796,7 @@ function validateVenderForm(){
   if(!marca || marca==='')          errors.push('selecciona la marca');
   if(!modelo)                       errors.push('ingresa el modelo');
   if(!year)                         errors.push('selecciona el año');
-  if(!km || parseInt(km)===0)       errors.push('ingresa el kilometraje');
+  if(!km || parseInt(_numClean(km))===0) errors.push('ingresa el kilometraje');
   if(pendingVenderType!=='subasta' && !precioFijo) errors.push('ingresa el precio de venta');
   if(!descripcion)                  errors.push('agrega una descripción');
 
@@ -9737,11 +9856,11 @@ async function publishListing(opts){
   const getSelByLabel=(lbl)=>{for(const l of (form?.querySelectorAll('.form-label')||[])){if(_norm(l.textContent)===_norm(lbl)){const s=l.closest('.form-group')?.querySelector('select,input');if(s)return s.value||'';}}return '';};
   const marca=getSelByLabel('marca');   // ← fix: lee el select de marca por su label
   const modelo=getByPH('ej. Corolla XLI');
-  const km=parseInt(getByPH('km')||'0');
+  const km=parseInt(_numClean(getByPH('km'))||'0');
   const color=getByPH('ej. negro mate');
-  const precioFijo=parseFloat(getByPH('precio de venta')||'0');
-  const precioBase=parseFloat(document.getElementById('precio-base-input')?.value||'0')||0; // arranque público de la puja
-  const precioRes=parseFloat(document.getElementById('precio-reserva-input')?.value||'0')||0; // [V90] mínimo oculto del dueño
+  const precioFijo=parseFloat(_numClean(getByPH('precio de venta'))||'0');
+  const precioBase=parseFloat(_numClean(document.getElementById('precio-base-input')?.value)||'0')||0; // arranque público de la puja
+  const precioRes=parseFloat(_numClean(document.getElementById('precio-reserva-input')?.value)||'0')||0; // [V90] mínimo oculto del dueño
   const whatsapp=getByPH('+58 412 000 0000');
   const descripcion=getByPH('sé sumamente detallado: estado, equipamiento, historial. no aceptamos descripciones mediocres, el sistema rechaza la publicación.');
   const ciudad=getSelByLabel('ciudad');
@@ -10592,7 +10711,7 @@ async function openEditListingModal(id){
           <div class="form-group"><label class="form-label">Año.</label><select class="form-select" id="edit-year">${yearOpts}</select></div>
         </div>
         <div class="form-group"><label class="form-label">Modelo.</label><input class="form-input" type="text" id="edit-modelo" value="${(l.modelo||'').replace(/"/g,'&quot;')}" placeholder="ej. Corolla XLI"></div>
-        <div class="form-group"><label class="form-label">Precio (USD).</label><input class="form-input" type="number" inputmode="numeric" id="edit-precio" value="${Number(l.precio_usd||0)}" placeholder="precio de venta"></div>
+        <div class="form-group"><label class="form-label">Precio (USD).</label><input class="form-input" type="text" inputmode="numeric" id="edit-precio" value="${_milesFmt(l.precio_usd||0)}" placeholder="precio de venta" oninput="_milesInputHandler(this)"></div>
         <div class="form-group">
           <label class="form-label">¿Cómo clasificas tu carro?</label>
           <select class="form-select" id="edit-clasificacion"><option value="">seleccionar</option>${clasifOpts.map(([v,lb])=>`<option value="${v}" ${sel(l.clasificacion,v)}>${lb}</option>`).join('')}</select>
@@ -10609,7 +10728,7 @@ async function openEditListingModal(id){
 
       <div id="edit-panel-detalles" class="form-group" style="display:none;flex-direction:column;gap:14px">
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="number" inputmode="numeric" id="edit-km" value="${Number(l.km||0)}" placeholder="km"></div>
+          <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="text" inputmode="numeric" id="edit-km" value="${_milesFmt(l.km||0)}" placeholder="km" oninput="_milesInputHandler(this)"></div>
           <div class="form-group"><label class="form-label">Dueños previos.</label>
             <select class="form-select" id="edit-duenos" onchange="document.getElementById('edit-duenos-exacto').style.display=this.value==='4+'?'block':'none'">
               <option value="1" ${sel(duenosEsExacto?'':duenosActual,'1')}>1</option>
@@ -10739,7 +10858,7 @@ async function saveListingEdit(id){
   if(btn){btn.innerHTML='<div class="save-spinner"></div>';btn.disabled=true;btn.style.opacity='.7';}
   const val=sel=>document.getElementById(sel)?.value?.trim()??'';
   const marca=val('edit-marca'), modelo=val('edit-modelo'), year=Number(val('edit-year')||0);
-  const precio=val('edit-precio'), desc=val('edit-desc');
+  const precio=_numClean(val('edit-precio')), desc=val('edit-desc');
   const duenosSel=val('edit-duenos'), duenosExacto=val('edit-duenos-exacto');
   const duenos=(duenosSel==='4+'&&duenosExacto)?duenosExacto:duenosSel;
 
@@ -10753,7 +10872,7 @@ async function saveListingEdit(id){
     marca, modelo, year: year||null,
     precio_usd: Number(precio),
     titulo: `${year||''} ${marca} ${modelo}`.trim(),
-    km: Number(val('edit-km')||0)||null,
+    km: Number(_numClean(val('edit-km'))||0)||null,
     duenos: duenos||null,
     transmision: val('edit-transmision')||null,
     combustible: val('edit-combustible')||null,
@@ -12373,7 +12492,7 @@ function saTab(tab){
   if(tab==='kyc') renderSAKyc();
   if(tab==='acceso') renderSAAccessRequests();
   if(tab==='aucodigos') renderSAAuctionCodes();
-  if(tab==='pagos') renderPendingRefs();
+  if(tab==='pagos'){ renderPendingRefs(); _saLoadPricingBannerPreview(); }
   if(tab==='comunidad') saLoadComunidadAdmin();
   if(tab==='patrocinantes'){ saLoadPatrocinantes(); _saLoadEncuentraPreviews(); _saLoadConsBannerPreview(); }
   if(tab==='publicaciones') saLoadPublicaciones();
@@ -17292,6 +17411,17 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <input class="form-input" id="sa-pay-cuenta" type="text" placeholder="número de cuenta (opcional)" style="width:100%">
 
     <button onclick="savePaymentData()" style="background:#e6f03b;color:#000;border:none;border-radius:13px;padding:14px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;margin-top:4px" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'">guardar datos de pago</button>
+
+    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+
+    <!-- [V135] banner 16:9 arriba del selector de plan — simple contenedor
+         de foto (ej. "código gratis del día"). Vacío = no se muestra. -->
+    <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">banner del selector de plan</div>
+    <input type="file" id="sa-pricing-banner-file" accept="image/*" style="display:none" onchange="_saUploadPricingBanner(this)">
+    <div id="sa-pricing-banner-preview" onclick="document.getElementById('sa-pricing-banner-file').click()" style="width:100%;aspect-ratio:16/9;background:var(--card);border:1.5px dashed var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden">
+      <span style="font-size:13px;color:var(--muted)">toca para subir (ej. "código gratis del día")</span>
+    </div>
+    <button onclick="_saRemovePricingBanner()" style="background:rgba(255,60,60,.08);border:1px solid rgba(255,80,80,.2);border-radius:12px;padding:11px;font-family:var(--font);font-size:12.5px;font-weight:700;color:rgba(255,100,100,.85);cursor:pointer">quitar banner</button>
 
     <div style="height:1px;background:var(--border);margin:4px 0"></div>
 
