@@ -1562,12 +1562,18 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   background:var(--rd-slide-fallback,radial-gradient(120% 80% at 50% 18%,#16170c 0%,#0a0a0a 60%,#000 100%));
 }
 
-/* ── scrim: viñeta + caída a negro. Sube el contraste del texto ── */
+/* ── scrim: viñeta + caída a negro. Sube el contraste del texto ──
+   [V127] top: antes rgba(0,0,0,.52) arrancaba de una en 0% — se veía como
+   un corte duro contra la barra de estado. Ahora funde desde negro real
+   en 0% bajando en un tramo chico (0→11%, ~altura de status bar) para que
+   la barra de estado se sienta parte de la foto, no una franja pegada
+   encima. Bottom: el oscurecido hacia el CTA arranca más abajo (68% en vez
+   de 63%) para despejar más foto antes de la caída final a negro. */
 #rd-intro-scrim{
   position:absolute;inset:0;pointer-events:none;
   background:
     radial-gradient(125% 80% at 50% 40%,rgba(0,0,0,0) 32%,rgba(0,0,0,.46) 100%),
-    linear-gradient(to bottom,rgba(0,0,0,.52) 0%,rgba(0,0,0,.14) 19%,rgba(0,0,0,.07) 34%,rgba(0,0,0,.7) 63%,#000 92%);
+    linear-gradient(to bottom,rgba(0,0,0,.88) 0%,rgba(0,0,0,.46) 5%,rgba(0,0,0,.14) 11%,rgba(0,0,0,.06) 22%,rgba(0,0,0,.05) 40%,rgba(0,0,0,.7) 68%,#000 93%);
 }
 
 /* ── barra superior: marca + saltar ── */
