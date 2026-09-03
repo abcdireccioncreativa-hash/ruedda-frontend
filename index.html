@@ -1782,13 +1782,15 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   'use strict';
 
   /* ── CONFIG ──────────────────────────────────────────────────
-     Para cambiar fotos/copy: edita SLIDES. Nada más.
-     · src   : ruta absoluta desde la raíz de www/ (ej '/intro-1.jpg').
-               sirve .jpg .png .webp .gif — y .mp4 poniendo type:'video'.
-     · tint  : color del degradado de respaldo si la foto aún no existe.
-     · pos   : encuadre (object-position). ej 'center 35%' sube el foco.
+     Para cambiar copy: edita SLIDES acá abajo. Las FOTOS ya no van acá —
+     se suben desde Super Admin > Intro (Supabase Storage, ver SA_INTRO_META
+     y _saUploadIntroFoto más abajo en el documento); sin foto subida, la
+     slide muestra el degradado de "tint" hasta que se suba una.
+     · tint  : color del degradado de respaldo mientras no hay foto subida.
+     · pos   : encuadre (object-position) que va a usar la foto subida. ej
+               'center 35%' sube el foco.
      · icon  : clave del set ICONS (checker, carro, reloj, tienda,
-               verificado, cafe, entrar).
+               verificado, cafe, entrar, campana, extra).
      Preview en navegador: agrega ?intro=1 a la URL.
      Resetear el "ya lo vi":  agrega ?intro=reset
      ──────────────────────────────────────────────────────────── */
@@ -1821,56 +1823,78 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     extra   : '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c.6 4.4 2 6.8 6 8-4 1.2-5.4 3.6-6 8-.6-4.4-2-6.8-6-8 4-1.2 5.4-3.6 6-8z"/></svg>'
   };
 
+  // [V129] sin fotos por defecto en el repo — las fotos por defecto (intro-1.jpg
+  // ... intro-7.jpg) eran chicas (392–860px de ancho) y se veían pixeladas al
+  // estirarse a pantalla completa en un teléfono a 3x. Ahora las 9 fotos se
+  // manejan 100% desde Super Admin > Intro (Supabase Storage, resolución real).
+  // Sin foto subida todavía: cae directo al degradado (sin pedir nada a la red,
+  // ver el forEach de abajo) hasta que se suba la foto real.
   var SLIDES = [
     {
-      src:'/intro-1.jpg', type:'image', tint:'#16120a', pos:'center 35%', icon:'checker',
+      type:'image', tint:'#16120a', pos:'center 35%', icon:'checker',
       title:'bienvenido a Ruedda,\nla app automotriz\nde venezuela.',
       sub:'comprar, vender y subastar. un solo lugar, un solo estándar.'
     },
     {
-      src:'/intro-2.jpg', type:'image', tint:'#1a0c0c', pos:'center 38%', icon:'carro',
+      type:'image', tint:'#1a0c0c', pos:'center 38%', icon:'carro',
       title:'solo vehículos.\nnada más.',
       sub:'no barcos, no inmuebles, no motos. un catálogo dedicado y curado por especialistas.'
     },
     {
-      src:'/intro-3.jpg', type:'image', tint:'#0b1119', pos:'center 50%', icon:'reloj',
+      type:'image', tint:'#0b1119', pos:'center 50%', icon:'reloj',
       title:'compra, vende y\nsubasta vehículos\ncomo un pro.',
       sub:'lote publicado, reloj corriendo, adjudicación al mejor postor. de 3 a 25 días, tú fijas el cierre.'
     },
     {
-      src:'/intro-4.jpg', type:'image', tint:'#14120d', pos:'center 58%', icon:'tienda',
+      type:'image', tint:'#14120d', pos:'center 58%', icon:'tienda',
       title:'conoce los mejores\nconcesionarios.',
       sub:'inventario completo, perfil con sello y contacto directo con la agencia.'
     },
     {
-      src:'/intro-5.jpg', type:'image', tint:'#131313', pos:'center center', icon:'verificado',
+      type:'image', tint:'#131313', pos:'center center', icon:'verificado',
       title:'aquí todos\nestán verificados.',
       sub:'cédula validada y sello azul junto al nombre. cada lote revisado, cada postor identificado.'
     },
     {
-      // [V127] sin foto propia todavía — cae al degradado tint automáticamente
-      // (ver el listener 'error' más abajo). Subir /intro-8.jpg cuando esté lista.
-      src:'/intro-8.jpg', type:'image', tint:'#1a1206', pos:'center center', icon:'campana',
+      type:'image', tint:'#1a1206', pos:'center center', icon:'campana',
       title:'entérate de eventos\ny noticias.',
       sub:'actividades, lanzamientos y todo lo que pasa en el mundo Ruedda, en un solo lugar.'
     },
     {
-      // [V127] idem — cae al degradado hasta subir /intro-9.jpg.
-      src:'/intro-9.jpg', type:'image', tint:'#0f1410', pos:'center center', icon:'extra',
+      type:'image', tint:'#0f1410', pos:'center center', icon:'extra',
       title:'conoce\nRuedda Extra.',
       sub:'servicios, aliados y beneficios pensados para tu vehículo, más allá del market.'
     },
     {
-      src:'/intro-6.jpg', type:'image', tint:'#16130d', pos:'center 38%', icon:'cafe',
+      type:'image', tint:'#16130d', pos:'center 38%', icon:'cafe',
       title:'tómate un café\ny conócenos.',
       sub:'te esperamos en nuestros espacios. ven, pregunta y revisa los vehículos en persona.'
     },
     {
-      src:'/intro-7.jpg', type:'image', tint:'#0d0d0f', pos:'center 55%', icon:'entrar',
+      type:'image', tint:'#0d0d0f', pos:'center 55%', icon:'entrar',
       title:'ya estás\nadentro.',
       sub:'market, subastas, concesionarios, repuestos y post-venta. el ecosistema completo de tu vehículo.'
     }
   ];
+
+  // [V129] mismo criterio que _tImg() (más abajo en el documento, mismo TDZ que
+  // _supa — por eso no se referencia esa función, se replica acá liviano): pide
+  // al servidor de Supabase la imagen ya redimensionada/comprimida en vez de la
+  // foto original tal cual se subió (puede pesar varios MB) — carga rápido sin
+  // perder nitidez, porque el ancho pedido ya cubre pantallas a 3x.
+  function _introTImg(url, width, quality){
+    try{
+      // se llama solo después de que _supa exista (ver más abajo), y
+      // RUEDDA_IMG_TRANSFORMS se setea antes que _supa en el documento —
+      // para cuando esto corre, ya está definida.
+      if(!window.RUEDDA_IMG_TRANSFORMS) return url;
+      if(!url || typeof url !== 'string') return url;
+      var MARK = '/storage/v1/object/public/';
+      if(url.indexOf(MARK) === -1) return url;
+      var base = url.replace(MARK, '/storage/v1/render/image/public/');
+      return base + (base.indexOf('?') === -1 ? '?' : '&') + 'width=' + width + '&quality=' + quality + '&resize=contain';
+    }catch(e){ return url; }
+  }
 
 
   /* ── ¿toca mostrarlo? ─────────────────────────────────────── */
@@ -1924,6 +1948,16 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     d.style.setProperty('--rd-slide-fallback',
       'radial-gradient(120% 80% at 50% 18%,'+(s.tint||'#141414')+' 0%,#0a0a0a 60%,#000 100%)');
     if(s.pos) d.style.setProperty('--rd-pos', s.pos);
+
+    // [V129] sin foto todavía (s.src vacío — ya no hay defaults locales): directo
+    // al degradado, sin crear <img> ni pedir nada a la red. El override de Super
+    // Admin (más abajo) crea el <img> al vuelo apenas hay una foto real que mostrar.
+    if(!s.src){
+      d.classList.add('rd-nomedia');
+      media.appendChild(d);
+      slides.push(d);
+      return;
+    }
 
     var el;
     if(s.type === 'video'){
@@ -2096,9 +2130,24 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
           if(!SLIDES[i]) return;
           SLIDES[i].src = row.value;
           var slideDiv = slides[i];
-          var el = slideDiv && slideDiv.querySelector('img,video');
-          if(el && el.src !== row.value){
-            el.src = row.value;
+          if(!slideDiv) return;
+          // [V129] la mayoría de las slides ya no traen <img> de arranque (sin
+          // default local, ver el forEach de montaje) — se crea acá recién
+          // cuando hay una foto real que mostrar.
+          var el = slideDiv.querySelector('img,video');
+          if(!el){
+            el = document.createElement('img');
+            el.alt = '';
+            el.decoding = 'async';
+            el.loading = i === 0 ? 'eager' : 'lazy';
+            slideDiv.insertBefore(el, slideDiv.firstChild);
+          }
+          // [V129] la foto de Super Admin es el archivo tal cual se subió (puede
+          // pesar varios MB) — se pide transformada/comprimida al servidor, mismo
+          // criterio que el resto de la app, para que cargue rápido sin perder nitidez.
+          var displayUrl = _introTImg(row.value, 1200, 82);
+          if(el.src !== displayUrl){
+            el.src = displayUrl;
             // [V128 FIX] si esta slide no tenía foto default (cae al degradado
             // vía .rd-nomedia, ver CSS), esa clase nunca se sacaba aunque el
             // override cargara bien — la foto nueva quedaba tapada detrás del
@@ -12554,19 +12603,20 @@ async function _saUploadMarcaLogo(input,marca){
 // "eventos y noticias" y "Ruedda Extra" en medio), así que café y "ya estás
 // adentro" quedaron en las posiciones 8 y 9, invisibles acá: lo que se subía
 // no tenía dónde aplicarse y seguía mostrando la foto por defecto.
-// [V128] nombre del tema + archivo default real de cada slide — el orden y
-// los archivos NO son 1:1 con el número de slide (ver SLIDES en el IIFE del
-// intro), así que el admin no puede adivinarlo solo con "Slide N".
+// [V128] nombre del tema de cada slide — el orden no es obvio (ver SLIDES en
+// el IIFE del intro), así que el admin no puede adivinarlo solo con "Slide N".
+// [V129] ya no hay fotos por defecto en el repo (se veían pixeladas, chicas) —
+// sin foto subida acá, esa slide simplemente cae al degradado de fondo.
 const SA_INTRO_META={
-  1:{label:'Bienvenida',file:'/intro-1.jpg'},
-  2:{label:'Market',file:'/intro-2.jpg'},
-  3:{label:'Compra/venta/subasta',file:'/intro-3.jpg'},
-  4:{label:'Concesionarios',file:'/intro-4.jpg'},
-  5:{label:'Verificados',file:'/intro-5.jpg'},
-  6:{label:'Eventos y noticias',file:'/intro-8.jpg'},
-  7:{label:'Ruedda Extra',file:'/intro-9.jpg'},
-  8:{label:'Café',file:'/intro-6.jpg'},
-  9:{label:'Ya estás adentro',file:'/intro-7.jpg'}
+  1:{label:'Bienvenida'},
+  2:{label:'Market'},
+  3:{label:'Compra/venta/subasta'},
+  4:{label:'Concesionarios'},
+  5:{label:'Verificados'},
+  6:{label:'Eventos y noticias'},
+  7:{label:'Ruedda Extra'},
+  8:{label:'Café'},
+  9:{label:'Ya estás adentro'}
 };
 const SA_INTRO_SLIDES=[1,2,3,4,5,6,7,8,9];
 async function saLoadIntroFotos(){
@@ -12579,13 +12629,13 @@ async function saLoadIntroFotos(){
   list.innerHTML=SA_INTRO_SLIDES.map(n=>{
     const key='intro_'+n+'_url';
     const url=urls[key];
-    const meta=SA_INTRO_META[n]||{label:'Slide '+n,file:'/intro-'+n+'.jpg'};
+    const meta=SA_INTRO_META[n]||{label:'Slide '+n};
     return `
     <div style="background:var(--card);border:1px solid var(--border);border-radius:13px;padding:9px 12px;display:flex;align-items:center;gap:12px">
       <div id="sa-intro-prev-${n}" onclick="document.getElementById('sa-intro-file-${n}').click()" style="width:52px;height:52px;flex-shrink:0;border-radius:10px;background:#111;border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:rgba(255,255,255,.25)">
         ${url?`<img src="${url}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:13px;font-weight:800;color:rgba(255,255,255,.25)">${n}</span>`}
       </div>
-      <div style="flex:1;font-size:13px;font-weight:600">${n}. ${meta.label}${url?'':' · usando '+meta.file+' (por defecto)'}</div>
+      <div style="flex:1;font-size:13px;font-weight:600">${n}. ${meta.label}${url?'':' · sin foto — degradado por ahora'}</div>
       <input type="file" id="sa-intro-file-${n}" accept="image/*" style="display:none" onchange="_saUploadIntroFoto(this,${n})">
       <button onclick="document.getElementById('sa-intro-file-${n}').click()" style="flex-shrink:0;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;padding:8px 12px;font-family:var(--font);font-size:11.5px;font-weight:700;color:rgba(255,255,255,.6);cursor:pointer">${url?'cambiar':'subir'}</button>
     </div>`;
@@ -17947,7 +17997,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
        textos se editan desde acá igual que cualquier otra foto de la app. -->
   <div id="sa-intro" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Intro de la app (onboarding)</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Las 9 fotos de la portada que ve quien abre la app nativa por primera vez. No aparece en el navegador — solo en la app instalada. Subir una foto la reemplaza al instante para todos, sin republicar.</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Las 9 fotos de la portada que ve quien abre la app nativa por primera vez. No aparece en el navegador — solo en la app instalada. Subir una foto la reemplaza al instante para todos, sin republicar. Ya no hay fotos por defecto: la que no tenga foto subida acá se ve con un degradado hasta que subas una.</div>
     <div id="sa-intro-list" style="display:flex;flex-direction:column;gap:8px">
       <div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);font-size:13px">cargando...</div>
     </div>
