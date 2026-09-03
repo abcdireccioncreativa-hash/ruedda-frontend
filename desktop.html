@@ -12750,7 +12750,15 @@ async function openModReview(id){
       </div>
     </div>`;
 }
+// [V135] guard contra doble-tap: el botón "aprobar"/"rechazar" no se
+// deshabilitaba, así que un doble clic disparaba 2 requests — el 1ro
+// aprobaba de verdad, el 2do llegaba tarde y el servidor lo rechazaba con
+// "estado actual: activa — no se puede moderar" (409), y ese era el toast
+// que se veía, aunque la publicación ya hubiera quedado activa del 1ro.
+const _modActionInFlight=new Set();
 async function modApprove(id){
+  if(_modActionInFlight.has(id))return;
+  _modActionInFlight.add(id);
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
   const item=(window._modQueueData||[]).find(x=>x.id===id);
   const tbl=item?._table||'listings';
@@ -12764,15 +12772,23 @@ async function modApprove(id){
     showToast('publicación aprobada — ya está activa ✓',true);
   }catch(e){
     console.error('[ruedda modApprove]',e.message);
-    showToast('error al aprobar: '+e.message);
+    // [V135] si el motivo es que YA estaba activa, no es un error real (ya
+    // se logró lo que se quería) — no asustar con un toast rojo por algo
+    // que ya pasó bien.
+    if(/estado actual:\s*activa/i.test(e.message||'')) showToast('esa publicación ya estaba activa ✓',true);
+    else showToast('error al aprobar: '+e.message);
+    _modActionInFlight.delete(id);
     return;
   }
+  _modActionInFlight.delete(id);
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
   await Promise.allSettled([_loadMarket(),_loadChocados(),_loadAuctions()]);
 }
 
 async function modReject(id){
+  if(_modActionInFlight.has(id))return;
+  _modActionInFlight.add(id);
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
   const item=(window._modQueueData||[]).find(x=>x.id===id);
   const itemType=item?._table==='listings'?'listing':'auction';
@@ -12781,9 +12797,12 @@ async function modReject(id){
     showToast('publicación rechazada');
   }catch(e){
     console.error('[ruedda modReject]',e.message);
-    showToast('error al rechazar: '+e.message);
+    if(/estado actual:\s*rechazada/i.test(e.message||'')) showToast('esa publicación ya estaba rechazada',true);
+    else showToast('error al rechazar: '+e.message);
+    _modActionInFlight.delete(id);
     return;
   }
+  _modActionInFlight.delete(id);
   const activeTab=document.querySelector('.tab.active[id^="mod-tab-"]')?.id?.replace('mod-tab-','')||'particular';
   renderModQueue(activeTab);
 }
