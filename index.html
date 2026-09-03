@@ -1558,9 +1558,23 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 /* fallback si la foto no existe todavía: degradado + tinte. Nunca se ve roto. */
 .rd-slide.rd-nomedia>img,.rd-slide.rd-nomedia>video{display:none}
 .rd-slide.rd-nomedia::after{
-  content:'';position:absolute;inset:0;
+  content:'';position:absolute;inset:0;z-index:0;
   background:var(--rd-slide-fallback,radial-gradient(120% 80% at 50% 18%,#16170c 0%,#0a0a0a 60%,#000 100%));
 }
+/* [V130] isotipo animado (mismo damero de la bienvenida, ver ICONS.checker y
+   @keyframes rdChase acá abajo) mientras la foto real de Super Admin todavía
+   está bajando — nunca una slide "vacía" sin explicar qué está pasando. */
+.rd-slide-loader{
+  position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;
+  opacity:1;transition:opacity .35s ease;pointer-events:none;
+}
+.rd-slide-loader.rd-loader-out{opacity:0}
+.rd-slide-loader svg{width:30px;height:30px;color:rgba(255,255,255,.55)}
+.rd-slide-loader .rd-ck{animation:rdChase 1.2s cubic-bezier(.45,0,.55,1) infinite backwards}
+.rd-slide-loader .rd-ck2{animation-delay:.3s}
+.rd-slide-loader .rd-ck3{animation-delay:.6s}
+.rd-slide-loader .rd-ck4{animation-delay:.9s}
+@media(prefers-reduced-motion:reduce){.rd-slide-loader .rd-ck{animation:none;opacity:.55}}
 
 /* ── scrim: viñeta + caída a negro. Sube el contraste del texto ──
    [V127] top: antes rgba(0,0,0,.52) arrancaba de una en 0% — se veía como
@@ -1942,24 +1956,13 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 
   totEl.textContent = pad(SLIDES.length);
 
-  SLIDES.forEach(function(s,i){
-    var d = document.createElement('div');
-    d.className = 'rd-slide';
-    d.style.setProperty('--rd-slide-fallback',
-      'radial-gradient(120% 80% at 50% 18%,'+(s.tint||'#141414')+' 0%,#0a0a0a 60%,#000 100%)');
-    if(s.pos) d.style.setProperty('--rd-pos', s.pos);
-
-    // [V129] sin foto todavía (s.src vacío — ya no hay defaults locales): directo
-    // al degradado, sin crear <img> ni pedir nada a la red. El override de Super
-    // Admin (más abajo) crea el <img> al vuelo apenas hay una foto real que mostrar.
-    if(!s.src){
-      d.classList.add('rd-nomedia');
-      media.appendChild(d);
-      slides.push(d);
-      return;
-    }
-
-    var el;
+  // [V130] crea (o devuelve, si ya existe) el <img>/<video> de una slide. Vive
+  // aparte porque ahora lo llaman DOS lugares: acá abajo nunca (todas arrancan
+  // sin foto), y el override de Super Admin, que es quien realmente la crea
+  // apenas hay una URL real que mostrar.
+  function _ensureSlideMedia(slideDiv, s, i){
+    var el = slideDiv.querySelector('img,video');
+    if(el) return el;
     if(s.type === 'video'){
       el = document.createElement('video');
       el.muted = true; el.loop = true; el.playsInline = true;
@@ -1971,10 +1974,43 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
       el.decoding = 'async';
       el.loading = i === 0 ? 'eager' : 'lazy';
     }
-    // si el archivo todavía no está en www/, cae al degradado en vez de romperse
-    el.addEventListener('error', function(){ d.classList.add('rd-nomedia'); }, {once:true});
-    el.src = s.src;
-    d.appendChild(el);
+    slideDiv.insertBefore(el, slideDiv.firstChild);
+    return el;
+  }
+
+  // [V130] isotipo animado (el mismo damero de la bienvenida, ver ICONS.checker
+  // y @keyframes rdChase en el CSS) mientras la foto real todavía está bajando
+  // — nunca una slide "vacía" sin explicar qué está pasando. Se saca sola
+  // cuando la foto carga (o si esa slide nunca tuvo foto subida, ver el fetch
+  // de overrides más abajo: ahí se saca sin animar más si no hay nada en camino).
+  function _slideLoaderHTML(){
+    return '<div class="rd-slide-loader"><svg viewBox="0 0 24 24" fill="currentColor">'
+      +'<rect class="rd-ck rd-ck1" x="3.2" y="3.2" width="8" height="8" rx="1.6"/>'
+      +'<rect class="rd-ck rd-ck2" x="12.8" y="3.2" width="8" height="8" rx="1.6" opacity=".28"/>'
+      +'<rect class="rd-ck rd-ck3" x="12.8" y="12.8" width="8" height="8" rx="1.6"/>'
+      +'<rect class="rd-ck rd-ck4" x="3.2" y="12.8" width="8" height="8" rx="1.6" opacity=".28"/>'
+      +'</svg></div>';
+  }
+  function _removeSlideLoader(slideDiv){
+    var ld = slideDiv && slideDiv.querySelector('.rd-slide-loader');
+    if(!ld) return;
+    ld.classList.add('rd-loader-out');
+    setTimeout(function(){ if(ld.parentNode) ld.parentNode.removeChild(ld); }, 360);
+  }
+
+  SLIDES.forEach(function(s,i){
+    var d = document.createElement('div');
+    d.className = 'rd-slide';
+    d.style.setProperty('--rd-slide-fallback',
+      'radial-gradient(120% 80% at 50% 18%,'+(s.tint||'#141414')+' 0%,#0a0a0a 60%,#000 100%)');
+    if(s.pos) d.style.setProperty('--rd-pos', s.pos);
+    // [V129/V130] ninguna slide arranca con foto (ya no hay defaults locales:
+    // se manejan 100% desde Super Admin). Arranca en degradado + isotipo
+    // cargando; el fetch de overrides (más abajo) decide, por slide, si hay
+    // foto real en camino (deja el isotipo hasta que cargue) o no (lo saca y
+    // se queda con el degradado quieto).
+    d.classList.add('rd-nomedia');
+    d.insertAdjacentHTML('beforeend', _slideLoaderHTML());
     media.appendChild(d);
     slides.push(d);
   });
@@ -2116,46 +2152,53 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
      por si el usuario tiene la red muy lenta y nunca llega a cargar). */
   (function _waitForSupaThenLoadIntroOverrides(triesLeft){
     if(typeof _supa === 'undefined' || !_supa){
-      if(triesLeft > 0) setTimeout(function(){ _waitForSupaThenLoadIntroOverrides(triesLeft - 1); }, 150);
+      if(triesLeft > 0){ setTimeout(function(){ _waitForSupaThenLoadIntroOverrides(triesLeft - 1); }, 150); return; }
+      // [V130] se acabaron los reintentos (~10s) y _supa nunca apareció — mejor
+      // sacar todos los isotipos y quedarse con el degradado quieto que dejarlos
+      // girando para siempre sin que nada vaya a llegar.
+      slides.forEach(function(sd){ _removeSlideLoader(sd); });
       return;
     }
     try{
       var keys = SLIDES.map(function(_, i){ return 'intro_' + (i + 1) + '_url'; });
       _supa.from('app_settings').select('key,value').in('key', keys).then(function(res){
         var rows = res && res.data;
-        if(!rows || !rows.length) return;
-        rows.forEach(function(row){
+        var hasOverride = {};
+        (rows||[]).forEach(function(row){
           if(!row.value) return;
           var i = parseInt(row.key.replace('intro_', '').replace('_url', ''), 10) - 1;
           if(!SLIDES[i]) return;
+          hasOverride[i] = true;
           SLIDES[i].src = row.value;
           var slideDiv = slides[i];
           if(!slideDiv) return;
-          // [V129] la mayoría de las slides ya no traen <img> de arranque (sin
-          // default local, ver el forEach de montaje) — se crea acá recién
-          // cuando hay una foto real que mostrar.
-          var el = slideDiv.querySelector('img,video');
-          if(!el){
-            el = document.createElement('img');
-            el.alt = '';
-            el.decoding = 'async';
-            el.loading = i === 0 ? 'eager' : 'lazy';
-            slideDiv.insertBefore(el, slideDiv.firstChild);
-          }
+          var el = _ensureSlideMedia(slideDiv, SLIDES[i], i);
           // [V129] la foto de Super Admin es el archivo tal cual se subió (puede
           // pesar varios MB) — se pide transformada/comprimida al servidor, mismo
           // criterio que el resto de la app, para que cargue rápido sin perder nitidez.
           var displayUrl = _introTImg(row.value, 1200, 82);
           if(el.src !== displayUrl){
             el.src = displayUrl;
-            // [V128 FIX] si esta slide no tenía foto default (cae al degradado
-            // vía .rd-nomedia, ver CSS), esa clase nunca se sacaba aunque el
-            // override cargara bien — la foto nueva quedaba tapada detrás del
-            // degradado para siempre. Se saca apenas la foto nueva confirma que sí carga.
-            el.addEventListener('load', function(){ slideDiv.classList.remove('rd-nomedia'); }, {once:true});
+            // [V128/V130] al confirmar que la foto nueva sí cargó: sacar el
+            // degradado Y el isotipo animado, recién ahí se ve la foto real.
+            el.addEventListener('load', function(){
+              slideDiv.classList.remove('rd-nomedia');
+              _removeSlideLoader(slideDiv);
+            }, {once:true});
+            // si la URL de Super Admin falla (foto borrada, red, etc.), no dejar
+            // el isotipo girando por una foto que nunca va a llegar.
+            el.addEventListener('error', function(){ _removeSlideLoader(slideDiv); }, {once:true});
           }
         });
-      }).catch(function(){});
+        // [V130] slides sin foto subida en Super Admin: no hay nada en camino,
+        // sacar el isotipo animado y quedarse con el degradado quieto.
+        slides.forEach(function(slideDiv, i){
+          if(hasOverride[i]) return;
+          _removeSlideLoader(slideDiv);
+        });
+      }).catch(function(){
+        slides.forEach(function(sd){ _removeSlideLoader(sd); });
+      });
     }catch(e){}
   })(65); // ~10s de reintentos (150ms c/u) antes de rendirse
 })();
@@ -12641,13 +12684,39 @@ async function saLoadIntroFotos(){
     </div>`;
   }).join('');
 }
+// [V130] comprime/redimensiona en el navegador (canvas, sin librerías) ANTES
+// de subir — la transformación de Supabase al servir (_introTImg) redimensiona
+// pero NO cambia formato, así que una foto PNG (sin pérdida) seguía pesando
+// varios MB igual. Re-codificar acá a JPEG deja el archivo guardado liviano
+// de entrada, para cualquier lugar que lo use, no solo el intro.
+function _compressImageFile(file, maxDim, quality){
+  return new Promise(resolve => {
+    try{
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let w = img.naturalWidth, h = img.naturalHeight;
+        const scale = Math.min(1, maxDim / Math.max(w, h));
+        w = Math.round(w * scale); h = Math.round(h * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', quality);
+      };
+      img.onerror = () => resolve(file); // si falla, sube el original tal cual
+      img.src = url;
+    }catch(e){ resolve(file); }
+  });
+}
 async function _saUploadIntroFoto(input,n){
   const file=input.files?.[0];
   if(!file||!_supa) return;
-  showToast('subiendo foto...');
-  const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
-  const path=`intro-${n}_${Date.now()}.${ext}`;
-  const{error:upErr}=await _supa.storage.from('assets').upload(path,file,{upsert:false});
+  showToast('optimizando y subiendo foto...');
+  const compressed=await _compressImageFile(file,1600,0.82);
+  const path=`intro-${n}_${Date.now()}.jpg`;
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,compressed,{upsert:false,contentType:'image/jpeg'});
   if(upErr){showToast('error: '+upErr.message);return;}
   const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
   const{error:dbErr}=await _supa.from('app_settings').upsert({key:'intro_'+n+'_url',value:urlData.publicUrl,updated_at:new Date().toISOString()});
