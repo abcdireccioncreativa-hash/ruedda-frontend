@@ -1561,20 +1561,22 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   content:'';position:absolute;inset:0;z-index:0;
   background:var(--rd-slide-fallback,radial-gradient(120% 80% at 50% 18%,#16170c 0%,#0a0a0a 60%,#000 100%));
 }
-/* [V130] isotipo animado (mismo damero de la bienvenida, ver ICONS.checker y
-   @keyframes rdChase acá abajo) mientras la foto real de Super Admin todavía
-   está bajando — nunca una slide "vacía" sin explicar qué está pasando. */
-.rd-slide-loader{
-  position:absolute;inset:0;z-index:1;display:flex;align-items:center;justify-content:center;
-  opacity:1;transition:opacity .35s ease;pointer-events:none;
+/* [V131] pantalla negra + isotipo animado ANTES de revelar el intro entero
+   (no un spinner chiquito sobre cada foto — eso se sacó, se veía mal). Mismo
+   lenguaje visual que #boot-splash real (mark + anillo GT), reutilizando sus
+   mismos @keyframes (bootMarkIn/bootRingIn/gtSpin, definidos más abajo). */
+#rd-intro-preload{
+  position:absolute;inset:0;z-index:6;background:#000;
+  display:flex;align-items:center;justify-content:center;
+  opacity:1;transition:opacity .5s ease;
 }
-.rd-slide-loader.rd-loader-out{opacity:0}
-.rd-slide-loader svg{width:30px;height:30px;color:rgba(255,255,255,.55)}
-.rd-slide-loader .rd-ck{animation:rdChase 1.2s cubic-bezier(.45,0,.55,1) infinite backwards}
-.rd-slide-loader .rd-ck2{animation-delay:.3s}
-.rd-slide-loader .rd-ck3{animation-delay:.6s}
-.rd-slide-loader .rd-ck4{animation-delay:.9s}
-@media(prefers-reduced-motion:reduce){.rd-slide-loader .rd-ck{animation:none;opacity:.55}}
+#rd-intro-preload.rd-preload-out{opacity:0;pointer-events:none}
+#rd-intro-preload-mark{position:relative;width:52px;height:52px;color:rgba(255,255,255,.94)}
+#rd-intro-preload-mark svg{width:100%;height:100%;position:relative;z-index:1;opacity:0;animation:bootMarkIn .6s cubic-bezier(.22,.61,.36,1) .1s forwards}
+#rd-intro-preload-ring{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;opacity:0;animation:bootRingIn .4s ease .5s forwards}
+#rd-intro-preload-ring::before{content:'';position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(255,255,255,0) 0deg,rgba(255,255,255,.85) 26deg,rgba(255,255,255,0) 92deg,rgba(255,255,255,0) 360deg);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2.5px));animation:gtSpin 1.9s linear infinite}
+#rd-intro-preload-ring::after{content:'';position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.08)}
+@media(prefers-reduced-motion:reduce){#rd-intro-preload-mark svg,#rd-intro-preload-ring::before{animation:none!important;opacity:1!important}}
 
 /* ── scrim: viñeta + caída a negro. Sube el contraste del texto ──
    [V127] top: antes rgba(0,0,0,.52) arrancaba de una en 0% — se veía como
@@ -1784,6 +1786,15 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     </button>
   </div>
   <div id="rd-intro-loader"><span>un momento</span></div>
+  <!-- [V131] pantalla negra + isotipo — tapa TODO hasta que la 1ra y 2da foto
+       estén listas (o se acabe el presupuesto de espera). Nunca se ve una foto
+       cargando/parpadeando detrás de esto: se saca recién cuando ya está lista. -->
+  <div id="rd-intro-preload">
+    <div id="rd-intro-preload-mark">
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect class="rd-ck rd-ck1" x="3.2" y="3.2" width="8" height="8" rx="1.6"/><rect class="rd-ck rd-ck2" x="12.8" y="3.2" width="8" height="8" rx="1.6" opacity=".28"/><rect class="rd-ck rd-ck3" x="12.8" y="12.8" width="8" height="8" rx="1.6"/><rect class="rd-ck rd-ck4" x="3.2" y="12.8" width="8" height="8" rx="1.6" opacity=".28"/></svg>
+    </div>
+    <div id="rd-intro-preload-ring"></div>
+  </div>
 </div>
 <script>
 /* ═══════════════════════════════════════════════════════════════
@@ -1978,39 +1989,18 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     return el;
   }
 
-  // [V130] isotipo animado (el mismo damero de la bienvenida, ver ICONS.checker
-  // y @keyframes rdChase en el CSS) mientras la foto real todavía está bajando
-  // — nunca una slide "vacía" sin explicar qué está pasando. Se saca sola
-  // cuando la foto carga (o si esa slide nunca tuvo foto subida, ver el fetch
-  // de overrides más abajo: ahí se saca sin animar más si no hay nada en camino).
-  function _slideLoaderHTML(){
-    return '<div class="rd-slide-loader"><svg viewBox="0 0 24 24" fill="currentColor">'
-      +'<rect class="rd-ck rd-ck1" x="3.2" y="3.2" width="8" height="8" rx="1.6"/>'
-      +'<rect class="rd-ck rd-ck2" x="12.8" y="3.2" width="8" height="8" rx="1.6" opacity=".28"/>'
-      +'<rect class="rd-ck rd-ck3" x="12.8" y="12.8" width="8" height="8" rx="1.6"/>'
-      +'<rect class="rd-ck rd-ck4" x="3.2" y="12.8" width="8" height="8" rx="1.6" opacity=".28"/>'
-      +'</svg></div>';
-  }
-  function _removeSlideLoader(slideDiv){
-    var ld = slideDiv && slideDiv.querySelector('.rd-slide-loader');
-    if(!ld) return;
-    ld.classList.add('rd-loader-out');
-    setTimeout(function(){ if(ld.parentNode) ld.parentNode.removeChild(ld); }, 360);
-  }
-
   SLIDES.forEach(function(s,i){
     var d = document.createElement('div');
     d.className = 'rd-slide';
     d.style.setProperty('--rd-slide-fallback',
       'radial-gradient(120% 80% at 50% 18%,'+(s.tint||'#141414')+' 0%,#0a0a0a 60%,#000 100%)');
     if(s.pos) d.style.setProperty('--rd-pos', s.pos);
-    // [V129/V130] ninguna slide arranca con foto (ya no hay defaults locales:
-    // se manejan 100% desde Super Admin). Arranca en degradado + isotipo
-    // cargando; el fetch de overrides (más abajo) decide, por slide, si hay
-    // foto real en camino (deja el isotipo hasta que cargue) o no (lo saca y
-    // se queda con el degradado quieto).
+    // [V129] ninguna slide arranca con foto (ya no hay defaults locales: se
+    // manejan 100% desde Super Admin) — arranca en degradado quieto. La 1ra y
+    // 2da foto quedan tapadas por #rd-intro-preload (pantalla negra + isotipo,
+    // ver más abajo) hasta que confirman que cargaron — nunca se ve el
+    // degradado de esas dos ni un parpadeo cuando la foto por fin llega.
     d.classList.add('rd-nomedia');
-    d.insertAdjacentHTML('beforeend', _slideLoaderHTML());
     media.appendChild(d);
     slides.push(d);
   });
@@ -2133,7 +2123,43 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   /* ── arranque ─────────────────────────────────────────────── */
   document.documentElement.classList.add('rd-intro-lock');
   root.classList.add('rd-on');
-  go(0);
+  // [V131] go(0) YA NO se llama acá directo — el intro queda montado pero
+  // 100% tapado por #rd-intro-preload (pantalla negra + isotipo, ver CSS)
+  // hasta que la 1ra Y 2da foto confirman que cargaron (o se acaba el
+  // presupuesto de espera). Así nunca puede pasar que la 1ra o 2da foto
+  // terminen de bajar DESPUÉS de sacar la pantalla de carga — go(0) (que
+  // dispara la cascada de texto) recién se llama una vez que ya está todo
+  // listo para mostrarse de una, foto incluida.
+  var preloadEl = document.getElementById('rd-intro-preload');
+  var contentStarted = false;
+  function _startIntroContent(){
+    if(contentStarted) return; contentStarted = true;
+    if(preloadEl){
+      preloadEl.classList.add('rd-preload-out');
+      setTimeout(function(){ if(preloadEl.parentNode) preloadEl.parentNode.removeChild(preloadEl); }, 520);
+    }
+    go(0);
+  }
+  var MAX_PRELOAD_MS = 3200, MIN_PRELOAD_MS = 550, FIRST_IMGS_BUDGET_MS = 2400;
+  setTimeout(_startIntroContent, MAX_PRELOAD_MS); // red de seguridad: pase lo que pase, no se queda colgado
+
+  // espera a que UNA imagen ya montada (o por montar) termine de cargar —
+  // con budget propio, para que una sola foto lenta no trabe a las demás.
+  function _waitImgReady(getEl, budgetMs){
+    return new Promise(function(res){
+      var el = getEl();
+      if(el && el.complete && el.naturalWidth > 0){ res(); return; }
+      var done = false;
+      function finish(){ if(!done){ done = true; res(); } }
+      if(el){
+        el.addEventListener('load', finish, {once:true});
+        el.addEventListener('error', finish, {once:true});
+      }
+      setTimeout(finish, budgetMs);
+      // si el <img> todavía no existe (override no llegó todavía), el timeout
+      // igual resuelve — no se queda esperando algo que capaz nunca llega.
+    });
+  }
 
   /* ── fotos editables desde SuperAdmin > Intro ────────────────
      mismo patrón app_settings key/value que Encuentra (ver
@@ -2150,57 +2176,56 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
      Admin nunca se aplicaba aunque estuviera bien guardada en la base.
      Ahora reintenta cada 150ms hasta que _supa exista (o hasta ~10s,
      por si el usuario tiene la red muy lenta y nunca llega a cargar). */
-  (function _waitForSupaThenLoadIntroOverrides(triesLeft){
-    if(typeof _supa === 'undefined' || !_supa){
-      if(triesLeft > 0){ setTimeout(function(){ _waitForSupaThenLoadIntroOverrides(triesLeft - 1); }, 150); return; }
-      // [V130] se acabaron los reintentos (~10s) y _supa nunca apareció — mejor
-      // sacar todos los isotipos y quedarse con el degradado quieto que dejarlos
-      // girando para siempre sin que nada vaya a llegar.
-      slides.forEach(function(sd){ _removeSlideLoader(sd); });
-      return;
-    }
-    try{
-      var keys = SLIDES.map(function(_, i){ return 'intro_' + (i + 1) + '_url'; });
-      _supa.from('app_settings').select('key,value').in('key', keys).then(function(res){
-        var rows = res && res.data;
-        var hasOverride = {};
-        (rows||[]).forEach(function(row){
-          if(!row.value) return;
-          var i = parseInt(row.key.replace('intro_', '').replace('_url', ''), 10) - 1;
-          if(!SLIDES[i]) return;
-          hasOverride[i] = true;
-          SLIDES[i].src = row.value;
-          var slideDiv = slides[i];
-          if(!slideDiv) return;
-          var el = _ensureSlideMedia(slideDiv, SLIDES[i], i);
-          // [V129] la foto de Super Admin es el archivo tal cual se subió (puede
-          // pesar varios MB) — se pide transformada/comprimida al servidor, mismo
-          // criterio que el resto de la app, para que cargue rápido sin perder nitidez.
-          var displayUrl = _introTImg(row.value, 1200, 82);
-          if(el.src !== displayUrl){
-            el.src = displayUrl;
-            // [V128/V130] al confirmar que la foto nueva sí cargó: sacar el
-            // degradado Y el isotipo animado, recién ahí se ve la foto real.
-            el.addEventListener('load', function(){
-              slideDiv.classList.remove('rd-nomedia');
-              _removeSlideLoader(slideDiv);
-            }, {once:true});
-            // si la URL de Super Admin falla (foto borrada, red, etc.), no dejar
-            // el isotipo girando por una foto que nunca va a llegar.
-            el.addEventListener('error', function(){ _removeSlideLoader(slideDiv); }, {once:true});
-          }
-        });
-        // [V130] slides sin foto subida en Super Admin: no hay nada en camino,
-        // sacar el isotipo animado y quedarse con el degradado quieto.
-        slides.forEach(function(slideDiv, i){
-          if(hasOverride[i]) return;
-          _removeSlideLoader(slideDiv);
-        });
-      }).catch(function(){
-        slides.forEach(function(sd){ _removeSlideLoader(sd); });
-      });
-    }catch(e){}
-  })(65); // ~10s de reintentos (150ms c/u) antes de rendirse
+  function _fetchIntroOverrides(triesLeft){
+    return new Promise(function(resolve){
+      (function attempt(triesLeft){
+        if(typeof _supa === 'undefined' || !_supa){
+          if(triesLeft > 0){ setTimeout(function(){ attempt(triesLeft - 1); }, 150); return; }
+          resolve(null); // se rindió — arranca sin overrides, degradado quieto para todas
+          return;
+        }
+        try{
+          var keys = SLIDES.map(function(_, i){ return 'intro_' + (i + 1) + '_url'; });
+          _supa.from('app_settings').select('key,value').in('key', keys).then(function(res){
+            resolve(res && res.data);
+          }).catch(function(){ resolve(null); });
+        }catch(e){ resolve(null); }
+      })(triesLeft);
+    });
+  }
+
+  _fetchIntroOverrides(65).then(function(rows){
+    var hasOverride = {};
+    (rows||[]).forEach(function(row){
+      if(!row.value) return;
+      var i = parseInt(row.key.replace('intro_', '').replace('_url', ''), 10) - 1;
+      if(!SLIDES[i]) return;
+      hasOverride[i] = true;
+      SLIDES[i].src = row.value;
+    });
+    // aplica el override a TODAS las slides que tengan una — esto ya dispara
+    // la descarga de las 9 en paralelo (no solo la 1ra), así para cuando el
+    // usuario llegue a la 3ra, 4ta, etc., lo más probable es que ya estén
+    // listas de fondo, sin loader ni degradado de por medio.
+    slides.forEach(function(slideDiv, i){
+      if(!hasOverride[i]) return;
+      var el = _ensureSlideMedia(slideDiv, SLIDES[i], i);
+      var displayUrl = _introTImg(SLIDES[i].src, 1200, 82);
+      if(el.src !== displayUrl) el.src = displayUrl;
+      el.addEventListener('load', function(){ slideDiv.classList.remove('rd-nomedia'); }, {once:true});
+    });
+    // [V131] la pantalla de carga espera puntualmente la 1ra Y 2da foto (si
+    // tienen override) — el resto sigue bajando detrás sin bloquear nada.
+    return Promise.all([0,1].map(function(i){
+      if(!hasOverride[i]) return Promise.resolve();
+      return _waitImgReady(function(){ return slides[i] && slides[i].querySelector('img,video'); }, FIRST_IMGS_BUDGET_MS);
+    }));
+  }).catch(function(){}).then(function(){
+    // piso mínimo: aunque todo cargue instantáneo, que la pantalla de carga
+    // se sienta intencional (no un parpadeo de 1 frame) — mismo criterio que
+    // usa el boot-splash real de la app (MIN_MS).
+    return new Promise(function(res){ setTimeout(res, MIN_PRELOAD_MS); });
+  }).then(_startIntroContent);
 })();
 </script>
 
