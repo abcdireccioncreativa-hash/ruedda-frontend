@@ -791,6 +791,35 @@ html{scrollbar-width:none}
 .rx-sponsor-banner-fallback{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:rgba(255,255,255,.6);letter-spacing:-.2px}
 .noticia-card:active{transform:scale(.97)}
 .noticia-card-wide{width:240px}
+/* [V134] EVENTOS — mismo tamaño que .noticia-card, un poco menos redondeada,
+   con badges glass de fecha/estado encima de la foto. */
+.eventos-row{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;padding:0 16px 4px;scrollbar-width:none}
+.eventos-row::-webkit-scrollbar{display:none}
+.evento-card{position:relative;flex-shrink:0;width:200px;height:130px;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;background-size:cover;background-position:center;scroll-snap-align:start;cursor:pointer;transition:transform .18s;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
+.evento-card:active{transform:scale(.97)}
+.evento-card::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45) 0%,rgba(0,0,0,0) 34%)}
+.evento-badge{position:absolute;top:9px;font-size:10px;font-weight:800;letter-spacing:.4px;padding:4px 9px;border-radius:100px;background:rgba(20,20,20,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.15);color:#fff;z-index:1;text-transform:uppercase}
+.evento-badge-date{right:9px}
+.evento-badge-status{left:9px;display:flex;align-items:center;gap:5px}
+.evento-badge-status.live{background:rgba(220,50,50,.35);border-color:rgba(255,110,110,.45)}
+.evento-live-dot{width:6px;height:6px;border-radius:50%;background:#ff5252;animation:eventoLivePulse 1.4s ease-in-out infinite}
+.evento-badge-status.ended{background:rgba(20,20,20,.6);color:rgba(255,255,255,.55)}
+@keyframes eventoLivePulse{0%,100%{opacity:1}50%{opacity:.3}}
+/* detalle del evento */
+.evento-hero{width:100%;aspect-ratio:16/9;background:var(--card);overflow:hidden;position:relative}
+.evento-hero img{width:100%;height:100%;object-fit:cover;display:block}
+.evento-hero .evento-badge{top:14px}
+.evento-hero .evento-badge-date{right:14px}
+.evento-hero .evento-badge-status{left:14px}
+.evento-countdown{display:flex;gap:8px;margin:18px 0}
+.evento-countdown-box{flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 4px;text-align:center}
+.evento-countdown-num{font-size:21px;font-weight:800;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.evento-countdown-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.evento-info-row{display:flex;align-items:center;gap:10px;font-size:13.5px;color:rgba(255,255,255,.75);margin-bottom:10px}
+.evento-info-row svg{width:16px;height:16px;flex-shrink:0;color:var(--muted)}
+.evento-buy-btn{width:100%;background:#000;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:14px;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.evento-buy-btn:active{opacity:.75}
+.offer-btn-row .evento-buy-btn{width:calc(50% - 5px)}
 .feedback-grid{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px}
 /* [V122] visor de fotos a pantalla completa — scroll-snap nativo, sin JS de swipe manual */
 #photo-viewer-overlay{position:fixed;inset:0;z-index:600;background:#000;display:none;flex-direction:column}
@@ -4212,6 +4241,16 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     </div>
     <div id="noticias-row" class="noticias-row" style="padding:0 16px 4px;scroll-padding:0 16px"></div>
 
+    <!-- [V134] Eventos -->
+    <div style="padding:0 16px;margin-top:28px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:26px;height:26px;flex-shrink:0"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <div style="font-size:28px;font-weight:800;line-height:1.1">Eventos</div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">actividades, lanzamientos y encuentros de la comunidad Ruedda.</div>
+    </div>
+    <div id="eventos-row" class="eventos-row" style="padding:0 16px 4px;scroll-padding:0 16px"></div>
+
     <!-- Feedback y más -->
     <div style="padding:0 16px;margin-top:28px;margin-bottom:14px">
       <div style="font-size:28px;font-weight:800;line-height:1.1">Feedback y más</div>
@@ -5447,6 +5486,9 @@ function fmtCountdown(ms){
 // ===================== VIEW =====================
 function showView(name,param){
   document.documentElement.scrollTop=0;document.body.scrollTop=0;
+  // [V134] al salir del detalle de un evento, apaga el contador — si no, sigue
+  // corriendo cada segundo de fondo aunque la vista ya no se esté viendo.
+  if(currentView==='evento-detail'&&name!=='evento-detail'&&typeof _stopEventoCountdown==='function')_stopEventoCountdown();
   // [blindaje] si el pull-to-refresh dejó un transform a medias en view-home
   // (gesto interrumpido a medio camino), lo limpiamos antes de cualquier transición.
   const _vhReset=document.getElementById('view-home');
@@ -5455,7 +5497,7 @@ function showView(name,param){
   document.getElementById('view-'+name).classList.add('active');
   currentView=name;
   document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));
-  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos',marcas:'bnav-home','usuarios-top':'bnav-home','hotdeals-all':'bnav-home','encuentra-all':'bnav-home',alquileres:'bnav-home','alquiler-form':'bnav-home','alquiler-detail':'bnav-home',importaciones:'bnav-home'};
+  const map={home:'bnav-home',notificaciones:'bnav-notificaciones',favoritos:'bnav-favoritos',cuenta:'bnav-cuenta',vitrina:'bnav-home','market-detail':'bnav-home',detail:'bnav-home',superadmin:'bnav-cuenta','ruedda-extra':'bnav-ruedda',kyc:'bnav-cuenta','se-parte-ruedda':'bnav-cuenta','soporte-ruedda':'bnav-cuenta',fotografos:'bnav-home','noticia-detail':'bnav-favoritos','evento-detail':'bnav-favoritos',carspotting:'bnav-favoritos',sugerencias:'bnav-favoritos',historia:'bnav-favoritos',marcas:'bnav-home','usuarios-top':'bnav-home','hotdeals-all':'bnav-home','encuentra-all':'bnav-home',alquileres:'bnav-home','alquiler-form':'bnav-home','alquiler-detail':'bnav-home',importaciones:'bnav-home'};
   if(map[name])document.getElementById(map[name]).classList.add('active');
   if(name==='home'){
     clearTimers();
@@ -5501,6 +5543,7 @@ function showView(name,param){
   if(name==='marcas'){_marcasRegionFilter=null;renderMarcasGrid();_loadMarcaLogos();}
   if(name==='configuracion')_paintDefaultViewSlider();
   if(name==='noticia-detail')loadNoticiaDetail(param);
+  if(name==='evento-detail')loadEventoDetail(param);
   if(name==='superadmin'){
     setTimeout(async()=>{
       // diagnóstico de conexión rápido
@@ -8764,13 +8807,48 @@ function getClipEmbedUrl(url){
 }
 
 // ===================== COMUNIDAD =====================
+// [V134] EVENTOS — estado (próximo/en vivo/acabado) a partir de fecha +
+// hora_inicio + hora_fin. Si hora_fin quedó antes que hora_inicio (evento
+// cruza medianoche), se asume que termina al día siguiente.
+function _eventoTimes(ev){
+  const start=new Date(`${ev.fecha}T${ev.hora_inicio}`);
+  let end=new Date(`${ev.fecha}T${ev.hora_fin}`);
+  if(end<=start) end=new Date(end.getTime()+24*60*60*1000);
+  return{start,end};
+}
+function _eventoStatus(ev){
+  const{start,end}=_eventoTimes(ev);
+  const now=new Date();
+  if(now<start) return'upcoming';
+  if(now<=end) return'live';
+  return'ended';
+}
+function _eventoDateLabel(ev){
+  const d=new Date(`${ev.fecha}T00:00:00`);
+  return d.toLocaleDateString('es-VE',{day:'2-digit',month:'short'}).replace('.','').toUpperCase();
+}
+function _eventoCardHTML(ev,i){
+  const status=_eventoStatus(ev);
+  const badge=status==='live'
+    ?'<div class="evento-badge evento-badge-status live"><span class="evento-live-dot"></span>live</div>'
+    :status==='ended'
+      ?'<div class="evento-badge evento-badge-status ended">evento acabado</div>'
+      :'';
+  return`<div class="evento-card" onclick="showView('evento-detail','${ev.id}')" style="background-image:url('${_tImg(ev.foto_url,{width:500,quality:78})}');animation-delay:${i*70}ms">
+    ${badge}
+    <div class="evento-badge evento-badge-date">${_eventoDateLabel(ev)}</div>
+  </div>`;
+}
+
 async function renderComunidad(){
   const container=document.getElementById('comunidad-section');
   if(!container)return;
   const clipsRow=document.getElementById('clips-row');
   const noticiasRow=document.getElementById('noticias-row');
+  const eventosRow=document.getElementById('eventos-row');
   if(clipsRow) clipsRow.innerHTML='<div class="com-loading">...</div>';
   if(noticiasRow) noticiasRow.innerHTML='<div class="com-loading">...</div>';
+  if(eventosRow) eventosRow.innerHTML='<div class="com-loading">...</div>';
   try{
     const{data:clips}=await _supa.from('ruedda_clips').select('*').order('created_at',{ascending:false}).limit(10);
     if(clipsRow){
@@ -8806,6 +8884,26 @@ async function renderComunidad(){
       }
     }
   } catch(e){ if(noticiasRow) noticiasRow.innerHTML='<div class="com-empty">sin noticias</div>'; }
+  try{
+    const{data:eventos}=await _supa.from('eventos').select('*').order('fecha',{ascending:false}).limit(30);
+    if(eventosRow){
+      if(!eventos||eventos.length===0){
+        eventosRow.innerHTML='<div class="com-empty">sin eventos por ahora</div>';
+      } else {
+        // en vivo primero, luego los próximos (más cercano primero), y al
+        // final los que ya acabaron (no se borran, solo quedan de últimos) —
+        // el más recientemente terminado antes que uno de hace meses.
+        const rank={live:0,upcoming:1,ended:2};
+        eventos.sort((a,b)=>{
+          const sa=_eventoStatus(a),sb=_eventoStatus(b);
+          if(rank[sa]!==rank[sb]) return rank[sa]-rank[sb];
+          const ta=_eventoTimes(a).start.getTime(),tb=_eventoTimes(b).start.getTime();
+          return sa==='ended'?tb-ta:ta-tb;
+        });
+        eventosRow.innerHTML=eventos.map((ev,i)=>_eventoCardHTML(ev,i)).join('');
+      }
+    }
+  } catch(e){ if(eventosRow) eventosRow.innerHTML='<div class="com-empty">sin eventos</div>'; }
 }
 
 function openClipModal(url){
@@ -9192,6 +9290,93 @@ async function _likeNoticia(noticiaId,btn){
       await _supa.from('noticia_likes').delete().eq('noticia_id',noticiaId).eq('user_id',USER_STATE.id);
     }
   }catch(e){console.warn('[noticia like]',e?.message);}
+}
+
+// ===================== EVENTOS (detalle) =====================
+let _currentEventoDetail=null;
+let _eventoCountdownTimer=null;
+function _stopEventoCountdown(){
+  if(_eventoCountdownTimer){clearInterval(_eventoCountdownTimer);_eventoCountdownTimer=null;}
+}
+async function loadEventoDetail(id){
+  _stopEventoCountdown();
+  const el=document.getElementById('evento-detail-content');
+  if(!el)return;
+  el.innerHTML='<div class="com-loading" style="padding:40px 16px">cargando...</div>';
+  try{
+    const{data:ev,error}=await _supa.from('eventos').select('*').eq('id',id).single();
+    if(error||!ev){el.innerHTML='<div class="com-empty" style="padding:40px 16px">evento no encontrado</div>';return;}
+    _currentEventoDetail=ev;
+    const status=_eventoStatus(ev);
+    const badge=status==='live'
+      ?'<div class="evento-badge evento-badge-status live"><span class="evento-live-dot"></span>live</div>'
+      :status==='ended'
+        ?'<div class="evento-badge evento-badge-status ended">evento acabado</div>'
+        :'';
+    const fechaLarga=new Date(`${ev.fecha}T00:00:00`).toLocaleDateString('es-VE',{weekday:'long',day:'numeric',month:'long'});
+    const horaFmt=h=>{ if(!h)return''; const[hh,mm]=h.split(':'); const d=new Date(); d.setHours(+hh,+mm,0,0); return d.toLocaleTimeString('es-VE',{hour:'numeric',minute:'2-digit',hour12:true}).toLowerCase(); };
+    el.innerHTML=`
+      <div class="evento-hero">
+        <img src="${_tImg(ev.foto_url,{width:1000,quality:82})}">
+        ${badge}
+        <div class="evento-badge evento-badge-date">${_eventoDateLabel(ev)}</div>
+      </div>
+      <div style="padding:20px 16px 0">
+        <h1 style="font-size:24px;font-weight:800;letter-spacing:-.4px;line-height:1.2;margin:0 0 14px">${_esc(ev.titulo)}</h1>
+        <div class="evento-info-row"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span style="text-transform:capitalize">${fechaLarga}</span></div>
+        <div class="evento-info-row"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>${horaFmt(ev.hora_inicio)}${ev.hora_fin?' – '+horaFmt(ev.hora_fin):''}</span></div>
+        ${ev.ubicacion?`<div class="evento-info-row"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>${_esc(ev.ubicacion)}</span></div>`:''}
+        ${ev.entrada_tipo==='libre'?`<div class="evento-info-row"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="m5 12 5 5L20 7"/></svg><span>entrada libre</span></div>`:''}
+        <div id="evento-countdown-wrap"></div>
+        ${ev.descripcion?`<div style="font-size:15px;color:rgba(255,255,255,.8);line-height:1.8;white-space:pre-wrap;margin-top:6px">${_esc(ev.descripcion)}</div>`:''}
+        <div class="offer-btn-row" style="margin-top:24px">
+          <button class="btn-watchlist" onclick="_eventoShare()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg>
+            compartir
+          </button>
+          ${ev.entrada_tipo==='pagada'&&ev.link_entradas?`<button class="evento-buy-btn" onclick="window.open('${ev.link_entradas}','_blank','noopener')">comprar entradas</button>`:''}
+        </div>
+      </div>`;
+    _startEventoCountdown(ev);
+  } catch(e){ el.innerHTML='<div class="com-empty" style="padding:40px 16px">error cargando</div>'; }
+}
+// [V134] "el contador de números debe funcionar brutal" — cuenta regresiva
+// real, actualizada cada segundo, hasta que empieza (start); ahí cambia solo
+// a "en vivo ahora"; cuando termina (end), cambia solo a "evento acabado".
+// Deja de tickear apenas ya no hace falta (ahorra batería/CPU en segundo plano).
+function _startEventoCountdown(ev){
+  const wrap=document.getElementById('evento-countdown-wrap');
+  if(!wrap)return;
+  function paint(){
+    const status=_eventoStatus(ev);
+    if(status==='live'){
+      wrap.innerHTML='<div style="margin:18px 0;padding:14px;text-align:center;background:rgba(220,50,50,.12);border:1px solid rgba(255,110,110,.3);border-radius:14px;font-size:14px;font-weight:800;color:#ff6b6b;letter-spacing:.3px">● el evento está en vivo ahora</div>';
+      return false;
+    }
+    if(status==='ended'){
+      wrap.innerHTML='<div style="margin:18px 0;padding:14px;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:14px;font-size:14px;font-weight:700;color:var(--muted)">evento acabado</div>';
+      return false;
+    }
+    const{start}=_eventoTimes(ev);
+    const diff=Math.max(0,start.getTime()-Date.now());
+    const days=Math.floor(diff/86400000);
+    const hours=Math.floor((diff%86400000)/3600000);
+    const mins=Math.floor((diff%3600000)/60000);
+    const secs=Math.floor((diff%60000)/1000);
+    const box=(n,l)=>`<div class="evento-countdown-box"><div class="evento-countdown-num">${String(n).padStart(2,'0')}</div><div class="evento-countdown-label">${l}</div></div>`;
+    wrap.innerHTML=`<div class="evento-countdown">${box(days,'días')}${box(hours,'hrs')}${box(mins,'min')}${box(secs,'seg')}</div>`;
+    return true;
+  }
+  _stopEventoCountdown();
+  if(paint())_eventoCountdownTimer=setInterval(()=>{ if(!paint())_stopEventoCountdown(); },1000);
+}
+function _eventoShare(){
+  if(!_currentEventoDetail)return;
+  const url=_shareUrlFor('evento',_currentEventoDetail.id);
+  const title=_currentEventoDetail.titulo||'Ruedda';
+  if(navigator.share){ navigator.share({title,url}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(url).then(()=>showToast('link copiado',true)).catch(()=>showToast(url)); }
+  else showToast(url);
 }
 
 // ===================== SUGERENCIAS =====================
@@ -12742,6 +12927,89 @@ async function saDeleteNoticia(id){
   saLoadNoticiasList();
 }
 
+// ===================== [V134] EVENTOS (admin) =====================
+function previewEventoImg(input){
+  const file=input.files[0];
+  if(!file)return;
+  const preview=document.getElementById('sa-evento-preview');
+  const reader=new FileReader();
+  reader.onload=e=>{ preview.innerHTML=`<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover">`; };
+  reader.readAsDataURL(file);
+}
+function _saToggleEventoLinkField(){
+  const sel=document.getElementById('sa-evento-entrada');
+  const link=document.getElementById('sa-evento-link');
+  if(!sel||!link)return;
+  link.style.display=sel.value==='pagada'?'block':'none';
+}
+async function saAddEvento(){
+  const fileInput=document.getElementById('sa-evento-img-input');
+  const titulo=document.getElementById('sa-evento-titulo')?.value.trim()||'';
+  const fecha=document.getElementById('sa-evento-fecha')?.value||'';
+  const horaInicio=document.getElementById('sa-evento-hora-inicio')?.value||'';
+  const horaFin=document.getElementById('sa-evento-hora-fin')?.value||'';
+  const ubicacion=document.getElementById('sa-evento-ubicacion')?.value.trim()||'';
+  const descripcion=document.getElementById('sa-evento-descripcion')?.value.trim()||'';
+  const entradaTipo=document.getElementById('sa-evento-entrada')?.value||'libre';
+  const linkEntradas=document.getElementById('sa-evento-link')?.value.trim()||'';
+  if(!titulo){showToast('ponle un título al evento');return;}
+  if(!fecha||!horaInicio||!horaFin){showToast('falta fecha, hora de inicio o de fin');return;}
+  if(!fileInput?.files[0]){showToast('selecciona una foto');return;}
+  if(entradaTipo==='pagada'&&!linkEntradas){showToast('falta el link para comprar entradas');return;}
+  const file=fileInput.files[0];
+  const compressed=await _compressImageFile(file,1600,0.85);
+  const path=`evento_${Date.now()}.jpg`;
+  showToast('subiendo foto...');
+  const{error:upErr}=await _supa.storage.from('eventos').upload(path,compressed,{upsert:false,contentType:'image/jpeg'});
+  if(upErr){console.error('[sa-eventos-upload]',upErr);showToast('error: '+upErr.message);return;}
+  const{data:urlData}=_supa.storage.from('eventos').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('eventos').insert({
+    titulo,foto_url:urlData.publicUrl,fecha,hora_inicio:horaInicio,hora_fin:horaFin,
+    ubicacion:ubicacion||null,descripcion:descripcion||null,
+    entrada_tipo:entradaTipo,link_entradas:entradaTipo==='pagada'?linkEntradas:null
+  });
+  if(dbErr){console.error('[sa-eventos-db]',dbErr);showToast('error: '+dbErr.message);return;}
+  fileInput.value='';
+  document.getElementById('sa-evento-preview').innerHTML='<span style="font-size:13px;color:var(--muted)">toca para subir la foto</span>';
+  document.getElementById('sa-evento-titulo').value='';
+  document.getElementById('sa-evento-fecha').value='';
+  document.getElementById('sa-evento-hora-inicio').value='';
+  document.getElementById('sa-evento-hora-fin').value='';
+  document.getElementById('sa-evento-ubicacion').value='';
+  document.getElementById('sa-evento-descripcion').value='';
+  document.getElementById('sa-evento-entrada').value='libre';
+  document.getElementById('sa-evento-link').value='';
+  _saToggleEventoLinkField();
+  showToast('evento publicado',true);
+  saLoadEventosList();
+}
+async function saLoadEventosList(){
+  const list=document.getElementById('sa-eventos-list');
+  if(!list||!_supa)return;
+  const{data,error}=await _supa.from('eventos').select('*').order('fecha',{ascending:false}).limit(30);
+  if(error||!data||data.length===0){list.innerHTML='<div style="font-size:13px;color:var(--muted)">sin eventos aún</div>';return;}
+  list.innerHTML=data.map(ev=>{
+    const status=_eventoStatus(ev);
+    const tag=status==='live'?'<span style="color:#ff5252;font-weight:800">LIVE</span>':status==='ended'?'<span style="color:rgba(255,255,255,.35)">acabado</span>':'<span style="color:var(--muted)">próximo</span>';
+    return`
+    <div style="display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px">
+      <div style="width:52px;height:34px;border-radius:8px;background:var(--bg);overflow:hidden;flex-shrink:0">
+        <img src="${ev.foto_url}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+      </div>
+      <span style="flex:1;font-size:12px;color:rgba(255,255,255,.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ev.titulo} · ${ev.fecha} · ${tag}</span>
+      <button onclick="saDeleteEvento('${ev.id}')" style="flex-shrink:0;background:rgba(255,60,60,.08);border:1px solid rgba(255,80,80,.2);border-radius:9px;padding:7px 10px;cursor:pointer;display:flex;align-items:center">
+        <svg fill="none" viewBox="0 0 16 16" stroke="rgba(255,80,80,.8)" stroke-width="2" style="width:12px;height:12px"><path d="m3 3 10 10M13 3 3 13"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+async function saDeleteEvento(id){
+  const{error}=await _supa.from('eventos').delete().eq('id',id);
+  if(error){showToast('error eliminando');return;}
+  showToast('evento eliminado');
+  saLoadEventosList();
+}
+
 // ── RUEDDA TEAM: foto editable + mensajes globales ──
 async function saLoadRueddaTeamAvatarPreview(){
   const prev=document.getElementById('sa-rtm-avatar-preview');
@@ -13102,7 +13370,7 @@ function saCategory(cat){
   saTab(SA_CATEGORIES[cat]);
 }
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa','intro'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','eventos','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa','intro'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -13117,6 +13385,7 @@ function saTab(tab){
   if(tab==='aucodigos') renderSAAuctionCodes();
   if(tab==='pagos') renderPendingRefs();
   if(tab==='comunidad') saLoadComunidadAdmin();
+  if(tab==='eventos') saLoadEventosList();
   if(tab==='patrocinantes'){ saLoadPatrocinantes(); _saLoadEncuentraPreviews(); _saLoadConsBannerPreview(); }
   if(tab==='publicaciones') saLoadPublicaciones();
   if(tab==='mensajes'){ saLoadRueddaTeamAvatarPreview(); saLoadRueddaTeamMessages(); }
@@ -17996,6 +18265,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div class="tab" id="sa-tab-moderacion" onclick="saTab('moderacion')" style="white-space:nowrap;flex-shrink:0">moderación</div>
       <div class="tab" id="sa-tab-publicaciones" onclick="saTab('publicaciones')" style="white-space:nowrap;flex-shrink:0">publicaciones</div>
       <div class="tab" id="sa-tab-comunidad" onclick="saTab('comunidad')" style="white-space:nowrap;flex-shrink:0">comunidad</div>
+      <div class="tab" id="sa-tab-eventos" onclick="saTab('eventos')" style="white-space:nowrap;flex-shrink:0">eventos</div>
       <div class="tab" id="sa-tab-documentos" onclick="saTab('documentos')" style="white-space:nowrap;flex-shrink:0">documentos</div>
       <div class="tab" id="sa-tab-logos" onclick="saTab('logos')" style="white-space:nowrap;flex-shrink:0">logos marcas</div>
       <div class="tab" id="sa-tab-comparativa" onclick="saTab('comparativa')" style="white-space:nowrap;flex-shrink:0">comparativa precios</div>
@@ -18232,6 +18502,34 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       </div>
     </div>
 
+  </div>
+
+  <!-- [V134] EVENTOS -->
+  <div id="sa-eventos" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Nuevo evento</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Aparece en Comunidad → Eventos. La card se pone "LIVE" sola entre la hora de inicio y fin, y "evento acabado" después — no hay que borrarlo ni tocarlo, solo queda ahí.</div>
+    <input class="form-input" id="sa-evento-titulo" type="text" placeholder="título del evento">
+    <input type="file" id="sa-evento-img-input" accept="image/*" style="display:none" onchange="previewEventoImg(this)">
+    <div id="sa-evento-preview" onclick="document.getElementById('sa-evento-img-input').click()" style="width:100%;aspect-ratio:16/9;background:var(--card);border:1.5px dashed var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden">
+      <span style="font-size:13px;color:var(--muted)">toca para subir la foto</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <input class="form-input" id="sa-evento-fecha" type="date" style="flex:1">
+      <input class="form-input" id="sa-evento-hora-inicio" type="time" style="flex:1">
+      <input class="form-input" id="sa-evento-hora-fin" type="time" style="flex:1">
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:-6px">fecha, hora de inicio y hora de fin (con esas dos calcula solo cuándo está LIVE)</div>
+    <input class="form-input" id="sa-evento-ubicacion" type="text" placeholder="ubicación (opcional)">
+    <textarea id="sa-evento-descripcion" placeholder="descripción del evento..." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--white);font-size:14px;padding:14px;resize:none;font-family:var(--font);box-sizing:border-box;height:100px;line-height:1.6"></textarea>
+    <select id="sa-evento-entrada" onchange="_saToggleEventoLinkField()" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 14px;font-family:var(--font);font-size:14px;color:#fff;outline:none">
+      <option value="libre">entrada libre</option>
+      <option value="pagada">requiere comprar entradas</option>
+    </select>
+    <input class="form-input" id="sa-evento-link" type="url" placeholder="link para comprar entradas" style="display:none">
+    <button onclick="saAddEvento()" style="width:100%;background:#000;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:13px;font-size:14px;font-weight:800;padding:14px;cursor:pointer;font-family:var(--font)">publicar evento</button>
+    <div id="sa-eventos-list" style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+      <div style="font-size:13px;color:var(--muted)">cargando eventos...</div>
+    </div>
   </div>
 
   <!-- PUBLICACIONES -->
@@ -18928,6 +19226,15 @@ async function _saDeletePat(id,cat){
     <span>comunidad</span>
   </div>
   <div id="noticia-detail-content" style="padding-bottom:100px"></div>
+</div>
+
+<!-- [V134] EVENTO DETAIL VIEW — página completa, no modal -->
+<div id="view-evento-detail" class="view">
+  <div class="detail-back" onclick="showView('favoritos')">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+    <span>comunidad</span>
+  </div>
+  <div id="evento-detail-content" style="padding-bottom:100px"></div>
 </div>
 
 <!-- PERFIL PÚBLICO DE USUARIO -->
