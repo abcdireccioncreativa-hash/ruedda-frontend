@@ -1907,12 +1907,17 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   // al servidor de Supabase la imagen ya redimensionada/comprimida en vez de la
   // foto original tal cual se subió (puede pesar varios MB) — carga rápido sin
   // perder nitidez, porque el ancho pedido ya cubre pantallas a 3x.
+  // [V132 FIX] esta copia YA NO chequea window.RUEDDA_IMG_TRANSFORMS — ese flag
+  // vive ~8.500 líneas más abajo (recién se define en window en línea ~10485,
+  // MUCHO después de que este script corre, porque este script corre al tope
+  // del body a propósito). Exactamente el mismo bug de timing que ya se
+  // encontró y arregló con _supa: leerlo acá siempre daba `undefined` (falsy)
+  // y esto devolvía la foto ORIGINAL sin comprimir/redimensionar — potencialmente
+  // varios MB — en vez de la versión liviana. La cuenta ya está confirmada en
+  // plan Pro (ver ese mismo comentario en línea ~10478) así que acá se asume
+  // directo, sin flag.
   function _introTImg(url, width, quality){
     try{
-      // se llama solo después de que _supa exista (ver más abajo), y
-      // RUEDDA_IMG_TRANSFORMS se setea antes que _supa en el documento —
-      // para cuando esto corre, ya está definida.
-      if(!window.RUEDDA_IMG_TRANSFORMS) return url;
       if(!url || typeof url !== 'string') return url;
       var MARK = '/storage/v1/object/public/';
       if(url.indexOf(MARK) === -1) return url;
@@ -1983,7 +1988,15 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
       el = document.createElement('img');
       el.alt = '';
       el.decoding = 'async';
-      el.loading = i === 0 ? 'eager' : 'lazy';
+      // [V132 FIX] NUNCA loading='lazy' acá — mientras la slide tiene la
+      // clase rd-nomedia, el CSS le pone display:none a este <img>, y un
+      // <img loading=lazy> sin caja de layout (display:none) puede quedarse
+      // sin disparar su fetch para siempre en algunos navegadores — pero
+      // rd-nomedia solo se saca EN el evento 'load' de esta misma imagen:
+      // deadlock real (la foto nunca carga, y por lo tanto nunca se
+      // muestra, sin importar cuánto se espere ni se reinstale la app).
+      // Con solo 9 fotos en toda la intro, cargarlas eager no cuesta nada.
+      el.loading = 'eager';
     }
     slideDiv.insertBefore(el, slideDiv.firstChild);
     return el;
@@ -2035,7 +2048,10 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     // vuelta a la primera foto en loop infinito, ver abajo). Swipe hacia atrás
     // desde la primera sí puede dar la vuelta a la última, eso queda igual.
     if(i >= SLIDES.length){ finishIntro(); return; }
-    i = (i + SLIDES.length) % SLIDES.length;
+    // [fix] retroceder antes de la 1ra ya NO da la vuelta a la última — se
+    // queda quieto en la primera (antes: swipe/tap izquierda repetido caía
+    // en la última foto y "se devolvía", confuso).
+    if(i < 0) i = 0;
     if(i === cur) return;
     cur = i;
     var s = SLIDES[i];
@@ -2143,58 +2159,75 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   var MAX_PRELOAD_MS = 3200, MIN_PRELOAD_MS = 550, FIRST_IMGS_BUDGET_MS = 2400;
   setTimeout(_startIntroContent, MAX_PRELOAD_MS); // red de seguridad: pase lo que pase, no se queda colgado
 
-  // espera a que UNA imagen ya montada (o por montar) termine de cargar —
-  // con budget propio, para que una sola foto lenta no trabe a las demás.
-  function _waitImgReady(getEl, budgetMs){
-    return new Promise(function(res){
-      var el = getEl();
-      if(el && el.complete && el.naturalWidth > 0){ res(); return; }
-      var done = false;
-      function finish(){ if(!done){ done = true; res(); } }
-      if(el){
-        el.addEventListener('load', finish, {once:true});
-        el.addEventListener('error', finish, {once:true});
-      }
-      setTimeout(finish, budgetMs);
-      // si el <img> todavía no existe (override no llegó todavía), el timeout
-      // igual resuelve — no se queda esperando algo que capaz nunca llega.
-    });
-  }
 
   /* ── fotos editables desde SuperAdmin > Intro ────────────────
      mismo patrón app_settings key/value que Encuentra (ver
      _saUploadIntroFoto).
-     [V128 FIX] el setTimeout(0) original asumía que para cuando corriera,
-     _supa (declarado ~12.000 líneas más abajo en este mismo documento,
-     dentro de otro <script>) ya iba a existir — pero setTimeout(0) solo
-     garantiza "después de que termine el script actual", NO "después de
-     que el parser haya llegado y ejecutado TODO el resto del documento".
-     Con un archivo de este tamaño, el timer disparaba antes de que el
-     parser llegara a la línea donde se declara _supa: typeof _supa era
-     'undefined' de verdad (ni siquiera TDZ — la declaración ni existía
-     todavía), el guard cortaba en silencio, y la foto subida en Super
-     Admin nunca se aplicaba aunque estuviera bien guardada en la base.
-     Ahora reintenta cada 150ms hasta que _supa exista (o hasta ~10s,
-     por si el usuario tiene la red muy lenta y nunca llega a cargar). */
-  function _fetchIntroOverrides(triesLeft){
-    return new Promise(function(resolve){
-      (function attempt(triesLeft){
-        if(typeof _supa === 'undefined' || !_supa){
-          if(triesLeft > 0){ setTimeout(function(){ attempt(triesLeft - 1); }, 150); return; }
-          resolve(null); // se rindió — arranca sin overrides, degradado quieto para todas
-          return;
-        }
-        try{
-          var keys = SLIDES.map(function(_, i){ return 'intro_' + (i + 1) + '_url'; });
-          _supa.from('app_settings').select('key,value').in('key', keys).then(function(res){
-            resolve(res && res.data);
-          }).catch(function(){ resolve(null); });
-        }catch(e){ resolve(null); }
-      })(triesLeft);
-    });
+     [V128 FIX, ahora reemplazado por V132] la versión anterior esperaba a
+     que _supa (declarado ~12.000 líneas más abajo, en otro <script>) ya
+     existiera antes de poder pedir las fotos — funcionaba, pero es una
+     dependencia innecesaria: este script corre a propósito al tope del
+     body, y esperar a que el documento entero parsee antes de arrancar
+     el fetch le costaba segundos reales en una conexión móvil lenta o en
+     la primera apertura tras reinstalar (todo frío, sin caché de nada).
+     [V132 FIX — reporte del usuario: "cargué 3 fotos y no cargan, reinstalé
+     la app y sigue sin cargar"] acá van los DOS problemas reales que
+     esto causaba, confirmados con curl directo contra la base — las URLs
+     y los archivos en Supabase Storage están bien, el problema es 100%
+     cliente:
+       1) esperar a _supa tenía un techo de ~10s de reintentos; en una
+          conexión lenta (justo el caso de "recién reinstalé la app", con
+          NADA en caché todavía) ese techo se agotaba, el fetch se
+          RENDÍA PARA SIEMPRE, y ninguna foto se pedía en el resto de esa
+          sesión — no había forma de que aparecieran ni esperando.
+       2) Supabase Storage sirve estos archivos con `Cache-Control:
+          no-cache` (confirmado con curl -I) — o sea el navegador NUNCA
+          los guarda de verdad entre aperturas de la app, muy distinto a
+          como se sentían las fotos antes (embebidas/servidas desde el
+          propio dominio, cacheadas normal). Cada apertura, incluso
+          minutos después, volvía a bajar el archivo entero por red.
+     Ahora: (a) pide las URLs directo por REST con fetch(), sin esperar a
+     nada del resto del documento — arranca de una; (b) cachea el BYTE de
+     cada foto en el Cache Storage del navegador (independiente del header
+     del servidor) la primera vez que se descarga, así en cualquier
+     apertura siguiente sale de caché local al instante, igual que una
+     foto embebida en el propio bundle. */
+  var RD_SUPA_URL  = 'https://ltodsegzbbdcaublkgtp.supabase.co';
+  var RD_SUPA_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0b2RzZWd6YmJkY2F1YmxrZ3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjIwOTgsImV4cCI6MjA5NTI5ODA5OH0.WXbnE5_XfNwwVUtDGSWa6Voetcflcl7m2vDOpEofs_w';
+  var RD_IMG_CACHE = 'rd-intro-photos-v1';
+
+  function _fetchIntroOverrides(){
+    var keys = SLIDES.map(function(_, i){ return 'intro_' + (i + 1) + '_url'; });
+    var url = RD_SUPA_URL + '/rest/v1/app_settings?select=key,value&key=in.(' + keys.join(',') + ')';
+    return fetch(url, {
+      headers: { apikey: RD_SUPA_ANON, Authorization: 'Bearer ' + RD_SUPA_ANON }
+    }).then(function(res){ return res.ok ? res.json() : null; }).catch(function(){ return null; });
   }
 
-  _fetchIntroOverrides(65).then(function(rows){
+  // resuelve una URL de foto a un blob: local — desde el Cache Storage si ya
+  // se descargó antes (instantáneo, sin red), o descargándola una única vez
+  // y guardándola ahí para la próxima apertura. Si el navegador no soporta
+  // Cache Storage (raro), cae en devolver la URL de red tal cual.
+  function _rdCachedImg(cache, url){
+    if(!cache) return Promise.resolve(url);
+    return cache.match(url).then(function(hit){
+      if(hit) return hit.blob();
+      return fetch(url, {mode:'cors'}).then(function(res){
+        if(!res || !res.ok) throw new Error('fetch falló');
+        cache.put(url, res.clone()).catch(function(){});
+        return res.blob();
+      });
+    }).then(function(blob){
+      return URL.createObjectURL(blob);
+    }).catch(function(){ return url; });
+  }
+
+  var _rdCacheReady = ('caches' in window)
+    ? caches.open(RD_IMG_CACHE).catch(function(){ return null; })
+    : Promise.resolve(null);
+
+  Promise.all([_fetchIntroOverrides(), _rdCacheReady]).then(function(res){
+    var rows = res[0], cache = res[1];
     var hasOverride = {};
     (rows||[]).forEach(function(row){
       if(!row.value) return;
@@ -2204,21 +2237,35 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
       SLIDES[i].src = row.value;
     });
     // aplica el override a TODAS las slides que tengan una — esto ya dispara
-    // la descarga de las 9 en paralelo (no solo la 1ra), así para cuando el
-    // usuario llegue a la 3ra, 4ta, etc., lo más probable es que ya estén
-    // listas de fondo, sin loader ni degradado de por medio.
-    slides.forEach(function(slideDiv, i){
-      if(!hasOverride[i]) return;
-      var el = _ensureSlideMedia(slideDiv, SLIDES[i], i);
+    // la descarga (o el hit de caché) de las 9 en paralelo (no solo la 1ra),
+    // así para cuando el usuario llegue a la 3ra, 4ta, etc., lo más probable
+    // es que ya estén listas de fondo, sin degradado de por medio.
+    // Cada promesa resuelve cuando la <img> de esa slide terminó de cargar
+    // (o falló) de verdad — no un timeout ciego — así la pantalla de carga
+    // puede esperar por el evento real en vez de adivinar un tiempo fijo.
+    var loadPromises = slides.map(function(slideDiv, i){
+      if(!hasOverride[i]) return Promise.resolve();
       var displayUrl = _introTImg(SLIDES[i].src, 1200, 82);
-      if(el.src !== displayUrl) el.src = displayUrl;
-      el.addEventListener('load', function(){ slideDiv.classList.remove('rd-nomedia'); }, {once:true});
+      return _rdCachedImg(cache, displayUrl).then(function(finalSrc){
+        return new Promise(function(res){
+          var el = _ensureSlideMedia(slideDiv, SLIDES[i], i);
+          var done = false;
+          function finish(){ if(!done){ done = true; res(); } }
+          el.addEventListener('load', function(){ slideDiv.classList.remove('rd-nomedia'); finish(); }, {once:true});
+          el.addEventListener('error', finish, {once:true});
+          el.src = finalSrc;
+          if(el.complete && el.naturalWidth > 0){ slideDiv.classList.remove('rd-nomedia'); finish(); }
+        });
+      });
     });
     // [V131] la pantalla de carga espera puntualmente la 1ra Y 2da foto (si
-    // tienen override) — el resto sigue bajando detrás sin bloquear nada.
+    // tienen override), cada una con su propio presupuesto — el resto sigue
+    // bajando detrás sin bloquear nada.
     return Promise.all([0,1].map(function(i){
-      if(!hasOverride[i]) return Promise.resolve();
-      return _waitImgReady(function(){ return slides[i] && slides[i].querySelector('img,video'); }, FIRST_IMGS_BUDGET_MS);
+      return Promise.race([
+        loadPromises[i],
+        new Promise(function(res){ setTimeout(res, FIRST_IMGS_BUDGET_MS); })
+      ]);
     }));
   }).catch(function(){}).then(function(){
     // piso mínimo: aunque todo cargue instantáneo, que la pantalla de carga
