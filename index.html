@@ -3652,7 +3652,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     </div>
     <div class="form-group"><label class="form-label">Modelo.</label><input class="form-input" type="text" placeholder="ej. Corolla XLI"></div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="number" inputmode="numeric" placeholder="km"></div>
+      <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="text" inputmode="numeric" placeholder="km" oninput="_milesInputHandler(this)"></div>
       <div class="form-group"><label class="form-label">Dueños previos.</label>
         <select class="form-select" id="duenos-select" onchange="_toggleDuenosExacto(this.value)"><option>1</option><option>2</option><option>3</option><option>4+</option></select>
         <input class="form-input" type="number" inputmode="numeric" id="duenos-exacto-input" placeholder="cantidad exacta" min="4" style="display:none;margin-top:8px">
@@ -3712,15 +3712,15 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     <!-- PRECIO: particular muestra precio fijo, subasta muestra reserva -->
     <div class="form-group" id="field-precio-fijo">
       <label class="form-label">Precio (USD).</label>
-      <input class="form-input" type="number" inputmode="numeric" placeholder="precio de venta">
+      <input class="form-input" type="text" inputmode="numeric" placeholder="precio de venta" oninput="_milesInputHandler(this)">
     </div>
     <div class="form-group" id="field-precio-reserva" style="display:none">
       <label class="form-label">Precio base de subasta (USD).</label>
-      <input class="form-input" type="number" inputmode="numeric" id="precio-base-input" placeholder="ej: 5000 — arranca en 0 si se deja vacío" min="0">
+      <input class="form-input" type="text" inputmode="numeric" id="precio-base-input" placeholder="ej: 5.000 — arranca en 0 si se deja vacío" oninput="_milesInputHandler(this)">
     </div>
     <div class="form-group" id="field-reserva-oculta" style="display:none">
       <label class="form-label">Precio de reserva (USD) · solo lo ves tú.</label>
-      <input class="form-input" type="number" inputmode="numeric" id="precio-reserva-input" placeholder="opcional: mínimo para vender — no se muestra en la publicación" min="0">
+      <input class="form-input" type="text" inputmode="numeric" id="precio-reserva-input" placeholder="opcional: mínimo para vender — no se muestra en la publicación" oninput="_milesInputHandler(this)">
     </div>
 
     <!-- DURACIÓN: solo aparece en subasta -->
@@ -5236,6 +5236,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
         <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.5px">datos de pago móvil Ruedda</div>
         <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">banco</span><span style="font-weight:600" id="checkout-banco">Banesco</span></div>
         <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">teléfono</span><span style="font-weight:600;cursor:pointer" data-pay-telefono onclick="navigator.clipboard?.writeText(document.getElementById('checkout-banco-tel').textContent);showToast('copiado',true)" id="checkout-banco-tel">0412-0000000</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">cédula</span><span style="font-weight:600;cursor:pointer" data-pay-cedula onclick="navigator.clipboard?.writeText(document.getElementById('checkout-banco-cedula').textContent);showToast('copiado',true)" id="checkout-banco-cedula">V-28187688</span></div>
         <div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:rgba(255,255,255,.4)">monto exacto</span><span style="font-weight:700;color:#e6f03b" id="checkout-ves-exact">Bs. —</span></div>
       </div>
       <input class="form-input" type="text" id="checkout-ref" placeholder="número de referencia Banesco" maxlength="20">
@@ -5270,6 +5271,14 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 <div class="modal-overlay" id="pricing-sheet" onclick="if(event.target.id==='pricing-sheet')closePricingSheet()" style="align-items:flex-end">
   <div style="background:#0a0a0a;border-radius:26px 26px 0 0;padding:0 0 48px;width:100%;border:1px solid rgba(255,255,255,.08);border-bottom:none;animation:slideUp .35s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
     <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:#222;border-radius:2px"></div></div>
+
+    <!-- [V135] banner 16:9 editable desde Super Admin (ej. "código gratis
+         del día") — oculto si no hay foto subida, no deja hueco vacío. -->
+    <div id="pricing-banner-wrap" style="display:none;padding:16px 16px 0">
+      <div style="width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--card)">
+        <img id="pricing-banner-img" style="width:100%;height:100%;object-fit:cover;display:block">
+      </div>
+    </div>
 
     <!-- HEADER -->
     <div style="padding:28px 22px 20px;text-align:center">
@@ -5409,6 +5418,38 @@ function _updateSeoMeta(section){
 _updateSeoMeta(_bootIsDedicatedSectionPath ? currentSection : null);
 
 let PAYMENT_DATA={banco:'Banesco',telefono:'04123921048',cedula:'28187688',cuenta:''};
+// [V135] miles con puntos, estilo venezolano (20000 -> 20.000) — a mano con
+// regex en vez de toLocaleString() para no depender del locale del navegador
+// de cada quien (podía dar comas en vez de puntos según el dispositivo).
+function _milesFmt(n){
+  if(n===null||n===undefined||n==='') return '';
+  var s=String(n).replace(/\D/g,'');
+  if(!s) return '';
+  return s.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+function _fmtCedula(c){
+  if(!c) return '—';
+  return 'V-'+_milesFmt(c);
+}
+// [V135] "20000 -> 20.000" mientras se escribe, en vivo, preservando dónde
+// estaba el cursor (contando dígitos a la izquierda del cursor antes de
+// reformatear, y recolocándolo después del mismo conteo de dígitos) — así
+// no salta al final del campo cada vez que se corrige algo en el medio.
+function _milesInputHandler(el){
+  var caret=el.selectionStart;
+  var digitsBeforeCaret=el.value.slice(0,caret).replace(/\D/g,'').length;
+  var digits=el.value.replace(/\D/g,'');
+  el.value=_milesFmt(digits);
+  var count=0,pos=0;
+  for(pos=0;pos<el.value.length&&count<digitsBeforeCaret;pos++){
+    if(/\d/.test(el.value[pos]))count++;
+  }
+  el.setSelectionRange(pos,pos);
+}
+// [V135] quita los puntos de miles antes de parsear — los campos de precio/km
+// ahora muestran "20.000" en vivo, pero el valor real para guardar en la
+// base debe ser el número limpio.
+function _numClean(s){ return String(s||'').replace(/\./g,''); }
 // [V126] persistido de verdad en app_settings (antes vivía solo en memoria del
 // navegador del admin — se perdía al recargar y nunca llegaba a los usuarios).
 async function _loadPaymentData(){
@@ -5420,6 +5461,10 @@ async function _loadPaymentData(){
       Object.assign(PAYMENT_DATA,saved);
       if(document.getElementById('checkout-banco')) document.getElementById('checkout-banco').textContent=PAYMENT_DATA.banco;
       if(document.getElementById('checkout-banco-tel')) document.getElementById('checkout-banco-tel').textContent=PAYMENT_DATA.telefono;
+      // [V135 FIX] la cédula de pago móvil se guardaba y se podía editar desde
+      // Super Admin, pero el checkout nunca tenía un elemento para mostrarla —
+      // el comprador jamás la veía aunque estuviera bien guardada en la base.
+      if(document.getElementById('checkout-banco-cedula')) document.getElementById('checkout-banco-cedula').textContent=_fmtCedula(PAYMENT_DATA.cedula);
     }
   }catch(e){console.warn('[ruedda] _loadPaymentData:',e?.message||e);}
 }
@@ -6181,6 +6226,7 @@ async function savePaymentData(){
   PAYMENT_DATA.cuenta=document.getElementById('sa-pay-cuenta')?.value||PAYMENT_DATA.cuenta;
   if(document.getElementById('checkout-banco')) document.getElementById('checkout-banco').textContent=PAYMENT_DATA.banco;
   if(document.getElementById('checkout-banco-tel')) document.getElementById('checkout-banco-tel').textContent=PAYMENT_DATA.telefono;
+  if(document.getElementById('checkout-banco-cedula')) document.getElementById('checkout-banco-cedula').textContent=_fmtCedula(PAYMENT_DATA.cedula);
   // [V126] persistir de verdad — antes esto solo vivía en memoria del navegador
   // del admin y se perdía al recargar, todos los demás usuarios seguían viendo
   // el default hardcodeado.
@@ -6196,6 +6242,37 @@ function saBankLogoUpload(input){
   const url=URL.createObjectURL(input.files[0]);
   const p=document.getElementById('sa-bank-logo-preview');
   if(p) p.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:14px">`;
+}
+
+// [V135] banner 16:9 del selector de plan (app_settings key 'pricing_banner_url')
+async function _saLoadPricingBannerPreview(){
+  const prev=document.getElementById('sa-pricing-banner-preview');
+  if(!prev||!_supa) return;
+  const{data}=await _supa.from('app_settings').select('value').eq('key','pricing_banner_url').maybeSingle();
+  if(data?.value) prev.innerHTML=`<img src="${data.value}" style="width:100%;height:100%;object-fit:cover">`;
+  else prev.innerHTML='<span style="font-size:13px;color:var(--muted)">toca para subir (ej. "código gratis del día")</span>';
+}
+async function _saUploadPricingBanner(input){
+  const file=input.files?.[0];
+  if(!file||!_supa) return;
+  showToast('subiendo banner...');
+  const compressed=await _compressImageFile(file,1600,0.85);
+  const path=`pricing-banner_${Date.now()}.jpg`;
+  const{error:upErr}=await _supa.storage.from('assets').upload(path,compressed,{upsert:false,contentType:'image/jpeg'});
+  if(upErr){showToast('error: '+upErr.message);return;}
+  const{data:urlData}=_supa.storage.from('assets').getPublicUrl(path);
+  const{error:dbErr}=await _supa.from('app_settings').upsert({key:'pricing_banner_url',value:urlData.publicUrl,updated_at:new Date().toISOString()});
+  if(dbErr){showToast('error guardando: '+dbErr.message);return;}
+  const prev=document.getElementById('sa-pricing-banner-preview');
+  if(prev) prev.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover">`;
+  showToast('banner actualizado',true);
+}
+async function _saRemovePricingBanner(){
+  if(!_supa) return;
+  const{error}=await _supa.from('app_settings').upsert({key:'pricing_banner_url',value:'',updated_at:new Date().toISOString()});
+  if(error){showToast('error: '+error.message);return;}
+  _saLoadPricingBannerPreview();
+  showToast('banner quitado',true);
 }
 
 function submitRef(userId,refNum,amountUSD,extra){
@@ -10190,6 +10267,23 @@ function openPricingSheet(){
 
   document.getElementById('pricing-sheet').classList.add('open');
   _syncPagosUrl();
+  _loadPricingBanner();
+}
+// [V135] banner 16:9 arriba del todo en el selector de plan — simple
+// contenedor de foto editable desde Super Admin (ej. "código gratis del
+// día"). Se esconde solo si no hay foto subida, sin dejar hueco vacío.
+async function _loadPricingBanner(){
+  const wrap=document.getElementById('pricing-banner-wrap');
+  if(!wrap||!_supa){ if(wrap) wrap.style.display='none'; return; }
+  try{
+    const{data}=await _supa.from('app_settings').select('value').eq('key','pricing_banner_url').maybeSingle();
+    if(data?.value){
+      document.getElementById('pricing-banner-img').src=_tImg(data.value,{width:700,quality:80});
+      wrap.style.display='block';
+    } else {
+      wrap.style.display='none';
+    }
+  }catch(e){ wrap.style.display='none'; }
 }
 
 // [V126] mientras el usuario elige plan / paga, la URL en la barra dice
@@ -10285,6 +10379,7 @@ function openCheckout(){
   // sync payment data
   if(document.getElementById('checkout-banco')) document.getElementById('checkout-banco').textContent=PAYMENT_DATA.banco;
   if(document.getElementById('checkout-banco-tel')) document.getElementById('checkout-banco-tel').textContent=PAYMENT_DATA.telefono;
+  if(document.getElementById('checkout-banco-cedula')) document.getElementById('checkout-banco-cedula').textContent=_fmtCedula(PAYMENT_DATA.cedula);
   switchPayTab('usd');
   fetchBCVRate(price);
   document.getElementById('checkout-modal').classList.add('open');
@@ -10613,7 +10708,7 @@ function validateVenderForm(){
   if(!marca || marca==='')          errors.push('selecciona la marca');
   if(!modelo)                       errors.push('ingresa el modelo');
   if(!year)                         errors.push('selecciona el año');
-  if(!km || parseInt(km)===0)       errors.push('ingresa el kilometraje');
+  if(!km || parseInt(_numClean(km))===0) errors.push('ingresa el kilometraje');
   if(pendingVenderType!=='subasta' && !precioFijo) errors.push('ingresa el precio de venta');
   if(!descripcion)                  errors.push('agrega una descripción');
 
@@ -10673,11 +10768,11 @@ async function publishListing(opts){
   const getSelByLabel=(lbl)=>{for(const l of (form?.querySelectorAll('.form-label')||[])){if(_norm(l.textContent)===_norm(lbl)){const s=l.closest('.form-group')?.querySelector('select,input');if(s)return s.value||'';}}return '';};
   const marca=getSelByLabel('marca');   // ← fix: lee el select de marca por su label
   const modelo=getByPH('ej. Corolla XLI');
-  const km=parseInt(getByPH('km')||'0');
+  const km=parseInt(_numClean(getByPH('km'))||'0');
   const color=getByPH('ej. negro mate');
-  const precioFijo=parseFloat(getByPH('precio de venta')||'0');
-  const precioBase=parseFloat(document.getElementById('precio-base-input')?.value||'0')||0; // arranque público de la puja
-  const precioRes=parseFloat(document.getElementById('precio-reserva-input')?.value||'0')||0; // [V90] mínimo oculto del dueño
+  const precioFijo=parseFloat(_numClean(getByPH('precio de venta'))||'0');
+  const precioBase=parseFloat(_numClean(document.getElementById('precio-base-input')?.value)||'0')||0; // arranque público de la puja
+  const precioRes=parseFloat(_numClean(document.getElementById('precio-reserva-input')?.value)||'0')||0; // [V90] mínimo oculto del dueño
   const whatsapp=getByPH('+58 412 000 0000');
   const descripcion=getByPH('sé sumamente detallado: estado, equipamiento, historial. no aceptamos descripciones mediocres, el sistema rechaza la publicación.');
   const ciudad=getSelByLabel('ciudad');
@@ -11414,7 +11509,7 @@ async function openEditListingModal(id){
           <div class="form-group"><label class="form-label">Año.</label><select class="form-select" id="edit-year">${yearOpts}</select></div>
         </div>
         <div class="form-group"><label class="form-label">Modelo.</label><input class="form-input" type="text" id="edit-modelo" value="${(l.modelo||'').replace(/"/g,'&quot;')}" placeholder="ej. Corolla XLI"></div>
-        <div class="form-group"><label class="form-label">Precio (USD).</label><input class="form-input" type="number" inputmode="numeric" id="edit-precio" value="${Number(l.precio_usd||0)}" placeholder="precio de venta"></div>
+        <div class="form-group"><label class="form-label">Precio (USD).</label><input class="form-input" type="text" inputmode="numeric" id="edit-precio" value="${_milesFmt(l.precio_usd||0)}" placeholder="precio de venta" oninput="_milesInputHandler(this)"></div>
         <div class="form-group">
           <label class="form-label">¿Cómo clasificas tu carro?</label>
           <select class="form-select" id="edit-clasificacion"><option value="">seleccionar</option>${clasifOpts.map(([v,lb])=>`<option value="${v}" ${sel(l.clasificacion,v)}>${lb}</option>`).join('')}</select>
@@ -11431,7 +11526,7 @@ async function openEditListingModal(id){
 
       <div id="edit-panel-detalles" class="form-group" style="display:none;flex-direction:column;gap:14px">
         <div class="form-row">
-          <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="number" inputmode="numeric" id="edit-km" value="${Number(l.km||0)}" placeholder="km"></div>
+          <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="text" inputmode="numeric" id="edit-km" value="${_milesFmt(l.km||0)}" placeholder="km" oninput="_milesInputHandler(this)"></div>
           <div class="form-group"><label class="form-label">Dueños previos.</label>
             <select class="form-select" id="edit-duenos" onchange="document.getElementById('edit-duenos-exacto').style.display=this.value==='4+'?'block':'none'">
               <option value="1" ${sel(duenosEsExacto?'':duenosActual,'1')}>1</option>
@@ -11561,7 +11656,7 @@ async function saveListingEdit(id){
   if(btn){btn.innerHTML='<div class="save-spinner"></div>';btn.disabled=true;btn.style.opacity='.7';}
   const val=sel=>document.getElementById(sel)?.value?.trim()??'';
   const marca=val('edit-marca'), modelo=val('edit-modelo'), year=Number(val('edit-year')||0);
-  const precio=val('edit-precio'), desc=val('edit-desc');
+  const precio=_numClean(val('edit-precio')), desc=val('edit-desc');
   const duenosSel=val('edit-duenos'), duenosExacto=val('edit-duenos-exacto');
   const duenos=(duenosSel==='4+'&&duenosExacto)?duenosExacto:duenosSel;
 
@@ -11575,7 +11670,7 @@ async function saveListingEdit(id){
     marca, modelo, year: year||null,
     precio_usd: Number(precio),
     titulo: `${year||''} ${marca} ${modelo}`.trim(),
-    km: Number(val('edit-km')||0)||null,
+    km: Number(_numClean(val('edit-km'))||0)||null,
     duenos: duenos||null,
     transmision: val('edit-transmision')||null,
     combustible: val('edit-combustible')||null,
@@ -13383,7 +13478,7 @@ function saTab(tab){
   if(tab==='kyc') renderSAKyc();
   if(tab==='acceso') renderSAAccessRequests();
   if(tab==='aucodigos') renderSAAuctionCodes();
-  if(tab==='pagos') renderPendingRefs();
+  if(tab==='pagos'){ renderPendingRefs(); _saLoadPricingBannerPreview(); }
   if(tab==='comunidad') saLoadComunidadAdmin();
   if(tab==='eventos') saLoadEventosList();
   if(tab==='patrocinantes'){ saLoadPatrocinantes(); _saLoadEncuentraPreviews(); _saLoadConsBannerPreview(); }
@@ -16149,9 +16244,13 @@ function _updateMktFinanciamientoCard(l){
   const card=document.getElementById('mkt-financiamiento-card');
   if(!card) return;
   if(l&&l.financiamiento){
-    card.innerHTML=`<img src="data:image/png;base64,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" alt="" style="width:20px;height:20px;opacity:1;object-fit:contain">
+    // [V135] antes reusaba el MISMO ícono del estado "próximamente" solo con
+    // más opacidad — a simple vista no se notaba la diferencia. Ahora el
+    // estado activo tiene un ícono propio (tarjeta, en lima), texto "financiamiento
+    // activo" y el mismo sello azul verificado que ya se usa en perfiles.
+    card.innerHTML=`<svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:20px;height:20px"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
       <div style="font-size:14px;font-weight:700;color:#fff">financiamiento</div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#e6f03b">Financiamiento: Sí</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#e6f03b;display:flex;align-items:center;gap:5px">financiamiento activo<svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></div>
       <div onclick="openFinanciamientoPopup()" style="font-size:11px;font-weight:600;color:rgba(255,255,255,.5);text-decoration:underline;cursor:pointer;margin-top:1px">ver más</div>`;
   } else {
     card.innerHTML=`<img src="data:image/png;base64,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" alt="" style="width:20px;height:20px;opacity:.25;object-fit:contain">
@@ -18421,6 +18520,17 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <input class="form-input" id="sa-pay-cuenta" type="text" placeholder="número de cuenta (opcional)" style="width:100%">
 
     <button onclick="savePaymentData()" style="background:#e6f03b;color:#000;border:none;border-radius:13px;padding:14px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;transition:all .15s;margin-top:4px" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'">guardar datos de pago</button>
+
+    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+
+    <!-- [V135] banner 16:9 arriba del selector de plan — simple contenedor
+         de foto (ej. "código gratis del día"). Vacío = no se muestra. -->
+    <div style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px">banner del selector de plan</div>
+    <input type="file" id="sa-pricing-banner-file" accept="image/*" style="display:none" onchange="_saUploadPricingBanner(this)">
+    <div id="sa-pricing-banner-preview" onclick="document.getElementById('sa-pricing-banner-file').click()" style="width:100%;aspect-ratio:16/9;background:var(--card);border:1.5px dashed var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden">
+      <span style="font-size:13px;color:var(--muted)">toca para subir (ej. "código gratis del día")</span>
+    </div>
+    <button onclick="_saRemovePricingBanner()" style="background:rgba(255,60,60,.08);border:1px solid rgba(255,80,80,.2);border-radius:12px;padding:11px;font-family:var(--font);font-size:12.5px;font-weight:700;color:rgba(255,100,100,.85);cursor:pointer">quitar banner</button>
 
     <div style="height:1px;background:var(--border);margin:4px 0"></div>
 
