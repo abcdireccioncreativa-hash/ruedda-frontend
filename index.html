@@ -846,6 +846,24 @@ html{scrollbar-width:none}
 .mark-read-btn{font-size:13px;color:var(--muted);background:none;border:none;cursor:pointer;font-family:var(--font);transition:color .15s}
 .mark-read-btn:hover{color:var(--lime)}
 
+/* [V133] card de feedback — SIEMPRE primera en notificaciones, pero no es
+   una notificación real (por eso no usa .notif-item: sin borde inferior,
+   con radio propio y su propia X para descartarla, igual que el banner de
+   feedback de Cars & Bids). */
+.notif-feedback-card{display:flex;gap:12px;align-items:flex-start;background:rgba(230,240,59,.05);border:1px solid rgba(230,240,59,.15);border-radius:16px;margin:14px 18px 6px;padding:14px 40px 14px 14px;cursor:pointer;position:relative}
+.notif-feedback-card .notif-icon{background:rgba(230,240,59,.1);border-color:rgba(230,240,59,.2);flex-shrink:0}
+.notif-feedback-card .notif-icon svg{color:var(--lime)}
+.notif-feedback-card p{font-size:13px;color:rgba(255,255,255,.75);line-height:1.5;font-weight:500}
+.notif-feedback-close{position:absolute;top:10px;right:10px;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.06);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.4);padding:0}
+.notif-feedback-close svg{width:10px;height:10px}
+.fb-sheet-opt{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px;transition:background .15s}
+.fb-sheet-opt:active{background:rgba(255,255,255,.08)}
+.fb-sheet-opt:last-child{margin-bottom:0}
+.fb-sheet-opt-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.fb-sheet-opt-icon svg{width:17px;height:17px;color:var(--lime)}
+.fb-sheet-opt-title{font-size:14px;font-weight:700;letter-spacing:-.1px}
+.fb-sheet-opt-sub{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}
+
 /* CUENTA */
 .cuenta-header{display:flex;flex-direction:column;align-items:center;padding:32px 18px 22px;border-bottom:1px solid var(--border);gap:12px}
 .avatar-circle{width:74px;height:74px;border-radius:50%;background:linear-gradient(135deg,#1e1e1e,#2a2a2a);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;border:1.5px solid var(--border)}
@@ -5020,6 +5038,36 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:10px">financiamiento disponible</div>
     <p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:22px;white-space:pre-wrap" id="financiamiento-popup-text"></p>
     <button onclick="closeFinanciamientoPopup()" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:13px;color:rgba(255,255,255,.6);font-size:14px;font-weight:700;padding:13px;cursor:pointer;font-family:var(--font)">cerrar</button>
+  </div>
+</div>
+
+<!-- [V133] FEEDBACK SHEET — se abre desde la card fija de notificaciones -->
+<div class="modal-overlay" id="feedback-sheet" onclick="if(event.target.id==='feedback-sheet')closeFeedbackSheet()" style="align-items:flex-end">
+  <div class="modal-sheet" style="text-align:left">
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px">¿cómo quieres ayudarnos?</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px">nos gustaría saber qué tal tu experiencia en Ruedda</div>
+    <div class="fb-sheet-opt" onclick="_feedbackOptionPick()">
+      <div class="fb-sheet-opt-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div>
+        <div class="fb-sheet-opt-title">enviar comentario</div>
+        <div class="fb-sheet-opt-sub">cuéntanos una sugerencia o qué tal lo estamos haciendo</div>
+      </div>
+    </div>
+    <div class="fb-sheet-opt" onclick="_feedbackOptionPick()">
+      <div class="fb-sheet-opt-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div>
+        <div class="fb-sheet-opt-title">reportar un problema</div>
+        <div class="fb-sheet-opt-sub">algo en la app está roto o no funciona bien</div>
+      </div>
+    </div>
+    <div class="fb-sheet-opt" onclick="_feedbackOptionPick()">
+      <div class="fb-sheet-opt-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div>
+        <div class="fb-sheet-opt-title">calificar en la app store</div>
+        <div class="fb-sheet-opt-sub">déjanos una reseña y ayuda a que más gente nos descubra</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -9372,6 +9420,45 @@ async function confirmBid(){
 }
 
 // ===================== NOTIFICATIONS =====================
+// [V133] card fija de feedback — SIEMPRE primera en notificaciones, pero NO
+// es una notificación real (no consume el arreglo NOTIFICATIONS ni cuenta
+// para el badge de no leídas). Se puede descartar con la X y queda
+// descartada para siempre (localStorage), igual que el banner de Cars & Bids
+// en el que está inspirada.
+function _feedbackCardDismissed(){
+  try{ return localStorage.getItem('ruedda_feedback_card_dismissed')==='1'; }catch(e){ return false; }
+}
+function _feedbackCardHTML(){
+  if(_feedbackCardDismissed()) return '';
+  return `
+    <div class="notif-feedback-card" onclick="openFeedbackSheet()">
+      <div class="notif-icon lime">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 7 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 0 1-1.564-.317z"/></svg>
+      </div>
+      <p>nos gustaría saber qué tal tu experiencia en Ruedda. toca para dejarnos tu opinión, reportar un problema o calificarnos.</p>
+      <button class="notif-feedback-close" onclick="event.stopPropagation();_dismissFeedbackCard()" aria-label="cerrar">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`;
+}
+function _dismissFeedbackCard(){
+  try{ localStorage.setItem('ruedda_feedback_card_dismissed','1'); }catch(e){}
+  const el=document.querySelector('.notif-feedback-card');
+  if(el) el.remove();
+}
+function openFeedbackSheet(){
+  const s=document.getElementById('feedback-sheet');
+  if(s) s.classList.add('open');
+}
+function closeFeedbackSheet(){
+  const s=document.getElementById('feedback-sheet');
+  if(s) s.classList.remove('open');
+}
+function _feedbackOptionPick(){
+  closeFeedbackSheet();
+  showSoonPill('próximamente');
+}
+
 // [RUEDDA v61] renderNotifications — guarda estado a localStorage en cada render
 function renderNotifications(){
   _saveNotifsToStorage(); // persistir estado actual
@@ -9391,8 +9478,8 @@ function renderNotifications(){
       </div>`;
     return;
   }
-  if(!NOTIFICATIONS.length){list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:15px">sin notificaciones</div>';return;}
-  list.innerHTML=NOTIFICATIONS.map(n=>`
+  if(!NOTIFICATIONS.length){list.innerHTML=_feedbackCardHTML()+'<div style="text-align:center;padding:60px 20px;color:var(--muted);font-size:15px">sin notificaciones</div>';return;}
+  list.innerHTML=_feedbackCardHTML()+NOTIFICATIONS.map(n=>`
     <div class="notif-item ${n.read?'':' unread'}" data-notif-id="${n.id}" onclick="_notifClick('${n.id}')" style="cursor:pointer;position:relative;touch-action:pan-y;will-change:transform;background:var(--bg)">
       <div class="notif-icon ${n.icon==='lime'?'lime':''}">
         ${n.type==='offer'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>':n.type==='question'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>':n.type==='sold'?'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="m5 12 5 5L20 7"/></svg>':'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'}
