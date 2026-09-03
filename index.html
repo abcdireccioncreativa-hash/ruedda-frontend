@@ -2067,13 +2067,25 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 
   /* ── fotos editables desde SuperAdmin > Intro ────────────────
      mismo patrón app_settings key/value que Encuentra (ver
-     _saUploadIntroFoto). Va en background con setTimeout(0): para
-     cuando corre, _supa (declarado mucho más abajo en el documento)
-     ya existe — TDZ solo bloquea el acceso síncrono, no uno diferido.
-     Si no hay override no pasa nada: se queda la foto de /intro-N.jpg. */
-  setTimeout(function(){
+     _saUploadIntroFoto).
+     [V128 FIX] el setTimeout(0) original asumía que para cuando corriera,
+     _supa (declarado ~12.000 líneas más abajo en este mismo documento,
+     dentro de otro <script>) ya iba a existir — pero setTimeout(0) solo
+     garantiza "después de que termine el script actual", NO "después de
+     que el parser haya llegado y ejecutado TODO el resto del documento".
+     Con un archivo de este tamaño, el timer disparaba antes de que el
+     parser llegara a la línea donde se declara _supa: typeof _supa era
+     'undefined' de verdad (ni siquiera TDZ — la declaración ni existía
+     todavía), el guard cortaba en silencio, y la foto subida en Super
+     Admin nunca se aplicaba aunque estuviera bien guardada en la base.
+     Ahora reintenta cada 150ms hasta que _supa exista (o hasta ~10s,
+     por si el usuario tiene la red muy lenta y nunca llega a cargar). */
+  (function _waitForSupaThenLoadIntroOverrides(triesLeft){
+    if(typeof _supa === 'undefined' || !_supa){
+      if(triesLeft > 0) setTimeout(function(){ _waitForSupaThenLoadIntroOverrides(triesLeft - 1); }, 150);
+      return;
+    }
     try{
-      if(typeof _supa === 'undefined' || !_supa) return;
       var keys = SLIDES.map(function(_, i){ return 'intro_' + (i + 1) + '_url'; });
       _supa.from('app_settings').select('key,value').in('key', keys).then(function(res){
         var rows = res && res.data;
@@ -2083,12 +2095,20 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
           var i = parseInt(row.key.replace('intro_', '').replace('_url', ''), 10) - 1;
           if(!SLIDES[i]) return;
           SLIDES[i].src = row.value;
-          var el = slides[i] && slides[i].querySelector('img,video');
-          if(el && el.src !== row.value) el.src = row.value;
+          var slideDiv = slides[i];
+          var el = slideDiv && slideDiv.querySelector('img,video');
+          if(el && el.src !== row.value){
+            el.src = row.value;
+            // [V128 FIX] si esta slide no tenía foto default (cae al degradado
+            // vía .rd-nomedia, ver CSS), esa clase nunca se sacaba aunque el
+            // override cargara bien — la foto nueva quedaba tapada detrás del
+            // degradado para siempre. Se saca apenas la foto nueva confirma que sí carga.
+            el.addEventListener('load', function(){ slideDiv.classList.remove('rd-nomedia'); }, {once:true});
+          }
         });
       }).catch(function(){});
     }catch(e){}
-  }, 0);
+  })(65); // ~10s de reintentos (150ms c/u) antes de rendirse
 })();
 </script>
 
