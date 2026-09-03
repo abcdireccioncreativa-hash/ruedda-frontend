@@ -806,6 +806,15 @@ html{scrollbar-width:none}
 .pv-thumbs::-webkit-scrollbar{display:none}
 .pv-thumb{width:50px;height:38px;object-fit:cover;border-radius:8px;opacity:.4;cursor:pointer;flex-shrink:0;transition:opacity .15s;border:1.5px solid transparent}
 .pv-thumb.active{opacity:1;border-color:#e6f03b}
+/* [V133] grid de fotos estilo Cars & Bids — toggle sin animación, misma
+   overlay que el visor de foto única, solo cambia qué está visible. */
+.pv-grid{display:none;grid-template-columns:repeat(3,1fr);gap:2px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px}
+#photo-viewer-overlay.grid-mode .pv-stage,
+#photo-viewer-overlay.grid-mode .pv-thumbs{display:none!important}
+#photo-viewer-overlay.grid-mode .pv-grid{display:grid}
+.pv-grid-cell{position:relative;aspect-ratio:1/1;overflow:hidden;cursor:pointer;background:#0a0a0a}
+.pv-grid-cell img{width:100%;height:100%;object-fit:cover;display:block}
+.pv-grid-cell.active::after{content:'';position:absolute;inset:0;border:2px solid #e6f03b}
 .cs-tab-btn{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:100px;color:rgba(255,255,255,.55);font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;font-family:inherit;transition:background .15s,color .15s,border-color .15s}
 .cs-tab-btn.active{background:var(--lime);color:#000;border-color:transparent}
 .feedback-grid::-webkit-scrollbar{display:none}
@@ -4973,6 +4982,9 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   <div class="pv-top">
     <span id="pv-counter" style="color:#fff;font-size:13px;font-weight:600;background:rgba(255,255,255,.08);padding:5px 12px;border-radius:100px"></span>
     <div style="display:flex;align-items:center;gap:8px">
+      <button id="pv-grid-btn" onclick="_pvToggleGrid()" title="cambiar vista" aria-label="cambiar vista" style="display:none;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:34px;height:34px;align-items:center;justify-content:center;cursor:pointer">
+        <svg fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="width:15px;height:15px"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      </button>
       <button id="pv-share-btn" onclick="_pvShare()" style="display:none;background:rgba(255,255,255,.08);border:none;border-radius:50%;width:34px;height:34px;align-items:center;justify-content:center;cursor:pointer">
         <svg fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg>
       </button>
@@ -4986,6 +4998,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     <div class="pv-arrow" id="pv-arrow-prev" style="left:12px" onclick="_pvPrev()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M15 18l-6-6 6-6"/></svg></div>
     <div class="pv-arrow" id="pv-arrow-next" style="right:12px" onclick="_pvNext()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M9 18l6-6-6-6"/></svg></div>
   </div>
+  <div id="pv-grid" class="pv-grid"></div>
   <div id="pv-thumbs" class="pv-thumbs"></div>
 </div>
 
@@ -8781,6 +8794,8 @@ let _pvPhotos=[];
 let _pvIndex=0;
 let _pvShareInfo=null;
 
+let _pvGridMode=false;
+
 function openPhotoViewer(photos,startIndex,shareInfo){
   if(!photos||!photos.length) return;
   _pvPhotos=photos.filter(Boolean);
@@ -8789,9 +8804,13 @@ function openPhotoViewer(photos,startIndex,shareInfo){
   _pvShareInfo=shareInfo||null;
   const shareBtn=document.getElementById('pv-share-btn');
   if(shareBtn) shareBtn.style.display=_pvShareInfo?'flex':'none';
+  const gridBtn=document.getElementById('pv-grid-btn');
+  if(gridBtn) gridBtn.style.display=_pvPhotos.length>1?'flex':'none';
   const ov=document.getElementById('photo-viewer-overlay');
   const inner=document.getElementById('pv-inner');
   const thumbs=document.getElementById('pv-thumbs');
+  _pvGridMode=false;
+  ov.classList.remove('grid-mode');
   inner.innerHTML=_pvPhotos.map((url,i)=>`<div class="pv-slide" data-i="${i}"><img src="${_tImg(url,{width:2000,quality:85,resize:'contain'})}" loading="${Math.abs(i-_pvIndex)<=1?'eager':'lazy'}"></div>`).join('');
   thumbs.innerHTML=_pvPhotos.length>1?_pvPhotos.map((url,i)=>`<img src="${_tImg(url,{width:200,quality:65})}" class="pv-thumb${i===_pvIndex?' active':''}" onclick="_pvGoTo(${i})" loading="lazy">`).join(''):'';
   thumbs.style.display=_pvPhotos.length>1?'flex':'none';
@@ -8802,6 +8821,33 @@ function openPhotoViewer(photos,startIndex,shareInfo){
   document.body.style.overflow='hidden';
   requestAnimationFrame(()=>{ inner.scrollLeft=_pvIndex*inner.clientWidth; });
   inner.onscroll=_pvOnScroll;
+}
+
+// [V133] grid estilo Cars & Bids — mismo overlay, toggle instantáneo (sin
+// transición) entre la foto única y una grilla de 3 columnas con todas las
+// fotos en buena calidad (600px, no las miniaturas de 200px del carrete de
+// abajo). Tocar una foto de la grilla vuelve a la vista única, de una, en
+// esa foto exacta.
+function _pvRenderGrid(){
+  const grid=document.getElementById('pv-grid');
+  if(!grid) return;
+  grid.innerHTML=_pvPhotos.map((url,i)=>`<div class="pv-grid-cell${i===_pvIndex?' active':''}" onclick="_pvGridPick(${i})"><img src="${_tImg(url,{width:600,quality:82})}" loading="${i<12?'eager':'lazy'}"></div>`).join('');
+}
+function _pvToggleGrid(){
+  const ov=document.getElementById('photo-viewer-overlay');
+  if(!ov) return;
+  _pvGridMode=!_pvGridMode;
+  if(_pvGridMode) _pvRenderGrid();
+  ov.classList.toggle('grid-mode',_pvGridMode);
+}
+function _pvGridPick(i){
+  _pvGridMode=false;
+  document.getElementById('photo-viewer-overlay').classList.remove('grid-mode');
+  _pvIndex=i;
+  const inner=document.getElementById('pv-inner');
+  inner.scrollLeft=i*inner.clientWidth;
+  document.getElementById('pv-counter').textContent=(i+1)+' / '+_pvPhotos.length;
+  document.querySelectorAll('.pv-thumb').forEach((t,idx)=>t.classList.toggle('active',idx===i));
 }
 
 // [V123] comparte la publicación (no solo la foto) — genera un link que reabre
