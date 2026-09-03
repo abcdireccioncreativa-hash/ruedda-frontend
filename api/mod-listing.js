@@ -7,6 +7,7 @@
  * en la tabla correspondiente y notifica al usuario.
  */
 const { supabaseAdmin, getUserFromToken, isSuperadmin } = require('../lib/supabase');
+const { sendEmail, layout } = require('../lib/email');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -72,6 +73,30 @@ module.exports = async function handler(req, res) {
           : 'Tu publicación no cumplió los estándares de Ruedda. Contáctanos por soporte.',
         icon: action === 'aprobar' ? 'lime' : ''
       }).catch(() => {});
+
+      // 5. Correo al dueño (best-effort, no bloquea la respuesta)
+      supabaseAdmin
+        .from('users')
+        .select('email')
+        .eq('id', item.user_id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (!data?.email) return;
+          if (action === 'aprobar') {
+            sendEmail({
+              to: data.email,
+              subject: '¡Tu publicación ya está activa en Ruedda!',
+              html: layout('Publicación activa', `Tu ${label || 'publicación'} fue aprobada y ya está visible para todos en Ruedda. No necesitas hacer nada más.`)
+            });
+          } else {
+            sendEmail({
+              to: data.email,
+              subject: 'Tu publicación no fue aprobada',
+              html: layout('Publicación rechazada', `Tu ${label || 'publicación'} no cumplió los estándares de Ruedda. Contáctanos por soporte si tienes dudas.`)
+            });
+          }
+        })
+        .catch(() => {});
     }
 
     return res.status(200).json({ ok: true, estado: nuevoEstado });
