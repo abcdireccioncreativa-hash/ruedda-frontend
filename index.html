@@ -125,8 +125,22 @@
      bottom-nav flotante) — cada superficie glass necesita su propia
      receta, no una sola variable de "vidrio" genérica; ver auditoría. */
   --navbar-bg:rgba(0,0,0,.92);
-  --bottomnav-bg:rgba(18,18,20,.38);
+  --bottomnav-bg:var(--gc8);
   --bottomnav-border:rgba(255,255,255,.08);
+
+  /* [V138] familia "glass card" — mismo vidrio oscuro que navbar/bottom-nav
+     pero escrito con tuplas RGB ligeramente distintas según quién armó
+     cada componente (18,18,20 / 14,14,16 / 20,20,20 / etc — todas leen
+     igual de oscuras). Perfiles/dropdowns/tarjetas elevadas. En claro,
+     las de opacidad baja (<.5) son vidrio traslúcido real; las de
+     opacidad alta se vuelven blanco sólido — "full white" pedido. */
+  --gc1:rgba(10,10,12,0.72);--gc2:rgba(12,12,12,0.88);--gc3:rgba(14,14,14,0.88);
+  --gc4:rgba(14,14,14,0.95);--gc5:rgba(14,14,16,0.7);--gc6:rgba(14,14,16,0.95);
+  --gc7:rgba(14,14,16,1);--gc8:rgba(18,18,20,0.38);--gc9:rgba(18,18,20,0.72);
+  --gc10:rgba(18,18,20,0.75);--gc11:rgba(18,18,20,0.85);--gc12:rgba(18,18,20,0.92);
+  --gc13:rgba(18,18,20,0.94);--gc14:rgba(20,20,20,0.55);--gc15:rgba(20,20,20,0.6);
+  --gc16:rgba(20,20,20,0.9);--gc17:rgba(20,20,20,0.95);--gc18:rgba(20,20,22,0.82);
+  --gc19:rgba(22,22,24,0.86);--gc20:rgba(30,30,30,0.85);
 
   /* rampa de opacidades de blanco (texto/bordes/glass sobre fondo oscuro) —
      39 valores, uno por cada opacidad realmente usada en el código: en
@@ -166,6 +180,14 @@ html[data-theme="light"]{
   --navbar-bg:rgba(248,248,244,.92);
   --bottomnav-bg:rgba(255,255,255,.55);
   --bottomnav-border:rgba(20,22,10,.1);
+
+  --gc1:#fff;--gc2:#fff;--gc3:#fff;
+  --gc4:#fff;--gc5:#fff;--gc6:#fff;
+  --gc7:#fff;--gc8:rgba(255,255,255,0.551);--gc9:#fff;
+  --gc10:#fff;--gc11:#fff;--gc12:#fff;
+  --gc13:#fff;--gc14:rgba(255,255,255,0.864);--gc15:rgba(255,255,255,0.878);
+  --gc16:#fff;--gc17:#fff;--gc18:#fff;
+  --gc19:#fff;--gc20:#fff;
 
   --w0:rgba(21,22,14,0);--w2:rgba(21,22,14,.02);--w3:rgba(21,22,14,.03);
   --w4:rgba(21,22,14,.04);--w5:rgba(21,22,14,.05);--w6:rgba(21,22,14,.06);
@@ -231,6 +253,9 @@ input[type=number]{-moz-appearance:textfield}
 
 /* NAVBAR */
 .navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--navbar-bg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:space-between;padding:12px 18px 12px;border-bottom:none}
+/* [V138] en claro, mismo vidrio que el drawer/hamburguesa (pedido
+   explícito) — en oscuro el navbar se queda exactamente como estaba. */
+html[data-theme="light"] .navbar{background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%)}
 #view-cuenta{scrollbar-width:none}
 #view-cuenta::-webkit-scrollbar{display:none}
 html::-webkit-scrollbar{display:none}
@@ -255,7 +280,7 @@ html{scrollbar-width:none}
 .btn-vender:active{transform:scale(.97);background:var(--lime-dark)}
 
 /* VENDER TYPE MODAL */
-.vender-modal{display:none;position:fixed;inset:0;z-index:300;align-items:flex-end;background:rgba(0,0,0,.55);opacity:0;transition:opacity .42s cubic-bezier(.32,.72,0,1)}
+.vender-modal{display:none;position:fixed;inset:0;z-index:300;align-items:flex-end;background:rgba(0,0,0,.55);opacity:0;transition:opacity .42s cubic-bezier(.32,.72,0,1);color:#fff}
 .vender-modal.open{display:flex;opacity:1}
 .vender-sheet{background:var(--surface-hi);border-radius:26px 26px 0 0;padding:24px 20px 48px;width:100%;border:1px solid var(--border);border-bottom:none;transform:translateY(100%);transition:transform .42s cubic-bezier(.32,.72,0,1)}
 .vender-modal.open .vender-sheet{transform:translateY(0)}
@@ -289,7 +314,7 @@ html{scrollbar-width:none}
 .dropdown-menu.open{pointer-events:all}
 .dropdown-menu .dropdown-glass{opacity:0;transform:translateY(-8px);transition:opacity .28s cubic-bezier(.32,.72,0,1),transform .28s cubic-bezier(.32,.72,0,1)}
 .dropdown-menu.open .dropdown-glass{opacity:1;transform:translateY(0)}
-.dropdown-glass{background:rgba(14,14,16,1);backdrop-filter:blur(120px) saturate(180%);-webkit-backdrop-filter:blur(120px) saturate(180%);border:1px solid var(--w10);border-radius:18px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.6),inset 0 1px 0 var(--w6)}
+.dropdown-glass{background:var(--gc7);backdrop-filter:blur(120px) saturate(180%);-webkit-backdrop-filter:blur(120px) saturate(180%);border:1px solid var(--w10);border-radius:18px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.6),inset 0 1px 0 var(--w6)}
 .dropdown-item{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;letter-spacing:-.2px}
 .dropdown-item:hover{background:var(--w5)}
 .dropdown-item:not(:last-child){border-bottom:1px solid var(--w5)}
@@ -323,7 +348,7 @@ html{scrollbar-width:none}
 .sched-cal-day.has-event:active{background:rgba(230,240,59,.12)}
 .sched-cal-day.has-event::after{content:'';position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:#e6f03b;box-shadow:0 0 6px rgba(230,240,59,.6)}
 
-#sched-cal-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:340;align-items:flex-end;justify-content:center}
+#sched-cal-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:340;align-items:flex-end;justify-content:center;color:#fff}
 #sched-cal-popup-overlay.open{display:flex}
 .sched-cal-popup{width:100%;max-height:78vh;overflow-y:auto;background:var(--surface-hi);border:1px solid var(--w8);border-bottom:none;border-radius:24px 24px 0 0;padding:0 0 30px;transform:translateY(100%);transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
 #sched-cal-popup-overlay.open .sched-cal-popup{transform:translateY(0)}
@@ -376,14 +401,14 @@ html{scrollbar-width:none}
 
 /* [subastas programadas] portado 1:1 del mockup aprobado */
 .sched-photo{position:relative;aspect-ratio:5/4;display:flex;flex-direction:column}
-.sched-badge{position:absolute;top:16px;left:16px;background:rgba(30,30,30,.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:100px;padding:7px 16px;font-size:13px;font-weight:700;color:var(--white)}
+.sched-badge{position:absolute;top:16px;left:16px;background:var(--gc20);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:100px;padding:7px 16px;font-size:13px;font-weight:700;color:var(--white)}
 .sched-center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;color:var(--white)}
-.sched-starts{font-size:19px;font-weight:700;letter-spacing:-.2px}
-.sched-date{font-size:44px;font-weight:800;letter-spacing:-1.2px;line-height:1.1;margin-top:2px}
+.sched-starts{font-size:19px;font-weight:700;letter-spacing:-.2px;color:#fff}
+.sched-date{font-size:44px;font-weight:800;letter-spacing:-1.2px;line-height:1.1;margin-top:2px;color:#fff}
 /* [open sauce] peso 400 real (no existe "light"/300 en este proyecto) */
-.sched-countdown{font-size:18px;font-weight:400;color:var(--w88);margin-top:10px;letter-spacing:.2px}
+.sched-countdown{font-size:18px;font-weight:400;color:rgba(255,255,255,.88);margin-top:10px;letter-spacing:.2px}
 .sched-status{display:flex;flex-direction:column;align-items:center;gap:9px;margin-top:22px}
-.sched-status-label{font-size:14px;font-weight:400;color:var(--w75)}
+.sched-status-label{font-size:14px;font-weight:400;color:rgba(255,255,255,.75)}
 /* sacudida ligera y elegante, cada 4.2s — 90% del ciclo quieto, gesto rápido */
 .sched-gavel{width:26px;height:26px;transform-origin:50% 82%;animation:iconShake 4.2s ease-in-out infinite}
 @keyframes iconShake{
@@ -532,8 +557,8 @@ html{scrollbar-width:none}
 .trending-cell{position:relative;overflow:hidden;cursor:pointer;background:var(--surface-mid);display:flex;align-items:flex-end;animation:fadeIn .25s ease both}
 .trending-cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .trending-cell::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,rgba(0,0,0,.72));pointer-events:none}
-.trending-rank{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:800;z-index:2}
-.trending-hammer{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:8px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;z-index:2}
+.trending-rank{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:800;z-index:2;color:#fff}
+.trending-hammer{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:8px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;z-index:2;color:#fff}
 .trending-hammer svg{width:11px;height:11px;color:#e6f03b}
 .trending-info{position:relative;z-index:2;padding:9px;width:100%;box-sizing:border-box}
 .trending-price{font-size:13px;font-weight:800;color:var(--white);line-height:1.2}
@@ -588,7 +613,7 @@ html{scrollbar-width:none}
 .sa-pat-upload{width:100%;height:84px;border:1.5px dashed var(--border);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;overflow:hidden;background:var(--w2);transition:border-color .15s}
 .sa-pat-upload:hover{border-color:var(--w25)}
 .sa-pat-upload svg{width:18px;height:18px}
-.soon-toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(20,20,20,.95);backdrop-filter:blur(14px);border:1px solid var(--w12);border-radius:100px;padding:11px 20px;font-size:13px;font-weight:600;color:var(--white);z-index:999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
+.soon-toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--gc17);backdrop-filter:blur(14px);border:1px solid var(--w12);border-radius:100px;padding:11px 20px;font-size:13px;font-weight:600;color:var(--white);z-index:999;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
 .soon-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* CAR IMG PLACEHOLDER */
@@ -600,7 +625,7 @@ html{scrollbar-width:none}
 .badge-timer.urgent{color:#ff5050}
 .badge-timer.days{color:var(--white)}
 .badge-bids{position:absolute;bottom:10px;right:10px;background:var(--badge);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:9px;padding:6px 12px;font-size:13px;font-weight:700}
-.badge-sinreserva{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);border-radius:100px;padding:5px 12px;font-size:12px;font-weight:500;border:1px solid var(--w10)}
+.badge-sinreserva{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);border-radius:100px;padding:5px 12px;font-size:12px;font-weight:500;border:1px solid var(--w10);color:#fff}
 /* [RC] tag "sin reserva" — verde sólido de verdad, no solo borde */
 .badge-sinreserva.verde{background:rgba(31,191,92,.92);border-color:rgba(120,240,170,.45);color:#fff;font-weight:700;box-shadow:0 2px 10px rgba(31,191,92,.3)}
 .badge-ending{position:absolute;top:10px;right:10px;background:rgba(255,60,60,.85);backdrop-filter:blur(8px);border-radius:100px;padding:5px 12px;font-size:12px;font-weight:700}
@@ -619,7 +644,7 @@ html{scrollbar-width:none}
 #bnav-ruedda img{opacity:.55;transition:opacity .2s}
 #bnav-ruedda.active img,#bnav-ruedda:active img{opacity:1}
 #bnav-favoritos svg{width:25px;height:25px}
-.notif-dot{position:absolute;top:8px;right:13px;width:7px;height:7px;border-radius:50%;background:var(--lime);border:2px solid rgba(18,18,20,.85)}
+.notif-dot{position:absolute;top:8px;right:13px;width:7px;height:7px;border-radius:50%;background:var(--lime);border:2px solid var(--gc11)}
 
 /* VIEWS */
 .view{display:none}
@@ -919,12 +944,12 @@ html{scrollbar-width:none}
 .evento-card{position:relative;flex-shrink:0;width:200px;height:130px;background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;background-size:cover;background-position:center;scroll-snap-align:start;cursor:pointer;transition:transform .18s;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
 .evento-card:active{transform:scale(.97)}
 .evento-card::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.45) 0%,rgba(0,0,0,0) 34%)}
-.evento-badge{position:absolute;top:9px;font-size:10px;font-weight:800;letter-spacing:.4px;padding:4px 9px;border-radius:100px;background:rgba(20,20,20,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w15);color:var(--white);z-index:1;text-transform:uppercase}
+.evento-badge{position:absolute;top:9px;font-size:10px;font-weight:800;letter-spacing:.4px;padding:4px 9px;border-radius:100px;background:var(--gc14);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w15);color:var(--white);z-index:1;text-transform:uppercase}
 .evento-badge-date{right:9px}
 .evento-badge-status{left:9px;display:flex;align-items:center;gap:5px}
 .evento-badge-status.live{background:rgba(220,50,50,.35);border-color:rgba(255,110,110,.45)}
 .evento-live-dot{width:6px;height:6px;border-radius:50%;background:#ff5252;animation:eventoLivePulse 1.4s ease-in-out infinite}
-.evento-badge-status.ended{background:rgba(20,20,20,.6);color:var(--w55)}
+.evento-badge-status.ended{background:var(--gc15);color:var(--w55)}
 @keyframes eventoLivePulse{0%,100%{opacity:1}50%{opacity:.3}}
 /* detalle del evento */
 .evento-hero{width:100%;aspect-ratio:16/9;background:var(--card);overflow:hidden;position:relative}
@@ -1082,7 +1107,7 @@ html{scrollbar-width:none}
 @media(prefers-reduced-motion:reduce){#boot-splash-mark,#boot-splash-ring,#boot-splash-text{animation:none!important;opacity:1!important;transform:none!important}#boot-splash-ring::before{display:none}}
 
 /* SEARCH OVERLAY */
-.search-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.98);z-index:200;padding:18px;flex-direction:column;gap:16px}
+.search-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.98);z-index:200;padding:18px;flex-direction:column;gap:16px;color:#fff}
 .search-overlay.open{display:flex;animation:fadeIn .2s ease}
 .search-top{display:flex;align-items:center;gap:10px}
 .search-bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;flex:1}
@@ -1095,13 +1120,13 @@ html{scrollbar-width:none}
 .search-cat-item:hover{color:var(--lime-text)}
 
 /* BID MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end;color:#fff}
 .modal-overlay.open{display:flex}
 /* [MENU SESIÓN] cierre suave igual al vender-modal: opacidad scoped solo a #auth-sheet,
    no toca .modal-overlay compartido por los demás sheets */
 #auth-sheet{opacity:0;transition:opacity .35s cubic-bezier(.32,.72,0,1)}
 #auth-sheet.open{opacity:1}
-.modal-sheet{background:rgba(14,14,14,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:24px 24px 0 0;padding:22px 18px 44px;width:100%;border:1px solid var(--w10);border-bottom:none;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)}
+.modal-sheet{background:var(--gc3);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:24px 24px 0 0;padding:22px 18px 44px;width:100%;border:1px solid var(--w10);border-bottom:none;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)}
 .modal-handle{width:36px;height:4px;background:var(--muted2);border-radius:2px;margin:0 auto 20px}
 .modal-title{font-size:20px;font-weight:700;margin-bottom:4px;letter-spacing:-.3px}
 .modal-subtitle{font-size:13px;color:var(--muted);margin-bottom:22px}
@@ -1116,7 +1141,7 @@ html{scrollbar-width:none}
 .btn-confirm-bid:active{transform:scale(.98);background:var(--lime-dark)}
 
 /* DRAWER */
-.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200}
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;color:#fff}
 .drawer-overlay.open{display:block}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:265px;background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-left:1px solid var(--bottomnav-border);z-index:201;padding:54px 22px 0;transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;gap:0;border-radius:20px 0 0 20px}.drawer-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:40px}
 .drawer.open{transform:translateX(0)}
@@ -1271,7 +1296,7 @@ html{scrollbar-width:none}
   .landing-hero-right{position:relative;background:#080808;border-left:1px solid var(--w6);display:flex;align-items:center;justify-content:center;overflow:hidden}
   .landing-hero-right::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 60% 40%,rgba(230,240,59,.04) 0%,transparent 65%)}
   .landing-visual{position:relative;width:90%;max-width:580px;padding:40px 0}
-  .landing-float-badge{position:absolute;bottom:60px;right:20px;background:rgba(12,12,12,.88);backdrop-filter:blur(16px);border:1px solid var(--w10);border-radius:14px;padding:14px 18px;min-width:170px}
+  .landing-float-badge{position:absolute;bottom:60px;right:20px;background:var(--gc2);backdrop-filter:blur(16px);border:1px solid var(--w10);border-radius:14px;padding:14px 18px;min-width:170px}
   .landing-footer{display:flex;align-items:center;justify-content:space-between;padding:18px 48px;border-top:1px solid var(--w6);flex-shrink:0}
   .landing-footer-link{font-size:12px;color:var(--w30);cursor:pointer;transition:color .15s}
   .landing-footer-link:hover{color:var(--w70)}
@@ -1279,8 +1304,8 @@ html{scrollbar-width:none}
   #auth-sheet.open{display:flex}
 
   /* centered app shell */
-  .navbar{max-width:1200px;margin:0 auto;border-radius:0;position:sticky;top:0;z-index:100;padding:14px 32px;background:rgba(0,0,0,.92)}
-  .navbar-shell{position:sticky;top:0;z-index:100;background:rgba(0,0,0,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
+  .navbar{max-width:1200px;margin:0 auto;border-radius:0;position:sticky;top:0;z-index:100;padding:14px 32px;background:rgba(0,0,0,.92);color:#fff}
+  .navbar-shell{position:sticky;top:0;z-index:100;background:rgba(0,0,0,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);color:#fff}
 
   /* desktop nav extras */
   .nav-right{gap:16px}
@@ -1436,7 +1461,7 @@ html{scrollbar-width:none}
 
 @media(max-width:767px){
   body{padding-left:0!important}
-  .bottom-nav{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));left:50%;right:auto;top:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);flex-direction:row;justify-content:center;align-items:center;padding:9px 12px;border-top:1px solid var(--w8);border-right:none;background:rgba(18,18,20,0.38);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);gap:3px;border:1px solid var(--w8);border-radius:100px}
+  .bottom-nav{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));left:50%;right:auto;top:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);flex-direction:row;justify-content:center;align-items:center;padding:9px 12px;border-top:1px solid var(--w8);border-right:none;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);gap:3px;border:1px solid var(--w8);border-radius:100px}
   .bnav-item{flex-direction:column;padding:11px 19px;gap:0;width:auto;border-radius:100px;justify-content:center}
   .bnav-item svg{width:23px;height:23px}
   .notif-dot{top:2px;right:8px;transform:none}
@@ -1487,7 +1512,7 @@ html{scrollbar-width:none}
 .mfilter-btn.open svg{transform:rotate(180deg)}
 .mfilter-dd{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:60;min-width:210px}
 .mfilter-dd.open{display:block;animation:slideDown .2s ease}
-.mfilter-dd-glass{background:rgba(14,14,16,0.95);backdrop-filter:blur(32px) saturate(180%);-webkit-backdrop-filter:blur(32px) saturate(180%);border:1px solid var(--w10);border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.7),inset 0 1px 0 var(--w6);padding:6px}
+.mfilter-dd-glass{background:var(--gc6);backdrop-filter:blur(32px) saturate(180%);-webkit-backdrop-filter:blur(32px) saturate(180%);border:1px solid var(--w10);border-radius:16px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.7),inset 0 1px 0 var(--w6);padding:6px}
 .mfilter-option{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;font-size:14px;font-weight:500;cursor:pointer;border-radius:10px;transition:background .14s;color:var(--w75)}
 .mfilter-option:hover{background:var(--w6);color:var(--white)}
 .mfilter-option.selected{color:#e6f03b}
@@ -1499,11 +1524,11 @@ html{scrollbar-width:none}
 .mkt-pill.active{background:#fff;color:#000;border-color:var(--white);font-weight:600}
 .mkt-pill:hover:not(.active){border-color:var(--w45);color:var(--white)}
 /* LISTADO OVERLAY — misma lógica que .drawer */
-.listado-ov{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;background:rgba(18,18,20,0.38);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);transform:translateY(100%);transition:transform .38s cubic-bezier(.32,.72,0,1);border-radius:20px 20px 0 0;touch-action:none;height:100dvh}
+.listado-ov{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);transform:translateY(100%);transition:transform .38s cubic-bezier(.32,.72,0,1);border-radius:20px 20px 0 0;touch-action:none;height:100dvh}
 .listado-ov.open{transform:translateY(0)}
-.listado-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:499;touch-action:none}
+.listado-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:499;touch-action:none;color:#fff}
 .listado-bg.open{display:block}
-.listado-hdr{flex-shrink:0;background:rgba(10,10,12,0.72);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border-bottom:1px solid var(--w6);padding:14px 16px 12px}
+.listado-hdr{flex-shrink:0;background:var(--gc1);backdrop-filter:blur(40px) saturate(200%);-webkit-backdrop-filter:blur(40px) saturate(200%);border-bottom:1px solid var(--w6);padding:14px 16px 12px}
 .listado-hdr-row{display:flex;align-items:center;margin-bottom:12px;position:relative}
 .listado-back{background:none;border:none;padding:4px;cursor:pointer;color:var(--w50);font-family:var(--font);font-size:14px;font-weight:500;display:flex;align-items:center;gap:5px;transition:color .15s;flex-shrink:0}
 .listado-back:hover{color:var(--white)}
@@ -1519,7 +1544,7 @@ html{scrollbar-width:none}
 /* ── RUEDDA EXTRA ── */
 #view-ruedda-extra{background:#000;min-height:100dvh;position:relative;overflow-y:auto;overflow-x:hidden}
 .rx-spark{position:absolute;border-radius:50%;background:var(--w6);pointer-events:none}
-.rx-hdr{position:sticky;top:0;z-index:10;display:flex;align-items:center;padding:18px 16px 14px;gap:12px;margin-bottom:8px;background:rgba(0,0,0,.85);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.rx-hdr{position:sticky;top:0;z-index:10;display:flex;align-items:center;padding:18px 16px 14px;gap:12px;margin-bottom:8px;background:rgba(0,0,0,.85);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);color:#fff}
 .rx-back{background:var(--w6);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--w10);border-radius:14px;padding:10px 14px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;color:var(--w55);display:flex;align-items:center;gap:6px;transition:background .18s,color .18s}
 .rx-back:hover{background:var(--w10);color:var(--white)}
 .rx-logo{font-size:17px;font-weight:800;letter-spacing:-.3px;color:var(--white)}
@@ -1603,6 +1628,11 @@ html{scrollbar-width:none}
 }
 .enc-card:active{transform:scale(.96)}
 .enc-title{font-size:9.5px;font-weight:800;text-align:center;line-height:1.2;color:var(--white);margin-bottom:auto}
+/* [V138] .enc-title se comparte con .enc-fullphoto (foto + scrim oscuro
+   fijo detrás) — ahí el texto SIEMPRE debe ser blanco, sin importar el
+   tema, porque el scrim no cambia; en la card plana de arriba (fondo
+   var(--card), sin foto) sí debe seguir el tema normal. */
+.enc-fullphoto .enc-title{color:#fff}
 /* icono de Agencias, un pelin mas chico que el resto — el dibujo del garaje se
    siente mas denso que los otros a igual tamaño */
 .enc-icon-sm{width:52px!important;height:52px!important}
@@ -1684,7 +1714,7 @@ html{scrollbar-width:none}
    cards se repiten decenas de veces en la grilla y suman. Se ajusta la opacidad
    del bottom-nav para compensar visualmente la falta de blur. Web e iOS, sin cambios. */
 html.rd-android-app .navbar{backdrop-filter:none;-webkit-backdrop-filter:none}
-html.rd-android-app .bottom-nav{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(18,18,20,.94)}
+html.rd-android-app .bottom-nav{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--gc13)}
 html.rd-android-app .badge-timer,
 html.rd-android-app .badge-bids,
 html.rd-android-app .badge-sinreserva,
@@ -1775,7 +1805,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 }
 #rd-intro-logo{height:20px;width:auto;display:block;opacity:.94}
 #rd-intro-skip{
-  border:1px solid var(--w10);background:rgba(18,18,20,.72);
+  border:1px solid var(--w10);background:var(--gc9);
   color:var(--w82);
   font-family:inherit;font-size:12px;font-weight:600;letter-spacing:.2px;
   padding:7px 14px;border-radius:99px;cursor:pointer;
@@ -2482,7 +2512,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 
 <!-- [pull-to-refresh] indicador — vive fuera del navbar, nunca lo mueve -->
 <div id="ptr-indicator" style="position:fixed;top:58px;left:0;right:0;display:flex;justify-content:center;z-index:95;pointer-events:none;opacity:0">
-  <div id="ptr-spinner" style="width:34px;height:34px;border-radius:50%;background:rgba(20,20,20,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4)">
+  <div id="ptr-spinner" style="width:34px;height:34px;border-radius:50%;background:var(--gc16);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4)">
     <svg id="ptr-icon" viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="2.3" stroke-linecap="round" style="width:17px;height:17px;transition:transform .1s linear"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
   </div>
 </div>
@@ -2627,8 +2657,8 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 </div>
 
 <!-- AUTH SHEET (landing) -->
-<div class="modal-overlay" id="auth-sheet" onclick="if(event.target.id==='auth-sheet')closeAuthSheet()" style="align-items:flex-end;background:rgba(0,0,0,.35)">
-  <div id="auth-sheet-inner" style="background:rgba(18,18,20,0.38);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:26px 26px 0 0;padding:0 0 44px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .32s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+<div class="modal-overlay" id="auth-sheet" onclick="if(event.target.id==='auth-sheet')closeAuthSheet()" style="align-items:flex-end;background:rgba(0,0,0,.35);color:#fff">
+  <div id="auth-sheet-inner" style="background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:26px 26px 0 0;padding:0 0 44px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .32s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
     <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:var(--surface-lo);border-radius:2px"></div></div>
     <div style="padding:22px 24px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div id="auth-title" style="font-size:22px;font-weight:800;letter-spacing:-.4px">crear cuenta</div>
@@ -3097,7 +3127,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 
 <!-- [CONS HUB v1] sheet flotante "ser partner" — mismo patrón visual que
      forgot-password/reset-password (rounded top, drag handle, inputs oscuros). -->
-<div id="partner-lead-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease" onclick="if(event.target===this)_closePartnerSheet()">
+<div id="partner-lead-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease;color:#fff" onclick="if(event.target===this)_closePartnerSheet()">
   <div id="pls-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:var(--white)">ser partner</div>
@@ -3114,7 +3144,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 </div>
 
 <!-- [PUBLICAR POR TI v1] sheet flotante — mismo patrón visual que partner-lead-sheet. -->
-<div id="publish-for-me-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease" onclick="if(event.target===this)_closePublishForMeSheet()">
+<div id="publish-for-me-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease;color:#fff" onclick="if(event.target===this)_closePublishForMeSheet()">
   <div id="pfm-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
@@ -3129,7 +3159,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 </div>
 
 <!-- [subastas programadas] acceso anticipado — mismo patron visual que publish-for-me-sheet, solo whatsapp -->
-<div id="auction-waitlist-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease" onclick="if(event.target===this)_closeAuctionWaitlistSheet()">
+<div id="auction-waitlist-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease;color:#fff" onclick="if(event.target===this)_closeAuctionWaitlistSheet()">
   <div id="aws-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:rgba(230,240,59,.08);border:1px solid rgba(230,240,59,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
@@ -3478,7 +3508,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 </div>
 
 <!-- FILTER PANEL -->
-<div id="filter-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200" onclick="closeFilterPanel()"></div>
+<div id="filter-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;color:#fff" onclick="closeFilterPanel()"></div>
 <div id="filter-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:201;background:var(--surface-hi);border-radius:26px 26px 0 0;border:1px solid var(--w8);border-bottom:none;padding:0 0 44px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94);max-height:85vh;overflow-y:auto">
   <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:var(--surface-lo);border-radius:2px"></div></div>
   <div style="padding:18px 22px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -4044,7 +4074,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   </div>
   <div style="padding:4px 18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
     <div style="font-size:13px;color:var(--muted);font-weight:500">fotógrafos autorizados por Ruedda.</div>
-    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.6" style="opacity:.8;flex-shrink:0">
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="1.6" style="opacity:.8;flex-shrink:0">
       <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
       <circle cx="12" cy="13" r="4"/>
     </svg>
@@ -4113,7 +4143,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   <!-- MESSAGES -->
   <div id="thread-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 175px;overflow-y:auto;flex:1;min-height:0"></div>
   <!-- INPUT AREA -->
-  <div id="thread-input-bar" style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:rgba(0,0,0,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;z-index:200">
+  <div id="thread-input-bar" style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:rgba(0,0,0,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;z-index:200;color:#fff">
     <textarea id="thread-input" placeholder="responder..." style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;resize:none;min-height:44px;max-height:96px;line-height:1.5;transition:border-color .2s" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,96)+'px'" onfocus="this.style.borderColor='rgba(230,240,59,.35)'" onblur="this.style.borderColor='var(--border)'"></textarea>
     <button onclick="sendThreadReply()" style="background:#e6f03b;color:#000;border:none;border-radius:10px;padding:11px 16px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all .15s;align-self:flex-end" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'">enviar</button>
   </div>
@@ -4138,7 +4168,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     </div>
   </div>
   <div id="global-chat-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 190px;overflow-y:auto;flex:1;min-height:0"></div>
-  <div style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:rgba(0,0,0,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;z-index:200">
+  <div style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:rgba(0,0,0,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;z-index:200;color:#fff">
     <div id="gc-photo-preview" style="display:none;margin-bottom:8px"></div>
     <div style="display:flex;gap:8px;align-items:flex-end">
       <div style="position:relative;flex-shrink:0">
@@ -4303,7 +4333,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     <div style="padding:20px 20px 16px;display:flex;align-items:center;gap:14px">
       <!-- IG gradient icon -->
       <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <svg fill="white" viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        <svg fill="var(--white)" viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
       </div>
       <div style="flex:1">
         <div style="font-size:16px;font-weight:700;letter-spacing:-.2px">@ruedda.app</div>
@@ -4337,11 +4367,11 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
       <div style="display:flex;align-items:center;gap:16px">
         <div onclick="openTopUsuarios()" style="display:flex;align-items:center;gap:6px;cursor:pointer">
           <span style="font-size:12px;font-weight:400;color:var(--w55)">usuarios top</span>
-          <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" style="width:18px;height:18px;opacity:.85"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a2 2 0 0 0 0 4h1.5M17 6h3a2 2 0 0 1 0 4h-1.5"/></svg>
+          <svg fill="none" stroke="var(--white)" stroke-width="2" viewBox="0 0 24 24" style="width:18px;height:18px;opacity:.85"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a2 2 0 0 0 0 4h1.5M17 6h3a2 2 0 0 1 0 4h-1.5"/></svg>
         </div>
         <div onclick="isGuest()?triggerGuestBlock('tu perfil'):openUserProfile(USER_STATE.id)" style="display:flex;align-items:center;gap:6px;cursor:pointer">
           <span style="font-size:12px;font-weight:400;color:var(--w55)">mi perfil</span>
-          <svg fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;opacity:.85"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg fill="none" stroke="var(--white)" stroke-width="2" viewBox="0 0 24 24" style="width:20px;height:20px;opacity:.85"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
       </div>
     </div>
@@ -4719,7 +4749,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 </div>
 
 <!-- CLIP MODAL -->
-<div id="clip-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;flex-direction:column">
+<div id="clip-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);align-items:center;justify-content:center;flex-direction:column;color:#fff">
   <div style="position:relative;width:min(360px,90vw);aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:var(--surface-hi)">
     <iframe id="clip-iframe" src="" frameborder="0" allowfullscreen allow="autoplay;encrypted-media" style="width:100%;height:100%;border:none"></iframe>
   </div>
@@ -4731,7 +4761,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 
   <!-- GUEST STATE (shown when not logged in) -->
   <div id="cuenta-guest">
-    <div style="margin:20px 16px;background:rgba(18,18,20,0.38);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w8);border-radius:24px;overflow:hidden">
+    <div style="margin:20px 16px;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w8);border-radius:24px;overflow:hidden">
     <div style="padding:36px 20px 0;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px">
       <div style="width:64px;height:64px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin-bottom:6px">
         <svg fill="none" viewBox="0 0 24 24" stroke="var(--w30)" stroke-width="1.5" style="width:28px;height:28px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -4778,7 +4808,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   <div id="cuenta-logged" style="display:none;padding-bottom:100px">
 
     <!-- PROFILE CARD -->
-    <div style="margin:16px 16px 12px;background:rgba(14,14,16,0.7);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w7);border-radius:24px;padding:28px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:10px">
+    <div style="margin:16px 16px 12px;background:var(--gc5);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w7);border-radius:24px;padding:28px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:10px">
 
       <!-- AVATAR -->
       <div style="position:relative;cursor:pointer" onclick="document.getElementById('avatar-upload').click()">
@@ -4815,7 +4845,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 
     <!-- PARTICULAR MENU -->
     <div id="menu-particular" style="display:none;flex-direction:column;margin:0 16px 12px">
-      <div style="background:rgba(14,14,16,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--w6);border-radius:20px;overflow:hidden">
+      <div style="background:var(--gc5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--w6);border-radius:20px;overflow:hidden">
         <div class="cnt-menu-item" onclick="openVenderModal()">
           <div class="cnt-menu-icon" style="background:var(--w6)"><svg fill="none" viewBox="0 0 24 24" stroke="var(--w60)" stroke-width="2" style="width:16px;height:16px"><path d="M12 5v14M5 12h14"/></svg></div>
           <span class="cnt-menu-label">Publicar vehículo</span>
@@ -4846,7 +4876,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 
     <!-- CONCESIONARIO MENU -->
     <div id="menu-consesionario" style="display:none;flex-direction:column;margin:0 16px 12px">
-      <div style="background:rgba(14,14,16,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--w6);border-radius:20px">
+      <div style="background:var(--gc5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--w6);border-radius:20px">
         <div class="cnt-menu-item" onclick="openVenderModal()">
           <div class="cnt-menu-icon" style="background:var(--w6)"><svg fill="none" viewBox="0 0 24 24" stroke="var(--w60)" stroke-width="2" style="width:16px;height:16px"><path d="M12 5v14M5 12h14"/></svg></div>
           <span class="cnt-menu-label">Publicar vehículo</span>
@@ -4880,7 +4910,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 
     <!-- SUPERADMIN MENU -->
     <div id="menu-superadmin" style="display:none;flex-direction:column;margin:0 16px 0">
-      <div style="background:rgba(14,14,16,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--w6);border-radius:20px;overflow:hidden">
+      <div style="background:var(--gc5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--w6);border-radius:20px;overflow:hidden">
         <div class="cnt-menu-item" onclick="showView('superadmin')">
           <div class="cnt-menu-icon" style="background:var(--w6)"><svg fill="none" viewBox="0 0 24 24" stroke="var(--w60)" stroke-width="2" style="width:16px;height:16px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
           <span class="cnt-menu-label">panel SuperAdmin</span>
@@ -6650,7 +6680,7 @@ function _filterListadoGrid(q){
         ${img}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(212,175,55,.5);color:var(--white)"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
-        <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
+        <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s;color:#fff">
           <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'var(--w80)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
         </button>
       </div>
@@ -6785,7 +6815,7 @@ function _mktAppendCards(list,startIdx){
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'var(--w85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:var(--white)"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
-        ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
+        ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#fff"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
       </div>
       <div class="market-card-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="market-card-title" style="min-width:0">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
@@ -7225,7 +7255,7 @@ function _afRenderPhotosGrid(){
   grid.innerHTML=_afPhotos.map((p,i)=>`
     <div style="position:relative;width:72px;height:72px;border-radius:10px;overflow:hidden;flex-shrink:0">
       <img src="${p.dataUrl}" style="width:100%;height:100%;object-fit:cover">
-      <div onclick="_afRemovePhoto(${i})" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <div onclick="_afRemovePhoto(${i})" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff">
         <svg fill="none" viewBox="0 0 16 16" stroke="var(--white)" stroke-width="2" style="width:9px;height:9px"><path d="m3 3 10 10M13 3 3 13"/></svg>
       </div>
     </div>`).join('');
@@ -7539,7 +7569,7 @@ function _gcRenderPhotoPreview(){
   box.style.display='block';
   box.innerHTML=`<div style="position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden">
     <img src="${_gcPendingPhoto.dataUrl}" style="width:100%;height:100%;object-fit:cover">
-    <div onclick="_gcRemovePendingPhoto()" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;cursor:pointer">
+    <div onclick="_gcRemovePendingPhoto()" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff">
       <svg fill="none" viewBox="0 0 16 16" stroke="var(--white)" stroke-width="2" style="width:9px;height:9px"><path d="m3 3 10 10M13 3 3 13"/></svg>
     </div>
   </div>`;
@@ -9057,7 +9087,7 @@ async function renderComunidad(){
           if(c.thumbnail_url){
             return `<div class="clip-card" style="animation-delay:${i*60}ms;background:url('${c.thumbnail_url}') center/cover no-repeat" onclick="openClipModal('${c.url_video}')">
               <div style="position:absolute;inset:0;background:rgba(0,0,0,.15)"></div>
-              <div class="clip-play-icon" style="position:relative;z-index:1"><svg fill="white" viewBox="0 0 24 24" style="width:22px;height:22px"><polygon points="5,3 19,12 5,21"/></svg></div>
+              <div class="clip-play-icon" style="position:relative;z-index:1"><svg fill="var(--white)" viewBox="0 0 24 24" style="width:22px;height:22px"><polygon points="5,3 19,12 5,21"/></svg></div>
             </div>`;
           }
           const embedUrl=getClipEmbedUrl(c.url_video);
@@ -9749,7 +9779,7 @@ function confirmBidCheck(){
   const overlay = document.createElement('div');
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:flex-end;justify-content:center';
   overlay.innerHTML=`
-    <div style="background:rgba(14,14,14,.95);border:1px solid var(--w10);border-bottom:none;border-radius:24px 24px 0 0;padding:24px 20px 44px;width:100%;max-width:480px">
+    <div style="background:var(--gc4);border:1px solid var(--w10);border-bottom:none;border-radius:24px 24px 0 0;padding:24px 20px 44px;width:100%;max-width:480px">
       <div style="width:36px;height:4px;background:var(--w15);border-radius:2px;margin:0 auto 24px"></div>
       <div style="font-size:13px;font-weight:600;color:var(--w35);text-align:center;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">confirmar oferta</div>
       <div style="font-size:32px;font-weight:800;letter-spacing:-1px;text-align:center;color:var(--white);margin-bottom:4px">${fmtBid(val)}</div>
@@ -10774,7 +10804,7 @@ function showValidationPopup(errors){
   overlay.onclick = (e) => { if(e.target===overlay) overlay.remove(); };
 
   const card = document.createElement('div');
-  card.style.cssText = 'background:rgba(18,18,20,0.72);backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);border:1px solid var(--w10);border-radius:24px;padding:28px 24px;width:100%;max-width:340px;box-shadow:0 24px 80px rgba(0,0,0,.6),inset 0 1px 0 var(--w7)';
+  card.style.cssText = 'background:var(--gc9);backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);border:1px solid var(--w10);border-radius:24px;padding:28px 24px;width:100%;max-width:340px;box-shadow:0 24px 80px rgba(0,0,0,.6),inset 0 1px 0 var(--w7)';
 
   const title = document.createElement('div');
   title.style.cssText = 'font-size:16px;font-weight:800;color:var(--white);margin-bottom:6px;letter-spacing:-.2px';
@@ -11893,7 +11923,7 @@ function confirmDeleteListing(id){
   overlay.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.4);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);animation:fadeIn .2s ease';
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
   overlay.innerHTML=`
-    <div style="background:rgba(18,18,20,0.75);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w10);border-radius:24px;padding:28px 24px;max-width:320px;width:100%;text-align:center;animation:fadeInUp .25s cubic-bezier(.25,.46,.45,.94)">
+    <div style="background:var(--gc10);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w10);border-radius:24px;padding:28px 24px;max-width:320px;width:100%;text-align:center;animation:fadeInUp .25s cubic-bezier(.25,.46,.45,.94)">
       <div style="font-size:32px;margin-bottom:12px">🗑️</div>
       <div style="font-size:17px;font-weight:700;margin-bottom:8px;letter-spacing:-.2px">¿Eliminarás tu publicación? <span style="color:var(--w50)">:(</span></div>
       <div style="font-size:13px;color:var(--w40);line-height:1.6;margin-bottom:24px">Esta acción no se puede deshacer. Tu publicación desaparecerá del market.</div>
@@ -12452,7 +12482,7 @@ function renderMarketFiltered(){
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'var(--w85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:var(--white)"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
-        ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
+        ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#fff"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
       </div>
       <div class="market-card-body">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px"><div class="market-card-title" style="min-width:0">${l.title}</div>${_viewsChip(l.viewCount,true)}</div>
@@ -12864,7 +12894,7 @@ async function renderVitrinavGrid(filter){
           <div class="listado-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]})">
             ${img}
             <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
-            <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0">
+            <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;color:#fff">
               <svg fill="none" viewBox="0 0 24 24" stroke="var(--w80)" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
             </button>
           </div>
@@ -13858,7 +13888,7 @@ function showRevisionScreen(method){
   overlay.innerHTML = `
     <div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:0">
       <!-- icono glass -->
-      <div style="width:80px;height:80px;border-radius:24px;background:rgba(18,18,20,0.72);backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);border:1px solid var(--w10);display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 1px 0 var(--w8)">
+      <div style="width:80px;height:80px;border-radius:24px;background:var(--gc9);backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);border:1px solid var(--w10);display:flex;align-items:center;justify-content:center;margin-bottom:28px;box-shadow:0 8px 32px rgba(0,0,0,.5),inset 0 1px 0 var(--w8)">
         <svg fill="none" viewBox="0 0 32 32" stroke="var(--w70)" stroke-width="1.6" style="width:34px;height:34px">
           <circle cx="16" cy="16" r="13"/>
           <path d="M16 9v7l4 4"/>
@@ -13881,7 +13911,7 @@ function showRevisionScreen(method){
       </div>
       <!-- botón -->
       <button onclick="_closeRevisionScreen()"
-        style="width:100%;background:rgba(18,18,20,0.72);backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);border:1px solid var(--w10);border-radius:16px;padding:17px;font-family:var(--font);font-size:15px;font-weight:700;color:var(--w80);cursor:pointer;letter-spacing:-.1px;box-shadow:inset 0 1px 0 var(--w6)">
+        style="width:100%;background:var(--gc9);backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);border:1px solid var(--w10);border-radius:16px;padding:17px;font-family:var(--font);font-size:15px;font-weight:700;color:var(--w80);cursor:pointer;letter-spacing:-.1px;box-shadow:inset 0 1px 0 var(--w6)">
         volver al inicio
       </button>
     </div>
@@ -17063,7 +17093,7 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
     document.body.appendChild(panel);
   }
   const dealerBadge=isDealer?`<span style="font-size:9px;font-weight:700;color:#1d9bf0;margin-left:6px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="var(--white)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>`:'';
-  panel.innerHTML=`<div style="width:100%;max-width:560px;margin:0 auto;background:rgba(14,14,16,1);border-radius:24px 24px 0 0;padding:24px 20px 36px;border-top:1px solid var(--w8);transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)">
+  panel.innerHTML=`<div style="width:100%;max-width:560px;margin:0 auto;background:var(--gc7);border-radius:24px 24px 0 0;padding:24px 20px 36px;border-top:1px solid var(--w8);transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)">
     <div style="width:36px;height:4px;border-radius:2px;background:var(--w15);margin:0 auto 20px"></div>
     <div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">mensaje privado</div>
     <div style="font-size:16px;font-weight:700;margin-bottom:2px">${receiverName}${dealerBadge}</div>
@@ -17117,7 +17147,7 @@ function openOfferSheet(tipo){
        </div>
        <div style="color:var(--white);font-size:12px;line-height:1.6;text-align:center;margin:16px 0">Por favor realizar ofertas serias.<br><span style="opacity:.6">(esta función es solo para personas verificadas)</span></div>
        <textarea id="offer-input-desc" placeholder="mensaje opcional..." style="width:100%;box-sizing:border-box;background:var(--w5);border:1px solid var(--w10);border-radius:14px;padding:13px 14px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;resize:none;min-height:60px;line-height:1.6"></textarea>`;
-  overlay.innerHTML=`<div style="background:rgba(18,18,20,0.92);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w10);border-radius:24px;padding:26px 22px;max-width:380px;width:100%;box-sizing:border-box;max-height:calc(100vh - 48px);overflow-y:auto;transform:translateY(10px);transition:transform .3s cubic-bezier(.22,1,.36,1)">
+  overlay.innerHTML=`<div style="background:var(--gc12);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w10);border-radius:24px;padding:26px 22px;max-width:380px;width:100%;box-sizing:border-box;max-height:calc(100vh - 48px);overflow-y:auto;transform:translateY(10px);transition:transform .3s cubic-bezier(.22,1,.36,1)">
     <div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;text-align:center">${title}</div>
     <div style="font-size:15px;font-weight:700;margin-bottom:18px;text-align:center">sobre ${_esc(l.title||'esta publicación')}</div>
     ${body}
@@ -17157,7 +17187,7 @@ function _offerRenderPhotosGrid(){
   grid.innerHTML=_offerPhotos.map((p,i)=>`
     <div style="position:relative;width:60px;height:60px;border-radius:10px;overflow:hidden;flex-shrink:0">
       <img src="${p.dataUrl}" style="width:100%;height:100%;object-fit:cover">
-      <div onclick="_offerRemovePhoto(${i})" style="position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;cursor:pointer">
+      <div onclick="_offerRemovePhoto(${i})" style="position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff">
         <svg fill="none" viewBox="0 0 16 16" stroke="var(--white)" stroke-width="2" style="width:8px;height:8px"><path d="m3 3 10 10M13 3 3 13"/></svg>
       </div>
     </div>`).join('');
@@ -17965,7 +17995,7 @@ function _showAuctionAccessSheet(){
   const holdId='358420048'; // holding id USDT
   sheet.innerHTML=`
   <div id="aas-panel" style="background:#000;width:100%;max-width:560px;max-height:92vh;border-radius:24px 24px 0 0;border-top:1px solid var(--w10);overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
-    <div style="position:sticky;top:0;background:rgba(0,0,0,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 0 10px;display:flex;justify-content:center;z-index:2">
+    <div style="position:sticky;top:0;background:rgba(0,0,0,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 0 10px;display:flex;justify-content:center;z-index:2;color:#fff">
       <div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div>
     </div>
     <div style="padding:6px 24px 40px">
@@ -19834,7 +19864,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Ve clips, noticias y comparte en Ruedda.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" stroke="white" stroke-width="1.2" stroke-opacity=".4"/><path d="M10.5 17.5L17.5 10.5M17.5 10.5H11.5M17.5 10.5V16.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" stroke="var(--white)" stroke-width="1.2" stroke-opacity=".4"/><path d="M10.5 17.5L17.5 10.5M17.5 10.5H11.5M17.5 10.5V16.5" stroke="var(--white)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
     </div>
@@ -19860,7 +19890,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Mide los decibeles de tu tubo de escape. by STXX</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <svg fill="none" stroke="var(--white)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </div>
       </div>
     </div>
@@ -19886,7 +19916,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Consulta precios a nivel nacional.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          <svg fill="none" stroke="var(--white)" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
         </div>
       </div>
     </div>
@@ -19914,7 +19944,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Consulta placa y VIN a nivel nacional e internacional.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+          <svg fill="none" stroke="var(--white)" stroke-width="1.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
         </div>
       </div>
     </div>
@@ -19972,7 +20002,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Asegura tu patrimonio hoy mismo.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="white" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v8M8 12h8" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <svg fill="none" stroke="var(--white)" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v8M8 12h8" stroke="var(--white)" stroke-width="1.8" stroke-linecap="round"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-aseguradoras" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -20106,7 +20136,7 @@ async function _saDeletePat(id,cat){
    card con esquinas más redondeadas, borde casi invisible, sombra difusa en vez de
    dura — así se ve flotando, no como una caja pegada encima. */
 .rd-onb-overlay{position:fixed;inset:0;z-index:10002;background:rgba(0,0,0,.55);backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);display:flex;align-items:center;justify-content:center;padding:24px;animation:rdOnbFadeIn .35s ease both}
-.rd-onb-card{background:rgba(20,20,22,.82);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid var(--w7);border-radius:30px;padding:32px 26px 26px;max-width:340px;width:100%;text-align:center;animation:rdOnbCardIn .45s cubic-bezier(.22,1,.36,1) both;box-shadow:0 30px 90px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.2)}
+.rd-onb-card{background:var(--gc18);backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%);border:1px solid var(--w7);border-radius:30px;padding:32px 26px 26px;max-width:340px;width:100%;text-align:center;animation:rdOnbCardIn .45s cubic-bezier(.22,1,.36,1) both;box-shadow:0 30px 90px rgba(0,0,0,.45),0 2px 8px rgba(0,0,0,.2)}
 .rd-onb-icon{width:64px;height:64px;border-radius:50%;background:var(--w5);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;overflow:hidden;padding:14px;box-sizing:border-box}
 .rd-onb-icon img{width:100%;height:100%;object-fit:contain}
 .rd-onb-title{font-size:20px;font-weight:800;letter-spacing:-.3px;margin-bottom:9px}
@@ -20120,7 +20150,7 @@ async function _saDeletePat(id,cat){
 /* tour spotlight — [suavizado] sombra del recorte más liviana (.68 en vez de .82,
    con blur en el propio anillo), tips con el mismo tratamiento glass que el popup */
 .rd-tour-spot{position:fixed;border-radius:20px;box-shadow:0 0 0 9999px rgba(0,0,0,.68);transition:all .55s cubic-bezier(.22,1,.36,1);pointer-events:none;z-index:10003;border:1px solid rgba(230,240,59,.35)}
-.rd-tour-tip{position:fixed;z-index:10004;max-width:290px;background:rgba(22,22,24,.86);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border:1px solid var(--w8);border-radius:22px;padding:20px;transition:all .55s cubic-bezier(.22,1,.36,1);box-shadow:0 24px 70px rgba(0,0,0,.4)}
+.rd-tour-tip{position:fixed;z-index:10004;max-width:290px;background:var(--gc19);backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%);border:1px solid var(--w8);border-radius:22px;padding:20px;transition:all .55s cubic-bezier(.22,1,.36,1);box-shadow:0 24px 70px rgba(0,0,0,.4)}
 .rd-tour-tip.rd-tour-center{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-width:310px}
 .rd-tour-inner{transition:opacity .15s ease}
 .rd-tour-step-label{font-size:9.5px;font-weight:700;color:#e6f03b;letter-spacing:.7px;text-transform:uppercase;margin-bottom:7px;opacity:.9}
