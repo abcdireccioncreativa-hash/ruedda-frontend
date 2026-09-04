@@ -271,7 +271,13 @@ input[type=number]{-moz-appearance:textfield}
 }
 /* [V138] en claro, mismo vidrio que el drawer/hamburguesa (pedido
    explícito) — en oscuro el navbar se queda exactamente como estaba. */
-html[data-theme="light"] .navbar{background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%)}
+/* [V139] el navbar con la misma opacidad "de vidrio" que el drawer (.55)
+   se veía distinto arriba (sobre fondo plano, en el notch) que más abajo
+   (sobre la foto del hero) — la traslucidez real siempre cambia según lo
+   que hay detrás, así que un blur más fuerte no lo iguala. Se sube la
+   opacidad a un tono casi sólido (mismo criterio que el navbar oscuro,
+   que ya es .92) mantiene el mismo blur que el drawer, pero sin la costura. */
+html[data-theme="light"] .navbar{background:rgba(248,248,244,.94);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%)}
 #view-cuenta{scrollbar-width:none}
 #view-cuenta::-webkit-scrollbar{display:none}
 html::-webkit-scrollbar{display:none}
@@ -579,6 +585,12 @@ html{scrollbar-width:none}
 .trending-info{position:relative;z-index:2;padding:9px;width:100%;box-sizing:border-box}
 .trending-price{font-size:13px;font-weight:800;color:#fff;line-height:1.2}
 .trending-views{display:flex;align-items:center;gap:3px;font-size:10px;color:rgba(255,255,255,.75);margin-top:2px}
+/* [V139] el chip de vistas (ojito + número) es una función compartida con
+   estilo inline — en la mayoría de sus usos (título de card normal) debe
+   adaptarse al tema, pero acá va SOBRE la foto de trending, así que se fija
+   en blanco a la fuerza (!important vence al inline, que si no siempre gana). */
+.trending-info .views-chip{background:rgba(0,0,0,.4)!important;border-color:rgba(255,255,255,.18)!important;color:#fff!important}
+.trending-info .views-chip svg{stroke:#fff!important}
 .trending-views svg{width:10px;height:10px}
 .trending-dots{display:flex;justify-content:center;gap:6px;padding:9px 0 2px}
 
@@ -1100,10 +1112,6 @@ html{scrollbar-width:none}
 .cnt-slider-tab{border-radius:10px;padding:11px 8px;text-align:center;cursor:pointer;transition:all .25s cubic-bezier(.25,.46,.45,.94);user-select:none}
 .cnt-slider-tab.active{background:var(--w12);box-shadow:0 2px 12px rgba(0,0,0,0.3)}
 .cnt-slider-tab.inactive{opacity:0.4}
-/* [V138] segmented control estilo Apple en claro: track gris claro, pill
-   activo blanco sólido con sombra suave — en oscuro se queda igual. */
-html[data-theme="light"] #cuenta-role-slider{background:var(--surface-lo)}
-html[data-theme="light"] .cnt-slider-tab.active{background:#fff;box-shadow:0 2px 10px rgba(20,22,10,.12)}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── [BOOT SPLASH] ── */
@@ -6700,7 +6708,7 @@ function _filterListadoGrid(q){
       <div class="listado-card-img" style="background:linear-gradient(${grads2[_gidx(l.id)%grads2.length]})">
         ${img}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
-        ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(212,175,55,.5);color:var(--white)"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
+        ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s;color:#fff">
           <svg fill="${isFav?'#e6f03b':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#e6f03b':'var(--w80)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
         </button>
@@ -6835,7 +6843,7 @@ function _mktAppendCards(list,startIdx){
     el.innerHTML=`
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
-        ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:var(--white)"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
+        ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#fff"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
       </div>
       <div class="market-card-body">
@@ -12502,7 +12510,7 @@ function renderMarketFiltered(){
     el.innerHTML=`
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
-        ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:var(--white)"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
+        ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#fff"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
       </div>
       <div class="market-card-body">
@@ -17825,7 +17833,7 @@ function _viewsChip(viewCount,small){
   const v=(Number(viewCount)||0)*VIEW_DISPLAY_FACTOR;
   if(v<=0) return '';
   const fs=small?'10px':'11px';
-  return `<span style="display:inline-flex;align-items:center;gap:4px;background:var(--w8);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--w10);border-radius:100px;padding:2px 8px;font-size:${fs};font-weight:600;color:var(--w75);white-space:nowrap;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="var(--w75)" stroke-width="1.8" style="width:11px;height:11px"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>${v}</span>`;
+  return `<span class="views-chip" style="display:inline-flex;align-items:center;gap:4px;background:var(--w8);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--w10);border-radius:100px;padding:2px 8px;font-size:${fs};font-weight:600;color:var(--w75);white-space:nowrap;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="var(--w75)" stroke-width="1.8" style="width:11px;height:11px"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>${v}</span>`;
 }
 function _registerRealView(tabla,item){
   try{
