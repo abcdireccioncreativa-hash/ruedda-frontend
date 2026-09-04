@@ -1111,6 +1111,10 @@ html{scrollbar-width:none}
 #cuenta-role-slider{background:var(--w4)}
 .cnt-slider-tab{border-radius:10px;padding:11px 8px;text-align:center;cursor:pointer;transition:all .25s cubic-bezier(.25,.46,.45,.94);user-select:none}
 .cnt-slider-tab.active{background:var(--w12);box-shadow:0 2px 12px rgba(0,0,0,0.3)}
+/* [V139] SOLO la pastilla activa (usuario particular / concesionario) a
+   blanco full en claro — el riel de fondo, su borde y la sombra de arriba
+   NO se tocan, quedan exactamente igual que siempre. */
+html[data-theme="light"] .cnt-slider-tab.active{background:#fff}
 .cnt-slider-tab.inactive{opacity:0.4}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
