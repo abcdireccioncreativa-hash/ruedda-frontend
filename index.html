@@ -141,6 +141,11 @@
   --gc13:rgba(18,18,20,0.94);--gc14:rgba(20,20,20,0.55);--gc15:rgba(20,20,20,0.6);
   --gc16:rgba(20,20,20,0.9);--gc17:rgba(20,20,20,0.95);--gc18:rgba(20,20,22,0.82);
   --gc19:rgba(22,22,24,0.86);--gc20:rgba(30,30,30,0.85);
+  /* [V138] fondo de los splash/loaders a pantalla completa (boot, login,
+     "un momento", confirmaciones) — pedido explícito de volverlos blancos
+     en claro. Los visores de foto/video (story-viewer, photo-viewer,
+     intro) NO usan este token — se quedan negros siempre a propósito. */
+  --splash-bg:#000;
 
   /* rampa de opacidades de blanco (texto/bordes/glass sobre fondo oscuro) —
      39 valores, uno por cada opacidad realmente usada en el código: en
@@ -188,6 +193,7 @@ html[data-theme="light"]{
   --gc13:#fff;--gc14:rgba(255,255,255,0.864);--gc15:rgba(255,255,255,0.878);
   --gc16:#fff;--gc17:#fff;--gc18:#fff;
   --gc19:#fff;--gc20:#fff;
+  --splash-bg:#fff;
 
   --w0:rgba(21,22,14,0);--w2:rgba(21,22,14,.02);--w3:rgba(21,22,14,.03);
   --w4:rgba(21,22,14,.04);--w5:rgba(21,22,14,.05);--w6:rgba(21,22,14,.06);
@@ -253,6 +259,16 @@ input[type=number]{-moz-appearance:textfield}
 
 /* NAVBAR */
 .navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--navbar-bg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:space-between;padding:12px 18px 12px;border-bottom:none}
+/* [V138] el status bar/notch (PWA instalada) quedaba con un parche PLANO
+   sin blur arriba del navbar — el blur del navbar no se extendía ahí
+   porque su caja empieza justo debajo. Esta tira extiende el MISMO fondo
+   y blur hacia esa zona sin tocar la altura/padding real del navbar (así
+   no se corre nada de posición). Mismo tratamiento en oscuro y claro. */
+.navbar::before{
+  content:'';position:absolute;left:0;right:0;
+  top:calc(-1 * env(safe-area-inset-top));height:env(safe-area-inset-top);
+  background:inherit;backdrop-filter:inherit;-webkit-backdrop-filter:inherit;
+}
 /* [V138] en claro, mismo vidrio que el drawer/hamburguesa (pedido
    explícito) — en oscuro el navbar se queda exactamente como estaba. */
 html[data-theme="light"] .navbar{background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%)}
@@ -561,8 +577,8 @@ html{scrollbar-width:none}
 .trending-hammer{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:8px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;z-index:2;color:#fff}
 .trending-hammer svg{width:11px;height:11px;color:#e6f03b}
 .trending-info{position:relative;z-index:2;padding:9px;width:100%;box-sizing:border-box}
-.trending-price{font-size:13px;font-weight:800;color:var(--white);line-height:1.2}
-.trending-views{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--w75);margin-top:2px}
+.trending-price{font-size:13px;font-weight:800;color:#fff;line-height:1.2}
+.trending-views{display:flex;align-items:center;gap:3px;font-size:10px;color:rgba(255,255,255,.75);margin-top:2px}
 .trending-views svg{width:10px;height:10px}
 .trending-dots{display:flex;justify-content:center;gap:6px;padding:9px 0 2px}
 
@@ -1083,10 +1099,14 @@ html{scrollbar-width:none}
 .cnt-slider-tab{border-radius:10px;padding:11px 8px;text-align:center;cursor:pointer;transition:all .25s cubic-bezier(.25,.46,.45,.94);user-select:none}
 .cnt-slider-tab.active{background:var(--w12);box-shadow:0 2px 12px rgba(0,0,0,0.3)}
 .cnt-slider-tab.inactive{opacity:0.4}
+/* [V138] segmented control estilo Apple en claro: track gris claro, pill
+   activo blanco sólido con sombra suave — en oscuro se queda igual. */
+html[data-theme="light"] #cuenta-role-slider{background:var(--surface-lo)}
+html[data-theme="light"] .cnt-slider-tab.active{background:#fff;box-shadow:0 2px 10px rgba(20,22,10,.12)}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── [BOOT SPLASH] ── */
-#boot-splash{position:fixed;inset:0;z-index:100000;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:26px;opacity:1;transition:opacity .5s ease}
+#boot-splash{position:fixed;inset:0;z-index:100000;background:var(--splash-bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:26px;opacity:1;transition:opacity .5s ease}
 #boot-splash.boot-splash-exit{opacity:0;pointer-events:none}
 #boot-splash-mark-wrap{position:relative;width:64px;height:64px;display:flex;align-items:center;justify-content:center}
 #boot-splash-mark{width:64px;height:64px;object-fit:contain;opacity:0;position:relative;z-index:1;animation:bootMarkIn .6s cubic-bezier(.22,.61,.36,1) .1s forwards}
@@ -1553,7 +1573,7 @@ html{scrollbar-width:none}
 .rx-empty-title{font-size:18px;font-weight:700;letter-spacing:-.3px;color:var(--white);line-height:1.3}
 .rx-empty-sub{font-size:14px;font-weight:400;color:var(--w30);line-height:1.6;max-width:260px}
 /* Loading overlay RueddaExtra */
-#rx-loading{position:fixed;inset:0;background:#000;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;pointer-events:none;transition:opacity .4s ease}
+#rx-loading{position:fixed;inset:0;background:var(--splash-bg);z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;pointer-events:none;transition:opacity .4s ease}
 #rx-loading.show{opacity:1;pointer-events:all}
 .rx-loader-text{font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--white);font-family:var(--font);opacity:0;transform:translateY(6px);transition:opacity .35s ease .15s,transform .35s ease .15s}
 #rx-loading.show .rx-loader-text{opacity:1;transform:translateY(0)}
@@ -1587,7 +1607,7 @@ html{scrollbar-width:none}
 .rx-chevron.open{transform:rotate(180deg)}
 @keyframes rxFadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
 /* Loading overlay Store */
-#store-loading{position:fixed;inset:0;background:#000;z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;pointer-events:none;transition:opacity .3s ease}
+#store-loading{position:fixed;inset:0;background:var(--splash-bg);z-index:900;display:none;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0;pointer-events:none;transition:opacity .3s ease}
 #store-loading.show{opacity:1;pointer-events:all}
 .store-loader-text{font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--white);font-family:var(--font);opacity:0;transform:translateY(6px);transition:opacity .3s ease .1s,transform .3s ease .1s}
 #store-loading.show .store-loader-text{opacity:1;transform:translateY(0)}
@@ -5993,7 +6013,7 @@ function renderCards(filter){
             ?`<img src="${_tImg(a.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
             :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
           <div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>
-          ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:var(--white);font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
+          ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:#fff;font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
           ${isUrgent(a.endTime)?'<div class="badge-ending">terminando</div>':''}
           <div class="badge-timer ${isUrgent(a.endTime)?'urgent':''}" id="timer-card-${a.id}">--:--:--</div>
           <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
@@ -6081,7 +6101,7 @@ function renderCards(filter){
         ${a.sinReserva?'<div class="badge-sinreserva verde">sin reserva</div>':''}
         ${a.chocado?`<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>`:''}
         ${a.recienActivada?'<div class="badge-sinreserva" style="background:rgba(230,240,59,.85);border-color:rgba(230,240,59,.4);color:#000">recién publicado</div>':''}
-        ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:var(--white);font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
+        ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:#fff;font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${urgent?'<div class="badge-ending">terminando</div>':''}
         <div class="badge-timer ${urgent?'urgent':days>=1?'days':''}" id="timer-card-${a.id}">--:--:--</div>
         <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
@@ -6813,7 +6833,7 @@ function _mktAppendCards(list,startIdx){
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
-        <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'var(--w85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
+        <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:var(--white)"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#fff"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
       </div>
@@ -10144,7 +10164,7 @@ function _searchCardHtml(a,kind){
     return `<div class="auction-card" onclick="closeSearch();openDetail('${a.id}')">
       <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">${img}
         ${a.chocado?'<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>':''}
-        ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:var(--white);font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
+        ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:#fff;font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
       </div>
       <div class="card-body">
@@ -10726,7 +10746,7 @@ async function processPayment(){
 
 function _showVitrinaActivadaSplash(){
   const sp=document.createElement('div');
-  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#000;opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
+  sp.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--splash-bg);opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
   sp.innerHTML=`
     <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
       <circle cx="26" cy="26" r="25" stroke="rgba(230,240,59,.15)" stroke-width="1.5"/>
@@ -12480,7 +12500,7 @@ function renderMarketFiltered(){
     // según cuál de las dos funciones la pintara. Ahora es UNA sola apariencia siempre.
     el.innerHTML=`
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
-        <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'var(--w85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
+        <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:var(--white)"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;color:#fff"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
       </div>
@@ -13883,7 +13903,7 @@ function showRevisionScreen(method){
 
   const overlay = document.createElement('div');
   overlay.id = 'revision-screen-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;animation:fadeIn .3s ease;transition:opacity .26s ease,transform .26s cubic-bezier(.4,0,.2,1)';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9998;background:var(--splash-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;animation:fadeIn .3s ease;transition:opacity .26s ease,transform .26s cubic-bezier(.4,0,.2,1)';
 
   overlay.innerHTML = `
     <div style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:0">
@@ -14671,7 +14691,7 @@ function logOut(){
   const nombre=USER_STATE.nombre||USER_STATE.username||'';
   // splash de despedida
   const sp=document.createElement('div');
-  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#000;opacity:0;transition:opacity .3s ease;pointer-events:none';
+  sp.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--splash-bg);opacity:0;transition:opacity .3s ease;pointer-events:none';
   sp.innerHTML=`
     <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--white);opacity:0;animation:splashFade .4s ease .15s forwards">
       nos vemos${nombre?', <span style="color:#e6f03b">'+nombre+'</span>':''}
@@ -14983,7 +15003,7 @@ function _showLoadingSplash(texto){
   if(sp) sp.remove();
   sp=document.createElement('div');
   sp.id='login-splash';
-  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#000;opacity:0;transition:opacity .25s ease';
+  sp.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:var(--splash-bg);opacity:0;transition:opacity .25s ease';
   sp.innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;gap:16px;width:100%">
       <div style="font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--white);opacity:0;animation:splashFade .3s ease .1s forwards">${texto||'Iniciando sesión'}</div>
@@ -15005,7 +15025,7 @@ function _showLoginSplash(nombre){
   if(!sp){
     sp=document.createElement('div');
     sp.id='login-splash';
-    sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#000;opacity:1;transition:opacity .35s ease';
+    sp.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--splash-bg);opacity:1;transition:opacity .35s ease';
     document.body.appendChild(sp);
   }
   // muta el contenido sin sacar el div del DOM — sin gap
@@ -15993,7 +16013,7 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
 // ── PUBLICACIÓN REVISIÓN SPLASH ──
 function _showPublicacionRevisionSplash(isDealer=false){
   const sp=document.createElement('div');
-  sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#000;opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
+  sp.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:var(--splash-bg);opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
   sp.innerHTML=`
     <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
       <circle cx="26" cy="26" r="25" stroke="rgba(230,240,59,.15)" stroke-width="1.5"/>
@@ -16791,7 +16811,7 @@ async function openStories(){
   document.body.style.overflow='hidden';
   const v=document.createElement('div');
   v.id='story-viewer';
-  v.style.cssText='position:fixed;inset:0;z-index:9996;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .25s ease;overscroll-behavior:contain';
+  v.style.cssText = 'position:fixed;inset:0;z-index:9996;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .25s ease;overscroll-behavior:contain';
   v.innerHTML=`
     <div id="story-bars" style="display:flex;gap:4px;padding:12px 12px 0"></div>
     <div id="story-header" style="display:flex;align-items:center;gap:10px;padding:10px 14px 8px">
@@ -17827,7 +17847,7 @@ function openEditProfileModal(){
   if(m) m.remove();
   m=document.createElement('div');
   m.id='edit-profile-modal';
-  m.style.cssText='position:fixed;inset:0;background:#000;z-index:9996;display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s ease';
+  m.style.cssText = 'position:fixed;inset:0;background:var(--splash-bg);z-index:9996;display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s ease';
   m.onclick=e=>{if(e.target===m)_closeEditProfile();};
   const inp='width:100%;background:var(--w5);border:1px solid var(--w10);border-radius:12px;padding:13px 14px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box';
   const lbl='font-size:12px;font-weight:700;color:var(--w40);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.4px';
@@ -20382,7 +20402,7 @@ function _rdSwipeExitSplash(label,iconHtml,navigateFn){
   if(document.getElementById('rd-swipe-splash')) return;
   let sp=document.createElement('div');
   sp.id='rd-swipe-splash';
-  sp.style.cssText='position:fixed;inset:0;z-index:100000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity .3s ease';
+  sp.style.cssText = 'position:fixed;inset:0;z-index:100000;background:var(--splash-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity .3s ease';
   sp.innerHTML=`
     ${iconHtml||`<svg width="52" height="52" viewBox="0 0 52 52" fill="none">
       <circle cx="26" cy="26" r="25" stroke="rgba(230,240,59,.15)" stroke-width="1.5"/>
