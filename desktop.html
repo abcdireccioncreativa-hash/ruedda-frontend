@@ -374,7 +374,7 @@ html{scrollbar-width:none}
 .sched-pop-bell:active{background:rgba(230,240,59,.15)}
 
 /* ═══════════ [RC] PÍLDORA "INICIAR TUTORIAL" — glassmorphism negro, en Cómo Funciona ═══════════ */
-.rd-howto-pill{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.6);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid var(--w16);border-radius:100px;padding:9px 15px 9px 12px;color:var(--white);font-family:var(--font);font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:background .15s,transform .15s;flex-shrink:0}
+.rd-howto-pill{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.6);backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);border:1px solid var(--w16);border-radius:100px;padding:9px 15px 9px 12px;color:#fff;font-family:var(--font);font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35);transition:background .15s,transform .15s;flex-shrink:0}
 .rd-howto-pill:active{transform:scale(.96);background:rgba(0,0,0,.8)}
 .rd-howto-pill svg{width:13px;height:13px;flex-shrink:0;opacity:.95}
 .rd-howto-pill span{white-space:nowrap}
@@ -892,7 +892,7 @@ html{scrollbar-width:none}
 .fav-thumb-card{flex-shrink:0;width:72vw;max-width:280px;background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;scroll-snap-align:start;cursor:pointer;transition:transform .18s,border-color .18s;animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
 .fav-thumb-card:active{transform:scale(.96)}
 .fav-thumb-img{width:100%;aspect-ratio:16/10;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.fav-thumb-badge-timer{position:absolute;bottom:6px;left:6px;font-size:10px;font-weight:700;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:var(--white);border:1px solid var(--w10);border-radius:8px;padding:3px 7px;letter-spacing:.2px}
+.fav-thumb-badge-timer{position:absolute;bottom:6px;left:6px;font-size:10px;font-weight:700;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;border:1px solid var(--w10);border-radius:8px;padding:3px 7px;letter-spacing:.2px}
 .fav-thumb-badge-timer.urgent{color:var(--lime);border-color:rgba(230,240,59,.35)}
 .fav-thumb-body{padding:9px 10px 11px}
 .fav-thumb-title{font-size:12px;font-weight:700;line-height:1.35;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
@@ -1233,6 +1233,7 @@ html{scrollbar-width:none}
 
   /* HEADER full-bleed edge a edge, el contenido se centra adentro */
   .navbar{width:100%;max-width:none;margin:0;border-radius:0;position:sticky;top:0;left:0;right:0;z-index:100;padding:0;background:rgba(8,8,9,.85);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);border-bottom:1px solid var(--w8);box-shadow:0 1px 0 var(--w2),0 12px 40px rgba(0,0,0,.35)}
+  html[data-theme="light"] .navbar{background:rgba(248,248,244,.94)}
   .navbar-inner{max-width:1400px;margin:0 auto;padding:15px 40px;display:flex;align-items:center;width:100%;box-sizing:border-box}
   .navbar-shell{position:sticky;top:0;z-index:100;background:rgba(0,0,0,.92);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)}
 
@@ -1284,11 +1285,11 @@ html{scrollbar-width:none}
   .market-hero-main img{width:100%;height:100%;object-fit:cover;display:block}
   .market-hero-slide.active .market-hero-main img{animation:mktHeroZoom 6s ease-out both}
   @keyframes mktHeroZoom{from{transform:scale(1.08)}to{transform:scale(1)}}
-  .market-hero-badge{position:absolute;top:16px;left:16px;z-index:2;background:rgba(18,18,18,.78);backdrop-filter:blur(8px);border-radius:6px;padding:5px 11px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--white)}
+  .market-hero-badge{position:absolute;top:16px;left:16px;z-index:2;background:rgba(18,18,18,.78);backdrop-filter:blur(8px);border-radius:6px;padding:5px 11px;font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:#fff}
   .market-hero-titlebox{position:absolute;top:18px;left:0;right:0;text-align:center;z-index:2;padding:0 70px;pointer-events:none}
-  .market-hero-title{font-size:23px;font-weight:800;color:var(--white);text-shadow:0 2px 12px rgba(0,0,0,.7);letter-spacing:-.3px}
-  .market-hero-meta{font-size:13px;color:var(--w85);text-shadow:0 1px 8px rgba(0,0,0,.7);margin-top:4px;text-transform:lowercase}
-  .market-hero-pill{position:absolute;bottom:16px;left:16px;z-index:2;display:flex;align-items:center;gap:9px;background:rgba(18,18,18,.78);backdrop-filter:blur(8px);border-radius:100px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--white)}
+  .market-hero-title{font-size:23px;font-weight:800;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.7);letter-spacing:-.3px}
+  .market-hero-meta{font-size:13px;color:rgba(255,255,255,.85);text-shadow:0 1px 8px rgba(0,0,0,.7);margin-top:4px;text-transform:lowercase}
+  .market-hero-pill{position:absolute;bottom:16px;left:16px;z-index:2;display:flex;align-items:center;gap:9px;background:rgba(18,18,18,.78);backdrop-filter:blur(8px);border-radius:100px;padding:9px 16px;font-size:13px;font-weight:700;color:#fff}
   .market-hero-pill-sep{width:1px;height:12px;background:var(--w25)}
   .market-hero-side{grid-column:2;grid-row:1/3;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:5px}
   .market-hero-side>div{position:relative;overflow:hidden;background:#151515}
@@ -1300,7 +1301,7 @@ html{scrollbar-width:none}
   .market-hero-row .dropdown-wrap{flex-shrink:0}
   .market-hero-row #sponsor-wrap{flex:1;max-width:560px;margin-left:auto}
   .market-hero-arrows{position:absolute;bottom:16px;right:16px;z-index:3;display:flex;gap:8px}
-  .market-hero-nav{width:34px;height:34px;border-radius:50%;background:rgba(18,18,18,.78);border:1px solid var(--w15);color:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,border-color .15s}
+  .market-hero-nav{width:34px;height:34px;border-radius:50%;background:rgba(18,18,18,.78);border:1px solid var(--w15);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,border-color .15s}
   .market-hero-nav:hover{background:rgba(230,240,59,.2);border-color:rgba(230,240,59,.4)}
   .market-hero-nav svg{width:15px;height:15px}
   .market-hero-dots{position:absolute;top:18px;right:18px;z-index:3;display:flex;gap:5px}
@@ -1491,8 +1492,8 @@ html{scrollbar-width:none}
   .mkt-cb-cell{position:relative;height:100%;min-height:0;border-radius:14px;overflow:hidden;background:var(--surface-mid);cursor:pointer}
   .mkt-cb-cell img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease}
   .mkt-cb-cell:hover img{transform:scale(1.04)}
-  .mkt-cb-cell-tag{position:absolute;top:10px;left:10px;background:rgba(20,20,20,.7);backdrop-filter:blur(6px);border-radius:5px;padding:3px 9px;font-size:10.5px;font-weight:700;color:var(--white)}
-  .mkt-cb-more{position:absolute;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--white)}
+  .mkt-cb-cell-tag{position:absolute;top:10px;left:10px;background:rgba(20,20,20,.7);backdrop-filter:blur(6px);border-radius:5px;padding:3px 9px;font-size:10.5px;font-weight:700;color:#fff}
+  .mkt-cb-more{position:absolute;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff}
 
   /* FIX scroll bugueado: la bid-section stickeada montaba/tapaba el rail de "también te
      puede interesar" al hacer scroll — se quita el sticky, todo fluye normal como en
@@ -1520,7 +1521,7 @@ html{scrollbar-width:none}
   #mkt-related-section .mkt-related-tile{cursor:pointer}
   #mkt-related-section .mkt-related-tile-img{aspect-ratio:16/10;border-radius:3px;overflow:hidden;background:var(--surface-mid);position:relative}
   #mkt-related-section .mkt-related-tile-img img{width:100%;height:100%;object-fit:cover;display:block}
-  #mkt-related-section .mkt-related-tile-badge{position:absolute;bottom:8px;left:8px;background:rgba(20,20,20,.78);backdrop-filter:blur(6px);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:800;color:var(--white);display:flex;align-items:center;gap:5px}
+  #mkt-related-section .mkt-related-tile-badge{position:absolute;bottom:8px;left:8px;background:rgba(20,20,20,.78);backdrop-filter:blur(6px);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:800;color:#fff;display:flex;align-items:center;gap:5px}
   #mkt-related-section .mkt-related-tile-title{font-size:13.5px;font-weight:700;color:var(--white);margin-top:8px;line-height:1.3}
   #mkt-related-section .mkt-related-tile-meta{font-size:11.5px;color:var(--muted);margin-top:2px;text-transform:lowercase}
 
