@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ruedda">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f8f8f4">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/icon-180.png">
@@ -22,14 +22,17 @@
 <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
 
 <script>
-/* [V137-web] MODO CLARO — aplica el tema guardado ANTES del primer paint,
-   igual que en mobile, para que no haya flash de tema incorrecto. */
+/* [V139-web] MODO CLARO — default ahora es claro (igual que mobile), aplicado
+   ANTES del primer paint para que no haya flash de tema incorrecto. Solo se
+   queda en oscuro si el usuario lo eligió explícitamente antes. */
 (function(){
-  try{
-    if(localStorage.getItem('ruedda_theme')==='light'){
-      document.documentElement.setAttribute('data-theme','light');
-    }
-  }catch(e){}
+  var light = true;
+  try{ light = localStorage.getItem('ruedda_theme') !== 'dark'; }catch(e){}
+  if(light) document.documentElement.setAttribute('data-theme','light');
+  document.addEventListener('DOMContentLoaded', function(){
+    var tc = document.querySelector('meta[name="theme-color"]');
+    if(tc) tc.setAttribute('content', light ? '#f8f8f4' : '#000000');
+  });
 })();
 function setTheme(mode){
   const light = mode === 'light';

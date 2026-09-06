@@ -14,15 +14,13 @@
       }
     }catch(e){}
   }
-  // [V137] modo claro — el atributo se aplica ACÁ, sincrónico, antes de que
+  // [V139] modo claro — el atributo se aplica ACÁ, sincrónico, antes de que
   // el CSS de más abajo llegue a pintar nada (si corriera después, ej. en
   // DOMContentLoaded, se vería un parpadeo: oscuro un instante, después
-  // claro). Guardado explícito del usuario en Configuración (localStorage)
-  // — nunca sigue system/prefers-color-scheme solo, tiene que ser un
-  // choice explícito; si no hay nada guardado se queda en oscuro (el
-  // default de siempre, cero cambio para quien no lo toca).
-  var _rdLightBoot = false;
-  try{ _rdLightBoot = localStorage.getItem('ruedda_theme')==='light'; }catch(e){}
+  // claro). Default ahora es CLARO — solo se queda en oscuro si el usuario
+  // lo eligió explícitamente en Configuración (localStorage==='dark').
+  var _rdLightBoot = true;
+  try{ _rdLightBoot = localStorage.getItem('ruedda_theme') !== 'dark'; }catch(e){}
   if(_rdLightBoot) document.documentElement.setAttribute('data-theme','light');
 
   rdMarkAndroidApp();
@@ -32,10 +30,8 @@
     // script corre (va más abajo en <head>) — el data-theme sí se pudo
     // aplicar arriba (setAttribute no depende de que el nodo exista), pero
     // esto necesita esperar a que el meta tag ya esté parseado.
-    if(_rdLightBoot){
-      var _tc=document.querySelector('meta[name="theme-color"]');
-      if(_tc) _tc.setAttribute('content','#f8f8f4'); // mismo tono que --navbar-bg claro — evita cualquier franja oscura arriba en PWA
-    }
+    var _tc=document.querySelector('meta[name="theme-color"]');
+    if(_tc) _tc.setAttribute('content', _rdLightBoot ? '#f8f8f4' : '#000000'); // mismo tono que --navbar-bg segun tema — evita cualquier franja del color contrario arriba en PWA
   });
 })();
 </script>
@@ -44,7 +40,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Ruedda">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f8f8f4">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/icon-180.png">
@@ -19775,11 +19771,11 @@ async function _saDeletePat(id,cat){
           </div>
           <div>
             <div class="config-row-title">modo claro</div>
-            <div class="config-row-sub" id="cfg-theme-sub">fondo negro, siempre</div>
+            <div class="config-row-sub" id="cfg-theme-sub">fondo claro, activado</div>
           </div>
         </div>
         <label class="toggle-switch">
-          <input type="checkbox" id="cfg-theme-toggle" onchange="setTheme(this.checked?'light':'dark')">
+          <input type="checkbox" id="cfg-theme-toggle" checked onchange="setTheme(this.checked?'light':'dark')">
           <span class="toggle-track"></span>
         </label>
       </div>
