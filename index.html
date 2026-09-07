@@ -15972,7 +15972,14 @@ async function _loadAuctions(){
   if(!_supa) return;
   try{
     const _corte48h=new Date(Date.now()-48*3600*1000).toISOString();
-    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id,es_chocado,tipo_dano,estado_chocado,es_destacado,es_programada,fecha_inicio_programada,auditado_ruedda,pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en').eq('tipo','subasta').eq('estado','activa').or('es_chocado.is.null,es_chocado.eq.false').gte('end_time',_corte48h).order('end_time',{ascending:true});
+    const _aucCols='id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id,es_chocado,tipo_dano,estado_chocado,es_destacado,es_programada,fecha_inicio_programada,auditado_ruedda';
+    let{data,error:ae}=await _supa.from('auctions').select(_aucCols+',pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en').eq('tipo','subasta').eq('estado','activa').or('es_chocado.is.null,es_chocado.eq.false').gte('end_time',_corte48h).order('end_time',{ascending:true});
+    // [defensivo] mismo patrón que _loadMarket: si pme_* aún no existe en Supabase
+    // (migración de Precio Justo sin correr), reintenta sin esas columnas — no
+    // rompe el feed completo de subastas mientras se corre la migración.
+    if(ae&&/pme_/i.test(String(ae?.message||''))){
+      ({data,error:ae}=await _supa.from('auctions').select(_aucCols).eq('tipo','subasta').eq('estado','activa').or('es_chocado.is.null,es_chocado.eq.false').gte('end_time',_corte48h).order('end_time',{ascending:true}));
+    }
     window._feedLoaded.auc=true; // [V87] primera carga resuelta
     if(ae){console.error('[ruedda] _loadAuctions:',String(ae?.message||ae?.code||'error'));if(typeof renderCards==='function')renderCards();return;}
     if(!data?.length){if(typeof renderCards==='function')renderCards();return;} // [V87] feed vacio: pintar empty state, no dejar el loader
@@ -16025,11 +16032,17 @@ async function _loadAuctions(){
 async function _loadMarket(){
   if(!_supa) return;
   try{
-    const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda,pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en';
+    const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda';
+    const _pjCols=',pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en';
     // [fix egress] techo de 300 filas más recientes — antes bajaba la tabla 'activa'
     // completa en cada carga. openMarketDetail/renderFavoritos traen bajo demanda
     // (_ensureMarketListing) lo que caiga fuera de este top 300 si hace falta.
-    let{data:rawData,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').eq('estado','activa').order('created_at',{ascending:false}).limit(300);
+    let{data:rawData,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle'+_pjCols).eq('estado','activa').order('created_at',{ascending:false}).limit(300);
+    // [defensivo] si pme_* aún no existe en Supabase (migración de Precio Justo
+    // sin correr), reintenta sin esas columnas — no rompe el feed completo.
+    if(error&&/pme_/i.test(String(error?.message||''))){
+      ({data:rawData,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').eq('estado','activa').order('created_at',{ascending:false}).limit(300));
+    }
     // [defensivo] igual patrón que _loadConcesionarios: si las columnas de
     // financiamiento aún no existen en Supabase, reintenta sin ellas — no rompe
     // el feed mientras se corre la migración.
@@ -16060,8 +16073,11 @@ async function _ensureMarketListing(id){
   if(existing) return existing;
   if(!_supa) return null;
   try{
-    const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda,pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en';
-    let{data:l,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').eq('estado','activa').eq('id',id).maybeSingle();
+    const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda';
+    let{data:l,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle,pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en').eq('estado','activa').eq('id',id).maybeSingle();
+    if(error&&/pme_/i.test(String(error?.message||''))){
+      ({data:l,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').eq('estado','activa').eq('id',id).maybeSingle());
+    }
     if(error&&/financiamiento/i.test(String(error?.message||''))){
       ({data:l,error}=await _supa.from('listings').select(_mktCols).eq('estado','activa').eq('id',id).maybeSingle());
     }
