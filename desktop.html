@@ -156,8 +156,8 @@ function _paintAccentSwatches(name){
   });
 }
 document.addEventListener('DOMContentLoaded', function(){
-  let _accN='verde';
-  try{_accN=localStorage.getItem('ruedda_accent')||'verde';}catch(e){}
+  let _accN='negro';
+  try{_accN=localStorage.getItem('ruedda_accent')||'negro';}catch(e){}
   _paintAccentSwatches(_accN);
 });
 /* ─── [PERF] tier de efectos ───────────────────────────────────────────────
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function(){
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
   --bg:#000000;--card:#161616;--card2:#1e1e1e;
-  --lime:#08441A;--lime-dark:#052910;--lime-ink:#fff;
+  --lime:#0a0a0a;--lime-dark:#000000;--lime-ink:#fff;
   --white:#ffffff;--muted:#666;--muted2:#333;
   --border:var(--w7);--badge:rgba(0,0,0,0.72);
   --radius:22px;--radius-sm:15px;
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', function(){
 /* [V137] MODO CLARO — paleta idéntica a la de mobile (Ruedda Verifica). */
 html[data-theme="light"]{
   --bg:#f6f6ef;--card:#ffffff;--card2:#f2f2ea;
-  --lime:#08441A;--lime-dark:#052910;--lime-ink:#fff;
+  --lime:#0a0a0a;--lime-dark:#000000;--lime-ink:#fff;
   --white:#15160e;--muted:#7c7e70;--muted2:#d7d8cb;
   --border:rgba(20,22,10,.12);--badge:rgba(255,255,255,.85);
 
@@ -5303,7 +5303,7 @@ function showView(name,param){
   if(name==='sugerencias'){/* nada que cargar */}
   if(name==='historia')loadHistoria();
   if(name==='marcas'){_marcasRegionFilter=null;renderMarcasGrid();_loadMarcaLogos();}
-  if(name==='configuracion'){_paintDefaultViewSlider();let _accN='verde';try{_accN=localStorage.getItem('ruedda_accent')||'verde';}catch(e){}_paintAccentSwatches(_accN);}
+  if(name==='configuracion'){_paintDefaultViewSlider();let _accN='negro';try{_accN=localStorage.getItem('ruedda_accent')||'negro';}catch(e){}_paintAccentSwatches(_accN);}
   if(name==='noticia-detail')loadNoticiaDetail(param);
   if(name==='superadmin'){
     setTimeout(async()=>{
