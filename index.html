@@ -6021,7 +6021,16 @@ function showView(name,param){
     });
     renderCurrentSection();
     // refetch desde DB para que listings aprobados aparezcan sin recargar la página
-    if(_supa) Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors(),_loadChocadosSponsors(),_loadPromoBanner(),_loadMiniBanner(),_loadRentals(),_loadPaymentData()]).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
+    // [fix stutter] antes este refetch de 10 queries en paralelo corría CADA VEZ que
+    // se tocaba "home", así acabaras de estar ahí hace 2 segundos — el segundo pintado
+    // (con data fresca) llegaba a los 400-1000ms y reemplazaba todo sin animar, tapando
+    // la cascada .rdv y sintiéndose como un tirón. Con throttle de 15s la data sigue
+    // fresca ("listings aprobados aparecen sin recargar la página") pero no se martilla
+    // Supabase en cada tap de la barra inferior.
+    if(_supa && (Date.now()-(window._lastHomeRefetch||0)>15000)){
+      window._lastHomeRefetch=Date.now();
+      Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors(),_loadChocadosSponsors(),_loadPromoBanner(),_loadMiniBanner(),_loadRentals(),_loadPaymentData()]).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
+    }
     // [config] respeta "al iniciar sesión mostrar siempre" — solo usuarios logueados, guest siempre subastas
     if(_target==='subastas'&&isLoggedIn&&USER_STATE.defaultView==='market') selectSection('market');
   } else {}
