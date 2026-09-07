@@ -2,3 +2,5 @@
 .env
 node_modules/
 .vercel
+precio-justo/pricing-engine/.ml_token.json
+precio-justo/pricing-engine/.ml_category.json

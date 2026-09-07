@@ -911,6 +911,14 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 .vender-hero p{font-size:15px;color:var(--muted);line-height:1.6}
 .vender-form{padding:20px 18px;display:flex;flex-direction:column;gap:14px}
 .form-group{display:flex;flex-direction:column;gap:6px}
+/* [Precio Justo V142] combobox de marca/modelo/versión — mismo lenguaje
+   visual que .search-bar/.dropdown-glass, sin librerías nuevas. */
+.pj-combo-list{display:none;position:absolute;top:100%;left:0;right:0;z-index:50;margin-top:4px;max-height:220px;overflow-y:auto;background:var(--surface-hi);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.pj-combo-list.pj-combo-open{display:block}
+.pj-combo-item{padding:10px 14px;font-size:13px;cursor:pointer;color:var(--white)}
+.pj-combo-item:active{background:var(--w8)}
+.pj-combo-item-dim{opacity:.45}
+.pj-combo-dim-note{font-size:11px}
 .form-label{font-size:11px;font-weight:400;color:var(--muted);letter-spacing:.5px}
 .form-input,.form-select,.form-textarea{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;transition:border-color .2s;width:100%}
 .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:rgba(8,68,26,.45)}
@@ -2733,6 +2741,8 @@ html[data-theme="light"] .rx-menu-card-icon svg{stroke:#000!important}
               <div class="bid-amount-label">oferta actual</div>
               <div class="bid-amount" id="detail-bid-amount"></div>
               <div class="bid-count" id="detail-bid-count"></div>
+              <!-- [Precio Justo] placeholder sin diseñar — el look final lo define Enrique -->
+              <div id="pme-meter-placeholder"></div>
             </div>
             <div class="timer-big">
               <div class="timer-big-label">tiempo restante</div>
@@ -2892,7 +2902,8 @@ html[data-theme="light"] .rx-menu-card-icon svg{stroke:#000!important}
             <div>
               <div class="bid-amount-label">precio</div>
               <div class="bid-amount" id="mkt-price"></div>
-
+              <!-- [Precio Justo] placeholder sin diseñar — el look final lo define Enrique -->
+              <div id="mkt-pme-meter-placeholder"></div>
             </div>
             <div>
               <div class="bid-amount-label" style="text-align:right">ciudad</div>
@@ -3273,12 +3284,29 @@ html[data-theme="light"] .rx-menu-card-icon svg{stroke:#000!important}
     </div>
 
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Marca.</label>
-        <select class="form-select" id="marca-select" onchange="_checkDsgVagWarning()"><option value="">seleccionar</option><option>Alfa Romeo</option><option>Audi</option><option>BAIC</option><option>Bentley</option><option>Bera</option><option>BMW</option><option>BYD</option><option>Cadillac</option><option>Changan</option><option>Chery</option><option>Chevrolet</option><option>Chrysler</option><option>Citroën</option><option>Dodge</option><option>Ferrari</option><option>Fiat</option><option>Ford</option><option>GAC</option><option>Geely</option><option>GMC</option><option>Great Wall</option><option>Honda</option><option>Hummer</option><option>Hyundai</option><option>Infiniti</option><option>JAC</option><option>Jaguar</option><option>Jeep</option><option>Kia</option><option>Lamborghini</option><option>Land Rover</option><option>Lexus</option><option>Lincoln</option><option>Maserati</option><option>Mazda</option><option>Mercedes-Benz</option><option>MINI</option><option>Mitsubishi</option><option>Nissan</option><option>Peugeot</option><option>Pontiac</option><option>Porsche</option><option>Ram</option><option>Renault</option><option>Rolls-Royce</option><option>SAIC</option><option>Saturn</option><option>Seat</option><option>Skoda</option><option>Smart</option><option>SsangYong</option><option>Subaru</option><option>Suzuki</option><option>Tesla</option><option>Toyota</option><option>Volkswagen</option><option>Volvo</option><option>Zotye</option><option>Otro</option></select>
+      <div class="form-group" style="position:relative">
+        <label class="form-label">Marca.</label>
+        <input class="form-input" id="marca-select" type="text" placeholder="ej. Toyota" autocomplete="off" oninput="_pjOnMarcaInput(this.value);_checkDsgVagWarning()" onfocus="_pjOnMarcaInput(this.value)" onblur="_pjCloseListSoon('marca-pj-list')">
+        <div class="pj-combo-list" id="marca-pj-list"></div>
+        <input type="hidden" id="marca-canonica-input">
       </div>
-      <div class="form-group"><label class="form-label">Año.</label><select class="form-select" id="year-select"></select></div>
+      <div class="form-group"><label class="form-label">Año.</label><select class="form-select" id="year-select" onchange="_pjOnYearChange()"></select></div>
     </div>
-    <div class="form-group"><label class="form-label">Modelo.</label><input class="form-input" type="text" placeholder="ej. Corolla XLI"></div>
+    <div class="form-row">
+      <div class="form-group" style="position:relative">
+        <label class="form-label">Modelo.</label>
+        <input class="form-input" id="modelo-input" type="text" placeholder="ej. Corolla XLI" autocomplete="off" disabled oninput="_pjOnModeloInput(this.value)" onfocus="_pjOnModeloInput(this.value)" onblur="_pjCloseListSoon('modelo-pj-list')">
+        <div class="pj-combo-list" id="modelo-pj-list"></div>
+        <input type="hidden" id="modelo-canonica-input">
+      </div>
+      <div class="form-group" style="position:relative">
+        <label class="form-label">Versión. <span style="font-weight:400;color:var(--muted)">opcional</span></label>
+        <input class="form-input" id="version-input" type="text" placeholder="ej. XLI" autocomplete="off" disabled oninput="_pjOnVersionInput(this.value)" onfocus="_pjOnVersionInput(this.value)" onblur="_pjCloseListSoon('version-pj-list')">
+        <div class="pj-combo-list" id="version-pj-list"></div>
+        <input type="hidden" id="version-canonica-input">
+        <div id="version-range-note" style="display:none;font-size:11px;color:rgba(255,170,60,.9);margin-top:4px">fuera del rango típico para este año — se guarda igual</div>
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group"><label class="form-label">Kilometraje.</label><input class="form-input" type="text" inputmode="numeric" placeholder="km" oninput="_milesInputHandler(this)"></div>
       <div class="form-group"><label class="form-label">Dueños previos.</label>
@@ -5177,6 +5205,33 @@ let venderType='particular';
 function fmtNum(n){return n.toLocaleString('es-VE').replace(/,/g,'.')}
 function fmtBid(n){return '$'+fmtNum(n)}
 function fmtKm(n){return fmtNum(n)+' km'}
+// [Precio Justo V142] lógica de visibilidad de la comparativa de precio —
+// el look final del medidor lo define Enrique, esto solo deja los datos
+// listos y la regla de "no mostrar nada sin respaldo" resuelta.
+function getPrecioJustoDisplay(item){
+  const mostrar = item?.pme_usd!=null && item?.pme_confianza!=='baja';
+  if(!mostrar) return {mostrar:false};
+  const delta=Number(item.pme_delta)||0;
+  return {
+    mostrar:true,
+    delta,
+    label:(delta>0?'+':'')+delta.toFixed(1)+'%',
+    classification:item.pme_classification,
+    confianza:item.pme_confianza,
+    basadoEn:item.pme_basado_en,
+    mensaje: item.pme_basado_en==='modelo base'
+      ? 'estimado sobre el promedio del modelo, sin la versión exacta'
+      : 'estimado sobre comportamiento histórico del mercado venezolano'
+  };
+}
+function renderPrecioJustoPlaceholder(item, elId){
+  const el=document.getElementById(elId);
+  if(!el) return;
+  const d=getPrecioJustoDisplay(item);
+  el.innerHTML = d.mostrar
+    ? `<div data-pme-classification="${_esc(d.classification||'')}" data-pme-confianza="${_esc(d.confianza||'')}">${_esc(d.label)} · ${_esc(d.mensaje)}</div>`
+    : '';
+}
 function isUrgent(t){return(t-Date.now())<3600000}
 function getDaysLeft(t){return Math.floor((t-Date.now())/86400000)}
 
@@ -7904,6 +7959,7 @@ async function openMarketDetail(id, origin){
   } else {
     document.getElementById('mkt-price').textContent=fmtBid(l.price);
   }
+  if(typeof renderPrecioJustoPlaceholder==='function') renderPrecioJustoPlaceholder(l,'mkt-pme-meter-placeholder');
   // Mirror bid card into mobile slot
   // [FIX precio fantasma] el clon NO debe llevar IDs duplicados: si los lleva,
   // getElementById('mkt-price') agarra el clon viejo y muestra el precio del carro anterior.
@@ -8401,6 +8457,7 @@ function renderDetailBid(){
   if(!currentAuction)return;
   document.getElementById('detail-bid-amount').textContent=fmtBid(currentAuction.currentBid);
   document.getElementById('detail-bid-count').textContent=currentAuction.bidCount+' ofertas';
+  if(typeof renderPrecioJustoPlaceholder==='function') renderPrecioJustoPlaceholder(currentAuction,'pme-meter-placeholder');
 }
 
 function renderBidHistory(){
@@ -10282,6 +10339,139 @@ function handlePublicar(){
   openPricingSheet();
 }
 
+// ─────────────────────────────────────────────
+// PRECIO JUSTO — catálogo + cascada marca/modelo/versión (V142)
+// ─────────────────────────────────────────────
+// [Precio Justo] URL pública del catálogo del motor — dato público, no un
+// secreto, por eso va literal acá: esta app es HTML estático sin build
+// step que inyecte variables de entorno (igual que la URL/anon-key de
+// Supabase, ya escritas literal más abajo). Completar cuando precio-justo/
+// esté deployado — ver plan de integración.
+const PRICING_CATALOG_URL = '';
+
+let _pjCatalog=null, _pjMarcaObj=null, _pjModeloObj=null, _pjVersionObj=null;
+
+function _pjNorm(s){
+  return String(s||'').normalize('NFD').replace(new RegExp('[̀-ͯ]','g'),'').toUpperCase().trim();
+}
+async function _pjLoadCatalog(){
+  if(_pjCatalog||!PRICING_CATALOG_URL) return _pjCatalog;
+  try{
+    const r=await fetch(PRICING_CATALOG_URL);
+    if(r.ok) _pjCatalog=await r.json();
+  }catch(e){ console.warn('[precio justo] catálogo no disponible:',e.message); }
+  return _pjCatalog;
+}
+function _pjRenderList(listEl, items, onPick){
+  if(!listEl) return;
+  listEl.innerHTML=items.slice(0,50).map(it=>
+    `<div class="pj-combo-item${it._dim?' pj-combo-item-dim':''}">${_esc(it.nombre)}${it._dim?' <span class="pj-combo-dim-note">· fuera de rango</span>':''}</div>`
+  ).join('');
+  Array.from(listEl.children).forEach((child,i)=>{
+    child.onmousedown=(e)=>{ e.preventDefault(); onPick(items[i]); };
+  });
+  listEl.classList.toggle('pj-combo-open', items.length>0);
+}
+function _pjCloseListSoon(listId){
+  setTimeout(()=>{ document.getElementById(listId)?.classList.remove('pj-combo-open'); }, 150);
+}
+
+async function _pjOnMarcaInput(q){
+  await _pjLoadCatalog();
+  const exact=_pjCatalog?.marcas?.find(m=>_pjNorm(m.nombre)===_pjNorm(q));
+  _pjMarcaObj=exact||null;
+  const canEl=document.getElementById('marca-canonica-input'); if(canEl) canEl.value=_pjNorm(q);
+  _pjModeloObj=null; _pjVersionObj=null;
+  const modeloInput=document.getElementById('modelo-input');
+  const versionInput=document.getElementById('version-input');
+  if(modeloInput){ modeloInput.value=''; modeloInput.disabled=!q.trim(); }
+  if(versionInput){ versionInput.value=''; versionInput.disabled=true; }
+  const mc=document.getElementById('modelo-canonica-input'); if(mc) mc.value='';
+  const vc=document.getElementById('version-canonica-input'); if(vc) vc.value='';
+  const note=document.getElementById('version-range-note'); if(note) note.style.display='none';
+  const listEl=document.getElementById('marca-pj-list');
+  if(!_pjCatalog||!q.trim()){ _pjRenderList(listEl,[],()=>{}); return; }
+  const nq=_pjNorm(q);
+  const items=[..._pjCatalog.marcas].sort((a,b)=>b.muestras-a.muestras).filter(m=>_pjNorm(m.nombre).includes(nq));
+  _pjRenderList(listEl, items, (picked)=>{
+    document.getElementById('marca-select').value=picked.nombre;
+    _pjOnMarcaInput(picked.nombre);
+    listEl.classList.remove('pj-combo-open');
+    modeloInput?.focus();
+  });
+}
+
+function _pjOnModeloInput(q){
+  const exact=_pjMarcaObj?.modelos?.find(m=>_pjNorm(m.nombre)===_pjNorm(q));
+  _pjModeloObj=exact||null;
+  const canEl=document.getElementById('modelo-canonica-input'); if(canEl) canEl.value=_pjNorm(q);
+  _pjVersionObj=null;
+  const versionInput=document.getElementById('version-input');
+  if(versionInput){ versionInput.value=''; versionInput.disabled=!q.trim(); }
+  const vc=document.getElementById('version-canonica-input'); if(vc) vc.value='';
+  const note=document.getElementById('version-range-note'); if(note) note.style.display='none';
+  const listEl=document.getElementById('modelo-pj-list');
+  if(!_pjMarcaObj||!q.trim()){ _pjRenderList(listEl,[],()=>{}); return; }
+  const anio=parseInt(document.getElementById('year-select')?.value||'')||null;
+  const nq=_pjNorm(q);
+  let items=(_pjMarcaObj.modelos||[]).filter(m=>_pjNorm(m.nombre).includes(nq)).map(m=>({...m,_dim: anio ? !(anio>=m.anio_min && anio<=m.anio_max) : false}));
+  items.sort((a,b)=>(a._dim===b._dim?0:(a._dim?1:-1))||(b.muestras-a.muestras));
+  _pjRenderList(listEl, items, (picked)=>{
+    document.getElementById('modelo-input').value=picked.nombre;
+    _pjOnModeloInput(picked.nombre);
+    listEl.classList.remove('pj-combo-open');
+    versionInput?.focus();
+  });
+}
+
+function _pjOnVersionInput(q){
+  const exact=_pjModeloObj?.versiones?.find(v=>_pjNorm(v.nombre)===_pjNorm(q));
+  _pjVersionObj=exact||null;
+  const canEl=document.getElementById('version-canonica-input'); if(canEl) canEl.value=q.trim()?_pjNorm(q):'';
+  _pjCheckVersionRange();
+  const listEl=document.getElementById('version-pj-list');
+  if(!_pjModeloObj){ _pjRenderList(listEl,[],()=>{}); return; }
+  const anio=parseInt(document.getElementById('year-select')?.value||'')||null;
+  const ventana=2;
+  const nq=_pjNorm(q);
+  let items=(_pjModeloObj.versiones||[]).filter(v=>_pjNorm(v.nombre).includes(nq)).map(v=>({...v,_dim: anio ? !(anio>=v.anio_min-ventana && anio<=v.anio_max+ventana) : false}));
+  items.sort((a,b)=>(a._dim===b._dim?0:(a._dim?1:-1))||(b.muestras-a.muestras));
+  _pjRenderList(listEl, items, (picked)=>{
+    document.getElementById('version-input').value=picked.nombre;
+    _pjOnVersionInput(picked.nombre);
+    listEl.classList.remove('pj-combo-open');
+  });
+}
+function _pjOnYearChange(){
+  _pjCheckVersionRange();
+}
+function _pjCheckVersionRange(){
+  const note=document.getElementById('version-range-note');
+  if(!note) return;
+  const anio=parseInt(document.getElementById('year-select')?.value||'')||null;
+  if(!anio||!_pjVersionObj){ note.style.display='none'; return; }
+  const fuera=!(anio>=_pjVersionObj.anio_min-2 && anio<=_pjVersionObj.anio_max+2);
+  note.style.display=fuera?'block':'none';
+}
+// Dispara la tasación en background después de publicar/editar — nunca
+// bloquea el flujo del usuario, ver api/trigger-valuation.js.
+async function _pjTriggerValuation(itemId, itemType, {marca, modelo, version, year, km, precio}){
+  if(!_supa||!itemId) return;
+  try{
+    const{data:{session}}=await _supa.auth.getSession();
+    const token=session?.access_token; if(!token) return;
+    let catalogMiss=null;
+    if(marca && !_pjMarcaObj) catalogMiss={marca,modelo:null,version:null};
+    else if(modelo && !_pjModeloObj) catalogMiss={marca,modelo,version:null};
+    else if(version && !_pjVersionObj) catalogMiss={marca,modelo,version};
+    fetch('/api/trigger-valuation',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body:JSON.stringify({item_id:itemId,item_type:itemType,marca,modelo,version,year,kilometraje:km,precio_solicitado:precio,catalog_miss:catalogMiss})
+    }).catch(()=>{});
+  }catch(e){ console.warn('[precio justo] no se pudo disparar la tasación:',e.message); }
+}
+
 async function publishListing(opts){
   opts=opts||{};
   closeCheckout();
@@ -10308,6 +10498,11 @@ async function publishListing(opts){
   const getSelByLabel=(lbl)=>{for(const l of (form?.querySelectorAll('.form-label')||[])){if(_norm(l.textContent)===_norm(lbl)){const s=l.closest('.form-group')?.querySelector('select,input');if(s)return s.value||'';}}return '';};
   const marca=getSelByLabel('marca');   // ← fix: lee el select de marca por su label
   const modelo=getByPH('ej. Corolla XLI');
+  // [Precio Justo] versión (opcional) + campos canónicos que arma la cascada marca/modelo/versión
+  const version=(document.getElementById('version-input')?.value||'').trim();
+  const marcaCanonica=document.getElementById('marca-canonica-input')?.value||'';
+  const modeloCanonico=document.getElementById('modelo-canonica-input')?.value||'';
+  const versionCanonica=document.getElementById('version-canonica-input')?.value||'';
   const km=parseInt(_numClean(getByPH('km'))||'0');
   const color=getByPH('ej. negro mate');
   const precioFijo=parseFloat(_numClean(getByPH('precio de venta'))||'0');
@@ -10327,7 +10522,7 @@ async function publishListing(opts){
   const tipoDano=Array.from(document.querySelectorAll('.dano-pill.active')).map(p=>p.textContent.trim()).join(', ')||'';
   const estChocado=document.querySelector('.estado-pill.active')?.textContent?.trim()||'';
   // titulo auto-generado (NOT NULL en DB)
-  const titulo=[year||'',marca||'',modelo||''].filter(Boolean).join(' ').trim()||`${tipo} en Ruedda`;
+  const titulo=[year||'',marca||'',modelo||'',version||''].filter(Boolean).join(' ').trim()||`${tipo} en Ruedda`;
   if(!marca){showToast('selecciona la marca del vehículo');return;}
   if(!modelo){showToast('ingresa el modelo del vehículo');return;}
   if(!year){showToast('selecciona el año');return;}
@@ -10366,7 +10561,7 @@ async function publishListing(opts){
     if(esListing && pendingVenderType==='consesionario'){
       concesionarioId = USER_STATE.concesionarioId||null;
     }
-    const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,clasificacion:categoria||null,duenos:duenos||null,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp};
+    const payloadBase={id:recordId,user_id:userId,estado:estadoInicial,titulo,marca,modelo,year,km,color,motor,traccion,transmision,combustible,tipo_vehiculo:tipoVeh,clasificacion:categoria||null,duenos:duenos||null,ciudad,descripcion,precio_usd:precioFijo||null,condicion,estado_fisico:estadoFisico||null,es_chocado:esChocado,tipo_dano:tipoDano||null,estado_chocado:estChocado||null,whatsapp,marca_canonica:marcaCanonica||null,modelo_canonico:modeloCanonico||null,version_canonica:versionCanonica||null};
     const payload = esListing
       ? {...payloadBase, concesionario_id:concesionarioId, financiamiento_disponible:ofreceFinanciamiento, financiamiento_detalle:detalleFinanciamiento||null}
       : {...payloadBase, tipo, sin_reserva:precioRes===0&&(tipo==='subasta'||tipo==='chocado'), duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioBase||0, access_code:(typeof _genAccessCode==='function'?_genAccessCode():null), es_programada:esProgramada, fecha_inicio_programada:(esProgramada&&fechaInicioProgramada)?fechaInicioProgramada.toISOString():null};
@@ -10392,7 +10587,8 @@ async function publishListing(opts){
         await _supa.from('payment_refs').update({[refField]:recordId}).eq('ref_num',window._pendingPaymentRef);
         window._pendingPaymentRef=null;
       })() : Promise.resolve(),
-      (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'system',titulo:'publicación en revisión',body:`Tu ${year} ${marca} ${modelo} está en revisión. Te notificaremos cuando sea aprobado.`,icon:'lime'})
+      (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'system',titulo:'publicación en revisión',body:`Tu ${year} ${marca} ${modelo} está en revisión. Te notificaremos cuando sea aprobado.`,icon:'lime'}),
+      _pjTriggerValuation(recordId, esListing?'listing':'auction', {marca:marcaCanonica||marca, modelo:modeloCanonico||modelo, version:versionCanonica||version, year, km, precio: esListing?precioFijo:precioBase})
     ]).then(null,e=>console.warn('[ruedda] post-insert:',e?.message));
     showDealerFab(false);
     window._venderPhotos=[];
@@ -14836,7 +15032,7 @@ async function _loadAuctions(){
   if(!_supa) return;
   try{
     const _corte48h=new Date(Date.now()-48*3600*1000).toISOString();
-    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id,es_chocado,tipo_dano,estado_chocado,es_destacado,es_programada,fecha_inicio_programada,auditado_ruedda').eq('tipo','subasta').eq('estado','activa').or('es_chocado.is.null,es_chocado.eq.false').gte('end_time',_corte48h).order('end_time',{ascending:true});
+    const{data,error:ae}=await _supa.from('auctions').select('id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id,es_chocado,tipo_dano,estado_chocado,es_destacado,es_programada,fecha_inicio_programada,auditado_ruedda,pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en').eq('tipo','subasta').eq('estado','activa').or('es_chocado.is.null,es_chocado.eq.false').gte('end_time',_corte48h).order('end_time',{ascending:true});
     window._feedLoaded.auc=true; // [V87] primera carga resuelta
     if(ae){console.error('[ruedda] _loadAuctions:',String(ae?.message||ae?.code||'error'));if(typeof renderCards==='function')renderCards();return;}
     if(!data?.length){if(typeof renderCards==='function')renderCards();return;} // [V87] feed vacio: pintar empty state, no dejar el loader
@@ -14869,7 +15065,7 @@ async function _loadAuctions(){
       // "recién publicado": se activó hace menos de 24h (mismo criterio de gracia
       // que ya usamos para 'vendido' en market)
       const _recienActivada=!!a.es_programada&&!!_fechaProg&&!_esProgramadaAun&&(Date.now()-_fechaProg)<24*3600*1000;
-      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',clasificacion:a.clasificacion||'',tipoVehiculo:a.tipo_vehiculo||'',viewCount:a.view_count||0,chocado:!!a.es_chocado,destacado:!!a.es_destacado,programada:_esProgramadaAun,fechaInicioProgramada:_fechaProg,recienActivada:_recienActivada,condicion:a.condicion||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs,auditadoRuedda:!!a.auditado_ruedda};
+      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',clasificacion:a.clasificacion||'',tipoVehiculo:a.tipo_vehiculo||'',viewCount:a.view_count||0,chocado:!!a.es_chocado,destacado:!!a.es_destacado,programada:_esProgramadaAun,fechaInicioProgramada:_fechaProg,recienActivada:_recienActivada,condicion:a.condicion||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs,auditadoRuedda:!!a.auditado_ruedda,pme_usd:a.pme_usd??null,pme_delta:a.pme_delta??null,pme_classification:a.pme_classification||null,pme_confianza:a.pme_confianza||null,pme_basado_en:a.pme_basado_en||null};
     });
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
     if(typeof renderCards==='function') renderCards();
@@ -14889,7 +15085,7 @@ async function _loadAuctions(){
 async function _loadMarket(){
   if(!_supa) return;
   try{
-    const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda';
+    const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda,pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en';
     // [fix egress] techo de 300 filas más recientes — antes bajaba la tabla 'activa'
     // completa en cada carga. openMarketDetail/renderFavoritos traen bajo demanda
     // (_ensureMarketListing) lo que caiga fuera de este top 300 si hace falta.
@@ -14907,7 +15103,7 @@ async function _loadMarket(){
     const _cutoffVendido=Date.now()-24*3600*1000;
     const data=rawData.filter(l=>!l.vendido||(l.vendido_at&&new Date(l.vendido_at).getTime()>_cutoffVendido));
     if(!data.length){if(typeof renderMarket==='function')renderMarket();return;}
-    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,marca:l.marca||'',modelo:l.modelo||'',location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||''};});
+    const mapped=data.map(l=>{const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);return{id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,marca:l.marca||'',modelo:l.modelo||'',location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||'',pme_usd:l.pme_usd??null,pme_delta:l.pme_delta??null,pme_classification:l.pme_classification||null,pme_confianza:l.pme_confianza||null,pme_basado_en:l.pme_basado_en||null};});
     MARKET_LISTINGS.splice(0,MARKET_LISTINGS.length,...mapped);
     if(typeof renderMarket==='function') renderMarket();
     if(typeof renderTrendingHoy==='function') renderTrendingHoy();
@@ -14924,7 +15120,7 @@ async function _ensureMarketListing(id){
   if(existing) return existing;
   if(!_supa) return null;
   try{
-    const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda';
+    const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda,pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en';
     let{data:l,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').eq('estado','activa').eq('id',id).maybeSingle();
     if(error&&/financiamiento/i.test(String(error?.message||''))){
       ({data:l,error}=await _supa.from('listings').select(_mktCols).eq('estado','activa').eq('id',id).maybeSingle());
@@ -14933,7 +15129,7 @@ async function _ensureMarketListing(id){
     const _cutoffVendido=Date.now()-24*3600*1000;
     if(l.vendido&&!(l.vendido_at&&new Date(l.vendido_at).getTime()>_cutoffVendido)) return null;
     const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);
-    const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,marca:l.marca||'',modelo:l.modelo||'',location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||''};
+    const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,marca:l.marca||'',modelo:l.modelo||'',location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||'',pme_usd:l.pme_usd??null,pme_delta:l.pme_delta??null,pme_classification:l.pme_classification||null,pme_confianza:l.pme_confianza||null,pme_basado_en:l.pme_basado_en||null};
     if(!MARKET_LISTINGS.find(x=>x.id===mapped.id)) MARKET_LISTINGS.push(mapped);
     return mapped;
   }catch(e){console.error('[ruedda] _ensureMarketListing catch:',String(e?.message||e));return null;}
