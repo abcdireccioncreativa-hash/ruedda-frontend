@@ -18039,6 +18039,15 @@ function _closePmPanel(){
   setTimeout(()=>{panel.style.display='none';},320);
 }
 
+// [mensajes rápidos] arriba de la caja de texto, mismo espíritu que Facebook
+// Marketplace ("¿sigue disponible?") pero con nuestro propio texto.
+function _pmQuickFill(text){
+  const inp=document.getElementById('pm-input');
+  if(!inp) return;
+  inp.value=text;
+  inp.focus();
+  inp.setSelectionRange(inp.value.length,inp.value.length);
+}
 function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,isDealer){
   let panel=document.getElementById('pm-panel');
   if(!panel){
@@ -18058,6 +18067,10 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
     <div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">mensaje privado</div>
     <div style="font-size:16px;font-weight:700;margin-bottom:2px">${receiverName}${dealerBadge}</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:18px">sobre ${sourceTitle}</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button type="button" onclick="_pmQuickFill(&quot;¿Sigue disponible?&quot;)" style="flex:1;min-width:0;background:var(--w5);border:1px solid var(--w10);border-radius:100px;padding:9px 10px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--white);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">¿Sigue disponible?</button>
+      <button type="button" onclick="_pmQuickFill(&quot;¿Aceptas alguna oferta?&quot;)" style="flex:1;min-width:0;background:var(--w5);border:1px solid var(--w10);border-radius:100px;padding:9px 10px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--white);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">¿Aceptas alguna oferta?</button>
+    </div>
     <textarea id="pm-input" placeholder="escribe tu mensaje..." style="width:100%;box-sizing:border-box;background:var(--w5);border:1px solid var(--w10);border-radius:14px;padding:13px 14px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;resize:none;min-height:90px;line-height:1.6" onfocus="this.style.borderColor='rgba(8,68,26,.35)'" onblur="this.style.borderColor='var(--w10)'"></textarea>
     <button onclick="_sendPrivateMessage('${receiverId}','${sourceId}','${sourceType}','${sourceTitle.replace(/'/g,"\'")}');event.stopPropagation()" style="margin-top:12px;width:100%;background:var(--lime);color:var(--lime-ink);border:none;border-radius:14px;padding:14px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s" onmousedown="this.style.opacity='.8'" onmouseup="this.style.opacity='1'">enviar mensaje</button>
     <button onclick="_closePmPanel()" style="margin-top:8px;width:100%;background:none;border:none;color:var(--muted);font-family:var(--font);font-size:13px;cursor:pointer;padding:8px">cancelar</button>
