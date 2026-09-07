@@ -629,6 +629,7 @@ html[data-theme="light"] .icon-invert-light{filter:invert(1)}
 .trending-cell{position:relative;overflow:hidden;cursor:pointer;background:var(--surface-mid);display:flex;align-items:flex-end;animation:fadeIn .25s ease both}
 .trending-cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .trending-cell::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 45%,rgba(0,0,0,.72));pointer-events:none}
+html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,.4))}
 .trending-rank{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:800;z-index:2;color:#fff}
 .trending-hammer{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);border-radius:8px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;z-index:2;color:#fff}
 .trending-hammer svg{width:11px;height:11px;color:#08441A}
@@ -3214,7 +3215,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
       <input id="pl-marca" type="text" placeholder="marca o nombre del concesionario" style="width:100%;background:var(--surface-hi);border:1px solid var(--w10);border-radius:14px;padding:15px 16px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;box-sizing:border-box">
       <input id="pl-representante" type="text" placeholder="nombre del representante" style="width:100%;background:var(--surface-hi);border:1px solid var(--w10);border-radius:14px;padding:15px 16px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;box-sizing:border-box">
       <input id="pl-telefono" type="tel" placeholder="número telefónico" style="width:100%;background:var(--surface-hi);border:1px solid var(--w10);border-radius:14px;padding:15px 16px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;box-sizing:border-box">
-      <textarea id="pl-motivo" placeholder="motivo — cuéntanos por qué quieres unirte" rows="3" style="width:100%;background:var(--surface-hi);border:1px solid var(--w10);border-radius:14px;padding:15px 16px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;box-sizing:border-box;resize:none;line-height:1.5"></textarea>
+      <textarea id="pl-motivo" placeholder="motivo: cuéntanos por qué quieres unirte" rows="3" style="width:100%;background:var(--surface-hi);border:1px solid var(--w10);border-radius:14px;padding:15px 16px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;box-sizing:border-box;resize:none;line-height:1.5"></textarea>
     </div>
     <button id="pl-send-btn" onclick="_submitPartnerLead(this)" style="width:100%;margin-top:16px;background:#08441A;color:#fff;border:none;border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer">enviar</button>
     <button onclick="_closePartnerSheet()" style="width:100%;margin-top:10px;background:none;border:none;color:var(--w40);font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;padding:8px">cancelar</button>
@@ -3840,8 +3841,8 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   <div class="cf-steps">
     <div class="cf-step"><div class="cf-step-num">1</div><div class="cf-step-content"><h3>encuentra tu vehículo</h3><p>Explora subastas activas de vehículos verificados. Cada listado incluye fotos, historial y documentos al día.</p></div></div>
     <div class="cf-step highlight"><div class="cf-step-num">2</div><div class="cf-step-content"><h3>haz tu oferta</h3><p>Ofertas en tiempo real con precio en USD. Sin tarifas ocultas. Ganas si eres el mejor postor al finalizar.</p></div></div>
-    <div class="cf-step"><div class="cf-step-num">3</div><div class="cf-step-content"><h3>cierra el trato</h3><p>Al ganar, comprador y vendedor coordinan directamente. Ruedda es el canal que los conecta — la legalidad y documentación del traspaso es responsabilidad de las partes. Tú mandas, nosotros facilitamos.</p></div></div>
-    <div class="cf-step"><div class="cf-step-num">4</div><div class="cf-step-content"><h3>retira tu vehículo</h3><p>El traslado del vehículo lo coordinan comprador y vendedor. Ruedda no interviene en la logística de transporte — pero te conecta con quien lo hace posible, donde estés en Venezuela.</p></div></div>
+    <div class="cf-step"><div class="cf-step-num">3</div><div class="cf-step-content"><h3>cierra el trato</h3><p>Al ganar, comprador y vendedor coordinan directamente. Ruedda es el canal que los conecta. La legalidad y documentación del traspaso es responsabilidad de las partes. Tú mandas, nosotros facilitamos.</p></div></div>
+    <div class="cf-step"><div class="cf-step-num">4</div><div class="cf-step-content"><h3>retira tu vehículo</h3><p>El traslado del vehículo lo coordinan comprador y vendedor. Ruedda no interviene en la logística de transporte, pero te conecta con quien lo hace posible, donde estés en Venezuela.</p></div></div>
   </div>
   <button class="cf-cta" style="margin-bottom:10px" onclick="showView('home')">explorar subastas →</button>
   <button class="cf-cta" style="background:var(--w6);color:var(--white);border:1px solid var(--w12)" onclick="showView('home');selectSection('market')">ir al market →</button>
@@ -3964,11 +3965,11 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     </div>
     <div class="form-group" id="field-precio-reserva" style="display:none">
       <label class="form-label">Precio base de subasta (USD).</label>
-      <input class="form-input" type="text" inputmode="numeric" id="precio-base-input" placeholder="ej: 5.000 — arranca en 0 si se deja vacío" oninput="_milesInputHandler(this)">
+      <input class="form-input" type="text" inputmode="numeric" id="precio-base-input" placeholder="ej: 5.000 (arranca en 0 si se deja vacío)" oninput="_milesInputHandler(this)">
     </div>
     <div class="form-group" id="field-reserva-oculta" style="display:none">
       <label class="form-label">Precio de reserva (USD) · solo lo ves tú.</label>
-      <input class="form-input" type="text" inputmode="numeric" id="precio-reserva-input" placeholder="opcional: mínimo para vender — no se muestra en la publicación" oninput="_milesInputHandler(this)">
+      <input class="form-input" type="text" inputmode="numeric" id="precio-reserva-input" placeholder="opcional: mínimo para vender (no se muestra en la publicación)" oninput="_milesInputHandler(this)">
     </div>
 
     <!-- DURACIÓN: solo aparece en subasta -->
@@ -4107,7 +4108,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
       </div>
       <input type="file" id="video-input" multiple accept="video/*" style="display:none" onchange="handleVideoFiles(this)">
       <div id="video-count-hint" style="font-size:12px;color:var(--w30);margin-top:8px;display:none"></div>
-      <div style="font-size:12px;color:var(--w35);font-weight:300;line-height:1.6;margin-top:8px">Sube hasta 3 videos estables mostrando tu vehículo. Se aceptan videos producidos serios — no edits de baja calidad o grabados en muy baja resolución. En Ruedda tomamos muy en serio la recepción de clientes :)</div>
+      <div style="font-size:12px;color:var(--w35);font-weight:300;line-height:1.6;margin-top:8px">Sube hasta 3 videos estables mostrando tu vehículo. Se aceptan videos producidos serios, no edits de baja calidad o grabados en muy baja resolución. En Ruedda tomamos muy en serio la recepción de clientes :)</div>
     </div>
 
     <!-- [RC V5] DOCUMENTOS DEL VEHÍCULO (opcional) — verificación "Auditado por Ruedda" -->
@@ -4120,7 +4121,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
         </div>
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--w85)">agregar documentos</div>
-          <div style="font-size:11px;color:var(--w35);font-weight:300">título, cédula, revisión — PDF o foto</div>
+          <div style="font-size:11px;color:var(--w35);font-weight:300">título, cédula, revisión · PDF o foto</div>
         </div>
       </div>
       <input type="file" id="doc-input" multiple accept="image/*,application/pdf" style="display:none" onchange="handleDocFiles(this)">
@@ -5123,7 +5124,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
         </div>
         <div>
           <div style="font-size:15px;font-weight:700;letter-spacing:-.2px;color:#000">prestación de servicios</div>
-          <div style="font-size:13px;color:rgba(0,0,0,.55);line-height:1.4;margin-top:2px">mecánicos, aseguradoras, financiamiento e inspecciones — ofrece tu servicio dentro del ecosistema Ruedda.</div>
+          <div style="font-size:13px;color:rgba(0,0,0,.55);line-height:1.4;margin-top:2px">mecánicos, aseguradoras, financiamiento e inspecciones. Ofrece tu servicio dentro del ecosistema Ruedda.</div>
         </div>
       </div>
       <div style="display:flex;gap:14px;align-items:flex-start">
@@ -5189,8 +5190,8 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 
       <!-- Declaration card -->
       <div style="border:1px solid var(--w8);border-radius:16px;padding:24px 22px;margin-bottom:20px">
-        <p style="font-size:15px;font-weight:300;color:var(--w75);line-height:1.9;margin:0 0 16px;font-family:var(--font);letter-spacing:.01em">"Poseo el capital, entiendo el valor del activo y acepto que, de ser superado por un postor de mayor jerarquía, mi oferta quedará en reserva como garantía de integridad del mercado. No estoy aquí para observar — estoy aquí para adquirir."</p>
-        <p style="font-size:11px;font-weight:700;color:var(--w22);letter-spacing:1px;text-transform:uppercase;margin:0">— Equipo Ruedda</p>
+        <p style="font-size:15px;font-weight:300;color:var(--w75);line-height:1.9;margin:0 0 16px;font-family:var(--font);letter-spacing:.01em">"Poseo el capital, entiendo el valor del activo y acepto que, de ser superado por un postor de mayor jerarquía, mi oferta quedará en reserva como garantía de integridad del mercado. No estoy aquí para observar. Estoy aquí para adquirir."</p>
+        <p style="font-size:11px;font-weight:700;color:var(--w22);letter-spacing:1px;text-transform:uppercase;margin:0">Equipo Ruedda</p>
       </div>
 
       <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;margin-bottom:20px">
@@ -5322,7 +5323,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     <div style="width:64px;height:64px;border-radius:50%;background:rgba(8,68,26,.08);border:1px solid rgba(8,68,26,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
       <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px"><path d="M3 8h14v6a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M17 9h2a2.5 2.5 0 0 1 0 5h-2"/><path d="M7 3c-.5 1 .5 1.5 0 3M11 3c-.5 1 .5 1.5 0 3"/></svg>
     </div>
-    <div style="font-size:19px;font-weight:800;letter-spacing:-.3px;margin-bottom:8px">cars &amp; coffee — próximamente</div>
+    <div style="font-size:19px;font-weight:800;letter-spacing:-.3px;margin-bottom:8px">cars &amp; coffee · próximamente</div>
     <p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:22px">Consigue las mejores cafeterías para reunirte con la comunidad Ruedda.</p>
     <button onclick="closeCarsCoffeeSoon()" style="width:100%;background:var(--w5);border:1px solid var(--border);border-radius:13px;color:var(--w60);font-size:14px;font-weight:700;padding:13px;cursor:pointer;font-family:var(--font)">cerrar</button>
   </div>
@@ -5345,7 +5346,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     </div>
     <textarea id="garage-form-descripcion" placeholder="cuéntale a la comunidad sobre este carro: mods, specs, historia..." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--white);font-size:14px;padding:14px;resize:none;font-family:var(--font);box-sizing:border-box;height:110px;line-height:1.6;margin-bottom:16px"></textarea>
     <input id="garage-form-vin" class="form-input" type="text" placeholder="VIN (obligatorio)" required style="margin-bottom:6px;text-transform:uppercase" maxlength="17">
-    <div style="font-size:11.5px;color:var(--muted);margin-bottom:16px;line-height:1.4">nunca se muestra públicamente — crea el token digital de este vehículo, verificable más adelante en AVALTA, y es lo único que sirve para demostrar que el carro es tuyo si alguien más lo tiene puesto en su garage</div>
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:16px;line-height:1.4">nunca se muestra públicamente. Crea el token digital de este vehículo, verificable más adelante en AVALTA, y es lo único que sirve para demostrar que el carro es tuyo si alguien más lo tiene puesto en su garage</div>
     <button onclick="_saveGarageVehicle()" id="garage-form-save-btn" style="width:100%;background:#08441A;color:#fff;border:none;border-radius:13px;font-size:14px;font-weight:800;padding:14px;cursor:pointer;font-family:var(--font)">guardar</button>
   </div>
 </div>
@@ -5360,7 +5361,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   <div class="modal-sheet" style="text-align:left">
     <div class="modal-handle"></div>
     <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px">¿este carro es tuyo?</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:18px">ingresa el VIN del vehículo — si coincide con el que el dueño actual registró, se transfiere a tu garage al instante</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:18px">ingresa el VIN del vehículo, si coincide con el que el dueño actual registró, se transfiere a tu garage al instante</div>
     <input id="garage-claim-vin" class="form-input" type="text" placeholder="VIN (17 caracteres)" style="margin-bottom:14px;text-transform:uppercase" maxlength="17">
     <button onclick="_garageSubmitClaim()" id="garage-claim-btn" style="width:100%;background:#08441A;color:#fff;border:none;border-radius:13px;font-size:14px;font-weight:800;padding:14px;cursor:pointer;font-family:var(--font)">verificar y reclamar</button>
   </div>
@@ -5915,7 +5916,7 @@ function showView(name,param){
       if(_supa){
         const{data,error}=await _supa.from('auctions').select('count').limit(1);
         if(error) showToast('⚠️ Supabase error: '+error.message);
-        else showToast('✓ DB conectada — '+(_supa.supabaseUrl||'URL ok'),true);
+        else showToast('✓ DB conectada · '+(_supa.supabaseUrl||'URL ok'),true);
       } else {
         showToast('❌ _supa no inicializado');
       }
@@ -6714,7 +6715,7 @@ async function confirmRef(i){
   const listing=MOCK_MY_LISTINGS.find(l=>l.refId===ref.refNum);
   if(listing){listing.status='activa';listing.daysLeft=30;PAID_TYPES[listing.type]=true;}
   renderPendingRefs();
-  showToast('pago confirmado — publicación en revisión',true);
+  showToast('pago confirmado · publicación en revisión',true);
   NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'pago_aprobado',title:'¡pago aprobado!',body:'Tu pago fue aprobado. Tu publicación está en revisión.',time:'ahora mismo',read:false,icon:'lime'});
   _saveNotifsToStorage(); // [RUEDDA v61] persistir
   document.getElementById('notif-dot').style.display='block';
@@ -8676,7 +8677,7 @@ async function toggleWatchlistMarket(id,btn){
     _persistFav(key,false).catch(()=>{
       watchlist.add(key);
       if(svg){svg.setAttribute('fill','#08441A');svg.setAttribute('stroke','#08441A');}
-      showToast('error de red — no se eliminó');
+      showToast('error de red · no se eliminó');
     });
   } else {
     watchlist.add(key);
@@ -8685,7 +8686,7 @@ async function toggleWatchlistMarket(id,btn){
     _persistFav(key,true).catch(()=>{
       watchlist.delete(key);
       if(svg){svg.setAttribute('fill','none');svg.setAttribute('stroke','var(--w80)');}
-      showToast('error de red — no se guardó');
+      showToast('error de red · no se guardó');
     });
   }
 }
@@ -8705,7 +8706,7 @@ async function toggleMktWatchlist(){
   _persistFav(key,!removing).catch(()=>{
     if(removing) watchlist.add(key); else watchlist.delete(key);
     updateMktWatchlist();
-    showToast('error de red — intenta de nuevo');
+    showToast('error de red · intenta de nuevo');
   });
 }
 function updateMktWatchlist(){
@@ -10490,7 +10491,7 @@ function confirmPayment(){
       if(_supa) _loadConcesionarios();
       _showVitrinaActivadaSplash();
       return;
-    } else { showToast('código aplicado — acceso sin cargo',true); }
+    } else { showToast('código aplicado · acceso sin cargo',true); }
     delete cta.dataset.inviteCode;
     const msgEl=document.getElementById('invite-code-msg');
     if(msgEl){msgEl.style.display='none';}
@@ -10510,7 +10511,7 @@ function confirmPayment(){
   // already paid bypass
   if(PAID_TYPES[pendingVenderType]){
     document.getElementById('payment-sheet').classList.remove('open');
-    showToast('ya pagaste — abriendo formulario',true);
+    showToast('ya pagaste · abriendo formulario',true);
     setTimeout(openVenderForm,400);
     return;
   }
@@ -10832,7 +10833,7 @@ async function processPayment(){
     NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'system',title:'pago de vitrina en revisión',body:'El equipo de Ruedda verificará tu pago y activará tu vitrina pronto.',time:'ahora mismo',read:false,icon:'lime'});
     _saveNotifsToStorage(); // [RUEDDA v61] persistir
     document.getElementById('notif-dot').style.display='block';
-    showToast('referencia enviada — activaremos tu vitrina pronto ✓',true);
+    showToast('referencia enviada · activaremos tu vitrina pronto ✓',true);
     return;
   }
   if(checkoutPayTab==='bcv'){
@@ -11664,7 +11665,7 @@ async function _saveGarageVehicle(){
   const year=parseInt(document.getElementById('garage-form-year').value)||null;
   const descripcion=document.getElementById('garage-form-descripcion').value.trim();
   const vin=document.getElementById('garage-form-vin').value.trim();
-  if(!vin){ showToast('el VIN es obligatorio — crea el token digital del vehículo'); return; }
+  if(!vin){ showToast('el VIN es obligatorio · crea el token digital del vehículo'); return; }
   const btn=document.getElementById('garage-form-save-btn');
   if(btn){btn.disabled=true;btn.textContent='guardando...';}
   try{
@@ -12434,6 +12435,18 @@ async function executeDeleteListing(id){
   // solo tras confirmar el borrado en servidor, actualizar UI
   if(mi>-1) MOCK_MY_LISTINGS.splice(mi,1);
   if(di>-1) DEALER_LISTINGS_OWN.splice(di,1);
+  // [V137] el borrado nunca tocaba MARKET_LISTINGS/AUCTIONS (los arrays reales
+  // que pintan el grid de market y "trending hoy") ni el caché de 20min de
+  // trending — la publicación borrada seguía viva en memoria y en caché hasta
+  // el próximo reload completo. Ahora se saca de todos lados al instante.
+  const mli=MARKET_LISTINGS.findIndex(x=>String(x.id)===_idStr);
+  if(mli>-1) MARKET_LISTINGS.splice(mli,1);
+  const aci=AUCTIONS.findIndex(x=>String(x.id)===_idStr);
+  if(aci>-1) AUCTIONS.splice(aci,1);
+  try{ localStorage.removeItem('rd_trending_cache_v2'); }catch(e){}
+  _lastTrendingIds=null;
+  if(typeof renderMarket==='function') renderMarket();
+  if(typeof renderTrendingHoy==='function') renderTrendingHoy();
   // feedback final
   if(card) card.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 24px;text-align:center"><div style="font-size:28px">🗑️</div><div style="font-size:15px;font-weight:700">publicación eliminada</div><button onclick="document.getElementById('confirm-delete-overlay').remove()" style="margin-top:4px;background:var(--w7);border:1px solid var(--w10);border-radius:12px;padding:10px 22px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--w60);cursor:pointer">volver</button></div>`;
   if(di>-1){ renderDhPubs(); } else { _renderMisPubGrid(); }
@@ -14522,7 +14535,7 @@ async function modApprove(id){
   // hagan server-side en un solo paso atómico (ver api/mod-listing.js).
   try{
     await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'aprobar'});
-    showToast('publicación aprobada — ya está activa ✓',true);
+    showToast('publicación aprobada · ya está activa ✓',true);
   }catch(e){
     console.error('[ruedda modApprove]',e.message);
     // [V135] si el motivo es que YA estaba activa, no es un error real (ya
@@ -14625,7 +14638,7 @@ async function saGenerarCodigo(){
     // _validateCode()'s .single() se rompe (o toma el equivocado) cuando hay más de
     // una fila con el mismo code. Ahora se avisa antes de insertar un duplicado.
     const{data:existing}=await _supa.from('invitation_codes').select('id').eq('code',code).limit(1);
-    if(existing&&existing.length){showToast('ese código ya existe — usa uno distinto');return;}
+    if(existing&&existing.length){showToast('ese código ya existe · usa uno distinto');return;}
     const{error}=await _supa.from('invitation_codes').insert({code,tipos,usos_maximos:usos,usos_actuales:0,dias,expires_at,activo:true});
     if(error){showToast('error: '+error.message);return;}
   }
@@ -14698,8 +14711,8 @@ async function redeemInviteCode(){
     msgEl.textContent='código inválido o agotado';
   }
 }
-function bypassPublicacion(){selectVenderType('particular');showToast('bypass activo — sin pago',true);}
-function bypassSubasta(){selectVenderType('subasta');showToast('bypass activo — sin pago',true);}
+function bypassPublicacion(){selectVenderType('particular');showToast('bypass activo · sin pago',true);}
+function bypassSubasta(){selectVenderType('subasta');showToast('bypass activo · sin pago',true);}
 
 async function dbDiagnostico(){
   const out = document.getElementById('sa-diag-output');
@@ -14882,7 +14895,7 @@ async function saveDealerProfile(){
     // guardado nunca se rompa por culpa del campo nuevo — cero regresión.
     if(error&&/descripcion/i.test(String(error?.message||''))){
       ({error}=await _supa.from('concesionarios').update({nombre,ciudad}).eq('id',USER_STATE.concesionarioId));
-      if(!error) showToast('nombre y ciudad guardados — la descripción necesita una migración pendiente en Supabase, avísale a Claude Code');
+      if(!error) showToast('nombre y ciudad guardados · la descripción necesita una migración pendiente en Supabase, avísale a Claude Code');
     }
     if(error){
       console.error('[ruedda] saveDealerProfile:',error.message);
@@ -16793,7 +16806,7 @@ async function openUserProfile(userId){
       <div style="display:flex;gap:10px;margin-top:18px">
         <button onclick="_openRatingModal('${userId}','${safeName}',${myRating})" style="background:#08441A;border:none;color:#fff;border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">calificar <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg></button>
         <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="background:${amIFollowing?'var(--w8)':'#08441A'};border:${amIFollowing?'1px solid var(--border)':'none'};color:#fff;border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0"><span id="follow-btn-label-${userId}">${amIFollowing?'siguiendo':'seguir'}</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></button>
-      </div>`:`<div style="margin-top:16px;font-size:12px;color:var(--muted)">este es tu perfil — edítalo desde configuración</div>`}
+      </div>`:`<div style="margin-top:16px;font-size:12px;color:var(--muted)">este es tu perfil · edítalo desde configuración</div>`}
       ${u.descripcion?`
       <div style="margin-top:26px">
         <div style="font-size:16px;font-weight:800;margin-bottom:8px">Descripción</div>
@@ -18431,7 +18444,7 @@ async function openKycView(){
   _renderKycForm(body,sub&&sub.estado==='rechazada');
 }
 function _renderKycRevision(body){
-  body.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 10px;gap:14px;opacity:0;transition:opacity .45s"><div style="width:54px;height:54px;border-radius:50%;background:var(--w6);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center"><svg fill="none" viewBox="0 0 24 24" stroke="var(--w80)" stroke-width="1.7" style="width:24px;height:24px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div style="font-size:18px;font-weight:800;letter-spacing:-.3px">tu verificación está en revisión</div><div style="font-size:13px;color:var(--w50);font-weight:300;line-height:1.6;max-width:300px">te notificaremos al aprobarla — toma un día hábil máximo. Mientras tanto puedes echar un ojo a tus carros favoritos y hacer comentarios.</div></div>`;
+  body.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 10px;gap:14px;opacity:0;transition:opacity .45s"><div style="width:54px;height:54px;border-radius:50%;background:var(--w6);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center"><svg fill="none" viewBox="0 0 24 24" stroke="var(--w80)" stroke-width="1.7" style="width:24px;height:24px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div style="font-size:18px;font-weight:800;letter-spacing:-.3px">tu verificación está en revisión</div><div style="font-size:13px;color:var(--w50);font-weight:300;line-height:1.6;max-width:300px">te notificaremos al aprobarla. Toma un día hábil máximo. Mientras tanto puedes echar un ojo a tus carros favoritos y hacer comentarios.</div></div>`;
   requestAnimationFrame(()=>{const d=body.firstElementChild;if(d)d.style.opacity='1';});
 }
 function _renderKycForm(body,rechazada){
@@ -18443,7 +18456,7 @@ function _renderKycForm(body,rechazada){
     <input type="file" id="kyc-file-${id}" accept="image/*" ${id==='selfie'?'capture="user"':''} style="display:none" onchange="_kycFilePicked(this,'${id}')">
   </div>`;
   body.innerHTML=`<div style="opacity:0;transition:opacity .4s">
-    ${rechazada?'<div style="background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.25);border-radius:12px;padding:11px 14px;font-size:12px;color:#ff9b9b;margin-bottom:16px;font-weight:300">tu solicitud anterior fue rechazada — sube fotos nítidas y legibles e inténtalo de nuevo.</div>':''}
+    ${rechazada?'<div style="background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.25);border-radius:12px;padding:11px 14px;font-size:12px;color:#ff9b9b;margin-bottom:16px;font-weight:300">tu solicitud anterior fue rechazada. Sube fotos nítidas y legibles e inténtalo de nuevo.</div>':''}
     <div style="display:flex;flex-direction:column;gap:12px">
       ${box('doc','introduce una foto de tu documento','pasaporte o cédula')}
       ${box('selfie','selfie','una foto tuya, clara y de frente')}
@@ -19236,7 +19249,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
 
   <!-- BYPASS TAB -->
   <div id="sa-acceso" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
-    <div style="font-size:13px;color:var(--muted);font-weight:300">comprobantes de hold de compradores — revisa y envía el código de acceso de la subasta.</div>
+    <div style="font-size:13px;color:var(--muted);font-weight:300">comprobantes de hold de compradores · revisa y envía el código de acceso de la subasta.</div>
     <div id="sa-access-list" style="display:flex;flex-direction:column;gap:14px"></div>
   </div>
   <div id="sa-aucodigos" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
@@ -19244,7 +19257,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div id="sa-aucodes-list" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
   <div id="sa-kyc" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
-    <div style="font-size:13px;color:var(--muted);font-weight:300">solicitudes de verificación pendientes — compara el nombre registrado con la cédula de las fotos.</div>
+    <div style="font-size:13px;color:var(--muted);font-weight:300">solicitudes de verificación pendientes · compara el nombre registrado con la cédula de las fotos.</div>
     <div id="sa-kyc-list" style="display:flex;flex-direction:column;gap:14px"></div>
   </div>
   <div id="sa-bypass" style="display:none;padding:18px 18px 100px;display:none;flex-direction:column;gap:12px">
@@ -19331,7 +19344,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
   <!-- [V134] EVENTOS -->
   <div id="sa-eventos" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Nuevo evento</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Aparece en Comunidad → Eventos. La card se pone "LIVE" sola entre la hora de inicio y fin, y "evento acabado" después — no hay que borrarlo ni tocarlo, solo queda ahí.</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Aparece en Comunidad → Eventos. La card se pone "LIVE" sola entre la hora de inicio y fin, y "evento acabado" después, no hay que borrarlo ni tocarlo, solo queda ahí.</div>
     <input class="form-input" id="sa-evento-titulo" type="text" placeholder="título del evento">
     <input type="file" id="sa-evento-img-input" accept="image/*" style="display:none" onchange="previewEventoImg(this)">
     <div id="sa-evento-preview" onclick="document.getElementById('sa-evento-img-input').click()" style="width:100%;aspect-ratio:16/9;background:var(--card);border:1.5px dashed var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden">
@@ -19377,7 +19390,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <input type="text" id="sa-cmp-marca" placeholder="marca (ej. toyota)" style="background:var(--w5);border:1px solid var(--w10);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;box-sizing:border-box">
     <input type="text" id="sa-cmp-modelo" placeholder="modelo (ej. corolla)" style="background:var(--w5);border:1px solid var(--w10);border-radius:12px;padding:12px 14px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;box-sizing:border-box">
     <textarea id="sa-cmp-payload" rows="8" placeholder='{"3m":{"p":[13500,13700,14200],"labels":["may","jun","jul"]},"6m":{"p":[13350,13500,13800,14200],"labels":["mar","may","jul","ago"]}}' style="background:var(--w5);border:1px solid var(--w10);border-radius:12px;padding:12px 14px;font-family:monospace;font-size:12px;color:var(--white);outline:none;resize:vertical;box-sizing:border-box;line-height:1.5"></textarea>
-    <div style="font-size:11px;color:var(--w30);line-height:1.5">rangos válidos: 3m, 6m, 1a, 3a, 5a — cada uno con "p" (array de precios) y "labels" (array de textos del eje, mismo largo que "p"). solo hace falta llenar los rangos que quieras mostrar; los demás se ocultan solos.</div>
+    <div style="font-size:11px;color:var(--w30);line-height:1.5">rangos válidos: 3m, 6m, 1a, 3a, 5a, cada uno con "p" (array de precios) y "labels" (array de textos del eje, mismo largo que "p"). solo hace falta llenar los rangos que quieras mostrar; los demás se ocultan solos.</div>
     <button onclick="saSaveComparativa()" style="width:100%;background:#08441A;color:#fff;border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer">guardar</button>
     <div style="font-size:13px;font-weight:700;color:var(--w40);margin-top:10px;text-transform:uppercase;letter-spacing:.4px">entradas cargadas</div>
     <div id="sa-cmp-list" style="display:flex;flex-direction:column;gap:8px">
@@ -19390,15 +19403,15 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
        textos se editan desde acá igual que cualquier otra foto de la app. -->
   <div id="sa-intro" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Intro de la app (onboarding)</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Las 9 fotos de la portada que ve quien abre la app nativa por primera vez. No aparece en el navegador — solo en la app instalada. Subir una foto la reemplaza al instante para todos, sin republicar. Ya no hay fotos por defecto: la que no tenga foto subida acá se ve con un degradado hasta que subas una.</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Las 9 fotos de la portada que ve quien abre la app nativa por primera vez. No aparece en el navegador. Solo en la app instalada. Subir una foto la reemplaza al instante para todos, sin republicar. Ya no hay fotos por defecto: la que no tenga foto subida acá se ve con un degradado hasta que subas una.</div>
     <div id="sa-intro-list" style="display:flex;flex-direction:column;gap:8px">
       <div style="text-align:center;padding:30px;color:var(--w30);font-size:13px">cargando...</div>
     </div>
   </div>
 
   <div id="sa-documentos" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
-    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Documentos — verificación "Auditado por Ruedda"</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Revisa los documentos contra las fotos del vehículo. Si apruebas, el card se lleva el sello. Si niegas, no pasa nada — simplemente no lo obtiene.</div>
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Documentos · verificación "Auditado por Ruedda"</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Revisa los documentos contra las fotos del vehículo. Si apruebas, el card se lleva el sello. Si niegas, no pasa nada, simplemente no lo obtiene.</div>
     <div id="sa-doc-list" style="display:flex;flex-direction:column;gap:14px">
       <div style="text-align:center;padding:30px;color:var(--w30);font-size:13px">cargando...</div>
     </div>
@@ -19472,7 +19485,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
 
     <!-- [CONS HUB v1] banner 16:9 de la sección "concesionarios" — misma mecánica
          bucket 'assets' + app_settings key/value que el resto de este panel. -->
-    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Concesionarios — banner</div>
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Concesionarios · banner</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Foto 16:9 horizontal del banner patrocinante que aparece arriba en la sección "concesionarios". Toca para subir.</div>
     <div id="sa-cons-banner-preview" onclick="document.getElementById('sa-cons-banner-file').click()" style="width:100%;aspect-ratio:16/9;border-radius:16px;background:var(--card);border:1.5px dashed rgba(8,68,26,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;color:var(--w30)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:26px;height:26px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
@@ -19486,7 +19499,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
          Team (bucket 'assets' + app_settings key/value), sin inventar un sistema
          nuevo. El fade-in suave (foto, no la card) lo hace el cliente en
          _encuentraSetPhoto() cuando el usuario vuelve a Market. -->
-    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Encuentra — fotos</div>
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Encuentra · fotos</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Fotos de los accesos "Agencias", "Busca por marcas" y "Red post-venta" del submenu Encuentra en Market. Toca el cuadro para subir.</div>
     <div style="display:flex;gap:14px">
       <div style="flex:1;text-align:center">
@@ -19560,7 +19573,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
          Persiste como JSON en app_settings (encuentra_order); el cliente lo
          aplica moviendo nodos por data-enc, sin re-render. Pointer events =
          funciona igual con mouse y touch. -->
-    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Encuentra — orden</div>
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Encuentra · orden</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Arrastra los cards para reordenar cómo aparecen en Market. Se guarda automáticamente al soltar.</div>
     <div id="sa-enc-order-list" style="display:flex;flex-direction:column;gap:8px"></div>
 
@@ -19571,7 +19584,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
          acá solo se sube la imagen, mismo patrón upsert-por-key que marca_logos.
          Aparece junto al nombre al abrir un perfil y en "usuarios top". -->
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Insignias por nivel</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Una insignia por cada nivel del sistema de XP. Sube PNG o SVG ultra liviano — toca el cuadro.</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Una insignia por cada nivel del sistema de XP. Sube PNG o SVG ultra liviano, toca el cuadro.</div>
     <div id="sa-levels-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
   </div>
 
@@ -19662,7 +19675,7 @@ async function saLoadDocumentos(){
           </a>`).join('')}
         </div>
         <div style="display:flex;gap:8px">
-          <button onclick="saApproveDoc('${g.itemType}','${g.itemId}')" style="flex:1;background:#08441A;border:none;border-radius:10px;padding:10px;font-family:var(--font);font-size:12.5px;font-weight:800;color:#fff;cursor:pointer">aprobar — dar sello</button>
+          <button onclick="saApproveDoc('${g.itemType}','${g.itemId}')" style="flex:1;background:#08441A;border:none;border-radius:10px;padding:10px;font-family:var(--font);font-size:12.5px;font-weight:800;color:#fff;cursor:pointer">aprobar · dar sello</button>
           <button onclick="saDenyDoc('${g.itemType}','${g.itemId}')" style="flex:1;background:var(--w6);border:1px solid var(--border);border-radius:10px;padding:10px;font-family:var(--font);font-size:12.5px;font-weight:700;color:var(--w60);cursor:pointer">negar</button>
         </div>
       </div>`).join('');
@@ -19681,7 +19694,7 @@ async function saDenyDoc(itemType,itemId){
   if(!_supa) return;
   // [RC V5] negar no toca la publicación en nada — solo cierra la cola de revisión para esos archivos
   await _supa.from('vehicle_documents').update({estado:'negado',reviewed_at:new Date().toISOString()}).eq('item_type',itemType).eq('item_id',itemId).eq('estado','pendiente');
-  showToast('documento negado — sin sello',true);
+  showToast('documento negado · sin sello',true);
   saLoadDocumentos();
 }
 
@@ -20858,7 +20871,7 @@ async function _saDeletePat(id,cat){
     const isIOS=/iPhone|iPad|iPod/.test(ua);
     const isStandalone=window.matchMedia?.('(display-mode: standalone)')?.matches||window.navigator.standalone===true;
     if(isStandalone){
-      return `<div class="rd-pwa-steps"><div class="rd-pwa-step"><span class="rd-pwa-num">✓</span><span>Ya la tienes instalada — estás usando la app real ahora mismo.</span></div></div>`;
+      return `<div class="rd-pwa-steps"><div class="rd-pwa-step"><span class="rd-pwa-num">✓</span><span>Ya la tienes instalada. Estás usando la app real ahora mismo.</span></div></div>`;
     }
     if(isIOS){
       return `<div class="rd-pwa-steps">
