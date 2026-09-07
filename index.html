@@ -5322,8 +5322,8 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
       <input id="garage-form-year" class="form-input" type="number" placeholder="año" style="width:90px">
     </div>
     <textarea id="garage-form-descripcion" placeholder="cuéntale a la comunidad sobre este carro: mods, specs, historia..." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--white);font-size:14px;padding:14px;resize:none;font-family:var(--font);box-sizing:border-box;height:110px;line-height:1.6;margin-bottom:16px"></textarea>
-    <input id="garage-form-vin" class="form-input" type="text" placeholder="VIN (opcional, privado)" style="margin-bottom:6px;text-transform:uppercase" maxlength="17">
-    <div style="font-size:11.5px;color:var(--muted);margin-bottom:16px;line-height:1.4">nunca se muestra públicamente — solo sirve para que puedas demostrar que el carro es tuyo si alguien más lo tiene puesto en su garage</div>
+    <input id="garage-form-vin" class="form-input" type="text" placeholder="VIN (obligatorio)" required style="margin-bottom:6px;text-transform:uppercase" maxlength="17">
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:16px;line-height:1.4">nunca se muestra públicamente — crea el token digital de este vehículo, verificable más adelante en AVALTA, y es lo único que sirve para demostrar que el carro es tuyo si alguien más lo tiene puesto en su garage</div>
     <button onclick="_saveGarageVehicle()" id="garage-form-save-btn" style="width:100%;background:#08441A;color:#fff;border:none;border-radius:13px;font-size:14px;font-weight:800;padding:14px;cursor:pointer;font-family:var(--font)">guardar</button>
   </div>
 </div>
@@ -11624,6 +11624,8 @@ async function _saveGarageVehicle(){
   const modelo=document.getElementById('garage-form-modelo').value.trim();
   const year=parseInt(document.getElementById('garage-form-year').value)||null;
   const descripcion=document.getElementById('garage-form-descripcion').value.trim();
+  const vin=document.getElementById('garage-form-vin').value.trim();
+  if(!vin){ showToast('el VIN es obligatorio — crea el token digital del vehículo'); return; }
   const btn=document.getElementById('garage-form-save-btn');
   if(btn){btn.disabled=true;btn.textContent='guardando...';}
   try{
@@ -11636,10 +11638,7 @@ async function _saveGarageVehicle(){
       if(error) throw error;
       vehicleId=data.id;
     }
-    const vin=document.getElementById('garage-form-vin').value.trim();
-    if(vin){
-      await _supa.from('garage_vehicle_secrets').upsert({vehicle_id:vehicleId,vin:vin.toUpperCase()},{onConflict:'vehicle_id'});
-    }
+    await _supa.from('garage_vehicle_secrets').upsert({vehicle_id:vehicleId,vin:vin.toUpperCase()},{onConflict:'vehicle_id'});
     for(const rid of (window._garageFormRemovedPhotoIds||[])){
       await _supa.from('garage_vehicle_photos').delete().eq('id',rid);
     }
