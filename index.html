@@ -5982,6 +5982,16 @@ function showView(name,param){
   // [V134] al salir del detalle de un evento, apaga el contador — si no, sigue
   // corriendo cada segundo de fondo aunque la vista ya no se esté viendo.
   if(currentView==='evento-detail'&&name!=='evento-detail'&&typeof _stopEventoCountdown==='function')_stopEventoCountdown();
+  // [fix jank "home lento"] los clips de comunidad (favoritos) que no tienen
+  // thumbnail se embeben como iframe de Instagram/YouTube — al salir, showView()
+  // solo pone display:none en el contenedor, así que esos iframes seguían VIVOS
+  // en el fondo consumiendo CPU, y eso se sentía en cualquier navegación
+  // posterior (ej. tocar home). Se limpian al salir de favoritos; renderComunidad()
+  // los repinta frescos la próxima vez que se entra.
+  if(currentView==='favoritos'&&name!=='favoritos'){
+    const _cr=document.getElementById('clips-row');
+    if(_cr) _cr.innerHTML='';
+  }
   // [blindaje] si el pull-to-refresh dejó un transform a medias en view-home
   // (gesto interrumpido a medio camino), lo limpiamos antes de cualquier transición.
   const _vhReset=document.getElementById('view-home');
