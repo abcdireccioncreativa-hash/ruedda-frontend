@@ -2073,6 +2073,27 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 }
 
 </style>
+<style>
+/* [Criterio Ruedda] chip minimalista, solo dentro de la ficha, pegado al precio */
+.pj-chip{display:inline-flex;align-items:center;gap:6px;line-height:1;margin-top:6px;position:relative}
+.pj-chip-bar{position:relative;width:24px;height:4px;border-radius:100px;flex-shrink:0;
+  background:linear-gradient(90deg,#3ecf6e 0%,#3ecf6e 18%,#a8d84a 36%,#f0b23c 58%,#ef5350 82%,#ef5350 100%)}
+.pj-chip-dot{position:absolute;top:50%;width:5px;height:5px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 0 1.5px rgba(0,0,0,.65)}
+.pj-chip-val{font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pj-chip-val.z-oferta{color:#3ecf6e}
+.pj-chip-val.z-buen{color:#a8d84a}
+.pj-chip-val.z-justo{color:#f0b23c}
+.pj-chip-val.z-costoso{color:#ef5350}
+.pj-info-btn{width:14px;height:14px;border-radius:50%;border:1px solid rgba(150,150,150,.5);color:rgba(150,150,150,.9);font-size:9px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;background:none;font-family:inherit;flex-shrink:0;padding:0}
+.pj-tooltip{position:absolute;left:0;top:calc(100% + 7px);background:#0d0d0d;border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:12px 14px;font-size:12px;color:#c9c9c4;width:260px;max-width:calc(100vw - 60px);line-height:1.55;opacity:0;pointer-events:none;transform:translateY(-4px);transition:all .15s;z-index:20}
+.pj-tooltip.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.pj-tooltip b{display:block;color:#fff;font-size:13px;font-weight:800;margin-bottom:6px;letter-spacing:-.1px}
+.pj-tooltip p{margin:0}
+.pj-tooltip-foot{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:#8a8a86;font-style:italic}
+html[data-theme="light"] .pj-tooltip{background:#fff;color:#5c5c58;border-color:rgba(0,0,0,.12);box-shadow:0 12px 30px rgba(0,0,0,.12)}
+html[data-theme="light"] .pj-tooltip b{color:#15160e}
+html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color:#7c7e70}
+</style>
 <link rel="prefetch" href="store.html" as="document">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -3934,10 +3955,9 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
     </div>
 
     <div class="form-row">
-      <div class="form-group" style="position:relative">
+      <div class="form-group">
         <label class="form-label">Marca.</label>
-        <input class="form-input" id="marca-select" type="text" placeholder="ej. Toyota" autocomplete="off" oninput="_pjOnMarcaInput(this.value);_checkDsgVagWarning()" onfocus="_pjOnMarcaInput(this.value)" onblur="_pjCloseListSoon('marca-pj-list')">
-        <div class="pj-combo-list" id="marca-pj-list"></div>
+        <select class="form-select" id="marca-select" onchange="_pjOnMarcaChange(this.value);_checkDsgVagWarning()"><option value="">seleccionar</option><option>Alfa Romeo</option><option>Audi</option><option>BAIC</option><option>Bentley</option><option>Bera</option><option>BMW</option><option>BYD</option><option>Cadillac</option><option>Changan</option><option>Chery</option><option>Chevrolet</option><option>Chrysler</option><option>Citroën</option><option>Dodge</option><option>Ferrari</option><option>Fiat</option><option>Ford</option><option>GAC</option><option>Geely</option><option>GMC</option><option>Great Wall</option><option>Honda</option><option>Hummer</option><option>Hyundai</option><option>Infiniti</option><option>JAC</option><option>Jaguar</option><option>Jeep</option><option>Kia</option><option>Lamborghini</option><option>Land Rover</option><option>Lexus</option><option>Lincoln</option><option>Maserati</option><option>Mazda</option><option>Mercedes-Benz</option><option>MINI</option><option>Mitsubishi</option><option>Nissan</option><option>Peugeot</option><option>Pontiac</option><option>Porsche</option><option>Ram</option><option>Renault</option><option>Rolls-Royce</option><option>SAIC</option><option>Saturn</option><option>Seat</option><option>Skoda</option><option>Smart</option><option>SsangYong</option><option>Subaru</option><option>Suzuki</option><option>Tesla</option><option>Toyota</option><option>Volkswagen</option><option>Volvo</option><option>Zotye</option><option>Otro</option></select>
         <input type="hidden" id="marca-canonica-input">
       </div>
       <div class="form-group"><label class="form-label">Año.</label><select class="form-select" id="year-select" onchange="_pjOnYearChange()"></select></div>
@@ -5892,9 +5912,29 @@ let venderType='particular';
 function fmtNum(n){return n.toLocaleString('es-VE').replace(/,/g,'.')}
 function fmtBid(n){return '$'+fmtNum(n)}
 function fmtKm(n){return fmtNum(n)+' km'}
-// [Precio Justo V142] lógica de visibilidad de la comparativa de precio —
-// el look final del medidor lo define Enrique, esto solo deja los datos
-// listos y la regla de "no mostrar nada sin respaldo" resuelta.
+// [Criterio Ruedda V144] chip minimalista + botón de info con el copy
+// completo — nunca texto suelto al lado del medidor. Regla intacta: sin
+// pme_usd no se pinta absolutamente nada, ni skeleton ni mensaje.
+const _PJ_COPY='Criterio Ruedda compara este vehículo contra el comportamiento real del mercado venezolano, transacción por transacción, categoría por categoría, con el mismo rigor que aplicaría un tasador privado. No es una lista de precios: es criterio.';
+function _pjLevelName(cls){
+  return {super_oferta:'Súper oferta',buen_precio:'Buen precio',precio_justo:'Precio justo',costoso:'Por encima del mercado'}[cls]||'Precio justo';
+}
+function _pjZoneKey(cls){
+  return {super_oferta:'oferta',buen_precio:'buen',precio_justo:'justo',costoso:'costoso'}[cls]||'justo';
+}
+function _pjDeltaToPos(d){
+  const c=Math.max(-20,Math.min(20,d));
+  return ((c+20)/40*100).toFixed(1);
+}
+function _pjToggleTooltip(btn,ev){
+  // el nodo clicado, no un id — la ficha tiene un clon móvil con ids
+  // duplicados (mismo motivo del fix de precio fantasma, V114).
+  if(ev) ev.stopPropagation();
+  const t=btn.nextElementSibling;
+  document.querySelectorAll('.pj-tooltip.show').forEach(x=>{ if(x!==t) x.classList.remove('show'); });
+  if(t) t.classList.toggle('show');
+}
+document.addEventListener('click', ()=>document.querySelectorAll('.pj-tooltip.show').forEach(t=>t.classList.remove('show')));
 function getPrecioJustoDisplay(item){
   const mostrar = item?.pme_usd!=null && item?.pme_confianza!=='baja';
   if(!mostrar) return {mostrar:false};
@@ -5904,11 +5944,9 @@ function getPrecioJustoDisplay(item){
     delta,
     label:(delta>0?'+':'')+delta.toFixed(1)+'%',
     classification:item.pme_classification,
+    levelName:_pjLevelName(item.pme_classification),
     confianza:item.pme_confianza,
-    basadoEn:item.pme_basado_en,
-    mensaje: item.pme_basado_en==='modelo base'
-      ? 'estimado sobre el promedio del modelo, sin la versión exacta'
-      : 'estimado sobre comportamiento histórico del mercado venezolano'
+    basadoEn:item.pme_basado_en
   };
 }
 function renderPrecioJustoPlaceholder(item, elId){
@@ -5916,9 +5954,13 @@ function renderPrecioJustoPlaceholder(item, elId){
   if(!el) return;
   const d=getPrecioJustoDisplay(item);
   // sin respaldo -> nada, ni skeleton ni mensaje (regla explícita del motor)
-  el.innerHTML = d.mostrar
-    ? `<div data-pme-classification="${_esc(d.classification||'')}" data-pme-confianza="${_esc(d.confianza||'')}">${_esc(d.label)} · ${_esc(d.mensaje)}</div>`
+  if(!d.mostrar){ el.innerHTML=''; return; }
+  const zone=_pjZoneKey(d.classification);
+  const pos=_pjDeltaToPos(d.delta);
+  const foot = d.basadoEn==='modelo base'
+    ? `<div class="pj-tooltip-foot">Estimado sobre el promedio del modelo: esta versión específica no tuvo suficientes muestras propias.</div>`
     : '';
+  el.innerHTML = `<span class="pj-chip"><span class="pj-chip-bar"><span class="pj-chip-dot" style="left:${pos}%"></span></span><span class="pj-chip-val z-${zone}">${_esc(d.label)}</span><button class="pj-info-btn" onclick="_pjToggleTooltip(this,event)" aria-label="cómo se calcula">i</button><span class="pj-tooltip"><b>${_esc(d.levelName)} · ${_esc(d.label)}</b><p>${_esc(_PJ_COPY)}</p>${foot}</span></span>`;
 }
 function isUrgent(t){return(t-Date.now())<3600000}
 function getDaysLeft(t){return Math.floor((t-Date.now())/86400000)}
@@ -11197,30 +11239,25 @@ function _pjCloseListSoon(listId){
   setTimeout(()=>{ document.getElementById(listId)?.classList.remove('pj-combo-open'); }, 150);
 }
 
-async function _pjOnMarcaInput(q){
+// [fix catastrófico] la marca vuelve a ser el <select> completo de siempre —
+// un input de texto libre para la marca es el peor lugar posible para meter
+// error humano (typos, mayúsculas, "Chevy" vs "Chevrolet"...). El catálogo de
+// Precio Justo sigue alimentando el cascade de MODELO y VERSIÓN (esos sí sin
+// respaldo cerrado todavía, por eso quedaron como texto libre con sugerencias).
+async function _pjOnMarcaChange(value){
   await _pjLoadCatalog();
-  const exact=_pjCatalog?.marcas?.find(m=>_pjNorm(m.nombre)===_pjNorm(q));
+  const exact=_pjCatalog?.marcas?.find(m=>_pjNorm(m.nombre)===_pjNorm(value));
   _pjMarcaObj=exact||null;
-  const canEl=document.getElementById('marca-canonica-input'); if(canEl) canEl.value=_pjNorm(q);
+  const canEl=document.getElementById('marca-canonica-input'); if(canEl) canEl.value=value?_pjNorm(value):'';
   // la marca cambió -> se limpian modelo y versión
   _pjModeloObj=null; _pjVersionObj=null;
   const modeloInput=document.getElementById('modelo-input');
   const versionInput=document.getElementById('version-input');
-  if(modeloInput){ modeloInput.value=''; modeloInput.disabled=!q.trim(); }
+  if(modeloInput){ modeloInput.value=''; modeloInput.disabled=!value; }
   if(versionInput){ versionInput.value=''; versionInput.disabled=true; }
   const mc=document.getElementById('modelo-canonica-input'); if(mc) mc.value='';
   const vc=document.getElementById('version-canonica-input'); if(vc) vc.value='';
   const note=document.getElementById('version-range-note'); if(note) note.style.display='none';
-  const listEl=document.getElementById('marca-pj-list');
-  if(!_pjCatalog||!q.trim()){ _pjRenderList(listEl,[],()=>{}); return; }
-  const nq=_pjNorm(q);
-  const items=[..._pjCatalog.marcas].sort((a,b)=>b.muestras-a.muestras).filter(m=>_pjNorm(m.nombre).includes(nq));
-  _pjRenderList(listEl, items, (picked)=>{
-    document.getElementById('marca-select').value=picked.nombre;
-    _pjOnMarcaInput(picked.nombre);
-    listEl.classList.remove('pj-combo-open');
-    modeloInput?.focus();
-  });
 }
 
 function _pjOnModeloInput(q){
