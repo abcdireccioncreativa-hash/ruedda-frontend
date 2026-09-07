@@ -3476,11 +3476,14 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
         </div>
         <!-- [comparativa de precios] se esconde sola si no hay data cargada en Super Admin para esta marca+modelo — nunca se ve vacía -->
         <div class="detail-section" id="mkt-pricecmp-section" style="display:none">
-          <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between">
+          <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="_toggleMktPricecmp()">
             <span>comparativa de precios</span>
             <img src="data:image/png;base64,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" alt="" style="width:22px;height:22px;opacity:.55;filter:brightness(0) invert(1)">
+            <svg id="mkt-pricecmp-chevron" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;margin-left:8px;flex-shrink:0;transition:transform .25s ease"><path d="m6 9 6 6 6-6"/></svg>
           </div>
-          <div id="mkt-pricecmp-widget"></div>
+          <div id="mkt-pricecmp-collapse" style="max-height:0;overflow:hidden;transition:max-height .3s ease">
+            <div id="mkt-pricecmp-widget" style="padding-top:12px"></div>
+          </div>
         </div>
         <div class="detail-section">
           <div class="detail-section-title">descripción</div>
@@ -16081,11 +16084,25 @@ async function _ensureMarketListing(id){
 // la publicación (actual, y el anterior si hubo una baja registrada) — así se
 // puede ver funcionando desde ya y se va "entrenando": en cuanto haya data real
 // curada, esta pasa a tener prioridad automáticamente sobre el self-seed.
+// [V143] se despliega hacia abajo con una flechita — colapsado por
+// default, nunca se abre solo (arranca cerrado en cada publicación nueva).
+function _toggleMktPricecmp(){
+  const collapse=document.getElementById('mkt-pricecmp-collapse');
+  const chevron=document.getElementById('mkt-pricecmp-chevron');
+  if(!collapse) return;
+  const opening = collapse.style.maxHeight==='' || collapse.style.maxHeight==='0px';
+  collapse.style.maxHeight = opening ? '2000px' : '0px';
+  if(chevron) chevron.style.transform = opening ? 'rotate(180deg)' : '';
+}
 async function _loadPriceComparison(l){
   const sec=document.getElementById('mkt-pricecmp-section');
   const wrap=document.getElementById('mkt-pricecmp-widget');
   if(!sec||!wrap) return;
   sec.style.display='none'; wrap.innerHTML='';
+  const collapse=document.getElementById('mkt-pricecmp-collapse');
+  const chevron=document.getElementById('mkt-pricecmp-chevron');
+  if(collapse) collapse.style.maxHeight='0px';
+  if(chevron) chevron.style.transform='';
   const price=Number(l.price)||0;
   if(!l.marca||!l.modelo||price<=0) return;
   let ranges=null, validKeys=[];
