@@ -4620,6 +4620,77 @@ html{scrollbar-width:none}
   </div>
 </div>
 
+<!-- MI GARAGE — AGREGAR/EDITAR VEHÍCULO -->
+<div class="modal-overlay" id="garage-vehicle-sheet" onclick="if(event.target.id==='garage-vehicle-sheet')closeGarageVehicleForm()" style="align-items:flex-end">
+  <div class="modal-sheet" style="text-align:left;max-height:86vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px" id="garage-form-title">agregar vehículo</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:18px">muéstrale tus carros o proyectos a la comunidad</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px" id="garage-form-photos"></div>
+    <input type="file" id="garage-form-photo-input" accept="image/*" multiple style="display:none" onchange="_garageAddPhotos(this)">
+    <button onclick="document.getElementById('garage-form-photo-input').click()" style="width:100%;background:var(--w5);border:1px dashed var(--border);border-radius:13px;color:var(--w70);font-size:13px;font-weight:700;padding:13px;cursor:pointer;font-family:var(--font);margin-bottom:16px">+ agregar fotos</button>
+    <input id="garage-form-titulo" class="form-input" type="text" placeholder="título / apodo (opcional)" style="margin-bottom:10px">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <input id="garage-form-marca" class="form-input" type="text" placeholder="marca" style="flex:1">
+      <input id="garage-form-modelo" class="form-input" type="text" placeholder="modelo" style="flex:1">
+      <input id="garage-form-year" class="form-input" type="number" placeholder="año" style="width:90px">
+    </div>
+    <textarea id="garage-form-descripcion" placeholder="cuéntale a la comunidad sobre este carro: mods, specs, historia..." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--white);font-size:14px;padding:14px;resize:none;font-family:var(--font);box-sizing:border-box;height:110px;line-height:1.6;margin-bottom:16px"></textarea>
+    <input id="garage-form-vin" class="form-input" type="text" placeholder="VIN (opcional, privado)" style="margin-bottom:6px;text-transform:uppercase" maxlength="17">
+    <div style="font-size:11.5px;color:var(--muted);margin-bottom:16px;line-height:1.4">nunca se muestra públicamente — solo sirve para que puedas demostrar que el carro es tuyo si alguien más lo tiene puesto en su garage</div>
+    <button onclick="_saveGarageVehicle()" id="garage-form-save-btn" style="width:100%;background:#08441A;color:#fff;border:none;border-radius:13px;font-size:14px;font-weight:800;padding:14px;cursor:pointer;font-family:var(--font)">guardar</button>
+  </div>
+</div>
+
+<!-- MI GARAGE — DETALLE DE VEHÍCULO -->
+<div class="modal-overlay" id="garage-detail-sheet" onclick="if(event.target.id==='garage-detail-sheet')closeGarageVehicleDetail()" style="align-items:flex-end">
+  <div class="modal-sheet" style="text-align:left;max-height:86vh;overflow-y:auto" id="garage-detail-content"></div>
+</div>
+
+<!-- MI GARAGE — RECLAMAR VEHÍCULO POR VIN -->
+<div class="modal-overlay" id="garage-claim-sheet" onclick="if(event.target.id==='garage-claim-sheet')closeGarageClaimSheet()" style="align-items:flex-end">
+  <div class="modal-sheet" style="text-align:left">
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px">¿este carro es tuyo?</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:18px">ingresa el VIN del vehículo — si coincide con el que el dueño actual registró, se transfiere a tu garage al instante</div>
+    <input id="garage-claim-vin" class="form-input" type="text" placeholder="VIN (17 caracteres)" style="margin-bottom:14px;text-transform:uppercase" maxlength="17">
+    <button onclick="_garageSubmitClaim()" id="garage-claim-btn" style="width:100%;background:#08441A;color:#fff;border:none;border-radius:13px;font-size:14px;font-weight:800;padding:14px;cursor:pointer;font-family:var(--font)">verificar y reclamar</button>
+  </div>
+</div>
+
+<!-- MI GARAGE — MARCAR COMO VENDIDO -->
+<div class="modal-overlay" id="garage-sold-sheet" onclick="if(event.target.id==='garage-sold-sheet')closeGarageSoldSheet()" style="align-items:flex-end">
+  <div class="modal-sheet" style="text-align:left">
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px">¿cómo lo vendiste?</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px">esto actualiza cómo se ve en tu garage</div>
+    <div class="fb-sheet-opt" onclick="_garageMarkSoldOutside()">
+      <div class="fb-sheet-opt-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></svg></div>
+      <div>
+        <div class="fb-sheet-opt-title">vendido fuera de Ruedda</div>
+        <div class="fb-sheet-opt-sub">se queda en tu garage marcado como vendido</div>
+      </div>
+    </div>
+    <div class="fb-sheet-opt" onclick="closeGarageSoldSheet();openGarageTransferSearch()">
+      <div class="fb-sheet-opt-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div>
+        <div class="fb-sheet-opt-title">se lo vendí a alguien de Ruedda</div>
+        <div class="fb-sheet-opt-sub">transfiere el carro a otro usuario, con su historial</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MI GARAGE — TRANSFERIR A USUARIO -->
+<div class="modal-overlay" id="garage-transfer-sheet" onclick="if(event.target.id==='garage-transfer-sheet')closeGarageTransferSearch()" style="align-items:flex-end">
+  <div class="modal-sheet" style="text-align:left;max-height:80vh;overflow-y:auto">
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:12px">transferir a un usuario de Ruedda</div>
+    <input id="garage-transfer-search" class="form-input" type="text" placeholder="buscar por nombre o @usuario" oninput="_garageSearchUsers(this.value)" style="margin-bottom:12px">
+    <div id="garage-transfer-results" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
 <!-- PAYMENT SHEET -->
 <div class="modal-overlay" id="payment-sheet" onclick="closePaymentSheet(event)" style="align-items:flex-end">
   <div style="background:var(--surface-hi);border-radius:28px 28px 0 0;padding:0 0 44px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .38s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
@@ -10630,6 +10701,7 @@ async function openMiPerfil(){
     list.innerHTML='';
     (dreamCars||[]).forEach(d=>_addDreamCarInput(d.modelo));
     if(!dreamCars?.length) _addDreamCarInput(); // al menos una fila vacía para empezar
+    _loadMyGarage();
   }catch(e){
     console.error('[openMiPerfil]',e);
     showToast('error cargando tu perfil');
@@ -10685,6 +10757,291 @@ async function saveMiPerfil(){
   }catch(e){
     console.error('[saveMiPerfil]',e);
     showToast('error guardando: '+(e?.message||''));
+  }
+}
+
+// ─────────────────────────────────────────────
+// MI GARAGE — vitrina de carros del perfil (V134)
+// ─────────────────────────────────────────────
+async function _loadMyGarage(){
+  const list=document.getElementById('mi-garage-list');
+  if(!list||!_supa||!USER_STATE?.id) return;
+  list.innerHTML='<div style="font-size:13px;color:var(--muted)">cargando...</div>';
+  try{
+    const{data:vehicles}=await _supa.from('garage_vehicles').select('id,marca,modelo,year,titulo,estado,garage_vehicle_photos(url,orden)').eq('owner_id',USER_STATE.id).order('created_at',{ascending:false});
+    if(!vehicles?.length){ list.innerHTML='<div style="font-size:13px;color:var(--muted)">todavía no has agregado ningún carro</div>'; return; }
+    list.innerHTML=vehicles.map(v=>{
+      const photo=(v.garage_vehicle_photos||[]).sort((x,y)=>x.orden-y.orden)[0]?.url;
+      const label=`${v.year||''} ${v.marca||''} ${v.modelo||''}`.trim();
+      return `<div onclick="openGarageVehicleDetail('${v.id}')" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:10px 12px;cursor:pointer">
+        <div style="width:52px;height:52px;border-radius:10px;flex-shrink:0;background:${photo?`url('${photo}') center/cover`:'var(--card2)'};border:1px solid var(--border)"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(v.titulo)||_esc(label)}</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:1px">${v.estado==='vendido'?'vendido':_esc(label)}</div>
+        </div>
+        <svg fill="none" viewBox="0 0 24 24" stroke="var(--w40)" stroke-width="2" style="width:14px;height:14px;flex-shrink:0"><path d="m9 18 6-6-6-6"/></svg>
+      </div>`;
+    }).join('');
+  }catch(e){
+    console.error('[_loadMyGarage]',e);
+    list.innerHTML='<div style="font-size:13px;color:var(--muted)">error cargando tu garage</div>';
+  }
+}
+
+async function openGarageVehicleForm(vehicleId){
+  const s=document.getElementById('garage-vehicle-sheet');
+  if(!s) return;
+  window._garageFormId=vehicleId||null;
+  window._garageFormNewPhotos=[];
+  window._garageFormRemovedPhotoIds=[];
+  document.getElementById('garage-form-title').textContent=vehicleId?'editar vehículo':'agregar vehículo';
+  document.getElementById('garage-form-titulo').value='';
+  document.getElementById('garage-form-marca').value='';
+  document.getElementById('garage-form-modelo').value='';
+  document.getElementById('garage-form-year').value='';
+  document.getElementById('garage-form-descripcion').value='';
+  document.getElementById('garage-form-vin').value='';
+  window._garageFormExistingPhotos=[];
+  _garageRenderFormPhotos();
+  s.classList.add('open');
+  if(vehicleId&&_supa){
+    const{data:v}=await _supa.from('garage_vehicles').select('titulo,marca,modelo,year,descripcion,garage_vehicle_photos(id,url,orden)').eq('id',vehicleId).maybeSingle();
+    if(v){
+      document.getElementById('garage-form-titulo').value=v.titulo||'';
+      document.getElementById('garage-form-marca').value=v.marca||'';
+      document.getElementById('garage-form-modelo').value=v.modelo||'';
+      document.getElementById('garage-form-year').value=v.year||'';
+      document.getElementById('garage-form-descripcion').value=v.descripcion||'';
+      window._garageFormExistingPhotos=(v.garage_vehicle_photos||[]).sort((a,b)=>a.orden-b.orden);
+      _garageRenderFormPhotos();
+    }
+    // el VIN vive en una tabla aparte con RLS solo-dueño — nadie más puede leerlo, ni por consola
+    const{data:secret}=await _supa.from('garage_vehicle_secrets').select('vin').eq('vehicle_id',vehicleId).maybeSingle();
+    if(secret?.vin) document.getElementById('garage-form-vin').value=secret.vin;
+  }
+}
+function closeGarageVehicleForm(){
+  document.getElementById('garage-vehicle-sheet')?.classList.remove('open');
+}
+function _garageRenderFormPhotos(){
+  const box=document.getElementById('garage-form-photos');
+  if(!box) return;
+  const existing=(window._garageFormExistingPhotos||[]).map((p,i)=>`
+    <div style="position:relative;width:70px;height:70px">
+      <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
+      <button onclick="_garageRemoveExistingPhoto(${i})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.75);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1">×</button>
+    </div>`).join('');
+  const news=(window._garageFormNewPhotos||[]).map((p,i)=>`
+    <div style="position:relative;width:70px;height:70px">
+      <img src="${p.previewUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
+      <button onclick="_garageRemoveNewPhoto(${i})" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.75);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1">×</button>
+    </div>`).join('');
+  box.innerHTML=existing+news;
+}
+function _garageAddPhotos(input){
+  if(!input.files?.length) return;
+  window._garageFormNewPhotos=window._garageFormNewPhotos||[];
+  [...input.files].forEach(file=>{ window._garageFormNewPhotos.push({file,previewUrl:URL.createObjectURL(file)}); });
+  input.value='';
+  _garageRenderFormPhotos();
+}
+function _garageRemoveNewPhoto(i){
+  window._garageFormNewPhotos.splice(i,1);
+  _garageRenderFormPhotos();
+}
+function _garageRemoveExistingPhoto(i){
+  const removed=window._garageFormExistingPhotos.splice(i,1)[0];
+  if(removed){ window._garageFormRemovedPhotoIds=window._garageFormRemovedPhotoIds||[]; window._garageFormRemovedPhotoIds.push(removed.id); }
+  _garageRenderFormPhotos();
+}
+async function _saveGarageVehicle(){
+  if(!_supa||!USER_STATE?.id) return;
+  const titulo=document.getElementById('garage-form-titulo').value.trim();
+  const marca=document.getElementById('garage-form-marca').value.trim();
+  const modelo=document.getElementById('garage-form-modelo').value.trim();
+  const year=parseInt(document.getElementById('garage-form-year').value)||null;
+  const descripcion=document.getElementById('garage-form-descripcion').value.trim();
+  const btn=document.getElementById('garage-form-save-btn');
+  if(btn){btn.disabled=true;btn.textContent='guardando...';}
+  try{
+    let vehicleId=window._garageFormId;
+    if(vehicleId){
+      const{error}=await _supa.from('garage_vehicles').update({titulo:titulo||null,marca:marca||null,modelo:modelo||null,year,descripcion:descripcion||null,updated_at:new Date().toISOString()}).eq('id',vehicleId);
+      if(error) throw error;
+    }else{
+      const{data,error}=await _supa.from('garage_vehicles').insert({owner_id:USER_STATE.id,creator_id:USER_STATE.id,titulo:titulo||null,marca:marca||null,modelo:modelo||null,year,descripcion:descripcion||null}).select('id').single();
+      if(error) throw error;
+      vehicleId=data.id;
+    }
+    const vin=document.getElementById('garage-form-vin').value.trim();
+    if(vin){
+      await _supa.from('garage_vehicle_secrets').upsert({vehicle_id:vehicleId,vin:vin.toUpperCase()},{onConflict:'vehicle_id'});
+    }
+    for(const rid of (window._garageFormRemovedPhotoIds||[])){
+      await _supa.from('garage_vehicle_photos').delete().eq('id',rid);
+    }
+    const baseOrden=(window._garageFormExistingPhotos||[]).length;
+    const newPhotos=window._garageFormNewPhotos||[];
+    for(let i=0;i<newPhotos.length;i++){
+      const compressed=await _compressImageFile(newPhotos[i].file,1600,0.82);
+      const path=`${USER_STATE.id}/${vehicleId}/${Date.now()}_${i}.jpg`;
+      const{error:upErr}=await _supa.storage.from('garage-photos').upload(path,compressed,{upsert:false,contentType:'image/jpeg'});
+      if(upErr){ console.warn('[garage photo]',upErr.message); continue; }
+      const{data:urlData}=_supa.storage.from('garage-photos').getPublicUrl(path);
+      await _supa.from('garage_vehicle_photos').insert({vehicle_id:vehicleId,url:urlData.publicUrl,orden:baseOrden+i});
+    }
+    showToast('vehículo guardado',true);
+    closeGarageVehicleForm();
+    if(typeof _loadMyGarage==='function') _loadMyGarage();
+  }catch(e){
+    console.error('[_saveGarageVehicle]',e);
+    showToast('error guardando: '+(e?.message||''));
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='guardar';}
+  }
+}
+
+async function openGarageVehicleDetail(vehicleId){
+  window._garageCurrentVehicleId=vehicleId;
+  const s=document.getElementById('garage-detail-sheet');
+  const c=document.getElementById('garage-detail-content');
+  if(!s||!c||!_supa) return;
+  c.innerHTML='<div class="modal-handle"></div><div style="padding:30px 0;text-align:center;color:var(--muted);font-size:13px">cargando...</div>';
+  s.classList.add('open');
+  try{
+    const{data:v}=await _supa.from('garage_vehicles').select('id,marca,modelo,year,titulo,descripcion,estado,owner_id,garage_vehicle_photos(url,orden)').eq('id',vehicleId).maybeSingle();
+    if(!v){ c.innerHTML='<div class="modal-handle"></div><div style="padding:30px 0;text-align:center;color:var(--muted);font-size:13px">no encontrado</div>'; return; }
+    const{data:lastTransfer}=await _supa.from('garage_vehicle_transfers').select('from_user_id').eq('vehicle_id',vehicleId).order('transferred_at',{ascending:false}).limit(1).maybeSingle();
+    let prevOwner=null;
+    if(lastTransfer?.from_user_id){
+      const{data:fu}=await _supa.from('users').select('username,nombre').eq('id',lastTransfer.from_user_id).maybeSingle();
+      prevOwner=fu?.username||fu?.nombre||null;
+    }
+    const photos=(v.garage_vehicle_photos||[]).sort((x,y)=>x.orden-y.orden);
+    const isMine=USER_STATE?.id===v.owner_id;
+    const titulo=v.titulo||`${v.year||''} ${v.marca||''} ${v.modelo||''}`.trim();
+    window._garageCurrentVehicleLabel=titulo;
+    c.innerHTML=`
+      <div class="modal-handle"></div>
+      ${photos.length?`<div style="display:flex;gap:8px;overflow-x:auto;margin-bottom:16px">${photos.map(p=>`<img src="${p.url}" style="width:100%;max-width:340px;aspect-ratio:4/3;object-fit:cover;border-radius:14px;flex-shrink:0">`).join('')}</div>`:''}
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+        <div style="font-size:17px;font-weight:800;letter-spacing:-.2px">${_esc(titulo)}</div>
+        ${v.estado==='vendido'?'<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#fff;background:var(--w40);padding:3px 8px;border-radius:100px">vendido</span>':''}
+      </div>
+      ${v.titulo?`<div style="font-size:13px;color:var(--muted);margin-bottom:8px">${v.year||''} ${_esc(v.marca||'')} ${_esc(v.modelo||'')}</div>`:''}
+      ${prevOwner?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px">dueño anterior: @${_esc(prevOwner)}</div>`:''}
+      ${v.descripcion?`<div style="font-size:14px;color:var(--w70);line-height:1.6;white-space:pre-wrap;margin-top:10px">${_escLine(v.descripcion)}</div>`:''}
+      ${isMine?`<div style="display:flex;gap:10px;margin-top:22px">
+        <button onclick="closeGarageVehicleDetail();openGarageVehicleForm('${v.id}')" style="flex:1;background:var(--w5);border:1px solid var(--border);border-radius:13px;color:var(--w70);font-size:13px;font-weight:700;padding:13px;cursor:pointer;font-family:var(--font)">editar</button>
+        ${v.estado!=='vendido'?`<button onclick="closeGarageVehicleDetail();openGarageSoldSheet('${v.id}')" style="flex:1;background:#08441A;border:none;color:#fff;border-radius:13px;font-size:13px;font-weight:800;padding:13px;cursor:pointer;font-family:var(--font)">marcar como vendido</button>`:''}
+      </div>`:(USER_STATE?.id?`<button onclick="closeGarageVehicleDetail();openGarageClaimSheet('${v.id}')" style="width:100%;margin-top:22px;background:var(--w5);border:1px solid var(--border);border-radius:13px;color:var(--w60);font-size:12.5px;font-weight:700;padding:12px;cursor:pointer;font-family:var(--font)">¿es tuyo este carro? reclámalo con el VIN</button>`:'')}
+    `;
+  }catch(e){
+    console.error('[openGarageVehicleDetail]',e);
+    c.innerHTML='<div class="modal-handle"></div><div style="padding:30px 0;text-align:center;color:var(--muted);font-size:13px">error cargando</div>';
+  }
+}
+function closeGarageVehicleDetail(){
+  document.getElementById('garage-detail-sheet')?.classList.remove('open');
+}
+
+function openGarageSoldSheet(vehicleId){
+  if(vehicleId) window._garageCurrentVehicleId=vehicleId;
+  document.getElementById('garage-sold-sheet')?.classList.add('open');
+}
+function closeGarageSoldSheet(){
+  document.getElementById('garage-sold-sheet')?.classList.remove('open');
+}
+async function _garageMarkSoldOutside(){
+  const id=window._garageCurrentVehicleId;
+  closeGarageSoldSheet();
+  if(!id||!_supa) return;
+  const{error}=await _supa.from('garage_vehicles').update({estado:'vendido',updated_at:new Date().toISOString()}).eq('id',id);
+  if(error){showToast('error: '+error.message);return;}
+  showToast('marcado como vendido',true);
+  if(typeof _loadMyGarage==='function') _loadMyGarage();
+  if(typeof openUserProfile==='function'&&typeof _profileViewingId!=='undefined'&&_profileViewingId) openUserProfile(_profileViewingId);
+}
+
+function openGarageTransferSearch(vehicleId){
+  if(vehicleId) window._garageCurrentVehicleId=vehicleId;
+  const inp=document.getElementById('garage-transfer-search');
+  if(inp) inp.value='';
+  const box=document.getElementById('garage-transfer-results');
+  if(box) box.innerHTML='';
+  document.getElementById('garage-transfer-sheet')?.classList.add('open');
+}
+function closeGarageTransferSearch(){
+  document.getElementById('garage-transfer-sheet')?.classList.remove('open');
+}
+async function _garageSearchUsers(q){
+  const box=document.getElementById('garage-transfer-results');
+  if(!box||!_supa) return;
+  q=(q||'').trim();
+  if(!q){ box.innerHTML=''; return; }
+  box.innerHTML='<div style="font-size:13px;color:var(--muted);padding:10px 0">buscando...</div>';
+  const{data,error}=await _supa.from('users').select('id,nombre,username,avatar_url').or(`nombre.ilike.%${q}%,username.ilike.%${q}%`).neq('id',USER_STATE.id).limit(20);
+  if(error){ box.innerHTML='<div style="font-size:13px;color:var(--muted);padding:10px 0">error buscando</div>'; return; }
+  if(!data?.length){ box.innerHTML='<div style="font-size:13px;color:var(--muted);padding:10px 0">sin resultados</div>'; return; }
+  box.innerHTML=data.map(u=>{
+    const nombre=u.nombre||u.username||'usuario';
+    const initial=nombre.charAt(0).toUpperCase();
+    const av=u.avatar_url?`<img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:initial;
+    const safeUsername=(u.username||u.nombre||'usuario').replace(/'/g,"\\'");
+    return `<div onclick="_garageConfirmTransfer('${u.id}','${safeUsername}')" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:13px;padding:10px 12px;cursor:pointer">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;overflow:hidden;flex-shrink:0">${av}</div>
+      <div style="min-width:0">
+        <div style="font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(nombre)}</div>
+        ${u.username?`<div style="font-size:12px;color:var(--muted)">@${_esc(u.username)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function _garageConfirmTransfer(toUserId,toUsername){
+  const vehicleId=window._garageCurrentVehicleId;
+  if(!vehicleId||!_supa||!USER_STATE?.id) return;
+  const label=window._garageCurrentVehicleLabel||'este vehículo';
+  if(!confirm(`¿transferir tu ${label} a @${toUsername}? esta acción no se puede deshacer`)) return;
+  try{
+    const{error:uErr}=await _supa.from('garage_vehicles').update({owner_id:toUserId,updated_at:new Date().toISOString()}).eq('id',vehicleId).eq('owner_id',USER_STATE.id);
+    if(uErr) throw uErr;
+    await _supa.from('garage_vehicle_transfers').insert({vehicle_id:vehicleId,from_user_id:USER_STATE.id,to_user_id:toUserId});
+    _supa.from('notifications').insert({user_id:toUserId,tipo:'system',titulo:'¡te transfirieron un carro!',body:`@${USER_STATE.username||USER_STATE.nombre||'un usuario'} te transfirió su ${label} en Mi Garage`,icon:'lime',source_id:vehicleId,source_type:'garage_vehicle'}).then(null,()=>{});
+    showToast('vehículo transferido',true);
+    closeGarageTransferSearch();
+    if(typeof _loadMyGarage==='function') _loadMyGarage();
+    if(typeof openUserProfile==='function'&&typeof _profileViewingId!=='undefined'&&_profileViewingId) openUserProfile(_profileViewingId);
+  }catch(e){
+    console.error('[_garageConfirmTransfer]',e);
+    showToast('error: '+(e?.message||'no se pudo transferir'));
+  }
+}
+
+function openGarageClaimSheet(vehicleId){
+  window._garageCurrentVehicleId=vehicleId;
+  const inp=document.getElementById('garage-claim-vin');
+  if(inp) inp.value='';
+  document.getElementById('garage-claim-sheet')?.classList.add('open');
+}
+function closeGarageClaimSheet(){
+  document.getElementById('garage-claim-sheet')?.classList.remove('open');
+}
+async function _garageSubmitClaim(){
+  const vehicleId=window._garageCurrentVehicleId;
+  const vin=document.getElementById('garage-claim-vin').value.trim();
+  if(!vehicleId||!vin){ showToast('ingresa el VIN'); return; }
+  const btn=document.getElementById('garage-claim-btn');
+  if(btn){btn.disabled=true;btn.textContent='verificando...';}
+  try{
+    const res=await _apiPost('/api/claim-vehicle',{vehicle_id:vehicleId,vin});
+    showToast(`¡ahora eres el dueño de ${res.label||'este carro'}!`,true);
+    closeGarageClaimSheet();
+    if(typeof _loadMyGarage==='function') _loadMyGarage();
+    if(typeof openUserProfile==='function'&&typeof _profileViewingId!=='undefined'&&_profileViewingId) openUserProfile(_profileViewingId);
+  }catch(e){
+    showToast(e?.message==='el VIN no coincide'?'el VIN no coincide':'error: '+(e?.message||''));
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='verificar y reclamar';}
   }
 }
 
@@ -15350,7 +15707,7 @@ async function openUserProfile(userId){
   const isMe=USER_STATE?.id===userId;
 
   try{
-    const[{data:u},{data:dreamCars},{count:followersCount},{count:followingCount},{data:myFollow},{data:ratings},{data:soldAuctions},{data:topBid},{count:favCount},{count:commentsCount},{count:spotCount},{data:publishedListings},{data:publishedAuctions},{count:activeListingsCount},{count:activeAuctionsCount},{data:allLevels}]=await Promise.all([
+    const[{data:u},{data:dreamCars},{count:followersCount},{count:followingCount},{data:myFollow},{data:ratings},{data:soldAuctions},{data:topBid},{count:favCount},{count:commentsCount},{count:spotCount},{data:publishedListings},{data:publishedAuctions},{count:activeListingsCount},{count:activeAuctionsCount},{data:allLevels},{data:garageVehicles}]=await Promise.all([
       _supa.from('users').select('nombre,username,avatar_url,kyc_verified,descripcion,role').eq('id',userId).maybeSingle(),
       _supa.from('user_dream_cars').select('modelo').eq('user_id',userId).order('orden',{ascending:true}),
       _supa.from('user_follows').select('*',{count:'exact',head:true}).eq('followed_id',userId),
@@ -15371,13 +15728,25 @@ async function openUserProfile(userId){
       // [XP/niveles] conteos exactos (sin límite) para la fórmula de XP — mismo peso que compute_user_xp() en la DB
       _supa.from('listings').select('*',{count:'exact',head:true}).eq('user_id',userId).eq('estado','activa'),
       _supa.from('auctions').select('*',{count:'exact',head:true}).eq('user_id',userId).eq('estado','activa'),
-      _supa.from('user_levels').select('*').order('level',{ascending:true})
+      _supa.from('user_levels').select('*').order('level',{ascending:true}),
+      _supa.from('garage_vehicles').select('id,marca,modelo,year,titulo,descripcion,estado,owner_id,garage_vehicle_photos(url,orden)').eq('owner_id',userId).order('created_at',{ascending:false})
     ]);
 
     // si mientras cargaba el usuario abrió OTRO perfil, no pintamos esto encima del nuevo
     if(_profileViewingId!==userId) return;
 
     if(!u){ el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">usuario no encontrado</div>'; return; }
+
+    // [Mi Garage] última transferencia de cada vehículo, para pintar "dueño anterior @user"
+    let garageTransferMap={};
+    if(garageVehicles?.length){
+      const gIds=garageVehicles.map(g=>g.id);
+      const{data:gTransfers}=await _supa.from('garage_vehicle_transfers').select('vehicle_id,from_user_id').in('vehicle_id',gIds).order('transferred_at',{ascending:false});
+      const fromIds=[...new Set((gTransfers||[]).map(t=>t.from_user_id))];
+      const{data:fromUsers}=fromIds.length?await _supa.from('users').select('id,username,nombre').in('id',fromIds):{data:[]};
+      const fromMap={};(fromUsers||[]).forEach(fu=>fromMap[fu.id]=fu.username||fu.nombre);
+      (gTransfers||[]).forEach(t=>{ if(!garageTransferMap[t.vehicle_id]) garageTransferMap[t.vehicle_id]=fromMap[t.from_user_id]||null; });
+    }
 
     const nombre=u.nombre||u.username||'usuario';
     const initial=nombre.charAt(0).toUpperCase();
@@ -15488,6 +15857,24 @@ async function openUserProfile(userId){
           </div>
         </div>`;
       })()}
+      ${garageVehicles?.length?`
+      <div style="margin-top:26px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:12px">Garage</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${garageVehicles.map(g=>{
+            const photo=(g.garage_vehicle_photos||[]).sort((x,y)=>x.orden-y.orden)[0]?.url;
+            const prevOwner=garageTransferMap[g.id];
+            return `<div onclick="openGarageVehicleDetail('${g.id}')" style="aspect-ratio:1;border-radius:14px;background:${photo?`url('${photo}') center/cover`:'var(--card)'};border:1px solid var(--border);cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:8px;position:relative;overflow:hidden">
+              ${photo?'<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,transparent 30%,transparent 55%,rgba(0,0,0,.7) 100%)"></div>':''}
+              ${g.estado==='vendido'?'<span style="position:relative;align-self:flex-start;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:#fff;background:var(--w40);padding:2px 7px;border-radius:100px;z-index:1">vendido</span>':'<span></span>'}
+              <div style="position:relative;z-index:1">
+                <span style="display:block;font-size:11px;font-weight:700;color:var(--white)">${g.year||''} ${_esc(g.marca||'')} ${_esc(g.modelo||'')}</span>
+                ${prevOwner?`<span style="display:block;font-size:9.5px;color:rgba(255,255,255,.75);margin-top:2px">dueño anterior: @${_esc(prevOwner)}</span>`:''}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`:''}
       <div style="margin-top:26px">
         <div style="font-size:16px;font-weight:800;margin-bottom:12px">Carros vendidos</div>
         ${soldAuctions?.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -18715,6 +19102,18 @@ async function _saDeletePat(id,cat){
       <div id="mi-perfil-dreamcars-list" style="display:flex;flex-direction:column;gap:8px"></div>
       <button onclick="_addDreamCarInput()" style="margin-top:10px;background:var(--w5);border:1px solid var(--border);border-radius:11px;color:var(--w70);font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:6px">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg> agregar
+      </button>
+    </div>
+
+    <div style="margin-top:22px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div style="font-size:16px;font-weight:800">Mi Garage</div>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(8,68,26,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">muéstrale tus carros o proyectos a la comunidad</div>
+      <div id="mi-garage-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button onclick="openGarageVehicleForm()" style="margin-top:10px;background:var(--w5);border:1px solid var(--border);border-radius:11px;color:var(--w70);font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:6px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M12 5v14M5 12h14"/></svg> agregar vehículo
       </button>
     </div>
 
