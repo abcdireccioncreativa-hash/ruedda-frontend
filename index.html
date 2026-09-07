@@ -14414,7 +14414,7 @@ function saCategory(cat){
   saTab(SA_CATEGORIES[cat]);
 }
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','eventos','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa','intro'].forEach(t=>{
+  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','eventos','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa','criterio','intro'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -14437,6 +14437,7 @@ function saTab(tab){
   if(tab==='solicitudes') saLoadSolicitudes('car');
   if(tab==='logos'){ saLoadMarcaLogos(); _saLoadLevelBadges(); }
   if(tab==='comparativa') saLoadComparativa();
+  if(tab==='criterio') saLoadCriterioList();
   if(tab==='intro') saLoadIntroFotos();
 }
 
@@ -14480,6 +14481,122 @@ async function saDeleteComparativa(marca,modelo){
   if(error){ showToast('error al borrar: '+error.message); return; }
   showToast('entrada borrada ✓',true);
   saLoadComparativa();
+}
+
+// ── [Criterio Ruedda] activación manual del medidor — escribe las mismas
+// columnas pme_* que escribiría el motor automático, pme_basado_en='manual'.
+window._saCriterioData = window._saCriterioData || {};
+window._saCriterioSel = window._saCriterioSel || {};
+let _saCriterioTable='listings';
+const _SA_CRIT_LEVELS=[['super_oferta','Súper oferta'],['buen_precio','Buen precio'],['precio_justo','Precio justo'],['costoso','Por encima del mercado']];
+const _SA_CRIT_CONFS=[['alta','Alta'],['media','Media'],['baja','Baja']];
+function _saCriterioClassify(delta){
+  return delta<-10?'super_oferta':delta<-3?'buen_precio':delta<5?'precio_justo':'costoso';
+}
+function _saCriterioSegHTML(id,kind,options,activeVal){
+  return options.map(([k,label])=>
+    `<button onclick="saCriterioPick('${id}','${kind}','${k}')" data-k="${k}" style="background:${k===activeVal?'#fff':'#000'};color:${k===activeVal?'#0a0a0a':'var(--muted)'};border:1px solid ${k===activeVal?'#fff':'var(--w10)'};border-radius:100px;padding:8px 13px;font-family:var(--font);font-size:11.5px;font-weight:700;cursor:pointer">${_esc(label)}</button>`
+  ).join('');
+}
+async function saLoadCriterioList(tbl){
+  _saCriterioTable = tbl || _saCriterioTable;
+  ['listings','auctions'].forEach(t=>{
+    const btn=document.getElementById('sa-crit-tab-'+t);
+    if(!btn) return;
+    const active=t===_saCriterioTable;
+    btn.style.background=active?'rgba(8,68,26,.15)':'var(--w5)';
+    btn.style.borderColor=active?'rgba(8,68,26,.3)':'var(--border)';
+    btn.style.color=active?'#08441A':'var(--w50)';
+  });
+  const list=document.getElementById('sa-crit-list');
+  if(!list||!_supa) return;
+  list.innerHTML='<div style="text-align:center;padding:30px;color:var(--w30);font-size:13px">cargando...</div>';
+  const priceCol=_saCriterioTable==='auctions'?'current_bid':'precio_usd';
+  const{data,error}=await _supa.from(_saCriterioTable)
+    .select(`id,titulo,marca,modelo,year,${priceCol},pme_usd,pme_delta,pme_classification,pme_confianza`)
+    .eq('estado','activa')
+    .order('created_at',{ascending:false})
+    .limit(100);
+  if(error){list.innerHTML=`<div style="color:rgba(255,80,80,.8);font-size:12px;padding:12px">${_esc(error.message)}</div>`;return;}
+  if(!data?.length){list.innerHTML='<div style="text-align:center;padding:30px;color:var(--w30);font-size:13px">sin publicaciones activas</div>';return;}
+  window._saCriterioData={};
+  data.forEach(p=>{ window._saCriterioData[p.id]=p; });
+  list.innerHTML=data.map(p=>{
+    const price=p[priceCol]||0;
+    const activo=p.pme_usd!=null;
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden">
+      <div onclick="saCriterioToggleRow('${p.id}')" style="padding:13px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(String(p.year||''))} ${_esc(p.marca||'')} ${_esc(p.modelo||p.titulo||'—')}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${fmtBid(price)}</div>
+        </div>
+        <span style="font-size:10px;font-weight:700;padding:5px 10px;border-radius:100px;white-space:nowrap;${activo?'background:#fff;color:#0a0a0a':'background:rgba(255,255,255,.05);color:var(--w30);border:1px solid var(--border)'}">${activo?'activo · manual':'sin activar'}</span>
+      </div>
+      <div id="sa-crit-panel-${p.id}" style="display:none;padding:0 14px 16px"></div>
+    </div>`;
+  }).join('');
+}
+function saCriterioToggleRow(id){
+  const panel=document.getElementById('sa-crit-panel-'+id);
+  if(!panel) return;
+  const wasOpen=panel.style.display==='block';
+  document.querySelectorAll('[id^="sa-crit-panel-"]').forEach(p=>p.style.display='none');
+  if(wasOpen) return;
+  const p=window._saCriterioData[id];
+  if(!p) return;
+  const priceCol=_saCriterioTable==='auctions'?'current_bid':'precio_usd';
+  const price=p[priceCol]||0;
+  const estimado=p.pme_usd!=null?Math.round(price/(1+(Number(p.pme_delta)||0)/100)):price;
+  const delta=estimado?((price-estimado)/estimado*100):0;
+  window._saCriterioSel[id]={ cls:p.pme_classification||_saCriterioClassify(delta), conf:p.pme_confianza||'alta' };
+  panel.innerHTML=`
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--w30);margin:12px 0 8px">precio estimado (usd)</div>
+    <input class="form-input" type="number" value="${estimado}" id="sa-crit-est-${id}" oninput="saCriterioRecalc('${id}',${price})">
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 13px;background:var(--w5);border:1px solid var(--border);border-radius:11px;margin:10px 0 14px">
+      <b id="sa-crit-delta-${id}" style="font-size:14px">${delta>0?'+':''}${delta.toFixed(1)}%</b>
+      <span style="font-size:11px;color:var(--muted)">vs. ${fmtBid(price)} publicado</span>
+    </div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--w30);margin:0 0 8px">clasificación</div>
+    <div id="sa-crit-cls-${id}" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${_saCriterioSegHTML(id,'cls',_SA_CRIT_LEVELS,window._saCriterioSel[id].cls)}</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--w30);margin:0 0 8px">confianza</div>
+    <div id="sa-crit-conf-${id}" style="display:flex;gap:6px;margin-bottom:16px">${_saCriterioSegHTML(id,'conf',_SA_CRIT_CONFS,window._saCriterioSel[id].conf)}</div>
+    <button onclick="saCriterioSave('${id}',${price})" style="width:100%;background:var(--lime);color:var(--lime-ink);border:none;border-radius:13px;padding:14px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer">guardar</button>
+  `;
+  panel.style.display='block';
+}
+function saCriterioRecalc(id,price){
+  const est=Number(document.getElementById('sa-crit-est-'+id)?.value)||0;
+  const delta=est?((price-est)/est*100):0;
+  const deltaEl=document.getElementById('sa-crit-delta-'+id);
+  if(deltaEl) deltaEl.textContent=(delta>0?'+':'')+delta.toFixed(1)+'%';
+  const autoCls=_saCriterioClassify(delta);
+  window._saCriterioSel[id]=window._saCriterioSel[id]||{};
+  window._saCriterioSel[id].cls=autoCls;
+  const clsWrap=document.getElementById('sa-crit-cls-'+id);
+  if(clsWrap) clsWrap.innerHTML=_saCriterioSegHTML(id,'cls',_SA_CRIT_LEVELS,autoCls);
+}
+function saCriterioPick(id,kind,val){
+  window._saCriterioSel[id]=window._saCriterioSel[id]||{};
+  window._saCriterioSel[id][kind]=val;
+  const wrap=document.getElementById('sa-crit-'+kind+'-'+id);
+  const opts=kind==='cls'?_SA_CRIT_LEVELS:_SA_CRIT_CONFS;
+  if(wrap) wrap.innerHTML=_saCriterioSegHTML(id,kind,opts,val);
+}
+async function saCriterioSave(id,price){
+  if(!_supa) return;
+  const est=Number(document.getElementById('sa-crit-est-'+id)?.value)||0;
+  if(!est){ showToast('poné un precio estimado'); return; }
+  const delta=((price-est)/est*100);
+  const sel=window._saCriterioSel[id]||{};
+  const cls=sel.cls||_saCriterioClassify(delta);
+  const conf=sel.conf||'alta';
+  const{error}=await _supa.from(_saCriterioTable).update({
+    pme_usd:est, pme_delta:Number(delta.toFixed(1)), pme_classification:cls, pme_confianza:conf,
+    pme_basado_en:'manual', pme_updated_at:new Date().toISOString()
+  }).eq('id',id);
+  if(error){ showToast('error al guardar: '+error.message); return; }
+  showToast('Criterio Ruedda guardado ✓',true);
+  saLoadCriterioList();
 }
 async function saSaveComparativa(){
   const marca=document.getElementById('sa-cmp-marca')?.value.trim().toLowerCase();
@@ -19414,6 +19531,7 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
       <div class="tab" id="sa-tab-documentos" onclick="saTab('documentos')" style="white-space:nowrap;flex-shrink:0">documentos</div>
       <div class="tab" id="sa-tab-logos" onclick="saTab('logos')" style="white-space:nowrap;flex-shrink:0">logos marcas</div>
       <div class="tab" id="sa-tab-comparativa" onclick="saTab('comparativa')" style="white-space:nowrap;flex-shrink:0">comparativa precios</div>
+      <div class="tab" id="sa-tab-criterio" onclick="saTab('criterio')" style="white-space:nowrap;flex-shrink:0">criterio ruedda</div>
       <div class="tab" id="sa-tab-intro" onclick="saTab('intro')" style="white-space:nowrap;flex-shrink:0">intro app</div>
     </div>
   </div>
@@ -19714,6 +19832,22 @@ if(_detailSellerCard) _auctionObserver.observe(_detailSellerCard,{childList:true
     <div style="font-size:13px;font-weight:700;color:var(--w40);margin-top:10px;text-transform:uppercase;letter-spacing:.4px">entradas cargadas</div>
     <div id="sa-cmp-list" style="display:flex;flex-direction:column;gap:8px">
       <div style="text-align:center;padding:20px;color:var(--w30);font-size:13px">cargando...</div>
+    </div>
+  </div>
+
+  <!-- [Criterio Ruedda] activación manual del medidor mientras el motor de
+       tasación no esté deployado — publicación por publicación, mismos campos
+       que escribiría el motor automático (pme_usd/pme_delta/pme_classification/
+       pme_confianza), pme_basado_en queda como 'manual'. -->
+  <div id="sa-criterio" style="display:none;flex-direction:column;padding:18px 18px 100px;gap:14px">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Criterio Ruedda</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px">Mientras el motor automático no esté deployado, acá activas el medidor a mano por publicación. Toca una fila, pon el precio estimado y guarda — el comprador ve el mismo chip que si lo hubiera calculado el motor.</div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button onclick="saLoadCriterioList('listings')" id="sa-crit-tab-listings" style="flex:1;background:rgba(8,68,26,.15);border:1px solid rgba(8,68,26,.3);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:#08441A;cursor:pointer">market</button>
+      <button onclick="saLoadCriterioList('auctions')" id="sa-crit-tab-auctions" style="flex:1;background:var(--w5);border:1px solid var(--border);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--w50);cursor:pointer">subastas</button>
+    </div>
+    <div id="sa-crit-list" style="display:flex;flex-direction:column;gap:8px">
+      <div style="text-align:center;padding:30px;color:var(--w30);font-size:13px">cargando...</div>
     </div>
   </div>
 
