@@ -470,7 +470,7 @@ html{scrollbar-width:none}
 
 #sched-cal-popup-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:340;align-items:flex-end;justify-content:center;color:var(--white)}
 #sched-cal-popup-overlay.open{display:flex}
-.sched-cal-popup{width:100%;max-height:78vh;overflow-y:auto;background:var(--surface-hi);border:1px solid var(--w8);border-bottom:none;border-radius:24px 24px 0 0;padding:0 0 30px;transform:translateY(100%);transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
+.sched-cal-popup{width:100%;max-height:78vh;max-height:78dvh;overflow-y:auto;background:var(--surface-hi);border:1px solid var(--w8);border-bottom:none;border-radius:24px 24px 0 0;padding:0 0 30px;transform:translateY(100%);transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
 #sched-cal-popup-overlay.open .sched-cal-popup{transform:translateY(0)}
 .sched-cal-popup-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px;position:sticky;top:0;background:var(--surface-hi);z-index:2}
 .sched-cal-popup-title{font-size:15px;font-weight:800;letter-spacing:-.2px;text-transform:capitalize}
@@ -2851,7 +2851,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- AUTH SHEET (landing) -->
 <div class="modal-overlay" id="auth-sheet" onclick="if(event.target.id==='auth-sheet')closeAuthSheet()" style="align-items:flex-end;background:rgba(0,0,0,.35);color:var(--white)">
-  <div id="auth-sheet-inner" style="background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:26px 26px 0 0;padding:0 0 44px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .32s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+  <div id="auth-sheet-inner" style="background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:26px 26px 0 0;padding:0 0 44px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .32s cubic-bezier(.25,.46,.45,.94);max-height:78vh;max-height:78dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
     <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:var(--surface-lo);border-radius:2px"></div></div>
     <div style="padding:22px 24px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
       <div id="auth-title" style="font-size:22px;font-weight:800;letter-spacing:-.4px">crear cuenta</div>
@@ -3328,7 +3328,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <!-- [CONS HUB v1] sheet flotante "ser partner" — mismo patrón visual que
      forgot-password/reset-password (rounded top, drag handle, inputs oscuros). -->
 <div id="partner-lead-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease;color:#fff" onclick="if(event.target===this)_closePartnerSheet()">
-  <div id="pls-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+  <div id="pls-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;overflow-y:auto;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:#fff">ser partner</div>
     <div style="font-size:13px;font-weight:300;color:rgba(255,255,255,.55);text-align:center;margin-top:8px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto">Inscribe tu marca o concesionario para unirte a la red de Ruedda.</div>
@@ -3726,7 +3726,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- FILTER PANEL -->
 <div id="filter-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;color:#fff" onclick="closeFilterPanel()"></div>
-<div id="filter-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:201;background:var(--surface-hi);border-radius:26px 26px 0 0;border:1px solid var(--w8);border-bottom:none;padding:0 0 44px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94);max-height:85vh;overflow-y:auto">
+<div id="filter-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:201;background:var(--surface-hi);border-radius:26px 26px 0 0;border:1px solid var(--w8);border-bottom:none;padding:0 0 44px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94);max-height:85vh;max-height:85dvh;overflow-y:auto">
   <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:var(--surface-lo);border-radius:2px"></div></div>
   <div style="padding:18px 22px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
     <div style="font-size:18px;font-weight:800;letter-spacing:-.3px">filtros</div>
@@ -5262,7 +5262,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- [BLOQUE 2] PARTNERS SHEET -->
 <div class="vender-modal" id="partners-modal" onclick="closePartnersModalOutside(event)">
-  <div class="vender-sheet" style="max-height:82vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
+  <div class="vender-sheet" style="max-height:82vh;max-height:82dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">
     <div class="vender-handle"></div>
     <div class="vender-sheet-title">ruedda partners</div>
     <div class="vender-sheet-sub">así crecemos juntos con tu marca o negocio</div>
@@ -5490,7 +5490,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- MI GARAGE — AGREGAR/EDITAR VEHÍCULO -->
 <div class="modal-overlay" id="garage-vehicle-sheet" onclick="if(event.target.id==='garage-vehicle-sheet')closeGarageVehicleForm()" style="align-items:flex-end">
-  <div class="modal-sheet" style="text-align:left;max-height:86vh;overflow-y:auto">
+  <div class="modal-sheet" style="text-align:left;max-height:86vh;max-height:86dvh;overflow-y:auto">
     <div class="modal-handle"></div>
     <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:4px" id="garage-form-title">agregar vehículo</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:18px">muéstrale tus carros o proyectos a la comunidad</div>
@@ -5512,7 +5512,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- MI GARAGE — DETALLE DE VEHÍCULO -->
 <div class="modal-overlay" id="garage-detail-sheet" onclick="if(event.target.id==='garage-detail-sheet')closeGarageVehicleDetail()" style="align-items:flex-end">
-  <div class="modal-sheet" style="text-align:left;max-height:86vh;overflow-y:auto" id="garage-detail-content"></div>
+  <div class="modal-sheet" style="text-align:left;max-height:86vh;max-height:86dvh;overflow-y:auto" id="garage-detail-content"></div>
 </div>
 
 <!-- MI GARAGE — RECLAMAR VEHÍCULO POR VIN -->
@@ -5551,7 +5551,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- MI GARAGE — TRANSFERIR A USUARIO -->
 <div class="modal-overlay" id="garage-transfer-sheet" onclick="if(event.target.id==='garage-transfer-sheet')closeGarageTransferSearch()" style="align-items:flex-end">
-  <div class="modal-sheet" style="text-align:left;max-height:80vh;overflow-y:auto">
+  <div class="modal-sheet" style="text-align:left;max-height:80vh;max-height:80dvh;overflow-y:auto">
     <div class="modal-handle"></div>
     <div style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:12px">transferir a un usuario de Ruedda</div>
     <input id="garage-transfer-search" class="form-input" type="text" placeholder="buscar por nombre o @usuario" oninput="_garageSearchUsers(this.value)" style="margin-bottom:12px">
@@ -5591,7 +5591,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- PAYMENT SHEET -->
 <div class="modal-overlay" id="payment-sheet" onclick="closePaymentSheet(event)" style="align-items:flex-end">
-  <div style="background:var(--surface-hi);border-radius:28px 28px 0 0;padding:0 0 44px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .38s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+  <div style="background:var(--surface-hi);border-radius:28px 28px 0 0;padding:0 0 44px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .38s cubic-bezier(.25,.46,.45,.94);max-height:78vh;max-height:78dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
 
     <!-- handle -->
     <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:var(--surface-lo);border-radius:2px"></div></div>
@@ -5645,7 +5645,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- CHECKOUT MODAL -->
 <div class="modal-overlay" id="checkout-modal" onclick="if(event.target.id==='checkout-modal')closeCheckout()" style="align-items:flex-end">
-  <div style="background:var(--surface-hi);border-radius:26px 26px 0 0;padding:0 0 44px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .35s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+  <div style="background:var(--surface-hi);border-radius:26px 26px 0 0;padding:0 0 44px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .35s cubic-bezier(.25,.46,.45,.94);max-height:78vh;max-height:78dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
     <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:var(--surface-lo);border-radius:2px"></div></div>
     <div style="padding:20px 22px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
       <div style="font-size:19px;font-weight:800;letter-spacing:-.3px">completar pago</div>
@@ -5749,7 +5749,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- PRICING SHEET -->
 <div class="modal-overlay" id="pricing-sheet" onclick="if(event.target.id==='pricing-sheet')closePricingSheet()" style="align-items:flex-end">
-  <div style="background:var(--surface-hi);border-radius:26px 26px 0 0;padding:0 0 48px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .35s cubic-bezier(.25,.46,.45,.94);max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+  <div style="background:var(--surface-hi);border-radius:26px 26px 0 0;padding:0 0 48px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .35s cubic-bezier(.25,.46,.45,.94);max-height:78vh;max-height:78dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
     <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:var(--surface-lo);border-radius:2px"></div></div>
 
     <!-- [V135] banner 16:9 editable desde Super Admin (ej. "código gratis
@@ -8012,7 +8012,7 @@ function _gcOpenSharePicker(){
     sheet.onclick=e=>{if(e.target===sheet)_gcCloseSharePicker();};
     document.body.appendChild(sheet);
   }
-  sheet.innerHTML=`<div id="gc-share-inner" style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:70vh;overflow-y:auto;transform:translateY(40px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)">
+  sheet.innerHTML=`<div id="gc-share-inner" style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:70vh;max-height:70dvh;overflow-y:auto;transform:translateY(40px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)">
     <div style="width:36px;height:4px;border-radius:2px;background:var(--w15);margin:14px auto 6px"></div>
     <div style="font-size:13px;font-weight:700;color:var(--w40);text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:12px">compartir publicación</div>
     <div id="gc-share-grid" style="padding:0 14px 24px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -12428,7 +12428,7 @@ function openMisPublicaciones(){
     document.body.appendChild(sheet);
   }
   sheet.innerHTML=`
-    <div id="mis-pub-inner" style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;transform:translateY(40px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)">
+    <div id="mis-pub-inner" style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;overflow-y:auto;transform:translateY(40px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 18px 14px">
         <button onclick="closeMisPub()" style="background:var(--w7);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--w60)"><path d="m15 18-6-6 6-6"/></svg></button>
         <div style="font-size:13px;font-weight:700;color:var(--w40);text-transform:uppercase;letter-spacing:.5px">mis publicaciones</div>
@@ -12558,7 +12558,7 @@ async function openEditListingModal(id){
   modal.id='edit-listing-modal';
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:9995;display:flex;align-items:flex-end;justify-content:center';
   modal.onclick=e=>{if(e.target===modal)modal.remove();};
-  modal.innerHTML=`<div style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;display:flex;align-items:center;justify-content:center;padding:60px 20px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)"><div class="save-spinner"></div></div>`;
+  modal.innerHTML=`<div style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;display:flex;align-items:center;justify-content:center;padding:60px 20px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)"><div class="save-spinner"></div></div>`;
   document.body.appendChild(modal);
   if(!_supa){ modal.remove(); showToast('sin conexión a Supabase'); return; }
   const{data:l,error}=await _supa.from('listings').select('*').eq('id',_idStr).maybeSingle();
@@ -12665,7 +12665,7 @@ async function openEditListingModal(id){
     <div style="padding:14px 18px;border-top:1px solid var(--border);flex-shrink:0">
       <button id="save-listing-btn" onclick="saveListingEdit('${id}')" style="width:100%;background:var(--lime);color:var(--lime-ink);border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s">guardar cambios</button>
     </div>`;
-  inner.style.cssText='background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)';
+  inner.style.cssText='background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)';
 
   // tabs
   modal.querySelectorAll('.edit-tab-btn').forEach(btn=>{
@@ -15064,7 +15064,7 @@ async function openModReview(id){
     document.body.appendChild(modal);
   }
   modal.innerHTML=`
-    <div style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:0 0 32px;max-height:78vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+    <div style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:0 0 32px;max-height:78vh;max-height:78dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 18px 14px">
         <button onclick="document.getElementById('mod-review-modal').remove()" style="background:var(--w7);border:none;color:var(--w60);cursor:pointer;padding:8px 12px;border-radius:10px;font-family:var(--font);font-size:13px;display:flex;align-items:center;gap:6px"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="m15 18-6-6 6-6"/></svg>volver</button>
         <div style="font-size:13px;font-weight:700;color:var(--w50);text-transform:uppercase;letter-spacing:.5px">revisión</div>
@@ -18969,7 +18969,7 @@ function openEditProfileModal(){
   const inp='width:100%;background:var(--w5);border:1px solid var(--w10);border-radius:12px;padding:13px 14px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box';
   const lbl='font-size:12px;font-weight:700;color:var(--w40);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.4px';
   m.innerHTML=`
-    <div id="epm-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:88vh;overflow-y:auto;padding:22px 20px calc(40px + env(safe-area-inset-bottom));transform:translateY(28px);transition:transform .3s cubic-bezier(.22,1,.36,1)">
+    <div id="epm-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;overflow-y:auto;padding:22px 20px calc(40px + env(safe-area-inset-bottom));transform:translateY(28px);transition:transform .3s cubic-bezier(.22,1,.36,1)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <div style="font-size:17px;font-weight:800;letter-spacing:-.3px">editar información</div>
         <button onclick="_closeEditProfile()" style="background:var(--w7);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--w50)">×</button>
@@ -19131,7 +19131,7 @@ function _showAuctionAccessSheet(){
   sheet.onclick=e=>{if(e.target===sheet)_closeAuctionAccessSheet();};
   const holdId='358420048'; // holding id USDT
   sheet.innerHTML=`
-  <div id="aas-panel" style="background:#000;width:100%;max-width:560px;max-height:92vh;border-radius:24px 24px 0 0;border-top:1px solid var(--w10);overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+  <div id="aas-panel" style="background:#000;width:100%;max-width:560px;max-height:92vh;max-height:92dvh;border-radius:24px 24px 0 0;border-top:1px solid var(--w10);overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateY(100%);transition:transform .4s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="position:sticky;top:0;background:rgba(0,0,0,.9);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:14px 0 10px;display:flex;justify-content:center;z-index:2;color:#fff">
       <div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div>
     </div>
@@ -20383,7 +20383,7 @@ async function saOpenCoverPicker(id){
   modal.dataset.itemId=id;
   modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:9996;display:flex;align-items:flex-end;justify-content:center';
   modal.onclick=e=>{if(e.target===modal)modal.remove();};
-  modal.innerHTML=`<div style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:80vh;display:flex;flex-direction:column;padding:20px 18px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)">
+  modal.innerHTML=`<div style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:80vh;max-height:80dvh;display:flex;flex-direction:column;padding:20px 18px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div style="font-size:15px;font-weight:700">elegir portada</div>
       <button onclick="document.getElementById('sa-cover-modal').remove()" style="background:var(--w7);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--w50)">×</button>
