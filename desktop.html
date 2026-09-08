@@ -726,13 +726,11 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 /* VISTA MARCAS */
 /* [pedido explícito] "Marcas." pasa de título grande centrado (tapaba el
    mapa) a texto chico en una esquina. El fondo se queda negro. */
-.marcas-hero{position:relative;background:#000;border-radius:28px 28px 0 0;padding:max(70px,calc(env(safe-area-inset-top) + 26px)) 20px 24px;overflow:hidden;text-align:left;min-height:150px}
+/* [pedido explícito] fondo blanco fijo (antes negro), título en negro. */
+.marcas-hero{position:relative;background:#fff;border-radius:28px 28px 0 0;padding:max(70px,calc(env(safe-area-inset-top) + 26px)) 20px 24px;overflow:hidden;text-align:left;min-height:150px}
 .marcas-hero .mh-text{position:relative;z-index:2}
-.marcas-hero h1{font-size:15px;font-weight:800;letter-spacing:-.2px;position:relative;z-index:2;margin-top:0;color:#fff}
-/* [fix contraste] .marcas-hero fuerza fondo negro siempre, pero el texto no
-   estaba forzado — en modo claro heredaba el color oscuro del tema y casi
-   desaparecía sobre el fondo negro. */
-.marcas-hero .mh-sub{font-size:11px;font-weight:600;color:rgba(255,255,255,.55);letter-spacing:.2px;margin-top:2px;position:relative;z-index:2}
+.marcas-hero h1{font-size:15px;font-weight:800;letter-spacing:-.2px;position:relative;z-index:2;margin-top:0;color:#000}
+.marcas-hero .mh-sub{font-size:11px;font-weight:600;color:rgba(0,0,0,.55);letter-spacing:.2px;margin-top:2px;position:relative;z-index:2}
 .marcas-hero .world-ico{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:220px;opacity:.22;z-index:1}
 .marcas-search{margin:16px 14px 0;background:var(--surface-mid);border:1px solid var(--border);border-radius:100px;display:flex;align-items:center;padding:13px 18px;gap:10px}
 .marcas-region-btn{flex-shrink:0;background:transparent;border:1px solid var(--w20);border-radius:100px;padding:8px 16px;font-size:12px;font-weight:600;color:var(--w60);cursor:pointer;transition:all .15s;font-family:var(--font);white-space:nowrap}
@@ -7954,8 +7952,21 @@ async function _loadMarcaLogos(){
   try{
     const{data}=await _supa.from('marca_logos').select('marca,logo_url');
     (data||[]).forEach(r=>{ MARCA_LOGOS[r.marca]=r.logo_url; });
-    Object.keys(MARCA_LOGOS).forEach(m=>_marcaSetLogo(m,MARCA_LOGOS[m]));
+    _marcaSetAllLogos();
   }catch(e){console.warn('[ruedda] _loadMarcaLogos',e?.message||e);}
+}
+// [fix freeze real #2] insertar TODOS los logos de golpe (hasta ~56 marcas) dispara
+// esa misma cantidad de cargas de imagen simultáneas — en la primera visita de la
+// sesión (caché fría) las respuestas de red + decode llegan escalonadas solas pero
+// muy juntas, y si el usuario sale de marcas mientras varias siguen en vuelo, sus
+// onload (cada uno tocando el DOM: opacity, remover placeholder) siguen disparando
+// DESPUÉS de la navegación y compiten con el pintado de la vista destino — mismo
+// patrón exacto que el freeze de los iframes de comunidad. Se escalona la
+// asignación de cada img.src (18ms de por medio) para que nunca lleguen todas a la vez.
+function _marcaSetAllLogos(){
+  Object.keys(MARCA_LOGOS).forEach((m,i)=>{
+    setTimeout(()=>_marcaSetLogo(m,MARCA_LOGOS[m]),i*18);
+  });
 }
 function _marcaSetLogo(marca,url){
   if(!url) return;
@@ -7989,7 +8000,7 @@ function renderMarcasGrid(filterText){
     return `<div class="marca-card" id="marca-card-${slug}" onclick="goToMarcaFilter('${m.replace(/'/g,"\\'")}')"><span id="marca-ph-${slug}" style="position:relative;z-index:1;transition:opacity .35s ease">${_esc(m)}</span></div>`;
   }).join(''):'<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:30px 0">sin resultados</div>';
   // repinta logos ya cargados en memoria (si el usuario re-filtra, vuelve a construir el DOM)
-  Object.keys(MARCA_LOGOS).forEach(m=>_marcaSetLogo(m,MARCA_LOGOS[m]));
+  _marcaSetAllLogos();
 }
 function filterMarcas(val){ renderMarcasGrid(val); }
 // [BLOQUE 5] filtro dinámico por región — Americanas/Chinas/Europeas/Asiáticas
