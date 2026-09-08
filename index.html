@@ -14,6 +14,16 @@
       }
     }catch(e){}
   }
+  // [fix sombra Safari] instalada (PWA/standalone) el nav flotante queda pegado
+  // al borde real de la pantalla — el box-shadow se pierde fuera de la vista y
+  // no se nota. En Safari normal (pestaña), el viewport visual termina ANTES
+  // del borde físico (la barra de Safari ocupa esa franja) y esa misma sombra
+  // se ve flotando como una franja gris fea justo encima de la UI de Safari.
+  // Se marca sincrónico, antes del primer paint, para no parpadear.
+  try{
+    var _rdStandalone = window.navigator.standalone===true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    if(!_rdStandalone) document.documentElement.classList.add('rd-safari-tab');
+  }catch(e){}
   // [V139] modo claro — el atributo se aplica ACÁ, sincrónico, antes de que
   // el CSS de más abajo llegue a pintar nada (si corriera después, ej. en
   // DOMContentLoaded, se vería un parpadeo: oscuro un instante, después
@@ -758,6 +768,10 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 
 /* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--bottomnav-border);border-radius:100px;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);display:flex;justify-content:center;align-items:center;gap:3px;padding:9px 12px;z-index:99}
+/* [fix sombra Safari] en pestaña normal (no PWA) el viewport visual de Safari
+   termina antes del borde físico — la sombra de 40px se ve flotando sobre la
+   barra de Safari. Instalada (PWA) no pasa, así que ahí queda intacta. */
+html.rd-safari-tab .bottom-nav{box-shadow:0 4px 14px rgba(0,0,0,.28),inset 0 1px 0 var(--w7)}
 .bnav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;cursor:pointer;padding:11px 19px;color:var(--muted);font-weight:500;transition:color .2s,background .2s;position:relative;border-radius:100px}
 .bnav-item.active{color:var(--white);background:var(--w10);box-shadow:inset 0 0 0 1px var(--w8)}
 .bnav-item svg{width:23px;height:23px}
