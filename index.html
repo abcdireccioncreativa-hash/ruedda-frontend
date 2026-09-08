@@ -1317,7 +1317,11 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
 .btn-confirm-bid:active{transform:scale(.98);background:var(--lime-dark)}
 
 /* DRAWER */
-.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;color:#fff}
+/* [fix] rgba(0,0,0,.55) es un tinte "multiply" — sobre texto/logo ya oscuro casi
+   no cambia nada (negro sobre negro sigue negro), por eso el header arriba se veía
+   sin oscurecer comparado con las fotos de abajo. backdrop-filter:brightness() sí
+   oscurece TODO lo que hay detrás por igual, sin importar su color. */
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:brightness(.55);-webkit-backdrop-filter:brightness(.55);z-index:200;color:#fff}
 .drawer-overlay.open{display:block}
 .drawer{position:fixed;top:0;right:0;bottom:0;width:265px;background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-left:1px solid var(--bottomnav-border);z-index:201;padding:54px 22px 0;transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;gap:0;border-radius:20px 0 0 20px}.drawer-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:40px}
 .drawer.open{transform:translateX(0)}
@@ -1350,7 +1354,7 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
 .dealer-info{padding:12px 14px 16px;display:flex;flex-direction:column;gap:3px}
 .dealer-name{font-size:13px;font-weight:700;letter-spacing:-.2px;line-height:1.25}
 .dealer-meta{font-size:12px;color:var(--muted)}
-.dealer-count{font-size:11px;font-weight:600;color:#08441A;margin-top:2px}
+.dealer-count{font-size:11px;font-weight:600;color:var(--muted);margin-top:2px}
 /* VITRINA */
 .vitrina-banner{width:calc(100% - 28px);margin:0 14px 0;height:160px;position:relative;overflow:hidden;border-radius:var(--radius);flex-shrink:0}
 .vitrina-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px 14px 100px}
@@ -3634,7 +3638,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
             <div class="seller-card-info">
               <span class="seller-card-label">publicado por</span>
               <span class="seller-card-name" id="mkt-seller-name">vendedor</span>
-              <span id="mkt-seller-dealer-badge" style="display:none;font-size:10px;font-weight:700;color:rgba(8,68,26,.7);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">ir a vitrina ›</span>
+              <span id="mkt-seller-dealer-badge" style="display:none;font-size:10px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">ir a vitrina ›</span>
             </div>
           </div>
           <div class="detail-section-title">preguntas al vendedor</div>
@@ -4380,7 +4384,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     </div>
     <!-- TAB DOTS -->
     <div style="display:flex;gap:6px;padding-left:2px">
-      <div id="dot-notifs" style="width:20px;height:3px;border-radius:2px;background:#fff;transition:all .22s"></div>
+      <div id="dot-notifs" style="width:20px;height:3px;border-radius:2px;background:var(--white);transition:all .22s"></div>
       <div id="dot-mensajes" style="width:6px;height:3px;border-radius:2px;background:var(--w20);transition:all .22s"></div>
     </div>
   </div>
@@ -6766,9 +6770,9 @@ function switchNotifTab(tab){
   const dotM=document.getElementById('dot-mensajes');
   if(dotN&&dotM){
     dotN.style.width=isNotifs?'20px':'6px';
-    dotN.style.background=isNotifs?'var(--lime)':'var(--w20)';
+    dotN.style.background=isNotifs?'var(--white)':'var(--w20)';
     dotM.style.width=isNotifs?'6px':'20px';
-    dotM.style.background=isNotifs?'var(--w20)':'var(--lime)';
+    dotM.style.background=isNotifs?'var(--w20)':'var(--white)';
   }
   const ab=document.getElementById('notif-action-btn');
   if(ab) ab.style.display='none';
@@ -8957,8 +8961,8 @@ async function openMarketDetail(id, origin){
   const initials=(dealerName||'V').charAt(0).toUpperCase();
   document.getElementById('mkt-seller-avatar-bid').textContent=initials;
   const _av=document.getElementById('mkt-seller-avatar');if(_av){_av.textContent=initials;_av.style.background=`hsl(${(initials.charCodeAt(0)*47)%360},40%,28%)`;_av.style.color='#fff';}
-  document.getElementById('mkt-seller-name-bid').innerHTML=(dealerName||'Vendedor particular')+(dealerId?'<svg viewBox="0 0 16 16" fill="#08441A" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'');
-  const _nm=document.getElementById('mkt-seller-name');if(_nm)_nm.innerHTML=(dealerName||'Vendedor particular')+(dealerId?'<svg viewBox="0 0 16 16" fill="#08441A" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'');
+  document.getElementById('mkt-seller-name-bid').innerHTML=(dealerName||'Vendedor particular')+(dealerId?'<svg viewBox="0 0 16 16" fill="#0a0a0a" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'');
+  const _nm=document.getElementById('mkt-seller-name');if(_nm)_nm.innerHTML=(dealerName||'Vendedor particular')+(dealerId?'<svg viewBox="0 0 16 16" fill="#0a0a0a" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>':'');
   document.getElementById('mkt-seller-type-bid').textContent=dealerId?(l.sellerType||'concesionario · ruedda'):('particular · miembro de ruedda');
   // dealer vitrina link
   const _card=document.getElementById('mkt-seller-card');
@@ -11319,7 +11323,7 @@ function _showVitrinaActivadaSplash(){
     </svg>
     <div style="display:flex;flex-direction:column;gap:8px;opacity:0;animation:splashFade .4s ease .15s forwards">
       <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--white)">Vitrina activada.</div>
-      <div style="font-size:14px;color:var(--w50);line-height:1.6;font-weight:400">En la sección <span style="color:#08441A;font-weight:600">Cuenta</span> encontrarás<br>Administrar vitrina digital.</div>
+      <div style="font-size:14px;color:var(--w50);line-height:1.6;font-weight:400">En la sección <span style="color:var(--white);font-weight:600">Cuenta</span> encontrarás<br>Administrar vitrina digital.</div>
     </div>`;
   document.body.appendChild(sp);
   requestAnimationFrame(()=>{ requestAnimationFrame(()=>{ sp.style.opacity='1'; }); });
@@ -13568,7 +13572,7 @@ function renderDealerFiltered(){
   grid.innerHTML = dealers.length
     ? dealers.map((d,i)=>`<div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
         <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" decoding="async" onload="this.style.opacity='1'">`:d.initial}</div>
-        <div class="dealer-info"><div class="dealer-name" style="display:flex;align-items:center;gap:0">${d.nombre}<svg viewBox="0 0 16 16" fill="#08441A" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="dealer-meta">${d.ciudad.toLowerCase()}</div><div class="dealer-count">${d.autos} vehículos</div></div>
+        <div class="dealer-info"><div class="dealer-name" style="display:flex;align-items:center;gap:0">${d.nombre}<svg viewBox="0 0 16 16" fill="#0a0a0a" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="dealer-meta">${d.ciudad.toLowerCase()}</div><div class="dealer-count">${d.autos} vehículos</div></div>
       </div>`).join('')
     : '<div class="empty-state" style="grid-column:1/-1"><p>sin concesionarios con estos filtros</p></div>';
 }
@@ -13625,7 +13629,7 @@ function renderDealerGrid(){
     <div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
       <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" decoding="async" onload="this.style.opacity='1'">`:d.initial}</div>
       <div class="dealer-info">
-        <div class="dealer-name" style="display:flex;align-items:center">${d.nombre}<svg viewBox="0 0 16 16" fill="#08441A" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="dealer-name" style="display:flex;align-items:center">${d.nombre}<svg viewBox="0 0 16 16" fill="#0a0a0a" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="dealer-meta">${d.ciudad.toLowerCase()}</div>
         <div class="dealer-count" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${d.autos} vehículos${_rdStarsHTML(d.rating,d.ratingCount)}</div>
       </div>
@@ -16098,7 +16102,7 @@ function _showForgotPassword(){
   m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease';
   m.onclick=e=>{if(e.target===m)_closeForgotPassword();};
   m.innerHTML=`
-  <div id="fpw-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+  <div id="fpw-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:var(--w6);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
       <svg fill="none" viewBox="0 0 24 24" stroke="var(--white)" stroke-width="1.6" style="width:24px;height:24px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -16146,7 +16150,7 @@ function _showResetPasswordSheet(){
   m.id='reset-pw-sheet';
   m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease';
   m.innerHTML=`
-  <div id="rpw-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+  <div id="rpw-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:rgba(8,68,26,.08);border:1px solid rgba(8,68,26,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
       <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.6" style="width:24px;height:24px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -21730,7 +21734,15 @@ function _rdSwipeExitSplash(label,iconHtml,navigateFn){
   if(document.getElementById('rd-swipe-splash')) return;
   let sp=document.createElement('div');
   sp.id='rd-swipe-splash';
-  sp.style.cssText = 'position:fixed;inset:0;z-index:100000;background:var(--splash-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity .3s ease';
+  // [fix "aparece el market antes de la animación"] antes esto arrancaba en
+  // opacity:0 y recién se volvía opaco tras 2 rAF + .3s de transición — en esa
+  // ventana la vista que se está saliendo (ya en opacity:0 por el swipe) Y el
+  // splash (todavía opacity:0) son ambos transparentes a la vez, dejando ver
+  // el fondo plano de la página de por medio (se lee como "aparece el market").
+  // Ahora el fondo sólido del splash pinta YA, sin transición de entrada — el
+  // anillo/check/label de adentro siguen animando su propia entrada igual
+  // (splashRing/splashCheck/splashFade), solo el fondo deja de parpadear.
+  sp.style.cssText = 'position:fixed;inset:0;z-index:100000;background:var(--splash-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:1;transition:opacity .3s ease';
   sp.innerHTML=`
     ${iconHtml||`<svg width="52" height="52" viewBox="0 0 52 52" fill="none">
       <circle cx="26" cy="26" r="25" stroke="var(--w15)" stroke-width="1.5"/>
@@ -21739,7 +21751,6 @@ function _rdSwipeExitSplash(label,iconHtml,navigateFn){
     </svg>`}
     <div style="font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--white);opacity:0;animation:splashFade .4s ease .15s forwards">${label}</div>`;
   document.body.appendChild(sp);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ sp.style.opacity='1'; }));
   setTimeout(()=>{
     navigateFn();
     // arma la coreografía de la sección destino MIENTRAS el splash sigue tapando todo
