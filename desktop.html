@@ -2014,7 +2014,15 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <div id="boot-splash">
   <div id="boot-splash-mark-wrap">
     <div id="boot-splash-mark"></div>
-    <script>_rdWaveFlag(document.getElementById('boot-splash-mark'),{size:64});</script>
+    <script>
+      _rdWaveFlag(document.getElementById('boot-splash-mark'),{size:64});
+      try{
+        if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){
+          const{SplashScreen}=window.Capacitor.Plugins||{};
+          if(SplashScreen) SplashScreen.hide();
+        }
+      }catch(e){}
+    </script>
   </div>
   <div id="boot-splash-text">un momento</div>
 </div>
@@ -11223,6 +11231,10 @@ function _paintDefaultViewSlider(){
 }
 
 // ============ NOTIFICACIONES PUSH ============
+function _isNativeApp(){
+  try{ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+  catch(e){ return false; }
+}
 const RUEDDA_VAPID_PUBLIC_KEY='BJt2YvaIYpgTJWDu10zkHdIguqkYgGk3kRrHUIiCohc1iK9hiDSxFl1Og1l7O_U3XMiCGoJmBH1KmIEW4FDOL8I';
 function _urlBase64ToUint8Array(base64String){
   const padding='='.repeat((4-base64String.length%4)%4);
@@ -11233,14 +11245,48 @@ function _urlBase64ToUint8Array(base64String){
   return outputArray;
 }
 async function _registerServiceWorker(){
+  if(_isNativeApp()) return;
   if(!('serviceWorker' in navigator)) return;
   try{ await navigator.serviceWorker.register('/sw.js'); }
   catch(e){ console.warn('[ruedda] service worker no se pudo registrar',e?.message||e); }
+}
+async function _registerNativePush(){
+  if(!_isNativeApp()) return false;
+  try{
+    const{PushNotifications}=window.Capacitor.Plugins||{};
+    if(!PushNotifications) return false;
+    let perm=await PushNotifications.checkPermissions();
+    if(perm.receive==='prompt') perm=await PushNotifications.requestPermissions();
+    if(perm.receive!=='granted') return false;
+    await PushNotifications.register();
+    PushNotifications.addListener('registration',async(token)=>{
+      try{
+        await _supa.from('native_push_tokens').upsert({
+          user_id:USER_STATE.id,
+          token:token.value,
+          platform:window.Capacitor.getPlatform()
+        },{onConflict:'token'});
+      }catch(e){ console.warn('[ruedda] no se pudo guardar el token push nativo',e?.message||e); }
+    });
+    PushNotifications.addListener('registrationError',(err)=>{
+      console.warn('[ruedda] error registrando push nativo',err);
+    });
+    return true;
+  }catch(e){ console.warn('[ruedda] _registerNativePush',e?.message||e); return false; }
 }
 async function _paintPushToggle(){
   const cb=document.getElementById('cfg-push-toggle');
   const sub=document.getElementById('cfg-push-sub');
   if(!cb) return;
+  if(_isNativeApp()){
+    try{
+      const{PushNotifications}=window.Capacitor.Plugins||{};
+      const perm=PushNotifications?await PushNotifications.checkPermissions():{receive:'denied'};
+      cb.checked=perm.receive==='granted';
+      if(sub) sub.textContent=perm.receive==='granted'?'activadas en este dispositivo':'avisos aunque tengas la app cerrada';
+    }catch(e){}
+    return;
+  }
   if(!('serviceWorker' in navigator)||!('PushManager' in window)){
     cb.disabled=true;
     if(sub) sub.textContent='tu navegador no soporta notificaciones push';
@@ -11257,6 +11303,14 @@ async function _togglePushNotifications(enable){
   const cb=document.getElementById('cfg-push-toggle');
   const sub=document.getElementById('cfg-push-sub');
   if(isGuest()){ if(cb)cb.checked=false; triggerGuestBlock('notificaciones'); return; }
+  if(_isNativeApp()){
+    if(!enable){ showToast('para desactivar, hazlo desde los ajustes de notificaciones del sistema'); if(cb)cb.checked=true; return; }
+    const ok=await _registerNativePush();
+    if(cb) cb.checked=ok;
+    if(sub) sub.textContent=ok?'activadas en este dispositivo':'avisos aunque tengas la app cerrada';
+    showToast(ok?'notificaciones push activadas':'no se pudo activar, revisa los permisos del sistema',ok);
+    return;
+  }
   if(!('serviceWorker' in navigator)||!('PushManager' in window)){
     if(cb) cb.checked=false;
     showToast('tu navegador no soporta notificaciones push');

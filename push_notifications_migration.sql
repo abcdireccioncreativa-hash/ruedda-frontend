@@ -18,6 +18,28 @@ create index if not exists push_subscriptions_user_id_idx on public.push_subscri
 
 alter table public.push_subscriptions enable row level security;
 
+-- 1b. Tabla de tokens nativos (app de Xcode/Android Studio) — formato distinto
+-- a una suscripción Web Push, por eso es tabla aparte. Se llena sola cuando
+-- el usuario activa notificaciones push DENTRO de la app nativa (no del
+-- navegador). Enviar push nativo real requiere ademas configurar APNs
+-- (Apple) y Firebase (Android) — ver RUEDDA_IOS_BRIEFING.md — sin eso la
+-- tabla igual se llena de tokens pero /api/send-push.js todavia no los usa
+-- (por ahora solo manda Web Push; agregar el envio nativo es el siguiente
+-- paso, una vez tengas esas credenciales).
+create table if not exists public.native_push_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  token text not null unique,
+  platform text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists native_push_tokens_user_id_idx on public.native_push_tokens(user_id);
+alter table public.native_push_tokens enable row level security;
+create policy "usuarios manejan sus propios tokens push nativos"
+  on public.native_push_tokens for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
 -- el usuario solo puede leer/crear/borrar sus PROPIAS suscripciones
 create policy "usuarios manejan sus propias suscripciones push"
   on public.push_subscriptions for all

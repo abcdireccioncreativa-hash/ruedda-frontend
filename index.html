@@ -2715,7 +2715,19 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <div id="boot-splash">
   <div id="boot-splash-mark-wrap">
     <div id="boot-splash-mark"></div>
-    <script>_rdWaveFlag(document.getElementById('boot-splash-mark'),{size:64});</script>
+    <script>
+      _rdWaveFlag(document.getElementById('boot-splash-mark'),{size:64});
+      // [app nativa] apenas este splash propio ya está pintado en pantalla,
+      // se retira el splash NATIVO de Xcode/Android Studio — así el handoff
+      // es de un splash animado a otro, nunca un parpadeo de splash nativo
+      // estático seguido del splash real de la app.
+      try{
+        if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){
+          const{SplashScreen}=window.Capacitor.Plugins||{};
+          if(SplashScreen) SplashScreen.hide();
+        }
+      }catch(e){}
+    </script>
   </div>
   <div id="boot-splash-text">un momento</div>
 </div>
@@ -12052,6 +12064,16 @@ function _paintThemeToggle(){
 }
 
 // ============ NOTIFICACIONES PUSH ============
+// [app nativa] cuando esto corre DENTRO del wrapper de Xcode/Android Studio
+// (Capacitor), window.Capacitor existe e inyecta su puente — en ese caso se
+// usa push nativo real (APNs/FCM vía @capacitor/push-notifications) en vez
+// de Web Push. En navegador/PWA normal (sin Capacitor) sigue exactamente el
+// camino de Web Push de siempre. Mismo toggle, mismo texto, dos caminos
+// por debajo según dónde esté corriendo.
+function _isNativeApp(){
+  try{ return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); }
+  catch(e){ return false; }
+}
 // clave pública VAPID — es pública por diseño (no es un secreto, va en el
 // cliente a propósito), la privada vive server-side en api/send-push.js.
 const RUEDDA_VAPID_PUBLIC_KEY='BJt2YvaIYpgTJWDu10zkHdIguqkYgGk3kRrHUIiCohc1iK9hiDSxFl1Og1l7O_U3XMiCGoJmBH1KmIEW4FDOL8I';
@@ -12064,10 +12086,42 @@ function _urlBase64ToUint8Array(base64String){
   return outputArray;
 }
 // se llama una vez al boot — si el navegador no soporta SW/Push, no hace nada.
+// Adentro de la app nativa no hace falta (usa push nativo, no Web Push).
 async function _registerServiceWorker(){
+  if(_isNativeApp()) return;
   if(!('serviceWorker' in navigator)) return;
   try{ await navigator.serviceWorker.register('/sw.js'); }
   catch(e){ console.warn('[ruedda] service worker no se pudo registrar',e?.message||e); }
+}
+// [app nativa] registra el token real de APNs/FCM y lo guarda en
+// native_push_tokens (tabla separada de push_subscriptions — el formato del
+// token nativo no es una suscripción Web Push). Requiere que, del lado de
+// Apple/Google, ya esté configurado el certificado/clave APNs y el proyecto
+// Firebase (ver notas del bundle nativo) — sin eso, register() no falla acá
+// pero tampoco llega ningún push real.
+async function _registerNativePush(){
+  if(!_isNativeApp()) return false;
+  try{
+    const{PushNotifications}=window.Capacitor.Plugins||{};
+    if(!PushNotifications) return false;
+    let perm=await PushNotifications.checkPermissions();
+    if(perm.receive==='prompt') perm=await PushNotifications.requestPermissions();
+    if(perm.receive!=='granted') return false;
+    await PushNotifications.register();
+    PushNotifications.addListener('registration',async(token)=>{
+      try{
+        await _supa.from('native_push_tokens').upsert({
+          user_id:USER_STATE.id,
+          token:token.value,
+          platform:window.Capacitor.getPlatform()
+        },{onConflict:'token'});
+      }catch(e){ console.warn('[ruedda] no se pudo guardar el token push nativo',e?.message||e); }
+    });
+    PushNotifications.addListener('registrationError',(err)=>{
+      console.warn('[ruedda] error registrando push nativo',err);
+    });
+    return true;
+  }catch(e){ console.warn('[ruedda] _registerNativePush',e?.message||e); return false; }
 }
 // pinta el estado real del toggle (suscrito o no) al entrar a Configuración —
 // separado de si el usuario dio permiso del sistema o no.
@@ -12075,6 +12129,15 @@ async function _paintPushToggle(){
   const cb=document.getElementById('cfg-push-toggle');
   const sub=document.getElementById('cfg-push-sub');
   if(!cb) return;
+  if(_isNativeApp()){
+    try{
+      const{PushNotifications}=window.Capacitor.Plugins||{};
+      const perm=PushNotifications?await PushNotifications.checkPermissions():{receive:'denied'};
+      cb.checked=perm.receive==='granted';
+      if(sub) sub.textContent=perm.receive==='granted'?'activadas en este dispositivo':'avisos aunque tengas la app cerrada';
+    }catch(e){}
+    return;
+  }
   if(!('serviceWorker' in navigator)||!('PushManager' in window)){
     cb.disabled=true;
     if(sub) sub.textContent='tu navegador no soporta notificaciones push';
@@ -12091,6 +12154,14 @@ async function _togglePushNotifications(enable){
   const cb=document.getElementById('cfg-push-toggle');
   const sub=document.getElementById('cfg-push-sub');
   if(isGuest()){ if(cb)cb.checked=false; triggerGuestBlock('notificaciones'); return; }
+  if(_isNativeApp()){
+    if(!enable){ showToast('para desactivar, hazlo desde los ajustes de notificaciones del sistema'); if(cb)cb.checked=true; return; }
+    const ok=await _registerNativePush();
+    if(cb) cb.checked=ok;
+    if(sub) sub.textContent=ok?'activadas en este dispositivo':'avisos aunque tengas la app cerrada';
+    showToast(ok?'notificaciones push activadas':'no se pudo activar, revisa los permisos del sistema',ok);
+    return;
+  }
   if(!('serviceWorker' in navigator)||!('PushManager' in window)){
     if(cb) cb.checked=false;
     showToast('tu navegador no soporta notificaciones push');
