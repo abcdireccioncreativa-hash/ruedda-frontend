@@ -11250,6 +11250,36 @@ async function _registerServiceWorker(){
   try{ await navigator.serviceWorker.register('/sw.js'); }
   catch(e){ console.warn('[ruedda] service worker no se pudo registrar',e?.message||e); }
 }
+// [fix real] cubre el caso de estar YA adentro de la app cuando se va el
+// internet a mitad de sesión — offline.html (vía service worker) solo cubre
+// una navegación nueva sin red, no un SPA ya cargado. Overlay en vivo con
+// los eventos online/offline, mismo isotipo animado que el boot-splash.
+function _showOfflineOverlay(){
+  if(document.getElementById('rd-offline-overlay')) return;
+  const el=document.createElement('div');
+  el.id='rd-offline-overlay';
+  el.style.cssText='position:fixed;inset:0;z-index:999999;background:var(--splash-bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;opacity:0;transition:opacity .35s ease';
+  el.innerHTML=`
+    <div style="position:absolute;top:50%;left:50%;width:280px;height:280px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,var(--w10) 0%,transparent 70%);filter:blur(30px);pointer-events:none"></div>
+    <div id="rd-offline-mark" style="position:relative;width:64px;height:64px;color:var(--white);z-index:1"></div>
+    <div style="position:relative;margin-top:22px;font-size:15px;font-weight:700;color:var(--white);letter-spacing:-.1px;z-index:1">sin conexión</div>
+    <div style="position:relative;margin-top:6px;font-size:13px;font-weight:400;color:var(--muted);letter-spacing:.1px;z-index:1">Ruedda necesita internet para seguir</div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>{ el.style.opacity='1'; });
+  try{ _rdWaveFlag(document.getElementById('rd-offline-mark'),{size:64}); }catch(e){}
+}
+function _hideOfflineOverlay(){
+  const el=document.getElementById('rd-offline-overlay');
+  if(!el) return;
+  el.style.opacity='0';
+  setTimeout(()=>{ el.remove(); },350);
+}
+window.addEventListener('offline',_showOfflineOverlay);
+window.addEventListener('online',_hideOfflineOverlay);
+if(typeof navigator!=='undefined'&&navigator.onLine===false){
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',_showOfflineOverlay);
+  else _showOfflineOverlay();
+}
 async function _registerNativePush(){
   if(!_isNativeApp()) return false;
   try{

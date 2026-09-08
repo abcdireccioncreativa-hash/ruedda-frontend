@@ -12093,6 +12093,42 @@ async function _registerServiceWorker(){
   try{ await navigator.serviceWorker.register('/sw.js'); }
   catch(e){ console.warn('[ruedda] service worker no se pudo registrar',e?.message||e); }
 }
+// [fix real] offline.html (vía el service worker) solo cubre una NAVEGACIÓN
+// nueva sin red (abrir/recargar la PWA en frío) — pero esta app es una SPA de
+// una sola página: si ya estás adentro y se va el internet a mitad de sesión
+// (el caso real, mucho más común), nunca ocurre una navegación nueva, así que
+// el fallback del service worker jamás se dispara. Esto cubre ESE caso: un
+// overlay a pantalla completa, mismo isotipo animado y blur que offline.html,
+// que aparece/desaparece en vivo con los eventos online/offline del navegador.
+function _showOfflineOverlay(){
+  if(document.getElementById('rd-offline-overlay')) return;
+  const el=document.createElement('div');
+  el.id='rd-offline-overlay';
+  el.style.cssText='position:fixed;inset:0;z-index:999999;background:var(--splash-bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;opacity:0;transition:opacity .35s ease';
+  el.innerHTML=`
+    <div style="position:absolute;top:50%;left:50%;width:280px;height:280px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,var(--w10) 0%,transparent 70%);filter:blur(30px);pointer-events:none"></div>
+    <div id="rd-offline-mark" style="position:relative;width:64px;height:64px;color:var(--white);z-index:1"></div>
+    <div style="position:relative;margin-top:22px;font-size:15px;font-weight:700;color:var(--white);letter-spacing:-.1px;z-index:1">sin conexión</div>
+    <div style="position:relative;margin-top:6px;font-size:13px;font-weight:400;color:var(--muted);letter-spacing:.1px;z-index:1">Ruedda necesita internet para seguir</div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>{ el.style.opacity='1'; });
+  try{ _rdWaveFlag(document.getElementById('rd-offline-mark'),{size:64}); }catch(e){}
+}
+function _hideOfflineOverlay(){
+  const el=document.getElementById('rd-offline-overlay');
+  if(!el) return;
+  el.style.opacity='0';
+  setTimeout(()=>{ el.remove(); },350);
+}
+window.addEventListener('offline',_showOfflineOverlay);
+window.addEventListener('online',_hideOfflineOverlay);
+// chequeo inicial — si ya abriste la app sin red (y por lo que sea el
+// fallback del service worker no aplicó, ej. la app ya estaba en cache),
+// igual se muestra apenas carga.
+if(typeof navigator!=='undefined'&&navigator.onLine===false){
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',_showOfflineOverlay);
+  else _showOfflineOverlay();
+}
 // [app nativa] registra el token real de APNs/FCM y lo guarda en
 // native_push_tokens (tabla separada de push_subscriptions — el formato del
 // token nativo no es una suscripción Web Push). Requiere que, del lado de
