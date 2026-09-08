@@ -840,6 +840,13 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 .detail-content{padding:14px 18px}
 .detail-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;margin-bottom:10px}
 .detail-badge{font-size:12px;font-weight:600;padding:5px 12px;border-radius:100px;border:1px solid var(--border);color:var(--muted)}
+/* [pedido explícito] "X personas viendo esto ahora" — literal (rojo), no
+   usa el sistema de acento negro/lime a propósito: es una señal de
+   urgencia (FOMO), no una acción/branding, así que se mantiene igual en
+   ambos temas. Oculto por defecto — solo se muestra con 2+ presentes. */
+.rd-live-viewers{display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.28);border-radius:100px;padding:4px 10px 4px 8px;font-size:11px;font-weight:700;color:#dc2626}
+.rd-lv-dot{width:6px;height:6px;border-radius:50%;background:#dc2626;flex-shrink:0;animation:rdLvPulse 1.4s ease-in-out infinite}
+@keyframes rdLvPulse{0%,100%{opacity:1}50%{opacity:.3}}
 /* [pedido explícito, mismo que mobile] la etiqueta "market" pasa de verde a
    negro sólido con texto blanco. */
 /* [pedido explícito] mismo peso visual que sus badges vecinos (borde + relleno
@@ -2871,6 +2878,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
             <div class="timer-big">
               <div class="timer-big-label">tiempo restante</div>
               <div class="timer-big-value" id="detail-timer"></div>
+              <!-- [pedido explícito] "X personas viendo esto ahora" — presencia en vivo, ver _startViewerPresence -->
+              <span id="detail-live-viewers" class="rd-live-viewers" style="display:none"><span class="rd-lv-dot"></span><span class="rd-lv-count">2</span> viendo esto ahora</span>
             </div>
           </div>
           <button class="btn-bid" onclick="openBidModal()">hacer oferta</button>
@@ -3028,6 +3037,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
             <div>
               <div class="bid-amount-label">precio</div>
               <div class="bid-amount" id="mkt-price"></div>
+              <!-- [pedido explícito] "X personas viendo esto ahora" — presencia en vivo, ver _startViewerPresence -->
+              <span id="mkt-live-viewers" class="rd-live-viewers" style="display:none"><span class="rd-lv-dot"></span><span class="rd-lv-count">2</span> viendo esto ahora</span>
               <!-- [Precio Justo] placeholder sin diseñar — el look final lo define Enrique -->
               <div id="mkt-pme-meter-placeholder"></div>
             </div>
@@ -5435,6 +5446,11 @@ function fmtCountdown(ms){
 // ===================== VIEW =====================
 function showView(name,param){
   document.documentElement.scrollTop=0;document.body.scrollTop=0;
+  // [pedido explícito] al salir de una publicación/subasta por CUALQUIER
+  // camino (no solo casita/swipe — también tocar directo un ícono del
+  // bottom-nav), suelta el canal de presencia de "X viendo esto ahora".
+  // Los _rdExit* ya lo hacen para casita/swipe/atrás; esto cubre el resto.
+  if((currentView==='market-detail'||currentView==='detail')&&name!==currentView&&typeof _stopViewerPresence==='function')_stopViewerPresence();
   // [fix jank "home lento"] los clips de comunidad (favoritos) que no tienen
   // thumbnail se embeben como iframe de Instagram/YouTube — al salir, showView()
   // solo pone display:none en el contenedor, así que esos iframes seguían VIVOS
@@ -8187,6 +8203,9 @@ async function openMarketDetail(id, origin){
     _sellerCardSync.style.cursor='pointer';
     _sellerCardSync.onclick=()=>{ l.dealerId?openVitrina(l.dealerId):openUserProfile(l.user_id); };
   }
+  // [pedido explícito] "X personas viendo esto ahora" — se une al canal de
+  // presencia de ESTA publicación (y suelta cualquier canal anterior).
+  if(typeof _startViewerPresence==='function') _startViewerPresence('listing',l.id,'mkt-live-viewers');
   // [V124] videos del vehículo — sección solo aparece si hay al menos uno
   // reset sincrónico primero: el DOM persiste entre vistas (SPA).
   const _mvSec=document.getElementById('mkt-videos-section');
@@ -8517,6 +8536,9 @@ function openDetail(id){
     _sellerCardSyncA.style.cursor='pointer';
     _sellerCardSyncA.onclick=()=>{ openUserProfile(a.ownerId); };
   }
+  // [pedido explícito] "X personas viendo esto ahora" — se une al canal de
+  // presencia de ESTA subasta (y suelta cualquier canal anterior).
+  if(typeof _startViewerPresence==='function') _startViewerPresence('auction',a.id,'detail-live-viewers');
   clearTimers();
   showView('detail');
   currentPhotoIndex=0;
@@ -18522,6 +18544,51 @@ function _registerRealView(tabla,item){
   }catch(e){}
 }
 
+// ─────────────────────────────────────────────
+// [pedido explícito] "X personas viendo esto ahora" — presencia en vivo
+// ─────────────────────────────────────────────
+// Distinto de _registerRealView (eso es histórico/acumulado, va a la base
+// de datos). Esto es efímero: usa Supabase Realtime Presence — cada
+// visitante se "une" a un canal por publicación mientras la tiene abierta,
+// y todos los que están ven cuántos hay conectados EN ESE INSTANTE. No
+// toca la base de datos — si alguien cierra la pestaña o pierde conexión,
+// Supabase limpia su presencia solo, sin que nadie tenga que avisar.
+let _liveViewerChannel=null;
+function _stopViewerPresence(){
+  if(_liveViewerChannel){
+    try{ _supa.removeChannel(_liveViewerChannel); }catch(e){}
+    _liveViewerChannel=null;
+  }
+  // [fix] si se navega rápido entre publicaciones, ocultar el badge viejo
+  // de inmediato en vez de dejarlo con el conteo de la publicación anterior
+  // hasta que llegue el primer 'sync' del canal nuevo.
+  ['mkt-live-viewers','detail-live-viewers'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+}
+function _startViewerPresence(kind,id,badgeId){
+  _stopViewerPresence();
+  if(!_supa||!id) return;
+  const myKey=(crypto.randomUUID?crypto.randomUUID():String(Date.now())+'-'+Math.random().toString(36).slice(2));
+  let ch;
+  try{ ch=_supa.channel(`presence:${kind}:${id}`,{config:{presence:{key:myKey}}}); }catch(e){ return; }
+  ch.on('presence',{event:'sync'},()=>{
+    let count=0;
+    try{ count=Object.keys(ch.presenceState()).length; }catch(e){}
+    const el=document.getElementById(badgeId);
+    if(!el) return;
+    if(count>=2){
+      el.style.display='inline-flex';
+      const c=el.querySelector('.rd-lv-count'); if(c) c.textContent=count;
+    } else {
+      el.style.display='none';
+    }
+  });
+  ch.subscribe(status=>{ if(status==='SUBSCRIBED') ch.track({t:Date.now()}); });
+  _liveViewerChannel=ch;
+}
+
 
 // [V87] modal de edicion de perfil — fondo #000, animacion seamless
 // [BLOQUE 4] lista canónica de ciudades — expandida y centralizada. Todos los
@@ -21200,6 +21267,7 @@ const _RD_GAVEL_ICON='<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAC
 
 // ── punto único de salida por vista — todo lo que saca de la publicación pasa por acá ──
 function _rdExitMarketDetail(afterNav){
+  if(typeof _stopViewerPresence==='function') _stopViewerPresence();
   const label=(typeof mktDetailOrigin!=='undefined'&&mktDetailOrigin==='vitrina')?'volviendo a concesionarios':'volviendo a market';
   _rdSwipeExitSplash(label,'',()=>{
     if(mktDetailOrigin==='vitrina') openVitrina(currentMarketListing&&currentMarketListing.dealerId?currentMarketListing.dealerId:(currentDealer&&currentDealer.id));
@@ -21209,6 +21277,7 @@ function _rdExitMarketDetail(afterNav){
   });
 }
 function _rdExitAuctionDetail(afterNav){
+  if(typeof _stopViewerPresence==='function') _stopViewerPresence();
   _rdSwipeExitSplash('volviendo a subastas',_RD_GAVEL_ICON,()=>{
     showView('home');
     if(typeof afterNav==='function') afterNav();
