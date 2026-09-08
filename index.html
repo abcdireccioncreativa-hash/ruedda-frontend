@@ -732,11 +732,13 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 /* [pedido explícito] "Marcas." pasa de título grande centrado (tapaba el
    mapa) a texto chico en una esquina. El fondo se queda negro. */
 /* [pedido explícito] fondo blanco fijo (antes negro), título en negro. */
-.marcas-hero{position:relative;background:#fff;border-radius:28px 28px 0 0;padding:max(70px,calc(env(safe-area-inset-top) + 26px)) 20px 24px;overflow:hidden;text-align:left;min-height:150px}
+.marcas-hero{position:relative;background:#fff;border-radius:0;padding:max(70px,calc(env(safe-area-inset-top) + 26px)) 20px 24px;overflow:hidden;text-align:left;min-height:150px}
 .marcas-hero .mh-text{position:relative;z-index:2}
 .marcas-hero h1{font-size:15px;font-weight:800;letter-spacing:-.2px;position:relative;z-index:2;margin-top:0;color:#000}
 .marcas-hero .mh-sub{font-size:11px;font-weight:600;color:rgba(0,0,0,.55);letter-spacing:.2px;margin-top:2px;position:relative;z-index:2}
-.marcas-hero .world-ico{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:220px;opacity:.22;z-index:1}
+/* [pedido explícito] mapa en negro — la imagen fuente es una silueta clara,
+   filter:brightness(0) la fuerza a negro puro conservando la transparencia. */
+.marcas-hero .world-ico{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:220px;opacity:.16;filter:brightness(0);z-index:1}
 .marcas-search{margin:16px 14px 0;background:var(--surface-mid);border:1px solid var(--border);border-radius:100px;display:flex;align-items:center;padding:13px 18px;gap:10px}
 .marcas-region-btn{flex-shrink:0;background:transparent;border:1px solid var(--w20);border-radius:100px;padding:8px 16px;font-size:12px;font-weight:600;color:var(--w60);cursor:pointer;transition:all .15s;font-family:var(--font);white-space:nowrap}
 /* [pedido explícito] filtro activo siempre negro/blanco, no el color de
@@ -6582,10 +6584,30 @@ function renderCards(filter){
   });
 }
 
-function startCardTimer(id,endTime){ const el=document.getElementById('timer-card-'+id); if(el) el.dataset.end=endTime; }
+// [fix lentitud general/inputs] esto corría un querySelectorAll('[id^="timer-card-"]')
+// sobre TODO el documento, cada segundo, para siempre, sin importar la vista activa —
+// selector de prefijo (no #id exacto), así que el navegador no puede usar el atajo
+// rápido de getElementById y tiene que recorrer el árbol. Como esta app mantiene
+// todas las vistas montadas (solo oculta con display) y las cards de "cargar más"
+// nunca se desmontan, ese árbol solo crece durante la sesión — el costo de este tick
+// crecía con el tiempo de uso y competía con CUALQUIER otra cosa en el hilo principal,
+// typing incluido. Ahora se mantiene un Set con referencias directas a los elementos
+// (poblado por startCardTimer), sin volver a consultar el DOM cada segundo — un
+// elemento desmontado (renderCards() reconstruye el grid) se autolimpia solo via
+// isConnected, sin necesidad de un cleanup aparte.
+// [PERF] dos guardas más sobre el tick: no corre con la pestaña en background,
+// y no escribe si el texto no cambió (cada escritura sobre un badge con
+// backdrop-filter invalida esa región y obliga a recalcular el blur).
+const _cardTimerEls=new Set();
+function startCardTimer(id,endTime){ const el=document.getElementById('timer-card-'+id); if(el){ el.dataset.end=endTime; _cardTimerEls.add(el); } }
 if(!window._cardTick) window._cardTick=setInterval(()=>{
-  document.querySelectorAll('[id^="timer-card-"]').forEach(el=>{
-    if(el.dataset.end) el.textContent=fmtCountdown(+el.dataset.end-Date.now());
+  if(document.hidden) return;
+  _cardTimerEls.forEach(el=>{
+    if(!el.isConnected){ _cardTimerEls.delete(el); return; }
+    const e=el.dataset.end;
+    if(!e) return;
+    const txt=fmtCountdown(+e-Date.now());
+    if(el.textContent!==txt) el.textContent=txt;
   });
 },1000);
 
