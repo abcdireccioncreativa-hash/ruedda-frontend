@@ -1271,6 +1271,13 @@ html[data-theme="light"] .cnt-slider-tab.active{background:#fff}
 
 /* BID MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end;color:var(--white)}
+/* [fix Safari — refuerzo] el fix de dvh corrige el cálculo de altura, pero
+   en Safari (pestaña, no PWA) el propio "position:fixed;inset:0" del
+   overlay puede seguir midiéndose contra el viewport SIN descontar la
+   barra de Safari en algunos casos — el contenido queda justo al borde,
+   sin margen de sobra. Colchón extra específico para Safari-tab, cero
+   efecto en PWA (donde no hace falta). */
+html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bottom) + 70px)!important;box-sizing:border-box}
 .modal-overlay.open{display:flex}
 /* [MENU SESIÓN] cierre suave igual al vender-modal: opacidad scoped solo a #auth-sheet,
    no toca .modal-overlay compartido por los demás sheets */
@@ -3996,7 +4003,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     <!-- [reubicado] antes era una frase larga ("¿Quieres ver los precios
          primero?") dentro del hero — ahora solo el botón, a la altura de
          "volver". -->
-    <button onclick="openPricingSheet(true)" style="background:none;border:1px solid var(--w12);color:#08441A;font-family:var(--font);font-size:13px;font-weight:700;padding:8px 16px;border-radius:100px;cursor:pointer;flex-shrink:0">Ver precios</button>
+    <button onclick="openPricingSheet(true)" style="background:none;border:none;color:#000;font-family:var(--font);font-size:14px;font-weight:700;text-decoration:underline;padding:8px 2px;cursor:pointer;flex-shrink:0">Ver precios</button>
   </div>
   <div class="vender-hero">
     <h2 id="vender-hero-title">publicar vehículo</h2>
@@ -10807,31 +10814,35 @@ function confirmPayment(){
 const PRICING_PLANS = {
   particular: [
     {
-      id:'gratis', name:'Gratis', nameColor:'#fff', price:'', priceColor:'var(--w50)',
+      id:'gratis', name:'Gratis', nameColor:'var(--white)', price:'', priceColor:'var(--w50)',
       desc:'Vende gratis en Ruedda con tu código de invitación. Publicación básica.',
       allowCode:true, showArrow:false
     },
     {
-      id:'full', name:'RueddaFull', nameColor:'#fff', price:'4.95$', priceColor:'#fff',
+      id:'full', name:'RueddaFull', nameColor:'var(--white)', price:'4.95$', priceColor:'var(--white)',
       desc:'Exposición garantizada para vender más rápido.', allowCode:false, showArrow:true, hasInfo:true
     },
     {
-      id:'plus', name:'Ruedda<span style="color:#08441A">Plus+</span>', nameColor:'#fff', price:'9.93$', priceColor:'#fff',
+      id:'plus', name:'Ruedda<span style="color:#08441A">Plus+</span>', nameColor:'var(--white)', price:'9.93$', priceColor:'var(--white)',
       desc:'Máxima visibilidad y presencia en redes.', allowCode:false, showArrow:true, hasInfo:true
+    },
+    {
+      id:'pro', name:'Ruedda<span style="color:#08441A">Pro</span>', nameColor:'var(--white)', price:'60$', priceColor:'var(--white)',
+      desc:'Servicio completo: video profesional, sesión de fotos de calidad y 2 meses de exposición destacada.', allowCode:false, showArrow:true, hasInfo:true
     },
   ],
   subasta: [
     {
-      id:'gratis', name:'Gratis', nameColor:'#fff', price:'', priceColor:'var(--w50)',
+      id:'gratis', name:'Gratis', nameColor:'var(--white)', price:'', priceColor:'var(--w50)',
       desc:'Subasta gratuita con tu código de invitación.',
       allowCode:true, showArrow:false
     },
     {
-      id:'normal', name:'Subasta Normal', nameColor:'#fff', price:'$7.99', priceColor:'#fff',
+      id:'normal', name:'Subasta Normal', nameColor:'var(--white)', price:'$7.99', priceColor:'var(--white)',
       desc:'Subasta estándar con visibilidad completa.', allowCode:false, showArrow:true, hasInfo:true
     },
     {
-      id:'plus', name:'Ruedda<span style="color:#08441A">Plus+</span>', nameColor:'#fff', price:'$23.95', priceColor:'#fff',
+      id:'plus', name:'Ruedda<span style="color:#08441A">Plus+</span>', nameColor:'var(--white)', price:'$23.95', priceColor:'var(--white)',
       desc:'Máxima visibilidad y redes sociales.', allowCode:false, showArrow:true, hasInfo:true
     },
   ],
@@ -12321,6 +12332,16 @@ const PLAN_INFO = {
         {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'Exposición de 3 meses', detail:'Tu publicación permanece activa por 3 meses.'},
         {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-4.66"/></svg>', label:'2 republicaciones', detail:'Republica tu carro hasta 2 veces sin costo adicional.'},
         {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><path d="m12 11-4 4 4 4"/></svg>', label:'Venta a la puerta de la esquina', detail:'Coordinamos visitas y pruebas de manejo en tu zona.'},
+      ]
+    },
+    pro: {
+      title:'RueddaPro',
+      price:'$60',
+      perks:[
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', label:'Video profesional', detail:'Un video corto de tu vehículo, grabado y editado por el equipo de Ruedda.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>', label:'Sesión de fotos profesional', detail:'Un fotógrafo autorizado por Ruedda te visita y toma las fotos de tu publicación.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'2 meses de exposición destacada', detail:'Tu publicación permanece activa y destacada por 2 meses completos.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Soporte prioritario', detail:'Un asesor Ruedda te acompaña de principio a fin en la venta.'},
       ]
     }
   },
@@ -15566,14 +15587,24 @@ function simularRol(role, dealerActive){
   showToast('rol: '+role+(dealerActive?' (vitrina activa)':''),true);
 }
 
+let _goHomeBusy=false;
 function goHome(){
+  // [perf] guard anti doble-disparo — un tap rápido repetido (o el "ghost
+  // click" clásico de iOS Safari) podía encolar dos pasadas de showView()
+  // seguidas, cada una repintando de más. Un solo goHome() en vuelo a la vez.
+  if(_goHomeBusy) return;
+  _goHomeBusy=true;
+  requestAnimationFrame(()=>{ _goHomeBusy=false; });
   // [RC10] la casita ahora es "ir a market" de forma explícita — siempre el
   // mismo destino sin importar en qué sección estés, para que la coreografía
   // de entrada se pueda ver cada vez que quieras, tocando desde cualquier lado.
   // Distinto del bug viejo: aquel era IMPREDECIBLE (a veces subastas, a veces
   // market, según un estado oculto). Esto es determinístico, siempre market.
   if(currentView==='home' && currentSection==='market'){
-    window.scrollTo({top:0,behavior:'smooth'});
+    // [perf] scroll instantáneo — "smooth" en iOS Safari mantiene el hilo
+    // principal ocupado animando frame a frame; con un feed largo (mucho
+    // scroll infinito acumulado) eso se siente como el "freeze" reportado.
+    if(window.scrollY>0) requestAnimationFrame(()=>window.scrollTo(0,0));
     return;
   }
   window._homeSectionOverride='market';
