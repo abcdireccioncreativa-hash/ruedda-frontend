@@ -12,7 +12,7 @@
       "dest": "/desktop.html"
     },
     {
-      "src": "^/(subastas|market|concesionarios|pagos)/?$",
+      "src": "^/(subastas|market|concesionarios|pagos|vehiculos|publicar)/?$",
       "missing": [
         { "type": "header", "key": "user-agent", "value": ".*(Mobile|iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini).*" }
       ],
@@ -22,6 +22,8 @@
     { "src": "^/subastas/?$", "dest": "/index.html" },
     { "src": "^/market/?$", "dest": "/index.html" },
     { "src": "^/concesionarios/?$", "dest": "/index.html" },
-    { "src": "^/pagos/?$", "dest": "/index.html" }
+    { "src": "^/pagos/?$", "dest": "/index.html" },
+    { "src": "^/vehiculos/?$", "dest": "/index.html" },
+    { "src": "^/publicar/?$", "dest": "/index.html" }
   ]
 }

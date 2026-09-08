@@ -120,20 +120,20 @@ function _rdWaveFlag(el, opts){
 <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Ruedda: Inicio</title>
+<title>Ruedda | Vende y subasta tu vehículo sin comision. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads</title>
 <meta name="description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <link rel="canonical" href="https://www.ruedda.app/">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ruedda">
-<meta property="og:title" content="Ruedda: Inicio">
+<meta property="og:title" content="Ruedda | Vende y subasta tu vehículo sin comision. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads">
 <meta property="og:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <meta property="og:url" content="https://www.ruedda.app/">
 <meta property="og:image" content="https://www.ruedda.app/icon-192.png">
 <meta property="og:locale" content="es_VE">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ruedda: Inicio">
+<meta name="twitter:title" content="Ruedda | Vende y subasta tu vehículo sin comision. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads">
 <meta name="twitter:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <meta name="twitter:image" content="https://www.ruedda.app/icon-192.png">
 
@@ -262,7 +262,7 @@ html[data-theme="light"]{
   --gc13:#fff;--gc14:rgba(255,255,255,0.864);--gc15:rgba(255,255,255,0.878);
   --gc16:#fff;--gc17:#fff;--gc18:#fff;
   --gc19:#fff;--gc20:#fff;
-  --splash-bg:#fff;
+  --splash-bg:#f6f6ef;
 
   --w0:rgba(21,22,14,0);--w2:rgba(21,22,14,.02);--w3:rgba(21,22,14,.03);
   --w4:rgba(21,22,14,.04);--w5:rgba(21,22,14,.05);--w6:rgba(21,22,14,.06);
@@ -5784,10 +5784,13 @@ function _syncNotifBadge(){
 // vercel.json sirve index.html en esas rutas, y esto lee el path para saber
 // cuál pintar. Cualquier otro path (o "/") cae al default de siempre.
 var _bootPath=(location.pathname||'').replace(/\/+$/,'');
-var _bootIsDedicatedSectionPath=(_bootPath==='/subastas'||_bootPath==='/market'||_bootPath==='/concesionarios');
+// [SEO sitemap] /vehiculos es alias de /market (misma sección, URL propia
+// para el sitemap) — /publicar no tiene sección propia, abre el flujo de
+// vender directo (ver el setTimeout más abajo, después de _updateSeoMeta).
+var _bootIsDedicatedSectionPath=(_bootPath==='/subastas'||_bootPath==='/market'||_bootPath==='/concesionarios'||_bootPath==='/vehiculos');
 let currentView='home', currentTab='pronto', currentSection=(function(){
   if(_bootPath==='/subastas') return 'subastas';
-  if(_bootPath==='/market') return 'market';
+  if(_bootPath==='/market'||_bootPath==='/vehiculos') return 'market';
   if(_bootPath==='/concesionarios') return 'consesionarios';
   return 'market';
 })(); // [RC] la app abre directo en market
@@ -5801,7 +5804,7 @@ var SEO_COPY={
   market:{title:'Ruedda: Market',desc:'Compra y vende vehículos verificados.'},
   consesionarios:{title:'Ruedda: Concesionarios',desc:'Los mejores concesionarios de Venezuela, verificados por Ruedda.'}
 };
-var SEO_HOME={title:'Ruedda: Inicio',desc:'El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.'};
+var SEO_HOME={title:'Ruedda | Vende y subasta tu vehículo sin comision. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads',desc:'El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.'};
 function _updateSeoMeta(section){
   try{
     var copy=SEO_COPY[section]||SEO_HOME;
@@ -5814,6 +5817,13 @@ function _updateSeoMeta(section){
 // sección que se pinte por default sea market — la URL raíz es la home, no
 // la página de market, aunque visualmente arranquen mostrando lo mismo.
 _updateSeoMeta(_bootIsDedicatedSectionPath ? currentSection : null);
+// [SEO sitemap] /publicar entra directo al flujo de vender — sin sección
+// propia (no es un feed), así que no toca currentSection ni SEO_COPY.
+if(_bootPath==='/publicar'){
+  document.addEventListener('DOMContentLoaded',()=>{
+    setTimeout(()=>{ if(typeof showView==='function') showView('vender'); },400);
+  });
+}
 
 let PAYMENT_DATA={banco:'Banesco',telefono:'04123921048',cedula:'28187688',cuenta:''};
 // [V135] miles con puntos, estilo venezolano (20000 -> 20.000) — a mano con
@@ -11770,8 +11780,11 @@ function _paintDefaultViewSlider(){
   if(!knob||!bS||!bM)return;
   const isMarket=USER_STATE.defaultView==='market';
   knob.style.transform=isMarket?'translateX(100%)':'translateX(0)';
-  bS.style.color=isMarket?'var(--w50)':'#000';
-  bM.style.color=isMarket?'#000':'var(--w50)';
+  // [fix contraste] texto sobre el knob usa --lime-ink (mismo token que los
+  // botones) en vez de #000 fijo — con el negro como color de marca por
+  // defecto, texto negro forzado sobre un knob negro quedaba invisible.
+  bS.style.color=isMarket?'var(--w50)':'var(--lime-ink)';
+  bM.style.color=isMarket?'var(--lime-ink)':'var(--w50)';
 }
 async function setDefaultView(val){
   if(isGuest()){showToast('inicia sesión para guardar esta preferencia');return;}

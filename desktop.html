@@ -190,20 +190,20 @@ document.addEventListener('DOMContentLoaded', function(){
   }catch(e){}
 })();
 </script>
-<title>Ruedda: Inicio</title>
+<title>Ruedda | Vende y subasta tu vehículo sin comision. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads</title>
 <meta name="description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <link rel="canonical" href="https://www.ruedda.app/">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ruedda">
-<meta property="og:title" content="Ruedda: Inicio">
+<meta property="og:title" content="Ruedda | Vende y subasta tu vehículo sin comision. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads">
 <meta property="og:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <meta property="og:url" content="https://www.ruedda.app/">
 <meta property="og:image" content="https://www.ruedda.app/icon-192.png">
 <meta property="og:locale" content="es_VE">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ruedda: Inicio">
+<meta name="twitter:title" content="Ruedda | Vende y subasta tu vehículo sin comision. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads">
 <meta name="twitter:description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <meta name="twitter:image" content="https://www.ruedda.app/icon-192.png">
 
@@ -308,7 +308,7 @@ html[data-theme="light"]{
   --gc13:#fff;--gc14:rgba(255,255,255,0.864);--gc15:rgba(255,255,255,0.878);
   --gc16:#fff;--gc17:#fff;--gc18:#fff;
   --gc19:#fff;--gc20:#fff;
-  --splash-bg:#fff;
+  --splash-bg:#f6f6ef;
 
   --w0:rgba(21,22,14,0);--w2:rgba(21,22,14,.02);--w3:rgba(21,22,14,.03);
   --w4:rgba(21,22,14,.04);--w5:rgba(21,22,14,.05);--w6:rgba(21,22,14,.06);
@@ -391,9 +391,16 @@ html{scrollbar-width:none}
 .theme-switch-btn{background:none;border:none;color:var(--w32);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .15s,color .15s}
 .theme-switch-btn svg{width:14px;height:14px}
 .theme-switch-btn:hover{color:var(--w70)}
-.theme-switch-btn.active{background:var(--w14);color:var(--lime-text)}
+/* [fix] la luna activa usaba --lime-text (verde) — ahora blanca en oscuro,
+   negra en claro, vía --white (que ya invierte por tema). */
+.theme-switch-btn.active{background:var(--w14);color:var(--white)}
 .btn-vender{background:var(--lime);color:var(--lime-ink);border:none;border-radius:100px;padding:9px 20px;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;letter-spacing:-.1px}
 .btn-vender:active{transform:scale(.97);background:var(--lime-dark)}
+/* [pedido explícito] Vender siempre blanco/negro en modo oscuro (desktop),
+   sin importar el color de marca elegido — el resto de los botones sigue
+   usando --lime/--lime-ink normal. */
+html:not([data-theme="light"]) .btn-vender{background:#fff;color:#000}
+html:not([data-theme="light"]) .btn-vender:active{background:#e8e8e8}
 
 /* VENDER TYPE MODAL */
 .vender-modal{display:none;position:fixed;inset:0;z-index:300;align-items:flex-end;background:rgba(0,0,0,.55);opacity:0;transition:opacity .42s cubic-bezier(.32,.72,0,1)}
@@ -5099,10 +5106,13 @@ function _syncNotifBadge(){
 
 // ===================== STATE =====================
 var _bootPath=(location.pathname||'').replace(/\/+$/,'');
-var _bootIsDedicatedSectionPath=(_bootPath==='/subastas'||_bootPath==='/market'||_bootPath==='/concesionarios');
+// [SEO sitemap] /vehiculos es alias de /market (misma sección, URL propia
+// para el sitemap) — /publicar no tiene sección propia, abre el flujo de
+// vender directo (ver el setTimeout más abajo, después de _updateSeoMeta).
+var _bootIsDedicatedSectionPath=(_bootPath==='/subastas'||_bootPath==='/market'||_bootPath==='/concesionarios'||_bootPath==='/vehiculos');
 let currentView='home', currentTab='pronto', currentSection=(function(){
   if(_bootPath==='/subastas') return 'subastas';
-  if(_bootPath==='/market') return 'market';
+  if(_bootPath==='/market'||_bootPath==='/vehiculos') return 'market';
   if(_bootPath==='/concesionarios') return 'consesionarios';
   return 'market';
 })(); // [RC] la app abre directo en market
@@ -5116,7 +5126,7 @@ var SEO_COPY={
   market:{title:'Ruedda: Market',desc:'Compra y vende vehículos verificados.'},
   consesionarios:{title:'Ruedda: Concesionarios',desc:'Los mejores concesionarios de Venezuela, verificados por Ruedda.'}
 };
-var SEO_HOME={title:'Ruedda: Inicio',desc:'El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.'};
+var SEO_HOME={title:'Ruedda | Vende y subasta tu vehículo sin comision. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads',desc:'El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.'};
 function _updateSeoMeta(section){
   try{
     var copy=SEO_COPY[section]||SEO_HOME;
@@ -5129,6 +5139,13 @@ function _updateSeoMeta(section){
 // sección que se pinte por default sea market — la URL raíz es la home, no
 // la página de market, aunque visualmente arranquen mostrando lo mismo.
 _updateSeoMeta(_bootIsDedicatedSectionPath ? currentSection : null);
+// [SEO sitemap] /publicar entra directo al flujo de vender — sin sección
+// propia (no es un feed), así que no toca currentSection ni SEO_COPY.
+if(_bootPath==='/publicar'){
+  document.addEventListener('DOMContentLoaded',()=>{
+    setTimeout(()=>{ if(typeof showView==='function') showView('vender'); },400);
+  });
+}
 
 let PAYMENT_DATA={banco:'Banesco',telefono:'04123921048',cedula:'28187688',cuenta:''};
 // [V135] miles con puntos, estilo venezolano (20000 -> 20.000) — a mano con
@@ -11008,8 +11025,11 @@ function _paintDefaultViewSlider(){
   if(!knob||!bS||!bM)return;
   const isMarket=USER_STATE.defaultView==='market';
   knob.style.transform=isMarket?'translateX(100%)':'translateX(0)';
-  bS.style.color=isMarket?'var(--w50)':'#000';
-  bM.style.color=isMarket?'#000':'var(--w50)';
+  // [fix contraste] texto sobre el knob usa --lime-ink (mismo token que los
+  // botones) en vez de #000 fijo — con el negro como color de marca por
+  // defecto, texto negro forzado sobre un knob negro quedaba invisible.
+  bS.style.color=isMarket?'var(--w50)':'var(--lime-ink)';
+  bM.style.color=isMarket?'var(--lime-ink)':'var(--w50)';
 }
 async function setDefaultView(val){
   if(isGuest()){showToast('inicia sesión para guardar esta preferencia');return;}
