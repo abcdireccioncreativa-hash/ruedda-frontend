@@ -9,21 +9,28 @@
       "missing": [
         { "type": "header", "key": "user-agent", "value": ".*(Mobile|iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini).*" }
       ],
+      "headers": { "Vary": "User-Agent" },
       "dest": "/desktop.html"
+    },
+    {
+      "src": "^/$",
+      "headers": { "Vary": "User-Agent" },
+      "dest": "/index.html"
     },
     {
       "src": "^/(subastas|market|concesionarios|pagos|vehiculos|publicar)/?$",
       "missing": [
         { "type": "header", "key": "user-agent", "value": ".*(Mobile|iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini).*" }
       ],
+      "headers": { "Vary": "User-Agent" },
       "dest": "/desktop.html"
     },
     { "handle": "filesystem" },
-    { "src": "^/subastas/?$", "dest": "/index.html" },
-    { "src": "^/market/?$", "dest": "/index.html" },
-    { "src": "^/concesionarios/?$", "dest": "/index.html" },
-    { "src": "^/pagos/?$", "dest": "/index.html" },
-    { "src": "^/vehiculos/?$", "dest": "/index.html" },
-    { "src": "^/publicar/?$", "dest": "/index.html" }
+    { "src": "^/subastas/?$", "headers": { "Vary": "User-Agent" }, "dest": "/index.html" },
+    { "src": "^/market/?$", "headers": { "Vary": "User-Agent" }, "dest": "/index.html" },
+    { "src": "^/concesionarios/?$", "headers": { "Vary": "User-Agent" }, "dest": "/index.html" },
+    { "src": "^/pagos/?$", "headers": { "Vary": "User-Agent" }, "dest": "/index.html" },
+    { "src": "^/vehiculos/?$", "headers": { "Vary": "User-Agent" }, "dest": "/index.html" },
+    { "src": "^/publicar/?$", "headers": { "Vary": "User-Agent" }, "dest": "/index.html" }
   ]
 }
