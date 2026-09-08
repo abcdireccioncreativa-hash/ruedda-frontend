@@ -16385,11 +16385,11 @@ function _showGoogleCompleteProfile(user){
   let m=document.getElementById('google-complete-sheet'); if(m) m.remove();
   m=document.createElement('div');
   m.id='google-complete-sheet';
-  m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease';
+  // [pedido explícito] flota centrado, no como bottom sheet — mismo blur de fondo.
+  m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .3s ease';
   const fullName=(user.user_metadata&&(user.user_metadata.full_name||user.user_metadata.name))||'';
   m.innerHTML=`
-  <div id="gcp-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font);max-height:85vh;max-height:85dvh;overflow-y:auto">
-    <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
+  <div id="gcp-inner" style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:24px;width:100%;max-width:400px;padding:28px 24px;transform:scale(.94);opacity:0;transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .28s ease;font-family:var(--font);max-height:85vh;max-height:85dvh;overflow-y:auto">
     <div style="width:54px;height:54px;border-radius:50%;background:var(--w6);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
       <svg fill="none" viewBox="0 0 24 24" stroke="var(--white)" stroke-width="1.6" style="width:24px;height:24px"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 7-7h2a7 7 0 0 1 7 7v1"/></svg>
     </div>
@@ -16404,7 +16404,7 @@ function _showGoogleCompleteProfile(user){
     <button id="gcp-send" onclick="_submitGoogleProfile('${user.id}','${_esc(user.email||'')}')" style="width:100%;margin-top:14px;background:var(--lime);color:var(--lime-ink);border:none;border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:-.1px">continuar</button>
   </div>`;
   document.body.appendChild(m);
-  requestAnimationFrame(()=>{m.style.opacity='1';const i=document.getElementById('gcp-inner');if(i)i.style.transform='translateY(0)';});
+  requestAnimationFrame(()=>{m.style.opacity='1';const i=document.getElementById('gcp-inner');if(i){i.style.transform='scale(1)';i.style.opacity='1';}});
 }
 async function _submitGoogleProfile(userId,email){
   const nombre=(document.getElementById('gcp-nombre')?.value||'').trim();
@@ -16430,7 +16430,7 @@ async function _submitGoogleProfile(userId,email){
     const{error}=await _supa.from('users').upsert({id:userId,nombre,apellido:'',cedula,cedula_tipo:cedTipo,telefono:'',username,role:'particular',email},{onConflict:'id'});
     if(error){ showToast('no se pudo guardar: '+error.message); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
     const m=document.getElementById('google-complete-sheet');
-    if(m){ const i=document.getElementById('gcp-inner'); if(i)i.style.transform='translateY(100%)'; m.style.opacity='0'; setTimeout(()=>m.remove(),380); }
+    if(m){ const i=document.getElementById('gcp-inner'); if(i){i.style.transform='scale(.94)';i.style.opacity='0';} m.style.opacity='0'; setTimeout(()=>m.remove(),320); }
     const{data:profile}=await _supa.from('users').select('*').eq('id',userId).single();
     _rueddaApplySession(profile||{id:userId,nombre,username,role:'particular'});
     _showLoginSplash(nombre);
