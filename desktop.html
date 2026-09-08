@@ -19154,7 +19154,16 @@ openMarketDetail=function(id,from){
 // ─────────────────────────────────────────────
 function _injectPmButton(sellerCardId,receiverId,receiverName,sourceId,sourceType,sourceTitle,isDealer){
   const card=document.getElementById(sellerCardId);
-  if(!card||card.querySelector('.pm-icon-btn')) return;
+  if(!card) return;
+  // [fix definitivo "ver perfil" pegado] antes esto salía apenas ya había un
+  // .pm-icon-btn y nunca se tocaba de nuevo — como #mkt-seller-card/
+  // #detail-seller-card NUNCA se vacían entre publicaciones, el botón (con
+  // su receiverId cerrado en el closure) quedaba fijo en el PRIMER vendedor
+  // visto en toda la sesión, sin importar cuántas publicaciones distintas
+  // se abrieran después. Ahora se saca el viejo y se arma uno nuevo con el
+  // receiverId ACTUAL cada vez que el observer detecta que el nombre cambió.
+  const _oldPmBtn=card.querySelector('.pm-icon-btn');
+  if(_oldPmBtn) _oldPmBtn.remove();
   if(!receiverId||receiverId===USER_STATE.id) return;
   // [V136] antes era un ícono de mensaje (redundante con el botón grande
   // "enviar mensaje al vendedor") — ahora navega al perfil del vendedor.
