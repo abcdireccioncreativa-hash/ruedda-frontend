@@ -832,7 +832,9 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 .detail-content{padding:14px 18px}
 .detail-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;margin-bottom:10px}
 .detail-badge{font-size:12px;font-weight:600;padding:5px 12px;border-radius:100px;border:1px solid var(--border);color:var(--muted)}
-.detail-badge.lime{background:rgba(8,68,26,.08);border-color:rgba(8,68,26,.28);color:var(--lime)}
+/* [pedido explícito, mismo que mobile] la etiqueta "market" pasa de verde a
+   negro sólido con texto blanco. */
+.detail-badge.lime{background:#0a0a0a;border-color:rgba(255,255,255,.14);color:#fff}
 /* [RC] variante verde — para "sin reserva" en detalle, consistente con la card */
 .detail-badge.verde{background:rgba(31,191,92,.92);border-color:rgba(120,240,170,.45);color:#fff;font-weight:700}
 .detail-title{font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1.15;margin-bottom:0}
@@ -1647,7 +1649,10 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
   .auction-card:hover,.market-card:hover{transform:translateY(-3px);border-color:var(--w18);box-shadow:0 10px 32px rgba(0,0,0,.45)}
 
   /* ── CARS & BIDS STYLE: cards globales del market + vitrina, sin bordes redondos, foto a bordes ── */
-  .market-card,.listado-card{border-radius:3px!important;background:#151515}
+  /* [fix contraste] antes background:#151515 fijo — en modo claro la card
+     quedaba oscura con texto oscuro encima (var(--white) invierte a casi
+     negro en claro). Ahora var(--card), que ya invierte bien por tema. */
+  .market-card,.listado-card{border-radius:3px!important;background:var(--card)}
   .market-card-img,.listado-card-img{width:100%!important;margin:0!important;border-radius:0!important;aspect-ratio:16/10.5!important}
   .market-card-body{padding:13px 15px 15px}
   .listado-card-body{padding:12px 14px 15px}
@@ -3355,7 +3360,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     <h2 id="vender-hero-title">publicar vehículo</h2>
     <p id="vender-hero-sub">Llena los datos de tu vehículo.</p>
     <!-- [PUBLICAR POR TI v1] escape hatch antes de meterse en el form largo. -->
-    <p style="font-size:12.5px;color:var(--muted);margin-top:8px">¿Quieres que publiquemos por ti? <span onclick="_showPublishForMeSheet()" style="color:#08441A;font-weight:700;cursor:pointer">Click aquí.</span></p>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:8px">¿Quieres que publiquemos por ti? <span onclick="_showPublishForMeSheet()" style="color:var(--white);font-weight:700;text-decoration:underline;cursor:pointer">Click aquí.</span></p>
     <p style="font-size:12.5px;color:var(--muted);margin-top:4px">¿Quieres ver los precios primero? <span onclick="openPricingSheet(true)" style="color:#08441A;font-weight:700;cursor:pointer">Ver precios.</span></p>
   </div>
   <div class="vender-form">
@@ -5051,8 +5056,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
      openPricingSheet()), justo abajo. Removidos por completo. -->
 
 <!-- PRICING SHEET -->
-<div class="modal-overlay" id="pricing-sheet" onclick="if(event.target.id==='pricing-sheet')closePricingSheet()" style="align-items:flex-end">
-  <div style="background:var(--surface-hi);border-radius:26px 26px 0 0;padding:0 0 48px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .35s cubic-bezier(.25,.46,.45,.94);max-height:78vh;max-height:78dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+<div class="modal-overlay" id="pricing-sheet" onclick="if(event.target.id==='pricing-sheet')closePricingSheet()" style="align-items:flex-end;background:transparent">
+  <div style="background:var(--surface-hi);border-radius:26px 26px 0 0;padding:0 0 48px;width:100%;border:1px solid var(--w8);border-bottom:none;animation:slideUp .35s cubic-bezier(.25,.46,.45,.94);max-height:78vh;max-height:78dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;box-shadow:0 -8px 40px rgba(0,0,0,.35)">
     <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:var(--surface-lo);border-radius:2px"></div></div>
 
     <!-- [V135] banner 16:9 editable desde Super Admin (ej. "código gratis
@@ -10344,9 +10349,9 @@ function _showVitrinaActivadaSplash(){
   sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--splash-bg);opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
   sp.innerHTML=`
     <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-      <circle cx="26" cy="26" r="25" stroke="rgba(8,68,26,.15)" stroke-width="1.5"/>
-      <circle cx="26" cy="26" r="25" stroke="#08441A" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
-      <path d="M17 26l6 6 12-12" stroke="#08441A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
+      <circle cx="26" cy="26" r="25" stroke="var(--w15)" stroke-width="1.5"/>
+      <circle cx="26" cy="26" r="25" stroke="var(--white)" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
+      <path d="M17 26l6 6 12-12" stroke="var(--white)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
     </svg>
     <div style="display:flex;flex-direction:column;gap:8px;opacity:0;animation:splashFade .4s ease .15s forwards">
       <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--white)">Vitrina activada.</div>
@@ -15118,7 +15123,7 @@ function _showLoginSplash(nombre){
   sp.style.opacity='1';
   sp.innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke="rgba(8,68,26,0.15)" stroke-width="1.5"/><circle cx="24" cy="24" r="23" stroke="#08441A" stroke-width="1.5" stroke-dasharray="145" stroke-dashoffset="145" style="animation:splashRing .8s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"><animate attributeName="stroke-dashoffset" from="145" to="0" dur=".8s" begin=".1s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"/></circle><path d="M16 24l5 5 11-11" stroke="#08441A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .75s forwards"><animate attributeName="opacity" from="0" to="1" dur=".3s" begin=".75s" fill="freeze"/></path></svg>
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke="var(--w15)" stroke-width="1.5"/><circle cx="24" cy="24" r="23" stroke="var(--white)" stroke-width="1.5" stroke-dasharray="145" stroke-dashoffset="145" style="animation:splashRing .8s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"><animate attributeName="stroke-dashoffset" from="145" to="0" dur=".8s" begin=".1s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"/></circle><path d="M16 24l5 5 11-11" stroke="var(--white)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .75s forwards"><animate attributeName="opacity" from="0" to="1" dur=".3s" begin=".75s" fill="freeze"/></path></svg>
       <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--white);opacity:0;animation:splashFade .4s ease .1s forwards">bienvenido${nombre?', <span style="color:var(--white)">'+nombre+'</span>':''}</div>
     </div>`;
   setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>sp.remove(),350); },1300);
@@ -16136,9 +16141,9 @@ function _showPublicacionRevisionSplash(isDealer=false){
   sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#000;opacity:0;transition:opacity .3s ease;padding:32px;text-align:center';
   sp.innerHTML=`
     <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-      <circle cx="26" cy="26" r="25" stroke="rgba(8,68,26,.15)" stroke-width="1.5"/>
-      <circle cx="26" cy="26" r="25" stroke="#08441A" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
-      <path d="M17 26l6 6 12-12" stroke="#08441A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
+      <circle cx="26" cy="26" r="25" stroke="var(--w15)" stroke-width="1.5"/>
+      <circle cx="26" cy="26" r="25" stroke="var(--white)" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
+      <path d="M17 26l6 6 12-12" stroke="var(--white)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
     </svg>
     <div style="display:flex;flex-direction:column;gap:10px;opacity:0;animation:splashFade .4s ease .15s forwards">
       <div style="font-size:22px;font-weight:800;letter-spacing:-.4px;color:var(--white)">Publicación en revisión.</div>
@@ -20607,9 +20612,9 @@ function _rdSwipeExitSplash(label,iconHtml,navigateFn){
   sp.style.cssText='position:fixed;inset:0;z-index:100000;background:var(--splash-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity .3s ease';
   sp.innerHTML=`
     ${iconHtml||`<svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-      <circle cx="26" cy="26" r="25" stroke="rgba(8,68,26,.15)" stroke-width="1.5"/>
-      <circle cx="26" cy="26" r="25" stroke="#08441A" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
-      <path d="M17 26l6 6 12-12" stroke="#08441A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
+      <circle cx="26" cy="26" r="25" stroke="var(--w15)" stroke-width="1.5"/>
+      <circle cx="26" cy="26" r="25" stroke="var(--white)" stroke-width="1.5" stroke-dasharray="157" stroke-dashoffset="157" style="animation:splashRing .9s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"/>
+      <path d="M17 26l6 6 12-12" stroke="var(--white)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .85s forwards"/>
     </svg>`}
     <div style="font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--white);opacity:0;animation:splashFade .4s ease .15s forwards">${label}</div>`;
   document.body.appendChild(sp);
