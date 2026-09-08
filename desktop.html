@@ -3030,7 +3030,10 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <div style="font-size:20px;font-weight:800;letter-spacing:-.4px" id="vitrina-nombre"></div>
       <div style="font-size:13px;color:var(--muted);margin-top:3px" id="vitrina-meta"></div>
       <div style="font-size:12px;color:var(--w45);margin-top:2px;font-weight:300;display:none" id="vitrina-direccion"></div>
-      <div style="font-size:12px;color:var(--w35);margin-top:6px;font-weight:300" id="vitrina-count"></div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px">
+        <div style="font-size:12px;color:var(--w35);font-weight:300" id="vitrina-count"></div>
+        <div id="vitrina-rating"></div>
+      </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
       <button id="vitrina-msg-btn" style="background:var(--w10);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--w14);border-radius:100px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0" onclick="_msgVitrinaDealer()"><svg fill="none" viewBox="0 0 24 24" stroke="var(--white)" stroke-width="1.9" style="width:17px;height:17px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
@@ -5280,6 +5283,23 @@ let venderType='particular';
 function fmtNum(n){return n.toLocaleString('es-VE').replace(/,/g,'.')}
 function fmtBid(n){return '$'+fmtNum(n)}
 function fmtKm(n){return fmtNum(n)+' km'}
+// [estrellas fintech] widget compacto para el rating real de concesionarios
+// (_loadAgenciaRatings) — antes era texto plano "★ 4.5". Estrictamente
+// blanco/negro (var(--white), invierte por tema), sin usar el color de
+// marca: el rating es un dato universal, no un botón. Nunca se pinta si
+// no hay reseñas reales (count=0) — mismo criterio defensivo que Criterio Ruedda.
+function _rdStarsHTML(rating, count){
+  if(!count) return '';
+  const pct = Math.max(0, Math.min(100, (rating/5)*100));
+  const star = '<path d="M8 0.6l2.1 4.3 4.7.7-3.4 3.3.8 4.7L8 11.2l-4.2 2.4.8-4.7L1.2 5.6l4.7-.7z"/>';
+  return `<span class="rd-stars" title="${rating.toFixed(1)} de 5 · ${count} reseña${count===1?'':'s'}" style="display:inline-flex;align-items:center;gap:5px">
+    <span style="position:relative;display:inline-block;width:66px;height:12px;flex-shrink:0">
+      <svg viewBox="0 0 90 12" style="position:absolute;inset:0;width:100%;height:100%;fill:var(--white);opacity:.22">${[0,18,36,54,72].map(x=>`<g transform="translate(${x},0)">${star}</g>`).join('')}</svg>
+      <svg viewBox="0 0 90 12" style="position:absolute;inset:0;width:100%;height:100%;fill:var(--white);clip-path:inset(0 ${100-pct}% 0 0)">${[0,18,36,54,72].map(x=>`<g transform="translate(${x},0)">${star}</g>`).join('')}</svg>
+    </span>
+    <span style="font-size:11px;font-weight:800;color:var(--white);font-variant-numeric:tabular-nums">${rating.toFixed(1)}</span>
+  </span>`;
+}
 // [Criterio Ruedda V144] chip minimalista + botón de info con el copy
 // completo — nunca texto suelto al lado del medidor. Regla intacta: sin
 // pme_usd no se pinta absolutamente nada, ni skeleton ni mensaje.
@@ -12654,7 +12674,7 @@ function renderDealerGrid(){
       <div class="dealer-info">
         <div class="dealer-name" style="display:flex;align-items:center">${d.nombre}<svg viewBox="0 0 16 16" fill="#08441A" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="dealer-meta">${d.ciudad.toLowerCase()}</div>
-        <div class="dealer-count" style="display:flex;align-items:center;gap:6px">${d.autos} vehículos${d.ratingCount?`<span style="color:#08441A">★ ${d.rating.toFixed(1)}</span>`:''}</div>
+        <div class="dealer-count" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${d.autos} vehículos${_rdStarsHTML(d.rating,d.ratingCount)}</div>
       </div>
     </div>`).join('');
 }
@@ -12889,6 +12909,11 @@ function openVitrina(id){
   setTimeout(()=>{
     const vc=document.getElementById('vitrina-count');
     if(vc){vc.textContent='';if(_supa)_supa.from('listings').select('id',{count:'exact',head:true}).eq('concesionario_id',d.id).eq('estado','activa').then(({count})=>{const c2=document.getElementById('vitrina-count');if(c2)c2.textContent=(count||0)+' vehículos.';}).catch(()=>{});}
+    const vr=document.getElementById('vitrina-rating');
+    if(vr){
+      vr.innerHTML=_rdStarsHTML(d.rating,d.ratingCount);
+      if(!d.ratingCount) _loadAgenciaRatings([d.id]).then(()=>{ if(document.getElementById('vitrina-rating')) vr.innerHTML=_rdStarsHTML(d.rating,d.ratingCount); }).catch(()=>{});
+    }
     const dir=document.getElementById('vitrina-direccion');
     if(dir){
       // [FIX] antes este slot caía siempre a d.ciudad (nunca se traía 'direccion' de
@@ -16520,7 +16545,7 @@ function _updateMktFinanciamientoCard(l){
   } else {
     card.innerHTML=`<img src="data:image/png;base64,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" alt="" style="width:20px;height:20px;object-fit:contain;opacity:.3">
       <div style="font-size:14px;font-weight:700;color:var(--w35)">financiamiento</div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(8,68,26,.5)">proximamente</div>`;
+      <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:rgba(8,68,26,.5)">Próximamente</div>`;
   }
 }
 function openFinanciamientoPopup(){
