@@ -16427,7 +16427,7 @@ async function _submitGoogleProfile(userId,email){
     if(_existingCedula){ showToast('ya existe una cuenta registrada con esta cédula'); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
   }catch(e){ console.warn('[ruedda] check cedula google',e?.message||e); }
   try{
-    const{error}=await _supa.from('users').upsert({id:userId,nombre,apellido:'',cedula,cedula_tipo:cedTipo,telefono:'',username,role:'particular'},{onConflict:'id'});
+    const{error}=await _supa.from('users').upsert({id:userId,nombre,apellido:'',cedula,cedula_tipo:cedTipo,telefono:'',username,role:'particular',email},{onConflict:'id'});
     if(error){ showToast('no se pudo guardar: '+error.message); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
     const m=document.getElementById('google-complete-sheet');
     if(m){ const i=document.getElementById('gcp-inner'); if(i)i.style.transform='translateY(100%)'; m.style.opacity='0'; setTimeout(()=>m.remove(),380); }
