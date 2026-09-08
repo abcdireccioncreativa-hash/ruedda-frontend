@@ -8848,6 +8848,20 @@ async function openMarketDetail(id, origin){
   _loadMiniBanner(); // [V126] defensivo: cubre entradas directas (deep link) antes de que el boot lo cargue
   mktDetailOrigin=origin||'market';
   currentMarketListing=l;
+  // [fix definitivo "abre el perfil de otro vendedor"] el click de la
+  // tarjeta de vendedor vivía SOLO dentro del fetch async de nombre/avatar
+  // más abajo, detrás de un "if(!l.seller)" — si esa publicación ya tenía
+  // l.seller cacheado de una visita anterior (o su fetch se descartaba por
+  // el guard de token porque el usuario ya había navegado a otra), el
+  // onclick nunca se reescribía y quedaba pegado el de la publicación
+  // ANTERIOR indefinidamente. Ahora se fija acá, sincrónico, con datos que
+  // YA están en el listing (l.user_id, l.dealerId) — nunca depende de la
+  // red, así que jamás puede quedar apuntando a otra publicación.
+  const _sellerCardSync=document.getElementById('mkt-seller-card');
+  if(_sellerCardSync){
+    _sellerCardSync.style.cursor='pointer';
+    _sellerCardSync.onclick=()=>{ l.dealerId?openVitrina(l.dealerId):openUserProfile(l.user_id); };
+  }
   // [V124] videos del vehículo — sección solo aparece si hay al menos uno
   // reset sincrónico primero: el DOM persiste entre vistas (SPA).
   const _mvSec=document.getElementById('mkt-videos-section');
@@ -9193,6 +9207,16 @@ function openDetail(id){
   // [V87] vista real del comprador + chip (tras reasignar currentAuction al correcto)
   setTimeout(()=>{const a=currentAuction;const tm=document.getElementById('detail-timer');if(tm&&a){_registerRealView('auctions',a);let c=document.getElementById('detail-views-chip');if(!c){tm.insertAdjacentHTML('afterend','<span id="detail-views-chip" style="display:flex;justify-content:flex-end;margin-top:7px"></span>');c=document.getElementById('detail-views-chip');}c.innerHTML=_viewsChip(a.viewCount);const sv=document.getElementById('detail-stats-vistas');if(sv)sv.textContent=(((a.viewCount||0))*VIEW_DISPLAY_FACTOR).toLocaleString();}},80);
   const a=currentAuction;
+  // [fix definitivo "abre el perfil de otro vendedor"] mismo fix que
+  // openMarketDetail — el click de la tarjeta de vendedor se fija acá,
+  // sincrónico, con a.ownerId (ya disponible sin esperar red). El fetch
+  // async de abajo lo puede AFINAR a vitrina si resulta ser dealer, pero
+  // nunca deja el handler pegado a una subasta anterior mientras tanto.
+  const _sellerCardSyncA=document.getElementById('detail-seller-card');
+  if(_sellerCardSyncA){
+    _sellerCardSyncA.style.cursor='pointer';
+    _sellerCardSyncA.onclick=()=>{ openUserProfile(a.ownerId); };
+  }
   clearTimers();
   showView('detail');
   currentPhotoIndex=0;
