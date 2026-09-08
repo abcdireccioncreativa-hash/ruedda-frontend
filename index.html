@@ -2983,15 +2983,14 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       </div>
 
       <!-- GOOGLE BUTTON -->
-      <button style="width:100%;background:var(--surface-hi);border:1px solid var(--w8);border-radius:13px;padding:15px;font-family:var(--font);font-size:14px;font-weight:500;color:var(--w25);cursor:not-allowed;display:flex;align-items:center;justify-content:center;gap:11px;transition:all .15s;letter-spacing:-.1px">
-        <svg viewBox="0 0 24 24" style="width:18px;height:18px;opacity:.3" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" opacity=".4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" opacity=".4"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" opacity=".4"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" opacity=".4"/>
+      <button onclick="_googleSignIn()" style="width:100%;background:var(--surface-hi);border:1px solid var(--w8);border-radius:13px;padding:15px;font-family:var(--font);font-size:14px;font-weight:500;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:11px;transition:all .15s;letter-spacing:-.1px">
+        <svg viewBox="0 0 24 24" style="width:18px;height:18px" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
         </svg>
         <span>continuar con Google</span>
-        <span style="background:var(--w6);border-radius:100px;padding:2px 9px;font-size:10px;font-weight:700;color:var(--w20);letter-spacing:.3px">proximamente</span>
       </button>
 
       <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--w30)">
@@ -16173,17 +16172,28 @@ async function _sendForgotPassword(btn){
   const email=(document.getElementById('fpw-email')?.value||'').trim();
   if(!email||!email.includes('@')){showToast('ingresa un correo válido');return;}
   if(btn){btn.textContent='enviando...';btn.disabled=true;btn.style.opacity='.6';}
-  // [RC v8] backend conectado de verdad: resetPasswordForEmail con redirectTo a esta
-  // misma página. El link del correo trae #access_token=...&type=recovery — supabase-js
-  // lo detecta solo (detectSessionInUrl default true) y dispara PASSWORD_RECOVERY,
-  // que abre _showResetPasswordSheet() (registrado en _rueddaInit). El toast es
-  // genérico a propósito: no se confirma si el correo existe o no (anti-enumeración).
+  // [RC v8→Resend] el link del correo trae #access_token=...&type=recovery —
+  // supabase-js lo detecta solo (detectSessionInUrl default true) y dispara
+  // PASSWORD_RECOVERY, que abre _showResetPasswordSheet() (registrado en
+  // _rueddaInit). El toast es genérico a propósito: no se confirma si el
+  // correo existe o no (anti-enumeración).
+  // [dejar listo para Resend] primero se intenta /api/request-password-reset
+  // (server-side: manda por Resend si RESEND_API_KEY ya está en Vercel, o cae
+  // solo al correo nativo de Supabase si todavía no). Si el fetch en sí falla
+  // (endpoint caído, sin red), se cae al camino directo de siempre — el
+  // restablecer contraseña nunca queda silenciosamente roto mientras tanto.
   try{
-    if(_supa&&_supa.auth&&_supa.auth.resetPasswordForEmail){
-      const{error}=await _supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
-      if(error) console.warn('[ruedda] resetPasswordForEmail:',error.message);
-    }
-  }catch(e){ console.warn('[ruedda] resetPasswordForEmail catch:',String(e?.message||e)); }
+    const resp=await fetch('/api/request-password-reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    if(!resp.ok) throw new Error('status '+resp.status);
+  }catch(e){
+    console.warn('[ruedda] request-password-reset falló, fallback directo:',String(e?.message||e));
+    try{
+      if(_supa&&_supa.auth&&_supa.auth.resetPasswordForEmail){
+        const{error}=await _supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin+window.location.pathname});
+        if(error) console.warn('[ruedda] resetPasswordForEmail fallback:',error.message);
+      }
+    }catch(e2){ console.warn('[ruedda] resetPasswordForEmail fallback catch:',String(e2?.message||e2)); }
+  }
   setTimeout(()=>{
     showToast('si el correo existe, te enviamos el enlace ✓',true);
     _closeForgotPassword();
@@ -16274,6 +16284,110 @@ function _showLoginSplash(nombre){
     </div>`;
   setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>sp.remove(),350); },1300);
 }
+
+// ============ GOOGLE SIGN-IN ============
+// [pedido explícito] arranca el redirect a Google. rd_google_pending marca
+// que ESTE flujo específico debe manejarse cuando vuelva (ver onAuthStateChange
+// en _rueddaInit) — así nunca se mezcla con el login normal de correo/contraseña.
+async function _googleSignIn(){
+  if(!_supa||!_supa.auth||!_supa.auth.signInWithOAuth){ showToast('Google no disponible todavía'); return; }
+  try{ sessionStorage.setItem('rd_google_pending','1'); }catch(e){}
+  try{
+    const{error}=await _supa.auth.signInWithOAuth({
+      provider:'google',
+      options:{ redirectTo: window.location.origin+window.location.pathname }
+    });
+    if(error){ showToast('no se pudo conectar con Google: '+error.message); try{sessionStorage.removeItem('rd_google_pending');}catch(e){} }
+  }catch(e){
+    showToast('no se pudo conectar con Google');
+    try{ sessionStorage.removeItem('rd_google_pending'); }catch(e2){}
+  }
+}
+// se llama al volver de Google con sesión activa. Si ya tiene perfil completo
+// (username+cédula), entra directo como cualquier login normal. Si es la
+// primera vez (o el perfil quedó a medias), pide que lo complete.
+async function _handleGoogleSignIn(user){
+  try{
+    const{data:profile}=await _supa.from('users').select('*').eq('id',user.id).maybeSingle();
+    if(profile&&profile.username&&profile.cedula){
+      closeAuthSheet();
+      _rueddaApplySession(profile);
+      _showLoginSplash(profile.nombre||'');
+      if(isDesktop()) setTimeout(()=>enterApp(),1200);
+      _rueddaLoadUserData(user.id,profile.role==='concesionario'?'consesionario':(profile.role||'particular'));
+      return;
+    }
+    _showGoogleCompleteProfile(user);
+  }catch(e){
+    console.warn('[ruedda] _handleGoogleSignIn',e?.message||e);
+    _showGoogleCompleteProfile(user);
+  }
+}
+// [pedido explícito] pantalla aparte, bonita, reusando el mismo lenguaje visual
+// de los otros sheets de sesión (forgot/reset password) — pide usuario, nombre
+// y cédula, porque Google solo entrega correo/nombre/foto.
+function _showGoogleCompleteProfile(user){
+  closeAuthSheet();
+  let m=document.getElementById('google-complete-sheet'); if(m) m.remove();
+  m=document.createElement('div');
+  m.id='google-complete-sheet';
+  m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease';
+  const fullName=(user.user_metadata&&(user.user_metadata.full_name||user.user_metadata.name))||'';
+  m.innerHTML=`
+  <div id="gcp-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font);max-height:85vh;max-height:85dvh;overflow-y:auto">
+    <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
+    <div style="width:54px;height:54px;border-radius:50%;background:var(--w6);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
+      <svg fill="none" viewBox="0 0 24 24" stroke="var(--white)" stroke-width="1.6" style="width:24px;height:24px"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 7-7h2a7 7 0 0 1 7 7v1"/></svg>
+    </div>
+    <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:var(--white)">ya casi</div>
+    <div style="font-size:13px;font-weight:300;color:var(--w55);text-align:center;margin-top:10px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto">Completa tu perfil de Ruedda. Necesitamos tu cédula para poder dejarte participar en subastas.</div>
+    <input id="gcp-nombre" type="text" placeholder="nombre" value="${_esc(fullName)}" style="width:100%;margin-top:22px;background:var(--surface-mid);border:1px solid var(--w10);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box">
+    <input id="gcp-user" type="text" placeholder="@usuario" style="width:100%;margin-top:10px;background:var(--surface-mid);border:1px solid var(--w10);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box">
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <select id="gcp-cedula-tipo" style="background:var(--surface-mid);border:1px solid var(--w10);border-radius:14px;padding:0 12px;font-family:var(--font);font-size:15px;color:var(--white);outline:none"><option value="V">V</option><option value="E">E</option></select>
+      <input id="gcp-cedula" type="tel" placeholder="cédula" style="flex:1;background:var(--surface-mid);border:1px solid var(--w10);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box">
+    </div>
+    <button id="gcp-send" onclick="_submitGoogleProfile('${user.id}','${_esc(user.email||'')}')" style="width:100%;margin-top:14px;background:var(--lime);color:var(--lime-ink);border:none;border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:all .15s;letter-spacing:-.1px">continuar</button>
+  </div>`;
+  document.body.appendChild(m);
+  requestAnimationFrame(()=>{m.style.opacity='1';const i=document.getElementById('gcp-inner');if(i)i.style.transform='translateY(0)';});
+}
+async function _submitGoogleProfile(userId,email){
+  const nombre=(document.getElementById('gcp-nombre')?.value||'').trim();
+  let username=(document.getElementById('gcp-user')?.value||'').trim().replace('@','').replace(/\s+/g,'_');
+  const cedTipo=(document.getElementById('gcp-cedula-tipo')?.value||'V');
+  const cedula=(document.getElementById('gcp-cedula')?.value||'').trim();
+  if(!nombre){showToast('ingresa tu nombre');return;}
+  if(!cedula){showToast('ingresa tu cédula');return;}
+  if(!username) username=(email?email.split('@')[0]:'')||(nombre?nombre.toLowerCase().replace(/\s+/g,'_'):'usuario');
+  const btn=document.getElementById('gcp-send');
+  if(btn){btn.textContent='guardando...';btn.disabled=true;btn.style.opacity='.6';}
+  // mismos chequeos anti-duplicado que el registro normal (username y cédula)
+  try{
+    const _escLike=username.replace(/[%_\\]/g,m=>'\\'+m);
+    const{data:_existingUser}=await _supa.from('users').select('id').ilike('username',_escLike).neq('id',userId).maybeSingle();
+    if(_existingUser){ showToast('ese nombre de usuario ya existe — elige otro'); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
+  }catch(e){ console.warn('[ruedda] check username google',e?.message||e); }
+  try{
+    const{data:_existingCedula}=await _supa.from('users').select('id').eq('cedula',cedula).eq('cedula_tipo',cedTipo).neq('id',userId).maybeSingle();
+    if(_existingCedula){ showToast('ya existe una cuenta registrada con esta cédula'); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
+  }catch(e){ console.warn('[ruedda] check cedula google',e?.message||e); }
+  try{
+    const{error}=await _supa.from('users').upsert({id:userId,nombre,apellido:'',cedula,cedula_tipo:cedTipo,telefono:'',username,role:'particular'},{onConflict:'id'});
+    if(error){ showToast('no se pudo guardar: '+error.message); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
+    const m=document.getElementById('google-complete-sheet');
+    if(m){ const i=document.getElementById('gcp-inner'); if(i)i.style.transform='translateY(100%)'; m.style.opacity='0'; setTimeout(()=>m.remove(),380); }
+    const{data:profile}=await _supa.from('users').select('*').eq('id',userId).single();
+    _rueddaApplySession(profile||{id:userId,nombre,username,role:'particular'});
+    _showLoginSplash(nombre);
+    if(isDesktop()) setTimeout(()=>enterApp(),1200);
+    _rueddaLoadUserData(userId,'particular');
+  }catch(e){
+    showToast('error guardando perfil');
+    if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';}
+  }
+}
+
 function _togglePwd(id,btn){
   const inp=document.getElementById(id);
   if(!inp) return;
@@ -17082,7 +17196,22 @@ window._rueddaBootPromise = (async function _rueddaInit(){
   // abre el sheet de nueva contraseña. El check del hash es fallback por si el
   // evento ya se disparó antes de registrar el listener (race en cargas lentas).
   try{
-    _supa.auth.onAuthStateChange((event)=>{ if(event==='PASSWORD_RECOVERY') _showResetPasswordSheet(); });
+    _supa.auth.onAuthStateChange((event,session)=>{
+      if(event==='PASSWORD_RECOVERY'){ _showResetPasswordSheet(); return; }
+      // [Google sign-in] solo actúa sobre logins que arrancaron con
+      // signInWithOAuth (marcados con rd_google_pending) — el login normal
+      // por correo/contraseña ya maneja su propio flujo directo en
+      // _rueddaLogin/_rueddaRegister sin depender de este evento, así que
+      // esto nunca los toca (evita duplicar el manejo de sesión).
+      if(event==='SIGNED_IN'&&session&&session.user){
+        let pending=false;
+        try{ pending=sessionStorage.getItem('rd_google_pending')==='1'; }catch(e){}
+        if(pending){
+          try{ sessionStorage.removeItem('rd_google_pending'); }catch(e){}
+          _handleGoogleSignIn(session.user);
+        }
+      }
+    });
     if(window.location.hash&&window.location.hash.indexOf('type=recovery')>-1) setTimeout(()=>_showResetPasswordSheet(),400);
   }catch(e){}
   // [fix boot serial] la cadena de sesión/perfil/dealer no la lee ninguna de las
