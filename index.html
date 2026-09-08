@@ -5894,7 +5894,7 @@ const USER_STATE = {
   dealerActive: false,   // concesionario: vitrina activa (pagada)
   dealerExpiry: null,    // Date — 30 días desde último pago
   concesionarioId: null, // UUID fila en tabla concesionarios
-  defaultView: 'subastas', // [config] "al iniciar sesión mostrar siempre" — guest siempre queda en 'subastas'
+  defaultView: 'market', // [fix] la app abre en market por defecto para todos (ver boot: currentSection siempre 'market') — este valor debe reflejar eso, si no el slider de Configuración muestra "subastas" seleccionado sin que sea real
 };
 
 function setUserRole(role, data={}){
@@ -16099,7 +16099,7 @@ function _rueddaApplySession(p){
   // [V87] avatar persistente desde users.avatar_url
   if(p&&p.avatar_url){USER_STATE.avatar=p.avatar_url;setTimeout(()=>_paintAvatar(p.avatar_url),50);}
   USER_STATE.kycVerified=!!(p&&p.kyc_verified); // [V94]
-  USER_STATE.defaultView=(p&&p.default_view==='market')?'market':'subastas'; // [config]
+  USER_STATE.defaultView=(p&&p.default_view==='subastas')?'subastas':'market'; // [fix] default real es 'market', solo cae a 'subastas' si el usuario lo guardó explícito
   // normalizar 'concesionario' (DB) → 'consesionario' (app-internal)
   const role=p.role==='concesionario'?'consesionario':(p.role||'particular');
   // [V102] derivar username si la cuenta vieja/nueva no lo tiene aún
