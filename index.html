@@ -1270,13 +1270,14 @@ html[data-theme="light"] .cnt-slider-tab.active{background:#fff}
 .search-cat-item:hover{color:var(--lime-text)}
 
 /* BID MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end;color:var(--white)}
-/* [fix Safari — refuerzo] el fix de dvh corrige el cálculo de altura, pero
-   en Safari (pestaña, no PWA) el propio "position:fixed;inset:0" del
-   overlay puede seguir midiéndose contra el viewport SIN descontar la
-   barra de Safari en algunos casos — el contenido queda justo al borde,
-   sin margen de sobra. Colchón extra específico para Safari-tab, cero
-   efecto en PWA (donde no hace falta). */
+.modal-overlay{display:none;position:fixed;inset:0;height:100vh;height:100dvh;background:rgba(0,0,0,.7);z-index:300;align-items:flex-end;color:var(--white)}
+/* [fix Safari — causa raíz] "inset:0" en un position:fixed se mide contra
+   el viewport GRANDE (como si la barra de Safari no existiera) — el overlay
+   completo quedaba más alto de lo visible, así que su align-items:flex-end
+   pegaba el sheet contra el fondo del viewport grande, no contra el borde
+   real que se ve. Al fijar height:100dvh explícito, el overlay mismo mide
+   bien y el sheet queda anclado donde corresponde. El colchón de abajo
+   queda como refuerzo extra, ya no es lo único sosteniendo el fix. */
 html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bottom) + 70px)!important;box-sizing:border-box}
 .modal-overlay.open{display:flex}
 /* [MENU SESIÓN] cierre suave igual al vender-modal: opacidad scoped solo a #auth-sheet,
@@ -7241,7 +7242,7 @@ function _mktAppendCards(list,startIdx){
     const idx=startIdx+i;
     const el=document.createElement('div');
     el.className='market-card';
-    el.style.animationDelay=(idx*40)+'ms';
+    el.style.animationDelay=(i*40)+'ms'; // [fix] relativo a esta tanda, no acumulado desde el inicio del feed
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img src="${_tImg(l.photoUrls[0],{width:800,quality:72})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<1?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
@@ -7261,22 +7262,30 @@ function _mktAppendCards(list,startIdx){
 // [fix render paginado] arma (o rearma) el centinela al final del grid. Siempre
 // desconecta el observer anterior primero — nunca quedan dos vivos ni uno
 // mirando un nodo que ya se removió del DOM.
+// [perf/escalabilidad] antes esto era scroll infinito automático (Intersection
+// Observer con rootMargin:600px, precargaba ANTES de que el usuario llegara al
+// final) — cuanto más se scrolleaba sin pensar, más tarjetas quedaban montadas
+// en el DOM para siempre, y ESO es lo que se sentía cada vez más pesado con el
+// tiempo. Ahora es manual: un botón "cargar más" (el usuario decide cuánto
+// crece el feed) y, al agotarse los datos, un aviso de fin de feed en vez de
+// seguir intentando cargar. La solución de fondo a futuro es virtualizar el
+// feed (desmontar tarjetas lejos del scroll); esto es la mitigación segura de
+// hoy mientras tanto.
 function _mktSetupSentinel(){
   const grid=document.getElementById('market-grid');
   if(!grid) return;
-  if(_mktObserver){ _mktObserver.disconnect(); _mktObserver=null; }
   const old=document.getElementById('market-grid-sentinel');
   if(old) old.remove();
-  if(_mktRenderedCount>=_mktCurrentData.length) return; // ya está todo pintado, no hace falta observer
-  const sentinel=document.createElement('div');
-  sentinel.id='market-grid-sentinel';
-  sentinel.setAttribute('aria-hidden','true');
-  sentinel.style.cssText='height:1px;width:100%;grid-column:1/-1;pointer-events:none';
-  grid.appendChild(sentinel);
-  _mktObserver=new IntersectionObserver(entries=>{
-    if(entries[0].isIntersecting) _mktLoadMoreMarket();
-  },{rootMargin:'600px'});
-  _mktObserver.observe(sentinel);
+  if(!_mktCurrentData.length) return; // sin data: el empty-state ya cubre este caso
+  const wrap=document.createElement('div');
+  wrap.id='market-grid-sentinel';
+  wrap.style.cssText='grid-column:1/-1;display:flex;justify-content:center;padding:18px 0 8px';
+  if(_mktRenderedCount<_mktCurrentData.length){
+    wrap.innerHTML=`<button class="mkt-back-pill" onclick="_mktLoadMoreMarket()"><span>cargar más</span></button>`;
+  } else {
+    wrap.innerHTML=`<span style="font-size:12.5px;color:var(--w35);font-weight:500">ya viste todas las publicaciones disponibles</span>`;
+  }
+  grid.appendChild(wrap);
 }
 function _mktLoadMoreMarket(){
   if(_mktRenderedCount>=_mktCurrentData.length) return;
