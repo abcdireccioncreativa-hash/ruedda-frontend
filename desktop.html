@@ -83,10 +83,16 @@ function _rdWaveFlag(el, opts){
   el.appendChild(svg);
   var AMP=10,FREQ=.012,SPEED=Math.PI/4,AMP2=3,FREQ2=.025,SPEED2=Math.PI/2,WI=1.7,SW=2;
   function waveY(x,t){ return WI*(AMP*Math.sin(x*FREQ-SPEED*SW*t)+AMP2*Math.sin(x*FREQ2-SPEED2*SW*t+1.3)); }
+  // [perf] waveY(x0)/waveY(x1)/waveY(mx) solo dependen de x y t, no de y —
+  // antes se calculaban DOS veces cada uno (una para el punto de arriba del
+  // panel, otra para el de abajo), el doble de trigonometría por frame sin
+  // ningún cambio en el resultado. Ahora se calculan una sola vez y se
+  // reusan — mismo dibujo exacto, mitad del trabajo por panel.
   function panelPath(x0,y0,w,h,t){
     var x1=x0+w,y1=y0+h,mx=(x0+x1)/2;
-    var tl=y0+waveY(x0,t),tr=y0+waveY(x1,t),tm=y0+waveY(mx,t);
-    var bl=y1+waveY(x0,t),br=y1+waveY(x1,t),bm=y1+waveY(mx,t);
+    var wy0=waveY(x0,t),wy1=waveY(x1,t),wym=waveY(mx,t);
+    var tl=y0+wy0,tr=y0+wy1,tm=y0+wym;
+    var bl=y1+wy0,br=y1+wy1,bm=y1+wym;
     var tc=2*tm-(tl+tr)/2, bc=2*bm-(bl+br)/2;
     return 'M'+x0+' '+tl+' Q'+mx+' '+tc+' '+x1+' '+tr+' L'+x1+' '+br+' Q'+mx+' '+bc+' '+x0+' '+bl+' Z';
   }
@@ -95,10 +101,23 @@ function _rdWaveFlag(el, opts){
     g.style.transform = 'rotate('+(Math.sin(t*(Math.PI/4)*SW)*1.4)+'deg)';
   }
   paint(0);
-  var start=null, raf=null;
+  // [perf] respeta "reducir movimiento" del sistema — antes solo lo hacía el
+  // CSS (que no toca este rAF a mano), así que el loop seguía corriendo
+  // igual con esa preferencia activada.
+  var reduceMotion=false;
+  try{ reduceMotion=window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+  if(reduceMotion) return function(){};
+  // [perf] capado a ~30fps (antes sin límite, ligado al refresh real del
+  // panel — 90/120hz en varios Android de gama media/alta) — la onda es
+  // lenta y suave, a 30fps se ve idéntica mientras se recorta a la mitad
+  // (o menos) la cantidad de escrituras al DOM por segundo.
+  var start=null, raf=null, lastPaint=0, MIN_FRAME_MS=1000/30;
   function frame(now){
-    if(start==null) start=now;
-    paint(((now-start)/1000)%8);
+    if(start==null){ start=now; lastPaint=now; }
+    if(now-lastPaint>=MIN_FRAME_MS){
+      lastPaint=now;
+      paint(((now-start)/1000)%8);
+    }
     raf=requestAnimationFrame(frame);
   }
   raf=requestAnimationFrame(frame);
@@ -1373,6 +1392,15 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 
   /* page wrapper */
   .view{max-width:1400px;margin:0 auto;padding:0 40px;padding-top:0}
+  /* [fix estiramiento] #sa-cuentas (crear cuenta particular/concesionario/admin)
+     no tenía el mismo max-width angosto que el resto de los formularios
+     (.vender-form, .cuenta-header, etc. ya usan 700px) — quedaba estirado
+     a los 1400px completos del panel de SuperAdmin. */
+  #sa-cuentas{max-width:700px;margin:0 auto}
+  /* [fix tamaño gigante] #fotografos-cover era casi el ancho completo del
+     panel (calc(100% - 28px) de 1400px) con aspect-ratio 4:3 — una sola
+     foto de portada quedaba con más de 1000px de alto en desktop. */
+  #fotografos-cover{max-width:700px;margin:14px auto 0!important;width:100%!important}
 
   /* section header */
   .section-header{padding:32px 0 8px}
@@ -1610,6 +1638,11 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 
   /* ── MARKET DETAIL: layout Cars&Bids ── galería grande + collage de miniaturas por categoría, título arriba ── */
   .mkt-detail-heading{padding:22px 0 14px;max-width:1400px;margin:0 auto}
+  /* [fix alineación] "volver" trae 10px de padding lateral propio
+     (.detail-back, compartido con toda la app) que el título no tiene —
+     quedaban con bordes izquierdos distintos. Solo se corrige acá, sin
+     tocar .detail-back en general. */
+  #mkt-detail-back{margin-left:-10px}
   .mkt-detail-heading .detail-title{font-size:30px}
   .mkt-detail-heading .detail-subtitle{font-size:15px;margin-top:4px}
   #view-market-detail>.photo-gallery,#view-market-detail>.gallery-dots,#view-market-detail .detail-header-block{display:none!important}
@@ -2554,7 +2587,10 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
     <!-- BANNER PATROCINANTE — franja horizontal baja (no cuadrada), una sola
          foto fija cargada desde SuperAdmin. Mismo crossfade real que Encuentra. -->
-    <div class="rdv" style="padding:14px 18px 0">
+    <!-- [fix tamaño gigante] le faltaba cons-wide-block (que sí tienen sus
+         hermanos justo debajo) — sin tope de ancho, un banner 18:5 a lo
+         ancho de los 1400px del panel quedaba enorme en desktop. -->
+    <div class="rdv cons-wide-block" style="padding:14px 18px 0">
       <div id="cons-banner" style="width:100%;aspect-ratio:18/5;border-radius:20px;background:var(--card);border:1px solid var(--border);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center">
         <div id="cons-banner-placeholder" class="rdv-skel" style="position:absolute;inset:0;border-radius:inherit;transition:opacity .4s ease"></div>
       </div>
@@ -2901,8 +2937,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
           </div>
           <div style="background:var(--w2);border:1px solid var(--w6);border-radius:14px;padding:14px 15px">
             <div style="display:flex;align-items:flex-start;gap:9px">
-              <svg fill="none" viewBox="0 0 20 20" stroke="var(--w30)" stroke-width="1.5" style="width:14px;height:14px;flex-shrink:0;margin-top:1px"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10"/><circle cx="10" cy="13" r=".5" fill="var(--w30)"/></svg>
-              <p style="font-size:12px;color:var(--w30);line-height:1.65;font-weight:300">Ruedda filtra muy bien sus compradores y vendedores, pero el usuario debe revisar la documentación del vehículo y hacerle peritaje personal antes de adquirir.</p>
+              <svg fill="none" viewBox="0 0 20 20" stroke="var(--white)" stroke-width="1.5" style="width:14px;height:14px;flex-shrink:0;margin-top:1px;opacity:.85"><circle cx="10" cy="10" r="8"/><line x1="10" y1="7" x2="10" y2="10"/><circle cx="10" cy="13" r=".5" fill="var(--white)"/></svg>
+              <p style="font-size:12px;color:var(--white);opacity:.7;line-height:1.65;font-weight:300">Ruedda filtra muy bien sus compradores y vendedores, pero el usuario debe revisar la documentación del vehículo y hacerle peritaje personal antes de adquirir.</p>
             </div>
           </div>
         </div>
@@ -4456,7 +4492,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     <!-- BOTTOM ACTIONS (particular + concesionario) -->
     <div id="cnt-bottom-actions" style="display:grid;grid-template-columns:1fr 2fr;gap:10px;margin:0 16px 0">
       <button onclick="showView('notificaciones');switchNotifTab('mensajes')" style="background:var(--w5);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--w8);border-radius:18px;padding:18px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;transition:background .2s;font-family:var(--font)" onmousedown="this.style.background='var(--w9)'" onmouseup="this.style.background='var(--w5)'" ontouchstart="this.style.background='var(--w9)'" ontouchend="this.style.background='var(--w5)'">
-        <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.8" style="width:22px;height:22px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="var(--white)" stroke-width="1.8" style="width:22px;height:22px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span style="font-size:11px;font-weight:600;color:var(--w45);font-family:var(--font)">mensajes</span>
       </button>
       <div style="position:relative;display:flex;flex-direction:column">
@@ -14665,7 +14701,7 @@ function logOut(){
   sp.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--splash-bg);opacity:0;transition:opacity .3s ease;pointer-events:none';
   sp.innerHTML=`
     <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--white);opacity:0;animation:splashFade .4s ease .15s forwards">
-      nos vemos${nombre?', <span style="color:#08441A">'+nombre+'</span>':''}
+      nos vemos${nombre?', <span style="color:var(--white)">'+nombre+'</span>':''}
     </div>
     <div style="font-size:13px;color:var(--w30);opacity:0;animation:splashFade .4s ease .3s forwards;font-weight:400">hasta pronto · ruedda</div>`;
   document.body.appendChild(sp);
@@ -15006,7 +15042,7 @@ function _showLoginSplash(nombre){
   sp.innerHTML=`
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px">
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="23" stroke="rgba(8,68,26,0.15)" stroke-width="1.5"/><circle cx="24" cy="24" r="23" stroke="#08441A" stroke-width="1.5" stroke-dasharray="145" stroke-dashoffset="145" style="animation:splashRing .8s cubic-bezier(.4,0,.2,1) .1s forwards;transform-origin:center;transform:rotate(-90deg)"><animate attributeName="stroke-dashoffset" from="145" to="0" dur=".8s" begin=".1s" fill="freeze" calcMode="spline" keySplines="0.4 0 0.2 1"/></circle><path d="M16 24l5 5 11-11" stroke="#08441A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" opacity="0" style="animation:splashCheck .3s ease .75s forwards"><animate attributeName="opacity" from="0" to="1" dur=".3s" begin=".75s" fill="freeze"/></path></svg>
-      <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--white);opacity:0;animation:splashFade .4s ease .1s forwards">bienvenido${nombre?', <span style="color:#08441A">'+nombre+'</span>':''}</div>
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--white);opacity:0;animation:splashFade .4s ease .1s forwards">bienvenido${nombre?', <span style="color:var(--white)">'+nombre+'</span>':''}</div>
     </div>`;
   setTimeout(()=>{ sp.style.opacity='0'; setTimeout(()=>sp.remove(),350); },1300);
 }
