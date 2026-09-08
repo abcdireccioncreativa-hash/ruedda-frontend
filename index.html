@@ -849,7 +849,9 @@ html.rd-safari-tab .bottom-nav{box-shadow:0 5px 18px rgba(0,0,0,.4),inset 0 1px 
    borde), solo que negro/neutro en vez de verde — no negro sólido. --w8/--w22
    invierten por tema (blanco en oscuro, negro en claro), así se ve bien en
    los dos, no solo negro-sobre-negro en modo oscuro. */
-.detail-badge.lime{background:#fff;border-color:#fff;color:#000}
+/* [pedido explícito] mismo peso visual que sus badges vecinos (borde + relleno
+   translúcido), en negro claro en vez de blanco sólido/verde. */
+.detail-badge.lime{background:var(--w8);border-color:var(--w22);color:var(--white)}
 /* [RC] variante verde — para "sin reserva" en detalle, consistente con la card */
 .detail-badge.verde{background:rgba(31,191,92,.92);border-color:rgba(120,240,170,.45);color:#fff;font-weight:700}
 .detail-title{font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1.15;margin-bottom:0}
@@ -8654,10 +8656,32 @@ async function _loadMarcaLogos(){
 // DESPUÉS de la navegación y compiten con el pintado de la vista destino — mismo
 // patrón exacto que el freeze de los iframes de comunidad. Se escalona la
 // asignación de cada img.src (18ms de por medio) para que nunca lleguen todas a la vez.
+// [fix freeze real #2, versión definitiva] el stagger por setTimeout solo
+// espacia CUÁNDO se pide cada logo, pero igual termina pidiendo las ~56
+// imágenes — el navegador las multiplexa casi todas en paralelo de todas
+// formas (HTTP/2), así que el trabajo total de red+decode seguía siendo el
+// mismo. Ahora solo se pide el logo de una card cuando esa card REALMENTE
+// entra al viewport (igual criterio que loading="lazy" en el resto de la
+// app, pero aplicado a mano porque estas <img> se insertan por JS) — en un
+// grid de 3 columnas eso son ~9-12 pedidos reales de entrada, no 56.
+let _marcaLogoIO=null;
 function _marcaSetAllLogos(){
-  Object.keys(MARCA_LOGOS).forEach((m,i)=>{
-    setTimeout(()=>_marcaSetLogo(m,MARCA_LOGOS[m]),i*18);
-  });
+  if(_marcaLogoIO){ _marcaLogoIO.disconnect(); _marcaLogoIO=null; }
+  const cards=document.querySelectorAll('#marcas-grid .marca-card');
+  if(!cards.length) return;
+  if(typeof IntersectionObserver==='undefined'){
+    Object.keys(MARCA_LOGOS).forEach((m,i)=>setTimeout(()=>_marcaSetLogo(m,MARCA_LOGOS[m]),i*18));
+    return;
+  }
+  _marcaLogoIO=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      _marcaLogoIO.unobserve(e.target);
+      const marca=e.target.dataset.marca;
+      if(marca&&MARCA_LOGOS[marca]) _marcaSetLogo(marca,MARCA_LOGOS[marca]);
+    });
+  },{rootMargin:'250px 0px'});
+  cards.forEach(card=>{ if(card.dataset.marca&&MARCA_LOGOS[card.dataset.marca]) _marcaLogoIO.observe(card); });
 }
 function _marcaSetLogo(marca,url){
   if(!url) return;
@@ -8688,7 +8712,7 @@ function renderMarcasGrid(filterText){
   if(_marcasRegionFilter) list=list.filter(m=>MARCAS_REGIONS[m]===_marcasRegionFilter);
   grid.innerHTML=list.length?list.map(m=>{
     const slug=_marcaSlug(m);
-    return `<div class="marca-card" id="marca-card-${slug}" onclick="goToMarcaFilter('${m.replace(/'/g,"\\'")}')"><span id="marca-ph-${slug}" style="position:relative;z-index:1;transition:opacity .35s ease">${_esc(m)}</span></div>`;
+    return `<div class="marca-card" id="marca-card-${slug}" data-marca="${_esc(m)}" onclick="goToMarcaFilter('${m.replace(/'/g,"\\'")}')"><span id="marca-ph-${slug}" style="position:relative;z-index:1;transition:opacity .35s ease">${_esc(m)}</span></div>`;
   }).join(''):'<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:30px 0">sin resultados</div>';
   // repinta logos ya cargados en memoria (si el usuario re-filtra, vuelve a construir el DOM)
   _marcaSetAllLogos();
@@ -15681,6 +15705,16 @@ function goHome(){
   if(_goHomeBusy) return;
   _goHomeBusy=true;
   requestAnimationFrame(()=>{ _goHomeBusy=false; });
+  // [fix consistencia] mismo criterio que el swipe/back (ver popstate más abajo):
+  // si estás en el detalle de una publicación/subasta/concesionario, la casita
+  // dispara la MISMA salida animada que ya existe para ese swipe — antes solo
+  // pasaba con gesto nativo o botón atrás del sistema, y tocar la casita
+  // cortaba en seco sin el splash "volviendo a...".
+  const _exitFn = currentView==='market-detail' ? _rdExitMarketDetail
+                : currentView==='detail' ? _rdExitAuctionDetail
+                : currentView==='vitrina' ? _rdExitVitrina
+                : null;
+  if(typeof _exitFn==='function'){ _exitFn(); return; }
   // [RC10] la casita ahora es "ir a market" de forma explícita — siempre el
   // mismo destino sin importar en qué sección estés, para que la coreografía
   // de entrada se pueda ver cada vez que quieras, tocando desde cualquier lado.
