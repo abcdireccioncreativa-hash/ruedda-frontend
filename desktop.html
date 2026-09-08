@@ -724,14 +724,18 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 #market-pill-bar .mkt-pill.active{background:var(--w14);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);border-color:var(--w12);color:var(--white);box-shadow:0 8px 24px rgba(0,0,0,.22)}
 
 /* VISTA MARCAS */
-.marcas-hero{position:relative;background:#000;border-radius:28px 28px 0 0;padding:max(70px,calc(env(safe-area-inset-top) + 26px)) 20px 28px;overflow:hidden;text-align:center}
+/* [pedido explícito] "Marcas." pasa de título grande centrado (tapaba el
+   mapa) a texto chico en una esquina. El fondo se queda negro. */
+.marcas-hero{position:relative;background:#000;border-radius:28px 28px 0 0;padding:max(70px,calc(env(safe-area-inset-top) + 26px)) 20px 24px;overflow:hidden;text-align:left;min-height:150px}
 .marcas-hero .mh-text{position:relative;z-index:2}
-.marcas-hero h1{font-size:32px;font-weight:800;letter-spacing:-.5px;position:relative;z-index:2;margin-top:-10px}
-.marcas-hero .mh-sub{font-size:12.5px;font-weight:600;color:var(--muted);letter-spacing:.2px;margin-top:3px;position:relative;z-index:2}
-.marcas-hero .world-ico{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:220px;opacity:.14;z-index:1}
+.marcas-hero h1{font-size:15px;font-weight:800;letter-spacing:-.2px;position:relative;z-index:2;margin-top:0}
+.marcas-hero .mh-sub{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.2px;margin-top:2px;position:relative;z-index:2}
+.marcas-hero .world-ico{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:220px;opacity:.22;z-index:1}
 .marcas-search{margin:16px 14px 0;background:var(--surface-mid);border:1px solid var(--border);border-radius:100px;display:flex;align-items:center;padding:13px 18px;gap:10px}
 .marcas-region-btn{flex-shrink:0;background:transparent;border:1px solid var(--w20);border-radius:100px;padding:8px 16px;font-size:12px;font-weight:600;color:var(--w60);cursor:pointer;transition:all .15s;font-family:var(--font);white-space:nowrap}
-.marcas-region-btn.active{background:var(--lime);color:var(--lime-ink);border-color:var(--lime);font-weight:700}
+/* [pedido explícito] filtro activo siempre negro/blanco, no el color de
+   marca elegido (mismo criterio que el botón Vender). */
+.marcas-region-btn.active{background:#0a0a0a;color:#fff;border-color:#0a0a0a;font-weight:700}
 .marcas-search input{flex:1;background:none;border:none;color:var(--white);font-family:var(--font);font-size:14px;outline:none;min-width:0}
 .marcas-search svg{width:16px;height:16px;color:var(--muted);flex-shrink:0}
 .marcas-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;padding:18px 14px 100px}
@@ -834,7 +838,7 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 .detail-badge{font-size:12px;font-weight:600;padding:5px 12px;border-radius:100px;border:1px solid var(--border);color:var(--muted)}
 /* [pedido explícito, mismo que mobile] la etiqueta "market" pasa de verde a
    negro sólido con texto blanco. */
-.detail-badge.lime{background:#0a0a0a;border-color:rgba(255,255,255,.14);color:#fff}
+.detail-badge.lime{background:var(--w8);border-color:var(--w22);color:var(--white)}
 /* [RC] variante verde — para "sin reserva" en detalle, consistente con la card */
 .detail-badge.verde{background:rgba(31,191,92,.92);border-color:rgba(120,240,170,.45);color:#fff;font-weight:700}
 .detail-title{font-size:25px;font-weight:700;letter-spacing:-.5px;line-height:1.15;margin-bottom:0}
@@ -5441,15 +5445,22 @@ function showView(name,param){
     });
     renderCurrentSection();
     // refetch desde DB para que listings aprobados aparezcan sin recargar la página
-    // [fix stutter] antes este refetch de 9 queries en paralelo corría CADA VEZ que
-    // se tocaba "home", así acabaras de estar ahí hace 2 segundos — el segundo pintado
-    // (con data fresca) llegaba a los 400-1000ms y reemplazaba todo sin animar, tapando
-    // la cascada .rdv y sintiéndose como un tirón. Con throttle de 15s la data sigue
-    // fresca ("listings aprobados aparecen sin recargar la página") pero no se martilla
-    // Supabase en cada tap de la barra inferior.
-    if(_supa && (Date.now()-(window._lastHomeRefetch||0)>15000)){
+    // [fix freeze — causa real] cuando este refetch de 9 queries SÍ corría (throttle
+    // de por medio), las respuestas de red llegaban casi juntas y cada .then() hacía
+    // trabajo de DOM una atrás de otra, en el mismo tick, sin ceder el hilo principal
+    // — eso compite justo con el momento en que sigues interactuando, y varias ráfagas
+    // de DOM seguidas SÍ se sienten como un freeze real. Dos cambios: 1) todo el bloque
+    // arranca en un tick aparte (setTimeout 0); 2) cada query individual sale
+    // escalonada (30ms de por medio) — así también sus RESPUESTAS llegan escalonadas.
+    if(_supa && (Date.now()-(window._lastHomeRefetch||0)>60000)){
       window._lastHomeRefetch=Date.now();
-      Promise.allSettled([_loadAuctions(),_loadMarket(),_loadChocados(),_loadRueddaTeamConfig(),_loadMarketSponsors(),_loadChocadosSponsors(),_loadMiniBanner(),_loadRentals(),_loadPaymentData()]).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
+      setTimeout(()=>{
+        const _loaders=[_loadAuctions,_loadMarket,_loadChocados,_loadRueddaTeamConfig,_loadMarketSponsors,_loadChocadosSponsors,_loadMiniBanner,_loadRentals,_loadPaymentData];
+        const _staggered=_loaders.map((fn,i)=>new Promise(resolve=>{
+          setTimeout(()=>{ Promise.resolve(fn()).finally(resolve); }, i*30);
+        }));
+        Promise.allSettled(_staggered).then(()=>{if(document.getElementById('market-section')?.style.display!=='none')renderTrendingHoy();});
+      },0);
     }
     // [config] respeta "al iniciar sesión mostrar siempre" — solo usuarios logueados, guest siempre subastas
     if(_target==='subastas'&&isLoggedIn&&USER_STATE.defaultView==='market') selectSection('market');
