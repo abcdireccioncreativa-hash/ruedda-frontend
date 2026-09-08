@@ -13,7 +13,8 @@
  * si el correo existe o no en la base.
  */
 const { supabaseAdmin, supabaseAnon } = require('../lib/supabase');
-const { sendEmail, layout } = require('../lib/email');
+const { sendEmail } = require('../lib/email');
+const { templates } = require('../lib/emailTemplates');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -40,16 +41,8 @@ module.exports = async function handler(req, res) {
         options: { redirectTo }
       });
       if (!error && data?.properties?.action_link) {
-        await sendEmail({
-          to: email,
-          subject: 'Restablece tu contraseña de Ruedda',
-          html: layout(
-            'Restablece tu contraseña',
-            `Pediste restablecer la contraseña de tu cuenta Ruedda. Si fuiste tú, entra al siguiente enlace (vence en un rato, por tu seguridad):<br><br>` +
-            `<a href="${data.properties.action_link}" style="color:#111">${data.properties.action_link}</a><br><br>` +
-            `Si no fuiste tú, ignora este correo — tu contraseña sigue igual.`
-          )
-        });
+        const { subject, html } = templates.resetPassword({ actionUrl: data.properties.action_link });
+        await sendEmail({ to: email, subject, html });
       } else {
         console.warn('[ruedda] generateLink falló, se omite envío:', error?.message);
       }
