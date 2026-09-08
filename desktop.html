@@ -2109,9 +2109,16 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       </div>
     </div>
     <div class="landing-hero-right">
-      <!-- Abstract car visual — SVG, zero weight -->
+      <!-- [pedido explícito] loading inteligente en vez del dibujo del carro — mismo
+           shimmer .rdv-skel del resto de la app. Desaparece cuando la foto real carga
+           (_landingPortadaSetPhoto); si a los 6s no ha llegado ninguna, se retira sola
+           (fondo plano #080808 de .landing-hero-right en vez de shimmer para siempre). -->
+      <div id="landing-hero-skel" class="rdv-skel" style="position:absolute;inset:0;transition:opacity .4s ease"></div>
+      <script>setTimeout(function(){var s=document.getElementById('landing-hero-skel');if(s&&s.style.opacity!=='0'){s.style.opacity='0';setTimeout(function(){if(s)s.style.display='none';},450);}},6000);</script>
+      <!-- Abstract car visual — SVG oculta (elimina el carro), .landing-visual se
+           conserva para el tamaño/posición del badge flotante "subasta activa". -->
       <div class="landing-visual">
-        <svg viewBox="0 0 580 420" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <svg viewBox="0 0 580 420" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;visibility:hidden">
           <defs>
             <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stop-color="#08441A" stop-opacity=".08"/>
@@ -3076,6 +3083,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <button style="background:var(--lime);color:var(--lime-ink);border:none;border-radius:100px;padding:9px 18px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap" onclick="contactDealer()">contactar</button>
     </div>
   </div>
+  <!-- [pedido explícito] "calificación fintech" del concesionario — Índice Ruedda -->
+  <div id="vitrina-score" style="margin:0 18px 14px"></div>
   <!-- AUTOS GRID -->
   <div class="filter-bar" id="vitrina-pill-bar" style="padding:0 18px 4px">
     <button class="filter-btn" id="vitrina-filter-btn" onclick="toggleVitrinaFilterPanel()">
@@ -7762,6 +7771,9 @@ function _landingPortadaSetPhoto(url){
     // activa"), que se posiciona relativo a esa caja, no salte de lugar.
     const svg=visual?visual.querySelector('svg'):null;
     if(svg) svg.style.visibility='hidden';
+    // [loading inteligente] la foto real ya cargó — retira el shimmer.
+    const skel=document.getElementById('landing-hero-skel');
+    if(skel){ skel.style.opacity='0'; setTimeout(()=>{ if(skel) skel.style.display='none'; },450); }
   };
   img.src=url;
 }
@@ -13033,6 +13045,53 @@ async function _submitAuctionWaitlist(btn){
   if(btn){btn.textContent='enviar';btn.disabled=false;btn.style.opacity='1';}
 }
 
+// [pedido explícito] "calificación fintech" del concesionario, adentro de su
+// vitrina — Índice Ruedda: score compuesto 0-100 a partir de datos reales ya
+// existentes (calificación, inventario activo, verificación, marca oficial),
+// sin tabla ni columna nueva.
+function _dealerTrustScore(d){
+  const confid=Math.min(1,(d.ratingCount||0)/8);
+  const ratingPts=((d.rating||0)/5)*45*confid;
+  const activityPts=Math.min(30,(d.autos||0)*2.5);
+  const verifiedPts=15;
+  const officialPts=d.tipo==='marca_oficial'?10:0;
+  const total=Math.round(Math.min(100,ratingPts+activityPts+verifiedPts+officialPts));
+  let tier,tierColor;
+  if(total>=85){tier='excelente';tierColor='#5ee9a0';}
+  else if(total>=65){tier='buena';tierColor='#a8d84a';}
+  else if(total>=40){tier='regular';tierColor='#f0b23c';}
+  else{tier='nueva';tierColor='#8a8a86';}
+  const factors=[
+    {label:'calificación',value:d.ratingCount?d.rating.toFixed(1)+'/5 ('+d.ratingCount+')':'sin reseñas aún'},
+    {label:'inventario activo',value:(d.autos||0)+' vehículos'},
+    {label:'cuenta verificada',value:'sí'}
+  ];
+  if(d.tipo==='marca_oficial') factors.push({label:'marca oficial',value:'sí'});
+  return{total,tier,tierColor,factors};
+}
+function _renderDealerScore(d){
+  const el=document.getElementById('vitrina-score');
+  if(!el) return;
+  const s=_dealerTrustScore(d);
+  const circ=150.8, dash=(s.total/100*circ).toFixed(1);
+  el.innerHTML=`
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px 18px;display:flex;align-items:center;gap:16px">
+      <div style="position:relative;width:56px;height:56px;flex-shrink:0">
+        <svg viewBox="0 0 56 56" style="width:56px;height:56px;transform:rotate(-90deg)">
+          <circle cx="28" cy="28" r="24" fill="none" stroke="var(--w8)" stroke-width="5"/>
+          <circle cx="28" cy="28" r="24" fill="none" stroke="${s.tierColor}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${dash} ${circ}"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:var(--white)">${s.total}</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span style="font-size:13.5px;font-weight:800;letter-spacing:-.1px">Índice Ruedda</span>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:${s.tierColor}">confianza ${s.tier}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5">${s.factors.map(f=>f.label+': '+f.value).join(' · ')}</div>
+      </div>
+    </div>`;
+}
 function openVitrina(id){
   currentDealer = CONCESIONARIOS.find(d=>d.id===id);
   if(!currentDealer) return;
@@ -13044,8 +13103,9 @@ function openVitrina(id){
     const vr=document.getElementById('vitrina-rating');
     if(vr){
       vr.innerHTML=_rdStarsHTML(d.rating,d.ratingCount);
-      if(!d.ratingCount) _loadAgenciaRatings([d.id]).then(()=>{ if(document.getElementById('vitrina-rating')) vr.innerHTML=_rdStarsHTML(d.rating,d.ratingCount); }).catch(()=>{});
+      if(!d.ratingCount) _loadAgenciaRatings([d.id]).then(()=>{ if(document.getElementById('vitrina-rating')) vr.innerHTML=_rdStarsHTML(d.rating,d.ratingCount); _renderDealerScore(d); }).catch(()=>{});
     }
+    _renderDealerScore(d);
     const dir=document.getElementById('vitrina-direccion');
     if(dir){
       // [FIX] antes este slot caía siempre a d.ciudad (nunca se traía 'direccion' de
