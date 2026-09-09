@@ -2120,9 +2120,9 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 /* ── acciones: la regla de canto a canto separa lectura de acción ── */
 #rd-intro-cta{
   position:relative;z-index:3;display:flex;flex-direction:column;gap:9px;
-  /* [pedido explícito] botones un poquitín más arriba — #rd-intro-copy
-     (título/subtítulo) es una caja aparte, esto no la mueve. */
-  padding:19px 22px 22px;
+  /* [TEMPORAL] valor de referencia mientras se calibra con la regla de
+     depuración — #rd-debug-ruler más abajo en el archivo. */
+  padding:19px 22px 14px;
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
@@ -2800,6 +2800,23 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 </div>
 
 <!-- BOOT SPLASH — versión de prueba: isotipo + dot lima. Estética final pendiente. -->
+<!-- [TEMPORAL — regla de depuración, pedida explícitamente para calibrar el
+     borde inferior del intro. Quitar cuando el usuario confirme el número. -->
+<div id="rd-debug-ruler" style="position:fixed;right:4px;bottom:0;z-index:9999999;font-family:-apple-system,sans-serif;pointer-events:none"></div>
+<script>
+(function(){
+  var wrap=document.getElementById('rd-debug-ruler');
+  if(!wrap) return;
+  for(var px=0; px<=160; px+=10){
+    var big = px%50===0;
+    var tick=document.createElement('div');
+    tick.style.cssText='position:fixed;right:4px;bottom:'+px+'px;display:flex;align-items:center;gap:4px;transform:translateY(50%)';
+    tick.innerHTML='<span style="font-size:'+(big?'11px':'9px')+';font-weight:'+(big?'800':'600')+';color:'+(big?'#ff3b30':'rgba(255,59,48,.75)')+';background:rgba(0,0,0,.55);padding:1px 4px;border-radius:4px">'+px+'</span><span style="display:block;width:'+(big?'16px':'9px')+';height:1.5px;background:'+(big?'#ff3b30':'rgba(255,59,48,.75)')+'"></span>';
+    wrap.appendChild(tick);
+  }
+})();
+</script>
+
 <div id="boot-splash">
   <div id="boot-splash-mark-wrap">
     <div id="boot-splash-mark"></div>
