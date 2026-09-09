@@ -179,21 +179,34 @@ function _rdWaveFlag(el, opts){
     var standalone = window.navigator.standalone === true ||
       (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
     if(!standalone) return;
+    var BASE  = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+    var COVER = BASE + ', viewport-fit=cover';
     var hecho = false;
+
+    function restaurar(m){ try{ m.setAttribute('content', COVER); }catch(e){} }
+
     function reresolverViewport(){
-      if(hecho) return; hecho = true;
+      if(hecho) return;
       try{
-        var viejo = document.querySelector('meta[name="viewport"]');
-        if(!viejo || !viejo.parentNode) return;
-        var nuevo = document.createElement('meta');
-        nuevo.setAttribute('name','viewport');
-        nuevo.setAttribute('content', viejo.getAttribute('content'));
-        viejo.parentNode.replaceChild(nuevo, viejo);
+        var m = document.querySelector('meta[name="viewport"]');
+        if(!m) return;
+        // Si el viewport ya mide la pantalla completa, no hay nada que forzar.
+        if(window.innerHeight >= window.screen.height - 1) { hecho = true; return; }
+        hecho = true;
+        // Cambio REAL de contenido: reemplazar el nodo con el mismo valor no
+        // dispara el re-parseo (verificado en simulador: seguia en 793/sat=0).
+        // auto -> cover si obliga a WebKit a re-resolver el viewport.
+        m.setAttribute('content', BASE + ', viewport-fit=auto');
+        requestAnimationFrame(function(){ restaurar(m); });
+        // Red de seguridad: pase lo que pase, el meta vuelve a cover.
+        setTimeout(function(){ restaurar(m); }, 120);
+        setTimeout(function(){ restaurar(m); }, 600);
       }catch(e){}
     }
     function agendar(){ requestAnimationFrame(function(){ requestAnimationFrame(reresolverViewport); }); }
     if(document.readyState === 'complete') agendar();
     else window.addEventListener('load', agendar);
+    document.addEventListener('DOMContentLoaded', agendar);
   }catch(e){}
 })();
 </script>
