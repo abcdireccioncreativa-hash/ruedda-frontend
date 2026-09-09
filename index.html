@@ -148,7 +148,7 @@ function _rdWaveFlag(el, opts){
 <link rel="apple-touch-icon" href="/icon-180.png">
 <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
 <link rel="manifest" href="/manifest.json">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Ruedda | Vende o subasta tu carro. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads</title>
 <meta name="description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <link rel="canonical" href="https://www.ruedda.app/">
@@ -2019,8 +2019,14 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 }
 #rd-intro-num{color:rgba(255,255,255,.92)}
 #rd-intro-tot{color:rgba(255,255,255,.28)}
-#rd-intro-rule{flex:1;height:1px;background:var(--w15);overflow:hidden}
-#rd-intro-rule>i{display:block;height:100%;width:0;background:var(--lime)}
+/* [fix "línea negra"] el intro SIEMPRE tiene fondo oscuro (#rd-intro es
+   #000 fijo, no reacciona al tema) — usar var(--w15)/var(--lime) acá era
+   el mismo bug de toda la noche: --w15 se invierte por tema (se vuelve
+   oscuro en modo claro) y --lime hoy ES negro (#0a0a0a), así que la línea
+   quedaba invisible en ambos casos. Blanco literal, fijo, como el resto
+   del intro (#rd-intro-num ya usa rgba(255,255,255,...) acá al lado). */
+#rd-intro-rule{flex:1;height:1px;background:rgba(255,255,255,.15);overflow:hidden}
+#rd-intro-rule>i{display:block;height:100%;width:0;background:#fff}
 
 /* ── zona de tap/swipe: solo el área de la foto, nunca sobre los CTA ── */
 #rd-intro-touch{position:relative;z-index:2;flex:1;min-height:0}
@@ -2099,7 +2105,9 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 /* ── acciones: la regla de canto a canto separa lectura de acción ── */
 #rd-intro-cta{
   position:relative;z-index:3;display:flex;flex-direction:column;gap:9px;
-  padding:19px 22px max(20px,calc(env(safe-area-inset-bottom) + 14px));
+  /* [pedido explícito] un poco más de aire abajo — sube los botones sin tocar
+     los títulos de arriba (eso vive en #rd-intro-copy, sin cambios) */
+  padding:19px 22px max(34px,calc(env(safe-area-inset-bottom) + 28px));
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
@@ -2484,6 +2492,21 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     });
   }
 
+  // [pedido explícito] toquecito háptico al cambiar de foto en el intro —
+  // cero peso: unas líneas de JS plano, sin librería. En la app nativa usa
+  // el plugin Haptics de Capacitor SI está instalado (si no, no truena,
+  // solo no vibra); en Android/Chrome como PWA cae a navigator.vibrate().
+  // iOS Safari/PWA no tiene esa API — ahí solo vibra dentro de la app nativa.
+  function _hapticTick(){
+    try{
+      var C = window.Capacitor;
+      if(C && typeof C.isNativePlatform === 'function' && C.isNativePlatform() && C.Plugins && C.Plugins.Haptics){
+        C.Plugins.Haptics.impact({style:'Light'});
+        return;
+      }
+    }catch(e){}
+    try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){}
+  }
   function go(i){
     if(dead) return;
     // [V127] última foto -> termina el tour y entra a la app (antes daba la
@@ -2495,6 +2518,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     // en la última foto y "se devolvía", confuso).
     if(i < 0) i = 0;
     if(i === cur) return;
+    _hapticTick();
     cur = i;
     var s = SLIDES[i];
 
