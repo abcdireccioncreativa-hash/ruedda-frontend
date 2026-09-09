@@ -149,6 +149,54 @@ function _rdWaveFlag(el, opts){
 <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   [FIX viewport standalone] Instalada en inicio (PWA), iOS resuelve el
+   viewport del PRIMER layout SIN aplicar viewport-fit=cover todavía: la
+   caja de layout nace con la altura de pantalla menos la franja del
+   status bar / Dynamic Island, pero anclada arriba del todo. En un
+   iPhone 14 Pro son 852 - 59 = 793 px, con el origen en y=0.
+
+   Consecuencia medible (repro en simulador 14 Pro, web app instalada):
+   todo lo anclado abajo queda 59px por encima del borde real. En el
+   intro, los CTA salían a 93px del borde cuando el CSS manda 34px. El
+   viewport solo se re-resolvía con un cambio de orientación real — por
+   eso "se arreglaba" al rotar y volver, y por eso nada en CSS
+   (inset:0, 100dvh, height:auto) podía corregirlo: la caja de layout
+   entera era la que estaba mal, no el elemento.
+
+   Fix: una vez montado el documento, se REEMPLAZA el nodo del meta
+   viewport (no se muta in-place: en standalone iOS ignora la mutación —
+   mismo motivo por el que setTheme() y el fix de la franja ya
+   reemplazan el nodo de theme-color). Eso obliga a WebKit a volver a
+   parsear el viewport y aplicar viewport-fit=cover de verdad.
+
+   Corre una sola vez, solo en standalone, y el contenido del meta es
+   idéntico: si el navegador ya lo tenía bien, es un no-op visual.
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  try{
+    var standalone = window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    if(!standalone) return;
+    var hecho = false;
+    function reresolverViewport(){
+      if(hecho) return; hecho = true;
+      try{
+        var viejo = document.querySelector('meta[name="viewport"]');
+        if(!viejo || !viejo.parentNode) return;
+        var nuevo = document.createElement('meta');
+        nuevo.setAttribute('name','viewport');
+        nuevo.setAttribute('content', viejo.getAttribute('content'));
+        viejo.parentNode.replaceChild(nuevo, viejo);
+      }catch(e){}
+    }
+    function agendar(){ requestAnimationFrame(function(){ requestAnimationFrame(reresolverViewport); }); }
+    if(document.readyState === 'complete') agendar();
+    else window.addEventListener('load', agendar);
+  }catch(e){}
+})();
+</script>
 <title>Ruedda | Vende o subasta tu carro. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads</title>
 <meta name="description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <link rel="canonical" href="https://www.ruedda.app/">
