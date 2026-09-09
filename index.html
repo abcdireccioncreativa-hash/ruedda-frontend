@@ -1288,7 +1288,7 @@ html[data-theme="light"] .cnt-slider-tab.active{background:#fff}
 @media(prefers-reduced-motion:reduce){#boot-splash-mark,#boot-splash-text{animation:none!important;opacity:1!important;transform:none!important}}
 
 /* SEARCH OVERLAY */
-.search-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;padding:18px;flex-direction:column;gap:16px;color:var(--white)}
+.search-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;padding:calc(18px + env(safe-area-inset-top)) 18px 18px;flex-direction:column;gap:16px;color:var(--white)}
 .search-overlay.open{display:flex;animation:fadeIn .2s ease}
 .search-top{display:flex;align-items:center;gap:10px}
 .search-bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;flex:1}
