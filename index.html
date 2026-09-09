@@ -181,32 +181,48 @@ function _rdWaveFlag(el, opts){
     if(!standalone) return;
     var BASE  = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
     var COVER = BASE + ', viewport-fit=cover';
-    var hecho = false;
+    var intentos = 0, corriendo = false;
 
-    function restaurar(m){ try{ m.setAttribute('content', COVER); }catch(e){} }
+    function meta(){ return document.querySelector('meta[name="viewport"]'); }
+    function restaurar(){ var m = meta(); if(m) m.setAttribute('content', COVER); }
 
-    function reresolverViewport(){
-      if(hecho) return;
-      try{
-        var m = document.querySelector('meta[name="viewport"]');
-        if(!m) return;
-        // Si el viewport ya mide la pantalla completa, no hay nada que forzar.
-        if(window.innerHeight >= window.screen.height - 1) { hecho = true; return; }
-        hecho = true;
-        // Cambio REAL de contenido: reemplazar el nodo con el mismo valor no
-        // dispara el re-parseo (verificado en simulador: seguia en 793/sat=0).
-        // auto -> cover si obliga a WebKit a re-resolver el viewport.
-        m.setAttribute('content', BASE + ', viewport-fit=auto');
-        requestAnimationFrame(function(){ restaurar(m); });
-        // Red de seguridad: pase lo que pase, el meta vuelve a cover.
-        setTimeout(function(){ restaurar(m); }, 120);
-        setTimeout(function(){ restaurar(m); }, 600);
-      }catch(e){}
+    /* Objetivo medido: en el estado sano el viewport mide lo mismo que la
+       pantalla (ih=852, sh=852 en un 14 Pro). En el estado roto mide 793 con
+       las safe areas en 0. Esta es la condición de exito, y con ella el ciclo
+       se apaga solo: si el viewport ya esta bien, no se toca nada. */
+    function viewportSano(){ return window.innerHeight >= window.screen.height - 1; }
+
+    /* Sacudidas en escalada. Reemplazar el nodo con el MISMO contenido no
+       dispara nada (verificado: seguia en 793/sat=0), y el auto->cover de un
+       solo frame recupera las safe areas pero deja el alto en 793 (tambien
+       verificado). Por eso se prueban cambios de valor cada vez mas fuertes,
+       con tiempo real entre uno y otro, hasta que el viewport mida bien. */
+    function sacudida(n){
+      if(n === 1) return BASE + ', viewport-fit=auto';
+      if(n === 2) return 'width=device-width, initial-scale=0.999, viewport-fit=cover';
+      return 'width=' + window.screen.width + ', initial-scale=1.0, viewport-fit=cover';
     }
-    function agendar(){ requestAnimationFrame(function(){ requestAnimationFrame(reresolverViewport); }); }
+
+    function ciclo(){
+      if(corriendo) return;
+      if(viewportSano() || intentos >= 3){ restaurar(); return; }
+      var m = meta();
+      if(!m) return;
+      corriendo = true;
+      intentos++;
+      m.setAttribute('content', sacudida(intentos));
+      setTimeout(function(){
+        restaurar();
+        setTimeout(function(){ corriendo = false; ciclo(); }, 150);
+      }, 220);
+    }
+
+    function agendar(){ requestAnimationFrame(function(){ requestAnimationFrame(ciclo); }); }
     if(document.readyState === 'complete') agendar();
     else window.addEventListener('load', agendar);
     document.addEventListener('DOMContentLoaded', agendar);
+    /* Red de seguridad final: pase lo que pase, el meta termina en cover. */
+    setTimeout(restaurar, 4000);
   }catch(e){}
 })();
 </script>
