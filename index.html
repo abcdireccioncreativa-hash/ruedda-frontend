@@ -1997,7 +1997,9 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 /* ── barra superior: marca + saltar ── */
 #rd-intro-top{
   position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;
-  padding:max(16px,calc(env(safe-area-inset-top) + 12px)) 22px 0;
+  /* [pedido explícito] misma referencia que .navbar (12px + safe-area-top),
+     con un pequeño ajuste hacia arriba encima de esa referencia. */
+  padding:calc(12px + env(safe-area-inset-top) - 8px) 22px 0;
 }
 #rd-intro-logo{height:20px;width:auto;display:block;opacity:.94}
 #rd-intro-skip{
