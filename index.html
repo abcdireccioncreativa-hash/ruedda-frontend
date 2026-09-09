@@ -139,7 +139,17 @@ function _rdWaveFlag(el, opts){
 </script>
 <meta charset="UTF-8">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- [OPCION B] Antes: black-translucent. Con ese valor iOS le entrega a la
+     web app instalada una ventana de 793px (pantalla 852) anclada arriba, y
+     solo la reconstruye a 852 ante un cambio de orientacion real: por eso el
+     intro arrancaba con los CTA a 93px del borde en vez de 34, y el header se
+     metia bajo el Dynamic Island hasta que se giraba el telefono. Medido en
+     PWA instalada: ih=793 sh=852 sat=0 sab=0 en frio; ih=852 sat=59 sab=34
+     tras rotar. Con la barra opaca la ventana pasa a ser [59 -> 852], o sea el
+     borde inferior es el borde real de la pantalla y todo cae en su sitio sin
+     depender de rotar. Costo: la franja del Dynamic Island deja de mostrar la
+     foto y pasa a ser una barra solida. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Ruedda">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#f8f8f4">
