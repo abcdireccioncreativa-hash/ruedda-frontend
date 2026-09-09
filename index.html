@@ -1931,6 +1931,11 @@ html.rd-android-app .sched-badge{backdrop-filter:none;-webkit-backdrop-filter:no
    reserva para dos cosas: el progreso y la acción primaria.
    ═══════════════════════════════════════════════════════════════ */
 html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-behavior:none}
+/* [FIX franja] La zona del indicador de inicio queda FUERA del viewport de
+   layout: no la cubre ningún elemento posicionado, la pinta iOS con el
+   background propagado del documento. Mientras el intro está montado
+   forzamos el documento a negro. Solo color: cero layout. */
+html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-scheme:dark}
 
 #rd-intro{
   position:fixed;inset:0;height:100dvh;z-index:100002;background:#000;
@@ -2553,10 +2558,29 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     setTimeout(function(){
       root.classList.add('rd-out');
       document.documentElement.classList.remove('rd-intro-lock');
+      _introThemeRestore();
       setTimeout(function(){
         if(root.parentNode) root.parentNode.removeChild(root);
       }, 460);
     }, 700);
+  }
+
+  /* [FIX franja] iOS no repinta la safe-area con el meta mutado in-place en
+     standalone — hay que reemplazar el nodo, mismo truco que [V136] en
+     setTheme(). */
+  function _introThemeColor(hex){
+    try{
+      var vieja = document.querySelector('meta[name="theme-color"]');
+      var nueva = document.createElement('meta');
+      nueva.setAttribute('name','theme-color');
+      nueva.setAttribute('content', hex);
+      if(vieja && vieja.parentNode) vieja.parentNode.replaceChild(nueva, vieja);
+      else document.head.appendChild(nueva);
+    }catch(e){}
+  }
+  function _introThemeRestore(){
+    var claro = document.documentElement.getAttribute('data-theme') === 'light';
+    _introThemeColor(claro ? '#f8f8f4' : '#000000');
   }
 
   /* ── salida (CTA explícito: saltar / market / crear cuenta) ── */
@@ -2566,6 +2590,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     try{ localStorage.setItem(CFG.key,'1'); }catch(e){}
     root.classList.add('rd-out');
     document.documentElement.classList.remove('rd-intro-lock');
+    _introThemeRestore();
     setTimeout(function(){
       if(root.parentNode) root.parentNode.removeChild(root);
       if(typeof then === 'function'){ try{ then(); }catch(e){} }
@@ -2609,6 +2634,14 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
   /* ── arranque ─────────────────────────────────────────────── */
   document.documentElement.classList.add('rd-intro-lock');
+  _introThemeColor('#000000');
+  // el script de arranque del <head> reasigna el theme-color en
+  // DOMContentLoaded, que corre DESPUÉS de esto y pisaría el negro.
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', function(){
+      if(document.documentElement.classList.contains('rd-intro-lock')) _introThemeColor('#000000');
+    });
+  }
   root.classList.add('rd-on');
   // [V131] go(0) YA NO se llama acá directo — el intro queda montado pero
   // 100% tapado por #rd-intro-preload (pantalla negra + isotipo, ver CSS)
