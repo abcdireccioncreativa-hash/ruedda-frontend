@@ -1274,7 +1274,7 @@ html[data-theme="light"] .cnt-slider-tab.active{background:#fff}
 /* ── [BOOT SPLASH] ── */
 #boot-splash{position:fixed;inset:0;z-index:100000;background:var(--splash-bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:26px;opacity:1;transition:opacity .5s ease}
 /* [pedido explícito] bloqueo de landscape — red de seguridad, ver comentario en el HTML */
-#rd-landscape-guard{display:none;position:fixed;inset:0;z-index:999999;background:#000;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+#rd-landscape-guard{display:none;position:fixed;inset:0;z-index:999999;background:var(--splash-bg);flex-direction:column;align-items:center;justify-content:center;text-align:center}
 @media (orientation:landscape) and (max-height:500px){
   #rd-landscape-guard{display:flex}
 }
@@ -2126,6 +2126,10 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
      (distancia botón→borde real: 371px raster en la mala vs 131px en la
      correcta, mismo encuadre/escala en ambas → 35 * 131/371 ≈ 12px). */
   padding:19px 22px 12px;
+  /* [pedido explícito] "sube SOLO el botón de crear cuenta y explorar el
+     market, no lo demás" — top en vez de tocar el padding para no mover
+     #rd-intro-copy (título/subtítulo), que es un hermano aparte. */
+  top:-6px;
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
@@ -2797,9 +2801,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
      es la red de seguridad: en vez de mostrar el layout roto en horizontal
      (en cualquier contexto, PWA o tab), tapa todo con un aviso simple. -->
 <div id="rd-landscape-guard">
-  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" style="width:38px;height:38px;margin-bottom:14px"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
-  <div style="font-size:16px;font-weight:800;color:#fff;letter-spacing:-.2px">gira tu teléfono</div>
-  <div style="font-size:13px;color:rgba(255,255,255,.55);margin-top:6px;max-width:260px;text-align:center;line-height:1.5">ruedda funciona mejor en vertical</div>
+  <svg viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="1.6" style="width:38px;height:38px;margin-bottom:14px"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+  <div style="font-size:16px;font-weight:800;color:var(--white);letter-spacing:-.2px">gira tu teléfono</div>
+  <div style="font-size:13px;color:var(--muted);margin-top:6px;max-width:260px;text-align:center;line-height:1.5">ruedda funciona mejor en vertical</div>
 </div>
 
 <!-- BOOT SPLASH — versión de prueba: isotipo + dot lima. Estética final pendiente. -->
