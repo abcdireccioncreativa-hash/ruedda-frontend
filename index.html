@@ -2024,14 +2024,6 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 }
 #rd-intro.rd-on{display:flex}
 #rd-intro.rd-out{opacity:0;pointer-events:none}
-/* [FIX viewport standalone] Ver el bloque del <head>. Cuando iOS entrega el
-   viewport corto (793 en vez de 852 en un 14 Pro, con las safe areas en 0),
-   la caja del intro llega solo hasta 793 y por eso los CTA quedan 59px por
-   encima del borde real. Acá se le devuelve el alto de pantalla y al top bar
-   el inset que iOS no aplicó. Las dos reglas se desactivan solas en cuanto el
-   viewport se sanea, porque la clase deja de estar. */
-html.rd-vp-corto #rd-intro{height:var(--rd-vp-h)!important}
-html.rd-vp-corto #rd-intro-top{padding-top:calc(var(--rd-vp-sat) + 12px)!important}
 /* [fix altura inicial de los CTA en PWA] #rd-intro trae inset:0 Y
    height:100dvh. Con top, height y bottom los tres definidos la caja queda
    SOBRE-RESTRINGIDA y por spec CSS se ignora bottom: la altura la manda sola
