@@ -7,6 +7,7 @@
  * protege contra race conditions con optimistic locking.
  */
 const { supabaseAdmin, getUserFromToken } = require('../lib/supabase');
+const { sendEmail, layout } = require('../lib/email');
 
 module.exports = async function handler(req, res) {
   // CORS
@@ -87,6 +88,23 @@ module.exports = async function handler(req, res) {
         icon: 'lime'
       })
       .then(() => {})
+      .catch(() => {});
+
+    // 7. Correo al vendedor (best-effort)
+    supabaseAdmin
+      .from('users')
+      .select('email')
+      .eq('id', auction.user_id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data?.email) {
+          sendEmail({
+            to: data.email,
+            subject: 'Nueva oferta en tu subasta',
+            html: layout('Nueva oferta', `Alguien ofertó $${montoNum.toLocaleString()} en tu subasta. Entra a Ruedda para ver los detalles.`)
+          });
+        }
+      })
       .catch(() => {});
 
     return res.status(200).json({
