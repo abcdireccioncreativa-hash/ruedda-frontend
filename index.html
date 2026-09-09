@@ -1951,6 +1951,27 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 }
 #rd-intro.rd-on{display:flex}
 #rd-intro.rd-out{opacity:0;pointer-events:none}
+/* [fix altura inicial de los CTA en PWA] #rd-intro trae inset:0 Y
+   height:100dvh. Con top, height y bottom los tres definidos la caja queda
+   SOBRE-RESTRINGIDA y por spec CSS se ignora bottom: la altura la manda sola
+   100dvh, y bottom:0 deja de tener efecto. En standalone, en el primer render
+   dvh resuelve al viewport SIN viewport-fit=cover (en un 14 Pro: 852 - 59 =
+   793, donde esos 59 son env(safe-area-inset-top)), así que la caja queda
+   59px corta. Como la columna está anclada con justify-content:flex-end y
+   #rd-intro-touch{flex:1} es el espaciador, el bloque copy+CTA sube esos
+   mismos 59px — medido en las capturas reales: 88px de gap al abrir vs 29px
+   que manda el CSS. Solo se corregía al rotar, porque eso fuerza una
+   re-resolución real del viewport (y rd-intro-lock pone overflow:hidden, así
+   que tampoco hay scroll que la dispare).
+   height:auto devuelve el control a top:0/bottom:0: la caja se mide por
+   RESTRICCIÓN contra el viewport, no por una longitud que haya que resolver,
+   así que no puede quedar vieja en el primer frame ni necesita recálculo.
+   Verificado en simulador que auto ESTIRA (no colapsa a contenido).
+   Scoped a standalone: en pestaña Safari se conserva el 100dvh ya probado
+   (medido en simulador: ahí ambas formas dan idéntico, 695). No toca ningún
+   px del intro ni el fix de color de la franja (ese es html.rd-intro-lock +
+   theme-color, cero layout). */
+html:not(.rd-safari-tab) #rd-intro{height:auto}
 
 /* ── media: la foto como material, no como catálogo ── */
 #rd-intro-media{position:absolute;inset:0;overflow:hidden;background:#000}
