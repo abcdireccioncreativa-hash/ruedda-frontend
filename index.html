@@ -2115,9 +2115,11 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 /* ── acciones: la regla de canto a canto separa lectura de acción ── */
 #rd-intro-cta{
   position:relative;z-index:3;display:flex;flex-direction:column;gap:9px;
-  /* [pedido explícito] un poco más de aire abajo — sube los botones sin tocar
-     los títulos de arriba (eso vive en #rd-intro-copy, sin cambios) */
-  padding:19px 22px max(34px,calc(env(safe-area-inset-bottom) + 28px));
+  /* [pedido explícito] título + botones bajan hacia el borde, aprox. la
+     altura de un botón (~50px) respecto a antes — justify-content:flex-end
+     en #rd-intro arrastra todo el bloque de arriba (título/subtítulo) con
+     los botones, así que basta con reducir este padding-bottom. */
+  padding:19px 22px max(20px,calc(env(safe-area-inset-bottom) - 20px));
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
