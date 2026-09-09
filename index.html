@@ -381,7 +381,12 @@ html[data-theme="light"] .navbar{background:rgba(248,248,244,.94);backdrop-filte
 #view-cuenta::-webkit-scrollbar{display:none}
 html::-webkit-scrollbar{display:none}
 html{scrollbar-width:none}
-.view{padding-top:58px}
+/* [fix "app metida hacia arriba del header"] .navbar es fixed (fuera del
+   flujo normal) y ahora es mas alto que antes (le sumamos
+   env(safe-area-inset-top) a su padding para que no quede detras del
+   Dynamic Island/notch) — este offset del contenido tenia que crecer lo
+   MISMO para no quedar tapado debajo del header más alto. */
+.view{padding-top:calc(58px + env(safe-area-inset-top))}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
 #view-detail,#view-market-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
@@ -780,7 +785,7 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 .chip-sm{font-size:11px;font-weight:600;padding:4px 10px;border-radius:100px;border:1px solid var(--border);color:var(--muted)}
 
 /* BOTTOM NAV */
-.bottom-nav{position:fixed;bottom:max(22px,env(safe-area-inset-bottom));left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--bottomnav-border);border-radius:100px;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);display:flex;justify-content:center;align-items:center;gap:3px;padding:9px 12px;z-index:99}
+.bottom-nav{position:fixed;bottom:max(22px,calc(env(safe-area-inset-bottom) - 8px));left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--bottomnav-border);border-radius:100px;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);display:flex;justify-content:center;align-items:center;gap:3px;padding:9px 12px;z-index:99}
 /* [fix sombra Safari] no se trata de debilitar la sombra — sigue ahí, se
    nota — sino de que no se DERRAME tan lejos: con 12px de offset + 40px de
    blur, en pestaña normal (no PWA) esa mancha caía justo en la franja
@@ -1649,7 +1654,7 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
 
 @media(max-width:767px){
   body{padding-left:0!important}
-  .bottom-nav{position:fixed;bottom:max(22px,env(safe-area-inset-bottom));left:50%;right:auto;top:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);flex-direction:row;justify-content:center;align-items:center;padding:9px 12px;border-top:1px solid var(--w8);border-right:none;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);gap:3px;border:1px solid var(--w8);border-radius:100px}
+  .bottom-nav{position:fixed;bottom:max(22px,calc(env(safe-area-inset-bottom) - 8px));left:50%;right:auto;top:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);flex-direction:row;justify-content:center;align-items:center;padding:9px 12px;border-top:1px solid var(--w8);border-right:none;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);gap:3px;border:1px solid var(--w8);border-radius:100px}
   .bnav-item{flex-direction:column;padding:11px 19px;gap:0;width:auto;border-radius:100px;justify-content:center}
   .bnav-item svg{width:23px;height:23px}
   .notif-dot{top:2px;right:8px;transform:none}
