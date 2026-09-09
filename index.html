@@ -1151,7 +1151,7 @@ html.rd-safari-tab .bottom-nav{box-shadow:0 5px 18px rgba(0,0,0,.4),inset 0 1px 
 /* [V122] visor de fotos a pantalla completa — scroll-snap nativo, sin JS de swipe manual */
 #photo-viewer-overlay{position:fixed;inset:0;z-index:600;background:#000;display:none;flex-direction:column}
 #photo-viewer-overlay.open{display:flex}
-.pv-top{display:flex;align-items:center;justify-content:space-between;padding:16px;flex-shrink:0}
+.pv-top{display:flex;align-items:center;justify-content:space-between;padding:calc(16px + env(safe-area-inset-top)) 16px 16px;flex-shrink:0}
 .pv-stage{position:relative;flex:1;overflow:hidden;min-height:0}
 .pv-inner{height:100%;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .pv-inner::-webkit-scrollbar{display:none}
