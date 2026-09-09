@@ -2120,11 +2120,12 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 /* ── acciones: la regla de canto a canto separa lectura de acción ── */
 #rd-intro-cta{
   position:relative;z-index:3;display:flex;flex-direction:column;gap:9px;
-  /* [pedido explícito] calibrado con la regla de depuración: cara de
-     abajo del último botón a 35px del borde real. Arrastra consigo todo
-     el bloque de arriba (título/subtítulo) por el justify-content:flex-end
-     del padre — no hace falta tocar #rd-intro-copy aparte. */
-  padding:19px 22px 35px;
+  /* [pedido explícito] 35px (calibración anterior con la regla) seguía
+     quedando "mala altura" según el PDF de referencia del usuario —
+     recalibrado por proporción exacta contra las dos capturas del PDF
+     (distancia botón→borde real: 371px raster en la mala vs 131px en la
+     correcta, mismo encuadre/escala en ambas → 35 * 131/371 ≈ 12px). */
+  padding:19px 22px 12px;
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
