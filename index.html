@@ -2877,6 +2877,31 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 </div>
 
 <!-- BOOT SPLASH — versión de prueba: isotipo + dot lima. Estética final pendiente. -->
+<!-- [TEMPORAL — botón para relanzar el intro sin tener que reinstalar la PWA.
+     Borra la marca de "ya lo vi" y recarga, así el intro se monta igual que
+     en un arranque en frío. Se quita junto con el lector de abajo. -->
+<button id="rd-relaunch-intro" type="button" aria-label="relanzar intro">intro ↻</button>
+<style>
+#rd-relaunch-intro{
+  position:fixed;left:10px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);
+  z-index:9999998;font:700 11px/1 -apple-system,sans-serif;letter-spacing:.2px;
+  color:#fff;background:rgba(0,0,0,.62);border:1px solid rgba(255,255,255,.28);
+  border-radius:99px;padding:7px 11px;cursor:pointer;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+#rd-relaunch-intro:active{transform:scale(.94)}
+</style>
+<script>
+(function(){
+  var b = document.getElementById('rd-relaunch-intro');
+  if(!b) return;
+  b.addEventListener('click', function(){
+    try{ localStorage.removeItem('rd_intro_v1'); }catch(e){}
+    location.reload();
+  });
+})();
+</script>
+
 <!-- [TEMPORAL — lector de viewport para diagnosticar el corrimiento del intro
      en PWA standalone. Se quita en cuanto se lea el número. NO es parte del
      producto. -->
