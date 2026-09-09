@@ -2877,6 +2877,45 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 </div>
 
 <!-- BOOT SPLASH — versión de prueba: isotipo + dot lima. Estética final pendiente. -->
+<!-- [TEMPORAL — lector de viewport para diagnosticar el corrimiento del intro
+     en PWA standalone. Se quita en cuanto se lea el número. NO es parte del
+     producto. -->
+<div id="rd-vpdbg" style="position:fixed;top:1px;left:1px;z-index:9999999;font:700 10px/1.25 ui-monospace,monospace;color:#0f0;background:rgba(0,0,0,.85);padding:2px 4px;border-radius:3px;pointer-events:none;white-space:pre"></div>
+<script>
+(function(){
+  var el = document.getElementById('rd-vpdbg');
+  if(!el) return;
+  var lineas = [];
+  function leer(tag){
+    var r = document.getElementById('rd-intro');
+    var b = r ? r.getBoundingClientRect() : null;
+    var cta = document.getElementById('rd-intro-cta');
+    var c = cta ? cta.getBoundingClientRect() : null;
+    var probe = document.createElement('div');
+    probe.style.cssText = 'position:fixed;top:env(safe-area-inset-top,0px);left:0;height:0;width:0';
+    document.body.appendChild(probe);
+    var sat = Math.round(probe.getBoundingClientRect().top);
+    probe.style.top = 'auto';
+    probe.style.bottom = 'env(safe-area-inset-bottom,0px)';
+    var sab = Math.round(window.innerHeight - probe.getBoundingClientRect().bottom);
+    probe.remove();
+    lineas.push(tag
+      + ' ih=' + window.innerHeight
+      + ' sh=' + window.screen.height
+      + ' vv=' + (window.visualViewport ? Math.round(window.visualViewport.height) : -1)
+      + ' ce=' + document.documentElement.clientHeight
+      + '\n   sat=' + sat + ' sab=' + sab
+      + ' sa=' + (window.navigator.standalone === true ? 1 : 0)
+      + (b ? ('\n   box h=' + Math.round(b.height) + ' top=' + Math.round(b.top) + ' bot=' + Math.round(b.bottom)) : '')
+      + (c ? ('\n   ctaBot=' + Math.round(c.bottom)) : ''));
+    el.textContent = lineas.slice(-3).join('\n');
+  }
+  leer('t0');
+  window.addEventListener('load', function(){ setTimeout(function(){ leer('L'); }, 800); });
+  window.addEventListener('resize', function(){ leer('R'); });
+})();
+</script>
+
 <div id="boot-splash">
   <div id="boot-splash-mark-wrap">
     <div id="boot-splash-mark"></div>
