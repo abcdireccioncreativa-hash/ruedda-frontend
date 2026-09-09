@@ -64,6 +64,28 @@
     // esto necesita esperar a que el meta tag ya esté parseado.
     var _tc=document.querySelector('meta[name="theme-color"]');
     if(_tc) _tc.setAttribute('content', _rdLightBoot ? '#f8f8f4' : '#000000'); // mismo tono que --navbar-bg segun tema — evita cualquier franja del color contrario arriba en PWA
+
+    // [fix "nav bar sube a veces" / franja abajo en PWA standalone] en vez
+    // de que .navbar/.bottom-nav/.view/#rd-intro lean env(safe-area-inset-*)
+    // en vivo cada uno por su cuenta, se mide UNA sola vez acá al boot y se
+    // fija como variable CSS fija (--rd-sat/--rd-sab). Se sospecha que
+    // WKWebView en modo standalone (icono de home) recalcula esos valores
+    // de forma distinta según el alto/estado de scroll de la vista activa
+    // (notificaciones con poco contenido vs home con mucho) — eso explicaría
+    // que el mismo CSS con env() diera resultados distintos según la vista.
+    // Fijándolo una vez al boot, todos los elementos quedan sincronizados
+    // entre sí pase lo que pase con cada vista después.
+    try{
+      var _probe=document.createElement('div');
+      _probe.style.cssText='position:fixed;top:0;left:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)';
+      document.body.appendChild(_probe);
+      var _cs=getComputedStyle(_probe);
+      var _sat=_cs.paddingTop||'0px';
+      var _sab=_cs.paddingBottom||'0px';
+      document.body.removeChild(_probe);
+      document.documentElement.style.setProperty('--rd-sat', _sat);
+      document.documentElement.style.setProperty('--rd-sab', _sab);
+    }catch(e){}
   });
 })();
 
@@ -357,7 +379,7 @@ input[type=number]{-moz-appearance:textfield}
 @keyframes rdFadeIn{from{opacity:0}to{opacity:1}}
 
 /* NAVBAR */
-.navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--navbar-bg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 18px 12px;border-bottom:none}
+.navbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--navbar-bg);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:space-between;padding:calc(12px + var(--rd-sat,env(safe-area-inset-top))) 18px 12px;border-bottom:none}
 /* [V138] el status bar/notch (PWA instalada) quedaba con un parche PLANO
    sin blur arriba del navbar — el blur del navbar no se extendía ahí
    porque su caja empieza justo debajo. Esta tira extiende el MISMO fondo
@@ -365,7 +387,7 @@ input[type=number]{-moz-appearance:textfield}
    no se corre nada de posición). Mismo tratamiento en oscuro y claro. */
 .navbar::before{
   content:'';position:absolute;left:0;right:0;
-  top:calc(-1 * env(safe-area-inset-top));height:env(safe-area-inset-top);
+  top:calc(-1 * var(--rd-sat,env(safe-area-inset-top)));height:var(--rd-sat,env(safe-area-inset-top));
   background:inherit;backdrop-filter:inherit;-webkit-backdrop-filter:inherit;
 }
 /* [V138] en claro, mismo vidrio que el drawer/hamburguesa (pedido
@@ -383,19 +405,19 @@ html::-webkit-scrollbar{display:none}
 html{scrollbar-width:none}
 /* [fix "app metida hacia arriba del header"] .navbar es fixed (fuera del
    flujo normal) y ahora es mas alto que antes (le sumamos
-   env(safe-area-inset-top) a su padding para que no quede detras del
+   var(--rd-sat,env(safe-area-inset-top)) a su padding para que no quede detras del
    Dynamic Island/notch) — este offset del contenido tenia que crecer lo
    MISMO para no quedar tapado debajo del header más alto. */
-.view{padding-top:calc(58px + env(safe-area-inset-top))}
-#view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
-#view-detail,#view-market-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
-#view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
+.view{padding-top:calc(58px + var(--rd-sat,env(safe-area-inset-top)))}
+#view-como-funciona{padding-bottom:calc(160px + var(--rd-sab,env(safe-area-inset-bottom)));min-height:100dvh}
+#view-detail,#view-market-detail{padding-bottom:calc(175px + var(--rd-sab,env(safe-area-inset-bottom)))}
+#view-cuenta{padding-bottom:calc(180px + var(--rd-sab,env(safe-area-inset-bottom)))}
 /* [FIX] view-configuracion nunca tuvo este padding — el bottom-nav fijo tapaba
    "eliminar cuenta" (el último item), y en Safari/iOS el home indicator
-   (env(safe-area-inset-bottom)) agrava el corte porque ocupa espacio real que
+   (var(--rd-sab,env(safe-area-inset-bottom))) agrava el corte porque ocupa espacio real que
    otros navegadores no reservan. Mismo tratamiento que ya usa view-cuenta. */
-#view-configuracion{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
-#view-thread .thread-input-bar{padding-bottom:calc(10px + 64px + env(safe-area-inset-bottom))}
+#view-configuracion{padding-bottom:calc(180px + var(--rd-sab,env(safe-area-inset-bottom)))}
+#view-thread .thread-input-bar{padding-bottom:calc(10px + 64px + var(--rd-sab,env(safe-area-inset-bottom)))}
 .logo{cursor:pointer;user-select:none;display:flex;align-items:center}
 .logo img{height:32px;width:auto;object-fit:contain}
 .nav-right{display:flex;align-items:center;gap:10px}
@@ -738,7 +760,7 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 /* [pedido explícito] "Marcas." pasa de título grande centrado (tapaba el
    mapa) a texto chico en una esquina. El fondo se queda negro. */
 /* [pedido explícito] fondo blanco fijo (antes negro), título en negro. */
-.marcas-hero{position:relative;background:#fff;border-radius:0;padding:max(70px,calc(env(safe-area-inset-top) + 26px)) 20px 24px;overflow:hidden;text-align:left;min-height:150px}
+.marcas-hero{position:relative;background:#fff;border-radius:0;padding:max(70px,calc(var(--rd-sat,env(safe-area-inset-top)) + 26px)) 20px 24px;overflow:hidden;text-align:left;min-height:150px}
 .marcas-hero .mh-text{position:relative;z-index:2}
 .marcas-hero h1{font-size:15px;font-weight:800;letter-spacing:-.2px;position:relative;z-index:2;margin-top:0;color:#000}
 .marcas-hero .mh-sub{font-size:11px;font-weight:600;color:rgba(0,0,0,.55);letter-spacing:.2px;margin-top:2px;position:relative;z-index:2}
@@ -785,7 +807,7 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 .chip-sm{font-size:11px;font-weight:600;padding:4px 10px;border-radius:100px;border:1px solid var(--border);color:var(--muted)}
 
 /* BOTTOM NAV */
-.bottom-nav{position:fixed;bottom:max(22px,calc(env(safe-area-inset-bottom) - 8px));left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--bottomnav-border);border-radius:100px;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);display:flex;justify-content:center;align-items:center;gap:3px;padding:9px 12px;z-index:99}
+.bottom-nav{position:fixed;bottom:max(22px,calc(var(--rd-sab,env(safe-area-inset-bottom)) - 8px));left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--bottomnav-border);border-radius:100px;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);display:flex;justify-content:center;align-items:center;gap:3px;padding:9px 12px;z-index:99}
 /* [fix sombra Safari] no se trata de debilitar la sombra — sigue ahí, se
    nota — sino de que no se DERRAME tan lejos: con 12px de offset + 40px de
    blur, en pestaña normal (no PWA) esa mancha caía justo en la franja
@@ -1309,7 +1331,7 @@ html[data-theme="light"] .cnt-slider-tab.active{background:#fff}
    real que se ve. Al fijar height:100dvh explícito, el overlay mismo mide
    bien y el sheet queda anclado donde corresponde. El colchón de abajo
    queda como refuerzo extra, ya no es lo único sosteniendo el fix. */
-html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bottom) + 70px)!important;box-sizing:border-box}
+html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(var(--rd-sab,env(safe-area-inset-bottom)) + 70px)!important;box-sizing:border-box}
 .modal-overlay.open{display:flex}
 /* [MENU SESIÓN] cierre suave igual al vender-modal: opacidad scoped solo a #auth-sheet,
    no toca .modal-overlay compartido por los demás sheets */
@@ -1336,11 +1358,11 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
    oscurece TODO lo que hay detrás por igual, sin importar su color. */
 .drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:brightness(.55);-webkit-backdrop-filter:brightness(.55);z-index:200;color:#fff}
 .drawer-overlay.open{display:block}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:265px;background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-left:1px solid var(--bottomnav-border);z-index:201;padding:54px 22px 0;transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;gap:0;border-radius:20px 0 0 20px}.drawer-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:40px}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:265px;background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-left:1px solid var(--bottomnav-border);z-index:201;padding:calc(54px + var(--rd-sat,env(safe-area-inset-top))) 22px 0;transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;gap:0;border-radius:20px 0 0 20px}.drawer-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:40px}
 .drawer.open{transform:translateX(0)}
-.drawer-close{position:absolute;top:18px;right:18px;background:none;border:none;color:var(--muted);cursor:pointer;padding:6px}
+.drawer-close{position:absolute;top:calc(18px + var(--rd-sat,env(safe-area-inset-top)));right:18px;background:none;border:none;color:var(--muted);cursor:pointer;padding:6px}
 .drawer-close svg{width:22px;height:22px}
-.drawer-item{padding:16px 0;font-size:18px;font-weight:400;cursor:pointer;transition:color .2s;letter-spacing:-.3px;display:flex;align-items:center;gap:14px}.drawer-item svg{width:20px;height:20px;flex-shrink:0;opacity:.7}
+.drawer-item{padding:11px 0;font-size:18px;font-weight:400;cursor:pointer;transition:color .2s;letter-spacing:-.3px;display:flex;align-items:center;gap:14px}.drawer-item svg{width:20px;height:20px;flex-shrink:0;opacity:.7}
 .drawer-soon{position:fixed;bottom:calc(98px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(20px);background:var(--w8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--w12);border-radius:100px;padding:12px 24px;display:flex;align-items:center;gap:8px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--white);pointer-events:none;opacity:0;transition:opacity .25s ease,transform .25s cubic-bezier(.34,1.56,.64,1);z-index:9999}
 .drawer-soon.visible{opacity:1;transform:translateX(-50%) translateY(0)}
 .drawer-soon svg{width:14px;height:14px;flex-shrink:0;color:var(--lime-text)}
@@ -1654,7 +1676,7 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
 
 @media(max-width:767px){
   body{padding-left:0!important}
-  .bottom-nav{position:fixed;bottom:max(22px,calc(env(safe-area-inset-bottom) - 8px));left:50%;right:auto;top:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);flex-direction:row;justify-content:center;align-items:center;padding:9px 12px;border-top:1px solid var(--w8);border-right:none;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);gap:3px;border:1px solid var(--w8);border-radius:100px}
+  .bottom-nav{position:fixed;bottom:max(22px,calc(var(--rd-sab,env(safe-area-inset-bottom)) - 8px));left:50%;right:auto;top:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);flex-direction:row;justify-content:center;align-items:center;padding:9px 12px;border-top:1px solid var(--w8);border-right:none;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);gap:3px;border:1px solid var(--w8);border-radius:100px}
   .bnav-item{flex-direction:column;padding:11px 19px;gap:0;width:auto;border-radius:100px;justify-content:center}
   .bnav-item svg{width:23px;height:23px}
   .notif-dot{top:2px;right:8px;transform:none}
@@ -1933,7 +1955,16 @@ html.rd-android-app .sched-badge{backdrop-filter:none;-webkit-backdrop-filter:no
 html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-behavior:none}
 
 #rd-intro{
-  position:fixed;inset:0;z-index:100002;background:#000;
+  /* [fix "franja blanca abajo en PWA standalone"] inset:0 solo no bastaba
+     específicamente en modo standalone (icono de home) — WKWebView en ese
+     modo aplica su propio ajuste de content-inset para el home indicator
+     que a veces deja un fixed;bottom:0 sin llegar de verdad al borde real
+     (bug conocido de WKWebView, no pasa en Safari normal — por eso el home
+     ya andaba bien con .bottom-nav, que usa un offset explícito, no bottom:0
+     puro). height:100dvh fuerza el tamaño real con unidades dinámicas,
+     más confiable que depender solo de inset:0 en este caso puntual.
+  */
+  position:fixed;inset:0;height:100dvh;z-index:100002;background:#000;
   display:none;flex-direction:column;justify-content:flex-end;
   font-family:var(--font);
   opacity:1;transition:opacity .45s cubic-bezier(.32,.72,0,1);
@@ -1992,7 +2023,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
 /* ── barra superior: marca + saltar ── */
 #rd-intro-top{
   position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;
-  padding:max(16px,calc(env(safe-area-inset-top) + 12px)) 22px 0;
+  padding:max(16px,calc(var(--rd-sat,env(safe-area-inset-top)) + 12px)) 22px 0;
 }
 #rd-intro-logo{height:20px;width:auto;display:block;opacity:.94}
 #rd-intro-skip{
@@ -2112,7 +2143,7 @@ html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-
   position:relative;z-index:3;display:flex;flex-direction:column;gap:9px;
   /* [pedido explícito] un poco más de aire abajo — sube los botones sin tocar
      los títulos de arriba (eso vive en #rd-intro-copy, sin cambios) */
-  padding:19px 22px max(34px,calc(env(safe-area-inset-bottom) + 28px));
+  padding:19px 22px max(34px,calc(var(--rd-sab,env(safe-area-inset-bottom)) + 28px));
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
@@ -3421,7 +3452,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <!-- [CONS HUB v1] sheet flotante "ser partner" — mismo patrón visual que
      forgot-password/reset-password (rounded top, drag handle, inputs oscuros). -->
 <div id="partner-lead-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease;color:#fff" onclick="if(event.target===this)_closePartnerSheet()">
-  <div id="pls-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;overflow-y:auto;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+  <div id="pls-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;overflow-y:auto;padding:26px 24px calc(40px + var(--rd-sab,env(safe-area-inset-bottom)));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:#fff">ser partner</div>
     <div style="font-size:13px;font-weight:300;color:rgba(255,255,255,.55);text-align:center;margin-top:8px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto">Inscribe tu marca o concesionario para unirte a la red de Ruedda.</div>
@@ -3438,7 +3469,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- [PUBLICAR POR TI v1] sheet flotante — mismo patrón visual que partner-lead-sheet. -->
 <div id="publish-for-me-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease;color:#fff" onclick="if(event.target===this)_closePublishForMeSheet()">
-  <div id="pfm-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+  <div id="pfm-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + var(--rd-sab,env(safe-area-inset-bottom)));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:rgba(8,68,26,.08);border:1px solid rgba(8,68,26,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
       <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
@@ -3453,7 +3484,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- [subastas programadas] acceso anticipado — mismo patron visual que publish-for-me-sheet, solo whatsapp -->
 <div id="auction-waitlist-sheet" style="position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:none;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease;color:#fff" onclick="if(event.target===this)_closeAuctionWaitlistSheet()">
-  <div id="aws-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+  <div id="aws-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + var(--rd-sab,env(safe-area-inset-bottom)));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:rgba(8,68,26,.08);border:1px solid rgba(8,68,26,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
       <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
@@ -4483,7 +4514,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   <!-- MESSAGES -->
   <div id="thread-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 175px;overflow-y:auto;flex:1;min-height:0"></div>
   <!-- INPUT AREA -->
-  <div id="thread-input-bar" style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:var(--surface-hi);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;z-index:200;color:var(--white)">
+  <div id="thread-input-bar" style="position:fixed;bottom:calc(94px + var(--rd-sab,env(safe-area-inset-bottom)));left:0;right:0;background:var(--surface-hi);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;display:flex;gap:8px;align-items:flex-end;z-index:200;color:var(--white)">
     <textarea id="thread-input" placeholder="responder..." style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;resize:none;min-height:44px;max-height:96px;line-height:1.5;transition:border-color .2s" oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,96)+'px'" onfocus="this.style.borderColor='rgba(8,68,26,.35)'" onblur="this.style.borderColor='var(--border)'"></textarea>
     <button onclick="sendThreadReply()" style="background:var(--lime);color:var(--lime-ink);border:none;border-radius:10px;height:44px;padding:0 16px;display:flex;align-items:center;justify-content:center;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;transition:all .15s;align-self:flex-end" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'">enviar</button>
   </div>
@@ -4508,7 +4539,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     </div>
   </div>
   <div id="global-chat-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 190px;overflow-y:auto;flex:1;min-height:0"></div>
-  <div style="position:fixed;bottom:calc(94px + env(safe-area-inset-bottom));left:0;right:0;background:var(--surface-hi);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;z-index:200;color:var(--white)">
+  <div style="position:fixed;bottom:calc(94px + var(--rd-sab,env(safe-area-inset-bottom)));left:0;right:0;background:var(--surface-hi);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:10px 14px;z-index:200;color:var(--white)">
     <div id="gc-photo-preview" style="display:none;margin-bottom:8px"></div>
     <div style="display:flex;gap:8px;align-items:flex-end">
       <div style="position:relative;flex-shrink:0">
@@ -16498,7 +16529,7 @@ function _showForgotPassword(){
   m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease';
   m.onclick=e=>{if(e.target===m)_closeForgotPassword();};
   m.innerHTML=`
-  <div id="fpw-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+  <div id="fpw-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + var(--rd-sab,env(safe-area-inset-bottom)));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:var(--w6);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
       <svg fill="none" viewBox="0 0 24 24" stroke="var(--white)" stroke-width="1.6" style="width:24px;height:24px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -16557,7 +16588,7 @@ function _showResetPasswordSheet(){
   m.id='reset-pw-sheet';
   m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .3s ease';
   m.innerHTML=`
-  <div id="rpw-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
+  <div id="rpw-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + var(--rd-sab,env(safe-area-inset-bottom)));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:rgba(8,68,26,.08);border:1px solid rgba(8,68,26,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
       <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.6" style="width:24px;height:24px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -19741,7 +19772,7 @@ function openEditProfileModal(){
   const inp='width:100%;background:var(--w5);border:1px solid var(--w10);border-radius:12px;padding:13px 14px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box';
   const lbl='font-size:12px;font-weight:700;color:var(--w40);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.4px';
   m.innerHTML=`
-    <div id="epm-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;overflow-y:auto;padding:22px 20px calc(40px + env(safe-area-inset-bottom));transform:translateY(28px);transition:transform .3s cubic-bezier(.22,1,.36,1)">
+    <div id="epm-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;overflow-y:auto;padding:22px 20px calc(40px + var(--rd-sab,env(safe-area-inset-bottom)));transform:translateY(28px);transition:transform .3s cubic-bezier(.22,1,.36,1)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
         <div style="font-size:17px;font-weight:800;letter-spacing:-.3px">editar información</div>
         <button onclick="_closeEditProfile()" style="background:var(--w7);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--w50)">×</button>
@@ -21800,7 +21831,7 @@ async function _saDeletePat(id,cat){
 </div>
 
 <!-- KYC VIEW [V94] -->
-<div id="view-kyc" class="view" style="padding-bottom:calc(175px + env(safe-area-inset-bottom))">
+<div id="view-kyc" class="view" style="padding-bottom:calc(175px + var(--rd-sab,env(safe-area-inset-bottom)))">
   <div class="detail-back" onclick="showView('configuracion')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>configuración</span>
