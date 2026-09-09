@@ -1954,8 +1954,8 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 .rd-slide>img,.rd-slide>video{
   width:100%;height:100%;object-fit:cover;display:block;
   object-position:var(--rd-pos,center center);
-  /* desatura y sube el contraste: la foto pasa a ser textura */
-  filter:grayscale(.3) saturate(.86) contrast(1.05);
+  /* [pedido explícito] sin desaturar — solo un poco de contraste */
+  filter:contrast(1.05);
   transform:scale(1.001);
 }
 .rd-slide.rd-cur>img,.rd-slide.rd-cur>video{animation:rdKen 9.5s ease-out forwards}
@@ -2116,7 +2116,7 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 #rd-intro-cta{
   position:relative;z-index:3;display:flex;flex-direction:column;gap:9px;
   /* [pedido explícito] un poco más abajo todavía. */
-  padding:19px 22px max(10px,calc(env(safe-area-inset-bottom) - 30px));
+  padding:19px 22px max(5px,calc(env(safe-area-inset-bottom) - 35px));
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
