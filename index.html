@@ -151,78 +151,74 @@ function _rdWaveFlag(el, opts){
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   [FIX viewport standalone] Instalada en inicio (PWA), iOS resuelve el
-   viewport del PRIMER layout SIN aplicar viewport-fit=cover todavía: la
-   caja de layout nace con la altura de pantalla menos la franja del
-   status bar / Dynamic Island, pero anclada arriba del todo. En un
-   iPhone 14 Pro son 852 - 59 = 793 px, con el origen en y=0.
+   [FIX viewport standalone — PWA instalada en inicio]
 
-   Consecuencia medible (repro en simulador 14 Pro, web app instalada):
-   todo lo anclado abajo queda 59px por encima del borde real. En el
-   intro, los CTA salían a 93px del borde cuando el CSS manda 34px. El
-   viewport solo se re-resolvía con un cambio de orientación real — por
-   eso "se arreglaba" al rotar y volver, y por eso nada en CSS
-   (inset:0, 100dvh, height:auto) podía corregirlo: la caja de layout
-   entera era la que estaba mal, no el elemento.
+   Medido en simulador iPhone 14 Pro con la web app instalada (no
+   pestaña Safari), leyendo los valores en pantalla:
 
-   Fix: una vez montado el documento, se REEMPLAZA el nodo del meta
-   viewport (no se muta in-place: en standalone iOS ignora la mutación —
-   mismo motivo por el que setTheme() y el fix de la franja ya
-   reemplazan el nodo de theme-color). Eso obliga a WebKit a volver a
-   parsear el viewport y aplicar viewport-fit=cover de verdad.
+     al abrir en frio : ih=793  sh=852  sat=0   sab=0
+     tras rotar y volver: ih=852  sh=852  sat=59  sab=34
 
-   Corre una sola vez, solo en standalone, y el contenido del meta es
-   idéntico: si el navegador ya lo tenía bien, es un no-op visual.
+   Es decir: iOS resuelve el PRIMER layout sin aplicar viewport-fit=cover.
+   El viewport nace con 793px (852 menos los 59 del Dynamic Island) pero
+   anclado en y=0, y env(safe-area-inset-*) devuelve 0. Resultado: TODO lo
+   que se ancla abajo queda 59px por encima del borde real. En el intro los
+   CTA salian a 93px del borde cuando el CSS manda 34px.
+
+   Lo que NO funciona (todo verificado en el repro, no supuesto):
+     · CSS en #rd-intro (inset:0, height:100dvh, height:auto): la caja de
+       layout entera es la que esta mal, no el elemento.
+     · Reemplazar el NODO del meta viewport con contenido identico: no
+       dispara ningun re-parseo, se queda en 793/sat=0.
+     · Cambiar el contenido del meta (viewport-fit auto->cover, nudge de
+       initial-scale, width explicito): recupera las safe areas pero deja
+       el alto en 793. Queda a medias.
+   Solo un cambio de orientacion real re-resuelve el viewport, y eso no se
+   puede provocar por codigo.
+
+   Por eso esto no pelea con el viewport: lo MIDE y compensa. La condicion
+   es inequivoca (en standalone y en vertical, innerHeight nunca deberia ser
+   menor que screen.height) y el deficit es exactamente el inset superior que
+   iOS no aplico. Se expone en dos variables y se corrige solo el intro, que
+   es lo unico anclado al borde inferior en ese momento.
+
+   Se apaga solo: en cuanto el viewport se sanea (rotacion, o un iOS que ya
+   no traiga el bug) la clase se quita y no queda ningun override.
    ═══════════════════════════════════════════════════════════════ */
 (function(){
   try{
     var standalone = window.navigator.standalone === true ||
       (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
     if(!standalone) return;
-    var BASE  = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-    var COVER = BASE + ', viewport-fit=cover';
-    var intentos = 0, corriendo = false;
 
-    function meta(){ return document.querySelector('meta[name="viewport"]'); }
-    function restaurar(){ var m = meta(); if(m) m.setAttribute('content', COVER); }
+    var raiz = document.documentElement;
 
-    /* Objetivo medido: en el estado sano el viewport mide lo mismo que la
-       pantalla (ih=852, sh=852 en un 14 Pro). En el estado roto mide 793 con
-       las safe areas en 0. Esta es la condición de exito, y con ella el ciclo
-       se apaga solo: si el viewport ya esta bien, no se toca nada. */
-    function viewportSano(){ return window.innerHeight >= window.screen.height - 1; }
-
-    /* Sacudidas en escalada. Reemplazar el nodo con el MISMO contenido no
-       dispara nada (verificado: seguia en 793/sat=0), y el auto->cover de un
-       solo frame recupera las safe areas pero deja el alto en 793 (tambien
-       verificado). Por eso se prueban cambios de valor cada vez mas fuertes,
-       con tiempo real entre uno y otro, hasta que el viewport mida bien. */
-    function sacudida(n){
-      if(n === 1) return BASE + ', viewport-fit=auto';
-      if(n === 2) return 'width=device-width, initial-scale=0.999, viewport-fit=cover';
-      return 'width=' + window.screen.width + ', initial-scale=1.0, viewport-fit=cover';
+    function evaluar(){
+      try{
+        var alto  = window.innerHeight;
+        var ancho = window.innerWidth;
+        var real  = window.screen.height;
+        var falta = real - alto;
+        // Solo en vertical: en horizontal screen.height sigue siendo el alto
+        // de pantalla en vertical, asi que la resta no significa nada.
+        var vertical = ancho <= alto;
+        if(vertical && alto > 0 && falta > 1){
+          raiz.style.setProperty('--rd-vp-h', real + 'px');
+          raiz.style.setProperty('--rd-vp-sat', falta + 'px');
+          raiz.classList.add('rd-vp-corto');
+        }else{
+          raiz.classList.remove('rd-vp-corto');
+          raiz.style.removeProperty('--rd-vp-h');
+          raiz.style.removeProperty('--rd-vp-sat');
+        }
+      }catch(e){}
     }
 
-    function ciclo(){
-      if(corriendo) return;
-      if(viewportSano() || intentos >= 3){ restaurar(); return; }
-      var m = meta();
-      if(!m) return;
-      corriendo = true;
-      intentos++;
-      m.setAttribute('content', sacudida(intentos));
-      setTimeout(function(){
-        restaurar();
-        setTimeout(function(){ corriendo = false; ciclo(); }, 150);
-      }, 220);
-    }
-
-    function agendar(){ requestAnimationFrame(function(){ requestAnimationFrame(ciclo); }); }
-    if(document.readyState === 'complete') agendar();
-    else window.addEventListener('load', agendar);
-    document.addEventListener('DOMContentLoaded', agendar);
-    /* Red de seguridad final: pase lo que pase, el meta termina en cover. */
-    setTimeout(restaurar, 4000);
+    evaluar();
+    document.addEventListener('DOMContentLoaded', evaluar);
+    window.addEventListener('load', evaluar);
+    window.addEventListener('resize', evaluar);
+    window.addEventListener('orientationchange', function(){ setTimeout(evaluar, 80); });
   }catch(e){}
 })();
 </script>
@@ -2028,6 +2024,14 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 }
 #rd-intro.rd-on{display:flex}
 #rd-intro.rd-out{opacity:0;pointer-events:none}
+/* [FIX viewport standalone] Ver el bloque del <head>. Cuando iOS entrega el
+   viewport corto (793 en vez de 852 en un 14 Pro, con las safe areas en 0),
+   la caja del intro llega solo hasta 793 y por eso los CTA quedan 59px por
+   encima del borde real. Acá se le devuelve el alto de pantalla y al top bar
+   el inset que iOS no aplicó. Las dos reglas se desactivan solas en cuanto el
+   viewport se sanea, porque la clase deja de estar. */
+html.rd-vp-corto #rd-intro{height:var(--rd-vp-h)!important}
+html.rd-vp-corto #rd-intro-top{padding-top:calc(var(--rd-vp-sat) + 12px)!important}
 /* [fix altura inicial de los CTA en PWA] #rd-intro trae inset:0 Y
    height:100dvh. Con top, height y bottom los tres definidos la caja queda
    SOBRE-RESTRINGIDA y por spec CSS se ignora bottom: la altura la manda sola
