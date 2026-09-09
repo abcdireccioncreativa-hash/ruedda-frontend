@@ -334,7 +334,7 @@ html[data-theme="light"] #redes-logo{
    tiempo, que sería peso extra y podría interferir con otras animaciones */
 html.theme-switching,html.theme-switching *{transition:background-color .28s ease,color .28s ease,border-color .28s ease,box-shadow .28s ease!important}
 
-html,body{height:100%;background:var(--bg);color:var(--white);font-family:var(--font);color-scheme:var(--native-scheme)}
+html,body{height:100%;min-height:100dvh;background:var(--bg);color:var(--white);font-family:var(--font);color-scheme:var(--native-scheme)}
 html{overflow-x:hidden}
 ::-webkit-scrollbar{width:2px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:2px}
 
@@ -386,7 +386,7 @@ html{scrollbar-width:none}
    env(safe-area-inset-top) a su padding para que no quede detras del
    Dynamic Island/notch) — este offset del contenido tenia que crecer lo
    MISMO para no quedar tapado debajo del header más alto. */
-.view{padding-top:calc(58px + env(safe-area-inset-top))}
+.view{padding-top:calc(58px + env(safe-area-inset-top));min-height:100dvh;background-color:var(--bg)}
 #view-como-funciona{padding-bottom:calc(160px + env(safe-area-inset-bottom));min-height:100dvh}
 #view-detail,#view-market-detail{padding-bottom:calc(175px + env(safe-area-inset-bottom))}
 #view-cuenta{padding-bottom:calc(180px + env(safe-area-inset-bottom))}
@@ -785,7 +785,7 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 .chip-sm{font-size:11px;font-weight:600;padding:4px 10px;border-radius:100px;border:1px solid var(--border);color:var(--muted)}
 
 /* BOTTOM NAV */
-.bottom-nav{position:fixed;bottom:max(22px,calc(env(safe-area-inset-bottom) - 8px));left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--bottomnav-border);border-radius:100px;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);display:flex;justify-content:center;align-items:center;gap:3px;padding:9px 12px;z-index:99}
+.bottom-nav{position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:50%;right:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--bottomnav-border);border-radius:100px;box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);display:flex;justify-content:center;align-items:center;gap:3px;padding:9px 12px;z-index:99}
 /* [fix sombra Safari] no se trata de debilitar la sombra — sigue ahí, se
    nota — sino de que no se DERRAME tan lejos: con 12px de offset + 40px de
    blur, en pestaña normal (no PWA) esa mancha caía justo en la franja
@@ -1336,11 +1336,11 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
    oscurece TODO lo que hay detrás por igual, sin importar su color. */
 .drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:brightness(.55);-webkit-backdrop-filter:brightness(.55);z-index:200;color:#fff}
 .drawer-overlay.open{display:block}
-.drawer{position:fixed;top:0;right:0;bottom:0;width:265px;background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-left:1px solid var(--bottomnav-border);z-index:201;padding:54px 22px 0;transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;gap:0;border-radius:20px 0 0 20px}.drawer-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:40px}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:265px;background:var(--bottomnav-bg);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-left:1px solid var(--bottomnav-border);z-index:201;padding:calc(env(safe-area-inset-top) + 28px) 22px 0;transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;gap:0;border-radius:20px 0 0 20px}.drawer-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding-bottom:40px}
 .drawer.open{transform:translateX(0)}
-.drawer-close{position:absolute;top:18px;right:18px;background:none;border:none;color:var(--muted);cursor:pointer;padding:6px}
+.drawer-close{position:absolute;top:calc(env(safe-area-inset-top) + 16px);right:18px;background:none;border:none;color:var(--muted);cursor:pointer;padding:6px}
 .drawer-close svg{width:22px;height:22px}
-.drawer-item{padding:16px 0;font-size:18px;font-weight:400;cursor:pointer;transition:color .2s;letter-spacing:-.3px;display:flex;align-items:center;gap:14px}.drawer-item svg{width:20px;height:20px;flex-shrink:0;opacity:.7}
+.drawer-item{padding:12px 0;font-size:18px;font-weight:400;cursor:pointer;transition:color .2s;letter-spacing:-.3px;display:flex;align-items:center;gap:14px}.drawer-item svg{width:20px;height:20px;flex-shrink:0;opacity:.7}
 .drawer-soon{position:fixed;bottom:calc(98px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(20px);background:var(--w8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--w12);border-radius:100px;padding:12px 24px;display:flex;align-items:center;gap:8px;font-family:var(--font);font-size:13px;font-weight:600;color:var(--white);pointer-events:none;opacity:0;transition:opacity .25s ease,transform .25s cubic-bezier(.34,1.56,.64,1);z-index:9999}
 .drawer-soon.visible{opacity:1;transform:translateX(-50%) translateY(0)}
 .drawer-soon svg{width:14px;height:14px;flex-shrink:0;color:var(--lime-text)}
@@ -1654,7 +1654,7 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
 
 @media(max-width:767px){
   body{padding-left:0!important}
-  .bottom-nav{position:fixed;bottom:max(22px,calc(env(safe-area-inset-bottom) - 8px));left:50%;right:auto;top:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);flex-direction:row;justify-content:center;align-items:center;padding:9px 12px;border-top:1px solid var(--w8);border-right:none;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);gap:3px;border:1px solid var(--w8);border-radius:100px}
+  .bottom-nav{position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:50%;right:auto;top:auto;transform:translateX(-50%);width:auto;max-width:calc(100% - 24px);flex-direction:row;justify-content:center;align-items:center;padding:9px 12px;border-top:1px solid var(--w8);border-right:none;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);box-shadow:0 12px 40px rgba(0,0,0,.5),inset 0 1px 0 var(--w7);gap:3px;border:1px solid var(--w8);border-radius:100px}
   .bnav-item{flex-direction:column;padding:11px 19px;gap:0;width:auto;border-radius:100px;justify-content:center}
   .bnav-item svg{width:23px;height:23px}
   .notif-dot{top:2px;right:8px;transform:none}
@@ -1933,7 +1933,7 @@ html.rd-android-app .sched-badge{backdrop-filter:none;-webkit-backdrop-filter:no
 html.rd-intro-lock,html.rd-intro-lock body{overflow:hidden!important;overscroll-behavior:none}
 
 #rd-intro{
-  position:fixed;inset:0;z-index:100002;background:#000;
+  position:fixed;inset:0;height:100dvh;z-index:100002;background:#000;
   display:none;flex-direction:column;justify-content:flex-end;
   font-family:var(--font);
   opacity:1;transition:opacity .45s cubic-bezier(.32,.72,0,1);
