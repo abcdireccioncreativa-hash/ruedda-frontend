@@ -2115,9 +2115,8 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 /* ── acciones: la regla de canto a canto separa lectura de acción ── */
 #rd-intro-cta{
   position:relative;z-index:3;display:flex;flex-direction:column;gap:9px;
-  /* [pedido explícito] término medio — ni tan pegado al borde ni tan
-     arriba como antes. */
-  padding:19px 22px max(15px,calc(env(safe-area-inset-bottom) - 25px));
+  /* [pedido explícito] un poco más abajo todavía. */
+  padding:19px 22px max(10px,calc(env(safe-area-inset-bottom) - 30px));
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
