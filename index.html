@@ -2129,8 +2129,8 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
   /* [pedido explícito] "sube SOLO el botón de crear cuenta y explorar el
      market, no lo demás" — top en vez de tocar el padding para no mover
      #rd-intro-copy (título/subtítulo), que es un hermano aparte.
-     -6px + 3px + 4px + 4px más = -17px. */
-  top:-17px;
+     -6px + 3px + 4px + 4px + 5px más = -22px. */
+  top:-22px;
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
@@ -2403,22 +2403,6 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   /* ── ¿toca mostrarlo? ─────────────────────────────────────── */
   var root = document.getElementById('rd-intro');
   if(!root) return;
-
-  /* [fix bug reportado] 100dvh (CSS) queda mal calculado en el primer
-     pintado — Safari/PWA todavía no asentó la altura real de la barra
-     de sistema, así que el bloque de abajo (título/botones, anclado con
-     justify-content:flex-end) aparece más abajo de lo debido ("altura
-     base") hasta que algo fuerza un recálculo real (ej. rotar el
-     teléfono). window.innerHeight sí es la altura real en cada momento
-     — se usa para pisar el 100dvh del CSS con un valor en px correcto
-     desde ya, y se corrige de nuevo en resize/orientationchange por si
-     la barra de sistema cambia de alto después. */
-  (function _rdFixIntroHeight(){
-    function fix(){ try{ root.style.height = window.innerHeight + 'px'; }catch(e){} }
-    fix();
-    window.addEventListener('resize', fix);
-    window.addEventListener('orientationchange', function(){ setTimeout(fix, 60); });
-  })();
 
   var qs = '';
   try{ qs = String(window.location.search||''); }catch(e){}
