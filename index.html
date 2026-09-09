@@ -2120,12 +2120,9 @@ html.rd-intro-lock,html.rd-intro-lock body{background:#000!important;color-schem
 /* ── acciones: la regla de canto a canto separa lectura de acción ── */
 #rd-intro-cta{
   position:relative;z-index:3;display:flex;flex-direction:column;gap:9px;
-  /* [pedido explícito] los ajustes chicos en calc() no se notaban porque
-     #rd-intro-touch (flex:1) se come la diferencia — el padding-bottom es
-     lo único entre los botones y el borde real, así que baja directo al
-     mismo valor plano que usa .navbar arriba (12px), sin math de safe-area
-     de por medio. */
-  padding:19px 22px 12px;
+  /* [pedido explícito] botones un poquitín más arriba — #rd-intro-copy
+     (título/subtítulo) es una caja aparte, esto no la mueve. */
+  padding:19px 22px 22px;
 }
 #rd-intro-cta::before{
   content:'';position:absolute;left:0;right:0;top:0;height:1px;
