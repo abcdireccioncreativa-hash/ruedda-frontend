@@ -149,79 +149,6 @@ function _rdWaveFlag(el, opts){
 <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<script>
-/* ═══════════════════════════════════════════════════════════════
-   [FIX viewport standalone — PWA instalada en inicio]
-
-   Medido en simulador iPhone 14 Pro con la web app instalada (no
-   pestaña Safari), leyendo los valores en pantalla:
-
-     al abrir en frio : ih=793  sh=852  sat=0   sab=0
-     tras rotar y volver: ih=852  sh=852  sat=59  sab=34
-
-   Es decir: iOS resuelve el PRIMER layout sin aplicar viewport-fit=cover.
-   El viewport nace con 793px (852 menos los 59 del Dynamic Island) pero
-   anclado en y=0, y env(safe-area-inset-*) devuelve 0. Resultado: TODO lo
-   que se ancla abajo queda 59px por encima del borde real. En el intro los
-   CTA salian a 93px del borde cuando el CSS manda 34px.
-
-   Lo que NO funciona (todo verificado en el repro, no supuesto):
-     · CSS en #rd-intro (inset:0, height:100dvh, height:auto): la caja de
-       layout entera es la que esta mal, no el elemento.
-     · Reemplazar el NODO del meta viewport con contenido identico: no
-       dispara ningun re-parseo, se queda en 793/sat=0.
-     · Cambiar el contenido del meta (viewport-fit auto->cover, nudge de
-       initial-scale, width explicito): recupera las safe areas pero deja
-       el alto en 793. Queda a medias.
-   Solo un cambio de orientacion real re-resuelve el viewport, y eso no se
-   puede provocar por codigo.
-
-   Por eso esto no pelea con el viewport: lo MIDE y compensa. La condicion
-   es inequivoca (en standalone y en vertical, innerHeight nunca deberia ser
-   menor que screen.height) y el deficit es exactamente el inset superior que
-   iOS no aplico. Se expone en dos variables y se corrige solo el intro, que
-   es lo unico anclado al borde inferior en ese momento.
-
-   Se apaga solo: en cuanto el viewport se sanea (rotacion, o un iOS que ya
-   no traiga el bug) la clase se quita y no queda ningun override.
-   ═══════════════════════════════════════════════════════════════ */
-(function(){
-  try{
-    var standalone = window.navigator.standalone === true ||
-      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-    if(!standalone) return;
-
-    var raiz = document.documentElement;
-
-    function evaluar(){
-      try{
-        var alto  = window.innerHeight;
-        var ancho = window.innerWidth;
-        var real  = window.screen.height;
-        var falta = real - alto;
-        // Solo en vertical: en horizontal screen.height sigue siendo el alto
-        // de pantalla en vertical, asi que la resta no significa nada.
-        var vertical = ancho <= alto;
-        if(vertical && alto > 0 && falta > 1){
-          raiz.style.setProperty('--rd-vp-h', real + 'px');
-          raiz.style.setProperty('--rd-vp-sat', falta + 'px');
-          raiz.classList.add('rd-vp-corto');
-        }else{
-          raiz.classList.remove('rd-vp-corto');
-          raiz.style.removeProperty('--rd-vp-h');
-          raiz.style.removeProperty('--rd-vp-sat');
-        }
-      }catch(e){}
-    }
-
-    evaluar();
-    document.addEventListener('DOMContentLoaded', evaluar);
-    window.addEventListener('load', evaluar);
-    window.addEventListener('resize', evaluar);
-    window.addEventListener('orientationchange', function(){ setTimeout(evaluar, 80); });
-  }catch(e){}
-})();
-</script>
 <title>Ruedda | Vende o subasta tu carro. El nuevo estándar de Venezuela · Subastas · Marketplace · Concesionarios · Mecanicos · Comunidad RueddaExtra · Petrolheads</title>
 <meta name="description" content="El estándar tecnológico para la compra, venta y subasta de vehículos en Venezuela. Publica como un PRO hoy.">
 <link rel="canonical" href="https://www.ruedda.app/">
@@ -2927,44 +2854,6 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 })();
 </script>
 
-<!-- [TEMPORAL — lector de viewport para diagnosticar el corrimiento del intro
-     en PWA standalone. Se quita en cuanto se lea el número. NO es parte del
-     producto. -->
-<div id="rd-vpdbg" style="position:fixed;top:1px;left:1px;z-index:9999999;font:700 10px/1.25 ui-monospace,monospace;color:#0f0;background:rgba(0,0,0,.85);padding:2px 4px;border-radius:3px;pointer-events:none;white-space:pre"></div>
-<script>
-(function(){
-  var el = document.getElementById('rd-vpdbg');
-  if(!el) return;
-  var lineas = [];
-  function leer(tag){
-    var r = document.getElementById('rd-intro');
-    var b = r ? r.getBoundingClientRect() : null;
-    var cta = document.getElementById('rd-intro-cta');
-    var c = cta ? cta.getBoundingClientRect() : null;
-    var probe = document.createElement('div');
-    probe.style.cssText = 'position:fixed;top:env(safe-area-inset-top,0px);left:0;height:0;width:0';
-    document.body.appendChild(probe);
-    var sat = Math.round(probe.getBoundingClientRect().top);
-    probe.style.top = 'auto';
-    probe.style.bottom = 'env(safe-area-inset-bottom,0px)';
-    var sab = Math.round(window.innerHeight - probe.getBoundingClientRect().bottom);
-    probe.remove();
-    lineas.push(tag
-      + ' ih=' + window.innerHeight
-      + ' sh=' + window.screen.height
-      + ' vv=' + (window.visualViewport ? Math.round(window.visualViewport.height) : -1)
-      + ' ce=' + document.documentElement.clientHeight
-      + '\n   sat=' + sat + ' sab=' + sab
-      + ' sa=' + (window.navigator.standalone === true ? 1 : 0)
-      + (b ? ('\n   box h=' + Math.round(b.height) + ' top=' + Math.round(b.top) + ' bot=' + Math.round(b.bottom)) : '')
-      + (c ? ('\n   ctaBot=' + Math.round(c.bottom)) : ''));
-    el.textContent = lineas.slice(-3).join('\n');
-  }
-  leer('t0');
-  window.addEventListener('load', function(){ setTimeout(function(){ leer('L'); }, 800); });
-  window.addEventListener('resize', function(){ leer('R'); });
-})();
-</script>
 
 <div id="boot-splash">
   <div id="boot-splash-mark-wrap">
