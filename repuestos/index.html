@@ -13,6 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;600;700&display=swap">
 <style>
 /* Open Sauce Sans: servida local (misma carpeta /fonts que ruedda). Fallback sistema. */
 @font-face{font-family:'Open Sauce Sans';src:url('fonts/OpenSauceSans-Light.woff2') format('woff2');font-weight:300;font-display:swap}
@@ -280,6 +281,15 @@ img{display:block;max-width:100%}
 .switch{display:block;text-align:center;font-size:13.5px;color:#555;padding:16px 0 4px}
 .switch b{text-decoration:underline;color:var(--ink)}
 
+/* login social */
+.or-div{display:flex;align-items:center;gap:12px;margin:18px 0;color:#999;font-size:12px;font-weight:700}
+.or-div::before,.or-div::after{content:'';flex:1;height:1px;background:#e2e2e2}
+.soc-row{display:flex;flex-direction:column;gap:10px}
+.soc-btn{display:flex;align-items:center;justify-content:center;gap:10px;height:52px;border-radius:12px;
+  background:#fff;border:1px solid #ddd;font-weight:700;font-size:14.5px;color:var(--ink)}
+.soc-btn:active{background:#f4f4f4}
+.soc-btn.apple{background:#000;color:#fff;border-color:#000}
+
 /* factura */
 .inv{border:1px solid #ddd;border-radius:14px;padding:20px;margin-bottom:16px;background:#fcfcfc}
 .inv .top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
@@ -365,6 +375,37 @@ body.admin-mode .mec-fab{display:none}
 .avalta-soon{flex:0 0 auto;font-size:9.5px;font-weight:700;letter-spacing:.6px;color:#062d15;
   background:var(--green);padding:5px 9px;border-radius:20px;text-transform:uppercase}
 @media (min-width:1100px){#v-home > .avalta-teaser{grid-area:avalta;margin:0}}
+
+/* mas banners chicos abajo del avalta-teaser: servicios, vender, seguimiento, ayuda */
+.promo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 var(--pad) 24px}
+.promo-card{background:#fff;border:1px solid #e4e4e4;border-radius:14px;padding:16px 14px;text-align:left}
+.promo-card .pr-ico{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:#f2f2f2;color:var(--ink);margin-bottom:10px}
+.promo-card b{display:block;font-size:13px;line-height:1.25}
+.promo-card span{display:block;font-size:11.5px;color:var(--mute);margin-top:4px}
+@media (min-width:1100px){
+  #v-home > .promo-grid{grid-area:promo;margin:0;grid-template-columns:repeat(4,1fr)}
+}
+
+/* banner de FlotaIQ — paleta e identidad extraidas de flotaiq.com
+   (fondo #151215, acento #FF2D6F, tipografia Barlow/Barlow Condensed) */
+.flotaiq-banner{display:block;margin:0 var(--pad) 24px;padding:22px 20px;border-radius:16px;
+  background:#151215;color:#fff;font-family:'Barlow',var(--body);position:relative;overflow:hidden}
+.flotaiq-banner::after{content:'';position:absolute;right:-40px;top:-40px;width:160px;height:160px;
+  border-radius:50%;background:radial-gradient(circle, #FF2D6F 0%, transparent 70%);opacity:.5}
+.flotaiq-tag{position:relative;display:inline-block;font-family:'Barlow Condensed',var(--disp);font-weight:700;
+  font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:#FF2D6F;margin-bottom:10px}
+.flotaiq-banner h3{position:relative;font-family:'Barlow Condensed',var(--disp);font-weight:800;font-size:24px;
+  line-height:1.05;margin:0 0 8px;letter-spacing:.2px}
+.flotaiq-banner p{position:relative;font-size:13.5px;color:#a3959b;line-height:1.5;margin:0 0 16px;max-width:420px}
+.flotaiq-cta{position:relative;display:inline-flex;align-items:center;gap:8px;background:#FF2D6F;color:#fff;
+  font-family:'Barlow Condensed',var(--disp);font-weight:700;font-size:14px;letter-spacing:.3px;
+  padding:11px 20px;border-radius:9px;text-decoration:none}
+@media (min-width:1100px){#v-home > .flotaiq-banner{grid-area:flotaiq;margin:0}}
+
+/* popup ocasional: vender/subastar el carro en ruedda (marca hermana) */
+.venderpop{text-align:center;padding-top:6px}
+.venderpop .vp-ico{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:#eef2ff;
+  color:var(--blue);display:grid;place-items:center}
 
 /* tracker de pedido, estilo "va en camino" — hitos conectados por una linea */
 .otrack{display:flex;margin:0 0 22px}
@@ -714,6 +755,8 @@ select.ad-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     "quick linkm"
     "mec mec"
     "avalta avalta"
+    "promo promo"
+    "flotaiq flotaiq"
     "dots dots"
     "featured featured"
     "catteaser catteaser"}
@@ -918,6 +961,32 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
       <span class="av-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 8.4 8 11 4.6-2.6 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg></span>
       <span class="av-bd"><b>Certifica tu vehiculo con AVALTA</b><span>El historial de tu carro, verificado.</span></span>
       <span class="avalta-soon">Proximamente</span>
+    </a>
+
+    <div class="promo-grid">
+      <a class="promo-card" href="#/servicios">
+        <span class="pr-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="4"/></svg></span>
+        <b>Servicios y suscripciones</b><span>Mantenimiento recurrente para tu carro</span>
+      </a>
+      <a class="promo-card" href="javascript:void(0)" data-sheet="seller">
+        <span class="pr-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V21H3z"/><path d="M9 21v-7h6v7"/></svg></span>
+        <b>Vende en ruedda repuestos</b><span>Abre tu tienda oficial</span>
+      </a>
+      <a class="promo-card" href="javascript:void(0)" data-sheet="track">
+        <span class="pr-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v16"/></svg></span>
+        <b>Seguir mi pedido</b><span>Escribe el codigo de tu factura</span>
+      </a>
+      <a class="promo-card" href="javascript:void(0)" data-sheet="support">
+        <span class="pr-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18h.01M9.1 9a3 3 0 1 1 4.9 2.3c-.9.7-1.6 1.2-1.6 2.7"/></svg></span>
+        <b>Ayuda y soporte</b><span>Te contestamos por WhatsApp</span>
+      </a>
+    </div>
+
+    <a class="flotaiq-banner" href="https://www.flotaiq.com" target="_blank" rel="noopener">
+      <span class="flotaiq-tag">FlotaIQ · del mismo ecosistema Ruedda</span>
+      <h3>Mantenimiento predictivo de flota, por WhatsApp</h3>
+      <p>FlotaIQ te avisa que le toca a cada vehiculo, cuando y cuanto cuesta dejarlo pasar — con un reporte semanal (ICO) por unidad. Sin GPS, sin instalar nada.</p>
+      <span class="flotaiq-cta">Conocer FlotaIQ →</span>
     </a>
 
     <div class="dots" id="homeDots"></div>
@@ -1520,6 +1589,19 @@ var AUTH = {
       if (res.error) throw res.error;
       return AUTH.hydrate();
     });
+  },
+
+  /* Google/Apple: mismo patron y mismo proveedor OAuth ya configurado en el
+     proyecto de Supabase que usa ruedda.app (es el mismo proyecto) — el
+     redirect vuelve aqui mismo, supabase-js detecta la sesion en la URL
+     (detectSessionInUrl:true, ya configurado arriba) y AUTH.boot()/hydrate()
+     de siempre se encarga del resto (ensure_member crea la membresia de
+     repuestos si es la primera vez que esta cuenta entra aqui). */
+  signInWithOAuth: function(provider){
+    return sb.auth.signInWithOAuth({
+      provider: provider,
+      options: { redirectTo: location.origin + location.pathname }
+    }).then(function(res){ if (res.error) throw res.error; });
   },
 
   signUp: function(data){
@@ -2215,7 +2297,7 @@ function route(){
   if (name === 'carrito') renderCart();
   if (name === 'admin') renderAdmin();
   if (name === 'factura') renderFactura(arg);
-  if (name === 'home') maybeShowMecPopup();
+  if (name === 'home') { maybeShowMecPopup(); maybeShowVenderCarroPopup(); }
 }
 window.addEventListener('hashchange', route);
 
@@ -2572,13 +2654,29 @@ function openSolicitudMecanico(){
   function step5(){
     var needsPhone = !STATE.session;
     openSheet('<h2>Ultimo paso</h2>' +
-      field('sol_zona','Tu zona','Caracas - Chacao','maxlength="60" value="' + esc(data.zona) + '"') +
+      '<button type="button" class="secondary" id="s5_loc" style="margin-bottom:12px">📍 Usar mi ubicacion actual</button>' +
+      field('sol_zona','Tu zona','Caracas - Chacao','maxlength="140" value="' + esc(data.zona) + '"') +
       (needsPhone ? field('sol_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') : '') +
       '<button class="primary" id="s5_go">Pedir presupuestos</button>' +
       '<p class="hint-sm" style="text-align:center">Pedir presupuesto es gratis y no te compromete a nada.</p>');
+
+    $('#s5_loc').onclick = function(){
+      if (!navigator.geolocation) return toast('Tu navegador no soporta ubicacion');
+      var btn = this; btn.disabled = true; btn.textContent = 'Buscando tu ubicacion...';
+      navigator.geolocation.getCurrentPosition(function(pos){
+        var lat = pos.coords.latitude.toFixed(6), lng = pos.coords.longitude.toFixed(6);
+        $('#sol_zona').value = 'Mi ubicacion: https://maps.google.com/?q=' + lat + ',' + lng;
+        btn.disabled = false; btn.textContent = '📍 Ubicacion agregada';
+        toast('Ubicacion agregada a tu solicitud');
+      }, function(err){
+        btn.disabled = false; btn.textContent = '📍 Usar mi ubicacion actual';
+        toast(err && err.code === 1 ? 'Bloqueaste el permiso de ubicacion' : 'No pudimos obtener tu ubicacion');
+      }, { enableHighAccuracy: true, timeout: 8000 });
+    };
+
     $('#s5_go').onclick = function(){
       clearErrors();
-      data.zona = cleanText($('#sol_zona').value, 60);
+      data.zona = cleanText($('#sol_zona').value, 140);
       var wa = needsPhone ? onlyDigits($('#sol_wa').value, 15) : null;
       if (needsPhone && !isPhoneVE(wa)) return fieldError('sol_wa','El WhatsApp lleva de 10 a 15 digitos.');
 
@@ -3437,11 +3535,19 @@ var SHEETS = {
 
 SHEETS.login = function(){
   openSheet('<h2>Iniciar sesion</h2><p class="lead">Es la misma cuenta de ruedda. Si ya compras carros con nosotros, entra con esos datos.</p>' +
+    '<div class="soc-row">' +
+      '<button type="button" class="soc-btn" id="lg_google"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.3 13.1 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 2.9-2.2 5.4-4.6 7.1l7.2 5.6c4.2-3.9 6.7-9.6 6.7-17.2z"/><path fill="#FBBC05" d="M10.5 19.3a14.5 14.5 0 0 0 0 9.4l-7.9 6.1a24 24 0 0 1 0-21.6l7.9 6.1z"/><path fill="#34A853" d="M24 48c6.4 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.7 2.2-8.7 2.2-6.4 0-11.7-3.6-13.6-8.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuar con Google</button>' +
+      '<button type="button" class="soc-btn apple" id="lg_apple"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.47 2.24-1.24 3.07-.83.9-2.15 1.6-3.27 1.5-.13-1.1.44-2.27 1.2-3.03.83-.87 2.24-1.53 3.31-1.54zm4.09 16.72c-.57 1.3-.84 1.88-1.57 3.03-1.02 1.6-2.46 3.6-4.24 3.62-1.58.02-1.99-1.03-4.14-1.02-2.15.01-2.6 1.04-4.18 1.02-1.78-.02-3.14-1.82-4.16-3.42-2.85-4.4-3.15-9.56-1.39-12.3 1.24-1.95 3.2-3.09 5.04-3.09 1.87 0 3.05 1.03 4.6 1.03 1.5 0 2.42-1.03 4.6-1.03 1.64 0 3.38.9 4.62 2.44-4.06 2.23-3.4 8.03.82 9.72z"/></svg>Continuar con Apple</button>' +
+    '</div>' +
+    '<div class="or-div">o con tu correo</div>' +
     field('lg_user','Correo','tucorreo@correo.com','maxlength="80" autocomplete="username" inputmode="email"') +
     field('lg_pass','Contraseña','','type="password" maxlength="64" autocomplete="current-password"') +
     honeypot() +
     '<button class="primary" id="lg_go">Entrar</button>' +
     '<p class="switch">No tienes cuenta? <b data-sheet="signup">Crear cuenta</b></p>');
+
+  $('#lg_google').onclick = function(){ AUTH.signInWithOAuth('google').catch(function(err){ toast(err.message || 'No se pudo conectar con Google'); }); };
+  $('#lg_apple').onclick  = function(){ AUTH.signInWithOAuth('apple').catch(function(err){ toast(err.message || 'No se pudo conectar con Apple'); }); };
 
   $('#lg_go').onclick = function(){
     clearErrors();
@@ -3466,8 +3572,17 @@ SHEETS.login = function(){
 
 SHEETS.signup = function(){
   openSheet('<h2>Crear cuenta</h2><p class="lead">Esta cuenta te sirve tambien en ruedda para comprar y vender carros.</p>' +
+    '<div class="soc-row">' +
+      '<button type="button" class="soc-btn" id="sg_google"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.3 13.1 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 2.9-2.2 5.4-4.6 7.1l7.2 5.6c4.2-3.9 6.7-9.6 6.7-17.2z"/><path fill="#FBBC05" d="M10.5 19.3a14.5 14.5 0 0 0 0 9.4l-7.9 6.1a24 24 0 0 1 0-21.6l7.9 6.1z"/><path fill="#34A853" d="M24 48c6.4 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.7 2.2-8.7 2.2-6.4 0-11.7-3.6-13.6-8.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuar con Google</button>' +
+      '<button type="button" class="soc-btn apple" id="sg_apple"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.47 2.24-1.24 3.07-.83.9-2.15 1.6-3.27 1.5-.13-1.1.44-2.27 1.2-3.03.83-.87 2.24-1.53 3.31-1.54zm4.09 16.72c-.57 1.3-.84 1.88-1.57 3.03-1.02 1.6-2.46 3.6-4.24 3.62-1.58.02-1.99-1.03-4.14-1.02-2.15.01-2.6 1.04-4.18 1.02-1.78-.02-3.14-1.82-4.16-3.42-2.85-4.4-3.15-9.56-1.39-12.3 1.24-1.95 3.2-3.09 5.04-3.09 1.87 0 3.05 1.03 4.6 1.03 1.5 0 2.42-1.03 4.6-1.03 1.64 0 3.38.9 4.62 2.44-4.06 2.23-3.4 8.03.82 9.72z"/></svg>Continuar con Apple</button>' +
+    '</div>' +
+    '<div class="or-div">o crea tu cuenta</div>' +
     '<div class="seg"><button class="on" id="sg_buyer">Voy a comprar</button><button id="sg_seller">Voy a vender</button></div>' +
     '<div id="sg_form"></div>');
+
+  $('#sg_google').onclick = function(){ AUTH.signInWithOAuth('google').catch(function(err){ toast(err.message || 'No se pudo conectar con Google'); }); };
+  $('#sg_apple').onclick  = function(){ AUTH.signInWithOAuth('apple').catch(function(err){ toast(err.message || 'No se pudo conectar con Apple'); }); };
+
   var role = 'buyer';
 
   function paint(){
@@ -3577,6 +3692,15 @@ SHEETS.track = function(){
   };
 };
 
+SHEETS.support = function(){
+  var wa = window.DB.config.whatsapp_soporte;
+  openSheet('<h2>Ayuda y soporte</h2><p class="lead">Escribenos y te contestamos por WhatsApp.</p>' +
+    (wa
+      ? '<a class="primary" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/' + esc(onlyDigits(wa, 15)) + '">Abrir WhatsApp</a>'
+      : '<p class="empty">El soporte todavia no configuro un numero.</p>') +
+    '<button class="secondary" data-close>Cerrar</button>');
+};
+
 /* teaser de AVALTA (certificacion de vehiculo, marca hermana del ecosistema
    ruedda — historial por serial, al estilo carfax). Todavia no existe: esto
    solo informa que viene, no promete una fecha. */
@@ -3638,6 +3762,34 @@ function maybeShowMecPopup(){
       if (location.hash.replace('#','') === '/' || location.hash === '') SHEETS.mecPopup();
     }, 4000);
   } catch (e) { /* localStorage bloqueado (privado): simplemente no insiste */ }
+}
+
+/* anuncio cruzado ocasional: vende/subasta tu carro en ruedda.app. Cadencia
+   propia (cada 3 dias, no cada dia) y corrida en el tiempo respecto al popup
+   de mecanico para que nunca se pisen los dos. */
+SHEETS.venderCarro = function(){
+  openSheet(
+    '<div class="venderpop">' +
+      '<div class="vp-ico"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V21H3z"/><path d="M9 21v-7h6v7"/></svg></div>' +
+      '<h2>Tienes un carro para vender?</h2>' +
+      '<p>Publicalo o subastalo en ruedda.app — miles de compradores ya estan buscando ahi.</p>' +
+      '<a class="primary" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" href="https://www.ruedda.app">Vender o subastar mi carro</a>' +
+      '<button class="secondary" data-close>Ahora no</button>' +
+    '</div>'
+  );
+};
+
+function maybeShowVenderCarroPopup(){
+  try {
+    var last = localStorage.getItem('rr_vendercarro_seen');
+    var now = Date.now();
+    if (last && (now - Number(last)) < 3 * 24 * 60 * 60 * 1000) return; // cada 3 dias
+    if (document.body.classList.contains('admin-mode')) return;
+    localStorage.setItem('rr_vendercarro_seen', String(now));
+    setTimeout(function(){
+      if ((location.hash.replace('#','') === '/' || location.hash === '') && !$('.sheet.on')) SHEETS.venderCarro();
+    }, 9000);
+  } catch (e) { /* localStorage bloqueado: no insiste */ }
 }
 
 function renderAccount(){
