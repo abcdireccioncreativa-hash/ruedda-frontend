@@ -690,7 +690,25 @@ select.ad-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 .admin-link{display:inline-block;margin-left:14px;padding:5px 11px;border-radius:7px;
   border:1px solid #333;color:#9a9a9a;font-size:11.5px;font-weight:700}
 .admin-link:hover{border-color:#555;color:#ddd}
-.dfooter-bottom{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+
+/* footer premium — visible en movil y escritorio, oscuro, con confianza y legal */
+.dfooter{display:block;background:#0b0b0c;color:#e7e7e7;margin-top:10px}
+.dfooter-trust{display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:center;padding:20px var(--pad);
+  border-bottom:1px solid #1c1c1c}
+.dft-item{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:#b8b8b8}
+.dft-item svg{flex:0 0 auto;color:var(--green)}
+.dfooter-top{padding:32px var(--pad) 10px;display:flex;flex-direction:column;gap:28px}
+.dfooter-brand p{font-size:13px;color:#9c9c9c;line-height:1.6;margin:14px 0 0;max-width:340px}
+.dfooter-pay{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.dfooter-pay span{font-size:10.5px;font-weight:700;letter-spacing:.3px;color:#c9c9c9;
+  border:1px solid #2a2a2a;border-radius:6px;padding:5px 9px}
+.dfooter-cols{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.dfooter-col h4{font-family:var(--disp);font-weight:800;font-size:12px;letter-spacing:.6px;
+  text-transform:uppercase;color:#7d7d7d;margin:0 0 12px}
+.dfooter-col a,.dfooter-col button{display:block;text-align:left;padding:6px 0;font-size:13.5px;color:#dcdcdc}
+.dfooter-col a:hover,.dfooter-col button:hover{color:#fff}
+.dfooter-bottom{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;
+  border-top:1px solid #1c1c1c;padding:18px var(--pad);font-size:11.5px;color:#6f6f6f;text-align:center}
 
 @media (min-width:1100px){
   .ad-body{padding:30px 34px 80px}
@@ -708,7 +726,7 @@ select.ad-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
    DESKTOP (>=1100px) — mobile-first: oculto por defecto,
    se activa solo dentro de la media query.
    ============================================================ */
-#dtop, .side-cats, .feat-d, .catteaser-d, .dfooter{display:none}
+#dtop, .side-cats, .feat-d, .catteaser-d{display:none}
 
 @media (min-width:1100px){
   body{background:#f2f2f2}
@@ -821,14 +839,12 @@ select.ad-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   .grab{display:none}
 
   /* footer desktop */
-  .dfooter{display:block;background:var(--panel);color:#e7e7e7;margin-top:0}
-  .dfooter-top{max-width:1280px;margin:0 auto;padding:48px 32px 32px;display:grid;
-    grid-template-columns:1.6fr 1fr 1fr 1fr;gap:32px}
-  .dfooter-brand p{font-size:13.5px;color:#9c9c9c;line-height:1.6;margin:14px 0 0;max-width:280px}
-  .dfooter-col h4{font-family:var(--disp);font-weight:800;font-size:13px;letter-spacing:.6px;
-    text-transform:uppercase;color:#8c8c8c;margin:0 0 14px}
-  .dfooter-col a,.dfooter-col button{display:block;text-align:left;padding:6px 0;font-size:14px;color:#dcdcdc}
-  .dfooter-col a:hover,.dfooter-col button:hover{color:#fff}
+  .dfooter-trust{max-width:1280px;margin:0 auto;justify-content:flex-start;padding:20px 32px}
+  .dfooter-top{max-width:1280px;margin:0 auto;padding:48px 32px 32px;flex-direction:row;
+    align-items:flex-start;gap:48px}
+  .dfooter-brand{flex:0 0 300px}
+  .dfooter-cols{flex:1;grid-template-columns:repeat(4,1fr);gap:24px}
+  .dfooter-bottom{max-width:1280px;margin:0 auto;justify-content:space-between}
   .dfooter-bottom{border-top:1px solid #262626;text-align:center;padding:18px;font-size:12px;color:#7d7d7d}
 
   /* vistas internas centradas en desktop */
@@ -951,12 +967,12 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
           <path d="M25 10h6l4 3.5V17h-10z" fill="#1a1a1a"/>
           <rect x="28.5" y="11.5" width="4" height="3.5" fill="#ececec"/>
           <g class="stwheel" style="transform-origin:14px 19px">
-            <circle cx="14" cy="19" r="3.2" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
-            <line x1="14" y1="19" x2="14" y2="16.3" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>
+            <circle cx="14" cy="19" r="2.4" fill="#fff" stroke="#1a1a1a" stroke-width="1.6"/>
+            <line x1="14" y1="19" x2="14" y2="17.1" stroke="#1a1a1a" stroke-width="1" stroke-linecap="round"/>
           </g>
           <g class="stwheel" style="transform-origin:31px 19px">
-            <circle cx="31" cy="19" r="3.2" fill="#fff" stroke="#1a1a1a" stroke-width="2"/>
-            <line x1="31" y1="19" x2="31" y2="16.3" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>
+            <circle cx="31" cy="19" r="2.4" fill="#fff" stroke="#1a1a1a" stroke-width="1.6"/>
+            <line x1="31" y1="19" x2="31" y2="17.1" stroke="#1a1a1a" stroke-width="1" stroke-linecap="round"/>
           </g>
         </g>
       </svg>
@@ -1232,33 +1248,52 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
 </div>
 
 <footer class="dfooter" id="dfoot">
+  <div class="dfooter-trust">
+    <div class="dft-item"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Pago protegido</div>
+    <div class="dft-item"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>Tiendas verificadas</div>
+    <div class="dft-item"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V21H3z"/><path d="M9 21v-7h6v7"/></svg>Envios a toda Venezuela</div>
+    <div class="dft-item"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Garantia en cada compra</div>
+  </div>
   <div class="dfooter-top">
     <div class="dfooter-brand">
       <span class="logo"><i class="logomark on-dark" role="img" aria-label="ruedda repuestos"></i></span>
-      <p>El marketplace de repuestos de auto mas rapido de Venezuela. Compra directo a tiendas verificadas.</p>
+      <p>El marketplace de repuestos de auto mas rapido de Venezuela. Compra directo a tiendas verificadas, con presupuesto por escrito y mecanicos avalados por la Red RTA.</p>
+      <div class="dfooter-pay">
+        <span>PAGO MOVIL</span><span>ZELLE</span><span>BINANCE</span><span>ZINLI</span><span>TRANSFERENCIA</span><span>EFECTIVO</span>
+      </div>
     </div>
-    <div class="dfooter-col">
-      <h4>Comprar</h4>
-      <a href="#/categorias">Categorias</a>
-      <a href="#/marcas">Marcas de repuestos</a>
-      <a href="#/tiendas">Tiendas oficiales</a>
-      <a href="#/mecanicos">Mecanicos verificados</a>
-    </div>
-    <div class="dfooter-col">
-      <h4>Vender</h4>
-      <button data-sheet="seller">Quiero ser vendedor</button>
-      <button data-sheet="license">Licencia de tienda</button>
-      <button data-sheet="plans">Planes y comisiones</button>
-    </div>
-    <div class="dfooter-col">
-      <h4>Ayuda</h4>
-      <button data-sheet="track">Seguir mi pedido</button>
-      <button data-sheet="support">Soporte y contacto</button>
-      <button data-sheet="terms">Terminos y privacidad</button>
+    <div class="dfooter-cols">
+      <div class="dfooter-col">
+        <h4>Comprar</h4>
+        <a href="#/categorias">Categorias</a>
+        <a href="#/marcas">Marcas de repuestos</a>
+        <a href="#/tiendas">Tiendas oficiales</a>
+        <a href="#/mecanicos">Mecanicos verificados</a>
+        <button data-sheet="avalta">Certificacion AVALTA</button>
+      </div>
+      <div class="dfooter-col">
+        <h4>Vender</h4>
+        <button data-sheet="seller">Quiero ser vendedor</button>
+        <button data-sheet="license">Licencia de tienda</button>
+        <button data-sheet="plans">Planes y comisiones</button>
+      </div>
+      <div class="dfooter-col">
+        <h4>Ayuda</h4>
+        <button data-sheet="track">Seguir mi pedido</button>
+        <button data-sheet="support">Soporte y contacto</button>
+        <button data-sheet="shipping">Politica de envios</button>
+        <button data-sheet="returns">Devoluciones y garantia</button>
+      </div>
+      <div class="dfooter-col">
+        <h4>Legal</h4>
+        <button data-sheet="terms">Terminos y condiciones</button>
+        <button data-sheet="privacy">Politica de privacidad</button>
+        <button data-sheet="returns">Garantia de ley</button>
+      </div>
     </div>
   </div>
   <div class="dfooter-bottom">
-    <span>ruedda repuestos © · admin: ruben carrillo</span>
+    <span>© 2026 ruedda repuestos · parte del ecosistema Ruedda</span>
     <a class="admin-link" href="#/admin">Administracion</a>
   </div>
 </footer>
@@ -1295,7 +1330,14 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
     <h3>Ayuda</h3>
     <button class="dlink" data-sheet="track">Seguir mi pedido</button>
     <button class="dlink" data-sheet="support">Soporte y contacto</button>
-    <button class="dlink" data-sheet="terms">Terminos y privacidad</button>
+    <button class="dlink" data-sheet="shipping">Politica de envios</button>
+    <button class="dlink" data-sheet="returns">Devoluciones y garantia</button>
+  </div>
+
+  <div class="dgroup">
+    <h3>Legal</h3>
+    <button class="dlink" data-sheet="terms">Terminos y condiciones</button>
+    <button class="dlink" data-sheet="privacy">Politica de privacidad</button>
   </div>
 
   <div class="dgroup">
@@ -3756,6 +3798,89 @@ SHEETS.support = function(){
     (wa
       ? '<a class="primary" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/' + esc(onlyDigits(wa, 15)) + '">Abrir WhatsApp</a>'
       : '<p class="empty">El soporte todavia no configuro un numero.</p>') +
+    '<button class="secondary" data-close>Cerrar</button>');
+};
+
+/* ---------------------------------------------------------------------------
+   LEGAL — texto real y generico (no se inventan datos de registro de la
+   empresa: RIF, direccion fiscal, etc. no se conocen aqui, asi que el aviso
+   legal los deja explicitamente pendientes de completar en vez de fabricarlos).
+   --------------------------------------------------------------------------- */
+SHEETS.terms = function(){
+  openSheet('<h2>Terminos y condiciones</h2>' +
+    '<div style="font-size:13px;line-height:1.7;color:#333;max-height:52vh;overflow-y:auto;padding-right:4px">' +
+    '<p><b>1. Que es ruedda repuestos.</b> Es un marketplace: conecta compradores con tiendas de repuestos y mecanicos ' +
+    'independientes. Ruedda no fabrica ni almacena los repuestos — cada tienda es responsable de lo que publica, del stock ' +
+    'y de la calidad de lo que vende.</p>' +
+    '<p><b>2. Precios.</b> Los precios se muestran en USD; el equivalente en bolivares usa la tasa oficial BCV del dia (o la ' +
+    'tasa configurada por el administrador si la fuente en vivo no responde). El monto final es el que confirma la tienda al ' +
+    'momento de pagar.</p>' +
+    '<p><b>3. Cuentas.</b> Una cuenta de ruedda repuestos es la misma cuenta de ruedda.app. Eres responsable de la ' +
+    'confidencialidad de tu contraseña y de la actividad que ocurra con tu cuenta.</p>' +
+    '<p><b>4. Mecanicos y la Red RTA.</b> Un mecanico "avalado" paso por un proceso de verificacion de identidad y una ' +
+    'evaluacion tecnica por especialidad. El presupuesto por escrito y el tope de ampliacion del 10% son reglas de la ' +
+    'plataforma, no promesas de un tercero.</p>' +
+    '<p><b>5. Conducta prohibida.</b> No esta permitido publicar productos falsificados, coordinar pagos por fuera de la ' +
+    'plataforma para evadir la Red (mecanicos), suplantar identidad, ni usar la plataforma para actividades ilicitas.</p>' +
+    '<p><b>6. Limitacion de responsabilidad.</b> Ruedda repuestos actua como intermediario. La relacion de compra es entre el ' +
+    'comprador y la tienda (o el mecanico); Ruedda interviene en disputas segun las reglas de cada vertical, pero no ' +
+    'garantiza personalmente cada transaccion mas alla de lo descrito en la Politica de devoluciones y garantia.</p>' +
+    '<p><b>7. Cambios.</b> Estos terminos pueden actualizarse; la version vigente es siempre la que esta publicada aqui.</p>' +
+    '<p style="color:#999;font-size:11.5px">Aviso: la razon social, RIF y domicilio fiscal de la empresa se publican aqui en ' +
+    'cuanto el equipo los confirme — todavia no estan cargados en este texto.</p>' +
+    '</div>' +
+    '<button class="secondary" data-close>Cerrar</button>');
+};
+
+SHEETS.privacy = function(){
+  openSheet('<h2>Politica de privacidad</h2>' +
+    '<div style="font-size:13px;line-height:1.7;color:#333;max-height:52vh;overflow-y:auto;padding-right:4px">' +
+    '<p><b>Que datos recogemos.</b> Nombre, cedula, telefono y correo (los que dejas al comprar, sea con cuenta o como ' +
+    'invitado), tu ubicacion cuando la compartes activamente al pedir un mecanico, e historial de compras y solicitudes.</p>' +
+    '<p><b>Para que se usan.</b> Para procesar tu pedido o solicitud, para que la tienda o el mecanico te contacten, para ' +
+    'mostrarte el estado de tu pedido, y para las notificaciones que actives (push o WhatsApp).</p>' +
+    '<p><b>Con quien se comparte.</b> Solo con la tienda o el mecanico de esa transaccion especifica — nunca se vende a ' +
+    'terceros con fines publicitarios.</p>' +
+    '<p><b>Donde vive.</b> En Supabase (Postgres), con Row Level Security: cada quien solo puede leer lo suyo salvo la ' +
+    'tienda/mecanico involucrado y el equipo de administracion.</p>' +
+    '<p><b>Tus derechos.</b> Puedes pedir que te muestren, corrijan o borren tus datos escribiendo a soporte. Borrar tu ' +
+    'cuenta no borra el historial de una compra ya facturada (por temas contables), pero si tus datos de contacto.</p>' +
+    '<p><b>Cookies y almacenamiento local.</b> Se usa localStorage/cookies solo para mantener tu sesion, tu carrito y ' +
+    'preferencias como si ya viste el popup de mecanico hoy — nada de rastreo publicitario de terceros.</p>' +
+    '</div>' +
+    '<button class="secondary" data-close>Cerrar</button>');
+};
+
+SHEETS.shipping = function(){
+  openSheet('<h2>Politica de envios</h2>' +
+    '<div style="font-size:13px;line-height:1.7;color:#333;max-height:52vh;overflow-y:auto;padding-right:4px">' +
+    '<p>Hacemos envios a <b>toda Venezuela</b> a traves de empresas de encomienda nacionales. Cada tienda coordina el ' +
+    'envio de lo que vende; el costo y el tiempo de entrega dependen de la zona y se confirman contigo antes de despachar.</p>' +
+    '<p><b>Como se sigue un pedido.</b> Cada compra genera un codigo de factura (formato RR-XXXXX-XXXX). Con ese codigo ' +
+    'puedes ver el estado en cualquier momento desde "Rastrea tu pedido" en la pagina principal: Pedido → Pagado → ' +
+    'Embalaje → Enviado → Entregado.</p>' +
+    '<p><b>Numero de guia.</b> Cuando la tienda despacha, agrega el numero de guia de la encomienda — aparece junto al ' +
+    'estado "Enviado".</p>' +
+    '<p><b>Retiro en tienda.</b> Algunas tiendas tambien permiten retirar en persona; coordina eso directo con la tienda ' +
+    'por WhatsApp desde la factura.</p>' +
+    '</div>' +
+    '<button class="secondary" data-close>Cerrar</button>');
+};
+
+SHEETS.returns = function(){
+  openSheet('<h2>Devoluciones y garantia</h2>' +
+    '<div style="font-size:13px;line-height:1.7;color:#333;max-height:52vh;overflow-y:auto;padding-right:4px">' +
+    '<p><b>Repuestos.</b> Si el repuesto llega defectuoso o no corresponde a lo pedido, tienes derecho a cambio o ' +
+    'reembolso — contacta a la tienda desde tu factura (boton "Escribir a la tienda") con fotos del problema. Si no llegan ' +
+    'a un acuerdo, escribe a soporte para que el equipo medie.</p>' +
+    '<p><b>Trabajo de un mecanico avalado (Red RTA).</b> Todo trabajo cerrado por un taller avalado queda con ' +
+    '<b>garantia de 3 meses o 5.000 km</b> (lo que ocurra primero) sobre la mano de obra. Si el mismo problema vuelve, se ' +
+    'reclama desde "Mis solicitudes" — la Red responde si el mecanico no lo hace.</p>' +
+    '<p><b>Ampliaciones de presupuesto.</b> Un mecanico avalado no puede cobrar mas del 10% sobre lo presupuestado sin tu ' +
+    'aprobacion explicita con foto — eso lo aplica la base de datos, no depende de la buena voluntad de nadie.</p>' +
+    '<p><b>Que no cubre la garantia.</b> Piezas que el propio cliente compro por su cuenta y llevo al mecanico, mal uso ' +
+    'del vehiculo despues del servicio, o dano por un tercero.</p>' +
+    '</div>' +
     '<button class="secondary" data-close>Cerrar</button>');
 };
 
