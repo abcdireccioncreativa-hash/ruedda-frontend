@@ -3342,7 +3342,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         <div class="enc-title">Subastas</div>
         <div class="enc-photo-placeholder" id="enc-subastas-placeholder" style="opacity:1;color:inherit"><div class="enc-icon enc-icon-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div></div>
       </div>
-      <div class="enc-card enc-photo-card enc-fullphoto" data-enc="repuestos" id="enc-repuestos-photo" onclick="window.open('https://ruedda.app/repuestos','_blank')">
+      <div class="enc-card enc-photo-card enc-fullphoto" data-enc="repuestos" id="enc-repuestos-photo" onclick="abrirLink('https://ruedda.app/repuestos')">
         <div class="enc-photo-placeholder" id="enc-repuestos-placeholder">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
         </div>
@@ -6155,6 +6155,37 @@ async function _loadPaymentData(){
 const PAID_TYPES={}; // tracks which venderType the user has paid for
 
 // ── USER STATE ──
+// ── ABRIR LINKS ────────────────────────────────────────────────
+// En la app nativa, window.open(...,'_blank') manda al usuario a Safari
+// y lo sacamos de Ruedda. Con @capacitor/browser se abre dentro de la
+// app: en iOS es un SFSafariViewController en hoja, que entra desde
+// abajo y se cierra deslizando.
+//
+// Excepciones a proposito: los enlaces que tienen app propia (WhatsApp,
+// Instagram) siguen saliendo al sistema, porque ahi es donde el usuario
+// espera que abran -- meterlos en una hoja interna romperia el envio de
+// mensajes y el seguir cuentas.
+//
+// En web normal no cambia nada: no hay Capacitor, cae al window.open de
+// siempre.
+const _LINKS_AL_SISTEMA = /^(?:https?:\/\/)?(?:www\.)?(?:wa\.me|api\.whatsapp\.com|chat\.whatsapp\.com|instagram\.com|t\.me)\b/i;
+
+async function abrirLink(url){
+  const u = String(url || '');
+  if(!u) return;
+  try{
+    const C = window.Capacitor;
+    const nativo = C && typeof C.isNativePlatform === 'function' && C.isNativePlatform();
+    const Browser = nativo && C.Plugins ? C.Plugins.Browser : null;
+    const esHttp = /^https?:\/\//i.test(u);
+    if(Browser && esHttp && !_LINKS_AL_SISTEMA.test(u)){
+      await Browser.open({ url: u, presentationStyle: 'popover' });
+      return;
+    }
+  }catch(e){ /* si el plugin falla, cae al comportamiento de siempre */ }
+  window.open(u, '_blank', 'noopener');
+}
+
 // ── XSS PROTECTION ─────────────────────────────────────────────
 function _gidx(id){let h=0,s=String(id);for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h%grads.length;}
 function _esc(s){if(!s)return '';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
@@ -7634,7 +7665,7 @@ function renderSponsorSlider(){
   // y solo la que tiene .active es visible. El swipe/autoplay cambia la clase, nunca el tamaño
   // ni la posición del contenedor padre.
   track.innerHTML=MARKET_SPONSORS.map((s,i)=>`
-    <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
+    <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="abrirLink('${_esc(s.link)}','_blank','noopener')"`:''}>
       ${s.imagen_url?`<img src="${s.imagen_url}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
     </div>`).join('');
   // [RDV] crossfade skeleton→foto: el shimmer se re-monta ENCIMA de las slides y
@@ -7715,7 +7746,7 @@ function renderPromoBanner(){
   if(wrap) wrap.style.display='';
   _promoBannerIdx=0;
   track.innerHTML=PROMO_BANNER.map((s,i)=>`
-    <div class="promo-banner-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
+    <div class="promo-banner-slide${i===0?' active':''}" ${s.link?`onclick="abrirLink('${_esc(s.link)}','_blank','noopener')"`:''}>
       ${s.imagen_url?`<img src="${_tImg(s.imagen_url,{width:1200,quality:85})}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:''}
     </div>`).join('');
   if(PROMO_BANNER.length<2) return; // una sola foto: fija, sin autoplay
@@ -7789,7 +7820,7 @@ function _renderMiniBannerInto(trackId,wrapId){
   if(!MINI_BANNER.length){ track.innerHTML=''; return; }
   _miniBannerIdx[trackId]=0;
   track.innerHTML=MINI_BANNER.map((s,i)=>`
-    <div class="mini-banner-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
+    <div class="mini-banner-slide${i===0?' active':''}" ${s.link?`onclick="abrirLink('${_esc(s.link)}','_blank','noopener')"`:''}>
       ${s.imagen_url?`<img src="${_tImg(s.imagen_url,{width:1200,quality:85})}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'" onerror="this.closest('.mini-banner-slide').style.display='none'">`:''}
     </div>`).join('');
   if(MINI_BANNER.length<2) return; // una sola foto: fija, sin autoplay
@@ -8412,7 +8443,7 @@ function renderChocSponsorSlider(){
   if(wrap) wrap.style.display=(typeof currentTab!=='undefined'&&currentTab==='chocados')?'':'none';
   _chocSponsorIdx=0;
   track.innerHTML=CHOCADOS_SPONSORS.map((s,i)=>`
-    <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
+    <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="abrirLink('${_esc(s.link)}','_blank','noopener')"`:''}>
       ${s.imagen_url?`<img src="${s.imagen_url}" alt="${_esc(s.nombre||'')}">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
     </div>`).join('');
   dotsEl.innerHTML=CHOCADOS_SPONSORS.length>1?CHOCADOS_SPONSORS.map((_,i)=>`<div class="sponsor-dot${i===0?' active':''}"></div>`).join(''):'';
@@ -10347,7 +10378,7 @@ async function loadEventoDetail(id){
             <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg>
             compartir
           </button>
-          ${ev.entrada_tipo==='pagada'&&ev.link_entradas?`<button class="evento-buy-btn" onclick="window.open('${ev.link_entradas}','_blank','noopener')">comprar entradas</button>`:''}
+          ${ev.entrada_tipo==='pagada'&&ev.link_entradas?`<button class="evento-buy-btn" onclick="abrirLink('${ev.link_entradas}')">comprar entradas</button>`:''}
         </div>
       </div>`;
     _startEventoCountdown(ev);
