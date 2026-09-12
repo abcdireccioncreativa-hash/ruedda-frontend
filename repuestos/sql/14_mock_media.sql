@@ -90,10 +90,10 @@ on conflict (name, category) do nothing;
 insert into repuestos.tool_rentals (store_id, name, description, category, price_usd_day, deposit_usd, zone, image_url, active)
 select v.store_id, v.name, v.description, v.category, v.price_usd_day, v.deposit_usd, v.zone, v.image_url, true
 from (values
-  ('22222222-2222-4222-8222-222222222222'::uuid, 'Extractor de rotulas', 'Para desmontar rotulas de direccion y suspension sin dañarlas.', 'suspension', 8.00::numeric, 25.00::numeric, 'Caracas', 'https://picsum.photos/seed/rr-tool-rotulas/500/400'),
-  ('11111111-1111-4111-8111-111111111111'::uuid, 'Compresor de resortes', 'Juego de compresores para cambiar amortiguadores con seguridad.', 'suspension', 10.00, 30.00, 'Caracas', 'https://picsum.photos/seed/rr-tool-compresor/500/400'),
-  ('22222222-2222-4222-8222-222222222222'::uuid, 'Escaner OBD2 profesional', 'Diagnostico por escaner, lee y borra codigos de falla.', 'motor', 12.00, 40.00, 'Caracas', 'https://picsum.photos/seed/rr-tool-obd2/500/400'),
-  ('33333333-3333-4333-8333-333333333333'::uuid, 'Kit de herramienta para frenos', 'Separador de pastillas, llave de sangrado y accesorios.', 'frenos', 6.00, 15.00, 'Valencia', 'https://picsum.photos/seed/rr-tool-frenos/500/400'),
-  ('11111111-1111-4111-8111-111111111111'::uuid, 'Gato hidraulico de piso (2 ton)', 'Para levantar el vehiculo con seguridad en casa.', 'suspension', 9.00, 20.00, 'Caracas', 'https://picsum.photos/seed/rr-tool-gato/500/400')
+  ('22222222-2222-4222-8222-222222222222'::uuid, 'Extractor de rotulas', 'Para desmontar rotulas de direccion y suspension sin dañarlas.', 'pc-suspension', 8.00::numeric, 25.00::numeric, 'Caracas', 'https://picsum.photos/seed/rr-tool-rotulas/500/400'),
+  ('11111111-1111-4111-8111-111111111111'::uuid, 'Compresor de resortes', 'Juego de compresores para cambiar amortiguadores con seguridad.', 'pc-suspension', 10.00, 30.00, 'Caracas', 'https://picsum.photos/seed/rr-tool-compresor/500/400'),
+  ('22222222-2222-4222-8222-222222222222'::uuid, 'Escaner OBD2 profesional', 'Diagnostico por escaner, lee y borra codigos de falla.', 'pc-motor', 12.00, 40.00, 'Caracas', 'https://picsum.photos/seed/rr-tool-obd2/500/400'),
+  ('33333333-3333-4333-8333-333333333333'::uuid, 'Kit de herramienta para frenos', 'Separador de pastillas, llave de sangrado y accesorios.', 'pc-frenos', 6.00, 15.00, 'Valencia', 'https://picsum.photos/seed/rr-tool-frenos/500/400'),
+  ('11111111-1111-4111-8111-111111111111'::uuid, 'Gato hidraulico de piso (2 ton)', 'Para levantar el vehiculo con seguridad en casa.', 'pc-suspension', 9.00, 20.00, 'Caracas', 'https://picsum.photos/seed/rr-tool-gato/500/400')
 ) as v(store_id, name, description, category, price_usd_day, deposit_usd, zone, image_url)
 where not exists (select 1 from repuestos.tool_rentals t where t.name = v.name and t.store_id = v.store_id);

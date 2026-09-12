@@ -47,6 +47,17 @@ img{display:block;max-width:100%}
 /* frame: mobile-first, se centra en desktop */
 #frame{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;overflow-x:hidden;box-shadow:0 0 60px rgba(0,0,0,.25)}
 
+/* aviso de envios nacionales */
+.ship-banner{display:flex;align-items:center;justify-content:center;gap:8px;background:#eafff2;color:#0e6b39;
+  font-size:12.5px;font-weight:700;padding:9px 14px;text-align:center}
+
+/* mini buscador de pedido en el front page */
+.track-widget{padding:18px var(--pad) 4px;background:var(--bg)}
+.track-widget b{display:block;font-size:13px;margin-bottom:8px}
+.tw-row{display:flex;gap:8px}
+.tw-row .inp{flex:1}
+.tw-row button{width:52px;height:52px;flex:0 0 52px;border-radius:var(--r);background:var(--ink);color:#fff;display:grid;place-items:center}
+
 /* banner cruzado hacia ruedda (carros) */
 .rr-xbanner{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;background:var(--ink);color:var(--white);text-align:center;font-size:12px;font-weight:500;padding:9px 14px;line-height:1.3}
 .rr-xbanner b{color:var(--green);font-weight:700}
@@ -199,7 +210,12 @@ img{display:block;max-width:100%}
 .store .nm b{display:block;font-weight:700;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .store .nm span{font-size:12.5px;color:var(--mute)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--gut)}
-.card{background:var(--white);border-radius:14px;overflow:hidden;text-align:left;display:flex;flex-direction:column}
+.card{background:var(--white);border-radius:14px;overflow:hidden;text-align:left;display:flex;flex-direction:column;position:relative}
+.fav-btn{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);
+  display:grid;place-items:center;color:var(--ink);z-index:2}
+.fav-btn:hover{background:#fff}
+.fav-btn.on{color:#e0245e}
+.fav-btn svg{width:17px;height:17px}
 .card .ph{height:120px;background:#1a1a1a;position:relative}
 .card .ph img{width:100%;height:100%;object-fit:cover}
 .card .rec{position:absolute;bottom:0;right:0;background:var(--green-badge);color:#fff;font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px 0 0 0}
@@ -749,8 +765,13 @@ select.ad-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   .feat-d{grid-area:featured;display:block}
   .catteaser-d{grid-area:catteaser;display:block}
 
+  #v-home > .ship-banner{grid-area:ship;border-radius:10px}
+  #v-home > .track-widget{grid-area:trackw;background:transparent;padding:0}
+
   #v-home.on{grid-template-areas:
+    "ship ship"
     "side hero"
+    "trackw trackw"
     "filter filter"
     "quick linkm"
     "mec mec"
@@ -775,13 +796,7 @@ select.ad-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
   .feat-d-head h2{font-family:var(--disp);font-weight:800;font-size:24px;letter-spacing:.2px;margin:0}
   .feat-d-all{display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px}
   .grid-d{grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
-  .grid-d .card{position:relative}
   .grid-d .card .ph{height:150px}
-  .fav-btn{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);
-    display:grid;place-items:center;color:var(--ink);z-index:2}
-  .fav-btn:hover{background:#fff}
-  .fav-btn.on{color:#e0245e}
-  .fav-btn svg{width:17px;height:17px}
 
   .catteaser-d h2{font-family:var(--disp);font-weight:800;font-size:24px;letter-spacing:.2px;margin:0 0 16px}
   .cat-d-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
@@ -917,9 +932,21 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
 
   <!-- ===== HOME ===== -->
   <section class="view on" id="v-home">
+    <div class="ship-banner">🚚 Hacemos envios nacionales a toda Venezuela</div>
+
     <div class="spon">
       <div class="spon-track" id="sponTrack"></div>
       <div class="spon-dots" id="sponDots"></div>
+    </div>
+
+    <div class="track-widget">
+      <b>Rastrea tu pedido</b>
+      <div class="tw-row">
+        <input class="inp" id="homeTrackInput" placeholder="RR-9F3K2-A7QX" maxlength="24" autocapitalize="characters">
+        <button id="homeTrackGo" aria-label="Buscar pedido">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+      </div>
     </div>
 
     <div class="filter">
@@ -3646,6 +3673,40 @@ SHEETS.signup = function(){
   $('#sg_seller').onclick = function(){ role='seller'; this.classList.add('on'); $('#sg_buyer').classList.remove('on'); paint(); };
 };
 
+/* usado por SHEETS.track y por el mini-buscador del front page */
+function trackOrderByCode(code, onError){
+  return API.findInvoice(code).then(function(r){
+    if (!r) { if (onError) onError('No conseguimos ese codigo. Revisa que este completo.'); return; }
+
+    var o = r.order, st = r.store || {};
+    var det = r.items.map(function(x){
+      return '<tr><td>' + esc(x.name) + '</td><td class="r">' + esc(x.qty) +
+             '</td><td class="r">$' + money(x.unit_price_usd * x.qty) + '</td></tr>';
+    }).join('');
+
+    openSheet('<h2>Pedido ' + esc(r.invoice.code) + '</h2>' +
+      orderTrackerHTML(o.status) +
+      '<p class="lead">Estado: <b>' + esc(ORDER_STATUS_LABEL[o.status] || o.status) + '</b></p>' +
+      (o.tracking_code ? '<p class="lead" style="margin-top:-8px">Numero de guia: <b class="mono">' + esc(o.tracking_code) + '</b></p>' : '') +
+      '<div class="inv"><b>' + esc(st.name || '') + '</b>' +
+      '<table style="margin-top:12px"><thead><tr><th>Descripcion</th><th class="r">Cant</th><th class="r">Total</th></tr></thead>' +
+      '<tbody>' + det + '</tbody></table>' +
+      '<div class="tot"><span>Total</span><span>$' + money(o.total_usd) + '</span></div></div>' +
+      '<a class="dark" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" ' +
+      'href="https://wa.me/' + esc(onlyDigits(st.whatsapp || window.DB.config.whatsapp_soporte, 15)) + '?text=' +
+      encodeURIComponent('Hola, consulto por mi pedido ' + r.invoice.code) + '">Consultar a la tienda</a>' +
+      (STATE.session && STATE.session.id === o.buyer_id && ['paid','packing','shipped','fulfilled'].indexOf(o.status) !== -1
+        ? '<button class="secondary" id="tk_rate">Calificar mi compra</button>' : '') +
+      '<button class="secondary" data-close>Listo</button>');
+    var rateBtn = $('#tk_rate');
+    if (rateBtn) rateBtn.onclick = function(){
+      openRateOrder({ id: o.id, store_name: st.name, items: r.items });
+    };
+  }).catch(function(err){
+    if (onError) onError(err.message || 'No pudimos buscar el pedido.');
+  });
+}
+
 SHEETS.track = function(){
   openSheet('<h2>Seguir mi pedido</h2><p class="lead">Escribe el codigo que aparece en tu factura.</p>' +
     field('tk_code','Codigo de factura','RR-9F3K2-A7QX','maxlength="24" autocapitalize="characters"') +
@@ -3655,40 +3716,8 @@ SHEETS.track = function(){
     clearErrors();
     var code = cleanText($('#tk_code').value, 24).toUpperCase();
     if (code.length < 6) return fieldError('tk_code','Escribe el codigo completo.');
-
     var btn = this; btn.disabled = true;
-    API.findInvoice(code).then(function(r){
-      btn.disabled = false;
-      if (!r) return fieldError('tk_code','No conseguimos ese codigo. Revisa que este completo.');
-
-      var o = r.order, st = r.store || {};
-      var det = r.items.map(function(x){
-        return '<tr><td>' + esc(x.name) + '</td><td class="r">' + esc(x.qty) +
-               '</td><td class="r">$' + money(x.unit_price_usd * x.qty) + '</td></tr>';
-      }).join('');
-
-      openSheet('<h2>Pedido ' + esc(r.invoice.code) + '</h2>' +
-        orderTrackerHTML(o.status) +
-        '<p class="lead">Estado: <b>' + esc(ORDER_STATUS_LABEL[o.status] || o.status) + '</b></p>' +
-        (o.tracking_code ? '<p class="lead" style="margin-top:-8px">Numero de guia: <b class="mono">' + esc(o.tracking_code) + '</b></p>' : '') +
-        '<div class="inv"><b>' + esc(st.name || '') + '</b>' +
-        '<table style="margin-top:12px"><thead><tr><th>Descripcion</th><th class="r">Cant</th><th class="r">Total</th></tr></thead>' +
-        '<tbody>' + det + '</tbody></table>' +
-        '<div class="tot"><span>Total</span><span>$' + money(o.total_usd) + '</span></div></div>' +
-        '<a class="dark" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" ' +
-        'href="https://wa.me/' + esc(onlyDigits(st.whatsapp || window.DB.config.whatsapp_soporte, 15)) + '?text=' +
-        encodeURIComponent('Hola, consulto por mi pedido ' + r.invoice.code) + '">Consultar a la tienda</a>' +
-        (STATE.session && STATE.session.id === o.buyer_id && ['paid','packing','shipped','fulfilled'].indexOf(o.status) !== -1
-          ? '<button class="secondary" id="tk_rate">Calificar mi compra</button>' : '') +
-        '<button class="secondary" data-close>Listo</button>');
-      var rateBtn = $('#tk_rate');
-      if (rateBtn) rateBtn.onclick = function(){
-        openRateOrder({ id: o.id, store_name: st.name, items: r.items });
-      };
-    }).catch(function(err){
-      btn.disabled = false;
-      fieldError('tk_code', err.message || 'No pudimos buscar el pedido.');
-    });
+    trackOrderByCode(code, function(msg){ btn.disabled = false; fieldError('tk_code', msg); });
   };
 };
 
@@ -5563,6 +5592,16 @@ $('#scrim').onclick = function(){ closeDrawer(); closeSheet(); };
 document.addEventListener('keydown', function(e){ if (e.key === 'Escape') { closeDrawer(); closeSheet(); } });
 
 $('#btnAdv').onclick = function(){ $('#fExtra').classList.toggle('on'); };
+
+function homeTrackSearch(){
+  var input = $('#homeTrackInput');
+  var code = cleanText(input.value, 24).toUpperCase();
+  if (code.length < 6) return toast('Escribe el codigo completo de tu factura.');
+  var btn = $('#homeTrackGo'); btn.disabled = true;
+  trackOrderByCode(code, function(msg){ toast(msg); }).then(function(){ btn.disabled = false; });
+}
+$('#homeTrackGo').onclick = homeTrackSearch;
+$('#homeTrackInput').addEventListener('keydown', function(e){ if (e.key === 'Enter') homeTrackSearch(); });
 function runHomeSearch(){
   var q = [ $('#fMarca').value, $('#fParte').value, $('#fModelo').value, $('#fMedida').value, $('#fCat').value ]
     .map(function(v){ return cleanText(v, 40); }).filter(Boolean).join(' ');
