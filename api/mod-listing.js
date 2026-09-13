@@ -28,8 +28,7 @@
 const { supabaseAdmin, getUserFromToken, isSuperadmin } = require('../lib/supabase');
 const { sendEmail, layout } = require('../lib/email');
 
-const ADMIN_PANEL_HTML_MOBILE = `<div id="view-superadmin" class="view">
-  <div class="detail-back" onclick="showView('cuenta')">
+const ADMIN_PANEL_HTML_MOBILE = `  <div class="detail-back" onclick="showView('cuenta')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>cuenta</span>
   </div>
@@ -598,10 +597,8 @@ const ADMIN_PANEL_HTML_MOBILE = `<div id="view-superadmin" class="view">
          Aparece junto al nombre al abrir un perfil y en "usuarios top". -->
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Insignias por nivel</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Una insignia por cada nivel del sistema de XP. Sube PNG o SVG ultra liviano, toca el cuadro.</div>
-    <div id="sa-levels-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
-  </div>`;
-const ADMIN_PANEL_HTML_DESKTOP = `<div id="view-superadmin" class="view">
-  <div class="detail-back" onclick="showView('cuenta')">
+    <div id="sa-levels-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>`;
+const ADMIN_PANEL_HTML_DESKTOP = `  <div class="detail-back" onclick="showView('cuenta')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>cuenta</span>
   </div>
@@ -1155,8 +1152,7 @@ const ADMIN_PANEL_HTML_DESKTOP = `<div id="view-superadmin" class="view">
          Aparece junto al nombre al abrir un perfil y en "usuarios top". -->
     <div style="font-size:17px;font-weight:800;letter-spacing:-.3px;margin-bottom:4px">Insignias por nivel</div>
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Una insignia por cada nivel del sistema de XP. Sube PNG o SVG ultra liviano, toca el cuadro.</div>
-    <div id="sa-levels-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>
-  </div>`;
+    <div id="sa-levels-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>`;
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
