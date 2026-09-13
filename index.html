@@ -6329,7 +6329,7 @@ async function _loadSuperadminPanel(){
     const{data:{session}}=await _supa.auth.getSession();
     const token=session?.access_token||'';
     if(!token){ host.innerHTML=''; showView('cuenta'); return; }
-    const resp=await fetch('/api/mod-listing?panel=1',{headers:{'Authorization':'Bearer '+token}});
+    const resp=await fetch('/api/mod-listing?panel=1&client=mobile',{headers:{'Authorization':'Bearer '+token}});
     if(!resp.ok){ host.innerHTML=''; showToast('no autorizado'); showView('cuenta'); return; }
     host.innerHTML=await resp.text();
     host.dataset.loaded='1';
