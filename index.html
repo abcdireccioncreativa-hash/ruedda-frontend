@@ -6312,7 +6312,7 @@ function fmtCountdown(ms){
 
 // ===================== SUPERADMIN (carga condicional) =====================
 // [security fix] el panel SuperAdmin dejo de existir como markup estatico en
-// el documento -- vive en /api/admin-panel.js y solo se entrega tras validar
+// el documento -- vive en /api/mod-listing.js (GET ?panel=1) y solo se entrega tras validar
 // server-side que quien pide es superadmin real (mismo guard que ya usan
 // mod-listing.js/admin-user.js). Antes, showView('superadmin') simplemente
 // pintaba un bloque que YA estaba en el DOM sin ninguna verificacion: bastaba
@@ -6329,7 +6329,7 @@ async function _loadSuperadminPanel(){
     const{data:{session}}=await _supa.auth.getSession();
     const token=session?.access_token||'';
     if(!token){ host.innerHTML=''; showView('cuenta'); return; }
-    const resp=await fetch('/api/admin-panel',{headers:{'Authorization':'Bearer '+token}});
+    const resp=await fetch('/api/mod-listing?panel=1',{headers:{'Authorization':'Bearer '+token}});
     if(!resp.ok){ host.innerHTML=''; showToast('no autorizado'); showView('cuenta'); return; }
     host.innerHTML=await resp.text();
     host.dataset.loaded='1';
