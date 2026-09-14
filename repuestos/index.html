@@ -804,6 +804,7 @@ select.ad-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
 
   #v-home.on{grid-template-areas:
     "ship ship"
+    "live live"
     "side hero"
     "trackw trackw"
     "filter filter"
@@ -812,6 +813,8 @@ select.ad-inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xm
     "avalta avalta"
     "promo promo"
     "flotaiq flotaiq"
+    "topsearch topsearch"
+    "recent recent"
     "dots dots"
     "featured featured"
     "catteaser catteaser"}
@@ -884,6 +887,186 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
   background-size:400% 100%;animation:sk 1.4s ease infinite;border-radius:12px;
   grid-column:1/-1}
 @keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
+
+/* ===== MARKETPLACE: entregas, vendedores, ofertas, mensajes, asistente, en vivo ===== */
+.live-strip[hidden],.top-search[hidden],.recent-row[hidden],.pm-badge[hidden]{display:none!important}
+.pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);flex:0 0 auto;
+  box-shadow:0 0 0 0 rgba(0,200,83,.6);animation:rrPulse 1.8s infinite}
+@keyframes rrPulse{0%{box-shadow:0 0 0 0 rgba(0,200,83,.55)}70%{box-shadow:0 0 0 9px rgba(0,200,83,0)}100%{box-shadow:0 0 0 0 rgba(0,200,83,0)}}
+.live-strip{display:flex;align-items:center;gap:14px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;
+  background:#0f0f0f;color:#d9d9d9;font-size:12.5px;padding:10px var(--pad)}
+.live-strip::-webkit-scrollbar{display:none}
+.live-strip .lv{font-family:var(--disp);font-weight:800;color:var(--green);letter-spacing:.8px;font-size:11.5px;margin-left:-6px}
+.live-strip span b{color:#fff}
+.live-strip small{color:#9a9a9a}
+.live-strip span+span{padding-left:14px;border-left:1px solid #2a2a2a}
+.mycar-btn{margin:-4px 0 12px;padding:8px 14px;border-radius:20px;background:#262626;color:#fff;font-size:13px;font-weight:700}
+.mycar-btn.on{background:var(--green);color:#062d15}
+.top-search{padding:18px var(--pad) 4px}
+.top-search > b,.rr-head b{display:block;font-family:var(--disp);font-weight:800;font-size:16px;letter-spacing:.3px;margin-bottom:10px}
+.top-search .chip{background:#fff}
+.recent-row{padding:18px 0 6px}
+.rr-head{display:flex;justify-content:space-between;align-items:baseline;padding:0 var(--pad)}
+.rr-head a{font-size:13px;font-weight:700;color:var(--ink)}
+.recent-track{display:flex;gap:12px;overflow-x:auto;padding:2px var(--pad) 10px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.recent-track::-webkit-scrollbar{display:none}
+.recent-it{flex:0 0 158px;scroll-snap-align:start;display:flex;flex-direction:column;gap:4px}
+.recent-it .ago{font-size:11px;color:var(--mute);padding-left:4px}
+.card .fit{align-self:flex-start;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:6px}
+.card .fit.ok{background:#e3f8ea;color:#136b3a}
+.card .fit.no{background:#f1f1f1;color:#6b6b6b}
+.card .cond-tag{position:absolute;left:8px;bottom:8px;background:rgba(17,17,17,.82);color:#fff;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:6px}
+.card.flash{animation:rrFlash 1.6s ease}
+@keyframes rrFlash{0%{box-shadow:0 0 0 3px var(--green)}100%{box-shadow:0 0 0 0 transparent}}
+
+/* ficha */
+.pdp-cond{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
+.pdp-cond:empty{display:none}
+.cond{font-size:12px;font-weight:700;padding:5px 9px;border-radius:7px;background:#efefef;color:#333}
+.cond.c-nuevo{background:#e3f8ea;color:#136b3a}
+.cond.c-usado{background:#fff1dc;color:#8a4f00}
+.cond.c-remanufacturado{background:#e7f0fd;color:#1b4f9c}
+.cond.fit-ok{background:#e3f8ea;color:#136b3a}
+.cond.fit-no{background:#fde8e8;color:#9b1c1c}
+.cond.fit-na{background:#f1f1f1;color:#555}
+.pdp-live{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;font-size:12.5px;color:#444;margin:10px 0 0}
+.pdp-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pdp-actions .secondary{height:48px;font-size:14.5px}
+.pdp-actions .secondary:only-child{grid-column:1/-1}
+.pdp-dl{margin-top:16px;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.pdp-dl > b{font-family:var(--disp);font-size:15px}
+.pdp-dl ul{list-style:none;margin:8px 0 6px;padding:0;display:grid;gap:7px}
+.pdp-dl li{display:flex;gap:9px;font-size:13.5px;line-height:1.35}
+.pdp-dl p{margin:6px 0 0;font-size:13.5px;color:#444}
+.pdp-dl small{font-size:11.5px;color:var(--mute)}
+
+/* entregas */
+.dl-grid{display:grid;gap:10px;margin-bottom:6px}
+.dl-opt{display:flex;gap:12px;align-items:flex-start;text-align:left;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:#fff;width:100%}
+.dl-opt:hover,.dl-opt:focus-visible{border-color:var(--ink)}
+.dl-opt.ws{background:#f6f6f6}
+.dl-ico{font-size:22px;line-height:1;flex:0 0 auto}
+.dl-tx{display:flex;flex-direction:column;gap:3px}
+.dl-tx b{font-size:15px}
+.dl-tx small{font-size:12.5px;color:#555}
+.dl-tx .dl-where{color:#1b4f9c;font-weight:700}
+.dl-tx .dl-eta{color:#136b3a;font-weight:700}
+.dl-check{display:flex;gap:8px;align-items:center;font-size:13.5px;margin:4px 0 6px}
+.dl-line{font-size:12px;color:#555;line-height:1.45;background:#f5f5f5;border-radius:8px;padding:8px 10px;margin:0 0 10px}
+.dl-line.err{background:#fff4e0;color:#8a4f00}
+.dl-cfg{border:1.5px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.dl-cfg.on{border-color:var(--green)}
+.dl-head{display:flex;gap:10px;align-items:center;cursor:pointer}
+.dl-head input{width:20px;height:20px;accent-color:var(--green)}
+.dl-head small{display:block;font-size:12px;color:#666}
+.dl-body{display:none;margin-top:10px}
+.dl-cfg.on .dl-body{display:block}
+
+/* vendedores */
+.ob-kind{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.ob-k{text-align:left;padding:14px;border-radius:12px;border:1.5px solid var(--line);background:#fff;display:flex;flex-direction:column;gap:4px}
+.ob-k b{font-size:15.5px}
+.ob-k small{font-size:12px;color:#555;line-height:1.35}
+.ob-k.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.ob-rules{margin:4px 0 6px;padding-left:18px;font-size:12.5px;color:#555;line-height:1.5}
+.kyc-up label{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:16px;border:1.5px dashed #bdbdbd;border-radius:12px;margin-bottom:10px;cursor:pointer}
+.kyc-up small{font-size:12px;color:#666}
+.kyc-ph{width:84px;height:64px;display:grid;place-items:center;font-size:30px;border-radius:8px;overflow:hidden;background:#f3f3f3}
+.kyc-ph img{width:100%;height:100%;object-fit:cover}
+.nb{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--green);color:#062d15;font-size:11.5px;font-weight:800;margin-left:6px;vertical-align:middle}
+
+/* ofertas */
+.of-card{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:#fff}
+.of-top{display:flex;gap:10px;align-items:flex-start}
+.of-ph{width:52px;height:52px;border-radius:8px;overflow:hidden;background:var(--ph);flex:0 0 auto}
+.of-ph img{width:100%;height:100%;object-fit:cover}
+.of-bd{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.of-bd b{font-size:14px}
+.of-bd small{font-size:12px;color:#555}
+.of-st{font-size:11px;font-weight:800;padding:4px 8px;border-radius:6px;background:#f0f0f0;white-space:nowrap}
+.st-pending .of-st{background:#fff1dc;color:#8a4f00}
+.st-countered .of-st{background:#e7f0fd;color:#1b4f9c}
+.st-accepted .of-st,.st-converted .of-st{background:#e3f8ea;color:#136b3a}
+.st-rejected .of-st,.st-expired .of-st,.st-cancelled .of-st{color:#777}
+.of-msg{margin:8px 0 0;font-size:13px;font-style:italic;color:#444}
+.of-exp{margin:6px 0 0;font-size:11.5px;color:var(--mute)}
+.of-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.of-act:empty{display:none}
+.mini-act.pri{background:var(--green);color:#062d15}
+
+/* mensajes */
+.ch-h{margin-bottom:2px}
+.ch-sub{margin-top:0}
+.chat-log{height:min(46vh,380px);overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:10px;background:#f4f4f4;border-radius:12px}
+.chat-log .empty{margin:auto;text-align:center;font-size:13px}
+.msg{max-width:80%;align-self:flex-start;background:#fff;border-radius:12px 12px 12px 4px;padding:8px 11px}
+.msg.me{align-self:flex-end;background:#dcf8e6;border-radius:12px 12px 4px 12px}
+.msg p{margin:0;font-size:14px;white-space:pre-wrap;word-break:break-word}
+.msg small{display:block;margin-top:3px;font-size:10.5px;color:#777;text-align:right}
+.chat-in{display:flex;gap:8px;align-items:flex-end;margin-top:10px}
+.chat-in textarea{flex:1;resize:none;min-height:48px;max-height:120px;padding:13px 12px;font:inherit}
+.chat-in .primary{width:auto;height:48px;padding:0 18px;margin:0;font-size:15px}
+.th-row{display:flex;gap:11px;align-items:center;width:100%;text-align:left;padding:12px 4px;border-bottom:1px solid #eee;background:none}
+.th-av{width:42px;height:42px;border-radius:50%;background:#111;color:#fff;display:grid;place-items:center;font-weight:800;flex:0 0 auto}
+.th-bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.th-bd small{font-size:12px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.th-row.un .th-last{color:var(--ink);font-weight:700}
+.th-meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.th-meta small{font-size:11px;color:#888}
+.th-meta i{font-style:normal;min-width:20px;height:20px;border-radius:10px;background:var(--green);color:#062d15;font-size:11px;font-weight:800;display:grid;place-items:center}
+
+/* asistente */
+.rr-bot{position:fixed;right:calc(16px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));z-index:80}
+body.admin-mode .rr-bot{display:none}
+.bot-fab{width:58px;height:58px;border-radius:50%;background:#111;color:var(--green);display:grid;place-items:center;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);position:relative;transition:transform .2s}
+.bot-fab:hover{transform:scale(1.05)}
+.bot-fab::after{content:"";position:absolute;top:3px;right:3px;width:12px;height:12px;border-radius:50%;background:var(--green);border:2px solid #111}
+.bot-x{display:none;color:#fff;font-size:30px;line-height:1}
+.rr-bot.open .bot-fab svg,.rr-bot.open .bot-fab::after{display:none}
+.rr-bot.open .bot-x{display:block}
+.bot-panel{position:absolute;right:0;bottom:72px;width:min(380px,calc(100vw - 32px));height:min(560px,calc(100dvh - 120px));
+  background:#fff;border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow:hidden;
+  opacity:0;transform:translateY(12px) scale(.98);transform-origin:bottom right;pointer-events:none;transition:opacity .2s,transform .2s}
+.rr-bot.open .bot-panel{opacity:1;transform:none;pointer-events:auto}
+.bot-hd{display:flex;align-items:center;gap:10px;padding:14px 14px;background:#111;color:#fff}
+.bot-hd > span:nth-child(2){flex:1;display:flex;flex-direction:column}
+.bot-hd b{font-family:var(--disp);font-size:15px;letter-spacing:.2px}
+.bot-hd small{font-size:11.5px;color:#aaa;display:flex;align-items:center;gap:5px}
+.bot-hd small i{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.bot-av{width:36px;height:36px;border-radius:50%;background:var(--green);color:#062d15;display:grid;place-items:center;font-family:var(--disp);font-weight:800}
+.bot-min{color:#fff;font-size:26px;width:34px;height:34px;background:none}
+.bot-log{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:8px;background:#f4f4f4}
+.bm{max-width:86%}
+.bm p{margin:0;padding:9px 12px;font-size:13.5px;line-height:1.45;border-radius:14px}
+.bm.bot{align-self:flex-start}
+.bm.bot p,.bm.bot .typing{background:#fff;border-radius:14px 14px 14px 4px}
+.bm.me{align-self:flex-end}
+.bm.me p{background:#111;color:#fff;border-radius:14px 14px 4px 14px}
+.typing{display:inline-flex;gap:4px;padding:12px 14px}
+.typing i{width:6px;height:6px;border-radius:50%;background:#aaa;animation:rrDot 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes rrDot{0%,60%,100%{transform:none;opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+.bchips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 4px}
+.bchips button{padding:8px 11px;border-radius:16px;border:1.5px solid #111;background:#fff;font-size:12.5px;font-weight:700;color:#111;text-align:left}
+.bchips button:hover,.bchips button:focus-visible{background:#111;color:#fff}
+.bot-in{display:flex;gap:8px;padding:10px;border-top:1px solid #eee;background:#fff}
+.bot-in input{flex:1;height:42px;border-radius:21px;border:1px solid #ddd;padding:0 14px;font:inherit;font-size:14px}
+.bot-in button{width:42px;height:42px;border-radius:50%;background:var(--green);color:#062d15;display:grid;place-items:center}
+@media (max-width:520px){
+  .bot-panel{position:fixed;left:8px;right:8px;bottom:calc(84px + env(safe-area-inset-bottom));width:auto}
+}
+@media (prefers-reduced-motion:reduce){
+  .pulse,.typing i,.card.flash{animation:none}
+  .bot-panel{transition:none}
+}
+@media (min-width:1100px){
+  #v-home > .live-strip{grid-area:live;border-radius:10px}
+  #v-home > .top-search{grid-area:topsearch;padding:0}
+  #v-home > .recent-row{grid-area:recent;padding:0}
+  #v-home > .recent-row .rr-head,#v-home > .recent-row .recent-track{padding-left:0;padding-right:0}
+  .recent-it{flex-basis:190px}
+}
 </style>
 </head>
 <body>
@@ -988,6 +1171,8 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
       <span>Hacemos envíos nacionales a toda Venezuela</span>
     </div>
 
+    <div class="live-strip" id="liveStrip" aria-live="polite" hidden></div>
+
     <div class="spon">
       <div class="spon-track" id="sponTrack"></div>
       <div class="spon-dots" id="sponDots"></div>
@@ -1005,6 +1190,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
 
     <div class="filter">
       <h2>FILTRA TU BÚSQUEDA</h2>
+      <button type="button" class="mycar-btn" id="myCarBtn">🚗 Mi carro</button>
       <div class="f-row">
         <input class="inp" id="fMarca" placeholder="Marca..." maxlength="40" autocomplete="off">
         <input class="inp" id="fAnio" placeholder="Año..." maxlength="4" inputmode="numeric">
@@ -1069,6 +1255,9 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
       <p>FlotaIQ te avisa qué le toca a cada vehículo, cuándo y cuánto cuesta dejarlo pasar — con un reporte semanal (ICO) por unidad. Sin GPS, sin instalar nada.</p>
       <span class="flotaiq-cta">Conocer FlotaIQ →</span>
     </a>
+
+    <div class="top-search" id="topSearch" hidden></div>
+    <div class="recent-row" id="recentRow" hidden></div>
 
     <div class="dots" id="homeDots"></div>
 
@@ -1701,11 +1890,12 @@ var AUTH = {
 sb.auth.onAuthStateChange(function(event){
   if (event === 'SIGNED_OUT') {
     STATE.session = null; STATE.favorites = [];
+    if (window.MK) { stopMessaging(); MK.kyc = null; }
     renderAccount(); syncFavorites();
     if (location.hash.indexOf('#/admin') === 0) go('#/');
   }
   if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-    AUTH.hydrate().then(function(){ renderAccount(); syncFavorites(); });
+    AUTH.hydrate().then(function(){ renderAccount(); syncFavorites(); if (window.MK) startMessaging(); });
   }
 });
 
@@ -1783,7 +1973,7 @@ var API = {
   },
 
   createProduct: function(data){
-    return sb.from('products').insert({
+    var row = {
       store_id: data.store_id,
       brand: data.brand,
       part_category_id: data.part_category_id,
@@ -1796,7 +1986,10 @@ var API = {
       stock: data.stock,
       year_from: data.year_from || null,
       year_to: data.year_to || null
-    }).select().single().then(rrData).then(function(p){ cacheProducts([p]); return p; });
+    };
+    if (data.condition) row.condition = data.condition;
+    if (data.serial) row.serial = data.serial;
+    return sb.from('products').insert(row).select().single().then(rrData).then(function(p){ cacheProducts([p]); return p; });
   },
 
   adjustStock: function(productId, delta){
@@ -2960,13 +3153,15 @@ function openImportRequest(query){
 function productCard(p){
   var s = storeById(p.store_id);
   var fav = STATE.favorites.indexOf(p.id) !== -1;
-  return '<div class="card">' +
+  return '<div class="card" data-pid="' + esc(p.id) + '">' +
     '<a href="#/p/' + esc(p.id) + '">' +
       '<span class="ph">' + ((p.images && p.images[0]) ? '<img src="' + esc(p.images[0]) + '" alt="" loading="lazy">' : '') +
       (p.recommended ? '<span class="rec">Marca recomendada</span>' : '') +
-      (p.stock === 0 ? '<span class="soldout">Agotado</span>' : '') + '</span>' +
+      (p.stock === 0 ? '<span class="soldout">Agotado</span>' : '') +
+      (p.condition && p.condition !== 'nuevo' ? '<span class="cond-tag">' + esc(CONDITION_LABEL[p.condition] || p.condition) + '</span>' : '') + '</span>' +
       '<span class="bd"><span class="nm">' + esc(p.name) + '</span>' +
       '<span class="st">' + esc(s ? s.name : '') + (s && s.verified ? ' ✓' : '') + '</span>' +
+      fitBadge(p) +
       '<span class="pr">$' + money(p.price_usd) + '</span>' +
       (p.price_bs ? '<span class="pr-bs">Bs ' + esc(Number(p.price_bs).toLocaleString('es-VE')) + ' <i>BCV</i></span>' : '') +
       '</span>' +
@@ -3116,6 +3311,7 @@ function renderResults(arg){
   Promise.all([API.listProducts(f, 60, 0), API.facetCounts(f)]).then(function(r){
     var list = r[0], fc = r[1];
     var total = API._lastTotal;
+    if (f.q && MK.lastQ !== f.q) { MK.lastQ = f.q; API.logSearch(f.q, total); }
 
     renderFacets(f, fc);
     $('#resCount').textContent = total
@@ -3194,9 +3390,12 @@ function paintPDP(p, s){
     '</div>' +
     '<div class="price"><b>' + money(p.price_usd) + '$</b>' +
       '<span>' + esc(bs.toLocaleString('es-VE')) + ' bs · tasa BCV</span></div>' +
+    '<div class="pdp-cond" id="pdpCond"></div><div id="pdpLive"></div>' +
     '<p class="attrs">marca: <span>' + esc(p.brand) + '</span><br>' +
+      (p.part_number ? 'número de parte: <span>' + esc(p.part_number) + '</span><br>' : '') +
       'modelo: <span>' + esc(p.model || '—') + '</span><br>' +
-      'medida: <span>' + esc(p.medida || '—') + '</span></p>' +
+      'medida: <span>' + esc(p.medida || '—') + '</span>' +
+      (p.year_from || p.year_to ? '<br>años: <span>' + esc(p.year_from || '…') + ' – ' + esc(p.year_to || '…') + '</span>' : '') + '</p>' +
     '<div class="pill-row">' +
       '<button class="pill" data-store="' + esc(s.id || '') + '">' +
         '<span class="av"></span><b>' + esc(s.name || '') + '</b>' +
@@ -3217,6 +3416,7 @@ function paintPDP(p, s){
         '<button class="addcart" id="btnAdd">Agregar al carrito</button>'
       : '<button class="buy is-off" disabled>AGOTADO</button>' +
         '<p class="soldout-note">Este repuesto se acabo. Escríbenos por soporte y te avisamos cuando entre.</p>') +
+    '<div id="pdpSeller"></div><div id="pdpDelivery"></div>' +
     '<a class="tool-cta" href="javascript:void(0)" id="btnToolRent">' +
       '<span class="tc-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.1 2.1-2.6-.6-.6-2.6z"/></svg></span>' +
       '<span class="tc-bd"><b>¿Sabes de mecánica?</b><span>Alquila las herramientas para instalar esto.</span></span>' +
@@ -3224,6 +3424,7 @@ function paintPDP(p, s){
     '<div id="pdpReviews" style="margin-top:26px"></div>';
 
   renderProductReviews(p.id);
+  enhancePDP(p, s);
 
   var toolBtn = $('#btnToolRent');
   if (toolBtn) toolBtn.onclick = function(){ openToolRentals(p.part_category_id); };
@@ -3535,8 +3736,6 @@ function honeypot(){ return '<input class="hp" id="hp_field" tabindex="-1" autoc
 function hpClean(){ return !$('#hp_field') || $('#hp_field').value === ''; }
 
 var SHEETS = {
-  seller: function(){ SHEETS.signup(); setTimeout(function(){ var b = $('#sg_seller'); if (b) b.click(); }, 30); },
-
   license: function(){
     openSheet('<h2>Licencia de tienda</h2><p class="lead">Con la licencia tu tienda sale con sello azul y aparece en Tiendas oficiales.</p>' +
       field('lc_store','Nombre comercial','Repuestos La Y','maxlength="80"') +
@@ -3552,35 +3751,6 @@ var SHEETS = {
       // HOOK: insert en stores + audit_log, estado 'requested'
       closeSheet(); toast('Solicitud enviada. Te contactamos por WhatsApp.');
     };
-  },
-
-  storepanel: function(){
-    var sid = currentStoreId();
-    if (!sid) {
-      return openSheet('<h2>Panel de mi tienda</h2><p class="lead">Entra con tu cuenta de vendedor para administrar productos, pedidos y datos de pago.</p>' +
-        '<button class="primary" data-sheet="login">Iniciar sesión</button>' +
-        '<button class="secondary" data-sheet="seller">Quiero ser vendedor</button>');
-    }
-    Promise.all([API.getStore(sid), API.listStoreProducts(sid), API.listStoreOrders(sid)])
-      .then(function(r){
-        var st = r[0] || {}, prods = r[1], orders = r[2];
-        var pend = prods.filter(function(p){ return p.status === 'pending_review'; }).length;
-        var STATUS = { pending:'En revisión', approved:'Aprobada', licensed:'Con licencia', suspended:'Suspendida' };
-        openSheet('<h2>' + esc(st.name || 'Mi tienda') + '</h2>' +
-          '<p class="lead">Estado: <b>' + esc(STATUS[st.status] || st.status) + '</b>' +
-          (st.verified ? ' · <span class="mini-chk">✓</span> verificada' : '') + '</p>' +
-          '<div class="stat-row">' +
-            '<div class="stat"><b>' + prods.length + '</b><span>productos</span></div>' +
-            '<div class="stat"><b>' + pend + '</b><span>en revisión</span></div>' +
-            '<div class="stat"><b>' + orders.length + '</b><span>pedidos</span></div>' +
-          '</div>' +
-          (st.status === 'pending'
-            ? '<p class="warn-note">Tu tienda esta en revisión. Puedes cargar productos, pero no se publican hasta que ruedda apruebe la tienda.</p>' : '') +
-          '<button class="dark" data-panel="producto">Cargar producto</button>' +
-          '<button class="dark" data-panel="pagos">Datos de pago</button>' +
-          '<button class="dark" data-panel="pedidos">Pedidos entrantes</button>' +
-          '<button class="secondary" data-panel="venta">Reportar una venta</button>');
-      });
   },
 
   plans: function(){
@@ -3665,7 +3835,7 @@ SHEETS.signup = function(){
         field('sg_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') +
         field('sg_pass','Contraseña','mínimo 8 caracteres','type="password" maxlength="64"')
     ) + honeypot() + '<button class="primary" id="sg_go">Crear cuenta</button>' +
-    (role === 'seller' ? '<p class="switch">Tu tienda queda en revisión hasta que la apruebe el equipo de ruedda.</p>' : '');
+    (role === 'seller' ? '<p class="switch">Después eliges si vendes como tienda o como particular y verificas tu identidad.</p>' : '');
 
     $('#sg_go').onclick = function(){
       clearErrors();
@@ -3693,10 +3863,9 @@ SHEETS.signup = function(){
             closeSheet(); renderAccount(); syncFavorites();
             return toast('Cuenta creada');
           }
-          return API.createStore({ name: store, whatsapp: wa }).then(function(){
-            closeSheet(); renderAccount(); syncFavorites();
-            toast('Tienda enviada a revisión');
-          });
+          renderAccount(); syncFavorites();
+          toast('Cuenta creada');
+          sellerOnboarding({ name: store, whatsapp: wa });
         })
         .catch(function(err){
           btn.disabled = false;
@@ -3729,6 +3898,7 @@ function trackOrderByCode(code, onError){
       orderTrackerHTML(o.status) +
       '<p class="lead">Estado: <b>' + esc(ORDER_STATUS_LABEL[o.status] || o.status) + '</b></p>' +
       (o.tracking_code ? '<p class="lead" style="margin-top:-8px">Número de guía: <b class="mono">' + esc(o.tracking_code) + '</b></p>' : '') +
+      ('delivery_method' in o ? deliveryLineHTML(o.delivery_method, o.delivery) : '') +
       '<div class="inv"><b>' + esc(st.name || '') + '</b>' +
       '<table style="margin-top:12px"><thead><tr><th>Descripción</th><th class="r">Cant</th><th class="r">Total</th></tr></thead>' +
       '<tbody>' + det + '</tbody></table>' +
@@ -3945,11 +4115,17 @@ function renderAccount(){
     d.innerHTML = '<h3>Cuenta</h3>' +
       '<p style="font-size:15px;margin:0 0 12px">Hola, <b>' + esc(STATE.session.full_name) + '</b><br>' +
       '<span style="font-size:12px;color:#7d7d7d">' + esc(ROL[STATE.session.role] || STATE.session.role) + '</span></p>' +
+      (MK.ready ? '<button class="dbtn ghost" data-sheet="mensajes">Mensajes<span class="nb pm-badge" hidden></span></button>' +
+                  '<button class="dbtn ghost" data-sheet="misOfertas">Mis ofertas</button>' : '') +
+      (STATE.session.store_id ? '<button class="dbtn ghost" data-sheet="storepanel">Panel de vendedor</button>'
+                              : '<button class="dbtn ghost" data-sheet="seller">Vender repuestos</button>') +
       '<button class="dbtn ghost" data-sheet="misSolicitudes">Mis solicitudes de mecánico</button>' +
       '<button class="dbtn ghost" id="pushToggle">Activar notificaciones</button>' +
       '<button class="dbtn ghost" id="logout">Cerrar sesión</button>';
+    setUnread(MK.unread);
     $('#logout').onclick = function(){
       AUTH.signOut().then(function(){
+        stopMessaging(); MK.kyc = null;
         renderAccount(); syncFavorites(); toast('Sesión cerrada');
         if (location.hash.indexOf('#/admin') === 0) go('#/');
       });
@@ -3985,8 +4161,12 @@ function openAccountDesktop(){
   if (!STATE.session) return SHEETS.login();
   openSheet('<h2>Hola, ' + esc(STATE.session.full_name) + '</h2>' +
     '<p class="lead">Sesión activa como ' + esc(STATE.session.role) + '.</p>' +
-    (STATE.session.role === 'seller' ? '<button class="dark" data-sheet="storepanel">Panel de mi tienda</button>' : '') +
+    (STATE.session.store_id ? '<button class="dark" data-sheet="storepanel">Panel de vendedor</button>'
+                            : '<button class="dark" data-sheet="seller">Vender repuestos</button>') +
+    (MK.ready ? '<button class="dark" data-sheet="mensajes">Mensajes<span class="nb pm-badge" hidden></span></button>' +
+                '<button class="dark" data-sheet="misOfertas">Mis ofertas</button>' : '') +
     '<button class="secondary" id="dlogout">Cerrar sesión</button>');
+  setUnread(MK.unread);
   $('#dlogout').onclick = function(){
     AUTH.signOut().then(function(){ renderAccount(); syncFavorites(); closeSheet(); toast('Sesión cerrada'); });
   };
@@ -4023,6 +4203,8 @@ function startCheckout(items){
 }
 
 function pendingTotal(){
+  var po = STATE.pendingOrder;
+  if (po.offer) return po.offer.amount_usd * po.offer.qty;
   return STATE.pendingOrder.items.reduce(function(sum, it){
     var p = productById(it.product_id);
     return sum + (p ? p.price_usd * it.qty : 0);
@@ -4043,15 +4225,13 @@ function guestForm(logged){
     field('gs_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') +
     field('gs_city','Ciudad o zona','Caracas - Chacao','maxlength="60"') +
     honeypot() +
-    '<button class="primary" id="gs_go">Generar orden de compra</button>');
+    '<button class="primary" id="gs_go">Continuar</button>');
 
-  var t0 = Date.now();
   if (logged) $('#gs_name').value = STATE.session.full_name;
 
   $('#gs_go').onclick = function(){
     clearErrors();
     if (!hpClean()) return;                        // bot
-    if (Date.now() - t0 < 1200) return toast('Un momento, revisa tus datos.');  // tiempo minimo
     var name = cleanText($('#gs_name').value, 80);
     var ci   = onlyDigits($('#gs_ci').value, 9);
     var wa   = onlyDigits($('#gs_wa').value, 15);
@@ -4061,7 +4241,8 @@ function guestForm(logged){
     if (!isPhoneVE(wa))  return fieldError('gs_wa','El WhatsApp lleva de 10 a 15 digitos.');
     if (city.length < 3) return fieldError('gs_city','Dinos tu ciudad o zona.');
     this.disabled = true;
-    issueInvoice({ name:name, ci:ci, wa:wa, city:city });
+    var buyer = { name:name, ci:ci, wa:wa, city:city };
+    chooseDelivery(buyer, STATE.pendingOrder.items, function(deliveries){ issueInvoice(buyer, deliveries); });
   };
 }
 
@@ -4101,26 +4282,6 @@ function qrSVG(code){
     cells + finder(0,0) + finder(N-7,0) + finder(0,N-7) + '</svg>';
 }
 
-function issueInvoice(buyer){
-  var items = STATE.pendingOrder.items;
-
-  API.createOrders(items, buyer).then(function(rows){
-    if (!rows.length) { toast('No se pudo crear la orden'); return; }
-    STATE.cart = [];
-    STATE.pendingOrder = null;
-    saveCart();
-    syncCart();
-    // refresca stock en pantalla despues de la compra
-    renderFeatured();
-    renderResultsRefresh();
-    showInvoices(rows, buyer);
-  }).catch(function(err){
-    var btn = $('#gs_go');
-    if (btn) btn.disabled = false;
-    toast(err.message || 'No se pudo crear la orden');
-  });
-}
-
 function invoiceBlock(r, buyer){
   var o = r.order, inv = r.invoice, s = r.store || {};
   var fecha = new Date(inv.issued_at).toLocaleDateString('es-VE',
@@ -4144,6 +4305,8 @@ function invoiceBlock(r, buyer){
     '</tbody></table>' +
     '<div style="font-size:11.5px;color:#666;margin-bottom:8px">Cliente: ' + esc(buyer.name) +
       ' · CI ' + esc(buyer.ci) + ' · ' + esc(buyer.city) + '</div>' +
+    ('delivery_method' in r ? deliveryLineHTML(r.delivery_method, r.delivery) : '') +
+    (r.delivery_error ? '<div class="dl-line err">No se guardó la entrega (' + esc(r.delivery_error) + '). Coordínala por WhatsApp con la tienda.</div>' : '') +
     '<div class="tot"><span>Total</span><span>$' + money(o.total_usd) + '</span></div>' +
     '<div style="text-align:right;font-size:11.5px;color:#666">' + esc(bsTotal) + ' bs</div>' +
     '<div class="qr-wrap">' + qrSVG(inv.code) +
@@ -4241,7 +4404,7 @@ function showInvoices(results, buyer){
       : 'Guarda este código. Con el sigues tu pedido y la tienda te ubica.') + '</p>' +
     results.map(function(r){ return invoiceBlock(r, buyer); }).join('') +
     '<button class="primary" id="inv_pay">Pagar ahora</button>' +
-    '<button class="dark" id="inv_wa">Finalizar por WhatsApp</button>'
+    '<button class="dark" id="inv_wa">Coordinar por WhatsApp</button>'
   );
 
   $('#inv_pay').onclick = function(){
@@ -4265,7 +4428,9 @@ function showInvoices(results, buyer){
         var s = r.store || {};
         var det = r.items.map(function(l){ return l.name + ' x' + l.qty; }).join(', ');
         var msg = 'Hola, soy ' + buyer.name + '. Mi pedido en Ruedda Repuestos es ' + r.invoice.code +
-                  ': ' + det + ', total $' + money(r.order.total_usd) + '.';
+                  ': ' + det + ', total $' + money(r.order.total_usd) + '.' +
+                  (r.delivery_method && DELIVERY[r.delivery_method] ? ' Entrega: ' + DELIVERY[r.delivery_method].name +
+                    (r.delivery && r.delivery.city ? ' en ' + r.delivery.city : '') + '.' : ' Quiero coordinar la entrega.');
         window.open('https://wa.me/' + onlyDigits(s.whatsapp || window.DB.config.whatsapp_soporte, 15) +
           '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
       });
@@ -4388,6 +4553,10 @@ function requireStore(){
 
 function panelProducto(){
   var sid = requireStore(); if (!sid) return;
+  kycGate(panelProductoForm);
+}
+
+function panelProductoForm(){
   openSheet('<h2>Cargar producto</h2><p class="lead">Queda en revisión antes de publicarse.</p>' +
     field('pr_name','Nombre del producto','Pastillas de freno delanteras','maxlength="120"') +
     field('pr_cat','Tipo de repuesto','Toca para buscar','readonly data-picker="cat"') +
@@ -4399,6 +4568,14 @@ function panelProducto(){
       }).join('') +
     '</div><p class="hint-sm">Si no marcas ninguno, se publica como universal.</p></div>' +
     field('pr_part','Número de parte','FR-7712','maxlength="40"') +
+    (MK.ready
+      ? '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+          '<div class="field"><label for="pr_cond">Condición</label><select class="inp" id="pr_cond">' +
+            '<option value="nuevo">Nuevo</option><option value="usado">Usado</option><option value="remanufacturado">Remanufacturado</option>' +
+          '</select><p class="err"></p></div>' +
+          field('pr_serial','Serial (si tiene)','BAT-99812','maxlength="40"') +
+        '</div><p class="hint-sm" style="margin:-4px 0 12px">Baterías, cauchos, iluminación y encendido de particulares llevan serial.</p>'
+      : '') +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
       field('pr_model','Modelo','Ceramica','maxlength="40"') +
       field('pr_medida','Medida','Delantera','maxlength="24"') +
@@ -4428,6 +4605,7 @@ function panelProducto(){
     if (!(stk >= 0)) return fieldError('pr_stock','Pon el stock disponible (0 o más).');
     if (yf && yt && yf > yt) return fieldError('pr_yto','El año final no puede ser menor que el inicial.');
 
+    var btn = this; btn.disabled = true;
     var origins = $$('#pr_origins .chip.on').map(function(b){ return b.dataset.origin; });
     API.createProduct({
       store_id: currentStoreId(),
@@ -4439,10 +4617,15 @@ function panelProducto(){
       model: cleanText($('#pr_model').value, 40),
       medida: cleanText($('#pr_medida').value, 24),
       price_usd: usd, stock: stk,
-      year_from: yf || null, year_to: yt || null
+      year_from: yf || null, year_to: yt || null,
+      condition: $('#pr_cond') ? $('#pr_cond').value : null,
+      serial: $('#pr_serial') ? cleanText($('#pr_serial').value, 40) : null
     }).then(function(){
       closeSheet(); toast('Producto enviado a revisión');
       renderFeatured();
+    }).catch(function(err){
+      btn.disabled = false;
+      toast(mkErr(err, 'No se pudo cargar el producto'));
     });
   };
 }
@@ -4561,6 +4744,7 @@ function panelPedidos(){
         '<p style="margin:8px 0 0;font-size:13px;color:#555">' + esc(o.guest_name || 'cliente') +
           ' · ' + esc(o.guest_city || '') + ' · <b>$' + money(o.total_usd) + '</b></p>' +
         (o.tracking_code ? '<p style="margin:6px 0 0;font-size:12.5px;color:#666">Guía: <b class="mono">' + esc(o.tracking_code) + '</b></p>' : '') +
+        ('delivery_method' in o ? '<div style="margin-top:8px">' + deliveryLineHTML(o.delivery_method, o.delivery) + '</div>' : '') +
         '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">' +
           (act ? '<button class="mini-act" data-ord-next="' + esc(o.id) + '|' + act.next + '">Marcar ' + esc(act.label.toLowerCase()) + '</button>' : '') +
           '<a class="mini-act" href="https://wa.me/' + esc(onlyDigits(o.guest_phone, 15)) +
@@ -6013,6 +6197,1334 @@ document.addEventListener('click', function(e){
    hay red de por medio: primero config (la tasa la necesita todo lo demas),
    despues sesion, y recien ahi se pinta.
    -------------------------------------------------------------------------- */
+/* ===========================================================================
+   MARKETPLACE: vendedores con KYC, entregas por tienda, ofertas, mensajes,
+   asistente y señales en vivo. Depende de sql/16_marketplace_entregas_ofertas.
+   Si ese SQL todavia no corre, MK.ready queda en false y la pagina sigue
+   funcionando como antes (sin ofertas, entrega coordinada por WhatsApp).
+   =========================================================================== */
+var MK = { ready: false, kyc: null, unread: 0, chat: null, channel: null };
+
+function mkErr(err, fallback){
+  var m = String((err && err.message) || '');
+  return m ? m.charAt(0).toUpperCase() + m.slice(1) : (fallback || 'Algo falló. Intenta de nuevo.');
+}
+function hace(iso){
+  if (!iso) return '';
+  var s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return 'hace un momento';
+  if (s < 3600) return 'hace ' + Math.floor(s / 60) + ' min';
+  if (s < 86400) return 'hace ' + Math.floor(s / 3600) + ' h';
+  var d = Math.floor(s / 86400);
+  return d === 1 ? 'ayer' : 'hace ' + d + ' días';
+}
+
+Object.assign(API, {
+  /* tambien sirve de sonda: si el SQL 16 no corrio falla en silencio (sin toast) */
+  liveStats:      function(){ return sb.rpc('live_stats').then(function(res){ if (res.error) throw res.error; return res.data; }); },
+  topSearches:    function(){ return sb.rpc('top_searches', { p_days: 7, p_limit: 8 }).then(rrData); },
+  searchMisses:   function(){ return sb.rpc('search_misses', { p_days: 30 }).then(rrData); },
+  productActivity:function(id){ return sb.rpc('product_activity', { p_product_id: id }).then(rrData); },
+  logSearch: function(q, results){
+    q = cleanText(q, 80);
+    if (!MK.ready || q.length < 2) return Promise.resolve();
+    return sb.from('search_log').insert({ q: q, results: results || 0 }).then(function(){}, function(){});
+  },
+  recentProducts: function(n){
+    return sb.from('products').select('*').eq('status', 'published').gt('stock', 0)
+      .order('created_at', { ascending: false }).limit(n || 10)
+      .then(rrData).then(function(d){ return cacheProducts(d || []); });
+  },
+
+  /* vendedores y KYC */
+  kycStatus:    function(){ return sb.rpc('my_kyc_status').then(rrData); },
+  submitKyc:    function(doc, selfie){ return sb.rpc('submit_kyc', { p_doc_b64: doc, p_selfie_b64: selfie }).then(rrData); },
+  refreshSeller:function(){ return sb.rpc('refresh_my_seller').then(rrData); },
+  createSeller: function(d){
+    return sb.rpc('create_my_seller', {
+      p_kind: d.kind, p_name: d.name, p_whatsapp: d.whatsapp, p_rif: d.rif || null, p_city: d.city || null
+    }).then(rrData).then(function(s){
+      if (s && STATE.session) { STATE.session.store_id = s.id; if (STATE.session.role === 'buyer') STATE.session.role = 'seller'; }
+      if (s) cacheStores([s]);
+      return s;
+    });
+  },
+
+  /* entregas */
+  deliveryOptions: function(storeIds){
+    if (!MK.ready || !storeIds.length) return Promise.resolve([]);
+    return sb.from('store_delivery_options').select('*').in('store_id', storeIds).eq('active', true)
+      .then(rrData).then(function(d){ return d || []; }, function(){ return []; });
+  },
+  myDeliveryOptions: function(storeId){
+    return sb.from('store_delivery_options').select('*').eq('store_id', storeId).then(rrData);
+  },
+  saveDeliveryOptions: function(rows){
+    return sb.from('store_delivery_options').upsert(rows, { onConflict: 'store_id,method' }).then(rrData);
+  },
+  setOrderDelivery: function(orderId, method, data){
+    return sb.rpc('set_order_delivery', {
+      p_order_id: orderId, p_token: RR_TOKENS[orderId] || null, p_method: method, p_data: data
+    }).then(rrData);
+  },
+
+  /* ofertas */
+  makeOffer: function(productId, amount, qty, msg){
+    return sb.rpc('make_offer', { p_product_id: productId, p_amount: amount, p_qty: qty, p_message: msg || null }).then(rrData);
+  },
+  myOffers: function(){
+    return sb.from('product_offers').select('*, products(id,name,images,price_usd,stock,store_id), stores(id,name,whatsapp)')
+      .eq('buyer_id', STATE.session.id).order('created_at', { ascending: false }).limit(60).then(rrData);
+  },
+  storeOffers: function(storeId){
+    return sb.from('product_offers').select('*, products(id,name,images,price_usd,stock)')
+      .eq('store_id', storeId).order('created_at', { ascending: false }).limit(80).then(rrData);
+  },
+  respondOffer: function(id, action, counter){
+    return sb.rpc('respond_offer', { p_offer_id: id, p_action: action, p_counter: counter == null ? null : counter }).then(rrData);
+  },
+  buyerOfferAction: function(id, action){
+    return sb.rpc('buyer_offer_action', { p_offer_id: id, p_action: action }).then(rrData);
+  },
+  createOrderFromOffer: function(offerId, buyer){
+    return sb.rpc('create_order_from_offer', {
+      p_offer_id: offerId,
+      p_buyer: { name: buyer.name, ci: buyer.ci, phone: buyer.wa || buyer.phone, city: buyer.city }
+    }).then(rrData).then(function(rows){
+      (rows || []).forEach(function(r){ if (r.order && r.order.access_token) RR_TOKENS[r.order.id] = r.order.access_token; });
+      return rows || [];
+    });
+  },
+
+  /* mensajes privados: misma tabla y mismo realtime que ruedda */
+  pm: function(){ return sb.schema('public').from('private_messages'); },
+  listMyMessages: function(){
+    var me = STATE.session.id;
+    return API.pm().select('*').eq('source_type', 'repuesto')
+      .or('sender_id.eq.' + me + ',receiver_id.eq.' + me)
+      .order('created_at', { ascending: false }).limit(300).then(rrData);
+  },
+  listThread: function(otherId, sourceId){
+    var me = STATE.session.id;
+    return API.pm().select('*').eq('source_type', 'repuesto').eq('source_id', String(sourceId))
+      .or('and(sender_id.eq.' + me + ',receiver_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',receiver_id.eq.' + me + ')')
+      .order('created_at', { ascending: true }).limit(300).then(rrData);
+  },
+  sendMessage: function(otherId, sourceId, sourceTitle, text){
+    return API.pm().insert({
+      sender_id: STATE.session.id, receiver_id: otherId, source_id: String(sourceId),
+      source_type: 'repuesto', source_title: sourceTitle, text: text
+    }).select().single().then(rrData);
+  },
+  markRead: function(ids){
+    if (!ids.length) return Promise.resolve();
+    return API.pm().update({ read: true }).in('id', ids).then(function(){}, function(){});
+  },
+  unreadCount: function(){
+    return API.pm().select('id', { count: 'exact', head: true }).eq('source_type', 'repuesto')
+      .eq('receiver_id', STATE.session.id).eq('read', false)
+      .then(function(res){ return res.error ? 0 : (res.count || 0); });
+  },
+  userNames: function(ids){
+    if (!ids.length) return Promise.resolve({});
+    return sb.schema('public').from('users').select('id,nombre,username').in('id', ids).then(rrData).then(function(rows){
+      var m = {}; (rows || []).forEach(function(u){ m[u.id] = u.nombre || u.username || 'usuario'; }); return m;
+    }, function(){ return {}; });
+  },
+
+  /* garaje de ruedda (mismo usuario) */
+  myGarage: function(){
+    return sb.schema('public').from('garage_vehicles').select('id,marca,modelo,year,titulo')
+      .eq('owner_id', STATE.session.id).order('created_at', { ascending: false }).limit(10)
+      .then(rrData).then(function(d){ return d || []; }, function(){ return []; });
+  }
+});
+
+/* ---------- ENTREGAS ------------------------------------------------------ */
+var DELIVERY = {
+  mrw:      { name:'MRW',                  sub:'Encomienda. Retiras en la agencia MRW que elijas.', ico:'📦', agency:true },
+  zoom:     { name:'ZOOM',                 sub:'Encomienda. Retiras en la oficina ZOOM que elijas.', ico:'📦', agency:true },
+  yummy:    { name:'Mensajería por Yummy', sub:'Delivery a tu dirección, dentro de la ciudad.',     ico:'🛵', local:true },
+  personal: { name:'Entrega personal',     sub:'El vendedor te lo entrega en un punto acordado.',  ico:'🤝', local:true }
+};
+var DELIVERY_ORDER = ['mrw','zoom','yummy','personal'];
+var VE_STATES = ['Amazonas','Anzoátegui','Apure','Aragua','Barinas','Bolívar','Carabobo','Cojedes','Delta Amacuro',
+  'Distrito Capital','Falcón','Guárico','La Guaira','Lara','Mérida','Miranda','Monagas','Nueva Esparta','Portuguesa',
+  'Sucre','Táchira','Trujillo','Yaracuy','Zulia'];
+
+function deliveryCities(opt){ return (opt && opt.cities || []).filter(Boolean); }
+function deliveryShort(opt){
+  var c = deliveryCities(opt);
+  return DELIVERY[opt.method].name + (DELIVERY[opt.method].local && c.length ? ' (' + c.join(', ') + ')' : '');
+}
+
+/* linea legible de la entrega elegida, para la orden y el rastreo */
+function deliveryLineHTML(method, d){
+  d = d || {};
+  if (!method || !DELIVERY[method]) {
+    return '<div class="dl-line"><b>Entrega:</b> se coordina por WhatsApp con la tienda.</div>';
+  }
+  var parts = [];
+  if (DELIVERY[method].agency) {
+    if (d.agency) parts.push('Agencia ' + esc(d.agency));
+    if (d.city || d.state) parts.push(esc([d.city, d.state].filter(Boolean).join(', ')));
+    if (d.receiver_name) parts.push('Retira ' + esc(d.receiver_name) + (d.receiver_ci ? ' · CI ' + esc(d.receiver_ci) : ''));
+    if (d.pay_on_arrival) parts.push('Envío cobro a destino');
+  } else {
+    if (d.address) parts.push(esc(d.address));
+    if (d.meeting_point) parts.push('Punto: ' + esc(d.meeting_point));
+    if (d.city) parts.push(esc(d.city));
+    if (d.time_slot) parts.push('Horario: ' + esc(d.time_slot));
+  }
+  return '<div class="dl-line"><b>Entrega: ' + esc(DELIVERY[method].name) + '</b>' +
+    (parts.length ? '<br>' + parts.join(' · ') : '') + '</div>';
+}
+
+/* panel de la tienda: que formas de entrega ofrece */
+function panelEntregas(){
+  var sid = requireStore(); if (!sid) return;
+  if (!MK.ready) return openSheet('<h2>Opciones de entrega</h2><p class="lead">Esta función se activa en unos minutos. Mientras tanto coordina la entrega por WhatsApp.</p><button class="secondary" data-close>Entendido</button>');
+  openSheet('<h2>Opciones de entrega</h2><p class="empty">Cargando...</p>');
+  API.myDeliveryOptions(sid).then(function(rows){
+    var by = {}; (rows || []).forEach(function(r){ by[r.method] = r; });
+    openSheet('<h2>Opciones de entrega</h2>' +
+      '<p class="lead">El comprador solo ve las que actives. Si no activas ninguna, la entrega se coordina por WhatsApp.</p>' +
+      DELIVERY_ORDER.map(function(m){
+        var r = by[m] || {}, D = DELIVERY[m];
+        return '<div class="dl-cfg' + (r.active ? ' on' : '') + '" data-dl="' + m + '">' +
+          '<label class="dl-head"><input type="checkbox" id="dl_on_' + m + '"' + (r.active ? ' checked' : '') + '>' +
+            '<span class="dl-ico">' + D.ico + '</span><span><b>' + esc(D.name) + '</b><small>' + esc(D.sub) + '</small></span></label>' +
+          '<div class="dl-body">' +
+            (D.local ? field('dl_cities_' + m, 'Ciudades donde entregas (separadas por coma)', 'Caracas, Los Teques', 'maxlength="160"') : '') +
+            field('dl_eta_' + m, 'Tiempo estimado', D.agency ? '24 a 72 horas hábiles' : 'Mismo día', 'maxlength="60"') +
+            field('dl_notes_' + m, 'Nota para el comprador (opcional)', D.agency ? 'Despachamos lunes a viernes antes de las 3 pm' : 'Costo del delivery aparte', 'maxlength="160"') +
+          '</div></div>';
+      }).join('') +
+      '<button class="primary" id="dl_save">Guardar opciones de entrega</button>');
+
+    DELIVERY_ORDER.forEach(function(m){
+      var r = by[m] || {};
+      if ($('#dl_cities_' + m)) $('#dl_cities_' + m).value = deliveryCities(r).join(', ');
+      $('#dl_eta_' + m).value = r.eta_text || '';
+      $('#dl_notes_' + m).value = r.notes || '';
+      $('#dl_on_' + m).onchange = function(){ $('[data-dl="' + m + '"]').classList.toggle('on', this.checked); };
+    });
+
+    $('#dl_save').onclick = function(){
+      clearErrors();
+      var out = [], bad = false;
+      DELIVERY_ORDER.forEach(function(m){
+        var on = $('#dl_on_' + m).checked;
+        var cities = $('#dl_cities_' + m) ? $('#dl_cities_' + m).value.split(',').map(function(c){ return cleanText(c, 40); }).filter(Boolean).slice(0, 12) : [];
+        if (on && DELIVERY[m].local && !cities.length) { bad = true; fieldError('dl_cities_' + m, 'Dinos en qué ciudades haces esta entrega.'); }
+        out.push({ store_id: sid, method: m, active: on, cities: cities,
+                   eta_text: cleanText($('#dl_eta_' + m).value, 60) || null,
+                   notes: cleanText($('#dl_notes_' + m).value, 160) || null,
+                   updated_at: new Date().toISOString() });
+      });
+      if (bad) return;
+      var btn = this; btn.disabled = true;
+      API.saveDeliveryOptions(out).then(function(){
+        closeSheet(); toast('Opciones de entrega guardadas');
+      }).catch(function(err){ btn.disabled = false; toast(mkErr(err, 'No se pudo guardar')); });
+    };
+  }).catch(function(err){ toast(mkErr(err, 'No pudimos traer tus opciones de entrega')); });
+}
+
+/* checkout: una forma de entrega por tienda del pedido.
+   done(deliveries) recibe { store_id: { method, data } } (method null = WhatsApp) */
+function chooseDelivery(buyer, items, done){
+  var storeIds = [];
+  items.forEach(function(it){
+    var p = productById(it.product_id);
+    if (p && storeIds.indexOf(p.store_id) === -1) storeIds.push(p.store_id);
+  });
+
+  API.deliveryOptions(storeIds).then(function(opts){
+    if (!opts.length) return done({});
+    var out = {}, idx = 0;
+
+    function next(){
+      if (idx >= storeIds.length) return done(out);
+      var sid = storeIds[idx];
+      var mine = opts.filter(function(o){ return o.store_id === sid; })
+        .sort(function(a, b){ return DELIVERY_ORDER.indexOf(a.method) - DELIVERY_ORDER.indexOf(b.method); });
+      if (!mine.length) { out[sid] = { method: null, data: {} }; idx++; return next(); }
+      pick(sid, mine);
+    }
+
+    function pick(sid, mine){
+      var s = storeById(sid) || {};
+      var names = items.filter(function(it){ var p = productById(it.product_id); return p && p.store_id === sid; })
+        .map(function(it){ return esc(productById(it.product_id).name); }).join(' · ');
+      openSheet('<h2>¿Cómo te lo entregan?</h2>' +
+        '<p class="lead">' + esc(s.name || 'Tienda') + (storeIds.length > 1 ? ' (' + (idx + 1) + ' de ' + storeIds.length + ')' : '') +
+          '<br><small>' + names + '</small></p>' +
+        '<div class="dl-grid">' + mine.map(function(o){
+          var D = DELIVERY[o.method], c = deliveryCities(o);
+          return '<button type="button" class="dl-opt" data-m="' + o.method + '">' +
+            '<span class="dl-ico">' + D.ico + '</span><span class="dl-tx"><b>' + esc(D.name) + '</b>' +
+            '<small>' + esc(D.sub) + '</small>' +
+            (D.local && c.length ? '<small class="dl-where">Solo en: ' + esc(c.join(', ')) + '</small>' : '') +
+            (o.eta_text ? '<small class="dl-eta">' + esc(o.eta_text) + '</small>' : '') +
+            '</span></button>';
+        }).join('') +
+        '<button type="button" class="dl-opt ws" data-m="">' +
+          '<span class="dl-ico">💬</span><span class="dl-tx"><b>Coordinar por WhatsApp</b><small>Acuerdas la entrega directo con la tienda.</small></span></button>' +
+        '</div>');
+      $$('.dl-opt').forEach(function(b){
+        b.onclick = function(){
+          var m = this.dataset.m;
+          if (!m) { out[sid] = { method: null, data: {} }; idx++; return next(); }
+          form(sid, mine.filter(function(o){ return o.method === m; })[0], mine);
+        };
+      });
+    }
+
+    function form(sid, opt, mine){
+      var D = DELIVERY[opt.method], c = deliveryCities(opt);
+      var cityField = c.length
+        ? '<div class="field"><label for="dv_city">Ciudad</label><select class="inp" id="dv_city">' +
+            c.map(function(x){ return '<option>' + esc(x) + '</option>'; }).join('') + '</select><p class="err"></p></div>'
+        : field('dv_city', 'Ciudad', 'Caracas', 'maxlength="60"');
+      var body = D.agency
+        ? '<div class="field"><label for="dv_state">Estado</label><select class="inp" id="dv_state"><option value="">Elige el estado</option>' +
+            VE_STATES.map(function(x){ return '<option>' + esc(x) + '</option>'; }).join('') + '</select><p class="err"></p></div>' +
+          field('dv_city', 'Ciudad', 'Valencia', 'maxlength="60"') +
+          field('dv_agency', 'Agencia u oficina ' + D.name, D.name + ' Av. Bolívar Norte', 'maxlength="120"') +
+          '<div style="display:grid;grid-template-columns:1.4fr 1fr;gap:10px">' +
+            field('dv_rname', 'Quién retira', 'Nombre y apellido', 'maxlength="80"') +
+            field('dv_rci', 'Cédula', '12345678', 'maxlength="9" inputmode="numeric"') +
+          '</div>' +
+          '<label class="dl-check"><input type="checkbox" id="dv_poa"> Envío cobro a destino (pagas el flete al retirar)</label>'
+        : cityField +
+          (opt.method === 'yummy'
+            ? field('dv_addr', 'Dirección exacta', 'Calle, edificio, piso, apartamento', 'maxlength="200"') +
+              field('dv_ref', 'Punto de referencia', 'Frente a la farmacia', 'maxlength="120"')
+            : field('dv_meet', 'Punto de entrega', 'C.C. Sambil, entrada principal', 'maxlength="120"')) +
+          field('dv_slot', 'Horario que te sirve', 'Hoy después de las 4 pm', 'maxlength="60"');
+
+      openSheet('<a class="pm-back" id="dv_back">&larr; Elegir otra forma</a>' +
+        '<h2>' + esc(D.name) + '</h2>' +
+        '<p class="lead">' + esc(D.sub) + (opt.notes ? '<br><small>' + esc(opt.notes) + '</small>' : '') + '</p>' +
+        body + '<button class="primary" id="dv_go">Continuar</button>');
+
+      if ($('#dv_city') && $('#dv_city').tagName === 'INPUT') $('#dv_city').value = String(buyer.city || '').split(/\s+-\s+/)[0];
+      if ($('#dv_rname')) $('#dv_rname').value = buyer.name || '';
+      if ($('#dv_rci')) $('#dv_rci').value = buyer.ci || '';
+      $('#dv_back').onclick = function(){ pick(sid, mine); };
+      $('#dv_go').onclick = function(){
+        clearErrors();
+        var v = function(id, n){ var el = $('#' + id); return el ? cleanText(el.value, n || 120) : ''; };
+        var data = { city: v('dv_city', 60), time_slot: v('dv_slot', 60) || undefined };
+        if (D.agency) {
+          data.state = v('dv_state', 60); data.agency = v('dv_agency', 120);
+          data.receiver_name = v('dv_rname', 80); data.receiver_ci = onlyDigits($('#dv_rci').value, 9);
+          data.pay_on_arrival = $('#dv_poa').checked;
+          if (!data.state) return fieldError('dv_state', 'Elige el estado.');
+          if (data.city.length < 3) return fieldError('dv_city', 'Escribe la ciudad.');
+          if (data.agency.length < 3) return fieldError('dv_agency', 'Escribe la agencia donde vas a retirar.');
+          if (data.receiver_name.length < 3) return fieldError('dv_rname', 'Escribe quién retira.');
+          if (!isCI(data.receiver_ci)) return fieldError('dv_rci', 'Cédula de 6 a 9 dígitos.');
+        } else {
+          if (data.city.length < 3) return fieldError('dv_city', 'Escribe la ciudad.');
+          if (opt.method === 'yummy') {
+            data.address = v('dv_addr', 200); data.reference = v('dv_ref', 120) || undefined;
+            if (data.address.length < 8) return fieldError('dv_addr', 'Escribe la dirección completa.');
+          } else {
+            data.meeting_point = v('dv_meet', 120);
+            if (data.meeting_point.length < 4) return fieldError('dv_meet', 'Dinos dónde te lo entregan.');
+          }
+        }
+        out[sid] = { method: opt.method, data: data };
+        idx++; next();
+      };
+    }
+
+    next();
+  });
+}
+
+/* bloque de entrega en la ficha del producto */
+function paintPDPDelivery(p, s){
+  var el = $('#pdpDelivery'); if (!el) return;
+  if (!MK.ready) { el.innerHTML = ''; return; }
+  API.deliveryOptions([p.store_id]).then(function(opts){
+    if (!$('#pdpDelivery')) return;
+    opts.sort(function(a, b){ return DELIVERY_ORDER.indexOf(a.method) - DELIVERY_ORDER.indexOf(b.method); });
+    el.innerHTML = '<div class="pdp-dl"><b>Entrega</b>' + (opts.length
+      ? '<ul>' + opts.map(function(o){
+          return '<li><span>' + DELIVERY[o.method].ico + '</span><span><b>' + esc(deliveryShort(o)) + '</b>' +
+            (o.eta_text ? ' · ' + esc(o.eta_text) : '') + '</span></li>';
+        }).join('') + '</ul><small>Eliges la forma de entrega al comprar.</small>'
+      : '<p>' + esc(s.name || 'El vendedor') + ' coordina la entrega por WhatsApp después de la compra.</p>') + '</div>';
+  });
+}
+
+/* ---------- CHECKOUT con entrega y con oferta aceptada --------------------- */
+function issueInvoice(buyer, deliveries){
+  deliveries = deliveries || {};
+  var pend = STATE.pendingOrder;
+  var items = pend.items;
+  openSheet('<h2>Creando tu orden</h2><p class="empty">Un momento...</p>');
+
+  var create = pend.offer
+    ? API.createOrderFromOffer(pend.offer.id, buyer)
+    : API.createOrders(items, buyer);
+
+  create.then(function(rows){
+    if (!rows.length) throw new Error('No se pudo crear la orden');
+    if (!pend.offer) { STATE.cart = []; saveCart(); syncCart(); }
+    STATE.pendingOrder = null;
+    renderFeatured();
+    renderResultsRefresh();
+    return Promise.all(rows.map(function(r){
+      var dl = deliveries[r.order.store_id];
+      if (!dl || !dl.method) { r.delivery_method = null; return r; }
+      return API.setOrderDelivery(r.order.id, dl.method, dl.data).then(function(x){
+        r.delivery_method = x.delivery_method; r.delivery = x.delivery; return r;
+      }).catch(function(err){
+        r.delivery_method = null; r.delivery_error = mkErr(err); return r;
+      });
+    }));
+  }).then(function(rows){
+    if (rows) showInvoices(rows, buyer);
+  }).catch(function(err){
+    openSheet('<h2>No se pudo crear la orden</h2><p class="lead">' + esc(mkErr(err)) + '</p>' +
+      '<button class="primary" id="ii_retry">Intentar de nuevo</button><button class="secondary" data-close>Cerrar</button>');
+    $('#ii_retry').onclick = function(){ issueInvoice(buyer, deliveries); };
+  });
+}
+
+/* ---------- VENDEDORES: tienda o particular, siempre con KYC --------------- */
+function kycCompress(file, maxW){
+  return new Promise(function(resolve, reject){
+    if (!file || !/^image\//.test(file.type)) return reject(new Error('Sube una foto (JPG o PNG).'));
+    var fr = new FileReader();
+    fr.onerror = function(){ reject(new Error('No pudimos leer la foto.')); };
+    fr.onload = function(){
+      var img = new Image();
+      img.onerror = function(){ reject(new Error('Esa foto no se pudo abrir.')); };
+      img.onload = function(){
+        var w = Math.min(maxW || 1200, img.width), h = Math.round(img.height * (w / img.width));
+        var c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', 0.8));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+
+function loadKyc(force){
+  if (!MK.ready || !STATE.session) return Promise.resolve(null);
+  if (MK.kyc && !force) return Promise.resolve(MK.kyc);
+  return API.kycStatus().then(function(k){ MK.kyc = k; return k; }, function(){ return null; });
+}
+
+function openKyc(after){
+  if (!STATE.session) return SHEETS.login();
+  if (!MK.ready) return toast('La verificación se activa en unos minutos.');
+  openSheet('<h2>Verificación de identidad</h2><p class="empty">Consultando...</p>');
+  loadKyc(true).then(function(k){
+    k = k || {};
+    if (k.verified) {
+      openSheet('<h2>Identidad verificada</h2>' +
+        '<p class="lead"><span class="mini-chk">✓</span> Tu cuenta ya pasó la verificación. Puedes publicar repuestos.</p>' +
+        (after ? '<button class="primary" id="kyc_next">Continuar</button>' : '<button class="secondary" data-close>Listo</button>'));
+      if (after) $('#kyc_next').onclick = after;
+      return;
+    }
+    if (k.estado === 'pendiente') {
+      return openSheet('<h2>Verificación en revisión</h2>' +
+        '<p class="lead">Recibimos tu documento y tu selfie. El equipo de Ruedda lo revisa, normalmente en menos de 24 horas, y te avisamos por notificación.</p>' +
+        '<p class="warn-note">Mientras tanto puedes preparar tus opciones de entrega y datos de pago.</p>' +
+        '<button class="secondary" data-close>Entendido</button>');
+    }
+    openSheet('<h2>Verifica tu identidad</h2>' +
+      (k.estado === 'rechazada' ? '<p class="warn-note">La verificación anterior no se aprobó. Sube fotos nítidas, sin reflejos y con el documento completo.</p>' : '') +
+      '<p class="lead">Para publicar en Ruedda Repuestos, tiendas y particulares verifican su identidad una sola vez. Es la misma verificación de Ruedda: si ya la hiciste allá, sirve aquí.</p>' +
+      '<div class="kyc-up"><label for="kyc_doc"><span class="kyc-ph" id="kyc_doc_ph">🪪</span><b>Cédula o pasaporte</b><small>Foto de frente, completa y legible</small></label>' +
+        '<input type="file" id="kyc_doc" accept="image/*" capture="environment" hidden></div>' +
+      '<div class="kyc-up"><label for="kyc_selfie"><span class="kyc-ph" id="kyc_selfie_ph">🤳</span><b>Selfie con tu documento</b><small>Tu cara y el documento en la misma foto</small></label>' +
+        '<input type="file" id="kyc_selfie" accept="image/*" capture="user" hidden></div>' +
+      '<p class="hint-sm">Tus fotos solo las ve el equipo de verificación. No se publican ni se comparten con compradores.</p>' +
+      '<button class="primary" id="kyc_go">Enviar verificación</button>');
+
+    var data = { doc: null, selfie: null };
+    ['doc','selfie'].forEach(function(k2){
+      $('#kyc_' + k2).onchange = function(){
+        var f = this.files && this.files[0];
+        kycCompress(f, 1200).then(function(b64){
+          data[k2] = b64;
+          $('#kyc_' + k2 + '_ph').innerHTML = '<img src="' + b64 + '" alt="">';
+        }).catch(function(err){ toast(err.message); });
+      };
+    });
+    $('#kyc_go').onclick = function(){
+      if (!data.doc) return toast('Falta la foto del documento.');
+      if (!data.selfie) return toast('Falta la selfie con tu documento.');
+      var btn = this; btn.disabled = true; btn.textContent = 'Enviando...';
+      API.submitKyc(data.doc, data.selfie).then(function(r){
+        MK.kyc = r;
+        openSheet('<h2>Verificación enviada</h2><p class="lead">Listo. El equipo de Ruedda revisa tus fotos y te avisa. Cuando se apruebe, tus productos pueden publicarse.</p>' +
+          '<button class="primary" data-sheet="storepanel">Ir a mi panel de vendedor</button>');
+      }).catch(function(err){ btn.disabled = false; btn.textContent = 'Enviar verificación'; toast(mkErr(err, 'No se pudo enviar')); });
+    };
+  });
+}
+
+/* compuerta: sin KYC no se carga producto */
+function kycGate(then){
+  if (!MK.ready) return then();
+  loadKyc(true).then(function(k){
+    if (!k || k.verified) return then();
+    openSheet('<h2>Primero verifica tu identidad</h2>' +
+      '<p class="lead">' + (k.estado === 'pendiente'
+        ? 'Tu verificación está en revisión. Apenas se apruebe puedes cargar productos.'
+        : 'Para publicar repuestos necesitamos verificar tu identidad. Toma dos fotos y listo.') + '</p>' +
+      (k.estado === 'pendiente' ? '<button class="secondary" data-close>Entendido</button>' : '<button class="primary" id="kg_go">Verificar ahora</button>'));
+    if ($('#kg_go')) $('#kg_go').onclick = function(){ openKyc(); };
+  });
+}
+
+function sellerOnboarding(prefill){
+  prefill = prefill || {};
+  if (!STATE.session) return SHEETS.signup();
+  if (STATE.session.store_id) return SHEETS.storepanel();
+  if (!MK.ready) {
+    // sin SQL 16: flujo anterior de tienda
+    openSheet('<h2>Vende en Ruedda Repuestos</h2>' +
+      field('ob_name','Nombre de la tienda','Repuestos La Y','maxlength="80"') +
+      field('ob_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') +
+      '<button class="primary" id="ob_go">Enviar a revisión</button>');
+    if (prefill.name) $('#ob_name').value = prefill.name;
+    $('#ob_wa').value = prefill.whatsapp || STATE.session.phone || '';
+    $('#ob_go').onclick = function(){
+      clearErrors();
+      var n = cleanText($('#ob_name').value, 80), w = onlyDigits($('#ob_wa').value, 15);
+      if (n.length < 2) return fieldError('ob_name', 'Escribe el nombre de la tienda.');
+      if (!isPhoneVE(w)) return fieldError('ob_wa', 'El WhatsApp lleva de 10 a 15 dígitos.');
+      var btn = this; btn.disabled = true;
+      API.createStore({ name: n, whatsapp: w }).then(function(){ closeSheet(); renderAccount(); toast('Tienda enviada a revisión'); })
+        .catch(function(err){ btn.disabled = false; toast(mkErr(err)); });
+    };
+    return;
+  }
+
+  var kind = prefill.kind || 'tienda';
+  function paint(){
+    openSheet('<h2>Vende en Ruedda Repuestos</h2>' +
+      '<p class="lead">Elige cómo vas a vender. En los dos casos verificamos tu identidad antes de publicar.</p>' +
+      '<div class="ob-kind">' +
+        '<button type="button" class="ob-k' + (kind === 'tienda' ? ' on' : '') + '" data-k="tienda"><b>Tienda</b><small>Tienes RIF y local o depósito. Productos ilimitados.</small></button>' +
+        '<button type="button" class="ob-k' + (kind === 'particular' ? ' on' : '') + '" data-k="particular"><b>Particular</b><small>Vendes piezas que tienes. Hasta 10 publicaciones.</small></button>' +
+      '</div>' +
+      field('ob_name', kind === 'tienda' ? 'Nombre comercial' : 'Nombre para mostrar', kind === 'tienda' ? 'Repuestos La Y' : 'Carlos M.', 'maxlength="80"') +
+      (kind === 'tienda' ? field('ob_rif', 'RIF', 'J-40123456-7', 'maxlength="15"') : '') +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+        field('ob_city', 'Ciudad', 'Valencia', 'maxlength="60"') +
+        field('ob_wa', 'WhatsApp', '04141234567', 'maxlength="15" inputmode="numeric"') +
+      '</div>' +
+      '<ul class="ob-rules">' + (kind === 'tienda'
+        ? '<li>El equipo de Ruedda revisa el RIF y aprueba la tienda.</li><li>Tus productos se publican después de la revisión.</li>'
+        : '<li>Tu perfil se activa cuando se aprueba tu verificación de identidad.</li><li>Baterías, cauchos, iluminación y encendido llevan serial para evitar piezas robadas.</li>') +
+        '<li>Tu teléfono no se muestra en el chat hasta que haya una orden.</li></ul>' +
+      '<button class="primary" id="ob_go">Continuar a verificación</button>');
+
+    $$('.ob-k').forEach(function(b){ b.onclick = function(){ keep(); kind = this.dataset.k; paint(); }; });
+    ['ob_name','ob_city','ob_wa','ob_rif'].forEach(function(id){ if ($('#' + id) && prefill[id] != null) $('#' + id).value = prefill[id]; });
+    if (!$('#ob_name').value && prefill.name) $('#ob_name').value = prefill.name;
+    if (!$('#ob_wa').value) $('#ob_wa').value = prefill.whatsapp || STATE.session.phone || '';
+
+    $('#ob_go').onclick = function(){
+      clearErrors();
+      var d = { kind: kind, name: cleanText($('#ob_name').value, 80), city: cleanText($('#ob_city').value, 60),
+                whatsapp: onlyDigits($('#ob_wa').value, 15), rif: $('#ob_rif') ? cleanText($('#ob_rif').value, 15).toUpperCase() : null };
+      if (d.name.length < 2) return fieldError('ob_name', 'Escribe el nombre.');
+      if (kind === 'tienda' && !/^[JGVEP]-?\d{8,9}-?\d?$/i.test(d.rif || '')) return fieldError('ob_rif', 'Formato de RIF: J-40123456-7');
+      if (d.city.length < 3) return fieldError('ob_city', 'Escribe tu ciudad.');
+      if (!isPhoneVE(d.whatsapp)) return fieldError('ob_wa', 'El WhatsApp lleva de 10 a 15 dígitos.');
+      var btn = this; btn.disabled = true;
+      API.createSeller(d).then(function(){
+        renderAccount();
+        return loadKyc(true);
+      }).then(function(k){
+        toast(kind === 'tienda' ? 'Tienda creada. Queda en revisión.' : 'Perfil de vendedor creado');
+        if (k && k.verified) SHEETS.storepanel(); else openKyc();
+      }).catch(function(err){ btn.disabled = false; toast(mkErr(err, 'No se pudo crear tu perfil')); });
+    };
+  }
+  function keep(){
+    ['ob_name','ob_city','ob_wa','ob_rif'].forEach(function(id){ if ($('#' + id)) prefill[id] = $('#' + id).value; });
+  }
+  paint();
+}
+
+SHEETS.seller = function(){
+  if (STATE.session) return sellerOnboarding();
+  SHEETS.signup(); setTimeout(function(){ var b = $('#sg_seller'); if (b) b.click(); }, 30);
+};
+
+SHEETS.storepanel = function(){
+  var sid = currentStoreId();
+  if (!sid) {
+    return openSheet('<h2>Panel de vendedor</h2><p class="lead">' + (STATE.session
+      ? 'Todavía no tienes perfil de vendedor. Crea uno como tienda o como particular.'
+      : 'Entra con tu cuenta para administrar productos, pedidos, ofertas y entregas.') + '</p>' +
+      (STATE.session ? '<button class="primary" data-sheet="seller">Empezar a vender</button>'
+                     : '<button class="primary" data-sheet="login">Iniciar sesión</button><button class="secondary" data-sheet="seller">Quiero vender</button>'));
+  }
+  openSheet('<h2>Panel de vendedor</h2><p class="empty">Cargando...</p>');
+  var extra = MK.ready
+    ? Promise.all([API.refreshSeller().catch(function(){ return null; }),
+                   API.storeOffers(sid).catch(function(){ return []; }),
+                   API.unreadCount().catch(function(){ return 0; })])
+    : Promise.resolve([null, [], 0]);
+  Promise.all([API.getStore(sid), API.listStoreProducts(sid), API.listStoreOrders(sid), extra]).then(function(r){
+    var st = (r[3][0] && r[3][0].store) || r[0] || {}, prods = r[1], orders = r[2];
+    var kyc = r[3][0] && r[3][0].kyc; if (kyc) MK.kyc = kyc;
+    var offers = (r[3][1] || []).filter(function(o){ return o.status === 'pending'; }).length;
+    var unread = r[3][2] || 0;
+    var pend = prods.filter(function(p){ return p.status === 'pending_review'; }).length;
+    var newOrders = orders.filter(function(o){ return ['created','pending_payment','whatsapp','payment_review'].indexOf(o.status) !== -1; }).length;
+    var STATUS = { pending:'En revisión', approved:'Aprobada', licensed:'Con licencia', suspended:'Suspendida' };
+    var isPart = st.kind === 'particular';
+    var badge = function(n){ return n ? ' <span class="nb">' + n + '</span>' : ''; };
+    openSheet('<h2>' + esc(st.name || 'Mi tienda') + '</h2>' +
+      '<p class="lead">' + (isPart ? 'Particular' : 'Tienda') + ' · Estado: <b>' + esc(STATUS[st.status] || st.status) + '</b>' +
+        (st.verified ? ' · <span class="mini-chk">✓</span> verificada' : '') +
+        (kyc ? '<br>Identidad: <b>' + (kyc.verified ? 'verificada ✓' : kyc.estado === 'pendiente' ? 'en revisión' : kyc.estado === 'rechazada' ? 'rechazada, vuelve a enviarla' : 'sin verificar') + '</b>' : '') + '</p>' +
+      '<div class="stat-row">' +
+        '<div class="stat"><b>' + prods.length + (isPart ? '/10' : '') + '</b><span>productos</span></div>' +
+        '<div class="stat"><b>' + pend + '</b><span>en revisión</span></div>' +
+        '<div class="stat"><b>' + orders.length + '</b><span>pedidos</span></div>' +
+      '</div>' +
+      (kyc && !kyc.verified ? '<p class="warn-note">Para publicar necesitas verificar tu identidad.' +
+        (kyc.estado === 'pendiente' ? ' Ya la enviaste; está en revisión.' : '') + '</p>' +
+        (kyc.estado !== 'pendiente' ? '<button class="primary" id="sp_kyc">Verificar mi identidad</button>' : '') : '') +
+      (st.status === 'pending' && !isPart
+        ? '<p class="warn-note">Tu tienda está en revisión. Puedes cargar productos, pero no se publican hasta que Ruedda apruebe la tienda.</p>' : '') +
+      '<button class="dark" data-panel="producto">Cargar producto</button>' +
+      '<button class="dark" data-panel="pedidos">Pedidos entrantes' + badge(newOrders) + '</button>' +
+      (MK.ready ? '<button class="dark" id="sp_offers">Ofertas recibidas' + badge(offers) + '</button>' +
+                  '<button class="dark" id="sp_msgs">Mensajes' + badge(unread) + '</button>' +
+                  '<button class="dark" id="sp_dl">Opciones de entrega</button>' : '') +
+      '<button class="dark" data-panel="pagos">Datos de pago</button>' +
+      '<button class="secondary" data-panel="venta">Reportar una venta</button>');
+    if ($('#sp_kyc')) $('#sp_kyc').onclick = function(){ openKyc(); };
+    if ($('#sp_offers')) $('#sp_offers').onclick = function(){ panelOfertas(sid); };
+    if ($('#sp_msgs')) $('#sp_msgs').onclick = function(){ SHEETS.mensajes(); };
+    if ($('#sp_dl')) $('#sp_dl').onclick = panelEntregas;
+  }).catch(function(err){ toast(mkErr(err, 'No pudimos abrir tu panel')); });
+};
+
+/* ---------- OFERTAS -------------------------------------------------------- */
+var OFFER_LABEL = { pending:'Esperando respuesta', countered:'Contraoferta', accepted:'Aceptada', rejected:'Rechazada',
+                    expired:'Vencida', cancelled:'Cancelada', converted:'Comprada' };
+
+function openOffer(p, s){
+  if (!STATE.session) { toast('Inicia sesión para hacer una oferta.'); return SHEETS.login(); }
+  var floor = Math.ceil(p.price_usd * 0.7 * 100) / 100;
+  openSheet('<h2>Hacer una oferta</h2>' +
+    '<p class="lead">' + esc(p.name) + '<br>Precio publicado: <b>$' + money(p.price_usd) + '</b> · ' + esc(s.name || '') + '</p>' +
+    '<div style="display:grid;grid-template-columns:1.3fr 1fr;gap:10px">' +
+      field('of_amt', 'Tu oferta por unidad ($)', money(Math.round(p.price_usd * 0.9)), 'inputmode="decimal" maxlength="10"') +
+      field('of_qty', 'Cantidad', '1', 'inputmode="numeric" maxlength="2"') +
+    '</div>' +
+    field('of_msg', 'Mensaje para el vendedor (opcional)', 'Compro hoy si me lo deja en ese precio', 'maxlength="200"') +
+    '<ul class="ob-rules"><li>Mínimo $' + money(floor) + ' (70% del precio).</li><li>El vendedor tiene 48 horas para aceptar, rechazar o contraofertar.</li><li>Si la aceptan, compras al precio acordado con tu orden de compra de siempre.</li></ul>' +
+    '<button class="primary" id="of_go">Enviar oferta</button>');
+  $('#of_qty').value = '1';
+  $('#of_go').onclick = function(){
+    clearErrors();
+    var amt = Math.round(parseFloat(String($('#of_amt').value).replace(',', '.')) * 100) / 100;
+    var qty = parseInt(onlyDigits($('#of_qty').value, 2), 10) || 1;
+    if (!(amt > 0)) return fieldError('of_amt', 'Escribe cuánto ofreces.');
+    if (amt < floor) return fieldError('of_amt', 'La oferta mínima es $' + money(floor) + '.');
+    if (amt >= p.price_usd) return fieldError('of_amt', 'Si ofreces el precio publicado, cómpralo directo.');
+    if (qty > p.stock) return fieldError('of_qty', 'Solo hay ' + p.stock + ' disponibles.');
+    var btn = this; btn.disabled = true;
+    API.makeOffer(p.id, amt, qty, cleanText($('#of_msg').value, 200)).then(function(){
+      openSheet('<h2>Oferta enviada</h2><p class="lead">Le avisamos a ' + esc(s.name || 'el vendedor') + '. Te notificamos cuando responda. La ves en <b>Mis ofertas</b>.</p>' +
+        '<button class="primary" data-sheet="misOfertas">Ver mis ofertas</button><button class="secondary" data-close>Seguir viendo</button>');
+    }).catch(function(err){ btn.disabled = false; fieldError('of_amt', mkErr(err, 'No se pudo enviar la oferta')); });
+  };
+}
+
+function offerCard(o, who){
+  var p = o.products || {}, price = o.status === 'countered' ? o.counter_usd : o.amount_usd;
+  var open = ['pending','countered','accepted'].indexOf(o.status) !== -1;
+  return '<div class="of-card st-' + esc(o.status) + '">' +
+    '<div class="of-top"><span class="of-ph">' + ((p.images && p.images[0]) ? '<img src="' + esc(p.images[0]) + '" alt="">' : '') + '</span>' +
+      '<span class="of-bd"><b>' + esc(p.name || 'Repuesto') + '</b>' +
+        '<small>' + (who === 'buyer' ? esc((o.stores && o.stores.name) || '') + ' · ' : '') + 'x' + esc(o.qty) + ' · publicado $' + money(p.price_usd) + '</small>' +
+        '<small>Oferta $' + money(o.amount_usd) + (o.counter_usd ? ' · contraoferta $' + money(o.counter_usd) : '') + '</small></span>' +
+      '<span class="of-st">' + esc(OFFER_LABEL[o.status] || o.status) + '</span></div>' +
+    (o.message ? '<p class="of-msg">“' + esc(o.message) + '”</p>' : '') +
+    (open ? '<p class="of-exp">Vence ' + esc(new Date(o.expires_at).toLocaleString('es-VE', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })) + '</p>' : '') +
+    '<div class="of-act">' + (who === 'buyer'
+      ? (o.status === 'countered' ? '<button class="mini-act pri" data-of="accept_counter|' + o.id + '">Aceptar $' + money(price) + '</button><button class="mini-act" data-of="reject_counter|' + o.id + '">Rechazar</button>' : '') +
+        (o.status === 'accepted' ? '<button class="mini-act pri" data-of="buy|' + o.id + '">Comprar a $' + money(o.amount_usd) + '</button>' : '') +
+        (o.status === 'pending' ? '<button class="mini-act" data-of="cancel|' + o.id + '">Retirar oferta</button>' : '')
+      : (o.status === 'pending' ? '<button class="mini-act pri" data-of="accept|' + o.id + '">Aceptar</button><button class="mini-act" data-of="counter|' + o.id + '">Contraofertar</button><button class="mini-act" data-of="reject|' + o.id + '">Rechazar</button>' : '') +
+        (open ? '<button class="mini-act" data-of="chat|' + o.id + '">Escribir</button>' : '')) +
+    '</div></div>';
+}
+
+SHEETS.misOfertas = function(){
+  if (!STATE.session) return SHEETS.login();
+  if (!MK.ready) return openSheet('<h2>Mis ofertas</h2><p class="lead">Las ofertas se activan en unos minutos.</p>');
+  openSheet('<h2>Mis ofertas</h2><p class="empty">Cargando...</p>');
+  API.myOffers().then(function(list){
+    list = list || [];
+    openSheet('<h2>Mis ofertas</h2>' + (list.length
+      ? list.map(function(o){ return offerCard(o, 'buyer'); }).join('')
+      : '<p class="empty">Todavía no has hecho ofertas. En la ficha de un repuesto toca <b>Hacer oferta</b>.</p>'));
+    $$('[data-of]').forEach(function(b){
+      b.onclick = function(){
+        var a = this.dataset.of.split('|'), o = list.filter(function(x){ return x.id === a[1]; })[0];
+        if (a[0] === 'buy') return buyOffer(o);
+        var btn = this; btn.disabled = true;
+        API.buyerOfferAction(a[1], a[0]).then(function(){
+          toast(a[0] === 'accept_counter' ? 'Contraoferta aceptada. Ya puedes comprar.' : 'Oferta cerrada');
+          SHEETS.misOfertas();
+        }).catch(function(err){ btn.disabled = false; toast(mkErr(err)); });
+      };
+    });
+  }).catch(function(err){ toast(mkErr(err, 'No pudimos traer tus ofertas')); });
+};
+
+function buyOffer(o){
+  API.getProduct(o.product_id).then(function(p){
+    if (!p || p.stock < o.qty) return toast('Ese repuesto ya no tiene stock suficiente.');
+    STATE.pendingOrder = { items: [{ product_id: p.id, qty: o.qty }], offer: o };
+    guestForm(true);
+  });
+}
+
+function panelOfertas(sid){
+  openSheet('<h2>Ofertas recibidas</h2><p class="empty">Cargando...</p>');
+  API.storeOffers(sid).then(function(list){
+    list = list || [];
+    openSheet('<h2>Ofertas recibidas</h2>' +
+      '<p class="lead">Responde en 48 horas. Si aceptas, el comprador tiene 48 horas para comprar al precio acordado.</p>' +
+      (list.length ? list.map(function(o){ return offerCard(o, 'store'); }).join('')
+                   : '<p class="empty">Todavía no te han hecho ofertas.</p>') +
+      '<button class="secondary" data-sheet="storepanel">Volver al panel</button>');
+    $$('[data-of]').forEach(function(b){
+      b.onclick = function(){
+        var a = this.dataset.of.split('|'), o = list.filter(function(x){ return x.id === a[1]; })[0];
+        var p = o.products || {};
+        if (a[0] === 'chat') return openChat({ otherId: o.buyer_id, sourceId: o.product_id, title: p.name, back: function(){ panelOfertas(sid); } });
+        if (a[0] === 'counter') {
+          openSheet('<h2>Contraofertar</h2><p class="lead">' + esc(p.name) + '<br>Te ofrecen $' + money(o.amount_usd) + ' · publicado $' + money(p.price_usd) + '</p>' +
+            field('ct_amt', 'Tu contraoferta por unidad ($)', money(Math.round((Number(o.amount_usd) + Number(p.price_usd)) / 2)), 'inputmode="decimal" maxlength="10"') +
+            '<button class="primary" id="ct_go">Enviar contraoferta</button><button class="secondary" id="ct_back">Volver</button>');
+          $('#ct_back').onclick = function(){ panelOfertas(sid); };
+          $('#ct_go').onclick = function(){
+            clearErrors();
+            var v = Math.round(parseFloat(String($('#ct_amt').value).replace(',', '.')) * 100) / 100;
+            if (!(v > o.amount_usd && v < p.price_usd)) return fieldError('ct_amt', 'Tiene que estar entre $' + money(o.amount_usd) + ' y $' + money(p.price_usd) + '.');
+            var btn = this; btn.disabled = true;
+            API.respondOffer(o.id, 'counter', v).then(function(){ toast('Contraoferta enviada'); panelOfertas(sid); })
+              .catch(function(err){ btn.disabled = false; fieldError('ct_amt', mkErr(err)); });
+          };
+          return;
+        }
+        var btn = this; btn.disabled = true;
+        API.respondOffer(o.id, a[0]).then(function(){
+          toast(a[0] === 'accept' ? 'Oferta aceptada. Le avisamos al comprador.' : 'Oferta rechazada');
+          panelOfertas(sid);
+        }).catch(function(err){ btn.disabled = false; toast(mkErr(err)); });
+      };
+    });
+  }).catch(function(err){ toast(mkErr(err, 'No pudimos traer las ofertas')); });
+}
+
+/* ---------- MENSAJES PRIVADOS (tecnología de ruedda) ----------------------- */
+function setUnread(n){
+  MK.unread = Math.max(0, n || 0);
+  $$('.pm-badge').forEach(function(b){ b.textContent = MK.unread > 9 ? '9+' : MK.unread; b.hidden = !MK.unread; });
+}
+
+function startMessaging(){
+  if (!MK.ready || !STATE.session) return;
+  API.unreadCount().then(setUnread);
+  if (MK.channel) return;
+  var uid = STATE.session.id;
+  MK.channel = sb.channel('rr-pm-' + uid)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'private_messages', filter: 'receiver_id=eq.' + uid },
+      function(payload){
+        var m = payload.new || {};
+        if (m.source_type !== 'repuesto') return;
+        var c = MK.chat;
+        if (c && $('#chatLog') && c.otherId === m.sender_id && String(c.sourceId) === String(m.source_id)) {
+          appendMsg(m); API.markRead([m.id]);
+        } else {
+          setUnread(MK.unread + 1);
+          toast('Nuevo mensaje' + (m.source_title ? ' sobre ' + m.source_title : ''));
+        }
+      })
+    .subscribe();
+}
+function stopMessaging(){
+  if (MK.channel) { try { sb.removeChannel(MK.channel); } catch (e) {} MK.channel = null; }
+  setUnread(0);
+}
+
+function msgHTML(m){
+  var mine = STATE.session && m.sender_id === STATE.session.id;
+  return '<div class="msg' + (mine ? ' me' : '') + '"><p>' + esc(m.text) + '</p><small>' +
+    esc(new Date(m.created_at).toLocaleString('es-VE', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })) + '</small></div>';
+}
+function appendMsg(m){
+  var log = $('#chatLog'); if (!log) return;
+  var empty = log.querySelector('.empty'); if (empty) empty.remove();
+  log.insertAdjacentHTML('beforeend', msgHTML(m));
+  log.scrollTop = log.scrollHeight;
+}
+
+/* opts: { otherId, sourceId, title, back } */
+function openChat(opts){
+  if (!STATE.session) { toast('Inicia sesión para escribir.'); return SHEETS.login(); }
+  if (!MK.ready) return toast('Los mensajes se activan en unos minutos.');
+  if (opts.otherId === STATE.session.id) return toast('Ese repuesto es tuyo.');
+  MK.chat = opts;
+  API.userNames([opts.otherId]).then(function(names){
+    openSheet((opts.back ? '<a class="pm-back" id="ch_back">&larr; Volver</a>' : '') +
+      '<h2 class="ch-h">' + esc(names[opts.otherId] || 'Vendedor') + '</h2>' +
+      '<p class="lead ch-sub">Sobre: ' + esc(opts.title || 'repuesto') + '</p>' +
+      '<div class="chat-log" id="chatLog"><p class="empty">Cargando...</p></div>' +
+      '<p class="hint-sm">Por tu seguridad, los teléfonos y correos se ocultan hasta que exista una orden. Paga siempre con tu orden de compra.</p>' +
+      '<div class="chat-in"><textarea class="inp" id="chatText" rows="1" maxlength="1000" placeholder="Escribe tu mensaje..."></textarea>' +
+      '<button class="primary" id="chatSend" aria-label="Enviar">Enviar</button></div>');
+    if (opts.back) $('#ch_back').onclick = function(){ MK.chat = null; opts.back(); };
+
+    API.listThread(opts.otherId, opts.sourceId).then(function(list){
+      var log = $('#chatLog'); if (!log) return;
+      log.innerHTML = (list && list.length) ? list.map(msgHTML).join('')
+        : '<p class="empty">Pregunta lo que necesites: compatibilidad, estado de la pieza, garantía o entrega.</p>';
+      log.scrollTop = log.scrollHeight;
+      var unread = (list || []).filter(function(m){ return m.receiver_id === STATE.session.id && !m.read; }).map(function(m){ return m.id; });
+      if (unread.length) API.markRead(unread).then(function(){ setUnread(MK.unread - unread.length); });
+    }).catch(function(err){ var log = $('#chatLog'); if (log) log.innerHTML = '<p class="empty">' + esc(mkErr(err)) + '</p>'; });
+
+    function send(){
+      var t = cleanText($('#chatText').value, 1000);
+      if (!t) return;
+      var btn = $('#chatSend'); btn.disabled = true;
+      API.sendMessage(opts.otherId, opts.sourceId, opts.title || 'repuesto', t).then(function(m){
+        $('#chatText').value = ''; btn.disabled = false; appendMsg(m);
+      }).catch(function(err){ btn.disabled = false; toast(mkErr(err, 'No se pudo enviar')); });
+    }
+    $('#chatSend').onclick = send;
+    $('#chatText').addEventListener('keydown', function(e){ if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+  });
+}
+
+SHEETS.mensajes = function(){
+  if (!STATE.session) return SHEETS.login();
+  if (!MK.ready) return openSheet('<h2>Mensajes</h2><p class="lead">Los mensajes se activan en unos minutos.</p>');
+  MK.chat = null;
+  openSheet('<h2>Mensajes</h2><p class="empty">Cargando...</p>');
+  var me = STATE.session.id;
+  API.listMyMessages().then(function(list){
+    var threads = {}, order = [];
+    (list || []).forEach(function(m){
+      var other = m.sender_id === me ? m.receiver_id : m.sender_id;
+      var k = other + '|' + m.source_id;
+      if (!threads[k]) { threads[k] = { other: other, source: m.source_id, title: m.source_title, last: m, unread: 0 }; order.push(k); }
+      if (m.receiver_id === me && !m.read) threads[k].unread++;
+    });
+    return API.userNames(order.map(function(k){ return threads[k].other; })).then(function(names){
+      openSheet('<h2>Mensajes</h2>' + (order.length
+        ? order.map(function(k){
+            var t = threads[k];
+            return '<button class="th-row' + (t.unread ? ' un' : '') + '" data-th="' + esc(k) + '">' +
+              '<span class="th-av">' + esc(String(names[t.other] || '?').charAt(0).toUpperCase()) + '</span>' +
+              '<span class="th-bd"><b>' + esc(names[t.other] || 'Usuario') + '</b><small>' + esc(t.title || '') + '</small>' +
+              '<small class="th-last">' + (t.last.sender_id === me ? 'Tú: ' : '') + esc(String(t.last.text).slice(0, 70)) + '</small></span>' +
+              '<span class="th-meta"><small>' + esc(hace(t.last.created_at)) + '</small>' + (t.unread ? '<i>' + t.unread + '</i>' : '') + '</span></button>';
+          }).join('')
+        : '<p class="empty">No tienes conversaciones. Desde la ficha de un repuesto toca <b>Escribir al vendedor</b>.</p>'));
+      $$('[data-th]').forEach(function(b){
+        b.onclick = function(){
+          var t = threads[this.dataset.th];
+          openChat({ otherId: t.other, sourceId: t.source, title: t.title, back: SHEETS.mensajes });
+        };
+      });
+    });
+  }).catch(function(err){ toast(mkErr(err, 'No pudimos traer tus mensajes')); });
+};
+
+/* ---------- ASISTENTE (preguntas codificadas) ------------------------------ */
+var BOT = { open: false, booted: false, pending: null };
+
+function botRate(){
+  var r = window.DB.config.bs_rate;
+  return r ? Number(r).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null;
+}
+
+/* cada nodo: texto (string o funcion) + chips [etiqueta, destino]. destino
+   puede ser otro nodo, 'ask:tipo' (pide un dato) o 'do:accion'. */
+var BOT_TREE = {
+  inicio: {
+    t: function(){ return '¡Hola' + (STATE.session ? ', ' + String(STATE.session.full_name).split(' ')[0] : '') + '! Soy el asistente de Ruedda Repuestos. ¿En qué te ayudo?'; },
+    c: [['🔎 Buscar un repuesto','buscar'], ['🚗 ¿Le sirve a mi carro?','compat'], ['📦 ¿Dónde está mi pedido?','ask:track'],
+        ['🚚 Envíos y entregas','envios'], ['💳 Pagos y tasa BCV','pagos'], ['🤝 Ofertas','ofertas'],
+        ['🛠️ No sé qué pieza necesito','mecanico'], ['🏪 Quiero vender','vender'], ['🛡️ Compra segura','seguridad'],
+        ['↩️ Garantía y devoluciones','garantia'], ['👤 Hablar con una persona','humano']]
+  },
+  buscar: {
+    t: 'La forma más segura de acertar es el número de parte (viene grabado en la pieza vieja o en el manual). ¿Cómo quieres buscar?',
+    c: [['Tengo el número de parte','ask:part'], ['Por marca, modelo y año','ask:free'], ['Por categoría','do:cats'],
+        ['No lo consigo en Venezuela','mundo'], ['« Menú','inicio']]
+  },
+  compat: {
+    t: function(){
+      var car = myCar();
+      return (car ? 'Tengo guardado tu carro: <b>' + esc(carLabel(car)) + '</b>. ' : '') +
+        'Guardo tu carro y te marco los repuestos cuyo tipo de carro y rango de años coinciden con el tuyo. Ojo: el año solo no garantiza que sirva; confirma siempre con el número de parte o con un mecánico.';
+    },
+    c: [['Configurar mi carro','do:mycar'], ['Buscar para mi carro','do:mycarsearch'], ['Preguntar a un mecánico','do:mecanico'], ['« Menú','inicio']]
+  },
+  envios: {
+    t: 'Cada vendedor elige cómo entrega y lo ves en la ficha del repuesto:<br>' +
+       '📦 <b>MRW</b> y <b>ZOOM</b>: encomienda nacional. Retiras en la agencia que elijas con tu cédula; algunas tiendas aceptan cobro a destino.<br>' +
+       '🛵 <b>Mensajería por Yummy</b>: delivery dentro de las ciudades que indique la tienda.<br>' +
+       '🤝 <b>Entrega personal</b>: en un punto acordado, en las ciudades de la tienda.<br>' +
+       'Si la tienda no configuró entregas, la coordinas por WhatsApp después de comprar.',
+    c: [['¿Cuánto tarda?','envio_tiempo'], ['¿Quién paga el envío?','envio_costo'], ['« Menú','inicio']]
+  },
+  envio_tiempo: { t: 'Depende de la tienda y la ciudad. Cada opción muestra su tiempo estimado (por ejemplo "24 a 72 horas hábiles" en MRW o "mismo día" en Yummy). Cuando la tienda despacha, carga el número de guía y lo ves en el rastreo de tu pedido.', c: [['Rastrear mi pedido','ask:track'], ['« Envíos','envios'], ['« Menú','inicio']] },
+  envio_costo:  { t: 'El precio del repuesto no incluye el flete. En MRW y ZOOM puedes marcar <b>cobro a destino</b> si la tienda lo acepta. En Yummy y entrega personal el costo lo acuerdas con la tienda.', c: [['« Envíos','envios'], ['« Menú','inicio']] },
+  pagos: {
+    t: function(){
+      var r = botRate();
+      return 'Pagas directo a la tienda con el método que tenga activo: <b>Pago Móvil, Zelle, Binance, Zinli, transferencia o efectivo</b>. Al pagar dejas el número de referencia y la tienda confirma.<br>' +
+        (r ? 'Tasa BCV que usamos hoy: <b>Bs ' + r + ' por $</b>. Los precios en bolívares se calculan con esa tasa.' : 'Los precios en bolívares usan la tasa oficial BCV del día.');
+    },
+    c: [['¿Es seguro pagar?','seguridad'], ['« Menú','inicio']]
+  },
+  ofertas: {
+    t: 'En muchos repuestos puedes tocar <b>Hacer oferta</b>:<br>1. Ofreces desde el 70% del precio.<br>2. El vendedor tiene 48 h para aceptar, rechazar o contraofertar.<br>3. Si hay acuerdo, compras a ese precio con tu orden de compra normal.<br>Solo puedes tener una oferta abierta por repuesto.',
+    c: [['Ver mis ofertas','do:offers'], ['« Menú','inicio']]
+  },
+  mecanico: {
+    t: 'Sin problema. Cuéntale los síntomas a un mecánico de la red y te dice qué pieza es antes de que gastes. También puedes ver el directorio de mecánicos.',
+    c: [['Pedir diagnóstico','do:mecanico'], ['Ver mecánicos','do:mecs'], ['« Menú','inicio']]
+  },
+  vender: {
+    t: 'Pueden vender <b>tiendas</b> (con RIF, productos ilimitados) y <b>particulares</b> (hasta 10 publicaciones). En los dos casos verificas tu identidad una sola vez con foto de tu cédula y una selfie. Tú eliges tus formas de entrega y tus métodos de pago.',
+    c: [['Empezar a vender','do:sell'], ['¿Qué es la verificación?','kyc'], ['¿Cuánto cuesta?','planes'], ['« Menú','inicio']]
+  },
+  kyc: { t: 'La verificación de identidad (KYC) confirma que el vendedor es quien dice ser. Subes tu cédula y una selfie con ella; el equipo de Ruedda la revisa, normalmente en menos de 24 horas. Si ya te verificaste en Ruedda, sirve aquí. Tus fotos no se publican.', c: [['Verificarme ahora','do:kyc'], ['« Vender','vender'], ['« Menú','inicio']] },
+  planes: { t: 'Empezar es gratis y Ruedda cobra una comisión solo cuando vendes. La tienda oficial tiene sello y productos ilimitados.', c: [['Ver planes','do:plans'], ['« Vender','vender']] },
+  seguridad: {
+    t: 'Para comprar seguro:<br>✅ Compra siempre generando tu <b>orden de compra</b>: tiene código y QR que puedes verificar.<br>✅ No pagues a nadie que te escriba por fuera de la orden.<br>✅ En el chat, teléfonos y correos se ocultan hasta que exista una orden.<br>✅ Para publicar, los vendedores verifican su identidad.<br>✅ Las baterías, cauchos e iluminación de particulares llevan serial registrado.',
+    c: [['Verificar un código de orden','ask:verify'], ['« Menú','inicio']]
+  },
+  garantia: { t: 'La garantía y las devoluciones las da la tienda que vende el repuesto. Antes de pagar, pregúntale por chat sus condiciones y guarda tu orden de compra: es tu comprobante. Si tienes un problema con una compra, escríbenos con tu código RR- y te ayudamos a contactar a la tienda.', c: [['Ver términos','do:terms'], ['Hablar con una persona','humano'], ['« Menú','inicio']] },
+  mundo: { t: 'Si no está en Venezuela, lo buscamos en sitios internacionales y te cotizamos con el costo de importación incluido.', c: [['Cotizar pieza del mundo','do:import'], ['« Menú','inicio']] },
+  humano: { t: 'Te paso con el equipo de Ruedda Repuestos por WhatsApp. Si es sobre un pedido, ten a mano tu código RR-.', c: [['Abrir WhatsApp','do:wa'], ['« Menú','inicio']] }
+};
+
+var BOT_ASK = {
+  part:   { t: 'Escríbeme el número de parte tal cual (ej: 04465-02220).', ph: 'Número de parte' },
+  free:   { t: 'Escribe marca, modelo, año y la pieza (ej: Corolla 2012 bomba de agua).', ph: 'Corolla 2012 bomba de agua' },
+  track:  { t: 'Escríbeme el código de tu orden. Empieza por RR- (ej: RR-9F3K2-A7QX).', ph: 'RR-XXXXX-XXXX' },
+  verify: { t: 'Escríbeme el código RR- que te dieron y te digo si la orden existe.', ph: 'RR-XXXXX-XXXX' }
+};
+
+/* palabras clave para texto libre */
+var BOT_KEYS = [
+  [/pedido|orden|rastre|guia|guía|llega|llegó/i, 'ask:track'],
+  [/mrw|zoom|yummy|env[ií]o|entrega|delivery|despach|flete|encomienda/i, 'envios'],
+  [/pago|pagar|zelle|binance|pago m[oó]vil|zinli|efectivo|tasa|bcv|d[oó]lar|bol[ií]var/i, 'pagos'],
+  [/oferta|negoci|rebaja|descuento|contraoferta/i, 'ofertas'],
+  [/vender|vendo|publicar|mi tienda|particular/i, 'vender'],
+  [/kyc|verificaci|c[eé]dula|selfie|identidad/i, 'kyc'],
+  [/garant|devoluci|cambio|reclamo|defectu/i, 'garantia'],
+  [/estafa|seguro|confiable|fraude|robad/i, 'seguridad'],
+  [/mec[aá]nico|diagn[oó]stic|ruido|falla|s[ií]ntoma|no s[eé] qu[eé]/i, 'mecanico'],
+  [/sirve|compatib|mi carro|mi auto|mi veh/i, 'compat'],
+  [/import|exterior|afuera|amazon|ebay|mundo/i, 'mundo'],
+  [/persona|humano|asesor|soporte|whatsapp|ayuda/i, 'humano'],
+  [/plan|comisi|cuesta vender|precio de vender/i, 'planes']
+];
+
+function botEl(){ return $('#rrBot'); }
+function botScroll(){ var l = $('#botLog'); if (l) l.scrollTop = l.scrollHeight; }
+function botSay(html, chips){
+  var log = $('#botLog'); if (!log) return;
+  var id = 'bt' + Date.now() + Math.floor(Math.random() * 999);
+  log.insertAdjacentHTML('beforeend', '<div class="bm bot" id="' + id + '"><span class="typing"><i></i><i></i><i></i></span></div>');
+  botScroll();
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  setTimeout(function(){
+    var el = document.getElementById(id); if (!el) return;
+    el.innerHTML = '<p>' + html + '</p>';
+    if (chips && chips.length) {
+      log.insertAdjacentHTML('beforeend', '<div class="bchips">' + chips.map(function(c){
+        return '<button type="button" data-go="' + esc(c[1]) + '">' + esc(c[0]) + '</button>';
+      }).join('') + '</div>');
+    }
+    botScroll();
+  }, reduce ? 0 : Math.min(900, 280 + String(html).length * 3));
+}
+function botUser(text){
+  var log = $('#botLog'); if (!log) return;
+  $$('.bchips', log).forEach(function(c){ c.remove(); });
+  log.insertAdjacentHTML('beforeend', '<div class="bm me"><p>' + esc(text) + '</p></div>');
+  botScroll();
+}
+
+function botGo(dest, label){
+  if (label) botUser(label);
+  BOT.pending = null;
+  if (dest.indexOf('ask:') === 0) {
+    var k = dest.slice(4); BOT.pending = k;
+    $('#botInput').placeholder = BOT_ASK[k].ph;
+    $('#botInput').focus();
+    return botSay(BOT_ASK[k].t, [['« Menú','inicio']]);
+  }
+  $('#botInput').placeholder = 'Escribe tu pregunta...';
+  if (dest.indexOf('do:') === 0) return botDo(dest.slice(3));
+  var n = BOT_TREE[dest] || BOT_TREE.inicio;
+  botSay(typeof n.t === 'function' ? n.t() : n.t, n.c);
+}
+
+function botDo(a){
+  var close = function(){ toggleBot(false); };
+  var WA = onlyDigits(window.DB.config.whatsapp_soporte, 15);
+  switch (a) {
+    case 'cats': close(); return go('#/categorias');
+    case 'mycar': close(); return openMyCar();
+    case 'mycarsearch':
+      var car = myCar();
+      if (!car) { close(); return openMyCar(true); }
+      close(); return goFilter(carFilter(car));
+    case 'mecanico': close(); return openSolicitudMecanico();
+    case 'mecs': close(); return go('#/mecanicos-lista');
+    case 'offers': close(); return SHEETS.misOfertas();
+    case 'sell': close(); return SHEETS.seller();
+    case 'kyc': close(); return openKyc();
+    case 'plans': close(); return SHEETS.plans();
+    case 'terms': close(); return SHEETS.terms();
+    case 'import': close(); return openImportRequest('');
+    case 'wa':
+      window.open('https://wa.me/' + WA + '?text=' + encodeURIComponent('Hola, vengo del asistente de Ruedda Repuestos.'), '_blank', 'noopener');
+      return botSay('Listo, te abrí WhatsApp. ¿Algo más?', [['« Menú','inicio']]);
+  }
+}
+
+function botAnswer(text){
+  var k = BOT.pending;
+  if (k === 'part' || k === 'free') {
+    BOT.pending = null;
+    botSay('Buscando <b>' + esc(text) + '</b> en el catálogo...', [['« Menú','inicio']]);
+    setTimeout(function(){ toggleBot(false); goFilter({ q: text }); }, 700);
+    return;
+  }
+  if (k === 'track' || k === 'verify' || /^rr-?[a-z0-9]{3,}/i.test(text)) {
+    BOT.pending = null;
+    var code = text.toUpperCase().replace(/\s+/g, '');
+    if (code.length < 6) return botSay('Ese código está incompleto. Revisa tu orden de compra.', [['Intentar de nuevo','ask:track'], ['« Menú','inicio']]);
+    botSay('Buscando la orden <b>' + esc(code) + '</b>...');
+    API.findInvoice(code).then(function(r){
+      if (!r) return botSay('No existe ninguna orden con el código <b>' + esc(code) + '</b>. Si te lo dio un vendedor, no pagues hasta confirmarlo.', [['Intentar de nuevo','ask:track'], ['Hablar con una persona','humano']]);
+      var o = r.order;
+      botSay('Encontré la orden <b>' + esc(code) + '</b> de ' + esc((r.store || {}).name || 'la tienda') + '.<br>Estado: <b>' + esc(ORDER_STATUS_LABEL[o.status] || o.status) + '</b>' +
+        (o.tracking_code ? '<br>Guía: <b>' + esc(o.tracking_code) + '</b>' : '') +
+        (o.delivery_method && DELIVERY[o.delivery_method] ? '<br>Entrega: ' + esc(DELIVERY[o.delivery_method].name) : '') +
+        '<br>Total: $' + money(o.total_usd), [['Ver detalle','do:trackopen:' + code], ['« Menú','inicio']]);
+    }).catch(function(){ botSay('No pude consultar ahorita. Intenta en un momento.', [['« Menú','inicio']]); });
+    return;
+  }
+  for (var i = 0; i < BOT_KEYS.length; i++) {
+    if (BOT_KEYS[i][0].test(text)) return botGo(BOT_KEYS[i][1]);
+  }
+  if (/\d{3,}[-\s]?\w{2,}/.test(text) || text.split(/\s+/).length <= 4) {
+    return botSay('No tengo una respuesta guardada para eso. ¿Quieres que busque <b>' + esc(text) + '</b> en el catálogo?',
+      [['Sí, buscar','do:q:' + text], ['Hablar con una persona','humano'], ['« Menú','inicio']]);
+  }
+  botSay('No tengo una respuesta guardada para eso, pero una persona del equipo sí te ayuda.', [['Hablar con una persona','humano'], ['« Menú','inicio']]);
+}
+
+function toggleBot(on){
+  var el = botEl(); if (!el) return;
+  BOT.open = on == null ? !BOT.open : on;
+  el.classList.toggle('open', BOT.open);
+  $('#botFab').setAttribute('aria-expanded', BOT.open ? 'true' : 'false');
+  if (BOT.open && !BOT.booted) { BOT.booted = true; botGo('inicio'); }
+  if (BOT.open) setTimeout(function(){ var i = $('#botInput'); if (i && window.innerWidth > 700) i.focus(); }, 250);
+}
+
+function mountBot(){
+  if (botEl()) return;
+  document.body.insertAdjacentHTML('beforeend',
+    '<div class="rr-bot" id="rrBot">' +
+      '<button class="bot-fab" id="botFab" aria-label="Abrir asistente" aria-expanded="false" aria-controls="botPanel">' +
+        '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><circle cx="9" cy="12" r=".6" fill="currentColor"/><circle cx="12.5" cy="12" r=".6" fill="currentColor"/><circle cx="16" cy="12" r=".6" fill="currentColor"/></svg>' +
+        '<span class="bot-x" aria-hidden="true">×</span></button>' +
+      '<section class="bot-panel" id="botPanel" role="dialog" aria-label="Asistente de Ruedda Repuestos">' +
+        '<header class="bot-hd"><span class="bot-av">rr</span><span><b>Asistente Ruedda Repuestos</b><small><i></i>Respuestas al instante</small></span>' +
+          '<button class="bot-min" id="botClose" aria-label="Cerrar asistente">×</button></header>' +
+        '<div class="bot-log" id="botLog" aria-live="polite"></div>' +
+        '<form class="bot-in" id="botForm"><input id="botInput" maxlength="120" autocomplete="off" placeholder="Escribe tu pregunta...">' +
+          '<button aria-label="Enviar"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M3 20.5 21 12 3 3.5 3 10l12 2-12 2z"/></svg></button></form>' +
+      '</section></div>');
+  $('#botFab').onclick = function(){ toggleBot(); };
+  $('#botClose').onclick = function(){ toggleBot(false); };
+  $('#botLog').addEventListener('click', function(e){
+    var b = e.target.closest('[data-go]'); if (!b) return;
+    var d = b.dataset.go;
+    if (d.indexOf('do:q:') === 0) { botUser(b.textContent); toggleBot(false); return goFilter({ q: d.slice(5) }); }
+    if (d.indexOf('do:trackopen:') === 0) { toggleBot(false); return trackOrderByCode(d.slice(13), toast); }
+    botGo(d, b.textContent);
+  });
+  $('#botForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var v = cleanText($('#botInput').value, 120); if (!v) return;
+    $('#botInput').value = '';
+    botUser(v); botAnswer(v);
+  });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && BOT.open) toggleBot(false); });
+}
+
+/* ---------- MI CARRO (compatibilidad honesta: solo por año) ----------------- */
+var MYCAR_KEY = 'rr_mycar_v1';
+var CAR_ORIGIN = {
+  asiatico: ['toyota','honda','nissan','mitsubishi','mazda','hyundai','kia','chery','suzuki','subaru','isuzu','lexus','great wall','jac','byd','geely','dongfeng','daihatsu','changan','infiniti','acura','haval','foton','jetour'],
+  americano: ['chevrolet','ford','jeep','dodge','chrysler','cadillac','gmc','ram','lincoln','buick','hummer','pontiac'],
+  euro: ['volkswagen','vw','renault','peugeot','fiat','bmw','mercedes','mercedes-benz','audi','citroen','citroën','seat','skoda','volvo','porsche','mini','land rover','alfa romeo','opel','jaguar'],
+  pesada: ['mack','iveco','kenworth','freightliner','international','hino','scania','volvo trucks','man']
+};
+function myCar(){
+  try { var c = JSON.parse(localStorage.getItem(MYCAR_KEY) || 'null'); return c && c.year ? c : null; } catch (e) { return null; }
+}
+function saveMyCar(c){
+  try { c ? localStorage.setItem(MYCAR_KEY, JSON.stringify(c)) : localStorage.removeItem(MYCAR_KEY); } catch (e) {}
+  paintMyCarBtn();
+}
+function carLabel(c){ return [c.marca, c.modelo, c.year].filter(Boolean).join(' '); }
+function carOrigin(c){
+  var m = String(c.marca || '').toLowerCase().trim();
+  for (var k in CAR_ORIGIN) if (CAR_ORIGIN[k].indexOf(m) !== -1) return k;
+  return null;
+}
+function carFilter(c){
+  var f = { year: String(c.year) }, o = carOrigin(c);
+  if (o) f.origin = o;
+  return f;
+}
+/* true = el tipo de carro coincide y el rango de años incluye el del carro;
+   false = es para otro tipo de carro u otros años; null = no hay datos para decir */
+function carFits(p, c){
+  c = c || myCar();
+  if (!c || !p) return null;
+  var o = carOrigin(c);
+  if (o && p.origins && p.origins.length && p.origins.indexOf(o) === -1) return false;
+  if (!p.year_from && !p.year_to) return null;
+  var y = +c.year;
+  return (!p.year_from || y >= p.year_from) && (!p.year_to || y <= p.year_to);
+}
+function fitBadge(p){
+  var ok = carFits(p), c = myCar();
+  return ok === true ? '<span class="fit ok">Años incluyen ' + esc(c.year) + '</span>'
+       : ok === false ? '<span class="fit no">No es para tu carro</span>' : '';
+}
+function paintMyCarBtn(){
+  var b = $('#myCarBtn'); if (!b) return;
+  var c = myCar();
+  b.innerHTML = '🚗 ' + (c ? esc(carLabel(c)) : 'Mi carro');
+  b.classList.toggle('on', !!c);
+}
+
+function openMyCar(searchAfter){
+  var c = myCar() || {};
+  openSheet('<h2>Mi carro</h2>' +
+    '<p class="lead">Lo guardamos en este teléfono y marcamos los repuestos cuyo rango de años incluye el tuyo. Confirma siempre con el número de parte.</p>' +
+    '<div id="mc_garage"></div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+      field('mc_marca', 'Marca', 'Toyota', 'maxlength="30"') +
+      field('mc_modelo', 'Modelo', 'Corolla', 'maxlength="30"') +
+    '</div>' +
+    field('mc_year', 'Año', '2012', 'maxlength="4" inputmode="numeric"') +
+    '<button class="primary" id="mc_go">' + (searchAfter ? 'Guardar y buscar repuestos' : 'Guardar mi carro') + '</button>' +
+    (myCar() ? '<button class="secondary" id="mc_del">Quitar mi carro</button>' : ''));
+  $('#mc_marca').value = c.marca || ''; $('#mc_modelo').value = c.modelo || ''; $('#mc_year').value = c.year || '';
+
+  if (STATE.session) API.myGarage().then(function(list){
+    var g = $('#mc_garage'); if (!g || !list.length) return;
+    g.innerHTML = '<p class="hint-sm" style="margin:0 0 8px">De tu garaje en Ruedda:</p><div class="chips">' +
+      list.filter(function(v){ return v.year; }).map(function(v, i){
+        return '<button type="button" class="chip" data-gv="' + i + '">' + esc(carLabel(v)) + '</button>';
+      }).join('') + '</div>';
+    $$('[data-gv]').forEach(function(b){
+      b.onclick = function(){
+        var v = list[+this.dataset.gv];
+        $('#mc_marca').value = v.marca || ''; $('#mc_modelo').value = v.modelo || ''; $('#mc_year').value = v.year || '';
+      };
+    });
+  });
+
+  $('#mc_go').onclick = function(){
+    clearErrors();
+    var y = onlyDigits($('#mc_year').value, 4);
+    var car = { marca: cleanText($('#mc_marca').value, 30), modelo: cleanText($('#mc_modelo').value, 30), year: +y };
+    if (car.marca.length < 2) return fieldError('mc_marca', 'Escribe la marca.');
+    if (y.length !== 4 || car.year < 1960 || car.year > new Date().getFullYear() + 1) return fieldError('mc_year', 'Año de 4 dígitos, ej: 2012.');
+    saveMyCar(car); closeSheet(); toast('Guardamos tu ' + carLabel(car));
+    renderFeatured(); renderResultsRefresh();
+    if (searchAfter) goFilter(carFilter(car));
+  };
+  if ($('#mc_del')) $('#mc_del').onclick = function(){ saveMyCar(null); closeSheet(); renderFeatured(); renderResultsRefresh(); toast('Quitamos tu carro'); };
+}
+
+/* ---------- FICHA DEL PRODUCTO: señales, entrega, ofertas y chat ------------ */
+var CONDITION_LABEL = { nuevo:'Nuevo', usado:'Usado', remanufacturado:'Remanufacturado' };
+
+function enhancePDP(p, s){
+  var car = myCar(), fits = carFits(p, car);
+  var cond = $('#pdpCond');
+  if (cond) cond.innerHTML = (p.condition ? '<span class="cond c-' + esc(p.condition) + '">' + esc(CONDITION_LABEL[p.condition] || p.condition) + '</span>' : '') +
+    (s.kind === 'particular' ? '<span class="cond part">Vendedor particular</span>' : '') +
+    (p.serial ? '<span class="cond ser">Serial registrado</span>' : '') +
+    (car ? '<span class="cond ' + (fits === true ? 'fit-ok' : fits === false ? 'fit-no' : 'fit-na') + '">' +
+      (fits === true ? 'Tipo y años coinciden con tu ' + esc(carLabel(car)) + ' · confirma el número de parte'
+       : fits === false ? 'No coincide con tu ' + esc(carLabel(car))
+       : 'Sin datos de años: confirma con el número de parte') + '</span>' : '');
+
+  var act = $('#pdpSeller');
+  if (act) {
+    var own = STATE.session && s.owner_id && STATE.session.id === s.owner_id;
+    act.innerHTML = (MK.ready && !own
+      ? '<div class="pdp-actions">' +
+          (p.stock > 0 ? '<button class="secondary" id="btnOffer">Hacer oferta</button>' : '') +
+          '<button class="secondary" id="btnChat">Escribir al vendedor</button>' +
+        '</div>' : '');
+    if ($('#btnOffer')) $('#btnOffer').onclick = function(){ openOffer(p, s); };
+    if ($('#btnChat')) $('#btnChat').onclick = function(){ openChat({ otherId: s.owner_id, sourceId: p.id, title: p.name }); };
+  }
+
+  paintPDPDelivery(p, s);
+
+  var live = $('#pdpLive');
+  if (live && MK.ready) API.productActivity(p.id).then(function(a){
+    if (!a || !$('#pdpLive')) return;
+    var bits = [];
+    if (a.sold_30d > 0) bits.push('<b>' + a.sold_30d + '</b> vendido' + (a.sold_30d == 1 ? '' : 's') + ' en 30 días');
+    if (a.open_offers > 0) bits.push('<b>' + a.open_offers + '</b> oferta' + (a.open_offers == 1 ? '' : 's') + ' abierta' + (a.open_offers == 1 ? '' : 's'));
+    if (a.updated_at) bits.push('Precio y stock revisados ' + hace(a.updated_at));
+    if (p.stock > 0 && p.stock <= 3) bits.push('Quedan <b>' + p.stock + '</b>');
+    live.innerHTML = bits.length ? '<p class="pdp-live"><i class="pulse"></i>' + bits.join(' · ') + '</p>' : '';
+  }).catch(function(){});
+}
+
+/* ---------- HOME EN VIVO: solo señales reales ------------------------------ */
+function bcvStamp(){
+  try { var c = JSON.parse(localStorage.getItem(BCV_CACHE_KEY) || 'null'); return c && c.at ? c.at : null; } catch (e) { return null; }
+}
+
+function renderLive(){
+  var strip = $('#liveStrip');
+  if (strip) {
+    var rate = botRate(), at = bcvStamp(), s = MK.stats;
+    var items = [];
+    if (rate) items.push('<span><b>Tasa BCV</b> Bs ' + rate + (at ? ' <small>· ' + esc(new Date(at).toLocaleTimeString('es-VE', { hour:'2-digit', minute:'2-digit' })) + '</small>' : '') + '</span>');
+    if (s) {
+      if (s.products) items.push('<span><b>' + Number(s.products).toLocaleString('es-VE') + '</b> repuestos publicados</span>');
+      if (s.new_7d) items.push('<span><b>+' + s.new_7d + '</b> esta semana</span>');
+      if (s.sellers) items.push('<span><b>' + s.sellers + '</b> vendedores activos</span>');
+    }
+    strip.innerHTML = items.length ? '<i class="pulse"></i><b class="lv">EN VIVO</b>' + items.join('') : '';
+    strip.hidden = !items.length;
+  }
+
+  if (MK.ready) API.topSearches().then(function(list){
+    var el = $('#topSearch'); if (!el) return;
+    list = (list || []).filter(function(x){ return x.q; });
+    el.hidden = list.length < 3;
+    el.innerHTML = '<b>Lo más buscado esta semana</b><div class="chips">' + list.map(function(x){
+      return '<button type="button" class="chip" data-tq="' + esc(x.q) + '">' + esc(x.q) + '</button>';
+    }).join('') + '</div>';
+    $$('[data-tq]').forEach(function(b){ b.onclick = function(){ goFilter({ q: this.dataset.tq }); }; });
+  }).catch(function(){});
+
+  API.recentProducts(10).then(function(list){
+    var el = $('#recentRow'); if (!el) return;
+    el.hidden = list.length < 3;
+    el.innerHTML = '<div class="rr-head"><b>Recién publicados</b><a href="#/resultados">Ver todo</a></div>' +
+      '<div class="recent-track">' + list.map(function(p){
+        return '<div class="recent-it">' + productCard(p) + '<small class="ago">' + esc(hace(p.created_at)) + '</small></div>';
+      }).join('') + '</div>';
+  }).catch(function(){});
+}
+
+/* precio y stock cambian en pantalla sin recargar */
+function startProductRealtime(){
+  if (!MK.ready || MK.prodChannel) return;
+  MK.prodChannel = sb.channel('rr-products')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'repuestos', table: 'products' }, function(payload){
+      var n = payload.new; if (!n || !n.id) return;
+      var old = productById(n.id);
+      var changed = !old || old.price_usd !== n.price_usd || old.stock !== n.stock || old.status !== n.status;
+      cacheProducts([n]);
+      if (!changed) return;
+      $$('[data-pid="' + n.id + '"]').forEach(function(card){
+        var tmp = document.createElement('div'); tmp.innerHTML = productCard(n);
+        var fresh = tmp.firstChild; fresh.classList.add('flash');
+        card.parentNode.replaceChild(fresh, card);
+      });
+      if (location.hash === '#/p/' + n.id && !$('#sheet').classList.contains('on') && n.status === 'published') {
+        paintPDP(n, storeById(n.store_id) || {});
+        toast(old && old.price_usd !== n.price_usd ? 'El precio se acaba de actualizar' : 'El stock se acaba de actualizar');
+      }
+    })
+    .subscribe();
+}
+
+/* ---------- ADMIN: lo que la gente busca y no consigue --------------------- */
+AD_TABS.splice(AD_TABS.length - 2, 0, { id:'demanda', label:'Demanda' });
+AD_PANELS.demanda = function(){
+  Promise.all([API.searchMisses(), API.topSearches()]).then(function(r){
+    var miss = r[0] || [], top = r[1] || [];
+    $('#adBody').innerHTML =
+      '<p class="ad-count">Búsquedas sin resultados (30 días): ' + miss.length + '</p>' +
+      adTable([{h:'Búsqueda'},{h:'Veces'},{h:'Última vez'}], miss.map(function(x){
+        return '<tr><td><b>' + esc(x.q) + '</b></td><td>' + esc(x.n) + '</td><td class="mono dim">' + fecha(x.last_at) + '</td></tr>';
+      })) +
+      '<p class="ad-count" style="margin-top:22px">Lo más buscado (7 días)</p>' +
+      adTable([{h:'Búsqueda'},{h:'Veces'}], top.map(function(x){
+        return '<tr><td>' + esc(x.q) + '</td><td>' + esc(x.n) + '</td></tr>';
+      })) +
+      '<p class="ad-note">Usa esta lista para conseguir tiendas que traigan lo que la gente pide y no está en el catálogo.</p>';
+  }).catch(function(err){
+    $('#adBody').innerHTML = '<p class="ad-note">' + esc(mkErr(err, 'Falta correr el SQL 16 para ver la demanda.')) + '</p>';
+  });
+};
+
+/* ---------- arranque del módulo ------------------------------------------- */
+function mkBoot(){
+  mountBot();
+  paintMyCarBtn();
+  var b = $('#myCarBtn'); if (b) b.onclick = function(){ openMyCar(true); };
+  return API.liveStats().then(function(s){ MK.ready = true; MK.stats = s; }, function(){ MK.ready = false; })
+    .then(function(){
+      renderLive();
+      renderAccount();
+      startMessaging();
+      startProductRealtime();
+      setInterval(function(){
+        if (document.hidden || !MK.ready) return;
+        API.liveStats().then(function(s){ MK.stats = s; renderLive(); }, function(){});
+      }, 5 * 60 * 1000);
+    });
+}
+
 /* ---------- tasa BCV en vivo (dolarapi.com) --------------------------------
    El admin sigue pudiendo fijar una tasa manual (repuestos.app_config) como
    respaldo: si dolarapi falla o el cache local esta fresco, no se toca nada.
@@ -6138,6 +7650,7 @@ function boot(){
     .then(function(){
       document.body.classList.remove('rr-loading');
       route();
+      mkBoot();
     })
     .catch(function(err){
       document.body.classList.remove('rr-loading');
