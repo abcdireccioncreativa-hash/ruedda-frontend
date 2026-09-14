@@ -4,27 +4,32 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#111111">
-<meta name="description" content="ruedda repuestos - repuestos de auto en Venezuela. Busca por numero de parte, compra con o sin cuenta.">
+<meta name="description" content="Repuestos de carro en Venezuela. Busca por número de parte, compra sin crear cuenta y paga en dólares o bolívares a tasa BCV. Envíos a toda Venezuela.">
 <!-- CSP: en produccion mover a header HTTP y usar nonce/hash en vez de unsafe-inline -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://ve.dolarapi.com; frame-ancestors 'none'; base-uri 'none'; form-action 'none'">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>ruedda repuestos</title>
+<title>Repuestos de carro en Venezuela por número de parte | Ruedda Repuestos</title>
+<link rel="canonical" href="https://www.ruedda.app/repuestos/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ruedda Repuestos">
+<meta property="og:title" content="Repuestos de carro en Venezuela por número de parte | Ruedda Repuestos">
+<meta property="og:description" content="Busca por número de parte, compra sin crear cuenta y paga en dólares o bolívares a tasa BCV. Envíos a toda Venezuela.">
+<meta property="og:url" content="https://www.ruedda.app/repuestos/">
+<meta property="og:image" content="https://www.ruedda.app/icon-512.png">
+<meta property="og:locale" content="es_VE">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700;800;900&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;600;700&display=swap">
 <style>
-/* Open Sauce Sans: servida local (misma carpeta /fonts que ruedda). Fallback sistema. */
-@font-face{font-family:'Open Sauce Sans';src:url('fonts/OpenSauceSans-Light.woff2') format('woff2');font-weight:300;font-display:swap}
-@font-face{font-family:'Open Sauce Sans';src:url('fonts/OpenSauceSans-Regular.woff2') format('woff2');font-weight:400;font-display:swap}
-@font-face{font-family:'Open Sauce Sans';src:url('fonts/OpenSauceSans-Bold.woff2') format('woff2');font-weight:700;font-display:swap}
 
 :root{
   --logo-img:url("data:image/png;base64,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");
   --green:#00c853; --green-badge:#1e9e5a; --blue:#2f80ed;
   --ink:#111; --panel:#141414; --bg:#e9e9e9; --ph:#b4b4b4;
-  --white:#fff; --line:#d6d6d6; --mute:#8b8b8b;
+  --white:#fff; --line:#d6d6d6; --mute:#5c636a;
   --r:12px; --r-lg:18px; --pad:20px; --gut:14px;
   --hdr:74px;
   --body:'Open Sauce Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -882,12 +887,12 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
 </style>
 </head>
 <body>
-<a class="rr-xbanner" href="https://www.ruedda.app" target="_blank" rel="noopener">¿Buscas comprar un vehiculo? <b>Como comprar en ruedda.app →</b></a>
+<a class="rr-xbanner" href="https://www.ruedda.app" target="_blank" rel="noopener">¿Buscas comprar un vehículo? <b>Cómo comprar en ruedda.app →</b></a>
 <div id="dtop">
   <header class="hdr-d">
-    <a href="#/" class="logo dlogo"><i class="logomark" role="img" aria-label="ruedda repuestos"></i><span class="dlogo-txt"><b>ruedda</b><span>repuestos</span></span></a>
+    <a href="#/" class="logo dlogo"><i class="logomark" role="img" aria-label="Ruedda Repuestos"></i><span class="dlogo-txt"><b>ruedda</b><span>repuestos</span></span></a>
     <form class="dsearch" id="dSearchForm" role="search">
-      <input class="inp" id="dSearchInput" placeholder="Buscar por marca, modelo o numero de parte..." maxlength="60" autocomplete="off">
+      <input class="inp" id="dSearchInput" placeholder="Buscar por marca, modelo o número de parte..." maxlength="60" autocomplete="off">
       <button type="submit" aria-label="Buscar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       </button>
@@ -914,7 +919,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
     <details class="dd">
       <summary class="dd-trig cats-trig">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-        Categorias
+        Categorías
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
       </summary>
       <div class="dd-panel" id="ddCats"></div>
@@ -922,7 +927,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
     <a href="#/">Inicio</a>
     <a href="#/marcas">Marcas</a>
     <a href="#/tiendas">Tiendas oficiales</a>
-    <a href="#/mecanicos">Mecanicos</a>
+    <a href="#/mecanicos">Mecánicos</a>
     <details class="dd">
       <summary class="dd-trig">Vender en ruedda
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
@@ -941,7 +946,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
       <div class="dd-panel dd-simple">
         <button data-sheet="track">Seguir mi pedido</button>
         <button data-sheet="support">Soporte y contacto</button>
-        <button data-sheet="terms">Terminos y privacidad</button>
+        <button data-sheet="terms">Términos y privacidad</button>
       </div>
     </details>
   </nav>
@@ -950,7 +955,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
 
   <header class="hdr">
     <button class="burger" id="btnMenu" aria-label="Abrir menu"><i></i></button>
-    <a href="#/" class="logo"><i class="logomark" role="img" aria-label="ruedda repuestos"></i></a>
+    <a href="#/" class="logo"><i class="logomark" role="img" aria-label="Ruedda Repuestos"></i></a>
     <div class="hdr-name"><b>ruedda</b><span>repuestos</span></div>
     <button class="cart" id="btnCart" aria-label="Ver carrito">
       <svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M7 18a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 18zm10 0a2 2 0 1 0 .001 4.001A2 2 0 0 0 17 18zM6.2 6h15.3l-2.4 8.4a2 2 0 0 1-1.92 1.45H8.53a2 2 0 0 1-1.93-1.48L4.1 4.5H1.5V2.6h4.06L6.2 6z"/></svg>
@@ -980,7 +985,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
           </g>
         </g>
       </svg>
-      <span>Hacemos envios nacionales a toda Venezuela</span>
+      <span>Hacemos envíos nacionales a toda Venezuela</span>
     </div>
 
     <div class="spon">
@@ -999,25 +1004,25 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
     </div>
 
     <div class="filter">
-      <h2>FILTRA TU BUSQUEDA</h2>
+      <h2>FILTRA TU BÚSQUEDA</h2>
       <div class="f-row">
         <input class="inp" id="fMarca" placeholder="Marca..." maxlength="40" autocomplete="off">
         <input class="inp" id="fAnio" placeholder="Año..." maxlength="4" inputmode="numeric">
       </div>
-      <input class="inp" id="fParte" placeholder="Numero de parte..." maxlength="40" autocomplete="off">
-      <p class="f-note">*Si no conseguimos tu numero de parte, ruedda repuestos se encarga de conseguirla</p>
+      <input class="inp" id="fParte" placeholder="Número de parte..." maxlength="40" autocomplete="off">
+      <p class="f-note">*Si no conseguimos tu número de parte, Ruedda Repuestos se encarga de conseguirla</p>
       <button class="f-adv" id="btnAdv">FILTRO AVANZADO</button>
       <div class="f-extra" id="fExtra">
         <input class="inp" id="fModelo" placeholder="Modelo..." maxlength="40">
         <input class="inp" id="fMedida" placeholder="Medida..." maxlength="24">
-        <input class="inp full" id="fCat" placeholder="Categoria (frenos, cauchos...)" maxlength="30">
+        <input class="inp full" id="fCat" placeholder="Categoría (frenos, cauchos...)" maxlength="30">
         <button class="f-go" id="btnBuscar">BUSCAR</button>
       </div>
     </div>
 
     <div class="quick">
       <a class="qbtn" href="#/tiendas">TIENDAS<br>OFICIALES</a>
-      <a class="qbtn" href="#/categorias">CATEGORIAS</a>
+      <a class="qbtn" href="#/categorias">CATEGORÍAS</a>
     </div>
     <a class="link-center" href="#/marcas">VER MARCAS DE REPUESTOS</a>
 
@@ -1025,18 +1030,18 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
       <span class="ico">
         <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="13" width="4" height="7" rx="2" fill="currentColor" stroke="none"/><rect x="18" y="13" width="4" height="7" rx="2" fill="currentColor" stroke="none"/><path d="M20 20v1a2 2 0 0 1-2 2h-4"/></svg>
       </span>
-      <p>No sabes si de verdad<br>necesitas ese repuesto?</p>
+      <p>¿No sabes si de verdad<br>necesitas ese repuesto?</p>
       <a class="mecbtn" href="#/mecanicos">
         <span class="vchk"><svg viewBox="0 0 24 24" fill="#fff"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></span>
-        <b>HABLA CON NUESTROS<br>MECANICOS VERIFICADOS</b>
+        <b>PREGÚNTALE A UN<br>MECÁNICO ANTES DE COMPRAR</b>
         <span class="gear"><svg viewBox="0 0 24 24" width="26" height="26" fill="#062d15"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.5-2-3.5-2.4 1a7.6 7.6 0 0 0-1.7-1L15 3H9l-.3 2.6c-.6.2-1.2.6-1.7 1l-2.4-1-2 3.5L2.6 11a7.6 7.6 0 0 0 0 2l-2 1.5 2 3.5 2.4-1c.5.4 1.1.8 1.7 1L9 21h6l.3-2.6c.6-.2 1.2-.6 1.7-1l2.4 1 2-3.5-2-1.5z" opacity=".85"/></svg></span>
       </a>
     </div>
 
     <a class="avalta-teaser" href="javascript:void(0)" data-sheet="avalta">
       <span class="av-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 4 5v6c0 5 3.4 8.4 8 11 4.6-2.6 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></svg></span>
-      <span class="av-bd"><b>Certifica tu vehiculo con AVALTA</b><span>El historial de tu carro, verificado.</span></span>
-      <span class="avalta-soon">Proximamente</span>
+      <span class="av-bd"><b>Certifica tu vehículo con AVALTA</b><span>El historial de tu carro, verificado.</span></span>
+      <span class="avalta-soon">Próximamente</span>
     </a>
 
     <div class="promo-grid">
@@ -1046,11 +1051,11 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
       </a>
       <a class="promo-card" href="javascript:void(0)" data-sheet="seller">
         <span class="pr-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V21H3z"/><path d="M9 21v-7h6v7"/></svg></span>
-        <b>Vende en ruedda repuestos</b><span>Abre tu tienda oficial</span>
+        <b>Vende en Ruedda Repuestos</b><span>Abre tu tienda</span>
       </a>
       <a class="promo-card" href="javascript:void(0)" data-sheet="track">
         <span class="pr-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4z"/><path d="M4 9h16M9 4v16"/></svg></span>
-        <b>Seguir mi pedido</b><span>Escribe el codigo de tu factura</span>
+        <b>Seguir mi pedido</b><span>Escribe el código de tu orden</span>
       </a>
       <a class="promo-card" href="javascript:void(0)" data-sheet="support">
         <span class="pr-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 18h.01M9.1 9a3 3 0 1 1 4.9 2.3c-.9.7-1.6 1.2-1.6 2.7"/></svg></span>
@@ -1061,14 +1066,14 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
     <a class="flotaiq-banner" href="https://www.flotaiq.com" target="_blank" rel="noopener">
       <span class="flotaiq-tag">FlotaIQ · del mismo ecosistema Ruedda</span>
       <h3>Mantenimiento predictivo de flota, por WhatsApp</h3>
-      <p>FlotaIQ te avisa que le toca a cada vehiculo, cuando y cuanto cuesta dejarlo pasar — con un reporte semanal (ICO) por unidad. Sin GPS, sin instalar nada.</p>
+      <p>FlotaIQ te avisa qué le toca a cada vehículo, cuándo y cuánto cuesta dejarlo pasar — con un reporte semanal (ICO) por unidad. Sin GPS, sin instalar nada.</p>
       <span class="flotaiq-cta">Conocer FlotaIQ →</span>
     </a>
 
     <div class="dots" id="homeDots"></div>
 
     <!-- ===== desktop-only: se posicionan por grid-area en la media query ===== -->
-    <aside class="side-cats" id="sideCats" aria-label="Categorias"></aside>
+    <aside class="side-cats" id="sideCats" aria-label="Categorías"></aside>
 
     <div class="feat-d">
       <div class="feat-d-head">
@@ -1081,7 +1086,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
     </div>
 
     <div class="catteaser-d">
-      <h2>Categorias</h2>
+      <h2>Categorías</h2>
       <div class="cat-d-grid" id="catTeaser"></div>
     </div>
   </section>
@@ -1089,7 +1094,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
   <!-- ===== CATEGORIAS ===== -->
   <section class="view" id="v-categorias">
     <div class="screen-pad">
-      <h2 class="sc-title">CATEGORIAS</h2>
+      <h2 class="sc-title">CATEGORÍAS</h2>
       <div id="catList"></div>
       <h2 class="sc-title" style="margin-top:30px">POR TIPO DE REPUESTO</h2>
       <div class="pc-grid" id="partCatList"></div>
@@ -1110,7 +1115,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
         <h1>VER MARCAS DE REPUESTOS</h1>
       </div>
       <div class="search">
-        <input class="inp" id="brandQ" placeholder="Buscas alguna en especifico?..." maxlength="40" autocomplete="off">
+        <input class="inp" id="brandQ" placeholder="¿Buscas alguna en específico?..." maxlength="40" autocomplete="off">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       </div>
       <div class="toggle">
@@ -1125,24 +1130,24 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
   <section class="view" id="v-mecanicos">
     <div class="mec-hero">
       <div class="top">
-        <span class="logo"><i class="logomark" role="img" aria-label="ruedda repuestos"></i></span>
-        <h1>MECANICOS</h1>
+        <span class="logo"><i class="logomark" role="img" aria-label="Ruedda Repuestos"></i></span>
+        <h1>MECÁNICOS</h1>
       </div>
       <p class="sub">Te simplificamos la vida.</p>
-      <p class="q">Que necesitas?</p>
+      <p class="q">¿Qué necesitas?</p>
       <button class="mopt" data-req="no_se_que_comprar">
-        <b>No se que comprar.</b>
+        <b>No sé qué comprar.</b>
         <span class="ico"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M11 18h2v2h-2zm1-16a5 5 0 0 0-5 5h2a3 3 0 1 1 4.6 2.5C12.3 10.5 11 11.6 11 14v2h2v-2c0-1.4 1-2 2.1-2.9A5 5 0 0 0 12 2z"/></svg></span>
       </button>
       <button class="mopt" data-req="no_estoy_seguro">
-        <b>Se que comprar pero no<br>estoy segur@</b>
+        <b>Sé qué comprar pero no<br>estoy segur@</b>
         <span class="ico"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="13" width="4" height="7" rx="2" fill="currentColor" stroke="none"/><rect x="18" y="13" width="4" height="7" rx="2" fill="currentColor" stroke="none"/><path d="M20 20v1a2 2 0 0 1-2 2h-4"/></svg></span>
       </button>
       <button class="mopt" data-req="diagnostico">
-        <b>Revision diagnostica de mi<br>vehiculo</b>
+        <b>Revisión diagnóstica de mi<br>vehículo</b>
         <span class="ico"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.4" fill="currentColor" stroke="none"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></span>
       </button>
-      <a class="skip" href="#/mecanicos-lista">saltar y ver mecanicos.</a>
+      <a class="skip" href="#/mecanicos-lista">saltar y ver mecánicos.</a>
     </div>
     <div class="screen-pad" style="padding-top:0">
       <div class="cat-foot" style="border-top-color:#cfcfcf">
@@ -1157,7 +1162,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
     <div class="screen-pad">
       <div class="sc-head">
         <button class="back" data-back aria-label="Volver"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M11 5 4 12l7 7v-4.5h9v-5h-9z"/></svg></button>
-        <h1>MECANICOS AUTORIZADOS</h1>
+        <h1>MECÁNICOS</h1>
       </div>
       <div class="chips" id="mecChips" style="margin-bottom:14px"></div>
       <div id="mecList"></div>
@@ -1236,7 +1241,7 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
       <header class="ad-top">
         <div class="ad-brand">
           <span class="logo"><i class="logomark on-dark" role="img" aria-label="ruedda"></i></span>
-          <div><b>ADMINISTRACION</b><span id="adWho"></span></div>
+          <div><b>ADMINISTRACIÓN</b><span id="adWho"></span></div>
         </div>
         <div class="ad-top-act">
           <button class="ad-btn" id="adExport">Exportar CSV</button>
@@ -1255,25 +1260,25 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
   <div class="dfooter-trust">
     <div class="dft-item"><span class="dft-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><span>Pago protegido</span></div>
     <div class="dft-item"><span class="dft-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></span><span>Tiendas verificadas</span></div>
-    <div class="dft-item"><span class="dft-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V21H3z"/><path d="M9 21v-7h6v7"/></svg></span><span>Envios a toda Venezuela</span></div>
-    <div class="dft-item"><span class="dft-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span>Garantia en cada compra</span></div>
+    <div class="dft-item"><span class="dft-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V21H3z"/><path d="M9 21v-7h6v7"/></svg></span><span>Envíos a toda Venezuela</span></div>
+    <div class="dft-item"><span class="dft-ico"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span><span>Garantía en cada compra</span></div>
   </div>
   <div class="dfooter-top">
     <div class="dfooter-brand">
-      <span class="logo"><i class="logomark on-dark" role="img" aria-label="ruedda repuestos"></i></span>
-      <p>El marketplace de repuestos de auto mas rapido de Venezuela. Compra directo a tiendas verificadas, con presupuesto por escrito y mecanicos avalados por la Red Ruedda.</p>
+      <span class="logo"><i class="logomark on-dark" role="img" aria-label="Ruedda Repuestos"></i></span>
+      <p>El marketplace de repuestos de auto más rápido de Venezuela. Compra directo a las tiendas, con precio en dólares y bolívares a tasa BCV y la orientación de un mecánico antes de comprar.</p>
       <div class="dfooter-pay">
-        <span>PAGO MOVIL</span><span>ZELLE</span><span>BINANCE</span><span>ZINLI</span><span>TRANSFERENCIA</span><span>EFECTIVO</span>
+        <span>PAGO MÓVIL</span><span>ZELLE</span><span>BINANCE</span><span>ZINLI</span><span>TRANSFERENCIA</span><span>EFECTIVO</span>
       </div>
     </div>
     <div class="dfooter-cols">
       <div class="dfooter-col">
         <h4>Comprar</h4>
-        <a href="#/categorias">Categorias</a>
+        <a href="#/categorias">Categorías</a>
         <a href="#/marcas">Marcas de repuestos</a>
         <a href="#/tiendas">Tiendas oficiales</a>
-        <a href="#/mecanicos">Mecanicos verificados</a>
-        <button data-sheet="avalta">Certificacion AVALTA</button>
+        <a href="#/mecanicos">Habla con un mecánico</a>
+        <button data-sheet="avalta">Certificación AVALTA</button>
       </div>
       <div class="dfooter-col">
         <h4>Vender</h4>
@@ -1285,20 +1290,19 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
         <h4>Ayuda</h4>
         <button data-sheet="track">Seguir mi pedido</button>
         <button data-sheet="support">Soporte y contacto</button>
-        <button data-sheet="shipping">Politica de envios</button>
-        <button data-sheet="returns">Devoluciones y garantia</button>
+        <button data-sheet="shipping">Política de envíos</button>
+        <button data-sheet="returns">Devoluciones y garantía</button>
       </div>
       <div class="dfooter-col">
         <h4>Legal</h4>
-        <button data-sheet="terms">Terminos y condiciones</button>
-        <button data-sheet="privacy">Politica de privacidad</button>
-        <button data-sheet="returns">Garantia de ley</button>
+        <button data-sheet="terms">Términos y condiciones</button>
+        <button data-sheet="privacy">Política de privacidad</button>
+        <button data-sheet="returns">Garantía de ley</button>
       </div>
     </div>
   </div>
   <div class="dfooter-bottom">
-    <span>© 2026 ruedda repuestos · parte del ecosistema Ruedda</span>
-    <a class="admin-link" href="#/admin">Administracion</a>
+    <span>© 2026 Ruedda Repuestos · parte del ecosistema Ruedda</span>
   </div>
 </footer>
 
@@ -1306,20 +1310,20 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
 <div class="scrim" id="scrim"></div>
 <nav class="drawer" id="drawer" aria-label="Menu principal">
   <button class="close" id="btnClose" aria-label="Cerrar menu">×</button>
-  <span class="logo"><i class="logomark on-dark" role="img" aria-label="ruedda repuestos"></i></span>
+  <span class="logo"><i class="logomark on-dark" role="img" aria-label="Ruedda Repuestos"></i></span>
 
   <div class="dgroup" id="dAccount">
     <h3>Cuenta</h3>
-    <button class="dbtn" data-sheet="login">Iniciar sesion</button>
+    <button class="dbtn" data-sheet="login">Iniciar sesión</button>
     <button class="dbtn ghost" data-sheet="signup">Crear cuenta</button>
   </div>
 
   <div class="dgroup">
     <h3>Comprar</h3>
-    <a class="dlink" href="#/categorias">Categorias</a>
+    <a class="dlink" href="#/categorias">Categorías</a>
     <a class="dlink" href="#/marcas">Marcas de repuestos</a>
     <a class="dlink" href="#/tiendas">Tiendas oficiales</a>
-    <a class="dlink" href="#/mecanicos">Mecanicos verificados</a>
+    <a class="dlink" href="#/mecanicos">Habla con un mecánico</a>
   </div>
 
   <div class="dgroup">
@@ -1334,21 +1338,17 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
     <h3>Ayuda</h3>
     <button class="dlink" data-sheet="track">Seguir mi pedido</button>
     <button class="dlink" data-sheet="support">Soporte y contacto</button>
-    <button class="dlink" data-sheet="shipping">Politica de envios</button>
-    <button class="dlink" data-sheet="returns">Devoluciones y garantia</button>
+    <button class="dlink" data-sheet="shipping">Política de envíos</button>
+    <button class="dlink" data-sheet="returns">Devoluciones y garantía</button>
   </div>
 
   <div class="dgroup">
     <h3>Legal</h3>
-    <button class="dlink" data-sheet="terms">Terminos y condiciones</button>
-    <button class="dlink" data-sheet="privacy">Politica de privacidad</button>
+    <button class="dlink" data-sheet="terms">Términos y condiciones</button>
+    <button class="dlink" data-sheet="privacy">Política de privacidad</button>
   </div>
 
-  <div class="dgroup">
-    <h3>Interno</h3>
-    <a class="dlink" href="#/admin">Administracion</a>
-  </div>
-  <p class="dfoot">ruedda repuestos ©<br>admin: ruben carrillo</p>
+  <p class="dfoot">Ruedda Repuestos © 2026</p>
 </nav>
 
 <!-- ===== SHEET ===== -->
@@ -1359,43 +1359,10 @@ body.rr-loading #frame{opacity:.5;pointer-events:none;transition:opacity .2s}
 
 <div class="toast" id="toast"></div>
 
-<a class="mec-fab" href="#/mecanicos-lista" id="mecFab" aria-label="Necesitas un mecanico?">
-  <span>Necesitas un mecanico?</span>
+<a class="mec-fab" href="#/mecanicos-lista" id="mecFab" aria-label="¿Necesitas un mecánico?">
+  <span>¿Necesitas un mecánico?</span>
 </a>
 
-<!-- ===== DIAGNOSTICO TEMPORAL — quitar despues de resolver el bug de produccion ===== -->
-<div id="rrDiag" style="position:fixed;top:0;left:0;right:0;z-index:999999;background:#c00;color:#fff;
-  font:12px/1.5 monospace;padding:10px;max-height:45vh;overflow:auto;white-space:pre-wrap;display:none"></div>
-<script>
-(function(){
-  var box = document.getElementById('rrDiag');
-  var lines = [];
-  function show(msg){
-    lines.push(msg);
-    box.style.display = 'block';
-    box.textContent = '=== DIAGNOSTICO RUEDDA REPUESTOS ===\n' +
-      'UA: ' + navigator.userAgent + '\n' +
-      'Viewport: ' + window.innerWidth + 'x' + window.innerHeight + '\n' +
-      'URL: ' + location.href + '\n\n' +
-      lines.join('\n---\n');
-  }
-  window.addEventListener('error', function(e){
-    if (e.target && e.target !== window && e.target.tagName) {
-      show('[FALLO DE CARGA] ' + e.target.tagName + ' src=' + (e.target.src || e.target.href || '?'));
-      return;
-    }
-    show('[JS ERROR] ' + e.message + '\n  en ' + e.filename + ':' + e.lineno + ':' + e.colno);
-  }, true);
-  window.addEventListener('unhandledrejection', function(e){
-    var r = e.reason;
-    show('[PROMISE RECHAZADA] ' + (r && r.message ? r.message : JSON.stringify(r)) + (r && r.stack ? '\n' + r.stack : ''));
-  });
-  setTimeout(function(){
-    if (typeof window.supabase === 'undefined') show('[AVISO] window.supabase nunca se cargo (vendor/supabase.js no ejecuto)');
-    if (typeof boot === 'undefined') show('[AVISO] la funcion boot() nunca se definio (el script principal no termino de parsear)');
-  }, 4000);
-})();
-</script>
 
 <script>
 var supabase=(function(e){function t(e,t){var n={};for(var r in e)Object.prototype.hasOwnProperty.call(e,r)&&t.indexOf(r)<0&&(n[r]=e[r]);if(e!=null&&typeof Object.getOwnPropertySymbols==`function`)for(var i=0,r=Object.getOwnPropertySymbols(e);i<r.length;i++)t.indexOf(r[i])<0&&Object.prototype.propertyIsEnumerable.call(e,r[i])&&(n[r[i]]=e[r[i]]);return n}function n(e,t,n,r){function i(e){return e instanceof n?e:new n(function(t){t(e)})}return new(n||=Promise)(function(n,a){function o(e){try{c(r.next(e))}catch(e){a(e)}}function s(e){try{c(r.throw(e))}catch(e){a(e)}}function c(e){e.done?n(e.value):i(e.value).then(o,s)}c((r=r.apply(e,t||[])).next())})}let r=e=>e?(...t)=>e(...t):(...e)=>fetch(...e);var i=class extends Error{constructor(e,t=`FunctionsError`,n){super(e),this.name=t,this.context=n}toJSON(){return{name:this.name,message:this.message,context:this.context}}},a=class extends i{constructor(e){super(`Failed to send a request to the Edge Function`,`FunctionsFetchError`,e)}},o=class extends i{constructor(e){super(`Relay Error invoking the Edge Function`,`FunctionsRelayError`,e)}},s=class extends i{constructor(e){super(`Edge Function returned a non-2xx status code`,`FunctionsHttpError`,e)}},c;(function(e){e.Any=`any`,e.ApNortheast1=`ap-northeast-1`,e.ApNortheast2=`ap-northeast-2`,e.ApSouth1=`ap-south-1`,e.ApSoutheast1=`ap-southeast-1`,e.ApSoutheast2=`ap-southeast-2`,e.CaCentral1=`ca-central-1`,e.EuCentral1=`eu-central-1`,e.EuWest1=`eu-west-1`,e.EuWest2=`eu-west-2`,e.EuWest3=`eu-west-3`,e.SaEast1=`sa-east-1`,e.UsEast1=`us-east-1`,e.UsWest1=`us-west-1`,e.UsWest2=`us-west-2`})(c||={});var l=class{constructor(e,{headers:t={},customFetch:n,region:i=c.Any}={}){this.url=e,this.headers=t,this.region=i,this.fetch=r(n)}setAuth(e){this.headers.Authorization=`Bearer ${e}`}invoke(e){return n(this,arguments,void 0,function*(e,t={}){var n;let r,i,c;try{let{headers:n,method:l,body:u,signal:d,timeout:f}=t,p={},{region:m}=t;m||=this.region;let h=new URL(`${this.url}/${e}`);m&&m!==`any`&&(p[`x-region`]=m,h.searchParams.set(`forceFunctionRegion`,m));let g,ee=!!n&&Object.keys(n).some(e=>e.toLowerCase()===`content-type`);u&&!ee?typeof Blob<`u`&&u instanceof Blob||u instanceof ArrayBuffer?(p[`Content-Type`]=`application/octet-stream`,g=u):typeof u==`string`?(p[`Content-Type`]=`text/plain`,g=u):typeof FormData<`u`&&u instanceof FormData?g=u:(p[`Content-Type`]=`application/json`,g=JSON.stringify(u)):g=u&&typeof u!=`string`&&!(typeof Blob<`u`&&u instanceof Blob)&&!(u instanceof ArrayBuffer)&&!(typeof FormData<`u`&&u instanceof FormData)?JSON.stringify(u):u;let te=d;f&&(i=new AbortController,r=setTimeout(()=>i.abort(),f),d?(te=i.signal,c=()=>i.abort(),d.addEventListener(`abort`,c)):te=i.signal);let _=yield this.fetch(h.toString(),{method:l||`POST`,headers:Object.assign(Object.assign(Object.assign({},p),this.headers),n),body:g,signal:te}).catch(e=>{throw new a(e)}),ne=_.headers.get(`x-relay-error`);if(ne&&ne===`true`)throw new o(_);if(!_.ok)throw new s(_);let re=(_.headers.get(`Content-Type`)??`text/plain`).split(`;`)[0].trim().toLowerCase(),ie;return ie=re===`application/json`?yield _.json():re===`application/octet-stream`||re===`application/pdf`?yield _.blob():re===`text/event-stream`?_:re===`multipart/form-data`?yield _.formData():yield _.text(),{data:ie,error:null,response:_}}catch(e){return{data:null,error:e,response:e instanceof s||e instanceof o?e.context:void 0}}finally{r&&clearTimeout(r),c&&((n=t.signal)==null||n.removeEventListener(`abort`,c))}})}};let u=e=>Math.min(1e3*2**e,3e4),d=[520,503],f=[`GET`,`HEAD`,`OPTIONS`];var p=class extends Error{constructor(e){super(e.message),this.name=`PostgrestError`,this.details=e.details,this.hint=e.hint,this.code=e.code}toJSON(){return{name:this.name,message:this.message,details:this.details,hint:this.hint,code:this.code}}};function m(e){"@babel/helpers - typeof";return m=typeof Symbol==`function`&&typeof Symbol.iterator==`symbol`?function(e){return typeof e}:function(e){return e&&typeof Symbol==`function`&&e.constructor===Symbol&&e!==Symbol.prototype?`symbol`:typeof e},m(e)}function h(e,t){if(m(e)!=`object`||!e)return e;var n=e[Symbol.toPrimitive];if(n!==void 0){var r=n.call(e,t||`default`);if(m(r)!=`object`)return r;throw TypeError(`@@toPrimitive must return a primitive value.`)}return(t===`string`?String:Number)(e)}function g(e){var t=h(e,`string`);return m(t)==`symbol`?t:t+``}function ee(e,t,n){return(t=g(t))in e?Object.defineProperty(e,t,{value:n,enumerable:!0,configurable:!0,writable:!0}):e[t]=n,e}function te(e,t){var n=Object.keys(e);if(Object.getOwnPropertySymbols){var r=Object.getOwnPropertySymbols(e);t&&(r=r.filter(function(t){return Object.getOwnPropertyDescriptor(e,t).enumerable})),n.push.apply(n,r)}return n}function _(e){for(var t=1;t<arguments.length;t++){var n=arguments[t]==null?{}:arguments[t];t%2?te(Object(n),!0).forEach(function(t){ee(e,t,n[t])}):Object.getOwnPropertyDescriptors?Object.defineProperties(e,Object.getOwnPropertyDescriptors(n)):te(Object(n)).forEach(function(t){Object.defineProperty(e,t,Object.getOwnPropertyDescriptor(n,t))})}return e}function ne(e,t){return new Promise(n=>{if(t?.aborted){n();return}let r=setTimeout(()=>{t?.removeEventListener(`abort`,i),n()},e);function i(){clearTimeout(r),n()}t?.addEventListener(`abort`,i)})}function re(e,t,n,r){return!(!r||n>=3||!f.includes(e)||!d.includes(t))}var ie=class{constructor(e){this.shouldThrowOnError=!1,this.retryEnabled=!0,this.method=e.method,this.url=e.url,this.headers=new Headers(e.headers),this.schema=e.schema,this.body=e.body,this.shouldThrowOnError=e.shouldThrowOnError??!1,this.signal=e.signal,this.isMaybeSingle=e.isMaybeSingle??!1,this.shouldStripNulls=e.shouldStripNulls??!1,this.urlLengthLimit=e.urlLengthLimit??8e3,this.retryEnabled=e.retry??!0,e.fetch?this.fetch=e.fetch:this.fetch=fetch}throwOnError(){return this.shouldThrowOnError=!0,this}stripNulls(){if(this.headers.get(`Accept`)===`text/csv`)throw Error(`stripNulls() cannot be used with csv()`);return this.shouldStripNulls=!0,this}setHeader(e,t){return this.headers=new Headers(this.headers),this.headers.set(e,t),this}retry(e){return this.retryEnabled=e,this}then(e,t){var n=this;if(this.schema===void 0||([`GET`,`HEAD`].includes(this.method)?this.headers.set(`Accept-Profile`,this.schema):this.headers.set(`Content-Profile`,this.schema)),this.method!==`GET`&&this.method!==`HEAD`&&this.headers.set(`Content-Type`,`application/json`),this.shouldStripNulls){let e=this.headers.get(`Accept`);e===`application/vnd.pgrst.object+json`?this.headers.set(`Accept`,`application/vnd.pgrst.object+json;nulls=stripped`):(!e||e===`application/json`)&&this.headers.set(`Accept`,`application/vnd.pgrst.array+json;nulls=stripped`)}let r=this.fetch,i=(async()=>{let e=0;for(;;){let t={};n.headers.forEach((e,n)=>{t[n]=e}),e>0&&(t[`X-Retry-Count`]=String(e));let i;try{i=await r(n.url.toString(),{method:n.method,headers:t,body:JSON.stringify(n.body,(e,t)=>typeof t==`bigint`?t.toString():t),signal:n.signal})}catch(t){if(t?.name===`AbortError`||t?.code===`ABORT_ERR`||!f.includes(n.method))throw t;if(n.retryEnabled&&e<3){let t=u(e);e++,await ne(t,n.signal);continue}throw t}if(re(n.method,i.status,e,n.retryEnabled)){let t=i.headers?.get(`Retry-After`)??null,r=t===null?u(e):Math.max(0,parseInt(t,10)||0)*1e3;await i.text(),e++,await ne(r,n.signal);continue}return await n.processResponse(i)}})();return this.shouldThrowOnError||(i=i.catch(e=>{let t=``,n=``,r=``,i=e?.cause;if(i){let n=i?.message??``,r=i?.code??``;t=`${e?.name??`FetchError`}: ${e?.message}`,t+=`\n\nCaused by: ${i?.name??`Error`}: ${n}`,r&&(t+=` (${r})`),i?.stack&&(t+=`\n${i.stack}`)}else t=e?.stack??``;let a=this.url.toString().length;return e?.name===`AbortError`||e?.code===`ABORT_ERR`?(r=``,n=`Request was aborted (timeout or manual cancellation)`,a>this.urlLengthLimit&&(n+=`. Note: Your request URL is ${a} characters, which may exceed server limits. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [many IDs])), consider using an RPC function to pass values server-side.`)):(i?.name===`HeadersOverflowError`||i?.code===`UND_ERR_HEADERS_OVERFLOW`)&&(r=``,n=`HTTP headers exceeded server limits (typically 16KB)`,a>this.urlLengthLimit&&(n+=`. Your request URL is ${a} characters. If selecting many fields, consider using views. If filtering with large arrays (e.g., .in('id', [200+ IDs])), consider using an RPC function instead.`)),{success:!1,error:{message:`${e?.name??`FetchError`}: ${e?.message}`,details:t,hint:n,code:r},data:null,count:null,status:0,statusText:``}})),i.then(e,t)}async processResponse(e){var t=this;let n=null,r=null,i=null,a=e.status,o=e.statusText;if(e.ok){if(t.method!==`HEAD`){let i=await e.text();if(i!==``)if(t.headers.get(`Accept`)===`text/csv`)r=i;else if(t.headers.get(`Accept`)&&t.headers.get(`Accept`)?.includes(`application/vnd.pgrst.plan+text`))r=i;else try{r=JSON.parse(i)}catch{if(n={message:i},r=null,t.shouldThrowOnError)throw new p({message:i,details:``,hint:``,code:``})}}let s=t.headers.get(`Prefer`)?.match(/count=(exact|planned|estimated)/),c=e.headers.get(`content-range`)?.split(`/`);if(s&&c&&c.length>1&&(i=parseInt(c[1])),t.isMaybeSingle&&Array.isArray(r))if(r.length>1){if(n={code:`PGRST116`,details:`Results contain ${r.length} rows, application/vnd.pgrst.object+json requires 1 row`,hint:null,message:`JSON object requested, multiple (or no) rows returned`},r=null,i=null,a=406,o=`Not Acceptable`,t.shouldThrowOnError)throw new p(_(_({},n),{},{hint:n.hint??``}))}else r=r.length===1?r[0]:null}else{let i=await e.text();try{n=JSON.parse(i),Array.isArray(n)&&e.status===404&&(r=[],n=null,a=200,o=`OK`)}catch{e.status===404&&i===``?(a=204,o=`No Content`):n={message:i}}if(n&&t.shouldThrowOnError)throw new p(n)}return{success:n===null,error:n,data:r,count:i,status:a,statusText:o}}returns(){return this}overrideTypes(){return this}},ae=class extends ie{throwOnError(){return super.throwOnError()}select(e){let t=!1,n=(e??`*`).split(``).map(e=>/\s/.test(e)&&!t?``:(e===`"`&&(t=!t),e)).join(``);return this.url.searchParams.set(`select`,n),this.headers.append(`Prefer`,`return=representation`),this}order(e,{ascending:t=!0,nullsFirst:n,foreignTable:r,referencedTable:i=r}={}){let a=i?`${i}.order`:`order`,o=this.url.searchParams.get(a);return this.url.searchParams.set(a,`${o?`${o},`:``}${e}.${t?`asc`:`desc`}${n===void 0?``:n?`.nullsfirst`:`.nullslast`}`),this}limit(e,{foreignTable:t,referencedTable:n=t}={}){let r=n===void 0?`limit`:`${n}.limit`;return this.url.searchParams.set(r,`${e}`),this}range(e,t,{foreignTable:n,referencedTable:r=n}={}){let i=r===void 0?`offset`:`${r}.offset`,a=r===void 0?`limit`:`${r}.limit`;return this.url.searchParams.set(i,`${e}`),this.url.searchParams.set(a,`${t-e+1}`),this}abortSignal(e){return this.signal=e,this}single(){return this.headers.set(`Accept`,`application/vnd.pgrst.object+json`),this}maybeSingle(){return this.isMaybeSingle=!0,this}csv(){return this.headers.set(`Accept`,`text/csv`),this}geojson(){return this.headers.set(`Accept`,`application/geo+json`),this}explain({analyze:e=!1,verbose:t=!1,settings:n=!1,buffers:r=!1,wal:i=!1,format:a=`text`}={}){let o=[e?`analyze`:null,t?`verbose`:null,n?`settings`:null,r?`buffers`:null,i?`wal`:null].filter(Boolean).join(`|`),s=this.headers.get(`Accept`)??`application/json`;return this.headers.set(`Accept`,`application/vnd.pgrst.plan+${a}; for="${s}"; options=${o};`),this}rollback(){return this.headers.append(`Prefer`,`tx=rollback`),this}returns(){return this}maxAffected(e){return this.headers.append(`Prefer`,`handling=strict`),this.headers.append(`Prefer`,`max-affected=${e}`),this}};let oe=RegExp(`[,()]`);var se=class extends ae{throwOnError(){return super.throwOnError()}eq(e,t){return this.url.searchParams.append(e,`eq.${t}`),this}neq(e,t){return this.url.searchParams.append(e,`neq.${t}`),this}gt(e,t){return this.url.searchParams.append(e,`gt.${t}`),this}gte(e,t){return this.url.searchParams.append(e,`gte.${t}`),this}lt(e,t){return this.url.searchParams.append(e,`lt.${t}`),this}lte(e,t){return this.url.searchParams.append(e,`lte.${t}`),this}like(e,t){return this.url.searchParams.append(e,`like.${t}`),this}likeAllOf(e,t){return this.url.searchParams.append(e,`like(all).{${t.join(`,`)}}`),this}likeAnyOf(e,t){return this.url.searchParams.append(e,`like(any).{${t.join(`,`)}}`),this}ilike(e,t){return this.url.searchParams.append(e,`ilike.${t}`),this}ilikeAllOf(e,t){return this.url.searchParams.append(e,`ilike(all).{${t.join(`,`)}}`),this}ilikeAnyOf(e,t){return this.url.searchParams.append(e,`ilike(any).{${t.join(`,`)}}`),this}regexMatch(e,t){return this.url.searchParams.append(e,`match.${t}`),this}regexIMatch(e,t){return this.url.searchParams.append(e,`imatch.${t}`),this}is(e,t){return this.url.searchParams.append(e,`is.${t}`),this}isDistinct(e,t){return this.url.searchParams.append(e,`isdistinct.${t}`),this}in(e,t){let n=Array.from(new Set(t)).map(e=>typeof e==`string`&&oe.test(e)?`"${e}"`:`${e}`).join(`,`);return this.url.searchParams.append(e,`in.(${n})`),this}notIn(e,t){let n=Array.from(new Set(t)).map(e=>typeof e==`string`&&oe.test(e)?`"${e}"`:`${e}`).join(`,`);return this.url.searchParams.append(e,`not.in.(${n})`),this}contains(e,t){return typeof t==`string`?this.url.searchParams.append(e,`cs.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cs.{${t.join(`,`)}}`):this.url.searchParams.append(e,`cs.${JSON.stringify(t)}`),this}containedBy(e,t){return typeof t==`string`?this.url.searchParams.append(e,`cd.${t}`):Array.isArray(t)?this.url.searchParams.append(e,`cd.{${t.join(`,`)}}`):this.url.searchParams.append(e,`cd.${JSON.stringify(t)}`),this}rangeGt(e,t){return this.url.searchParams.append(e,`sr.${t}`),this}rangeGte(e,t){return this.url.searchParams.append(e,`nxl.${t}`),this}rangeLt(e,t){return this.url.searchParams.append(e,`sl.${t}`),this}rangeLte(e,t){return this.url.searchParams.append(e,`nxr.${t}`),this}rangeAdjacent(e,t){return this.url.searchParams.append(e,`adj.${t}`),this}overlaps(e,t){return typeof t==`string`?this.url.searchParams.append(e,`ov.${t}`):this.url.searchParams.append(e,`ov.{${t.join(`,`)}}`),this}textSearch(e,t,{config:n,type:r}={}){let i=``;r===`plain`?i=`pl`:r===`phrase`?i=`ph`:r===`websearch`&&(i=`w`);let a=n===void 0?``:`(${n})`;return this.url.searchParams.append(e,`${i}fts${a}.${t}`),this}match(e){return Object.entries(e).filter(([e,t])=>t!==void 0).forEach(([e,t])=>{this.url.searchParams.append(e,`eq.${t}`)}),this}not(e,t,n){return this.url.searchParams.append(e,`not.${t}.${n}`),this}or(e,{foreignTable:t,referencedTable:n=t}={}){let r=n?`${n}.or`:`or`;return this.url.searchParams.append(r,`(${e})`),this}filter(e,t,n){return this.url.searchParams.append(e,`${t}.${n}`),this}},ce=class{constructor(e,{headers:t={},schema:n,fetch:r,urlLengthLimit:i=8e3,retry:a}){this.url=e,this.headers=new Headers(t),this.schema=n,this.fetch=r,this.urlLengthLimit=i,this.retry=a}cloneRequestState(){return{url:new URL(this.url.toString()),headers:new Headers(this.headers)}}select(e,t){let{head:n=!1,count:r}=t??{},i=n?`HEAD`:`GET`,a=!1,o=(e??`*`).split(``).map(e=>/\s/.test(e)&&!a?``:(e===`"`&&(a=!a),e)).join(``),{url:s,headers:c}=this.cloneRequestState();return s.searchParams.set(`select`,o),r&&c.append(`Prefer`,`count=${r}`),new se({method:i,url:s,headers:c,schema:this.schema,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}insert(e,{count:t,defaultToNull:n=!0}={}){let{url:r,headers:i}=this.cloneRequestState();if(t&&i.append(`Prefer`,`count=${t}`),n||i.append(`Prefer`,`missing=default`),Array.isArray(e)){let t=e.reduce((e,t)=>e.concat(Object.keys(t)),[]);if(t.length>0){let e=[...new Set(t)].map(e=>`"${e}"`);r.searchParams.set(`columns`,e.join(`,`))}}return new se({method:`POST`,url:r,headers:i,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}upsert(e,{onConflict:t,ignoreDuplicates:n=!1,count:r,defaultToNull:i=!0}={}){let{url:a,headers:o}=this.cloneRequestState();if(o.append(`Prefer`,`resolution=${n?`ignore`:`merge`}-duplicates`),t!==void 0&&a.searchParams.set(`on_conflict`,t),r&&o.append(`Prefer`,`count=${r}`),i||o.append(`Prefer`,`missing=default`),Array.isArray(e)){let t=e.reduce((e,t)=>e.concat(Object.keys(t)),[]);if(t.length>0){let e=[...new Set(t)].map(e=>`"${e}"`);a.searchParams.set(`columns`,e.join(`,`))}}return new se({method:`POST`,url:a,headers:o,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}update(e,{count:t}={}){let{url:n,headers:r}=this.cloneRequestState();return t&&r.append(`Prefer`,`count=${t}`),new se({method:`PATCH`,url:n,headers:r,schema:this.schema,body:e,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}delete({count:e}={}){let{url:t,headers:n}=this.cloneRequestState();return e&&n.append(`Prefer`,`count=${e}`),new se({method:`DELETE`,url:t,headers:n,schema:this.schema,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}},le=class e{constructor(e,{headers:t={},schema:n,fetch:r,timeout:i,urlLengthLimit:a=8e3,retry:o}={}){this.url=e,this.headers=new Headers(t),this.schemaName=n,this.urlLengthLimit=a;let s=r??globalThis.fetch;i!==void 0&&i>0?this.fetch=(e,t)=>{let n=new AbortController,r=setTimeout(()=>n.abort(),i),a=t?.signal;if(a){if(a.aborted)return clearTimeout(r),s(e,t);let i=()=>{clearTimeout(r),n.abort()};return a.addEventListener(`abort`,i,{once:!0}),s(e,_(_({},t),{},{signal:n.signal})).finally(()=>{clearTimeout(r),a.removeEventListener(`abort`,i)})}return s(e,_(_({},t),{},{signal:n.signal})).finally(()=>clearTimeout(r))}:this.fetch=s,this.retry=o}from(e){if(!e||typeof e!=`string`||e.trim()===``)throw Error(`Invalid relation name: relation must be a non-empty string.`);return new ce(new URL(`${this.url}/${e}`),{headers:new Headers(this.headers),schema:this.schemaName,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}schema(t){return new e(this.url,{headers:this.headers,schema:t,fetch:this.fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}rpc(e,t={},{head:n=!1,get:r=!1,count:i}={}){let a,o=new URL(`${this.url}/rpc/${e}`),s,c=e=>typeof e==`object`&&!!e&&(!Array.isArray(e)||e.some(c)),l=n&&Object.values(t).some(c);l?(a=`POST`,s=t):n||r?(a=n?`HEAD`:`GET`,Object.entries(t).filter(([e,t])=>t!==void 0).map(([e,t])=>[e,Array.isArray(t)?`{${t.join(`,`)}}`:`${t}`]).forEach(([e,t])=>{o.searchParams.append(e,t)})):(a=`POST`,s=t);let u=new Headers(this.headers);return l?u.set(`Prefer`,i?`count=${i},return=minimal`:`return=minimal`):i&&u.set(`Prefer`,`count=${i}`),new se({method:a,url:o,headers:u,schema:this.schemaName,body:s,fetch:this.fetch??fetch,urlLengthLimit:this.urlLengthLimit,retry:this.retry})}},ue=class{constructor(){}static detectEnvironment(){if(typeof WebSocket<`u`)return{type:`native`,wsConstructor:WebSocket};let e=globalThis;if(typeof globalThis<`u`&&e.WebSocket!==void 0)return{type:`native`,wsConstructor:e.WebSocket};let t=typeof global<`u`?global:void 0;if(t&&t.WebSocket!==void 0)return{type:`native`,wsConstructor:t.WebSocket};if(typeof globalThis<`u`&&e.WebSocketPair!==void 0&&globalThis.WebSocket===void 0)return{type:`cloudflare`,error:`Cloudflare Workers detected. WebSocket clients are not supported in Cloudflare Workers.`,workaround:`Use Cloudflare Workers WebSocket API for server-side WebSocket handling, or deploy to a different runtime.`};if(typeof globalThis<`u`&&e.EdgeRuntime||typeof navigator<`u`&&navigator.userAgent?.includes(`Vercel-Edge`))return{type:`unsupported`,error:`Edge runtime detected (Vercel Edge/Netlify Edge). WebSockets are not supported in edge functions.`,workaround:`Use serverless functions or a different deployment target for WebSocket functionality.`};let n=globalThis.process;if(n){let e=n.versions;if(e&&e.node)return{type:`unsupported`,error:`Node.js detected but native WebSocket not found.`,workaround:`Ensure you are running Node.js 22+ or provide a WebSocket implementation via the transport option.`}}return{type:`unsupported`,error:`Unknown JavaScript runtime without WebSocket support.`,workaround:`Ensure you're running in a supported environment (browser, Node.js, Deno) or provide a custom WebSocket implementation.`}}static getWebSocketConstructor(){let e=this.detectEnvironment();if(e.wsConstructor)return e.wsConstructor;let t=e.error||`WebSocket not supported in this environment.`;throw e.workaround&&(t+=`\n\nSuggested solution: ${e.workaround}`),Error(t)}static isWebSocketSupported(){try{return this.detectEnvironment().type===`native`}catch{return!1}}};let v={closed:`closed`,errored:`errored`,joined:`joined`,joining:`joining`,leaving:`leaving`},de={close:`phx_close`,error:`phx_error`,join:`phx_join`,reply:`phx_reply`,leave:`phx_leave`,access_token:`access_token`},fe={connecting:`connecting`,open:`open`,closing:`closing`,closed:`closed`};var pe=class{constructor(e){this.HEADER_LENGTH=1,this.USER_BROADCAST_PUSH_META_LENGTH=6,this.KINDS={userBroadcastPush:3,userBroadcast:4},this.BINARY_ENCODING=0,this.JSON_ENCODING=1,this.BROADCAST_EVENT=`broadcast`,this.allowedMetadataKeys=[],this.allowedMetadataKeys=e??[]}encode(e,t){if(e.event===this.BROADCAST_EVENT&&!(e.payload instanceof ArrayBuffer)&&typeof e.payload.event==`string`)return t(this._binaryEncodeUserBroadcastPush(e));let n=[e.join_ref,e.ref,e.topic,e.event,e.payload];return t(JSON.stringify(n))}_binaryEncodeUserBroadcastPush(e){return this._isArrayBuffer(e.payload?.payload)?this._encodeBinaryUserBroadcastPush(e):this._encodeJsonUserBroadcastPush(e)}_encodeBinaryUserBroadcastPush(e){let t=e.payload?.payload??new ArrayBuffer(0);return this._encodeUserBroadcastPush(e,this.BINARY_ENCODING,t)}_encodeJsonUserBroadcastPush(e){let t=e.payload?.payload??{},n=new TextEncoder().encode(JSON.stringify(t)).buffer;return this._encodeUserBroadcastPush(e,this.JSON_ENCODING,n)}_encodeUserBroadcastPush(e,t,n){let r=new TextEncoder,i=r.encode(e.topic),a=r.encode(e.ref??``),o=r.encode(e.join_ref??``),s=r.encode(e.payload.event),c=this.allowedMetadataKeys?this._pick(e.payload,this.allowedMetadataKeys):{},l=r.encode(Object.keys(c).length===0?``:JSON.stringify(c));if(o.length>255)throw Error(`joinRef length ${o.length} exceeds maximum of 255`);if(a.length>255)throw Error(`ref length ${a.length} exceeds maximum of 255`);if(i.length>255)throw Error(`topic length ${i.length} exceeds maximum of 255`);if(s.length>255)throw Error(`userEvent length ${s.length} exceeds maximum of 255`);if(l.length>255)throw Error(`metadata length ${l.length} exceeds maximum of 255`);let u=this.USER_BROADCAST_PUSH_META_LENGTH+o.length+a.length+i.length+s.length+l.length,d=new ArrayBuffer(this.HEADER_LENGTH+u),f=new DataView(d),p=new Uint8Array(d),m=0;f.setUint8(m++,this.KINDS.userBroadcastPush),f.setUint8(m++,o.length),f.setUint8(m++,a.length),f.setUint8(m++,i.length),f.setUint8(m++,s.length),f.setUint8(m++,l.length),f.setUint8(m++,t),p.set(o,m),m+=o.length,p.set(a,m),m+=a.length,p.set(i,m),m+=i.length,p.set(s,m),m+=s.length,p.set(l,m),m+=l.length;var h=new Uint8Array(d.byteLength+n.byteLength);return h.set(new Uint8Array(d),0),h.set(new Uint8Array(n),d.byteLength),h.buffer}decode(e,t){if(this._isArrayBuffer(e))return t(this._binaryDecode(e));if(typeof e==`string`){let[n,r,i,a,o]=JSON.parse(e);return t({join_ref:n,ref:r,topic:i,event:a,payload:o})}return t({})}_binaryDecode(e){let t=new DataView(e),n=t.getUint8(0),r=new TextDecoder;switch(n){case this.KINDS.userBroadcast:return this._decodeUserBroadcast(e,t,r)}}_decodeUserBroadcast(e,t,n){let r=t.getUint8(1),i=t.getUint8(2),a=t.getUint8(3),o=t.getUint8(4),s=this.HEADER_LENGTH+4,c=n.decode(e.slice(s,s+r));s+=r;let l=n.decode(e.slice(s,s+i));s+=i;let u=n.decode(e.slice(s,s+a));s+=a;let d=e.slice(s,e.byteLength),f=o===this.JSON_ENCODING?JSON.parse(n.decode(d)):d,p={type:this.BROADCAST_EVENT,event:l,payload:f};return a>0&&(p.meta=JSON.parse(u)),{join_ref:null,ref:null,topic:c,event:this.BROADCAST_EVENT,payload:p}}_isArrayBuffer(e){return e instanceof ArrayBuffer||e?.constructor?.name===`ArrayBuffer`}_pick(e,t){return!e||typeof e!=`object`?{}:Object.fromEntries(Object.entries(e).filter(([e])=>t.includes(e)))}},y;(function(e){e.abstime=`abstime`,e.bool=`bool`,e.date=`date`,e.daterange=`daterange`,e.float4=`float4`,e.float8=`float8`,e.int2=`int2`,e.int4=`int4`,e.int4range=`int4range`,e.int8=`int8`,e.int8range=`int8range`,e.json=`json`,e.jsonb=`jsonb`,e.money=`money`,e.numeric=`numeric`,e.oid=`oid`,e.reltime=`reltime`,e.text=`text`,e.time=`time`,e.timestamp=`timestamp`,e.timestamptz=`timestamptz`,e.timetz=`timetz`,e.tsrange=`tsrange`,e.tstzrange=`tstzrange`})(y||={});let me=(e,t,n={})=>{let r=n.skipTypes??[];return t?Object.keys(t).reduce((n,i)=>(n[i]=he(i,e,t,r),n),{}):{}},he=(e,t,n,r)=>{let i=t.find(t=>t.name===e)?.type,a=n[e];return i&&!r.includes(i)?ge(i,a):_e(a)},ge=(e,t)=>{if(e.charAt(0)===`_`)return xe(t,e.slice(1,e.length));switch(e){case y.bool:return ve(t);case y.float4:case y.float8:case y.int2:case y.int4:case y.int8:case y.numeric:case y.oid:return ye(t);case y.json:case y.jsonb:return be(t);case y.timestamp:return Se(t);case y.abstime:case y.date:case y.daterange:case y.int4range:case y.int8range:case y.money:case y.reltime:case y.text:case y.time:case y.timestamptz:case y.timetz:case y.tsrange:case y.tstzrange:return _e(t);default:return _e(t)}},_e=e=>e,ve=e=>{switch(e){case`t`:return!0;case`f`:return!1;default:return e}},ye=e=>{if(typeof e==`string`){let t=parseFloat(e);if(!Number.isNaN(t))return t}return e},be=e=>{if(typeof e==`string`)try{return JSON.parse(e)}catch{return e}return e},xe=(e,t)=>{if(typeof e!=`string`)return e;let n=e.length-1,r=e[n];if(e[0]===`{`&&r===`}`){let r,i=e.slice(1,n);try{r=JSON.parse(`[`+i+`]`)}catch{r=i?i.split(`,`):[]}return r.map(e=>ge(t,e))}return e},Se=e=>typeof e==`string`?e.replace(` `,`T`):e,Ce=e=>{let t=new URL(e);return t.protocol=t.protocol.replace(/^ws/i,`http`),t.pathname=t.pathname.replace(/\/+$/,``).replace(/\/socket\/websocket$/i,``).replace(/\/socket$/i,``).replace(/\/websocket$/i,``),t.pathname===``||t.pathname===`/`?t.pathname=`/api/broadcast`:t.pathname+=`/api/broadcast`,t.href};var we=e=>typeof e==`function`?e:function(){return e},Te=typeof self<`u`?self:null,Ee=typeof window<`u`?window:null,b=Te||Ee||globalThis,De=`2.0.0`,Oe=1e4,ke=1e3,Ae=100,x={connecting:0,open:1,closing:2,closed:3},S={closed:`closed`,errored:`errored`,joined:`joined`,joining:`joining`,leaving:`leaving`},C={close:`phx_close`,error:`phx_error`,join:`phx_join`,reply:`phx_reply`,leave:`phx_leave`},je={longpoll:`longpoll`,websocket:`websocket`},Me={complete:4},Ne=`base64url.bearer.phx.`,Pe=class{constructor(e,t,n,r){this.channel=e,this.event=t,this.payload=n||function(){return{}},this.receivedResp=null,this.timeout=r,this.timeoutTimer=null,this.recHooks=[],this.sent=!1,this.ref=void 0}resend(e){this.timeout=e,this.reset(),this.send()}send(){this.hasReceived(`timeout`)||(this.startTimeout(),this.sent=!0,this.channel.socket.push({topic:this.channel.topic,event:this.event,payload:this.payload(),ref:this.ref,join_ref:this.channel.joinRef()}))}receive(e,t){return this.hasReceived(e)&&t(this.receivedResp.response),this.recHooks.push({status:e,callback:t}),this}reset(){this.cancelRefEvent(),this.ref=null,this.refEvent=null,this.receivedResp=null,this.sent=!1}destroy(){this.cancelRefEvent(),this.cancelTimeout()}matchReceive({status:e,response:t,_ref:n}){this.recHooks.filter(t=>t.status===e).forEach(e=>e.callback(t))}cancelRefEvent(){this.refEvent&&this.channel.off(this.refEvent)}cancelTimeout(){clearTimeout(this.timeoutTimer),this.timeoutTimer=null}startTimeout(){this.timeoutTimer&&this.cancelTimeout(),this.ref=this.channel.socket.makeRef(),this.refEvent=this.channel.replyEventName(this.ref),this.channel.on(this.refEvent,e=>{this.cancelRefEvent(),this.cancelTimeout(),this.receivedResp=e,this.matchReceive(e)}),this.timeoutTimer=setTimeout(()=>{this.trigger(`timeout`,{})},this.timeout)}hasReceived(e){return this.receivedResp&&this.receivedResp.status===e}trigger(e,t){this.channel.trigger(this.refEvent,{status:e,response:t})}},Fe=class{constructor(e,t){this.callback=e,this.timerCalc=t,this.timer=void 0,this.tries=0}reset(){this.tries=0,clearTimeout(this.timer)}scheduleTimeout(){clearTimeout(this.timer),this.timer=setTimeout(()=>{this.tries+=1,this.callback()},this.timerCalc(this.tries+1))}},Ie=class{constructor(e,t,n){this.state=S.closed,this.topic=e,this.params=we(t||{}),this.socket=n,this.bindings=[],this.bindingRef=0,this.timeout=this.socket.timeout,this.joinedOnce=!1,this.joinPush=new Pe(this,C.join,this.params,this.timeout),this.pushBuffer=[],this.stateChangeRefs=[],this.rejoinTimer=new Fe(()=>{this.socket.isConnected()&&this.rejoin()},this.socket.rejoinAfterMs),this.stateChangeRefs.push(this.socket.onError(()=>this.rejoinTimer.reset())),this.stateChangeRefs.push(this.socket.onOpen(()=>{this.rejoinTimer.reset(),this.isErrored()&&this.rejoin()})),this.joinPush.receive(`ok`,()=>{this.state=S.joined,this.rejoinTimer.reset(),this.pushBuffer.forEach(e=>e.send()),this.pushBuffer=[]}),this.joinPush.receive(`error`,e=>{this.state=S.errored,this.socket.hasLogger()&&this.socket.log(`channel`,`error ${this.topic}`,e),this.socket.isConnected()&&this.rejoinTimer.scheduleTimeout()}),this.onClose(()=>{this.rejoinTimer.reset(),this.socket.hasLogger()&&this.socket.log(`channel`,`close ${this.topic}`),this.state=S.closed,this.socket.remove(this)}),this.onError(e=>{this.socket.hasLogger()&&this.socket.log(`channel`,`error ${this.topic}`,e),this.isJoining()&&this.joinPush.reset(),this.state=S.errored,this.socket.isConnected()&&this.rejoinTimer.scheduleTimeout()}),this.joinPush.receive(`timeout`,()=>{this.socket.hasLogger()&&this.socket.log(`channel`,`timeout ${this.topic}`,this.joinPush.timeout),new Pe(this,C.leave,we({}),this.timeout).send(),this.state=S.errored,this.joinPush.reset(),this.socket.isConnected()&&this.rejoinTimer.scheduleTimeout()}),this.on(C.reply,(e,t)=>{this.trigger(this.replyEventName(t),e)})}join(e=this.timeout){if(this.joinedOnce)throw Error(`tried to join multiple times. 'join' can only be called a single time per channel instance`);return this.timeout=e,this.joinedOnce=!0,this.rejoin(),this.joinPush}teardown(){this.pushBuffer.forEach(e=>e.destroy()),this.pushBuffer=[],this.rejoinTimer.reset(),this.joinPush.destroy(),this.state=S.closed,this.bindings=[]}onClose(e){this.on(C.close,e)}onError(e){return this.on(C.error,t=>e(t))}on(e,t){let n=this.bindingRef++;return this.bindings.push({event:e,ref:n,callback:t}),n}off(e,t){this.bindings=this.bindings.filter(n=>!(n.event===e&&(t===void 0||t===n.ref)))}canPush(){return this.socket.isConnected()&&this.isJoined()}push(e,t,n=this.timeout){if(t||={},!this.joinedOnce)throw Error(`tried to push '${e}' to '${this.topic}' before joining. Use channel.join() before pushing events`);let r=new Pe(this,e,function(){return t},n);return this.canPush()?r.send():(r.startTimeout(),this.pushBuffer.push(r)),r}leave(e=this.timeout){this.rejoinTimer.reset(),this.joinPush.cancelTimeout(),this.state=S.leaving;let t=()=>{this.socket.hasLogger()&&this.socket.log(`channel`,`leave ${this.topic}`),this.trigger(C.close,`leave`)},n=new Pe(this,C.leave,we({}),e);return n.receive(`ok`,()=>t()).receive(`timeout`,()=>t()),n.send(),this.canPush()||n.trigger(`ok`,{}),n}onMessage(e,t,n){return t}filterBindings(e,t,n){return!0}isMember(e,t,n,r){return this.topic===e?r&&r!==this.joinRef()?(this.socket.hasLogger()&&this.socket.log(`channel`,`dropping outdated message`,{topic:e,event:t,payload:n,joinRef:r}),!1):!0:!1}joinRef(){return this.joinPush.ref}rejoin(e=this.timeout){this.isLeaving()||(this.socket.leaveOpenTopic(this.topic),this.state=S.joining,this.joinPush.resend(e))}trigger(e,t,n,r){let i=this.onMessage(e,t,n,r);if(t&&!i)throw Error(`channel onMessage callbacks must return the payload, modified or unmodified`);let a=this.bindings.filter(r=>r.event===e&&this.filterBindings(r,t,n));for(let e=0;e<a.length;e++)a[e].callback(i,n,r||this.joinRef())}replyEventName(e){return`chan_reply_${e}`}isClosed(){return this.state===S.closed}isErrored(){return this.state===S.errored}isJoined(){return this.state===S.joined}isJoining(){return this.state===S.joining}isLeaving(){return this.state===S.leaving}},Le=class{static request(e,t,n,r,i,a,o){if(b.XDomainRequest){let n=new b.XDomainRequest;return this.xdomainRequest(n,e,t,r,i,a,o)}else if(b.XMLHttpRequest){let s=new b.XMLHttpRequest;return this.xhrRequest(s,e,t,n,r,i,a,o)}else if(b.fetch&&b.AbortController)return this.fetchRequest(e,t,n,r,i,a,o);else throw Error(`No suitable XMLHttpRequest implementation found`)}static fetchRequest(e,t,n,r,i,a,o){let s={method:e,headers:n,body:r},c=null;return i&&(c=new AbortController,setTimeout(()=>c.abort(),i),s.signal=c.signal),b.fetch(t,s).then(e=>e.text()).then(e=>this.parseJSON(e)).then(e=>o&&o(e)).catch(e=>{e.name===`AbortError`&&a?a():o&&o(null)}),c}static xdomainRequest(e,t,n,r,i,a,o){return e.timeout=i,e.open(t,n),e.onload=()=>{let t=this.parseJSON(e.responseText);o&&o(t)},a&&(e.ontimeout=a),e.onprogress=()=>{},e.send(r),e}static xhrRequest(e,t,n,r,i,a,o,s){e.open(t,n,!0),e.timeout=a;for(let[t,n]of Object.entries(r))e.setRequestHeader(t,n);return e.onerror=()=>s&&s(null),e.onreadystatechange=()=>{e.readyState===Me.complete&&s&&s(this.parseJSON(e.responseText))},o&&(e.ontimeout=o),e.send(i),e}static parseJSON(e){if(!e||e===``)return null;try{return JSON.parse(e)}catch{return console&&console.log(`failed to parse JSON response`,e),null}}static serialize(e,t){let n=[];for(var r in e){if(!Object.prototype.hasOwnProperty.call(e,r))continue;let i=t?`${t}[${r}]`:r,a=e[r];typeof a==`object`?n.push(this.serialize(a,i)):n.push(encodeURIComponent(i)+`=`+encodeURIComponent(a))}return n.join(`&`)}static appendParams(e,t){return Object.keys(t).length===0?e:`${e}${e.match(/\?/)?`&`:`?`}${this.serialize(t)}`}},Re=e=>{let t=``,n=new Uint8Array(e),r=n.byteLength;for(let e=0;e<r;e++)t+=String.fromCharCode(n[e]);return btoa(t)},w=class{constructor(e,t){t&&t.length===2&&t[1].startsWith(Ne)&&(this.authToken=atob(t[1].slice(Ne.length))),this.endPoint=null,this.token=null,this.skipHeartbeat=!0,this.reqs=new Set,this.awaitingBatchAck=!1,this.currentBatch=null,this.currentBatchTimer=null,this.batchBuffer=[],this.onopen=function(){},this.onerror=function(){},this.onmessage=function(){},this.onclose=function(){},this.pollEndpoint=this.normalizeEndpoint(e),this.readyState=x.connecting,setTimeout(()=>this.poll(),0)}normalizeEndpoint(e){return e.replace(`ws://`,`http://`).replace(`wss://`,`https://`).replace(RegExp(`(.*)/`+je.websocket),`$1/`+je.longpoll)}endpointURL(){return Le.appendParams(this.pollEndpoint,{token:this.token})}closeAndRetry(e,t,n){this.close(e,t,n),this.readyState=x.connecting}ontimeout(){this.onerror(`timeout`),this.closeAndRetry(1005,`timeout`,!1)}isActive(){return this.readyState===x.open||this.readyState===x.connecting}poll(){let e={Accept:`application/json`};this.authToken&&(e[`X-Phoenix-AuthToken`]=this.authToken),this.ajax(`GET`,e,null,()=>this.ontimeout(),e=>{if(e){var{status:t,token:n,messages:r}=e;if(t===410&&this.token!==null){this.onerror(410),this.closeAndRetry(3410,`session_gone`,!1);return}this.token=n}else t=0;switch(t){case 200:r.forEach(e=>{setTimeout(()=>this.onmessage({data:e}),0)}),this.poll();break;case 204:this.poll();break;case 410:this.readyState=x.open,this.onopen({}),this.poll();break;case 403:this.onerror(403),this.close(1008,`forbidden`,!1);break;case 0:case 500:this.onerror(500),this.closeAndRetry(1011,`internal server error`,500);break;default:throw Error(`unhandled poll status ${t}`)}})}send(e){typeof e!=`string`&&(e=Re(e)),this.currentBatch?this.currentBatch.push(e):this.awaitingBatchAck?this.batchBuffer.push(e):(this.currentBatch=[e],this.currentBatchTimer=setTimeout(()=>{this.batchSend(this.currentBatch),this.currentBatch=null},0))}batchSend(e,t=0){this.awaitingBatchAck=!0;let n=t+Ae,r=e.slice(t,n);this.ajax(`POST`,{"Content-Type":`application/x-ndjson`},r.join(`
@@ -1517,7 +1484,7 @@ if (typeof window.supabase === 'undefined') {
   document.body.innerHTML =
     '<div style="padding:60px 24px;text-align:center;font-family:sans-serif;max-width:360px;margin:0 auto">' +
       '<h2 style="margin:0 0 10px">No pudimos cargar la app</h2>' +
-      '<p style="color:#666;font-size:14px;margin:0 0 20px">Intenta de nuevo o escribenos si el problema sigue.</p>' +
+      '<p style="color:#666;font-size:14px;margin:0 0 20px">Intenta de nuevo o escríbenos si el problema sigue.</p>' +
       '<button onclick="location.reload()" style="padding:14px 28px;background:#00c853;color:#fff;' +
         'border:0;border-radius:10px;font-weight:700;font-size:15px">Reintentar</button>' +
     '</div>';
@@ -1586,11 +1553,11 @@ window.DB = {
 
 var SPECIALTY_LABEL = {
   general:'General', euro:'Euro', americano:'Americano', europeo:'Europeo',
-  chino:'Chino', japones:'Japones', coreano:'Coreano', linea_pesada:'Linea pesada'
+  chino:'Chino', japones:'Japonés', coreano:'Coreano', linea_pesada:'Línea pesada'
 };
 
 var ORDER_STATUS_LABEL = {
-  created:'Factura emitida', pending_payment:'Esperando tu pago', whatsapp:'Coordinando por WhatsApp',
+  created:'Orden creada', pending_payment:'Esperando tu pago', whatsapp:'Coordinando por WhatsApp',
   paid:'Pagado', packing:'En embalaje', shipped:'Enviado', fulfilled:'Entregado',
   closed:'Cerrado', cancelled:'Cancelado'
 };
@@ -1643,7 +1610,7 @@ function cacheStores(list){
 /* un solo lugar donde muere un error de red o de RLS */
 function rrFail(err){
   var msg = (err && (err.message || err.error_description)) || 'algo fallo';
-  if (/JWT|not authenticated|401/i.test(msg)) msg = 'tu sesion vencio, entra de nuevo';
+  if (/JWT|not authenticated|401/i.test(msg)) msg = 'tu sesión vencio, entra de nuevo';
   if (/row-level security|permission denied/i.test(msg)) msg = 'no tienes permiso para eso';
   if (typeof toast === 'function') toast(msg);
   console.error('[rr]', err);
@@ -2488,7 +2455,7 @@ function renderCategoryLinks(id, limit){
     return photoCard(c, 'side-link', '#/resultados/o=' + encodeURIComponent(c.origin));
   }).join('');
   if (limit && all.length > limit) {
-    html += '<a class="side-link more" href="#/categorias"><span class="lb">Ver todas las categorias</span>' +
+    html += '<a class="side-link more" href="#/categorias"><span class="lb">Ver todas las categorías</span>' +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></a>';
   }
   el.innerHTML = html;
@@ -2510,7 +2477,7 @@ function renderFeatured(){
   API.listProducts({}).then(function(all){
     var list = all.sort(function(a,b){ return (b.recommended?1:0) - (a.recommended?1:0); }).slice(0, 10);
     el.innerHTML = list.length ? list.map(productCard).join('')
-      : '<p class="empty" style="grid-column:1/-1">Todavia no hay productos publicados.</p>';
+      : '<p class="empty" style="grid-column:1/-1">Todavía no hay productos publicados.</p>';
   });
 }
 
@@ -2611,7 +2578,7 @@ function renderMechanics(){
     if (!mecListEl) return;
 
     if (!filtered.length) {
-      mecListEl.innerHTML = '<p class="empty">No hay mecanicos en esta categoria todavia.</p>';
+      mecListEl.innerHTML = '<p class="empty">No hay mecánicos en esta categoría todavía.</p>';
       return;
     }
 
@@ -2653,7 +2620,7 @@ function renderServices(){
 /* pide el WhatsApp y registra la solicitud (service_requests) */
 /* ---------------------------------------------------------------------------
    SOLICITUD A UN MECANICO — Red Ruedda (Ruedda Taller Avalado).
-   El chip "No se que es" es a proposito el mas facil de tocar: la mayoria de
+   El chip "No sé qué es" es a proposito el mas facil de tocar: la mayoria de
    la gente que necesita un mecanico no sabe que le pasa al carro, y esta
    pantalla no la castiga por eso — manda la solicitud directo a Diagnostico.
    --------------------------------------------------------------------------- */
@@ -2664,8 +2631,8 @@ var SINTOMA_ESPECIALIDAD = {
 };
 var SINTOMA_LABEL = {
   mantenimiento:'Mantenimiento', no_arranca:'No arranca', ruido_raro:'Un ruido raro', frenos:'Frenos',
-  se_calienta:'Se calienta', ac:'Aire acondicionado', luz_tablero:'Luz del tablero', electrico:'Electrico',
-  golpe:'Un golpe', no_se_que_es:'No se que es'
+  se_calienta:'Se calienta', ac:'Aire acondicionado', luz_tablero:'Luz del tablero', electrico:'Eléctrico',
+  golpe:'Un golpe', no_se_que_es:'No sé qué es'
 };
 
 var MARCAS_ALTA_GAMA = { bmw:'BMW', mercedes_benz:'Mercedes-Benz', audi:'Audi', porsche:'Porsche',
@@ -2675,7 +2642,7 @@ function openSolicitudMecanico(){
   var data = { sintoma:null, modalidad:'taller', vehiculo_desc:'', vehiculo_serial:'', segmento_id:null, marca_alta_gama:null, urgencia:'cuando_se_pueda', zona:'' };
 
   function step1(){
-    openSheet('<h2>Que le pasa?</h2><p class="lead">Escoge lo mas parecido. Si no sabes que es, tambien sirve.</p>' +
+    openSheet('<h2>¿Qué le pasa?</h2><p class="lead">Escoge lo más parecido. Si no sabes que es, también sirve.</p>' +
       '<div class="chips" style="margin-bottom:18px">' +
       Object.keys(SINTOMA_LABEL).map(function(k){
         return '<button type="button" class="chip' + (k === 'no_se_que_es' ? '' : '') + '" data-sint="' + k + '">' + esc(SINTOMA_LABEL[k]) + '</button>';
@@ -2687,29 +2654,29 @@ function openSolicitudMecanico(){
   }
 
   function step2(){
-    openSheet('<h2>Donde te atienden?</h2>' +
-      '<button class="mopt" data-mod="taller"><b>En el taller del mecanico</b></button>' +
+    openSheet('<h2>¿Dónde te atienden?</h2>' +
+      '<button class="mopt" data-mod="taller"><b>En el taller del mecánico</b></button>' +
       '<button class="mopt" data-mod="domicilio"><b>Donde estoy</b></button>' +
       '<button class="mopt" data-mod="grua"><b>El carro no se mueve</b></button>' +
-      '<a class="pm-back" id="s2_back">&larr; Atras</a>');
+      '<a class="pm-back" id="s2_back">&larr; Atrás</a>');
     $$('[data-mod]').forEach(function(btn){ btn.onclick = function(){ data.modalidad = btn.dataset.mod; step3(); }; });
     $('#s2_back').onclick = step1;
   }
 
   function step3(){
-    openSheet('<h2>Cual es tu vehiculo?</h2>' +
+    openSheet('<h2>¿Cuál es tu vehículo?</h2>' +
       field('sol_veh','Marca, modelo y año','Toyota Hilux 2014','maxlength="60" value="' + esc(data.vehiculo_desc) + '"') +
       field('sol_serial','Serial / VIN (opcional)','opcional','maxlength="30" value="' + esc(data.vehiculo_serial) + '"') +
-      '<div class="field"><label>Tipo de vehiculo</label>' +
+      '<div class="field"><label>Tipo de vehículo</label>' +
       '<div class="pm-grid">' +
       ['A','B','C','D','E'].map(function(s){
-        var EJ = { A:'Sedan pequeno', B:'Sedan/SUV mediano', C:'Camioneta/SUV grande', D:'Diesel/comercial',
+        var EJ = { A:'Sedán pequeño', B:'Sedan/SUV mediano', C:'Camioneta/SUV grande', D:'Diesel/comercial',
                    E:'Alta gama / aleman / exotico' };
         return '<button type="button" class="pm-card' + (s === 'E' ? '' : '') + '" data-seg="' + s + '" style="' +
           (s === 'E' ? 'grid-column:1/-1' : '') + '"><span class="pm-ico">' + s + '</span><b>' + esc(EJ[s]) + '</b></button>';
       }).join('') + '</div></div>' +
       '<button class="primary" id="s3_go">Siguiente</button>' +
-      '<a class="pm-back" id="s3_back">&larr; Atras</a>');
+      '<a class="pm-back" id="s3_back">&larr; Atrás</a>');
     var segSel = null;
     $$('[data-seg]').forEach(function(btn){
       btn.onclick = function(){
@@ -2722,7 +2689,7 @@ function openSolicitudMecanico(){
       clearErrors();
       var veh = cleanText($('#sol_veh').value, 60);
       if (veh.length < 3) return fieldError('sol_veh','Escribe marca, modelo y año.');
-      if (!segSel) return toast('Escoge el tipo de vehiculo.');
+      if (!segSel) return toast('Escoge el tipo de vehículo.');
       data.vehiculo_desc = veh;
       data.vehiculo_serial = cleanText($('#sol_serial').value, 30);
       data.segmento_id = segSel;
@@ -2731,12 +2698,12 @@ function openSolicitudMecanico(){
   }
 
   function step3b(){
-    openSheet('<h2>Que marca es?</h2>' +
-      '<p class="lead">Los carros de alta gama y europeos necesitan un mecanico certificado especificamente en esa marca.</p>' +
+    openSheet('<h2>¿Qué marca es?</h2>' +
+      '<p class="lead">Los carros de alta gama y europeos necesitan un mecánico certificado especificamente en esa marca.</p>' +
       '<div class="pm-grid">' + Object.keys(MARCAS_ALTA_GAMA).map(function(k){
         return '<button type="button" class="pm-card" data-marca="' + k + '"><b>' + esc(MARCAS_ALTA_GAMA[k]) + '</b></button>';
       }).join('') + '</div>' +
-      '<a class="pm-back" id="s3b_back">&larr; Atras</a>');
+      '<a class="pm-back" id="s3b_back">&larr; Atrás</a>');
     $$('[data-marca]').forEach(function(btn){
       btn.onclick = function(){ data.marca_alta_gama = btn.dataset.marca; step4(); };
     });
@@ -2744,35 +2711,35 @@ function openSolicitudMecanico(){
   }
 
   function step4(){
-    openSheet('<h2>Para cuando?</h2>' +
+    openSheet('<h2>¿Para cuándo?</h2>' +
       '<button class="mopt" data-urg="hoy"><b>Hoy mismo</b></button>' +
       '<button class="mopt" data-urg="esta_semana"><b>Esta semana</b></button>' +
       '<button class="mopt" data-urg="cuando_se_pueda"><b>Cuando se pueda</b></button>' +
-      '<a class="pm-back" id="s4_back">&larr; Atras</a>');
+      '<a class="pm-back" id="s4_back">&larr; Atrás</a>');
     $$('[data-urg]').forEach(function(btn){ btn.onclick = function(){ data.urgencia = btn.dataset.urg; step5(); }; });
     $('#s4_back').onclick = step3;
   }
 
   function step5(){
     var needsPhone = !STATE.session;
-    openSheet('<h2>Ultimo paso</h2>' +
-      '<button type="button" class="secondary" id="s5_loc" style="margin-bottom:12px">📍 Usar mi ubicacion actual</button>' +
+    openSheet('<h2>Último paso</h2>' +
+      '<button type="button" class="secondary" id="s5_loc" style="margin-bottom:12px">📍 Usar mi ubicación actual</button>' +
       field('sol_zona','Tu zona','Caracas - Chacao','maxlength="140" value="' + esc(data.zona) + '"') +
       (needsPhone ? field('sol_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') : '') +
       '<button class="primary" id="s5_go">Pedir presupuestos</button>' +
       '<p class="hint-sm" style="text-align:center">Pedir presupuesto es gratis y no te compromete a nada.</p>');
 
     $('#s5_loc').onclick = function(){
-      if (!navigator.geolocation) return toast('Tu navegador no soporta ubicacion');
-      var btn = this; btn.disabled = true; btn.textContent = 'Buscando tu ubicacion...';
+      if (!navigator.geolocation) return toast('Tu navegador no soporta ubicación');
+      var btn = this; btn.disabled = true; btn.textContent = 'Buscando tu ubicación...';
       navigator.geolocation.getCurrentPosition(function(pos){
         var lat = pos.coords.latitude.toFixed(6), lng = pos.coords.longitude.toFixed(6);
-        $('#sol_zona').value = 'Mi ubicacion: https://maps.google.com/?q=' + lat + ',' + lng;
-        btn.disabled = false; btn.textContent = '📍 Ubicacion agregada';
-        toast('Ubicacion agregada a tu solicitud');
+        $('#sol_zona').value = 'Mi ubicación: https://maps.google.com/?q=' + lat + ',' + lng;
+        btn.disabled = false; btn.textContent = '📍 Ubicación agregada';
+        toast('Ubicación agregada a tu solicitud');
       }, function(err){
-        btn.disabled = false; btn.textContent = '📍 Usar mi ubicacion actual';
-        toast(err && err.code === 1 ? 'Bloqueaste el permiso de ubicacion' : 'No pudimos obtener tu ubicacion');
+        btn.disabled = false; btn.textContent = '📍 Usar mi ubicación actual';
+        toast(err && err.code === 1 ? 'Bloqueaste el permiso de ubicación' : 'No pudimos obtener tu ubicación');
       }, { enableHighAccuracy: true, timeout: 8000 });
     };
 
@@ -2791,8 +2758,7 @@ function openSolicitudMecanico(){
         zona: data.zona, guest_phone: wa, marca_alta_gama: data.marca_alta_gama
       }).then(function(){
         openSheet('<h2>Ya salio tu solicitud</h2>' +
-          '<p class="lead">Los mecanicos avalados de tu zona la estan viendo. Normalmente el primer ' +
-          'presupuesto llega en menos de una hora' + (needsPhone ? ' — te avisamos por WhatsApp.' : '.') + '</p>' +
+          '<p class="lead">Un asesor de Ruedda Repuestos revisa tu solicitud y te escribe por WhatsApp' + (needsPhone ? ' al número que dejaste.' : '.') + ' Te orientamos antes de que compres o repares.</p>' +
           (STATE.session ? '<button class="primary" id="s5_ver">Ver mis solicitudes</button>' : '') +
           '<button class="secondary" data-close>Listo</button>');
         var ver = $('#s5_ver'); if (ver) ver.onclick = function(){ SHEETS.misSolicitudes(); };
@@ -2807,7 +2773,7 @@ function openSolicitudDetalle(solId){
   openSheet('<h2>Presupuestos</h2><p class="empty">Cargando...</p>');
   API.listPresupuestosForSolicitud(solId).then(function(list){
     if (!list.length) {
-      openSheet('<h2>Presupuestos</h2><p class="lead">Todavia no te llega ningun presupuesto. Los mecanicos avalados de tu zona ya la estan viendo.</p><button class="secondary" data-close>Cerrar</button>');
+      openSheet('<h2>Presupuestos</h2><p class="lead">Todavía no hay presupuestos. Un asesor de Ruedda Repuestos te escribe por WhatsApp para darte seguimiento.</p><button class="secondary" data-close>Cerrar</button>');
       return;
     }
     openSheet('<h2>Presupuestos recibidos</h2>' +
@@ -2823,7 +2789,7 @@ function openSolicitudDetalle(solId){
       btn.onclick = function(){
         btn.disabled = true;
         API.approvePresupuestoRta(btn.dataset.aprob)
-          .then(function(){ closeSheet(); toast('Presupuesto aprobado. El mecanico ya puede empezar.'); })
+          .then(function(){ closeSheet(); toast('Presupuesto aprobado. El mecánico ya puede empezar.'); })
           .catch(function(err){ btn.disabled = false; toast(err.message || 'No se pudo aprobar'); });
       };
     });
@@ -2842,7 +2808,7 @@ function openPanelMecanico(mec){
   ]).then(function(res){
       var solicitudes = res[0] || [], trabajos = res[1] || [], altaGama = res[2] || [];
       solicitudes = solicitudes.concat(altaGama);
-      openSheet('<h2>Panel de mecanico</h2>' +
+      openSheet('<h2>Panel de mecánico</h2>' +
         '<p class="lead">' + esc(mec.name) + '</p>' +
         '<button type="button" class="sharebtn" id="pm_marcas" style="margin-bottom:14px">Configurar marcas de alta gama</button>' +
         '<p class="mec-cat-h">Solicitudes que te calzan (' + solicitudes.length + ')</p>' +
@@ -2895,9 +2861,9 @@ function openMechanicBrandsForm(mec){
 
 function openPresupuestoForm(solicitudId, mec){
   openSheet('<h2>Presupuesto por escrito</h2>' +
-    '<p class="lead">No puede subir mas de 10% sin que el cliente lo apruebe.</p>' +
+    '<p class="lead">No puede subir más de 10% sin que el cliente lo apruebe.</p>' +
     field('pr_mano','Mano de obra (USD)','85','inputmode="decimal"') +
-    field('pr_rep','Repuestos (descripcion, opcional)','Correa Gates, tensor') +
+    field('pr_rep','Repuestos (descripción, opcional)','Correa Gates, tensor') +
     field('pr_rep_usd','Costo de esos repuestos (USD)','0','inputmode="decimal"') +
     '<button class="primary" id="pr_go">Enviar presupuesto</button>');
   $('#pr_go').onclick = function(){
@@ -2918,8 +2884,8 @@ function openPresupuestoForm(solicitudId, mec){
 
 function openCierreTrabajoForm(trabajoId, mec){
   openSheet('<h2>Cierre de trabajo</h2>' +
-    '<div class="field"><label>Se completo el trabajo?</label><select class="inp" id="ct_completado">' +
-      '<option value="si">Si</option><option value="parcial">Parcialmente</option><option value="no">No</option>' +
+    '<div class="field"><label>¿Se completó el trabajo?</label><select class="inp" id="ct_completado">' +
+      '<option value="si">Sí</option><option value="parcial">Parcialmente</option><option value="no">No</option>' +
     '</select></div>' +
     field('ct_km','Kilometraje al entregar','186500','inputmode="numeric" maxlength="7"') +
     field('ct_obs','Observaciones','Todo en orden, cambio de correa y tensor') +
@@ -2937,18 +2903,18 @@ function openCierreTrabajoForm(trabajoId, mec){
 
 function requestService(kind, titulo){
   openSheet('<h2>' + esc(titulo || 'Te contactamos') + '</h2>' +
-    '<p class="lead">Dejanos tu WhatsApp y un mecanico autorizado te escribe.</p>' +
+    '<p class="lead">Déjanos tu WhatsApp y un mecánico te escribe.</p>' +
     field('sr_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') +
     honeypot() + '<button class="primary" id="sr_go">Solicitar</button>');
   var t0 = Date.now();
   $('#sr_go').onclick = function(){
     clearErrors();
     if (!hpClean()) return;
-    if (Date.now() - t0 < 800) return toast('Un momento, revisa el numero.');
+    if (Date.now() - t0 < 800) return toast('Un momento, revisa el número.');
     var wa = onlyDigits($('#sr_wa').value, 15);
     if (!isPhoneVE(wa)) return fieldError('sr_wa','El WhatsApp lleva de 10 a 15 digitos.');
     API.createServiceRequest(kind, wa, STATE.session && STATE.session.id).then(function(){
-      closeSheet(); toast('Listo. Un mecanico te escribe.');
+      closeSheet(); toast('Listo. Un mecánico te escribe.');
     });
   };
 }
@@ -2963,8 +2929,8 @@ function requestService(kind, titulo){
    --------------------------------------------------------------------------- */
 function openImportRequest(query){
   openSheet('<h2>Buscar en el mundo</h2>' +
-    '<p class="lead">Cuentanos que pieza buscas. La buscamos en sitios internacionales y te cotizamos con el costo de importacion incluido.</p>' +
-    field('iq_q','Numero de parte o descripcion','ej. Bujias NGK ILZKR7B','maxlength="120" value="' + esc(query || '') + '"') +
+    '<p class="lead">Cuéntanos que pieza buscas. La buscamos en sitios internacionales y te cotizamos con el costo de importacion incluido.</p>' +
+    field('iq_q','Número de parte o descripción','ej. Bujías NGK ILZKR7B','maxlength="120" value="' + esc(query || '') + '"') +
     field('iq_notes','Detalles (marca, modelo, año)','opcional','maxlength="200"') +
     field('iq_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') +
     honeypot() + '<button class="primary" id="iq_go">Solicitar</button>');
@@ -3089,11 +3055,11 @@ function resultsTitle(f){
   }
   if (f.brand) return f.brand.toUpperCase();
   if (f.store_id) { var st = storeById(f.store_id); if (st) return st.name.toUpperCase(); }
-  if (f.q) return 'BUSQUEDA';
-  return 'TODO EL CATALOGO';
+  if (f.q) return 'BÚSQUEDA';
+  return 'TODO EL CATÁLOGO';
 }
 
-var ORIGIN_LABEL = { euro:'Euro', americano:'Americanos', asiatico:'Chinos / Japoneses', pesada:'Linea pesada' };
+var ORIGIN_LABEL = { euro:'Euro', americano:'Americanos', asiatico:'Chinos / Japoneses', pesada:'Línea pesada' };
 
 /* Barra de subcategorias.
    Regla: se muestran SIEMPRE los dos ejes (con el activo resaltado), para que
@@ -3153,17 +3119,17 @@ function renderResults(arg){
 
     renderFacets(f, fc);
     $('#resCount').textContent = total
-      ? total + (total === 1 ? ' repuesto' : ' repuestos') + (API._lastLoose ? ' parecidos a tu busqueda' : '')
+      ? total + (total === 1 ? ' repuesto' : ' repuestos') + (API._lastLoose ? ' parecidos a tu búsqueda' : '')
       : '';
 
     $('#resGrid').innerHTML = list.length
       ? list.map(productCard).join('') +
         (total > list.length
-          ? '<button class="secondary" id="resMore" style="grid-column:1/-1;max-width:280px;margin:18px auto 0">Ver mas repuestos</button>'
+          ? '<button class="secondary" id="resMore" style="grid-column:1/-1;max-width:280px;margin:18px auto 0">Ver más repuestos</button>'
           : '')
       : '<div class="empty" style="grid-column:1/-1">' +
         '<p class="mec-cat-h" style="margin:0 0 4px">En stock</p>' +
-        '<p>No conseguimos ese repuesto en Venezuela todavia.</p>' +
+        '<p>No conseguimos ese repuesto en Venezuela todavía.</p>' +
         (Object.keys(f).length > 1
           ? '<button class="secondary" id="resReset" style="max-width:280px;margin:14px auto 0">Quitar filtros</button>'
           : '') +
@@ -3188,7 +3154,7 @@ function renderResults(arg){
     };
   }).catch(function(err){
     $('#resGrid').innerHTML = '<p class="empty" style="grid-column:1/-1">' +
-      esc(err.message || 'No pudimos buscar ahorita') + '. Recarga la pagina.</p>';
+      esc(err.message || 'No pudimos buscar ahorita') + '. Recarga la página.</p>';
   });
 }
 
@@ -3200,13 +3166,13 @@ function renderPDP(id){
   API.getProduct(id).then(function(p){
     if (!p || (p.status !== 'published' && !isAdmin())) {
       $('#pdpBody').innerHTML =
-        '<div class="empty"><p>Ese repuesto ya no esta disponible.</p>' +
-        '<a class="secondary" style="display:grid;place-items:center;max-width:280px;margin:14px auto 0;text-decoration:none" href="#/categorias">Ver categorias</a></div>';
+        '<div class="empty"><p>Ese repuesto ya no está disponible.</p>' +
+        '<a class="secondary" style="display:grid;place-items:center;max-width:280px;margin:14px auto 0;text-decoration:none" href="#/categorias">Ver categorías</a></div>';
       return;
     }
     return API.getStore(p.store_id).then(function(s){ paintPDP(p, s || {}); });
   }).catch(function(){
-    $('#pdpBody').innerHTML = '<p class="empty">No pudimos cargar este repuesto. Recarga la pagina.</p>';
+    $('#pdpBody').innerHTML = '<p class="empty">No pudimos cargar este repuesto. Recarga la página.</p>';
   });
 }
 
@@ -3242,18 +3208,18 @@ function paintPDP(p, s){
     '<div class="qty-row">' +
       '<div class="qty"><button id="qMinus" aria-label="Quitar uno">−</button><b id="qVal">1</b><button id="qPlus" aria-label="Agregar uno">+</button></div>' +
       '<div class="mini-mec">' +
-        '<p>No sabes si de verdad<br>necesitas ese repuesto?</p>' +
-        '<a class="mecbtn" href="#/mecanicos"><b>HABLA CON NUESTROS<br>MECANICOS VERIFICADOS</b></a>' +
+        '<p>¿No sabes si de verdad<br>necesitas ese repuesto?</p>' +
+        '<a class="mecbtn" href="#/mecanicos"><b>PREGÚNTALE A UN<br>MECÁNICO ANTES DE COMPRAR</b></a>' +
       '</div>' +
     '</div>' +
     (p.stock > 0
       ? '<button class="buy" id="btnBuy">COMPRAR</button>' +
         '<button class="addcart" id="btnAdd">Agregar al carrito</button>'
       : '<button class="buy is-off" disabled>AGOTADO</button>' +
-        '<p class="soldout-note">Este repuesto se acabo. Escribenos por soporte y te avisamos cuando entre.</p>') +
+        '<p class="soldout-note">Este repuesto se acabo. Escríbenos por soporte y te avisamos cuando entre.</p>') +
     '<a class="tool-cta" href="javascript:void(0)" id="btnToolRent">' +
       '<span class="tc-ico"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.1 2.1-2.6-.6-.6-2.6z"/></svg></span>' +
-      '<span class="tc-bd"><b>Sabes de mecanica?</b><span>Alquila las herramientas para instalar esto.</span></span>' +
+      '<span class="tc-bd"><b>¿Sabes de mecánica?</b><span>Alquila las herramientas para instalar esto.</span></span>' +
     '</a>' +
     '<div id="pdpReviews" style="margin-top:26px"></div>';
 
@@ -3275,7 +3241,7 @@ function paintPDP(p, s){
 
   var shareBtn = $('#btnShareP');
   if (shareBtn) shareBtn.onclick = function(){
-    shareThis(p.name, location.origin + location.pathname + '#/p/' + p.id, p.name + ' en ruedda repuestos');
+    shareThis(p.name, location.origin + location.pathname + '#/p/' + p.id, p.name + ' en Ruedda Repuestos');
   };
 }
 
@@ -3305,7 +3271,7 @@ function renderProductReviews(productId){
                 '<span style="color:var(--mute)">' + esc(fecha(r.created_at)) + '</span></div>' +
                 (r.comment ? '<p class="rev-txt">' + esc(r.comment) + '</p>' : '') + '</div></div>';
             }).join('')
-          : '<p class="empty">Todavia no hay calificaciones de este producto.</p>');
+          : '<p class="empty">Todavía no hay calificaciones de este producto.</p>');
     }).catch(function(){ el.innerHTML = ''; });
 }
 
@@ -3331,7 +3297,7 @@ function openRateOrder(order){
   }
 
   function stepStore(){
-    openSheet('<h2>Como estuvo la tienda?</h2><p class="lead">Tu compra en ' + esc(order.store_name || 'la tienda') + '.</p>' +
+    openSheet('<h2>¿Cómo estuvo la tienda?</h2><p class="lead">Tu compra en ' + esc(order.store_name || 'la tienda') + '.</p>' +
       starsPicker('store', storeRating) +
       field('rv_store_c','Comentario (opcional)','Todo llego bien y a tiempo') +
       '<button class="primary" id="rv_next">' + (items.length ? 'Siguiente' : 'Enviar') + '</button>');
@@ -3347,7 +3313,7 @@ function openRateOrder(order){
   function stepProduct(){
     var it = items[idx];
     var rating = 0, comment = '';
-    openSheet('<h2>Y este repuesto?</h2><p class="lead">' + esc(it.name) + '</p>' +
+    openSheet('<h2>¿Y este repuesto?</h2><p class="lead">' + esc(it.name) + '</p>' +
       starsPicker('prod', 0) +
       field('rv_prod_c','Comentario (opcional)','Encajo perfecto') +
       '<button class="primary" id="rv_next2">' + (idx < items.length - 1 ? 'Siguiente' : 'Terminar') + '</button>' +
@@ -3377,7 +3343,7 @@ function openToolRentals(category){
   function paint(list){
     if (!list || !list.length) {
       openSheet('<h2>Alquiler de herramienta</h2>' +
-        '<p class="lead">Proximamente. Estamos armando el catalogo de herramientas para que cualquiera pueda ' +
+        '<p class="lead">Próximamente. Estamos armando el catálogo de herramientas para que cualquiera pueda ' +
         'alquilar lo que le falta e instalar su propio repuesto.</p>' +
         '<button class="secondary" data-close>Entendido</button>');
       return;
@@ -3410,7 +3376,7 @@ function addToCart(productId, qty){
     var line = STATE.cart.filter(function(i){ return i.product_id === productId; })[0];
     var have = line ? line.qty : 0;
     if (have + qty > p.stock) {
-      toast(p.stock - have > 0 ? 'Solo puedes agregar ' + (p.stock - have) + ' mas.' : 'Ya tienes todo el stock disponible.');
+      toast(p.stock - have > 0 ? 'Solo puedes agregar ' + (p.stock - have) + ' más.' : 'Ya tienes todo el stock disponible.');
       return;
     }
     if (line) line.qty += qty; else STATE.cart.push({ product_id:productId, qty:qty });
@@ -3487,8 +3453,8 @@ function hydrateCart(){
 }
 function renderCart(){
   if (!STATE.cart.length) {
-    $('#cartBody').innerHTML = '<p class="empty">Tu carrito esta vacio. Busca por numero de parte y agrega lo que necesitas.</p>' +
-      '<a class="primary" style="display:grid;place-items:center;text-decoration:none" href="#/categorias">Ver categorias</a>';
+    $('#cartBody').innerHTML = '<p class="empty">Tu carrito esta vacio. Busca por número de parte y agrega lo que necesitas.</p>' +
+      '<a class="primary" style="display:grid;place-items:center;text-decoration:none" href="#/categorias">Ver categorías</a>';
     return;
   }
 
@@ -3535,7 +3501,7 @@ function renderCart(){
     '<div style="text-align:right;font-size:12px;color:#666">' +
       esc(Math.round(total * window.DB.config.bs_rate).toLocaleString('es-VE')) + ' bs</div>' +
     (nStores > 1 ? '<p style="font-size:12px;color:#666;margin:12px 0 0">Tu pedido es de ' + nStores +
-      ' tiendas distintas, asi que recibes una factura por cada una.</p>' : '') + '</div>' +
+      ' tiendas distintas, así que recibes una orden por cada una.</p>' : '') + '</div>' +
     '<button class="primary" id="cartBuy">Comprar todo</button>';
 
   $('#cartBuy').onclick = function(){ startCheckout(STATE.cart.slice()); };
@@ -3592,24 +3558,24 @@ var SHEETS = {
     var sid = currentStoreId();
     if (!sid) {
       return openSheet('<h2>Panel de mi tienda</h2><p class="lead">Entra con tu cuenta de vendedor para administrar productos, pedidos y datos de pago.</p>' +
-        '<button class="primary" data-sheet="login">Iniciar sesion</button>' +
+        '<button class="primary" data-sheet="login">Iniciar sesión</button>' +
         '<button class="secondary" data-sheet="seller">Quiero ser vendedor</button>');
     }
     Promise.all([API.getStore(sid), API.listStoreProducts(sid), API.listStoreOrders(sid)])
       .then(function(r){
         var st = r[0] || {}, prods = r[1], orders = r[2];
         var pend = prods.filter(function(p){ return p.status === 'pending_review'; }).length;
-        var STATUS = { pending:'En revision', approved:'Aprobada', licensed:'Con licencia', suspended:'Suspendida' };
+        var STATUS = { pending:'En revisión', approved:'Aprobada', licensed:'Con licencia', suspended:'Suspendida' };
         openSheet('<h2>' + esc(st.name || 'Mi tienda') + '</h2>' +
           '<p class="lead">Estado: <b>' + esc(STATUS[st.status] || st.status) + '</b>' +
           (st.verified ? ' · <span class="mini-chk">✓</span> verificada' : '') + '</p>' +
           '<div class="stat-row">' +
             '<div class="stat"><b>' + prods.length + '</b><span>productos</span></div>' +
-            '<div class="stat"><b>' + pend + '</b><span>en revision</span></div>' +
+            '<div class="stat"><b>' + pend + '</b><span>en revisión</span></div>' +
             '<div class="stat"><b>' + orders.length + '</b><span>pedidos</span></div>' +
           '</div>' +
           (st.status === 'pending'
-            ? '<p class="warn-note">Tu tienda esta en revision. Puedes cargar productos, pero no se publican hasta que ruedda apruebe la tienda.</p>' : '') +
+            ? '<p class="warn-note">Tu tienda esta en revisión. Puedes cargar productos, pero no se publican hasta que ruedda apruebe la tienda.</p>' : '') +
           '<button class="dark" data-panel="producto">Cargar producto</button>' +
           '<button class="dark" data-panel="pagos">Datos de pago</button>' +
           '<button class="dark" data-panel="pedidos">Pedidos entrantes</button>' +
@@ -3624,19 +3590,19 @@ var SHEETS = {
   },
 
   support: function(){
-    openSheet('<h2>Soporte</h2><p class="lead">Escribenos el numero de parte que buscas y lo conseguimos.</p>' +
+    openSheet('<h2>Soporte</h2><p class="lead">Escríbenos el número de parte que buscas y lo conseguimos.</p>' +
       '<a class="primary" style="display:grid;place-items:center" href="https://wa.me/' + esc(window.DB.config.whatsapp_soporte) + '" target="_blank" rel="noopener">Abrir WhatsApp</a>');
   },
 
   terms: function(){
-    openSheet('<h2>Terminos y privacidad</h2>' +
-      '<p class="lead">ruedda repuestos conecta compradores con tiendas verificadas. La tienda es responsable del despacho y la garantia del repuesto. Guardamos tus datos de contacto solo para procesar el pedido y no los compartimos con terceros fuera de la tienda que te vende.</p>' +
+    openSheet('<h2>Términos y privacidad</h2>' +
+      '<p class="lead">Ruedda Repuestos conecta compradores con tiendas verificadas. La tienda es responsable del despacho y la garantía del repuesto. Guardamos tus datos de contacto solo para procesar el pedido y no los compartimos con terceros fuera de la tienda que te vende.</p>' +
       '<button class="secondary" data-close>Entendido</button>');
   }
 };
 
 SHEETS.login = function(){
-  openSheet('<h2>Iniciar sesion</h2><p class="lead">Es la misma cuenta de ruedda. Si ya compras carros con nosotros, entra con esos datos.</p>' +
+  openSheet('<h2>Iniciar sesión</h2><p class="lead">Es la misma cuenta de ruedda. Si ya compras carros con nosotros, entra con esos datos.</p>' +
     '<div class="soc-row">' +
       '<button type="button" class="soc-btn" id="lg_google"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.3 13.1 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 2.9-2.2 5.4-4.6 7.1l7.2 5.6c4.2-3.9 6.7-9.6 6.7-17.2z"/><path fill="#FBBC05" d="M10.5 19.3a14.5 14.5 0 0 0 0 9.4l-7.9 6.1a24 24 0 0 1 0-21.6l7.9 6.1z"/><path fill="#34A853" d="M24 48c6.4 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.7 2.2-8.7 2.2-6.4 0-11.7-3.6-13.6-8.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuar con Google</button>' +
       '<button type="button" class="soc-btn apple" id="lg_apple"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.47 2.24-1.24 3.07-.83.9-2.15 1.6-3.27 1.5-.13-1.1.44-2.27 1.2-3.03.83-.87 2.24-1.53 3.31-1.54zm4.09 16.72c-.57 1.3-.84 1.88-1.57 3.03-1.02 1.6-2.46 3.6-4.24 3.62-1.58.02-1.99-1.03-4.14-1.02-2.15.01-2.6 1.04-4.18 1.02-1.78-.02-3.14-1.82-4.16-3.42-2.85-4.4-3.15-9.56-1.39-12.3 1.24-1.95 3.2-3.09 5.04-3.09 1.87 0 3.05 1.03 4.6 1.03 1.5 0 2.42-1.03 4.6-1.03 1.64 0 3.38.9 4.62 2.44-4.06 2.23-3.4 8.03.82 9.72z"/></svg>Continuar con Apple</button>' +
@@ -3646,7 +3612,7 @@ SHEETS.login = function(){
     field('lg_pass','Contraseña','','type="password" maxlength="64" autocomplete="current-password"') +
     honeypot() +
     '<button class="primary" id="lg_go">Entrar</button>' +
-    '<p class="switch">No tienes cuenta? <b data-sheet="signup">Crear cuenta</b></p>');
+    '<p class="switch">¿No tienes cuenta? <b data-sheet="signup">Crear cuenta</b></p>');
 
   $('#lg_google').onclick = function(){ AUTH.signInWithOAuth('google').catch(function(err){ toast(err.message || 'No se pudo conectar con Google'); }); };
   $('#lg_apple').onclick  = function(){ AUTH.signInWithOAuth('apple').catch(function(err){ toast(err.message || 'No se pudo conectar con Apple'); }); };
@@ -3655,8 +3621,8 @@ SHEETS.login = function(){
     clearErrors();
     var u = cleanText($('#lg_user').value, 80), p = $('#lg_pass').value;
     if (!hpClean()) return;
-    if (!isEmail(u) && !isPhoneVE(u)) return fieldError('lg_user','Escribe un correo valido o un telefono de 10 a 15 digitos.');
-    if (p.length < 6) return fieldError('lg_pass','La contraseña tiene minimo 6 caracteres.');
+    if (!isEmail(u) && !isPhoneVE(u)) return fieldError('lg_user','Escribe un correo valido o un teléfono de 10 a 15 digitos.');
+    if (p.length < 6) return fieldError('lg_pass','La contraseña tiene mínimo 6 caracteres.');
 
     var btn = this; btn.disabled = true;
     AUTH.signIn(u, p).then(function(){
@@ -3673,7 +3639,7 @@ SHEETS.login = function(){
 };
 
 SHEETS.signup = function(){
-  openSheet('<h2>Crear cuenta</h2><p class="lead">Esta cuenta te sirve tambien en ruedda para comprar y vender carros.</p>' +
+  openSheet('<h2>Crear cuenta</h2><p class="lead">Esta cuenta te sirve también en ruedda para comprar y vender carros.</p>' +
     '<div class="soc-row">' +
       '<button type="button" class="soc-btn" id="sg_google"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.3 13.1 17.6 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.6c-.5 2.9-2.2 5.4-4.6 7.1l7.2 5.6c4.2-3.9 6.7-9.6 6.7-17.2z"/><path fill="#FBBC05" d="M10.5 19.3a14.5 14.5 0 0 0 0 9.4l-7.9 6.1a24 24 0 0 1 0-21.6l7.9 6.1z"/><path fill="#34A853" d="M24 48c6.4 0 11.9-2.1 15.9-5.8l-7.2-5.6c-2 1.4-4.7 2.2-8.7 2.2-6.4 0-11.7-3.6-13.6-8.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Continuar con Google</button>' +
       '<button type="button" class="soc-btn apple" id="sg_apple"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.365 1.43c0 1.14-.47 2.24-1.24 3.07-.83.9-2.15 1.6-3.27 1.5-.13-1.1.44-2.27 1.2-3.03.83-.87 2.24-1.53 3.31-1.54zm4.09 16.72c-.57 1.3-.84 1.88-1.57 3.03-1.02 1.6-2.46 3.6-4.24 3.62-1.58.02-1.99-1.03-4.14-1.02-2.15.01-2.6 1.04-4.18 1.02-1.78-.02-3.14-1.82-4.16-3.42-2.85-4.4-3.15-9.56-1.39-12.3 1.24-1.95 3.2-3.09 5.04-3.09 1.87 0 3.05 1.03 4.6 1.03 1.5 0 2.42-1.03 4.6-1.03 1.64 0 3.38.9 4.62 2.44-4.06 2.23-3.4 8.03.82 9.72z"/></svg>Continuar con Apple</button>' +
@@ -3692,14 +3658,14 @@ SHEETS.signup = function(){
       ? field('sg_name','Nombre y apellido','Enrique Perez','maxlength="80"') +
         field('sg_mail','Correo','tucorreo@correo.com','maxlength="80" inputmode="email"') +
         field('sg_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') +
-        field('sg_pass','Contraseña','minimo 8 caracteres','type="password" maxlength="64"')
+        field('sg_pass','Contraseña','mínimo 8 caracteres','type="password" maxlength="64"')
       : field('sg_name','Nombre del responsable','Ruben Carrillo','maxlength="80"') +
         field('sg_store','Nombre de la tienda','Repuestos La Y','maxlength="80"') +
         field('sg_mail','Correo','tienda@correo.com','maxlength="80" inputmode="email"') +
         field('sg_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') +
-        field('sg_pass','Contraseña','minimo 8 caracteres','type="password" maxlength="64"')
+        field('sg_pass','Contraseña','mínimo 8 caracteres','type="password" maxlength="64"')
     ) + honeypot() + '<button class="primary" id="sg_go">Crear cuenta</button>' +
-    (role === 'seller' ? '<p class="switch">Tu tienda queda en revision hasta que la apruebe el equipo de ruedda.</p>' : '');
+    (role === 'seller' ? '<p class="switch">Tu tienda queda en revisión hasta que la apruebe el equipo de ruedda.</p>' : '');
 
     $('#sg_go').onclick = function(){
       clearErrors();
@@ -3714,7 +3680,7 @@ SHEETS.signup = function(){
       if (role === 'seller' && store.length < 2) return fieldError('sg_store','Escribe el nombre de la tienda.');
       if (!isEmail(mail)) return fieldError('sg_mail','Ese correo no es valido.');
       if (!isPhoneVE(wa)) return fieldError('sg_wa','El WhatsApp lleva de 10 a 15 digitos.');
-      if (pass.length < 8) return fieldError('sg_pass','La contraseña necesita minimo 8 caracteres.');
+      if (pass.length < 8) return fieldError('sg_pass','La contraseña necesita mínimo 8 caracteres.');
 
       var btn = this; btn.disabled = true;
       AUTH.signUp({ email: mail, password: pass, full_name: name, phone: wa })
@@ -3729,7 +3695,7 @@ SHEETS.signup = function(){
           }
           return API.createStore({ name: store, whatsapp: wa }).then(function(){
             closeSheet(); renderAccount(); syncFavorites();
-            toast('Tienda enviada a revision');
+            toast('Tienda enviada a revisión');
           });
         })
         .catch(function(err){
@@ -3751,7 +3717,7 @@ SHEETS.signup = function(){
 /* usado por SHEETS.track y por el mini-buscador del front page */
 function trackOrderByCode(code, onError){
   return API.findInvoice(code).then(function(r){
-    if (!r) { if (onError) onError('No conseguimos ese codigo. Revisa que este completo.'); return; }
+    if (!r) { if (onError) onError('No conseguimos ese código. Revisa que este completo.'); return; }
 
     var o = r.order, st = r.store || {};
     var det = r.items.map(function(x){
@@ -3762,9 +3728,9 @@ function trackOrderByCode(code, onError){
     openSheet('<h2>Pedido ' + esc(r.invoice.code) + '</h2>' +
       orderTrackerHTML(o.status) +
       '<p class="lead">Estado: <b>' + esc(ORDER_STATUS_LABEL[o.status] || o.status) + '</b></p>' +
-      (o.tracking_code ? '<p class="lead" style="margin-top:-8px">Numero de guia: <b class="mono">' + esc(o.tracking_code) + '</b></p>' : '') +
+      (o.tracking_code ? '<p class="lead" style="margin-top:-8px">Número de guía: <b class="mono">' + esc(o.tracking_code) + '</b></p>' : '') +
       '<div class="inv"><b>' + esc(st.name || '') + '</b>' +
-      '<table style="margin-top:12px"><thead><tr><th>Descripcion</th><th class="r">Cant</th><th class="r">Total</th></tr></thead>' +
+      '<table style="margin-top:12px"><thead><tr><th>Descripción</th><th class="r">Cant</th><th class="r">Total</th></tr></thead>' +
       '<tbody>' + det + '</tbody></table>' +
       '<div class="tot"><span>Total</span><span>$' + money(o.total_usd) + '</span></div></div>' +
       '<a class="dark" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" ' +
@@ -3783,14 +3749,14 @@ function trackOrderByCode(code, onError){
 }
 
 SHEETS.track = function(){
-  openSheet('<h2>Seguir mi pedido</h2><p class="lead">Escribe el codigo que aparece en tu factura.</p>' +
-    field('tk_code','Codigo de factura','RR-9F3K2-A7QX','maxlength="24" autocapitalize="characters"') +
+  openSheet('<h2>Seguir mi pedido</h2><p class="lead">Escribe el código que aparece en tu orden de compra.</p>' +
+    field('tk_code','Código de orden','RR-9F3K2-A7QX','maxlength="24" autocapitalize="characters"') +
     '<button class="primary" id="tk_go">Buscar pedido</button>');
 
   $('#tk_go').onclick = function(){
     clearErrors();
     var code = cleanText($('#tk_code').value, 24).toUpperCase();
-    if (code.length < 6) return fieldError('tk_code','Escribe el codigo completo.');
+    if (code.length < 6) return fieldError('tk_code','Escribe el código completo.');
     var btn = this; btn.disabled = true;
     trackOrderByCode(code, function(msg){ btn.disabled = false; fieldError('tk_code', msg); });
   };
@@ -3798,10 +3764,10 @@ SHEETS.track = function(){
 
 SHEETS.support = function(){
   var wa = window.DB.config.whatsapp_soporte;
-  openSheet('<h2>Ayuda y soporte</h2><p class="lead">Escribenos y te contestamos por WhatsApp.</p>' +
+  openSheet('<h2>Ayuda y soporte</h2><p class="lead">Escríbenos y te contestamos por WhatsApp.</p>' +
     (wa
       ? '<a class="primary" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/' + esc(onlyDigits(wa, 15)) + '">Abrir WhatsApp</a>'
-      : '<p class="empty">El soporte todavia no configuro un numero.</p>') +
+      : '<p class="empty">El soporte todavía no configuro un número.</p>') +
     '<button class="secondary" data-close>Cerrar</button>');
 };
 
@@ -3811,79 +3777,72 @@ SHEETS.support = function(){
    legal los deja explicitamente pendientes de completar en vez de fabricarlos).
    --------------------------------------------------------------------------- */
 SHEETS.terms = function(){
-  openSheet('<h2>Terminos y condiciones</h2>' +
+  openSheet('<h2>Términos y condiciones</h2>' +
     '<div style="font-size:13px;line-height:1.7;color:#333;max-height:52vh;overflow-y:auto;padding-right:4px">' +
-    '<p><b>1. Que es ruedda repuestos.</b> Es un marketplace: conecta compradores con tiendas de repuestos y mecanicos ' +
+    '<p><b>1. Qué es Ruedda Repuestos.</b> Es un marketplace: conecta compradores con tiendas de repuestos y mecánicos ' +
     'independientes. Ruedda no fabrica ni almacena los repuestos — cada tienda es responsable de lo que publica, del stock ' +
     'y de la calidad de lo que vende.</p>' +
-    '<p><b>2. Precios.</b> Los precios se muestran en USD; el equivalente en bolivares usa la tasa oficial BCV del dia (o la ' +
+    '<p><b>2. Precios.</b> Los precios se muestran en USD; el equivalente en bolívares usa la tasa oficial BCV del día (o la ' +
     'tasa configurada por el administrador si la fuente en vivo no responde). El monto final es el que confirma la tienda al ' +
     'momento de pagar.</p>' +
-    '<p><b>3. Cuentas.</b> Una cuenta de ruedda repuestos es la misma cuenta de ruedda.app. Eres responsable de la ' +
+    '<p><b>3. Cuentas.</b> Una cuenta de Ruedda Repuestos es la misma cuenta de ruedda.app. Eres responsable de la ' +
     'confidencialidad de tu contraseña y de la actividad que ocurra con tu cuenta.</p>' +
-    '<p><b>4. Mecanicos y la Red Ruedda.</b> Un mecanico "avalado" paso por un proceso de verificacion de identidad y una ' +
-    'evaluacion tecnica por especialidad. El presupuesto por escrito y el tope de ampliacion del 10% son reglas de la ' +
-    'plataforma, no promesas de un tercero.</p>' +
+    '<p><b>4. Mecánicos.</b> Los mecánicos que aparecen en la plataforma son independientes. Ruedda Repuestos facilita el contacto y la orientación, pero no garantiza sus trabajos mientras el programa de aval de la Red Ruedda no esté activo.</p>' +
     '<p><b>5. Conducta prohibida.</b> No esta permitido publicar productos falsificados, coordinar pagos por fuera de la ' +
-    'plataforma para evadir la Red (mecanicos), suplantar identidad, ni usar la plataforma para actividades ilicitas.</p>' +
+    'plataforma para evadir la Red (mecánicos), suplantar identidad, ni usar la plataforma para actividades ilicitas.</p>' +
     '<p><b>6. Limitacion de responsabilidad.</b> Ruedda repuestos actua como intermediario. La relacion de compra es entre el ' +
-    'comprador y la tienda (o el mecanico); Ruedda interviene en disputas segun las reglas de cada vertical, pero no ' +
-    'garantiza personalmente cada transaccion mas alla de lo descrito en la Politica de devoluciones y garantia.</p>' +
-    '<p><b>7. Cambios.</b> Estos terminos pueden actualizarse; la version vigente es siempre la que esta publicada aqui.</p>' +
-    '<p style="color:#999;font-size:11.5px">Aviso: la razon social, RIF y domicilio fiscal de la empresa se publican aqui en ' +
-    'cuanto el equipo los confirme — todavia no estan cargados en este texto.</p>' +
+    'comprador y la tienda (o el mecánico); Ruedda interviene en disputas según las reglas de cada vertical, pero no ' +
+    'garantiza personalmente cada transaccion más alla de lo descrito en la Política de devoluciones y garantía.</p>' +
+    '<p><b>7. Cambios.</b> Estos términos pueden actualizarse; la versión vigente es siempre la que esta publicada aquí.</p>' +
+    '<p style="color:#999;font-size:11.5px">Aviso: la razón social, RIF y domicilio fiscal de la empresa se publican aquí en ' +
+    'cuanto el equipo los confirme — todavía no están cargados en este texto.</p>' +
     '</div>' +
     '<button class="secondary" data-close>Cerrar</button>');
 };
 
 SHEETS.privacy = function(){
-  openSheet('<h2>Politica de privacidad</h2>' +
+  openSheet('<h2>Política de privacidad</h2>' +
     '<div style="font-size:13px;line-height:1.7;color:#333;max-height:52vh;overflow-y:auto;padding-right:4px">' +
-    '<p><b>Que datos recogemos.</b> Nombre, cedula, telefono y correo (los que dejas al comprar, sea con cuenta o como ' +
-    'invitado), tu ubicacion cuando la compartes activamente al pedir un mecanico, e historial de compras y solicitudes.</p>' +
-    '<p><b>Para que se usan.</b> Para procesar tu pedido o solicitud, para que la tienda o el mecanico te contacten, para ' +
+    '<p><b>Qué datos recogemos.</b> Nombre, cédula, teléfono y correo (los que dejas al comprar, sea con cuenta o como ' +
+    'invitado), tu ubicación cuando la compartes activamente al pedir un mecánico, e historial de compras y solicitudes.</p>' +
+    '<p><b>Para qué se usan.</b> Para procesar tu pedido o solicitud, para que la tienda o el mecánico te contacten, para ' +
     'mostrarte el estado de tu pedido, y para las notificaciones que actives (push o WhatsApp).</p>' +
-    '<p><b>Con quien se comparte.</b> Solo con la tienda o el mecanico de esa transaccion especifica — nunca se vende a ' +
+    '<p><b>Con quién se comparte.</b> Solo con la tienda o el mecánico de esa transaccion específica — nunca se vende a ' +
     'terceros con fines publicitarios.</p>' +
-    '<p><b>Donde vive.</b> En Supabase (Postgres), con Row Level Security: cada quien solo puede leer lo suyo salvo la ' +
-    'tienda/mecanico involucrado y el equipo de administracion.</p>' +
+    '<p><b>Dónde vive.</b> En Supabase (Postgres), con Row Level Security: cada quien solo puede leer lo suyo salvo la ' +
+    'tienda/mecanico involucrado y el equipo de administración.</p>' +
     '<p><b>Tus derechos.</b> Puedes pedir que te muestren, corrijan o borren tus datos escribiendo a soporte. Borrar tu ' +
     'cuenta no borra el historial de una compra ya facturada (por temas contables), pero si tus datos de contacto.</p>' +
-    '<p><b>Cookies y almacenamiento local.</b> Se usa localStorage/cookies solo para mantener tu sesion, tu carrito y ' +
-    'preferencias como si ya viste el popup de mecanico hoy — nada de rastreo publicitario de terceros.</p>' +
+    '<p><b>Cookies y almacenamiento local.</b> Se usa localStorage/cookies solo para mantener tu sesión, tu carrito y ' +
+    'preferencias como si ya viste el popup de mecánico hoy — nada de rastreo publicitario de terceros.</p>' +
     '</div>' +
     '<button class="secondary" data-close>Cerrar</button>');
 };
 
 SHEETS.shipping = function(){
-  openSheet('<h2>Politica de envios</h2>' +
+  openSheet('<h2>Política de envíos</h2>' +
     '<div style="font-size:13px;line-height:1.7;color:#333;max-height:52vh;overflow-y:auto;padding-right:4px">' +
-    '<p>Hacemos envios a <b>toda Venezuela</b> a traves de empresas de encomienda nacionales. Cada tienda coordina el ' +
-    'envio de lo que vende; el costo y el tiempo de entrega dependen de la zona y se confirman contigo antes de despachar.</p>' +
-    '<p><b>Como se sigue un pedido.</b> Cada compra genera un codigo de factura (formato RR-XXXXX-XXXX). Con ese codigo ' +
-    'puedes ver el estado en cualquier momento desde "Rastrea tu pedido" en la pagina principal: Pedido → Pagado → ' +
+    '<p>Hacemos envíos a <b>toda Venezuela</b> a traves de empresas de encomienda nacionales. Cada tienda coordina el ' +
+    'envío de lo que vende; el costo y el tiempo de entrega dependen de la zona y se confirman contigo antes de despachar.</p>' +
+    '<p><b>Cómo se sigue un pedido.</b> Cada compra genera un código de orden (formato RR-XXXXX-XXXX). Con ese código ' +
+    'puedes ver el estado en cualquier momento desde "Rastrea tu pedido" en la página principal: Pedido → Pagado → ' +
     'Embalaje → Enviado → Entregado.</p>' +
-    '<p><b>Numero de guia.</b> Cuando la tienda despacha, agrega el numero de guia de la encomienda — aparece junto al ' +
+    '<p><b>Número de guía.</b> Cuando la tienda despacha, agrega el número de guía de la encomienda — aparece junto al ' +
     'estado "Enviado".</p>' +
-    '<p><b>Retiro en tienda.</b> Algunas tiendas tambien permiten retirar en persona; coordina eso directo con la tienda ' +
-    'por WhatsApp desde la factura.</p>' +
+    '<p><b>Retiro en tienda.</b> Algunas tiendas también permiten retirar en persona; coordina eso directo con la tienda ' +
+    'por WhatsApp desde la orden.</p>' +
     '</div>' +
     '<button class="secondary" data-close>Cerrar</button>');
 };
 
 SHEETS.returns = function(){
-  openSheet('<h2>Devoluciones y garantia</h2>' +
+  openSheet('<h2>Devoluciones y garantía</h2>' +
     '<div style="font-size:13px;line-height:1.7;color:#333;max-height:52vh;overflow-y:auto;padding-right:4px">' +
     '<p><b>Repuestos.</b> Si el repuesto llega defectuoso o no corresponde a lo pedido, tienes derecho a cambio o ' +
-    'reembolso — contacta a la tienda desde tu factura (boton "Escribir a la tienda") con fotos del problema. Si no llegan ' +
+    'reembolso — contacta a la tienda desde tu orden (botón "Escribir a la tienda") con fotos del problema. Si no llegan ' +
     'a un acuerdo, escribe a soporte para que el equipo medie.</p>' +
-    '<p><b>Trabajo de un mecanico avalado (Red Ruedda).</b> Todo trabajo cerrado por un taller avalado queda con ' +
-    '<b>garantia de 3 meses o 5.000 km</b> (lo que ocurra primero) sobre la mano de obra. Si el mismo problema vuelve, se ' +
-    'reclama desde "Mis solicitudes" — la Red responde si el mecanico no lo hace.</p>' +
-    '<p><b>Ampliaciones de presupuesto.</b> Un mecanico avalado no puede cobrar mas del 10% sobre lo presupuestado sin tu ' +
-    'aprobacion explicita con foto — eso lo aplica la base de datos, no depende de la buena voluntad de nadie.</p>' +
-    '<p><b>Que no cubre la garantia.</b> Piezas que el propio cliente compro por su cuenta y llevo al mecanico, mal uso ' +
-    'del vehiculo despues del servicio, o dano por un tercero.</p>' +
+    '<p><b>Qué hace Ruedda Repuestos.</b> La compra es entre tú y la tienda. Si hay un problema, soporte revisa el caso con las fotos y el comprobante, y media con la tienda por WhatsApp.</p>' +
+    '<p><b>Qué no cubre.</b> Daños por instalación incorrecta, mal uso del vehículo o piezas distintas a las de la orden.</p>' +
     '</div>' +
     '<button class="secondary" data-close>Cerrar</button>');
 };
@@ -3892,13 +3851,12 @@ SHEETS.returns = function(){
    ruedda — historial por serial, al estilo carfax). Todavia no existe: esto
    solo informa que viene, no promete una fecha. */
 SHEETS.avalta = function(){
-  openSheet('<h2>Certifica tu vehiculo con AVALTA</h2>' +
-    '<p class="lead">AVALTA certificara el historial real de tu vehiculo — mantenimientos, ' +
-    'reparaciones y revisiones hechas en talleres avalados de la Red Ruedda, verificadas por serial. ' +
-    'Ruedda, Ruedda Repuestos y AVALTA comparten el mismo ecosistema, asi que ese historial se ' +
-    'construye solo, con cada trabajo que haces aqui.</p>' +
-    '<p class="lead" style="margin-top:-8px"><b>Todavia no esta disponible.</b> Cuando un mecanico avalado ' +
-    'cierra un trabajo tuyo, ya queda guardado para el dia que AVALTA salga.</p>' +
+  openSheet('<h2>Certifica tu vehículo con AVALTA</h2>' +
+    '<p class="lead">AVALTA certificara el historial real de tu vehículo — mantenimientos, ' +
+    'reparaciones y revisiones, registradas por el serial del vehículo. ' +
+    'Ruedda, Ruedda Repuestos y AVALTA comparten el mismo ecosistema, así que ese historial se ' +
+    'construye solo, con cada trabajo que haces aquí.</p>' +
+    '<p class="lead" style="margin-top:-8px"><b>Todavía no está disponible.</b> Te avisamos cuando abra.</p>' +
     '<button class="secondary" data-close>Entendido</button>');
 };
 
@@ -3908,9 +3866,9 @@ SHEETS.mecPopup = function(){
   openSheet(
     '<div class="mec-pop">' +
       '<div class="mp-ico"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="13" width="4" height="7" rx="2" fill="currentColor" stroke="none"/><rect x="18" y="13" width="4" height="7" rx="2" fill="currentColor" stroke="none"/><path d="M20 20v1a2 2 0 0 1-2 2h-4"/></svg></div>' +
-      '<h2>Necesitas soporte con un mecanico?</h2>' +
-      '<p>Mecanicos autorizados por Ruedda, con presupuesto por escrito antes de tocar tu carro.</p>' +
-      '<button class="primary" id="mp_go">Hablar con un mecanico</button>' +
+      '<h2>¿Necesitas soporte con un mecánico?</h2>' +
+      '<p>Un mecánico te orienta antes de que compres o repares: qué revisar, qué pieza pedir y cuánto debería costar.</p>' +
+      '<button class="primary" id="mp_go">Hablar con un mecánico</button>' +
       '<button class="secondary" data-close>Ahora no</button>' +
     '</div>'
   );
@@ -3924,7 +3882,7 @@ SHEETS.misSolicitudes = function(){
   openSheet('<h2>Mis solicitudes</h2><p class="empty">Cargando...</p>');
   API.mySolicitudesRta().then(function(list){
     if (!list.length) {
-      openSheet('<h2>Mis solicitudes</h2><p class="lead">Todavia no has pedido ningun mecanico.</p><button class="secondary" data-close>Cerrar</button>');
+      openSheet('<h2>Mis solicitudes</h2><p class="lead">Todavía no has pedido ningún mecánico.</p><button class="secondary" data-close>Cerrar</button>');
       return;
     }
     openSheet('<h2>Mis solicitudes</h2>' +
@@ -3958,8 +3916,8 @@ SHEETS.venderCarro = function(){
   openSheet(
     '<div class="venderpop">' +
       '<div class="vp-ico"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V21H3z"/><path d="M9 21v-7h6v7"/></svg></div>' +
-      '<h2>Tienes un carro para vender?</h2>' +
-      '<p>Publicalo o subastalo en ruedda.app — miles de compradores ya estan buscando ahi.</p>' +
+      '<h2>¿Tienes un carro para vender?</h2>' +
+      '<p>Publicalo o subastalo en ruedda.app — miles de compradores ya están buscando ahi.</p>' +
       '<a class="primary" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" href="https://www.ruedda.app">Vender o subastar mi carro</a>' +
       '<button class="secondary" data-close>Ahora no</button>' +
     '</div>'
@@ -3987,12 +3945,12 @@ function renderAccount(){
     d.innerHTML = '<h3>Cuenta</h3>' +
       '<p style="font-size:15px;margin:0 0 12px">Hola, <b>' + esc(STATE.session.full_name) + '</b><br>' +
       '<span style="font-size:12px;color:#7d7d7d">' + esc(ROL[STATE.session.role] || STATE.session.role) + '</span></p>' +
-      '<button class="dbtn ghost" data-sheet="misSolicitudes">Mis solicitudes de mecanico</button>' +
+      '<button class="dbtn ghost" data-sheet="misSolicitudes">Mis solicitudes de mecánico</button>' +
       '<button class="dbtn ghost" id="pushToggle">Activar notificaciones</button>' +
-      '<button class="dbtn ghost" id="logout">Cerrar sesion</button>';
+      '<button class="dbtn ghost" id="logout">Cerrar sesión</button>';
     $('#logout').onclick = function(){
       AUTH.signOut().then(function(){
-        renderAccount(); syncFavorites(); toast('Sesion cerrada');
+        renderAccount(); syncFavorites(); toast('Sesión cerrada');
         if (location.hash.indexOf('#/admin') === 0) go('#/');
       });
     };
@@ -4010,14 +3968,14 @@ function renderAccount(){
     API.myMechanicProfile().then(function(mec){
       if (!mec || !d) return;
       var b = document.createElement('button');
-      b.className = 'dbtn ghost'; b.textContent = 'Panel de mecanico';
+      b.className = 'dbtn ghost'; b.textContent = 'Panel de mecánico';
       b.onclick = function(){ openPanelMecanico(mec); };
       d.insertBefore(b, $('#logout'));
     }).catch(function(){});
     if (dot) dot.style.display = 'grid';
   } else {
     d.innerHTML = '<h3>Cuenta</h3>' +
-      '<button class="dbtn" data-sheet="login">Iniciar sesion</button>' +
+      '<button class="dbtn" data-sheet="login">Iniciar sesión</button>' +
       '<button class="dbtn ghost" data-sheet="signup">Crear cuenta</button>';
     if (dot) dot.style.display = 'none';
   }
@@ -4026,16 +3984,16 @@ function renderAccount(){
 function openAccountDesktop(){
   if (!STATE.session) return SHEETS.login();
   openSheet('<h2>Hola, ' + esc(STATE.session.full_name) + '</h2>' +
-    '<p class="lead">Sesion activa como ' + esc(STATE.session.role) + '.</p>' +
+    '<p class="lead">Sesión activa como ' + esc(STATE.session.role) + '.</p>' +
     (STATE.session.role === 'seller' ? '<button class="dark" data-sheet="storepanel">Panel de mi tienda</button>' : '') +
-    '<button class="secondary" id="dlogout">Cerrar sesion</button>');
+    '<button class="secondary" id="dlogout">Cerrar sesión</button>');
   $('#dlogout').onclick = function(){
-    AUTH.signOut().then(function(){ renderAccount(); syncFavorites(); closeSheet(); toast('Sesion cerrada'); });
+    AUTH.signOut().then(function(){ renderAccount(); syncFavorites(); closeSheet(); toast('Sesión cerrada'); });
   };
 }
 
 function openFavoritesDesktop(){
-  if (!STATE.favorites.length) return openSheet('<h2>Favoritos</h2><p class="lead">Todavia no guardas nada. Toca el corazon en un producto para agregarlo aqui.</p>');
+  if (!STATE.favorites.length) return openSheet('<h2>Favoritos</h2><p class="lead">Todavía no guardas nada. Toca el corazon en un producto para agregarlo aquí.</p>');
   var rows = STATE.favorites.map(function(id){
     var p = productById(id); if (!p) return '';
     return '<button class="store" data-p="' + esc(p.id) + '"><span class="av"></span>' +
@@ -4050,15 +4008,15 @@ function startCheckout(items){
   var bad = null;
   items.forEach(function(it){
     var p = productById(it.product_id);
-    if (!p) bad = 'Ese producto ya no esta disponible.';
+    if (!p) bad = 'Ese producto ya no está disponible.';
     else if (p.stock < it.qty) bad = 'De "' + p.name + '" solo quedan ' + p.stock + '.';
   });
   if (bad) return toast(bad);
 
   STATE.pendingOrder = { items: items.slice() };
   if (STATE.session) return guestForm(true);
-  openSheet('<h2>Como quieres comprar?</h2><p class="lead">Puedes comprar sin cuenta. Igual recibes tu factura con codigo.</p>' +
-    '<button class="primary" id="ck_login">Iniciar sesion y comprar</button>' +
+  openSheet('<h2>¿Cómo quieres comprar?</h2><p class="lead">Puedes comprar sin cuenta. Igual recibes tu orden de compra con código.</p>' +
+    '<button class="primary" id="ck_login">Iniciar sesión y comprar</button>' +
     '<button class="secondary" id="ck_guest">Comprar sin cuenta</button>');
   $('#ck_login').onclick = function(){ SHEETS.login(); };
   $('#ck_guest').onclick = function(){ guestForm(false); };
@@ -4078,14 +4036,14 @@ function guestForm(logged){
     return esc(p.name) + ' x' + esc(it.qty);
   }).join(' · ');
 
-  openSheet('<h2>Datos para la factura</h2>' +
+  openSheet('<h2>Datos del comprador</h2>' +
     '<p class="lead">' + resumen + ' · <b>$' + money(pendingTotal()) + '</b></p>' +
     field('gs_name','Nombre y apellido', logged ? STATE.session.full_name : 'Enrique Perez','maxlength="80"') +
-    field('gs_ci','Cedula','12345678','maxlength="9" inputmode="numeric"') +
+    field('gs_ci','Cédula','12345678','maxlength="9" inputmode="numeric"') +
     field('gs_wa','WhatsApp','04141234567','maxlength="15" inputmode="numeric"') +
     field('gs_city','Ciudad o zona','Caracas - Chacao','maxlength="60"') +
     honeypot() +
-    '<button class="primary" id="gs_go">Generar factura</button>');
+    '<button class="primary" id="gs_go">Generar orden de compra</button>');
 
   var t0 = Date.now();
   if (logged) $('#gs_name').value = STATE.session.full_name;
@@ -4099,7 +4057,7 @@ function guestForm(logged){
     var wa   = onlyDigits($('#gs_wa').value, 15);
     var city = cleanText($('#gs_city').value, 60);
     if (name.length < 3) return fieldError('gs_name','Escribe nombre y apellido.');
-    if (!isCI(ci))       return fieldError('gs_ci','La cedula lleva entre 6 y 9 digitos, sin puntos.');
+    if (!isCI(ci))       return fieldError('gs_ci','La cédula lleva entre 6 y 9 digitos, sin puntos.');
     if (!isPhoneVE(wa))  return fieldError('gs_wa','El WhatsApp lleva de 10 a 15 digitos.');
     if (city.length < 3) return fieldError('gs_city','Dinos tu ciudad o zona.');
     this.disabled = true;
@@ -4138,7 +4096,7 @@ function qrSVG(code){
     if (inFinder || !on(x, y)) continue;
     cells += '<rect x="' + x + '" y="' + y + '" width="1" height="1" fill="#111"/>';
   }
-  return '<svg class="qr" viewBox="-1 -1 ' + (N+2) + ' ' + (N+2) + '" role="img" aria-label="Codigo QR de la factura">' +
+  return '<svg class="qr" viewBox="-1 -1 ' + (N+2) + ' ' + (N+2) + '" role="img" aria-label="Código QR de la orden">' +
     '<rect x="-1" y="-1" width="' + (N+2) + '" height="' + (N+2) + '" fill="#fff"/>' +
     cells + finder(0,0) + finder(N-7,0) + finder(0,N-7) + '</svg>';
 }
@@ -4147,7 +4105,7 @@ function issueInvoice(buyer){
   var items = STATE.pendingOrder.items;
 
   API.createOrders(items, buyer).then(function(rows){
-    if (!rows.length) { toast('No se pudo emitir la factura'); return; }
+    if (!rows.length) { toast('No se pudo crear la orden'); return; }
     STATE.cart = [];
     STATE.pendingOrder = null;
     saveCart();
@@ -4159,7 +4117,7 @@ function issueInvoice(buyer){
   }).catch(function(err){
     var btn = $('#gs_go');
     if (btn) btn.disabled = false;
-    toast(err.message || 'No se pudo emitir la factura');
+    toast(err.message || 'No se pudo crear la orden');
   });
 }
 
@@ -4176,7 +4134,7 @@ function invoiceBlock(r, buyer){
       '<div class="meta">' + esc(fecha) + '<br>' + esc(s.name || '') + '<br>RIF ' + esc(s.rif || 's/i') + '<br>' +
       '<span class="code">' + esc(inv.code) + '</span></div>' +
     '</div>' +
-    '<table><thead><tr><th>Descripcion</th><th class="r">Cant</th><th class="r">Total</th></tr></thead><tbody>' +
+    '<table><thead><tr><th>Descripción</th><th class="r">Cant</th><th class="r">Total</th></tr></thead><tbody>' +
     r.items.map(function(l){
       return '<tr><td>' + esc(l.name) +
         (l.part_number ? '<br><span style="color:#888;font-size:11px">' + esc(l.part_number) + '</span>' : '') +
@@ -4189,13 +4147,13 @@ function invoiceBlock(r, buyer){
     '<div class="tot"><span>Total</span><span>$' + money(o.total_usd) + '</span></div>' +
     '<div style="text-align:right;font-size:11.5px;color:#666">' + esc(bsTotal) + ' bs</div>' +
     '<div class="qr-wrap">' + qrSVG(inv.code) +
-      '<p>Escanea para verificar la factura en ruedda.app/f/' + esc(inv.code) + '<br><br>' +
-      'El codigo lo emite y firma ruedda. No lo compartas con terceros.</p></div>' +
+      '<p>Escanea para verificar la orden en ruedda.app/f/' + esc(inv.code) + '<br><br>' +
+      'El código lo emite y firma ruedda. No lo compartas con terceros.</p></div>' +
   '</div>';
 }
 
 /* ---------- pasarela de pago: metodo -> detalle -> comprobante ------------ */
-var PM_LABEL = { pago_movil:'Pago Movil', zelle:'Zelle', binance:'Binance',
+var PM_LABEL = { pago_movil:'Pago Móvil', zelle:'Zelle', binance:'Binance',
                  zinli:'Zinli', efectivo:'Efectivo', transferencia:'Transferencia' };
 var PM_ICON  = { pago_movil:'📱', zelle:'🏦', binance:'₿',
                  zinli:'💳', efectivo:'💵', transferencia:'🏦' };
@@ -4216,7 +4174,7 @@ function openPaymentGateway(all){
 
     if (!methods.length) {
       openSheet('<h2>' + esc(x.r.store.name || 'Pago') + '</h2>' +
-        '<p class="lead">Esta tienda todavia no configuro metodos de pago aqui. Coordina el pago por WhatsApp.</p>' +
+        '<p class="lead">Esta tienda todavía no configuro métodos de pago aquí. Coordina el pago por WhatsApp.</p>' +
         '<a class="dark" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" ' +
         'href="https://wa.me/' + esc(onlyDigits(x.r.store.whatsapp || window.DB.config.whatsapp_soporte, 15)) + '?text=' +
         encodeURIComponent('Hola, quiero pagar mi pedido ' + x.r.invoice.code) + '">Escribir a la tienda</a>' +
@@ -4225,8 +4183,8 @@ function openPaymentGateway(all){
     }
 
     openSheet(
-      '<h2>Como quieres pagar?</h2>' +
-      '<p class="lead">' + esc(x.r.store.name || '') + ' · factura ' + esc(x.r.invoice.code) + '</p>' +
+      '<h2>¿Cómo quieres pagar?</h2>' +
+      '<p class="lead">' + esc(x.r.store.name || '') + ' · orden ' + esc(x.r.invoice.code) + '</p>' +
       '<div class="pm-amount"><b>' + esc(bs.toLocaleString('es-VE')) + ' bs</b>' +
         '<span>$' + money(x.r.order.total_usd) + ' · tasa BCV</span></div>' +
       '<div class="pm-grid">' + methods.map(function(pm, i){
@@ -4245,14 +4203,14 @@ function openPaymentGateway(all){
   function stepDetail(pm, bs){
     var x = all[idx];
     openSheet(
-      '<a class="pm-back" id="pm_back">&larr; Elegir otro metodo</a>' +
+      '<a class="pm-back" id="pm_back">&larr; Elegir otro método</a>' +
       '<h2>' + esc(PM_LABEL[pm.kind] || pm.kind) + '</h2>' +
       '<div class="pm-field"><div class="pf-l"><span>Datos</span><b>' + esc(pm.info) + '</b></div>' +
         '<button type="button" class="pm-copy" id="pm_copy">Copiar</button></div>' +
       '<div class="pm-field"><div class="pf-l"><span>Monto a pagar</span><b>' + esc(bs.toLocaleString('es-VE')) + ' bs</b></div>' +
         '<button type="button" class="pm-copy" id="pm_copy_amt">Copiar</button></div>' +
-      '<p class="lead">Ya pagaste? Deja el numero de referencia para que la tienda confirme mas rapido.</p>' +
-      field('pm_ref','Numero de referencia','0000123456','maxlength="40"') +
+      '<p class="lead">¿Ya pagaste? Deja el número de referencia para que la tienda confirme más rápido.</p>' +
+      field('pm_ref','Número de referencia','0000123456','maxlength="40"') +
       '<button class="primary" id="pm_confirm">Ya pague, enviar comprobante</button>'
     );
     $('#pm_back').onclick = stepMethods;
@@ -4261,7 +4219,7 @@ function openPaymentGateway(all){
     $('#pm_confirm').onclick = function(){
       clearErrors();
       var ref = cleanText($('#pm_ref').value, 40);
-      if (ref.length < 3) return fieldError('pm_ref','Escribe el numero de referencia del pago.');
+      if (ref.length < 3) return fieldError('pm_ref','Escribe el número de referencia del pago.');
       var btn = this; btn.disabled = true;
       API.submitPaymentConfirmation(x.r.order.id, pm.kind, ref, bs).then(function(){
         idx++;
@@ -4277,10 +4235,10 @@ function openPaymentGateway(all){
 function showInvoices(results, buyer){
   var multi = results.length > 1;
   openSheet(
-    '<h2>' + (multi ? 'Facturas emitidas' : 'Factura emitida') + '</h2>' +
+    '<h2>' + (multi ? 'Órdenes de compra' : 'Orden de compra') + '</h2>' +
     '<p class="lead">' + (multi
-      ? 'Tu pedido salio de ' + results.length + ' tiendas, asi que va una factura por cada una. Guarda los codigos.'
-      : 'Guarda este codigo. Con el sigues tu pedido y la tienda te ubica.') + '</p>' +
+      ? 'Tu pedido salio de ' + results.length + ' tiendas, así que va una orden por cada una. Guarda los códigos.'
+      : 'Guarda este código. Con el sigues tu pedido y la tienda te ubica.') + '</p>' +
     results.map(function(r){ return invoiceBlock(r, buyer); }).join('') +
     '<button class="primary" id="inv_pay">Pagar ahora</button>' +
     '<button class="dark" id="inv_wa">Finalizar por WhatsApp</button>'
@@ -4306,7 +4264,7 @@ function showInvoices(results, buyer){
       results.forEach(function(r){
         var s = r.store || {};
         var det = r.items.map(function(l){ return l.name + ' x' + l.qty; }).join(', ');
-        var msg = 'Hola, soy ' + buyer.name + '. Mi pedido en ruedda repuestos es ' + r.invoice.code +
+        var msg = 'Hola, soy ' + buyer.name + '. Mi pedido en Ruedda Repuestos es ' + r.invoice.code +
                   ': ' + det + ', total $' + money(r.order.total_usd) + '.';
         window.open('https://wa.me/' + onlyDigits(s.whatsapp || window.DB.config.whatsapp_soporte, 15) +
           '?text=' + encodeURIComponent(msg), '_blank', 'noopener');
@@ -4329,7 +4287,7 @@ function renderFactura(code){
   code = String(code || '').toUpperCase();
 
   if (!code) {
-    el.innerHTML = '<p class="empty">Falta el codigo de la factura.</p>';
+    el.innerHTML = '<p class="empty">Falta el código de la orden.</p>';
     return;
   }
 
@@ -4337,7 +4295,7 @@ function renderFactura(code){
 
   API.findInvoice(code).then(function(r){
     if (!r) {
-      el.innerHTML = '<div class="empty"><p>No existe ninguna factura con el codigo <b>' +
+      el.innerHTML = '<div class="empty"><p>No existe ninguna orden con el código <b>' +
         esc(code) + '</b>.</p><p style="font-size:13px;color:#777">Si te lo dieron en una compra, ' +
         'pidele a la tienda que te lo confirme antes de pagar.</p></div>';
       return;
@@ -4349,30 +4307,30 @@ function renderFactura(code){
     el.innerHTML =
       '<div class="inv">' +
         '<div class="top">' +
-          '<div><span class="rr"><i aria-hidden="true"></i></span><small>FACTURA VERIFICADA</small></div>' +
+          '<div><span class="rr"><i aria-hidden="true"></i></span><small>ORDEN VERIFICADA</small></div>' +
           '<div class="meta">' + esc(fecha) + '<br>' + esc(st.name || '') + '<br>RIF ' +
             esc(st.rif || 's/i') + '<br><span class="code">' + esc(r.invoice.code) + '</span></div>' +
         '</div>' +
-        '<table><thead><tr><th>Descripcion</th><th class="r">Cant</th><th class="r">Total</th></tr></thead><tbody>' +
+        '<table><thead><tr><th>Descripción</th><th class="r">Cant</th><th class="r">Total</th></tr></thead><tbody>' +
         r.items.map(function(x){
           return '<tr><td>' + esc(x.name) + '</td><td class="r">' + esc(x.qty) +
                  '</td><td class="r">$' + money(x.unit_price_usd * x.qty) + '</td></tr>';
         }).join('') +
         '</tbody></table>' +
         '<div style="font-size:12px;color:#666;margin-bottom:8px">Cliente: ' +
-          esc(o.buyer_name || '—') + ' · telefono terminado en ' + esc(o.phone_tail || '····') + '</div>' +
+          esc(o.buyer_name || '—') + ' · teléfono terminado en ' + esc(o.phone_tail || '····') + '</div>' +
         '<div class="tot"><span>Total</span><span>$' + money(o.total_usd) + '</span></div>' +
       '</div>' +
       orderTrackerHTML(o.status) +
       '<p style="margin:0 0 14px;font-size:13px;text-align:center">Estado: <b>' + esc(ORDER_STATUS_LABEL[o.status] || o.status) + '</b>' +
-        (o.tracking_code ? '<br>Numero de guia: <b class="mono">' + esc(o.tracking_code) + '</b>' : '') + '</p>' +
+        (o.tracking_code ? '<br>Número de guía: <b class="mono">' + esc(o.tracking_code) + '</b>' : '') + '</p>' +
       (st.whatsapp
         ? '<a class="dark" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" ' +
           'href="https://wa.me/' + esc(onlyDigits(st.whatsapp, 15)) + '?text=' +
-          encodeURIComponent('Hola, consulto por la factura ' + r.invoice.code) + '">Escribir a la tienda</a>'
+          encodeURIComponent('Hola, consulto por la orden ' + r.invoice.code) + '">Escribir a la tienda</a>'
         : '');
   }).catch(function(){
-    el.innerHTML = '<p class="empty">No pudimos verificar la factura. Intenta de nuevo.</p>';
+    el.innerHTML = '<p class="empty">No pudimos verificar la orden. Intenta de nuevo.</p>';
   });
 }
 
@@ -4421,7 +4379,7 @@ function requireStore(){
   var sid = currentStoreId();
   if (!sid) {
     openSheet('<h2>Panel de mi tienda</h2><p class="lead">Entra con tu cuenta de vendedor para administrar productos, pedidos y datos de pago.</p>' +
-      '<button class="primary" data-sheet="login">Iniciar sesion</button>' +
+      '<button class="primary" data-sheet="login">Iniciar sesión</button>' +
       '<button class="secondary" data-sheet="seller">Quiero ser vendedor</button>');
     return null;
   }
@@ -4430,17 +4388,17 @@ function requireStore(){
 
 function panelProducto(){
   var sid = requireStore(); if (!sid) return;
-  openSheet('<h2>Cargar producto</h2><p class="lead">Queda en revision antes de publicarse.</p>' +
+  openSheet('<h2>Cargar producto</h2><p class="lead">Queda en revisión antes de publicarse.</p>' +
     field('pr_name','Nombre del producto','Pastillas de freno delanteras','maxlength="120"') +
     field('pr_cat','Tipo de repuesto','Toca para buscar','readonly data-picker="cat"') +
     field('pr_brand','Marca del repuesto','Toca para buscar','readonly data-picker="brand"') +
     '<div class="field"><label>Aplica a</label><div class="chips" id="pr_origins">' +
       ['euro','americano','asiatico','pesada'].map(function(o){
-        var L = { euro:'Euro', americano:'Americanos', asiatico:'Chinos / Japoneses', pesada:'Linea pesada' };
+        var L = { euro:'Euro', americano:'Americanos', asiatico:'Chinos / Japoneses', pesada:'Línea pesada' };
         return '<button type="button" class="chip" data-origin="' + o + '">' + L[o] + '</button>';
       }).join('') +
     '</div><p class="hint-sm">Si no marcas ninguno, se publica como universal.</p></div>' +
-    field('pr_part','Numero de parte','FR-7712','maxlength="40"') +
+    field('pr_part','Número de parte','FR-7712','maxlength="40"') +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
       field('pr_model','Modelo','Ceramica','maxlength="40"') +
       field('pr_medida','Medida','Delantera','maxlength="24"') +
@@ -4453,7 +4411,7 @@ function panelProducto(){
       field('pr_usd','Precio $','32','inputmode="decimal" maxlength="10"') +
       field('pr_stock','Stock','24','inputmode="numeric" maxlength="6"') +
     '</div>' + honeypot() +
-    '<button class="primary" id="pr_go">Enviar a revision</button>');
+    '<button class="primary" id="pr_go">Enviar a revisión</button>');
 
   $('#pr_go').onclick = function(){
     clearErrors();
@@ -4467,7 +4425,7 @@ function panelProducto(){
     if (!$('#pr_cat').value) return fieldError('pr_cat','Elige el tipo de repuesto.');
     if (!$('#pr_brand').value) return fieldError('pr_brand','Elige la marca del repuesto.');
     if (!(usd > 0)) return fieldError('pr_usd','El precio tiene que ser mayor que cero.');
-    if (!(stk >= 0)) return fieldError('pr_stock','Pon el stock disponible (0 o mas).');
+    if (!(stk >= 0)) return fieldError('pr_stock','Pon el stock disponible (0 o más).');
     if (yf && yt && yf > yt) return fieldError('pr_yto','El año final no puede ser menor que el inicial.');
 
     var origins = $$('#pr_origins .chip.on').map(function(b){ return b.dataset.origin; });
@@ -4483,7 +4441,7 @@ function panelProducto(){
       price_usd: usd, stock: stk,
       year_from: yf || null, year_to: yt || null
     }).then(function(){
-      closeSheet(); toast('Producto enviado a revision');
+      closeSheet(); toast('Producto enviado a revisión');
       renderFeatured();
     });
   };
@@ -4502,11 +4460,11 @@ function openPicker(kind, targetId){
   var seen = {}, list = [];
   source.forEach(function(x){ if (!seen[x.name]) { seen[x.name] = 1; list.push(x); } });
 
-  openSheet('<h2>' + (kind === 'cat' ? 'Elige la categoria' : 'Elige la marca') + '</h2>' +
+  openSheet('<h2>' + (kind === 'cat' ? 'Elige la categoría' : 'Elige la marca') + '</h2>' +
     '<div class="search"><input class="inp" id="pk_q" placeholder="Buscar..." maxlength="40" autocomplete="off">' +
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>' +
     '<div id="pk_list"></div>' +
-    (kind === 'brand' ? '<button class="secondary" id="pk_add">No sale tu marca? Colocala</button>' : ''));
+    (kind === 'brand' ? '<button class="secondary" id="pk_add">¿No sale tu marca? Colócala</button>' : ''));
 
   function paint(){
     var q = cleanText($('#pk_q').value, 40).toLowerCase();
@@ -4535,7 +4493,7 @@ function openPicker(kind, targetId){
   };
 
   if (kind === 'brand') $('#pk_add').onclick = function(){
-    openSheet('<h2>Agregar marca</h2><p class="lead">La revisamos y la agregamos al catalogo. Mientras tanto puedes seguir cargando el producto.</p>' +
+    openSheet('<h2>Agregar marca</h2><p class="lead">La revisamos y la agregamos al catálogo. Mientras tanto puedes seguir cargando el producto.</p>' +
       field('ub_name','Nombre de la marca','Ejemplo: Kingsteel','maxlength="60"') +
       '<button class="primary" id="ub_go">Enviar marca</button>');
     $('#ub_go').onclick = function(){
@@ -4544,7 +4502,7 @@ function openPicker(kind, targetId){
       if (n.length < 2) return fieldError('ub_name','Escribe el nombre de la marca.');
       API.submitUnlistedBrand(n, cat).then(function(){
         var t = $('#' + targetId); if (t) { t.value = n; t.dataset.key = ''; }
-        closeSheet(); toast('Marca enviada para aprobacion');
+        closeSheet(); toast('Marca enviada para aprobación');
       });
     };
   };
@@ -4557,8 +4515,8 @@ function panelPagos(){
       var m = ms.filter(function(x){ return x.kind === kind && x.active; })[0];
       return m ? esc(m.details.info) : '';
     }
-    openSheet('<h2>Datos de pago</h2><p class="lead">Asi te pagan tus compradores. Se muestran al cerrar la compra.</p>' +
-      field('pm_pm','Pago Movil','0414-111-2233 · Banesco · J-40123456-7','maxlength="80" value="' + val('pago_movil') + '"') +
+    openSheet('<h2>Datos de pago</h2><p class="lead">Así te pagan tus compradores. Se muestran al cerrar la compra.</p>' +
+      field('pm_pm','Pago Móvil','0414-111-2233 · Banesco · J-40123456-7','maxlength="80" value="' + val('pago_movil') + '"') +
       field('pm_ze','Zelle','correo@correo.com','maxlength="80" value="' + val('zelle') + '"') +
       field('pm_bi','Binance','usuario','maxlength="40" value="' + val('binance') + '"') +
       '<button class="primary" id="pm_go">Guardar</button>');
@@ -4568,7 +4526,7 @@ function panelPagos(){
       var pm = cleanText($('#pm_pm').value, 80);
       var ze = cleanText($('#pm_ze').value, 80);
       var bi = cleanText($('#pm_bi').value, 40);
-      if (!pm && !ze && !bi) return fieldError('pm_pm','Deja al menos un metodo de pago.');
+      if (!pm && !ze && !bi) return fieldError('pm_pm','Deja al menos un método de pago.');
       if (ze && !isEmail(ze)) return fieldError('pm_ze','El Zelle va con un correo valido.');
       Promise.all([
         API.savePaymentMethod(sid, 'pago_movil', pm),
@@ -4586,7 +4544,7 @@ function panelPedidos(){
   API.listStoreOrders(sid).then(function(list){
     if (!list.length) {
       return openSheet('<h2>Pedidos entrantes</h2>' +
-        '<p class="empty">Todavia no tienes pedidos. Cuando entre uno lo ves aqui con su codigo de factura.</p>');
+        '<p class="empty">Todavía no tienes pedidos. Cuando entre uno lo ves aquí con su código de orden.</p>');
     }
     var rows = list.map(function(o){
       var inv = Array.isArray(o.invoices) ? o.invoices[0] : o.invoices;
@@ -4602,7 +4560,7 @@ function panelPedidos(){
         '<p style="margin:8px 0 0;font-size:13px;color:#555">' + det + '</p>' +
         '<p style="margin:8px 0 0;font-size:13px;color:#555">' + esc(o.guest_name || 'cliente') +
           ' · ' + esc(o.guest_city || '') + ' · <b>$' + money(o.total_usd) + '</b></p>' +
-        (o.tracking_code ? '<p style="margin:6px 0 0;font-size:12.5px;color:#666">Guia: <b class="mono">' + esc(o.tracking_code) + '</b></p>' : '') +
+        (o.tracking_code ? '<p style="margin:6px 0 0;font-size:12.5px;color:#666">Guía: <b class="mono">' + esc(o.tracking_code) + '</b></p>' : '') +
         '<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">' +
           (act ? '<button class="mini-act" data-ord-next="' + esc(o.id) + '|' + act.next + '">Marcar ' + esc(act.label.toLowerCase()) + '</button>' : '') +
           '<a class="mini-act" href="https://wa.me/' + esc(onlyDigits(o.guest_phone, 15)) +
@@ -4617,7 +4575,7 @@ function panelVenta(){
   var sid = requireStore(); if (!sid) return;
   API.listStoreProducts(sid).then(function(prods){
     if (!prods.length) {
-      return openSheet('<h2>Reportar venta</h2><p class="empty">Todavia no tienes productos cargados. Carga uno primero.</p>' +
+      return openSheet('<h2>Reportar venta</h2><p class="empty">Todavía no tienes productos cargados. Carga uno primero.</p>' +
         '<button class="primary" data-panel="producto">Cargar producto</button>');
     }
     openSheet('<h2>Reportar venta</h2><p class="lead">Descuenta stock y suma al libro de contabilidad.</p>' +
@@ -4634,7 +4592,7 @@ function panelVenta(){
       clearErrors();
       var pid = $('#rv_prod').value;
       var q = parseInt(onlyDigits($('#rv_qty').value, 4), 10);
-      if (!(q > 0)) return fieldError('rv_qty','La cantidad tiene que ser 1 o mas.');
+      if (!(q > 0)) return fieldError('rv_qty','La cantidad tiene que ser 1 o más.');
 
       var btn = this; btn.disabled = true;
       API.reportSale({ store_id: sid, product_id: pid, qty: q }).then(function(){
@@ -4665,15 +4623,15 @@ var AD_TABS = [
   { id:'pedidos',   label:'Pedidos' },
   { id:'plata',     label:'Contabilidad' },
   { id:'marcas',    label:'Marcas' },
-  { id:'mecanicos', label:'Mecanicos' },
+  { id:'mecanicos', label:'Mecánicos' },
   { id:'rta',       label:'Red Ruedda' },
   { id:'herramientas', label:'Herramientas' },
   { id:'servicios', label:'Solicitudes', badge:function(k){ return k.pend_servicios; } },
   { id:'mundo',     label:'Piezas del mundo', badge:function(k){ return k.pend_import; } },
-  { id:'catalogo',  label:'Catalogo' },
+  { id:'catalogo',  label:'Catálogo' },
   { id:'equipo',    label:'Equipo' },
   { id:'config',    label:'Config' },
-  { id:'auditoria', label:'Auditoria' }
+  { id:'auditoria', label:'Auditoría' }
 ];
 
 function isAdmin(){ return STATE.session && STATE.session.role === 'admin'; }
@@ -4690,8 +4648,8 @@ function renderAdmin(){
   var to = setTimeout(function(){
     timedOut = true;
     $('#adBody').innerHTML = '<div class="ad-alert"><b>Esto esta tardando demasiado</b>' +
-      '<p>La sesion puede estar vencida. Intenta cerrar sesion y volver a entrar.</p>' +
-      '<button class="ad-mini go" onclick="AUTH.signOut().then(function(){ location.reload(); })">Cerrar sesion y recargar</button></div>';
+      '<p>La sesión puede estar vencida. Intenta cerrar sesión y volver a entrar.</p>' +
+      '<button class="ad-mini go" onclick="AUTH.signOut().then(function(){ location.reload(); })">Cerrar sesión y recargar</button></div>';
   }, 8000);
 
   API.kpis().then(function(k){
@@ -4719,7 +4677,7 @@ function adminGate(){
     $('#adminGate').innerHTML =
       '<div class="ad-gate"><div class="ad-gate-box">' +
         '<span class="logo"><i class="logomark on-dark" role="img" aria-label="ruedda"></i></span>' +
-        '<h1>Administracion</h1>' +
+        '<h1>Administración</h1>' +
         '<p>Tu cuenta no tiene acceso al panel. Si deberia tenerlo, pideselo al equipo de ruedda.</p>' +
         '<a class="ad-back" href="#/">Volver a la tienda</a>' +
       '</div></div>';
@@ -4729,7 +4687,7 @@ function adminGate(){
   $('#adminGate').innerHTML =
     '<div class="ad-gate"><div class="ad-gate-box">' +
       '<span class="logo"><i class="logomark on-dark" role="img" aria-label="ruedda"></i></span>' +
-      '<h1>Administracion</h1>' +
+      '<h1>Administración</h1>' +
       '<p>Acceso restringido al equipo de ruedda.</p>' +
       '<div class="field"><label for="ag_mail">Correo</label>' +
         '<input class="inp" id="ag_mail" placeholder="tucorreo@ruedda.app" maxlength="80" autocomplete="username"><p class="err"></p></div>' +
@@ -4743,7 +4701,7 @@ function adminGate(){
     clearErrors();
     var m = cleanText($('#ag_mail').value, 80), p = $('#ag_pass').value;
     if (!isEmail(m)) return fieldError('ag_mail','Escribe un correo valido.');
-    if (p.length < 6) return fieldError('ag_pass','La clave lleva minimo 6 caracteres.');
+    if (p.length < 6) return fieldError('ag_pass','La clave lleva mínimo 6 caracteres.');
 
     var btn = $('#ag_go'); btn.disabled = true;
     AUTH.signIn(m, p).then(function(){
@@ -4764,7 +4722,7 @@ function adminGate(){
 
 /* ---------- helpers de tabla ---------- */
 function adTable(cols, rows){
-  if (!rows.length) return '<p class="ad-empty">Nada por aqui todavia.</p>';
+  if (!rows.length) return '<p class="ad-empty">Nada por aquí todavía.</p>';
   return '<div class="ad-tw"><table class="ad-table"><thead><tr>' +
     cols.map(function(c){ return '<th' + (c.r ? ' class="r"' : '') + '>' + esc(c.h) + '</th>'; }).join('') +
     '</tr></thead><tbody>' + rows.join('') + '</tbody></table></div>';
@@ -4795,18 +4753,18 @@ var AD_PANELS = {
       .then(function(r){
         var k = r[0], led = r[1], aud = r[2], ords = r[3];
         var alertas = [];
-        if (k.pend_productos) alertas.push(k.pend_productos + ' producto(s) esperando aprobacion');
+        if (k.pend_productos) alertas.push(k.pend_productos + ' producto(s) esperando aprobación');
         if (k.pend_tiendas)   alertas.push(k.pend_tiendas + ' tienda(s) sin revisar');
         if (k.pend_marcas)    alertas.push(k.pend_marcas + ' marca(s) propuesta(s)');
-        if (k.pend_servicios) alertas.push(k.pend_servicios + ' solicitud(es) de mecanico');
+        if (k.pend_servicios) alertas.push(k.pend_servicios + ' solicitud(es) de mecánico');
         if (k.pend_import)    alertas.push(k.pend_import + ' pieza(s) por cotizar en el mundo');
         if (k.sin_stock)      alertas.push(k.sin_stock + ' producto(s) publicado(s) sin stock');
 
         $('#adBody').innerHTML =
           '<div class="ad-kpis">' +
-            adStat('GMV total', '$' + money(k.gmv), k.ordenes + ' ordenes', 'wide') +
+            adStat('GMV total', '$' + money(k.gmv), k.ordenes + ' órdenes', 'wide') +
             adStat('Cobrado', '$' + money(k.cobrado), 'pagado o entregado', 'ok') +
-            adStat('Comision ruedda', '$' + money(k.comision), window.DB.config.commission_pct + '% del GMV', 'acc') +
+            adStat('Comisión ruedda', '$' + money(k.comision), window.DB.config.commission_pct + '% del GMV', 'acc') +
             adStat('Ticket promedio', '$' + money(k.ticket)) +
             adStat('Unidades vendidas', k.unidades) +
             adStat('Publicados', k.productos, k.sin_stock + ' sin stock') +
@@ -4814,12 +4772,12 @@ var AD_PANELS = {
             adStat('Favoritos', k.favoritos) +
           '</div>' +
           (alertas.length
-            ? '<div class="ad-alert"><b>Requiere tu atencion</b><ul>' +
+            ? '<div class="ad-alert"><b>Requiere tu atención</b><ul>' +
               alertas.map(function(a){ return '<li>' + esc(a) + '</li>'; }).join('') +
               '</ul><button class="ad-mini go" data-adtab="cola">Ir a aprobaciones</button></div>'
-            : '<div class="ad-alert ok"><b>Todo al dia.</b> No hay nada pendiente de moderacion.</div>') +
+            : '<div class="ad-alert ok"><b>Todo al día.</b> No hay nada pendiente de moderacion.</div>') +
           '<h3 class="ad-h">Ventas por tienda</h3>' +
-          adTable([{h:'Tienda'},{h:'Ordenes',r:1},{h:'Bruto',r:1},{h:'Cobrado',r:1},{h:'Comision',r:1},{h:'Neto tienda',r:1}],
+          adTable([{h:'Tienda'},{h:'Órdenes',r:1},{h:'Bruto',r:1},{h:'Cobrado',r:1},{h:'Comisión',r:1},{h:'Neto tienda',r:1}],
             led.map(function(a){
               var st = storeById(a.store_id);
               return '<tr><td>' + esc(st ? st.name : a.store_id) + '</td>' +
@@ -4830,7 +4788,7 @@ var AD_PANELS = {
                 '<td class="r">$' + money(a.neto_tienda) + '</td></tr>';
             })) +
           '<h3 class="ad-h">Ultimos pedidos</h3>' +
-          adTable([{h:'Codigo'},{h:'Cliente'},{h:'Tienda'},{h:'Total',r:1},{h:'Estado'}],
+          adTable([{h:'Código'},{h:'Cliente'},{h:'Tienda'},{h:'Total',r:1},{h:'Estado'}],
             ords.slice(0,6).map(function(o){
               var inv = window.DB.invoices.filter(function(i){ return i.order_id === o.id; })[0] || {};
               var st = storeById(o.store_id);
@@ -4863,7 +4821,7 @@ var AD_PANELS = {
       var marcas = r[2].filter(function(b){ return b.status === 'pending'; });
 
       $('#adBody').innerHTML =
-        '<h3 class="ad-h">Productos esperando aprobacion <span class="ad-n">' + prods.length + '</span></h3>' +
+        '<h3 class="ad-h">Productos esperando aprobación <span class="ad-n">' + prods.length + '</span></h3>' +
         adTable([{h:'Producto'},{h:'Tienda'},{h:'Precio',r:1},{h:'Stock',r:1},{h:'Acciones',r:1}],
           prods.map(function(p){
             var st = storeById(p.store_id);
@@ -4890,12 +4848,12 @@ var AD_PANELS = {
               '</td></tr>';
           })) +
         '<h3 class="ad-h">Marcas propuestas <span class="ad-n">' + marcas.length + '</span></h3>' +
-        adTable([{h:'Marca'},{h:'Categoria'},{h:'Acciones',r:1}],
+        adTable([{h:'Marca'},{h:'Categoría'},{h:'Acciones',r:1}],
           marcas.map(function(b){
             return '<tr><td><b>' + esc(b.name) + '</b></td>' +
               '<td>' + esc(b.category || '—') + '</td>' +
               '<td class="r nowrap">' +
-                adBtn('Agregar al catalogo','data-adbrand="' + esc(b.id) + '" data-ok="1"','ok') +
+                adBtn('Agregar al catálogo','data-adbrand="' + esc(b.id) + '" data-ok="1"','ok') +
                 adBtn('Descartar','data-adbrand="' + esc(b.id) + '" data-ok="0"','danger') +
               '</td></tr>';
           }));
@@ -4910,7 +4868,7 @@ var AD_PANELS = {
       var STS = ['','published','pending_review','paused','rejected'];
       $('#adBody').innerHTML =
         '<div class="ad-filters">' +
-          '<input class="ad-inp" id="apq" placeholder="Buscar nombre, marca o numero de parte..." value="' + esc(f.q || '') + '">' +
+          '<input class="ad-inp" id="apq" placeholder="Buscar nombre, marca o número de parte..." value="' + esc(f.q || '') + '">' +
           '<select class="ad-inp" id="apst">' + STS.map(function(x){
             return '<option value="' + x + '"' + (f.status === x ? ' selected' : '') + '>' +
               (x || 'Todos los estados') + '</option>'; }).join('') + '</select>' +
@@ -4978,7 +4936,7 @@ var AD_PANELS = {
                 adBtn('Borrar','data-addelstore="' + esc(st.id) + '"','danger') +
               '</td></tr>';
           })) +
-        '<p class="ad-note">Suspender una tienda pausa automaticamente todos sus productos publicados. Borrar una tienda borra tambien sus productos y datos de pago (no se puede deshacer).</p>';
+        '<p class="ad-note">Suspender una tienda pausa automaticamente todos sus productos publicados. Borrar una tienda borra también sus productos y datos de pago (no se puede deshacer).</p>';
     });
   },
 
@@ -4990,7 +4948,7 @@ var AD_PANELS = {
       var STS = ['','created','pending_payment','whatsapp','paid','packing','shipped','fulfilled','cancelled'];
       $('#adBody').innerHTML =
         '<div class="ad-filters">' +
-          '<input class="ad-inp" id="aoc" placeholder="Buscar por codigo de factura..." value="' + esc(f.code || '') + '">' +
+          '<input class="ad-inp" id="aoc" placeholder="Buscar por código de orden..." value="' + esc(f.code || '') + '">' +
           '<select class="ad-inp" id="aost">' + STS.map(function(x){
             return '<option value="' + x + '"' + (f.status === x ? ' selected' : '') + '>' +
               (x ? esc(ORDER_STATUS_LABEL[x] || x) : 'Todos los estados') + '</option>'; }).join('') + '</select>' +
@@ -5000,7 +4958,7 @@ var AD_PANELS = {
                 esc(st.name) + '</option>'; }).join('') + '</select>' +
         '</div>' +
         '<p class="ad-count">' + list.length + ' pedido(s)</p>' +
-        adTable([{h:'Codigo'},{h:'Fecha'},{h:'Cliente'},{h:'Tienda'},{h:'Items',r:1},{h:'Total',r:1},{h:'Estado'},{h:'Acciones',r:1}],
+        adTable([{h:'Código'},{h:'Fecha'},{h:'Cliente'},{h:'Tienda'},{h:'Items',r:1},{h:'Total',r:1},{h:'Estado'},{h:'Acciones',r:1}],
           list.map(function(o){
             var inv = window.DB.invoices.filter(function(i){ return i.order_id === o.id; })[0] || {};
             var items = window.DB.order_items.filter(function(x){ return x.order_id === o.id; });
@@ -5040,15 +4998,15 @@ var AD_PANELS = {
       });
       $('#adBody').innerHTML =
         '<div class="ad-kpis">' +
-          adStat('GMV', '$' + money(k.gmv), 'todas las ordenes', 'wide') +
+          adStat('GMV', '$' + money(k.gmv), 'todas las órdenes', 'wide') +
           adStat('Cobrado', '$' + money(k.cobrado), '', 'ok') +
           adStat('Por cobrar', '$' + money(k.gmv - k.cobrado), '', 'warn') +
-          adStat('Comision ruedda', '$' + money(k.comision), window.DB.config.commission_pct + '%', 'acc') +
-          adStat('En bolivares', money(Math.round(k.gmv * window.DB.config.bs_rate)) + ' bs',
+          adStat('Comisión ruedda', '$' + money(k.comision), window.DB.config.commission_pct + '%', 'acc') +
+          adStat('En bolívares', money(Math.round(k.gmv * window.DB.config.bs_rate)) + ' bs',
                  'tasa ' + window.DB.config.bs_rate) +
         '</div>' +
         '<h3 class="ad-h">Liquidacion por tienda</h3>' +
-        adTable([{h:'Tienda'},{h:'Ordenes',r:1},{h:'Bruto',r:1},{h:'Cobrado',r:1},{h:'Comision',r:1},{h:'A pagar',r:1}],
+        adTable([{h:'Tienda'},{h:'Órdenes',r:1},{h:'Bruto',r:1},{h:'Cobrado',r:1},{h:'Comisión',r:1},{h:'A pagar',r:1}],
           led.map(function(a){
             var st = storeById(a.store_id);
             return '<tr><td>' + esc(st ? st.name : a.store_id) + '</td>' +
@@ -5085,7 +5043,7 @@ var AD_PANELS = {
       $('#adBody').innerHTML =
         '<h3 class="ad-h">Solicitudes de marca <span class="ad-n">' +
           ub.filter(function(b){ return b.status === 'pending'; }).length + '</span></h3>' +
-        adTable([{h:'Marca'},{h:'Categoria'},{h:'Estado'},{h:'Acciones',r:1}],
+        adTable([{h:'Marca'},{h:'Categoría'},{h:'Estado'},{h:'Acciones',r:1}],
           ub.map(function(b){
             return '<tr><td><b>' + esc(b.name) + '</b></td><td>' + esc(b.category || '—') + '</td>' +
               '<td>' + statusPill(b.status) + '</td>' +
@@ -5094,9 +5052,9 @@ var AD_PANELS = {
                   adBtn('Descartar','data-adbrand="' + esc(b.id) + '" data-ok="0"','danger')
                 : '<span class="dim">resuelto</span>') + '</td></tr>';
           })) +
-        '<h3 class="ad-h">Catalogo de marcas <span class="ad-n">' + list.length + '</span></h3>' +
+        '<h3 class="ad-h">Catálogo de marcas <span class="ad-n">' + list.length + '</span></h3>' +
         '<div class="ad-filters"><input class="ad-inp" id="abq" placeholder="Buscar marca..." value="' + esc(q) + '"></div>' +
-        adTable([{h:'Marca'},{h:'Categoria'},{h:'Oficial rr'},{h:'Activa'}],
+        adTable([{h:'Marca'},{h:'Categoría'},{h:'Oficial rr'},{h:'Activa'}],
           list.slice(0,120).map(function(b){
             return '<tr><td><b>' + esc(b.name) + '</b></td><td>' + esc(b.category) + '</td>' +
               '<td><button class="ad-star' + (b.oficial ? ' on blue' : '') +
@@ -5115,8 +5073,8 @@ var AD_PANELS = {
   mecanicos: function(){
     API.listMechanicsAdmin().then(function(list){
       $('#adBody').innerHTML =
-        '<p class="ad-count">' + list.length + ' mecanico(s)</p>' +
-        adTable([{h:'Nombre'},{h:'Especialidad'},{h:'Zona'},{h:'Rating',r:1},{h:'Autorizado'},{h:'Verificado'},{h:'Telefono'},{h:'Acciones',r:1}],
+        '<p class="ad-count">' + list.length + ' mecánico(s)</p>' +
+        adTable([{h:'Nombre'},{h:'Especialidad'},{h:'Zona'},{h:'Rating',r:1},{h:'Autorizado'},{h:'Verificado'},{h:'Teléfono'},{h:'Acciones',r:1}],
           list.map(function(m){
             return '<tr><td><b>' + esc(m.name) + '</b></td>' +
               '<td>' + esc(SPECIALTY_LABEL[m.specialty] || m.specialty) + '</td>' +
@@ -5130,20 +5088,20 @@ var AD_PANELS = {
               '<td class="r nowrap">' + adBtn('Editar','data-adedmec="' + esc(m.id) + '"') +
                 adBtn('Borrar','data-addel="mechanics|' + esc(m.id) + '"','danger') + '</td></tr>';
           })) +
-        '<button class="ad-btn acc" id="adAddMec">Agregar mecanico</button>' +
-        '<p class="ad-note">Solo los autorizados aparecen en la lista publica de mecanicos.</p>';
+        '<button class="ad-btn acc" id="adAddMec">Agregar mecánico</button>' +
+        '<p class="ad-note">Solo los autorizados aparecen en la lista publica de mecánicos.</p>';
 
       function mecForm(m){
         m = m || {};
         var SPECS = ['general','euro','americano','europeo','chino','japones','coreano','linea_pesada'];
-        openSheet('<h2>' + (m.id ? 'Editar mecanico' : 'Nuevo mecanico') + '</h2>' +
-          field('mc_name','Nombre y apellido','Jose Malave','maxlength="80" value="' + esc(m.name || '') + '"') +
+        openSheet('<h2>' + (m.id ? 'Editar mecánico' : 'Nuevo mecánico') + '</h2>' +
+          field('mc_name','Nombre y apellido','José Malavé','maxlength="80" value="' + esc(m.name || '') + '"') +
           '<div class="field"><label for="mc_spec">Especialidad</label>' +
             '<select class="inp" id="mc_spec">' +
               SPECS.map(function(s){ return '<option value="' + s + '"' + (m.specialty === s ? ' selected' : '') + '>' + esc(SPECIALTY_LABEL[s]) + '</option>'; }).join('') +
             '</select></div>' +
           field('mc_zone','Zona','Caracas - El Paraiso','maxlength="60" value="' + esc(m.zone || '') + '"') +
-          field('mc_phone','Telefono (WhatsApp)','584141234567','maxlength="15" inputmode="numeric" value="' + esc(m.phone || '') + '"') +
+          field('mc_phone','Teléfono (WhatsApp)','584141234567','maxlength="15" inputmode="numeric" value="' + esc(m.phone || '') + '"') +
           field('mc_rating','Rating (0 a 5)','4.8','inputmode="decimal" maxlength="3" value="' + esc(m.rating || '5') + '"') +
           '<button class="primary" id="mc_go">' + (m.id ? 'Guardar cambios' : 'Agregar') + '</button>');
 
@@ -5153,7 +5111,7 @@ var AD_PANELS = {
           var phone = onlyDigits($('#mc_phone').value, 15);
           var rating = parseFloat($('#mc_rating').value);
           if (name.length < 2) return fieldError('mc_name','Escribe el nombre completo.');
-          if (phone && !isPhoneVE(phone)) return fieldError('mc_phone','Telefono de 10 a 15 digitos.');
+          if (phone && !isPhoneVE(phone)) return fieldError('mc_phone','Teléfono de 10 a 15 digitos.');
           if (!(rating >= 0 && rating <= 5)) return fieldError('mc_rating','El rating va de 0 a 5.');
 
           var data = {
@@ -5161,7 +5119,7 @@ var AD_PANELS = {
             zone: cleanText($('#mc_zone').value, 60), phone: phone, rating: rating
           };
           var job = m.id ? API.updateMechanic(m.id, data) : API.createMechanic(data);
-          job.then(function(){ closeSheet(); renderMechanics(); adminPanel(); toast(m.id ? 'Mecanico actualizado' : 'Mecanico agregado'); });
+          job.then(function(){ closeSheet(); renderMechanics(); adminPanel(); toast(m.id ? 'Mecánico actualizado' : 'Mecánico agregado'); });
         };
       }
 
@@ -5179,7 +5137,7 @@ var AD_PANELS = {
      Consola del consejo tecnico: progresar la etapa del mecanico, declarar y
      avalar especialidades, ver solicitudes abiertas y disputas. */
   rta: function(){
-    var STAGE_LABEL = { borrador:'Borrador', verificacion:'En verificacion', verificado:'Verificado',
+    var STAGE_LABEL = { borrador:'Borrador', verificacion:'En verificación', verificado:'Verificado',
       avalado:'Avalado', maestro:'Maestro avalado', suspendido:'Suspendido' };
     Promise.all([
       API.adminListMechanicsRta(), API.listEspecialidades(),
@@ -5191,13 +5149,13 @@ var AD_PANELS = {
 
       $('#adBody').innerHTML =
         '<p class="ad-h">Solicitudes activas <span class="ad-n">' + solRows.length + '</span></p>' +
-        (solRows.length ? adTable([{h:'Sintoma'},{h:'Vehiculo'},{h:'Modalidad'},{h:'Estado'},{h:'Fecha'}],
+        (solRows.length ? adTable([{h:'Sintoma'},{h:'Vehículo'},{h:'Modalidad'},{h:'Estado'},{h:'Fecha'}],
           solRows.map(function(s){
             return '<tr><td>' + esc(s.sintoma) + '</td><td>' + esc(s.vehiculo_desc) + '</td>' +
               '<td>' + esc(s.modalidad) + '</td><td>' + esc(s.estado) + '</td><td class="dim">' + esc(fecha(s.created_at)) + '</td></tr>';
           })) : '<div class="ad-empty">No hay solicitudes activas.</div>') +
 
-        '<p class="ad-h">Mecanicos <span class="ad-n">' + mecs.length + '</span></p>' +
+        '<p class="ad-h">Mecánicos <span class="ad-n">' + mecs.length + '</span></p>' +
         adTable([{h:'Nombre'},{h:'Etapa'},{h:'Especialidades'},{h:'Acciones',r:1}],
           mecs.map(function(m){
             var declared = (m.mechanic_specialties || []).map(function(x){
@@ -5216,7 +5174,7 @@ var AD_PANELS = {
           disputas.map(function(d){
             return '<tr><td class="mono">' + esc(d.trabajo_id) + '</td><td style="max-width:300px">' + esc(d.evidencia || '—') + '</td>' +
               '<td class="r nowrap">' + adBtn('A favor cliente','data-rtadisp="' + esc(d.id) + '|resuelta_cliente"','ok') +
-                adBtn('A favor mecanico','data-rtadisp="' + esc(d.id) + '|resuelta_mecanico"') + '</td></tr>';
+                adBtn('A favor mecánico','data-rtadisp="' + esc(d.id) + '|resuelta_mecanico"') + '</td></tr>';
           })) : '<div class="ad-empty">No hay disputas abiertas.</div>');
 
       $$('[data-rtastage]').forEach(function(btn){
@@ -5260,7 +5218,7 @@ var AD_PANELS = {
             b2.onclick = function(){
               var parts = b2.dataset.rtaaval.split('|');
               openSheet('<h2>Avalar especialidad</h2>' +
-                field('rta_instructor','Nombre del instructor que firma','Ing. R. Malave') +
+                field('rta_instructor','Nombre del instructor que firma','Ing. R. Malavé') +
                 '<button class="primary" id="rta_aval_go">Avalar</button>');
               $('#rta_aval_go').onclick = function(){
                 var ins = cleanText($('#rta_instructor').value, 80);
@@ -5294,19 +5252,19 @@ var AD_PANELS = {
     API.listToolRentals(null).then(function(list){
       $('#adBody').innerHTML =
         '<p class="ad-count">' + list.length + ' herramienta(s) activa(s)</p>' +
-        (list.length ? adTable([{h:'Nombre'},{h:'Categoria'},{h:'$/dia',r:1},{h:'Deposito',r:1},{h:'Zona'}],
+        (list.length ? adTable([{h:'Nombre'},{h:'Categoría'},{h:'$/dia',r:1},{h:'Deposito',r:1},{h:'Zona'}],
           list.map(function(t){
             return '<tr><td><b>' + esc(t.name) + '</b></td><td>' + esc(t.category || '—') + '</td>' +
               '<td class="r mono">$' + money(t.price_usd_day) + '</td><td class="r mono">$' + money(t.deposit_usd) + '</td>' +
               '<td>' + esc(t.zone || '—') + '</td></tr>';
-          })) : '<div class="ad-empty">Todavia no hay herramientas cargadas — el CTA en cada producto muestra "Proximamente".</div>') +
+          })) : '<div class="ad-empty">Todavía no hay herramientas cargadas — el CTA en cada producto muestra "Próximamente".</div>') +
         '<button class="ad-btn acc" id="adAddTool">Agregar herramienta</button>';
 
       $('#adAddTool').onclick = function(){
         openSheet('<h2>Nueva herramienta</h2>' +
-          field('tl_name','Nombre','Extractor de rotulas') +
-          field('tl_cat','Categoria (id de tipo de repuesto, opcional)','frenos') +
-          field('tl_price','Precio por dia (USD)','8','inputmode="decimal"') +
+          field('tl_name','Nombre','Extractor de rótulas') +
+          field('tl_cat','Categoría (id de tipo de repuesto, opcional)','frenos') +
+          field('tl_price','Precio por día (USD)','8','inputmode="decimal"') +
           field('tl_dep','Deposito (USD)','20','inputmode="decimal"') +
           field('tl_zone','Zona','Caracas') +
           '<button class="primary" id="tl_go">Agregar</button>');
@@ -5330,7 +5288,7 @@ var AD_PANELS = {
   /* ---------- SOLICITUDES ---------- */
   servicios: function(){
     API.listServiceRequests().then(function(list){
-      var KIND = { no_se_que_comprar:'No se que comprar', no_estoy_seguro:'No esta seguro', diagnostico:'Diagnostico' };
+      var KIND = { no_se_que_comprar:'No sé qué comprar', no_estoy_seguro:'No esta seguro', diagnostico:'Diagnóstico' };
       $('#adBody').innerHTML =
         '<p class="ad-count">' + list.length + ' solicitud(es)</p>' +
         adTable([{h:'Fecha'},{h:'Tipo'},{h:'Contacto'},{h:'Estado'},{h:'Acciones',r:1}],
@@ -5376,7 +5334,7 @@ var AD_PANELS = {
                 (r.guest_phone ? '<a class="ad-mini" target="_blank" rel="noopener" href="https://wa.me/' +
                   esc(onlyDigits(r.guest_phone,15)) + '?text=' + encodeURIComponent(
                     r.status === 'quoted'
-                      ? 'Hola, encontramos "' + r.part_query + '" en el exterior. Precio: $' + money(r.world_price_usd) + ', con importacion sale en $' + money(r.import_estimate_usd) + '. Te interesa?'
+                      ? 'Hola, encontramos "' + r.part_query + '" en el exterior. Precio: $' + money(r.world_price_usd) + ', con importacion sale en $' + money(r.import_estimate_usd) + '. ¿Te interesa?'
                       : 'Hola, seguimos buscando "' + r.part_query + '" para ti.'
                   ) + '">WhatsApp</a>' : '') +
                 (r.status !== 'closed' ? adBtn('Cerrar','data-adimpclose="' + esc(r.id) + '"') : '') +
@@ -5412,7 +5370,7 @@ var AD_PANELS = {
       });
       $$('[data-adimpclose]').forEach(function(btn){
         btn.onclick = function(){
-          adminConfirm('Cerrar esta solicitud?', function(){
+          adminConfirm('¿Cerrar esta solicitud?', function(){
             API.closeImportRequest(btn.dataset.adimpclose).then(function(){ adminRefresh('Solicitud cerrada'); });
           });
         };
@@ -5440,11 +5398,11 @@ var AD_PANELS = {
         }));
     }
     $('#adBody').innerHTML =
-      '<h3 class="ad-h">Categorias por origen <span class="ad-n">' + D.categories.length + '</span></h3>' +
+      '<h3 class="ad-h">Categorías por origen <span class="ad-n">' + D.categories.length + '</span></h3>' +
       tabla('categories', D.categories, [{h:'Origen', k:'origin'}]) +
       '<h3 class="ad-h">Tipos de repuesto <span class="ad-n">' + D.part_categories.length + '</span></h3>' +
       tabla('part_categories', D.part_categories, [{h:'Key', k:'key'}]) +
-      '<h3 class="ad-h">Accesos rapidos del home (dots) <span class="ad-n">' + D.home_dots.length + '</span></h3>' +
+      '<h3 class="ad-h">Accesos rápidos del home (dots) <span class="ad-n">' + D.home_dots.length + '</span></h3>' +
       tabla('home_dots', D.home_dots, [{h:'Destino', k:'target'}]) +
       '<h3 class="ad-h">Servicios y suscripciones <span class="ad-n">' + D.services.length + '</span></h3>' +
       tabla('services', D.services, [{h:'Precio', k:'price_usd'}]) +
@@ -5493,7 +5451,7 @@ var AD_PANELS = {
       var ROL = { seller:'Vendedor', admin:'Administrador' };
       $('#adBody').innerHTML =
         '<p class="ad-count">' + list.length + ' miembro(s) del equipo</p>' +
-        adTable([{h:'Nombre'},{h:'Telefono'},{h:'Rol'}],
+        adTable([{h:'Nombre'},{h:'Teléfono'},{h:'Rol'}],
           list.map(function(m){
             return '<tr><td><b>' + esc(m.full_name || m.user_id) + '</b></td>' +
               '<td class="mono dim">' + esc(m.phone || '—') + '</td>' +
@@ -5532,13 +5490,13 @@ var AD_PANELS = {
         '<div class="ad-form">' +
           '<div class="field"><label for="cf_rate">Tasa del dolar (Bs por $)</label>' +
             '<input class="ad-inp" id="cf_rate" value="' + esc(c.bs_rate) + '" inputmode="decimal" maxlength="12"><p class="err"></p></div>' +
-          '<div class="field"><label for="cf_com">Comision de ruedda (%)</label>' +
+          '<div class="field"><label for="cf_com">Comisión de ruedda (%)</label>' +
             '<input class="ad-inp" id="cf_com" value="' + esc(c.commission_pct) + '" inputmode="decimal" maxlength="5"><p class="err"></p></div>' +
           '<div class="field"><label for="cf_wa">WhatsApp de soporte</label>' +
             '<input class="ad-inp" id="cf_wa" value="' + esc(c.whatsapp_soporte) + '" inputmode="numeric" maxlength="15"><p class="err"></p></div>' +
           '<button class="primary" id="cf_go">Guardar configuracion</button>' +
-          '<p class="ad-note">Al cambiar la tasa se recalculan los precios en bolivares de todo el catalogo.</p>' +
-          '<p class="ad-note">El acceso de administrador ya no se maneja por correo aqui: se otorga en la base de datos (repuestos.members.role). Corre sql/07_bootstrap_admin.sql con el correo de la persona.</p>' +
+          '<p class="ad-note">Al cambiar la tasa se recalculan los precios en bolívares de todo el catálogo.</p>' +
+          '<p class="ad-note">El acceso de administrador ya no se maneja por correo aquí: se otorga en la base de datos (repuestos.members.role). Corre sql/07_bootstrap_admin.sql con el correo de la persona.</p>' +
         '</div>';
       $('#cf_go').onclick = function(){
         clearErrors();
@@ -5546,7 +5504,7 @@ var AD_PANELS = {
         var com = parseFloat($('#cf_com').value);
         var wa = onlyDigits($('#cf_wa').value, 15);
         if (!(rate > 0)) return fieldError('cf_rate','La tasa tiene que ser mayor que cero.');
-        if (!(com >= 0 && com <= 50)) return fieldError('cf_com','La comision va entre 0 y 50.');
+        if (!(com >= 0 && com <= 50)) return fieldError('cf_com','La comisión va entre 0 y 50.');
         if (!isPhoneVE(wa)) return fieldError('cf_wa','El WhatsApp lleva de 10 a 15 digitos.');
         API.setConfig({ bs_rate:rate, commission_pct:com, whatsapp_soporte:wa })
           .then(function(){ toast('Configuracion guardada'); adminPanel(); });
@@ -5559,7 +5517,7 @@ var AD_PANELS = {
     API.listAudit().then(function(list){
       $('#adBody').innerHTML =
         '<p class="ad-count">' + list.length + ' evento(s) registrado(s)</p>' +
-        adTable([{h:'Fecha'},{h:'Actor'},{h:'Entidad'},{h:'ID'},{h:'Accion'}],
+        adTable([{h:'Fecha'},{h:'Actor'},{h:'Entidad'},{h:'ID'},{h:'Acción'}],
           list.slice(0,200).map(function(a){
             return '<tr><td class="mono dim">' + fecha(a.at) + '</td>' +
               '<td>' + esc(a.actor || 'sistema') + '</td>' +
@@ -5567,7 +5525,7 @@ var AD_PANELS = {
               '<td class="mono dim">' + esc(a.entity_id) + '</td>' +
               '<td>' + esc(a.action) + '</td></tr>';
           })) +
-        '<p class="ad-note">Cada accion del panel queda registrada. En produccion esta tabla es de solo lectura e inmutable.</p>';
+        '<p class="ad-note">Cada acción del panel queda registrada. En produccion esta tabla es de solo lectura e inmutable.</p>';
     });
   }
 };
@@ -5577,7 +5535,7 @@ function adminExportCSV(){
   toast('Armando el CSV...');
   API.exportOrders().then(function(rows){
     rows = rows || [];
-    if (!rows.length) return toast('Todavia no hay pedidos que exportar');
+    if (!rows.length) return toast('Todavía no hay pedidos que exportar');
 
     var cols = ['codigo','fecha','estado','canal','tienda','rif','cliente','cedula','telefono',
                 'ciudad','producto','numero_parte','cantidad','precio_unit_usd','subtotal_usd',
@@ -5663,7 +5621,7 @@ function adminEditProduct(id){
     '</div>' +
     '<div class="field"><label for="ep_file">Foto</label>' +
       '<input class="inp" id="ep_file" type="file" accept="image/png,image/jpeg,image/webp,image/avif"></div>' +
-    '<p class="hint-sm" id="ep_upstate">' + (currentImg ? 'Ya tiene foto. Sube una nueva para reemplazarla.' : 'Sin foto todavia.') + '</p>' +
+    '<p class="hint-sm" id="ep_upstate">' + (currentImg ? 'Ya tiene foto. Sube una nueva para reemplazarla.' : 'Sin foto todavía.') + '</p>' +
     '<button class="primary" id="ep_go">Guardar cambios</button>' +
     '<button class="secondary" data-close>Cancelar</button>');
   $('#ep_name').value = p.name;
@@ -5691,7 +5649,7 @@ function adminEditProduct(id){
     var stk = parseInt(onlyDigits($('#ep_stock').value, 6), 10);
     if (name.length < 2) return fieldError('ep_name','El nombre no puede quedar vacio.');
     if (!(usd > 0)) return fieldError('ep_usd','El precio tiene que ser mayor que cero.');
-    if (!(stk >= 0)) return fieldError('ep_stock','El stock va en 0 o mas.');
+    if (!(stk >= 0)) return fieldError('ep_stock','El stock va en 0 o más.');
     API.setProductFields(id, { name:name, price_usd:usd, stock:stk, images: pendingImg ? [pendingImg] : [] })
       .then(function(){ closeSheet(); adminRefresh('Producto actualizado'); });
   };
@@ -5754,7 +5712,7 @@ $('#btnAdv').onclick = function(){ $('#fExtra').classList.toggle('on'); };
 function homeTrackSearch(){
   var input = $('#homeTrackInput');
   var code = cleanText(input.value, 24).toUpperCase();
-  if (code.length < 6) return toast('Escribe el codigo completo de tu factura.');
+  if (code.length < 6) return toast('Escribe el código completo de tu orden.');
   var btn = $('#homeTrackGo'); btn.disabled = true;
   trackOrderByCode(code, function(msg){ toast(msg); }).then(function(){ btn.disabled = false; });
 }
@@ -5765,7 +5723,7 @@ function runHomeSearch(){
     .map(function(v){ return cleanText(v, 40); }).filter(Boolean).join(' ');
   var year = onlyDigits($('#fAnio').value, 4);
   if (year && (year.length !== 4 || +year < 1950 || +year > 2100)) return toast('El año va con 4 digitos, ej: 2014.');
-  if (!q && !year) return toast('Escribe al menos una marca, numero de parte o año.');
+  if (!q && !year) return toast('Escribe al menos una marca, número de parte o año.');
   var f = {};
   if (q) f.q = q;
   if (year) f.year = year;
@@ -5785,7 +5743,7 @@ $('#tgOfi').onclick = function(){ STATE.brandFilter='ofi'; this.classList.add('o
 $('#dSearchForm').addEventListener('submit', function(e){
   e.preventDefault();
   var v = cleanText($('#dSearchInput').value, 60);
-  if (!v) return toast('Escribe una marca, modelo o numero de parte.');
+  if (!v) return toast('Escribe una marca, modelo o número de parte.');
   goFilter({ q: v });
 });
 $('#dCartBtn').onclick = function(){ go('#/carrito'); };
@@ -5793,7 +5751,7 @@ $('#dAccountBtn').onclick = openAccountDesktop;
 $('#dFav').onclick = openFavoritesDesktop;
 $('#adExport').onclick = adminExportCSV;
 $('#adOut').onclick = function(){
-  STATE.session = null; renderAccount(); adminGate(); toast('Sesion cerrada');
+  STATE.session = null; renderAccount(); adminGate(); toast('Sesión cerrada');
 };
 /* cerrar los <details> de categorias/vender/ayuda al navegar o al hacer click afuera */
 document.addEventListener('click', function(e){
@@ -5861,7 +5819,7 @@ document.addEventListener('click', function(e){
   var adb = t.closest('[data-adbrand]');
   if (adb) {
     API.resolveUnlistedBrand(adb.dataset.adbrand, adb.dataset.ok === '1')
-      .then(function(){ adminRefresh(adb.dataset.ok === '1' ? 'Marca agregada al catalogo' : 'Solicitud descartada'); });
+      .then(function(){ adminRefresh(adb.dataset.ok === '1' ? 'Marca agregada al catálogo' : 'Solicitud descartada'); });
     return;
   }
   var adofi = t.closest('[data-adofi]');
@@ -5877,13 +5835,13 @@ document.addEventListener('click', function(e){
   if (adost) {
     var aoid = adost.dataset.adordst, aost = adost.dataset.st;
     if (aost === 'shipped') {
-      openSheet('<h2>Marcar como enviado</h2><p class="lead">Numero de guia o referencia de envio.</p>' +
-        field('ash_track','Numero de guia','ej. MRW-0012345','maxlength="40"') +
+      openSheet('<h2>Marcar como enviado</h2><p class="lead">Número de guía o referencia de envío.</p>' +
+        field('ash_track','Número de guía','ej. MRW-0012345','maxlength="40"') +
         '<button class="primary" id="ash_go">Marcar enviado</button>');
       $('#ash_go').onclick = function(){
         clearErrors();
         var track = cleanText($('#ash_track').value, 40);
-        if (track.length < 3) return fieldError('ash_track','Escribe el numero de guia.');
+        if (track.length < 3) return fieldError('ash_track','Escribe el número de guía.');
         var btn = this; btn.disabled = true;
         API.setOrderStatus(aoid, 'shipped', track).then(function(){
           closeSheet(); adminRefresh('Pedido: enviado');
@@ -5927,7 +5885,7 @@ document.addEventListener('click', function(e){
   var addel = t.closest('[data-addel]');
   if (addel) {
     var pd2 = addel.dataset.addel.split('|');
-    adminConfirm('Borrar este registro?', function(){
+    adminConfirm('¿Borrar este registro?', function(){
       API.removeCatalogRow(pd2[0], pd2[1]).then(function(){ adminRefresh('Registro borrado'); });
     });
     return;
@@ -5935,7 +5893,7 @@ document.addEventListener('click', function(e){
   var addelprod = t.closest('[data-addelprod]');
   if (addelprod) {
     var pidDel = addelprod.dataset.addelprod;
-    adminConfirm('Borrar este producto? No se puede deshacer.', function(){
+    adminConfirm('¿Borrar este producto? No se puede deshacer.', function(){
       API.removeProduct(pidDel).then(function(){ adminRefresh('Producto borrado'); });
     });
     return;
@@ -5943,7 +5901,7 @@ document.addEventListener('click', function(e){
   var addelstore = t.closest('[data-addelstore]');
   if (addelstore) {
     var sidDel = addelstore.dataset.addelstore;
-    adminConfirm('Borrar esta tienda? Se borran tambien sus productos y datos de pago. No se puede deshacer.', function(){
+    adminConfirm('¿Borrar esta tienda? Se borran también sus productos y datos de pago. No se puede deshacer.', function(){
       API.removeStore(sidDel).then(function(){ adminRefresh('Tienda borrada'); })
         .catch(function(err){ toast(err.message || 'No se pudo borrar (puede tener pedidos asociados)'); });
     });
@@ -5990,13 +5948,13 @@ document.addEventListener('click', function(e){
   if (oNext) {
     var pn = oNext.dataset.ordNext.split('|'), oid = pn[0], next = pn[1];
     if (next === 'shipped') {
-      openSheet('<h2>Marcar como enviado</h2><p class="lead">Numero de guia o referencia de envio (se lo mostramos al comprador).</p>' +
-        field('sh_track','Numero de guia','ej. MRW-0012345','maxlength="40"') +
+      openSheet('<h2>Marcar como enviado</h2><p class="lead">Número de guía o referencia de envío (se lo mostramos al comprador).</p>' +
+        field('sh_track','Número de guía','ej. MRW-0012345','maxlength="40"') +
         '<button class="primary" id="sh_go">Marcar enviado</button>');
       $('#sh_go').onclick = function(){
         clearErrors();
         var track = cleanText($('#sh_track').value, 40);
-        if (track.length < 3) return fieldError('sh_track','Escribe el numero de guia.');
+        if (track.length < 3) return fieldError('sh_track','Escribe el número de guía.');
         var btn = this; btn.disabled = true;
         API.setOrderStatus(oid, 'shipped', track).then(function(){
           closeSheet(); toast('Pedido marcado como enviado'); panelPedidos();
@@ -6025,7 +5983,7 @@ document.addEventListener('click', function(e){
         '<p class="lead">' + esc(SPECIALTY_LABEL[m.specialty] || m.specialty) + ' · ' + esc(m.zone) + ' · ' + esc(m.rating) + '★</p>' +
         '<a class="primary" style="display:grid;place-items:center;text-decoration:none" target="_blank" rel="noopener" ' +
         'href="https://wa.me/' + esc(onlyDigits(m.phone, 15)) + '?text=' +
-        encodeURIComponent('Hola ' + m.name + ', te contacto desde ruedda repuestos.') + '">Escribir por WhatsApp</a>' +
+        encodeURIComponent('Hola ' + m.name + ', te contacto desde Ruedda Repuestos.') + '">Escribir por WhatsApp</a>' +
         '<button class="secondary" data-close>Cerrar</button>');
     }
     return;
@@ -6037,7 +5995,7 @@ document.addEventListener('click', function(e){
   var req = t.closest('[data-req]');
   if (req) {
     if (req.dataset.req === 'diagnostico') { openSolicitudMecanico(); return; }
-    var TITLES = { no_se_que_comprar:'No se que comprar', no_estoy_seguro:'Confirmar mi compra' };
+    var TITLES = { no_se_que_comprar:'No sé qué comprar', no_estoy_seguro:'Confirmar mi compra' };
     requestService(req.dataset.req, TITLES[req.dataset.req]);
     return;
   }
@@ -6108,7 +6066,7 @@ function pushSubscriptionState(){
     .catch(function(){ return null; });
 }
 function togglePushNotifications(enable){
-  if (!STATE.session) { toast('Inicia sesion para activar notificaciones'); return Promise.resolve(false); }
+  if (!STATE.session) { toast('Inicia sesión para activar notificaciones'); return Promise.resolve(false); }
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
     toast('Tu navegador no soporta notificaciones push'); return Promise.resolve(false);
   }
@@ -6188,7 +6146,7 @@ function boot(){
       if (el) {
         el.insertAdjacentHTML('afterbegin',
           '<div class="rr-down"><b>No pudimos conectar con el servidor.</b>' +
-          '<p>Revisa tu conexion y recarga la pagina.</p>' +
+          '<p>Revisa tu conexión y recarga la página.</p>' +
           '<button class="primary" onclick="location.reload()">Reintentar</button></div>');
       }
       route();
