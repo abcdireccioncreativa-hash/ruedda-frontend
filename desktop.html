@@ -2324,6 +2324,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       </div>
       <button onclick="completeAuth()" style="width:100%;background:var(--lime);color:var(--lime-ink);border:none;border-radius:13px;padding:16px;font-family:var(--font);font-size:16px;font-weight:800;cursor:pointer;margin-top:14px;transition:all .15s;letter-spacing:-.1px" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'" id="auth-cta">crear cuenta y entrar</button>
 
+      <!-- [fix rechazo Apple 2.1(a)] ver mismo comentario en index.html —
+           oculto solo dentro de la app nativa, intacto en la web. -->
+      <div id="auth-social-wrap">
       <!-- DIVIDER -->
       <div style="display:flex;align-items:center;gap:12px;margin:16px 0">
         <div style="flex:1;height:1px;background:var(--w7)"></div>
@@ -2349,6 +2352,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         </svg>
         <span>continuar con Apple</span>
       </button>
+      </div>
 
       <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--w30)">
         <span id="auth-toggle-text">¿ya tienes cuenta?</span>
@@ -15262,6 +15266,13 @@ function showLandingAuth(mode){
   authMode=mode;
   const isLogin=mode==='login';
   document.getElementById('auth-title').textContent=isLogin?'iniciar sesión':'crear cuenta';
+  const authEmailInp=document.getElementById('auth-email');
+  if(authEmailInp){
+    authEmailInp.type=isLogin?'text':'email';
+    authEmailInp.placeholder=isLogin?'correo o @usuario':'correo electrónico';
+  }
+  const socialWrap=document.getElementById('auth-social-wrap');
+  if(socialWrap) socialWrap.style.display=(typeof _isNativeApp==='function'&&_isNativeApp())?'none':'';
   const registerOnly=['auth-name-wrap','auth-user-wrap','auth-cedula-wrap','auth-phone-wrap','auth-confirm-wrap','auth-terms-wrap'];
   registerOnly.forEach(id=>{
     const el=document.getElementById(id);
@@ -15718,8 +15729,18 @@ const _supaWrite = _supa;
 
 
 
-async function _rueddaLogin(email,pass){
+async function _rueddaLogin(identifier,pass){
   if(!_supa) throw new Error('Supabase no disponible');
+  // [fix rechazo Apple: login solo con @usuario] ver mismo comentario en index.html
+  let email=identifier;
+  if(!/\S+@\S+\.\S+/.test(identifier)){
+    try{
+      const r=await fetch('/api/request-password-reset?action=resolve-login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({identifier})});
+      const j=await r.json();
+      if(!r.ok||!j.email) throw new Error('usuario no encontrado');
+      email=j.email;
+    }catch(e){ throw new Error('usuario no encontrado'); }
+  }
   const{data,error}=await _supa.auth.signInWithPassword({email,password:pass});
   if(error) throw new Error(error.message==='Invalid login credentials'?'correo o contraseña incorrectos':error.message);
   const{data:profile,error:pe}=await _supa.from('users').select('*').eq('id',data.user.id).single();

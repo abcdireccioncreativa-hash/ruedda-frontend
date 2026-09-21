@@ -16,12 +16,45 @@ const { supabaseAdmin, supabaseAnon } = require('../lib/supabase');
 const { sendEmail } = require('../lib/email');
 const { templates } = require('../lib/emailTemplates');
 
+/**
+ * POST /api/request-password-reset?action=resolve-login
+ * Body: { identifier }
+ *
+ * Resuelve un @usuario al email real registrado, para permitir loguearse
+ * solo con el usuario (Supabase Auth exige email+password, no tiene concepto
+ * de username). Si `identifier` ya es un email, se devuelve tal cual sin
+ * consultar la tabla — evita una consulta innecesaria en el camino normal.
+ * Usa supabaseAdmin (service role) porque el email no es público vía RLS.
+ */
+async function resolveLogin(req, res) {
+  let body = req.body;
+  if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = {}; } }
+  if (!body) body = {};
+  const identifier = String(body.identifier || '').trim();
+  if (!identifier) return res.status(400).json({ error: 'falta usuario o correo' });
+
+  if (identifier.includes('@') && /\S+@\S+\.\S+/.test(identifier)) {
+    return res.status(200).json({ email: identifier });
+  }
+
+  const username = identifier.replace(/^@/, '');
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('email')
+    .ilike('username', username)
+    .maybeSingle();
+  if (error || !data?.email) return res.status(404).json({ error: 'usuario no encontrado' });
+  return res.status(200).json({ email: data.email });
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
+
+  if (req.query.action === 'resolve-login') return resolveLogin(req, res);
 
   try {
     let body = req.body;
