@@ -16488,8 +16488,6 @@ function showLandingAuth(mode){
     authEmailInp.type=isLogin?'text':'email';
     authEmailInp.placeholder=isLogin?'correo o @usuario':'correo electrónico';
   }
-  const socialWrap=document.getElementById('auth-social-wrap');
-  if(socialWrap) socialWrap.style.display=_isNativeApp()?'none':'';
   const registerOnly=['auth-name-wrap','auth-user-wrap','auth-cedula-wrap','auth-phone-wrap','auth-confirm-wrap','auth-terms-wrap'];
   registerOnly.forEach(id=>{
     const el=document.getElementById(id);
