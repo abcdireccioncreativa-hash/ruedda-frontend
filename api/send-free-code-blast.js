@@ -46,6 +46,15 @@ module.exports = async function handler(req, res) {
   // cada uno termina rápido y sin riesgo de que Vercel lo corte a mitad de camino.
   const offset = Number(body.offset) || 0;
   const limit = Number(body.limit) || 15;
+  // plantilla a enviar — lista cerrada a propósito; sin `template` se comporta
+  // igual que siempre (código de publicación gratis).
+  const TEMPLATES = {
+    codigoPublicacionGratis: (u) => templates.codigoPublicacionGratis({ nombre: u.nombre, codigo: 'RU3DDA' }),
+    appDisponible: (u) => templates.appDisponible({ nombre: u.nombre }),
+  };
+  const templateName = body.template || 'codigoPublicacionGratis';
+  const render = TEMPLATES[templateName];
+  if (!render) return res.status(400).json({ error: 'template desconocido' });
 
   try {
     const { data: users, error } = await supabaseAdmin
@@ -59,7 +68,7 @@ module.exports = async function handler(req, res) {
     if (onlyEmails) all = all.filter(u => onlyEmails.has(u.email.toLowerCase()));
 
     if (dryRun) {
-      return res.status(200).json({ ok: true, dryRun: true, wouldSend: all.length });
+      return res.status(200).json({ ok: true, dryRun: true, template: templateName, wouldSend: all.length });
     }
 
     const recipients = all.slice(offset, offset + limit);
@@ -67,13 +76,13 @@ module.exports = async function handler(req, res) {
     let sentOk = 0;
     const failed = [];
     for (const u of recipients) {
-      const { subject, html } = templates.codigoPublicacionGratis({ nombre: u.nombre, codigo: 'RU3DDA' });
+      const { subject, html } = render(u);
       const ok = await sendEmail({ to: u.email, subject, html });
       if (ok) sentOk++; else failed.push(u.email);
       await sleep(DELAY_MS);
     }
 
-    return res.status(200).json({ ok: true, dryRun: false, offset, limit, totalRecipients: all.length, attempted: recipients.length, sentOk, failed });
+    return res.status(200).json({ ok: true, dryRun: false, template: templateName, offset, limit, totalRecipients: all.length, attempted: recipients.length, sentOk, failed });
   } catch (e) {
     console.error('[ruedda] send-free-code-blast catch:', e.message);
     return res.status(500).json({ error: 'internal error' });
