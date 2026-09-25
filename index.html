@@ -55,6 +55,24 @@
 // un solo <svg> chiquito por instancia. Pinta el cuadro 0 de forma síncrona
 // antes de devolver el control, así nunca hay un instante en blanco esperando
 // el primer requestAnimationFrame — aparece de una en cuanto el HTML llega.
+// [fix login Apple/Google] al volver del proveedor la página recarga con el token
+// en la URL (#access_token / ?code=) y Supabase todavía no lo guardó en
+// localStorage. Se detecta acá, antes que el intro y el boot-splash, para que
+// ninguno de los dos se interponga: 'ok' = vuelve con sesión, 'error' = canceló.
+window._rdOAuthReturn = (function(){
+  try{
+    var u = location.hash + location.search;
+    if(/[#&?](error|error_description)=/.test(u)){ sessionStorage.removeItem('rd_oauth_pending'); return 'error'; }
+    // solo si el login arrancó con el botón de Google/Apple (rd_oauth_pending):
+    // el link de restablecer contraseña también trae #access_token y no es esto.
+    if(/[#&]access_token=|[?&]code=/.test(u)){
+      return (sessionStorage.getItem('rd_oauth_pending')==='1' && !/type=recovery/.test(u)) ? 'ok' : '';
+    }
+    // flag viejo de un intento abandonado: sin token en la URL no es una vuelta.
+    sessionStorage.removeItem('rd_oauth_pending');
+  }catch(e){}
+  return '';
+})();
 // splash animado de marca (/splash/*.html): carga el iframe y resuelve cuando
 // ESE iframe avisa que terminó su animación (ruedda:splash-done).
 function _rdMountSplash(frame, src){
@@ -2445,7 +2463,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   // la primera vez. La sesión de Supabase vive en localStorage ('ruedda-auth').
   var hasSession = false;
   try{ hasSession = !!localStorage.getItem('ruedda-auth'); }catch(e){}
-  if(!forced && ((seen() && hasSession) || !eligible)) return;
+  if(!forced && ((seen() && hasSession) || window._rdOAuthReturn || !eligible)) return;
   // el intro se va a mostrar: su pantalla de carga usa el splash negro, y el
   // boot-splash de abajo no carga el suyo (así no corren dos a la vez).
   window._rdIntroActive = true;
@@ -2837,7 +2855,31 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       var light = document.documentElement.getAttribute('data-theme') === 'light';
       var box = document.getElementById('boot-splash');
       box.style.background = light ? '#FFFFFF' : '#000000';
-      if(window._rdIntroActive){
+      if(window._rdOAuthReturn === 'ok'){
+        // vuelta de Google/Apple: en vez del splash de arranque sale la misma
+        // pantalla "iniciando sesión" del login normal (#login-splash). Cuando
+        // Supabase confirma la sesión, _showLoginSplash la convierte en
+        // "bienvenido" sobre el mismo div, sin corte.
+        box.style.display = 'none';
+        window._rdSplashDone = Promise.resolve();
+        var ls = document.createElement('div');
+        ls.id = 'login-splash';
+        ls.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:var(--splash-bg);opacity:1;transition:opacity .35s ease';
+        ls.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:16px;width:100%">'
+          + '<div style="font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--white);opacity:0;animation:splashFade .3s ease .1s forwards">Iniciando sesión</div>'
+          + '<div style="width:160px;height:3px;background:var(--w8);border-radius:99px;overflow:hidden">'
+          + '<div id="login-progress-bar" style="height:100%;width:0%;background:var(--lime);border-radius:99px;transition:width 2.2s cubic-bezier(.22,1,.36,1)"></div>'
+          + '</div></div>';
+        document.body.appendChild(ls);
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+          var bar = document.getElementById('login-progress-bar'); if(bar) bar.style.width = '85%';
+        }); });
+        // red de seguridad: si la sesión nunca llega, no se queda tapando la app.
+        setTimeout(function(){
+          var el = document.getElementById('login-splash');
+          if(el && el.querySelector('#login-progress-bar')){ el.style.opacity = '0'; setTimeout(function(){ el.remove(); }, 350); }
+        }, 12000);
+      } else if(window._rdIntroActive){
         // el intro ya muestra su propio splash encima: este no carga nada.
         window._rdSplashDone = Promise.resolve();
       } else {
@@ -16942,30 +16984,50 @@ function _showLoginSplash(nombre){
 // Google y Apple comparten la misma función de manejo al volver (_handleGoogleSignIn
 // — el nombre quedó de cuando solo existía Google, pero la lógica de adentro no
 // depende del proveedor, sirve igual para los dos).
+// [fix] feedback inmediato al tocar Google/Apple: el redirect tarda en salir y
+// sin esto el botón parecía muerto. Se restaura si falla o si el usuario vuelve
+// atrás (pageshow desde el caché del navegador).
+function _oauthBtnLoading(fn,on){
+  document.querySelectorAll('button[onclick^="'+fn+'("]').forEach(b=>{
+    if(on){
+      if(b.dataset.rdOrig==null) b.dataset.rdOrig=b.innerHTML;
+      b.disabled=true; b.style.opacity='.75'; b.style.pointerEvents='none';
+      b.innerHTML='<span style="width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;display:inline-block;animation:spin .7s linear infinite"></span><span>conectando…</span>';
+    } else if(b.dataset.rdOrig!=null){
+      b.innerHTML=b.dataset.rdOrig; delete b.dataset.rdOrig;
+      b.disabled=false; b.style.opacity=''; b.style.pointerEvents='';
+    }
+  });
+}
+window.addEventListener('pageshow',e=>{ if(e.persisted){ _oauthBtnLoading('_googleSignIn',false); _oauthBtnLoading('_appleSignIn',false); } });
 async function _googleSignIn(){
   if(!_supa||!_supa.auth||!_supa.auth.signInWithOAuth){ showToast('Google no disponible todavía'); return; }
+  _oauthBtnLoading('_googleSignIn',true);
   try{ sessionStorage.setItem('rd_oauth_pending','1'); }catch(e){}
   try{
     const{error}=await _supa.auth.signInWithOAuth({
       provider:'google',
       options:{ redirectTo: window.location.origin+window.location.pathname }
     });
-    if(error){ showToast('no se pudo conectar con Google: '+error.message); try{sessionStorage.removeItem('rd_oauth_pending');}catch(e){} }
+    if(error){ _oauthBtnLoading('_googleSignIn',false); showToast('no se pudo conectar con Google: '+error.message); try{sessionStorage.removeItem('rd_oauth_pending');}catch(e){} }
   }catch(e){
+    _oauthBtnLoading('_googleSignIn',false);
     showToast('no se pudo conectar con Google');
     try{ sessionStorage.removeItem('rd_oauth_pending'); }catch(e2){}
   }
 }
 async function _appleSignIn(){
   if(!_supa||!_supa.auth||!_supa.auth.signInWithOAuth){ showToast('Apple no disponible todavía'); return; }
+  _oauthBtnLoading('_appleSignIn',true);
   try{ sessionStorage.setItem('rd_oauth_pending','1'); }catch(e){}
   try{
     const{error}=await _supa.auth.signInWithOAuth({
       provider:'apple',
       options:{ redirectTo: window.location.origin+window.location.pathname }
     });
-    if(error){ showToast('no se pudo conectar con Apple: '+error.message); try{sessionStorage.removeItem('rd_oauth_pending');}catch(e){} }
+    if(error){ _oauthBtnLoading('_appleSignIn',false); showToast('no se pudo conectar con Apple: '+error.message); try{sessionStorage.removeItem('rd_oauth_pending');}catch(e){} }
   }catch(e){
+    _oauthBtnLoading('_appleSignIn',false);
     showToast('no se pudo conectar con Apple');
     try{ sessionStorage.removeItem('rd_oauth_pending'); }catch(e2){}
   }
@@ -16995,6 +17057,7 @@ async function _handleGoogleSignIn(user){
 // y cédula, porque Google solo entrega correo/nombre/foto.
 function _showGoogleCompleteProfile(user){
   closeAuthSheet();
+  { const ls=document.getElementById('login-splash'); if(ls) ls.remove(); }
   let m=document.getElementById('google-complete-sheet'); if(m) m.remove();
   m=document.createElement('div');
   m.id='google-complete-sheet';

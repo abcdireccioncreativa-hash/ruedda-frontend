@@ -2015,6 +2015,38 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       var light = document.documentElement.getAttribute('data-theme') === 'light';
       var box = document.getElementById('boot-splash');
       box.style.background = light ? '#FFFFFF' : '#000000';
+      // [fix login Apple/Google] al volver del proveedor (token en la URL) no
+      // sale el splash de arranque: sale "iniciando sesión" (#login-splash) y
+      // _showLoginSplash lo convierte en "bienvenido" sobre el mismo div.
+      var oauthOk = false;
+      try{
+        var u = location.hash + location.search;
+        if(/[#&?](error|error_description)=/.test(u)) sessionStorage.removeItem('rd_oauth_pending');
+        // solo si arrancó con el botón de Google/Apple: el link de restablecer
+        // contraseña también trae #access_token y no es esto.
+        else if(/[#&]access_token=|[?&]code=/.test(u)) oauthOk = sessionStorage.getItem('rd_oauth_pending')==='1' && !/type=recovery/.test(u);
+        else sessionStorage.removeItem('rd_oauth_pending');
+      }catch(e){}
+      if(oauthOk){
+        box.style.display = 'none';
+        window._rdSplashDone = Promise.resolve();
+        var ls = document.createElement('div');
+        ls.id = 'login-splash';
+        ls.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:var(--splash-bg);opacity:1;transition:opacity .35s ease';
+        ls.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;gap:16px;width:100%">'
+          + '<div style="font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--white);opacity:0;animation:splashFade .3s ease .1s forwards">Iniciando sesión</div>'
+          + '<div style="width:160px;height:3px;background:var(--w8);border-radius:99px;overflow:hidden">'
+          + '<div id="login-progress-bar" style="height:100%;width:0%;background:var(--lime);border-radius:99px;transition:width 2.2s cubic-bezier(.22,1,.36,1)"></div>'
+          + '</div></div>';
+        document.body.appendChild(ls);
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){
+          var bar = document.getElementById('login-progress-bar'); if(bar) bar.style.width = '85%';
+        }); });
+        setTimeout(function(){
+          var el = document.getElementById('login-splash');
+          if(el && el.querySelector('#login-progress-bar')){ el.style.opacity = '0'; setTimeout(function(){ el.remove(); }, 350); }
+        }, 12000);
+      } else {
       // el splash avisa por postMessage al terminar su animación (3,2 s); se
       // guarda como promesa para que la orquestación de abajo la espere.
       window._rdSplashDone = new Promise(function(res){
@@ -2026,6 +2058,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       });
       document.getElementById('boot-splash-frame').src =
         light ? '/splash/ruedda-splash-blanco.html' : '/splash/ruedda-splash.html';
+      }
       try{
         if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){
           const{SplashScreen}=window.Capacitor.Plugins||{};
@@ -15579,30 +15612,50 @@ function _showLoginSplash(nombre){
 }
 
 // ============ GOOGLE / APPLE SIGN-IN ============
+// [fix] feedback inmediato al tocar Google/Apple: el redirect tarda en salir y
+// sin esto el botón parecía muerto. Se restaura si falla o si el usuario vuelve
+// atrás (pageshow desde el caché del navegador).
+function _oauthBtnLoading(fn,on){
+  document.querySelectorAll('button[onclick^="'+fn+'("]').forEach(b=>{
+    if(on){
+      if(b.dataset.rdOrig==null) b.dataset.rdOrig=b.innerHTML;
+      b.disabled=true; b.style.opacity='.75'; b.style.pointerEvents='none';
+      b.innerHTML='<span style="width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;display:inline-block;animation:spin .7s linear infinite"></span><span>conectando…</span>';
+    } else if(b.dataset.rdOrig!=null){
+      b.innerHTML=b.dataset.rdOrig; delete b.dataset.rdOrig;
+      b.disabled=false; b.style.opacity=''; b.style.pointerEvents='';
+    }
+  });
+}
+window.addEventListener('pageshow',e=>{ if(e.persisted){ _oauthBtnLoading('_googleSignIn',false); _oauthBtnLoading('_appleSignIn',false); } });
 async function _googleSignIn(){
   if(!_supa||!_supa.auth||!_supa.auth.signInWithOAuth){ showToast('Google no disponible todavía'); return; }
+  _oauthBtnLoading('_googleSignIn',true);
   try{ sessionStorage.setItem('rd_oauth_pending','1'); }catch(e){}
   try{
     const{error}=await _supa.auth.signInWithOAuth({
       provider:'google',
       options:{ redirectTo: window.location.origin+window.location.pathname }
     });
-    if(error){ showToast('no se pudo conectar con Google: '+error.message); try{sessionStorage.removeItem('rd_oauth_pending');}catch(e){} }
+    if(error){ _oauthBtnLoading('_googleSignIn',false); showToast('no se pudo conectar con Google: '+error.message); try{sessionStorage.removeItem('rd_oauth_pending');}catch(e){} }
   }catch(e){
+    _oauthBtnLoading('_googleSignIn',false);
     showToast('no se pudo conectar con Google');
     try{ sessionStorage.removeItem('rd_oauth_pending'); }catch(e2){}
   }
 }
 async function _appleSignIn(){
   if(!_supa||!_supa.auth||!_supa.auth.signInWithOAuth){ showToast('Apple no disponible todavía'); return; }
+  _oauthBtnLoading('_appleSignIn',true);
   try{ sessionStorage.setItem('rd_oauth_pending','1'); }catch(e){}
   try{
     const{error}=await _supa.auth.signInWithOAuth({
       provider:'apple',
       options:{ redirectTo: window.location.origin+window.location.pathname }
     });
-    if(error){ showToast('no se pudo conectar con Apple: '+error.message); try{sessionStorage.removeItem('rd_oauth_pending');}catch(e){} }
+    if(error){ _oauthBtnLoading('_appleSignIn',false); showToast('no se pudo conectar con Apple: '+error.message); try{sessionStorage.removeItem('rd_oauth_pending');}catch(e){} }
   }catch(e){
+    _oauthBtnLoading('_appleSignIn',false);
     showToast('no se pudo conectar con Apple');
     try{ sessionStorage.removeItem('rd_oauth_pending'); }catch(e2){}
   }
@@ -15626,6 +15679,7 @@ async function _handleGoogleSignIn(user){
 }
 function _showGoogleCompleteProfile(user){
   closeAuthSheet();
+  { const ls=document.getElementById('login-splash'); if(ls) ls.remove(); }
   let m=document.getElementById('google-complete-sheet'); if(m) m.remove();
   m=document.createElement('div');
   m.id='google-complete-sheet';
