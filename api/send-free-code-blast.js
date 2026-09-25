@@ -76,8 +76,8 @@ module.exports = async function handler(req, res) {
     let sentOk = 0;
     const failed = [];
     for (const u of recipients) {
-      const { subject, html } = render(u);
-      const ok = await sendEmail({ to: u.email, subject, html });
+      const { subject, html, headers } = render(u);
+      const ok = await sendEmail({ to: u.email, subject, html, headers });
       if (ok) sentOk++; else failed.push(u.email);
       await sleep(DELAY_MS);
     }
