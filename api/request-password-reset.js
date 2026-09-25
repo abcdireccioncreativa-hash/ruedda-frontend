@@ -61,7 +61,7 @@ module.exports = async function handler(req, res) {
   if (req.query.action === 'preview-launch') {
     const { subject, html, headers } = templates.appDisponible({ nombre: 'Jesús' });
     const ok = await sendEmail({ to: 'abcdireccioncreativa@gmail.com', subject: '[prueba] ' + subject, html, headers });
-    return res.status(200).json({ ok });
+    return res.status(200).json({ ok, preview: true });
   }
 
   try {
