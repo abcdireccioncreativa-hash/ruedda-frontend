@@ -56,6 +56,13 @@ module.exports = async function handler(req, res) {
 
   if (req.query.action === 'resolve-login') return resolveLogin(req, res);
 
+  // TEMPORAL: prueba de la versión carta, destinatario fijo en el código.
+  if (req.query.action === 'preview-carta') {
+    const m = templates.appDisponibleCarta({ nombre: 'Jesús' });
+    const ok = await sendEmail({ to: 'abcdireccioncreativa@gmail.com', subject: m.subject, html: m.html, text: m.text, from: m.from, replyTo: m.replyTo });
+    return res.status(200).json({ ok, preview: 'carta' });
+  }
+
 
   try {
     let body = req.body;

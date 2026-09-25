@@ -51,6 +51,7 @@ module.exports = async function handler(req, res) {
   const TEMPLATES = {
     codigoPublicacionGratis: (u) => templates.codigoPublicacionGratis({ nombre: u.nombre, codigo: 'RU3DDA' }),
     appDisponible: (u) => templates.appDisponible({ nombre: u.nombre }),
+    appDisponibleCarta: (u) => templates.appDisponibleCarta({ nombre: u.nombre }),
   };
   const templateName = body.template || 'codigoPublicacionGratis';
   const render = TEMPLATES[templateName];
@@ -76,8 +77,8 @@ module.exports = async function handler(req, res) {
     let sentOk = 0;
     const failed = [];
     for (const u of recipients) {
-      const { subject, html, headers } = render(u);
-      const ok = await sendEmail({ to: u.email, subject, html, headers });
+      const { subject, html, headers, text, from, replyTo } = render(u);
+      const ok = await sendEmail({ to: u.email, subject, html, headers, text, from, replyTo });
       if (ok) sentOk++; else failed.push(u.email);
       await sleep(DELAY_MS);
     }
