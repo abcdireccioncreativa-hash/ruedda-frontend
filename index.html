@@ -214,7 +214,7 @@ function _rdWaveFlag(el, opts){
 :root{
   --bg:#000000;--card:#161616;--card2:#1e1e1e;
   --lime:#0a0a0a;--lime-dark:#000000;--lime-ink:#fff;
-  --rd-green:#08441A;--rd-green-rgb:8,68,26;
+  --rd-green:#e6f03b;--rd-green-rgb:230,240,59;--rd-green-ink:#000;
   --white:#ffffff;--muted:#666;--muted2:#333;
   --border:var(--w7);--badge:rgba(0,0,0,0.72);
   --radius:22px;--radius-sm:15px;
@@ -286,7 +286,7 @@ function _rdWaveFlag(el, opts){
 html[data-theme="light"]{
   --bg:#f6f6ef;--card:#ffffff;--card2:#f2f2ea;
   --lime:#0a0a0a;--lime-dark:#000000;--lime-ink:#fff;
-  --rd-green:#0a0a0a;--rd-green-rgb:10,10,10;
+  --rd-green:#0a0a0a;--rd-green-rgb:10,10,10;--rd-green-ink:#fff;
   --white:#15160e;--muted:#7c7e70;--muted2:#d7d8cb;
   --border:rgba(20,22,10,.12);--badge:rgba(255,255,255,.85);
 
@@ -1293,11 +1293,11 @@ html[data-theme="light"] .cnt-slider-tab.active{background:#fff}
 .sb-budget-range::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:#fff;border:1px solid rgba(0,0,0,.12);box-shadow:0 2px 8px rgba(0,0,0,.28);cursor:pointer}
 .sb-budget-scale{display:flex;justify-content:space-between;font-size:11px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
 /* modo claro sin tintes verdes: los SVG que traen el verde como atributo */
-html[data-theme="light"] [stroke="#08441A" i]{stroke:#0a0a0a}
-html[data-theme="light"] [fill="#08441A" i]{fill:#0a0a0a}
-html[data-theme="light"] [stop-color="#08441A" i]{stop-color:#0a0a0a}
-html[data-theme="light"] [fill^="rgba(8,68,26"]{fill:rgba(10,10,10,.12)}
-html[data-theme="light"] [stroke^="rgba(8,68,26"]{stroke:rgba(10,10,10,.35)}
+html[data-theme="light"] [stroke="#e6f03b" i]{stroke:#0a0a0a}
+html[data-theme="light"] [fill="#e6f03b" i]{fill:#0a0a0a}
+html[data-theme="light"] [stop-color="#e6f03b" i]{stop-color:#0a0a0a}
+html[data-theme="light"] [fill^="rgba(230,240,59"]{fill:rgba(10,10,10,.12)}
+html[data-theme="light"] [stroke^="rgba(230,240,59"]{stroke:rgba(10,10,10,.35)}
 /* ── [BOOT SPLASH] ── */
 #boot-splash{position:fixed;inset:0;z-index:100000;background:var(--splash-bg);opacity:1;transition:opacity .25s ease}
 #boot-splash-frame{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:transparent;pointer-events:none}
@@ -2965,8 +2965,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         <svg viewBox="0 0 580 420" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
           <defs>
             <radialGradient id="glow1" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#08441A" stop-opacity=".08"/>
-              <stop offset="100%" stop-color="#08441A" stop-opacity="0"/>
+              <stop offset="0%" stop-color="#e6f03b" stop-opacity=".08"/>
+              <stop offset="100%" stop-color="#e6f03b" stop-opacity="0"/>
             </radialGradient>
             <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stop-color="#2a2a2a"/>
@@ -3004,9 +3004,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
           <path d="M80 265 Q78 290 82 310 L115 315 L115 280 Z" fill="#1a1a1a" stroke="var(--w10)" stroke-width="1"/>
           <!-- HEADLIGHT -->
           <path d="M84 248 L115 242 L118 262 L84 266 Z" fill="#1e1e1e" stroke="var(--w15)" stroke-width="1"/>
-          <path d="M88 250 L112 245 L114 258 L88 261 Z" fill="rgba(8,68,26,.12)" stroke="#08441A" stroke-width=".8" opacity=".8"/>
+          <path d="M88 250 L112 245 L114 258 L88 261 Z" fill="rgba(230,240,59,.12)" stroke="#e6f03b" stroke-width=".8" opacity=".8"/>
           <!-- headlight glow -->
-          <ellipse cx="80" cy="255" rx="18" ry="8" fill="#08441A" opacity=".06" filter="url(#blur2)"/>
+          <ellipse cx="80" cy="255" rx="18" ry="8" fill="#e6f03b" opacity=".06" filter="url(#blur2)"/>
           <!-- REAR LIGHTS -->
           <path d="M495 238 L510 248 L510 270 L490 272 L488 242 Z" fill="#1e1e1e" stroke="var(--w12)" stroke-width="1"/>
           <path d="M497 242 L508 250 L507 266 L492 267 L491 245 Z" fill="rgba(255,60,60,.15)" stroke="rgba(255,80,80,.5)" stroke-width=".8"/>
@@ -3578,7 +3578,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   <div id="pfm-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:rgba(var(--rd-green-rgb),.08);border:1px solid rgba(var(--rd-green-rgb),.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
-      <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
     </div>
     <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:#fff">publicamos por ti</div>
     <div style="font-size:13px;font-weight:300;color:rgba(255,255,255,.55);text-align:center;margin-top:10px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto">Envíanos tu número de WhatsApp y te escribimos a la brevedad.</div>
@@ -3593,7 +3593,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   <div id="aws-inner" style="background:#000;border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:rgba(var(--rd-green-rgb),.08);border:1px solid rgba(var(--rd-green-rgb),.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
-      <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
     </div>
     <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:#fff">acceso anticipado</div>
     <div style="font-size:13px;font-weight:300;color:rgba(255,255,255,.55);text-align:center;margin-top:10px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto">Déjanos tu número de WhatsApp y te contactamos antes de que arranque la subasta.</div>
@@ -3732,7 +3732,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
             <span onclick="_showAuctionAccessSheet()" style="color:var(--w50);font-weight:600;cursor:pointer;font-size:12px">entrar</span>
           </div>
           <div style="margin-top:18px;background:var(--surface-hi);border:1px solid rgba(var(--rd-green-rgb),.18);border-radius:14px;padding:13px 16px;text-align:left;display:flex;align-items:center;gap:10px">
-            <svg fill="none" viewBox="0 0 20 20" stroke="#08441A" stroke-width="1.6" style="width:16px;height:16px;flex-shrink:0"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l2.5 2.5"/></svg>
+            <svg fill="none" viewBox="0 0 20 20" stroke="#e6f03b" stroke-width="1.6" style="width:16px;height:16px;flex-shrink:0"><circle cx="10" cy="10" r="8"/><path d="M10 6v4l2.5 2.5"/></svg>
             <p style="font-size:12.5px;color:var(--w70);line-height:1.5;font-weight:400;margin:0">esta subasta empezará en precio base de: <span id="locked-precio-base" style="color:var(--rd-green);font-weight:800">--</span></p>
           </div>
         </div>
@@ -3968,7 +3968,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   <div style="display:flex;justify-content:center;padding:14px 0 0"><div style="width:36px;height:4px;background:var(--surface-lo);border-radius:2px"></div></div>
   <div style="padding:18px 22px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
     <div style="font-size:18px;font-weight:800;letter-spacing:-.3px">filtros</div>
-    <button onclick="clearAllFilters()" style="background:none;border:none;font-family:var(--font);font-size:13px;color:var(--w30);cursor:pointer;transition:color .15s" onmouseover="this.style.color='#08441A'" onmouseout="this.style.color='var(--w30)'">limpiar todo</button>
+    <button onclick="clearAllFilters()" style="background:none;border:none;font-family:var(--font);font-size:13px;color:var(--w30);cursor:pointer;transition:color .15s" onmouseover="this.style.color='var(--rd-green)'" onmouseout="this.style.color='var(--w30)'">limpiar todo</button>
   </div>
 
   <div style="padding:0 18px;display:flex;flex-direction:column;gap:8px">
@@ -4251,7 +4251,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         <!-- Add button always first -->
         <div id="photo-add-btn" onclick="document.getElementById('file-input').click()" style="grid-column:1/-1;width:100%;height:150px;background:var(--w2);border:1px solid var(--w14);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:all .2s;position:relative" onmouseover="this.style.borderColor='rgba(var(--rd-green-rgb),.5)';this.style.background='rgba(var(--rd-green-rgb),.04)'" onmouseout="this.style.borderColor='var(--w14)';this.style.background='var(--w2)'">
           <div style="width:40px;height:40px;background:rgba(var(--rd-green-rgb),.12);border-radius:50%;display:flex;align-items:center;justify-content:center">
-            <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="2.2" style="width:20px;height:20px"><path d="M12 5v14M5 12h14"/></svg>
+            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="2.2" style="width:20px;height:20px"><path d="M12 5v14M5 12h14"/></svg>
           </div>
           <div style="font-size:13px;font-weight:700;color:var(--w85)">agregar fotos</div>
           <div style="font-size:11px;color:var(--w35);font-weight:300">mínimo 10</div>
@@ -4497,7 +4497,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <div id="video-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
         <div id="video-add-btn" onclick="document.getElementById('video-input').click()" style="grid-column:1/-1;width:100%;height:140px;background:var(--w2);border:1px solid var(--w14);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:all .2s;position:relative" onmouseover="this.style.borderColor='rgba(var(--rd-green-rgb),.5)';this.style.background='rgba(var(--rd-green-rgb),.04)'" onmouseout="this.style.borderColor='var(--w14)';this.style.background='var(--w2)'">
           <div style="width:40px;height:40px;background:rgba(var(--rd-green-rgb),.12);border-radius:50%;display:flex;align-items:center;justify-content:center">
-            <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="2.2" style="width:20px;height:20px"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="2.2" style="width:20px;height:20px"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
           </div>
           <div style="font-size:13px;font-weight:700;color:var(--w85)">agregar videos</div>
           <div style="font-size:11px;color:var(--w35);font-weight:300">hasta 3</div>
@@ -4514,7 +4514,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <div id="doc-list" style="display:flex;flex-direction:column;gap:8px"></div>
       <div id="doc-add-btn" onclick="document.getElementById('doc-input').click()" style="width:100%;padding:14px;background:var(--w2);border:1px solid var(--w14);border-radius:14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='rgba(var(--rd-green-rgb),.5)';this.style.background='rgba(var(--rd-green-rgb),.04)'" onmouseout="this.style.borderColor='var(--w14)';this.style.background='var(--w2)'">
         <div style="width:34px;height:34px;background:rgba(var(--rd-green-rgb),.12);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="2.2" style="width:16px;height:16px"><path d="M12 5v14M5 12h14"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="2.2" style="width:16px;height:16px"><path d="M12 5v14M5 12h14"/></svg>
         </div>
         <div>
           <div style="font-size:13px;font-weight:700;color:var(--w85)">agregar documentos</div>
@@ -4527,7 +4527,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
     <div style="background:rgba(var(--rd-green-rgb),.05);border:1px solid rgba(var(--rd-green-rgb),.16);border-radius:14px;padding:18px 18px 20px">
       <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:14px">
-        <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.8" style="width:20px;height:20px;flex-shrink:0;margin-top:2px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:20px;height:20px;flex-shrink:0;margin-top:2px"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         <div>
           <div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:5px">las fotos sí importan.</div>
           <div style="font-size:13px;color:var(--w75);line-height:1.65">Una buena foto puede aumentar la visibilidad y ganancia de tu publicación un <span style="color:var(--white);font-weight:600">60%</span>. Contrata una sesión con los estándares de Ruedda en tu ciudad.</div>
@@ -4739,7 +4739,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     <div style="height:1px;background:var(--border);margin:4px 0"></div>
     <div onclick="startDealerListing()" style="border:1.5px dashed var(--w12);border-radius:var(--radius);padding:24px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='rgba(var(--rd-green-rgb),.4)'" onmouseout="this.style.borderColor='var(--w12)'">
       <div style="width:48px;height:48px;border-radius:50%;background:rgba(var(--rd-green-rgb),.1);border:1px solid rgba(var(--rd-green-rgb),.25);display:flex;align-items:center;justify-content:center">
-        <svg fill="none" viewBox="0 0 20 20" stroke="#08441A" stroke-width="2.2" style="width:18px;height:18px"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
+        <svg fill="none" viewBox="0 0 20 20" stroke="#e6f03b" stroke-width="2.2" style="width:18px;height:18px"><line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/></svg>
       </div>
       <div style="font-size:14px;font-weight:700">nueva publicación</div>
       <div style="font-size:12px;color:var(--muted)">agrega un vehículo a tu vitrina</div>
@@ -5081,7 +5081,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <div id="af-photos-grid" style="display:flex;flex-wrap:wrap;gap:8px"></div>
       <div id="af-photos-add" onclick="document.getElementById('af-photos-file').click()" style="width:100%;height:150px;background:var(--w2);border:1px solid var(--w14);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:all .2s;box-sizing:border-box" onmouseover="this.style.borderColor='rgba(var(--rd-green-rgb),.5)';this.style.background='rgba(var(--rd-green-rgb),.04)'" onmouseout="this.style.borderColor='var(--w14)';this.style.background='var(--w2)'">
         <div style="width:40px;height:40px;background:rgba(var(--rd-green-rgb),.12);border-radius:50%;display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="2.2" style="width:20px;height:20px"><path d="M12 5v14M5 12h14"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="2.2" style="width:20px;height:20px"><path d="M12 5v14M5 12h14"/></svg>
         </div>
         <div style="font-size:13px;font-weight:700;color:var(--w85)">agregar fotos</div>
         <div style="font-size:11px;color:var(--w35);font-weight:300">del vehículo</div>
@@ -5272,19 +5272,19 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <div style="padding:14px 18px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border)">con tu cuenta puedes</div>
       <div style="display:flex;flex-direction:column">
         <div style="display:flex;align-items:center;gap:13px;padding:14px 18px;border-bottom:1px solid var(--border)">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.8" style="width:18px;height:18px;flex-shrink:0"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:18px;height:18px;flex-shrink:0"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
           <span style="font-size:14px">hacer ofertas en subastas</span>
         </div>
         <div style="display:flex;align-items:center;gap:13px;padding:14px 18px;border-bottom:1px solid var(--border)">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.8" style="width:18px;height:18px;flex-shrink:0"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:18px;height:18px;flex-shrink:0"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
           <span style="font-size:14px">guardar favoritos y seguirlos</span>
         </div>
         <div style="display:flex;align-items:center;gap:13px;padding:14px 18px;border-bottom:1px solid var(--border)">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.8" style="width:18px;height:18px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:18px;height:18px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
           <span style="font-size:14px">publicar y vender tu vehículo</span>
         </div>
         <div style="display:flex;align-items:center;gap:13px;padding:14px 18px">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.8" style="width:18px;height:18px;flex-shrink:0"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:18px;height:18px;flex-shrink:0"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span style="font-size:14px">recibir notificaciones en tiempo real</span>
         </div>
       </div>
@@ -5738,7 +5738,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   <div class="modal-sheet" style="text-align:center">
     <div class="modal-handle"></div>
     <div style="width:64px;height:64px;border-radius:50%;background:rgba(var(--rd-green-rgb),.08);border:1px solid rgba(var(--rd-green-rgb),.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
-      <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px"><path d="M3 8h14v6a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M17 9h2a2.5 2.5 0 0 1 0 5h-2"/><path d="M7 3c-.5 1 .5 1.5 0 3M11 3c-.5 1 .5 1.5 0 3"/></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="width:30px;height:30px"><path d="M3 8h14v6a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5z"/><path d="M17 9h2a2.5 2.5 0 0 1 0 5h-2"/><path d="M7 3c-.5 1 .5 1.5 0 3M11 3c-.5 1 .5 1.5 0 3"/></svg>
     </div>
     <div style="font-size:19px;font-weight:800;letter-spacing:-.3px;margin-bottom:8px">cars &amp; coffee · próximamente</div>
     <p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:22px">Consigue las mejores cafeterías para reunirte con la comunidad Ruedda.</p>
@@ -6066,13 +6066,13 @@ async function _loadRueddaTeamConfig(){
       document.querySelectorAll('.msg-avatar.official-ring').forEach(av=>{
         const _cur=av.querySelector('img');
         if(_cur&&_cur.src===data.value) return;
-        av.innerHTML=`<img src="${data.value}" alt="Ruedda" loading="lazy" decoding="async" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#08441A';this.parentElement.style.fontWeight='800'">`;
+        av.innerHTML=`<img src="${data.value}" alt="Ruedda" loading="lazy" decoding="async" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='var(--rd-green)';this.parentElement.style.fontWeight='800'">`;
       });
       const _threadAv=document.getElementById('thread-avatar');
       if(_threadAv&&currentThread?.isOfficial){
         const _curT=_threadAv.querySelector('img');
         if(!_curT||_curT.src!==data.value){
-          _threadAv.innerHTML=`<img src="${data.value}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#08441A';this.parentElement.style.fontWeight='800'">`;
+          _threadAv.innerHTML=`<img src="${data.value}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='var(--rd-green)';this.parentElement.style.fontWeight='800'">`;
         }
       }
     }
@@ -7085,7 +7085,7 @@ function renderMensajesList(){
     list.innerHTML=`
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 28px;text-align:center;gap:20px">
         <div style="width:64px;height:64px;border-radius:50%;background:rgba(var(--rd-green-rgb),0.08);border:1px solid rgba(var(--rd-green-rgb),0.15);display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.5" style="width:28px;height:28px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:28px;height:28px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
         <div>
           <div style="font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:10px;line-height:1.3">Estás a un mensaje de distancia.</div>
@@ -7520,7 +7520,7 @@ async function toggleWatchlist(id,btn){
       const{error}=await _supa.from('user_favorites').upsert({user_id:USER_STATE.id,item_id:keyStr},{onConflict:'user_id,item_id'});
       if(error){watchlist.delete(key);console.error('[fav insert]',error.message,{item_id:keyStr});showToast('error guardando favorito');return;}
     }
-    if(btn){btn.querySelector('svg').setAttribute('fill','#08441A');btn.querySelector('svg').setAttribute('stroke','#08441A');}
+    if(btn){btn.querySelector('svg').setAttribute('fill','#e6f03b');btn.querySelector('svg').setAttribute('stroke','#e6f03b');}
     showToast('vehículo guardado en favoritos',true);
   }
 }
@@ -8311,7 +8311,7 @@ function renderGlobalChatMessages(){
   if(!GLOBAL_CHAT_MSGS.length){
     box.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:320px;text-align:center;gap:14px;padding:20px">
       <div style="width:56px;height:56px;border-radius:50%;background:rgba(var(--rd-green-rgb),.08);border:1px solid rgba(var(--rd-green-rgb),.15);display:flex;align-items:center;justify-content:center">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#08441A" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e6f03b" stroke-width="1.6" style="width:24px;height:24px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
       </div>
       <div>
         <div style="font-size:15px;font-weight:700">sé el primero en escribir aquí</div>
@@ -9227,7 +9227,7 @@ async function openMarketDetail(id, origin){
         if(_av2){ if(_img){_av2.innerHTML=_img;_av2.style.overflow='hidden';} else {_av2.textContent=ini;} }
         // sello: estrella lime para dealer, azul para particular verificado KYC
         const _kseal=isDealer
-          ?'<svg viewBox="0 0 16 16" fill="#08441A" style="width:12px;height:12px;flex-shrink:0;margin-left:4px;vertical-align:middle"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.4 6.8l1.9 1.9 3.4-3.9" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+          ?'<svg viewBox="0 0 16 16" fill="#e6f03b" style="width:12px;height:12px;flex-shrink:0;margin-left:4px;vertical-align:middle"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.4 6.8l1.9 1.9 3.4-3.9" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>'
           :u.kyc_verified?'<span style="display:inline-flex;align-items:center;vertical-align:middle;margin-left:4px"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span>':'';
         if(_nm) _nm.innerHTML=nm+_kseal;
         if(_nm2) _nm2.innerHTML=nm+_kseal;
@@ -9402,12 +9402,12 @@ async function toggleWatchlistMarket(id,btn){
     showToast('eliminado de favoritos');
     _persistFav(key,false).catch(()=>{
       watchlist.add(key);
-      if(svg){svg.setAttribute('fill','#08441A');svg.setAttribute('stroke','#08441A');}
+      if(svg){svg.setAttribute('fill','#e6f03b');svg.setAttribute('stroke','#e6f03b');}
       showToast('error de red · no se eliminó');
     });
   } else {
     watchlist.add(key);
-    if(svg){svg.setAttribute('fill','#08441A');svg.setAttribute('stroke','#08441A');}
+    if(svg){svg.setAttribute('fill','#e6f03b');svg.setAttribute('stroke','#e6f03b');}
     showToast('vehículo guardado en favoritos',true);
     _persistFav(key,true).catch(()=>{
       watchlist.delete(key);
@@ -10891,7 +10891,7 @@ function renderNotifications(){
     list.innerHTML=`
       <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 28px;text-align:center;gap:20px">
         <div style="width:64px;height:64px;border-radius:50%;background:rgba(var(--rd-green-rgb),0.08);border:1px solid rgba(var(--rd-green-rgb),0.15);display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.5" style="width:28px;height:28px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:28px;height:28px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
         <div>
           <div style="font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:10px;line-height:1.3">Compra, vende o subasta tu carro en el mercado más avanzado de Venezuela.</div>
@@ -11085,7 +11085,7 @@ function openAuditadoSplash(){
   overlay.style.cssText='position:fixed;inset:0;z-index:99996;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:28px;animation:rdFadeIn .3s ease';
   overlay.innerHTML=`<div style="background:var(--surface-hi);border:1px solid rgba(var(--rd-green-rgb),.18);border-radius:24px;padding:32px 26px 24px;max-width:320px;width:100%;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.65);font-family:var(--font)">
     <div style="width:56px;height:56px;border-radius:50%;background:rgba(var(--rd-green-rgb),.1);border:1px solid rgba(var(--rd-green-rgb),.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
-      <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.8" style="width:26px;height:26px"><path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/><path d="m9 12.5 2 2 4-4.5"/></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:26px;height:26px"><path d="M12 2l8 4v6c0 5-3.4 8.4-8 10-4.6-1.6-8-5-8-10V6z"/><path d="m9 12.5 2 2 4-4.5"/></svg>
     </div>
     <div style="font-size:17px;font-weight:800;color:var(--white);letter-spacing:-.2px;line-height:1.35">este carro fue verificado por auditores de Ruedda</div>
     <div style="font-size:13px;color:var(--w55);line-height:1.65;margin-top:10px">y tiene sus papeles al día. Revisamos los documentos subidos por el vendedor antes de aprobar el sello.</div>
@@ -11565,7 +11565,7 @@ async function applyPlanCode(id, e){
   const found = _supa ? await (async()=>{const r=await _validateCode(val);return r;})() : null;
   if(found){
     msg.textContent='código válido — publicación gratuita';
-    msg.style.color='#08441A'; msg.style.display='block';
+    msg.style.color='var(--rd-green)'; msg.style.display='block';
     const cta = document.getElementById('plan-cta-'+id);
     if(cta){ cta.textContent='publicar gratis'; cta.style.display='block'; cta.dataset.freeCode=val; }
     selectPlan(id);
@@ -11684,7 +11684,7 @@ async function redeemCheckoutCode(){
   if(!val){msg.textContent='ingresa un código';msg.style.display='block';msg.style.color='rgba(255,80,80,.8)';return;}
   const found=await _validateCode(val);
   if(found){
-    msg.textContent='código válido — publicación sin costo';msg.style.display='block';msg.style.color='#08441A';
+    msg.textContent='código válido — publicación sin costo';msg.style.display='block';msg.style.color='var(--rd-green)';
     document.getElementById('checkout-pay-btn').textContent='aplicar código y publicar';
     document.getElementById('checkout-pay-btn').dataset.freeCode=val;
   } else {
@@ -11874,7 +11874,7 @@ function openPaymentSheetForType(type){
   document.getElementById('ps-features').innerHTML=p.features.map((f,i)=>`
     <div style="display:flex;align-items:flex-start;gap:13px;padding:14px 0;${i>0?'border-top:1px solid var(--w5)':''}">
       <div style="width:22px;height:22px;border-radius:50%;background:${f.ok?'rgba(var(--rd-green-rgb),.1)':'var(--w4)'};border:1px solid ${f.ok?'rgba(var(--rd-green-rgb),.22)':'var(--w8)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
-        ${f.ok?'<svg fill="none" viewBox="0 0 14 14" stroke="#08441A" stroke-width="2.5" style="width:9px;height:9px"><path d="m2 7 3.5 3.5 6.5-7"/></svg>':'<svg fill="none" viewBox="0 0 14 14" stroke="var(--w20)" stroke-width="2" style="width:8px;height:8px"><path d="m3 3 8 8M11 3l-8 8"/></svg>'}
+        ${f.ok?'<svg fill="none" viewBox="0 0 14 14" stroke="#e6f03b" stroke-width="2.5" style="width:9px;height:9px"><path d="m2 7 3.5 3.5 6.5-7"/></svg>':'<svg fill="none" viewBox="0 0 14 14" stroke="var(--w20)" stroke-width="2" style="width:8px;height:8px"><path d="m3 3 8 8M11 3l-8 8"/></svg>'}
       </div>
       <div style="font-size:14px;line-height:1.55;color:${f.ok?'var(--w88)':'var(--w30)'}">${f.text}</div>
     </div>`).join('');
@@ -13483,7 +13483,7 @@ async function openEditListingModal(id){
         b.style.background='var(--w5)'; b.style.borderColor='var(--border)'; b.style.color='var(--w50)';
       });
       btn.classList.add('active');
-      btn.style.background='rgba(var(--rd-green-rgb),.15)'; btn.style.borderColor='rgba(var(--rd-green-rgb),.3)'; btn.style.color='#08441A';
+      btn.style.background='rgba(var(--rd-green-rgb),.15)'; btn.style.borderColor='rgba(var(--rd-green-rgb),.3)'; btn.style.color='var(--rd-green)';
       ['basico','detalles','fotos'].forEach(t=>{
         const p=document.getElementById('edit-panel-'+t);
         if(p) p.style.display = t===btn.dataset.t ? 'flex' : 'none';
@@ -13821,7 +13821,7 @@ function renderDocList(){
   if(!list) return;
   list.innerHTML=docItems.map((d,i)=>`
     <div style="display:flex;align-items:center;gap:10px;background:var(--w3);border:1px solid var(--w8);border-radius:12px;padding:10px 12px">
-      <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.8" style="width:16px;height:16px;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:16px;height:16px;flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
       <span style="flex:1;font-size:12.5px;color:var(--w75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.name}</span>
       <button onclick="removeDoc(${i})" style="background:none;border:none;color:var(--w40);font-size:16px;cursor:pointer;padding:0 4px;flex-shrink:0">×</button>
     </div>`).join('');
@@ -15101,11 +15101,11 @@ async function saUploadRueddaTeamAvatar(input){
   // de mensajes se quedaban con el logo viejo (o la "R") hasta un re-render completo,
   // por eso "a veces ni cargaba". Con fade para que no aparezca de golpe.
   document.querySelectorAll('.msg-avatar.official-ring').forEach(av=>{
-    av.innerHTML=`<img src="${urlData.publicUrl}" alt="Ruedda" loading="lazy" decoding="async" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#08441A';this.parentElement.style.fontWeight='800'">`;
+    av.innerHTML=`<img src="${urlData.publicUrl}" alt="Ruedda" loading="lazy" decoding="async" style="opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='var(--rd-green)';this.parentElement.style.fontWeight='800'">`;
   });
   const _threadAv=document.getElementById('thread-avatar');
   if(_threadAv&&typeof currentThread!=='undefined'&&currentThread?.isOfficial){
-    _threadAv.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#08441A';this.parentElement.style.fontWeight='800'">`;
+    _threadAv.innerHTML=`<img src="${urlData.publicUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='var(--rd-green)';this.parentElement.style.fontWeight='800'">`;
   }
   showToast('foto del canal actualizada',true);
 }
@@ -16128,7 +16128,7 @@ async function redeemInviteCode(){
   if(!code||!msgEl) return;
   const found=await _validateCode(code);
   if(found){
-    msgEl.style.display='block';msgEl.style.color='#08441A';
+    msgEl.style.display='block';msgEl.style.color='var(--rd-green)';
     msgEl.textContent='código válido — acceso sin cargo activado';
     const cta=document.getElementById('ps-cta');
     if(cta){cta.textContent='continuar gratis →';cta.dataset.inviteCode=code;}
@@ -16903,7 +16903,7 @@ function _showResetPasswordSheet(){
   <div id="rpw-inner" style="background:var(--surface-hi);border-top:1px solid var(--w8);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:26px 24px calc(40px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .38s cubic-bezier(.22,1,.36,1);font-family:var(--font)">
     <div style="display:flex;justify-content:center;margin-bottom:20px"><div style="width:38px;height:4px;border-radius:100px;background:var(--w20)"></div></div>
     <div style="width:54px;height:54px;border-radius:50%;background:rgba(var(--rd-green-rgb),.08);border:1px solid rgba(var(--rd-green-rgb),.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
-      <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.6" style="width:24px;height:24px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.6" style="width:24px;height:24px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
     </div>
     <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:var(--white)">nueva contraseña</div>
     <div style="font-size:13px;font-weight:300;color:var(--w55);text-align:center;margin-top:10px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto">Define tu nueva contraseña para entrar a Ruedda.</div>
@@ -18478,7 +18478,7 @@ async function openUserProfile(userId){
     // [V117] tier de métricas — 4 cards glassmorph, mismo lenguaje visual que .bottom-nav/.dropdown-glass
     const _metricCard=(label,value,iconPath)=>`
       <div style="background:var(--w4);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--w8);border-radius:16px;padding:14px;box-shadow:inset 0 1px 0 var(--w6)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#08441A" stroke-width="1.6" style="width:16px;height:16px;margin-bottom:8px">${iconPath}</svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e6f03b" stroke-width="1.6" style="width:16px;height:16px;margin-bottom:8px">${iconPath}</svg>
         <div style="font-size:16px;font-weight:800;letter-spacing:-.2px">${value}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:1px;line-height:1.3">${label}</div>
       </div>`;
@@ -18512,7 +18512,7 @@ async function openUserProfile(userId){
       ${!isMe?`
       <div style="display:flex;gap:10px;margin-top:18px">
         <button onclick="_openRatingModal('${userId}','${safeName}',${myRating})" style="background:var(--lime);border:none;color:var(--lime-ink);border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">calificar <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg></button>
-        <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="background:${amIFollowing?'var(--w8)':'var(--rd-green)'};border:${amIFollowing?'1px solid var(--border)':'none'};color:#fff;border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0"><span id="follow-btn-label-${userId}">${amIFollowing?'siguiendo':'seguir'}</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></button>
+        <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="background:${amIFollowing?'var(--w8)':'var(--rd-green)'};border:${amIFollowing?'1px solid var(--border)':'none'};color:${amIFollowing?'#fff':'var(--rd-green-ink)'};border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0"><span id="follow-btn-label-${userId}">${amIFollowing?'siguiendo':'seguir'}</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></button>
       </div>`:`<div style="margin-top:16px;font-size:12px;color:var(--muted)">este es tu perfil · edítalo desde configuración</div>`}
       ${u.descripcion?`
       <div style="margin-top:26px">
@@ -18598,8 +18598,8 @@ async function _followToggle(userId,btn){
   // optimista
   btn.dataset.following=String(newFollowing);
   if(label)label.textContent=newFollowing?'siguiendo':'seguir';
-  btn.style.background=newFollowing?'var(--w6)':'var(--lime)';
-  btn.style.color=newFollowing?'var(--w70)':'#fff';
+  btn.style.background=newFollowing?'var(--w6)':'var(--rd-green)';
+  btn.style.color=newFollowing?'var(--w70)':'var(--rd-green-ink)';
   btn.style.borderColor=newFollowing?'var(--border)':'transparent';
   try{
     if(newFollowing){
@@ -18645,7 +18645,7 @@ function _updateMktFinanciamientoCard(l){
     // más opacidad — a simple vista no se notaba la diferencia. Ahora el
     // estado activo tiene un ícono propio (tarjeta, en lima), texto "financiamiento
     // activo" y el mismo sello azul verificado que ya se usa en perfiles.
-    card.innerHTML=`<svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.8" style="width:20px;height:20px"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+    card.innerHTML=`<svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:20px;height:20px"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
       <div style="font-size:14px;font-weight:700;color:var(--white)">financiamiento</div>
       <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--rd-green);display:flex;align-items:center;gap:5px">financiamiento activo<svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></div>
       <div onclick="openFinanciamientoPopup()" style="font-size:11px;font-weight:600;color:var(--w50);text-decoration:underline;cursor:pointer;margin-top:1px">ver más</div>`;
@@ -19230,7 +19230,7 @@ function _showStoryKycGateSplash(){
   m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:30px;opacity:0;transition:opacity .3s ease';
   m.onclick=e=>{if(e.target===m){m.style.opacity='0';setTimeout(()=>m.remove(),300);}};
   m.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;max-width:320px;transform:translateY(10px);transition:transform .35s cubic-bezier(.22,1,.36,1)" id="story-kyc-gate-inner">
-    <div style="width:56px;height:56px;border-radius:50%;background:rgba(var(--rd-green-rgb),.1);border:1px solid rgba(var(--rd-green-rgb),.3);display:flex;align-items:center;justify-content:center"><svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.7" style="width:25px;height:25px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4.5"/></svg></div>
+    <div style="width:56px;height:56px;border-radius:50%;background:var(--w6);border:1px solid var(--w15);display:flex;align-items:center;justify-content:center"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" style="width:25px;height:25px;color:var(--white)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4.5"/></svg></div>
     <div style="font-size:18px;font-weight:800;letter-spacing:-.3px;color:var(--white);line-height:1.35">debes verificar tu cuenta para poder publicar historias en Ruedda</div>
     <button onclick="const s=document.getElementById('story-kyc-gate-splash');if(s){s.style.opacity='0';setTimeout(()=>s.remove(),250);}showView('kyc');openKycView();" style="background:var(--w10);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--w18);border-radius:100px;padding:10px 22px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--white);cursor:pointer;display:inline-flex;align-items:center;gap:7px">verificar <span style="font-size:14px">&rarr;</span></button>
   </div>`;
@@ -19358,7 +19358,7 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
     const inner=panel.querySelector('div');
     if(inner) inner.style.transform='translateY(0)';
   }));
-  setTimeout(()=>document.getElementById('pm-input')?.focus(),380);
+  // sin autofocus: el teclado solo sale cuando el usuario toca el campo.
 }
 
 // [ofrecer cambio / ofrecer menos] bottom-sheet clonado de _openPmPanel para
@@ -19614,7 +19614,7 @@ function renderMensajesList(){
   if(isGuest()){
     list.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 28px;text-align:center;gap:20px">
       <div style="width:64px;height:64px;border-radius:50%;background:rgba(var(--rd-green-rgb),0.08);border:1px solid rgba(var(--rd-green-rgb),0.15);display:flex;align-items:center;justify-content:center">
-        <svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.5" style="width:28px;height:28px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:28px;height:28px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       </div>
       <div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:10px;line-height:1.3">Estás a un mensaje de distancia.</div>
@@ -19713,7 +19713,7 @@ function openRueddaTeamThread(){
     av.style.cursor='default';av.onclick=null;
     av.style.border='1.5px solid rgba(var(--rd-green-rgb),.55)';
     av.style.boxShadow='0 0 0 3px rgba(var(--rd-green-rgb),.07)';
-    av.innerHTML=`<img src="${window._rueddaTeamLogoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='#08441A';this.parentElement.style.fontWeight='800'">`;
+    av.innerHTML=`<img src="${window._rueddaTeamLogoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;opacity:0;transition:opacity .35s ease" onload="this.style.opacity='1'" onerror="this.parentElement.innerHTML='R';this.parentElement.style.color='var(--rd-green)';this.parentElement.style.fontWeight='800'">`;
   }
   const callBtn=document.getElementById('thread-call-btn');
   if(callBtn) callBtn.style.display='none';
@@ -19934,7 +19934,7 @@ function _renderNotifItem(n){
     :(n.type==='ganador'&&n.sellerId)
     ?`<button onclick="event.stopPropagation();_msgAuctionSeller('${n.sellerId}','${n.auctionId||''}','${String(n.sourceTitle||'subasta').replace(/'/g,"\\'")}')" style="background:none;border:none;color:rgba(var(--rd-green-rgb),.7);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;font-weight:600;margin-top:4px;display:block">contactar vendedor</button>`
     :(n.sourceId?`<button onclick="event.stopPropagation();_goToSource('${n.sourceId}','${n.sourceType||''}');document.getElementById('notif-action-btn')&&(document.getElementById('notif-action-btn').style.display='none')" style="background:none;border:none;color:rgba(var(--rd-green-rgb),.7);font-size:12px;font-family:var(--font);cursor:pointer;padding:0;font-weight:600;margin-top:4px;display:block">ver publicación</button>`:'');
-  const icon=n.icon==='lime'?`<div style="width:42px;height:42px;border-radius:12px;background:rgba(var(--rd-green-rgb),.08);border:1px solid rgba(var(--rd-green-rgb),.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.5" style="width:18px;height:18px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>`
+  const icon=n.icon==='lime'?`<div style="width:42px;height:42px;border-radius:12px;background:rgba(var(--rd-green-rgb),.08);border:1px solid rgba(var(--rd-green-rgb),.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.5" style="width:18px;height:18px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>`
     :`<div style="width:42px;height:42px;border-radius:12px;background:var(--w5);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="var(--w40)" stroke-width="1.5" style="width:18px;height:18px"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg></div>`;
   return `<div class="notif-item${n.read?'':' unread'}" style="display:flex;gap:12px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--border);cursor:default">
     ${icon}
@@ -20499,7 +20499,7 @@ async function _aasValidateCode(){
   if(!_supa||!currentAuction)return;
   // animación loading: el avión gira
   if(icon){
-    icon.outerHTML='<svg id="aas-code-icon" viewBox="0 0 24 24" style="width:20px;height:20px;animation:aasSpin .7s linear infinite"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--w20)" stroke-width="2.5"/><path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="#08441A" stroke-width="2.5" stroke-linecap="round"/></svg>';
+    icon.outerHTML='<svg id="aas-code-icon" viewBox="0 0 24 24" style="width:20px;height:20px;animation:aasSpin .7s linear infinite"><circle cx="12" cy="12" r="9" fill="none" stroke="var(--w20)" stroke-width="2.5"/><path d="M12 3a9 9 0 0 1 9 9" fill="none" stroke="#e6f03b" stroke-width="2.5" stroke-linecap="round"/></svg>';
   }
   if(!document.getElementById('aas-spin-style')){
     const st=document.createElement('style');st.id='aas-spin-style';
@@ -20645,7 +20645,7 @@ function _showKycGateSplash(){
   m.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:30px;opacity:0;transition:opacity .3s ease';
   m.onclick=e=>{if(e.target===m){m.style.opacity='0';setTimeout(()=>m.remove(),300);}};
   m.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;max-width:320px;transform:translateY(10px);transition:transform .35s cubic-bezier(.22,1,.36,1)" id="kyc-gate-inner">
-    <div style="width:56px;height:56px;border-radius:50%;background:rgba(var(--rd-green-rgb),.1);border:1px solid rgba(var(--rd-green-rgb),.3);display:flex;align-items:center;justify-content:center"><svg fill="none" viewBox="0 0 24 24" stroke="#08441A" stroke-width="1.7" style="width:25px;height:25px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4.5"/></svg></div>
+    <div style="width:56px;height:56px;border-radius:50%;background:var(--w6);border:1px solid var(--w15);display:flex;align-items:center;justify-content:center"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" style="width:25px;height:25px;color:var(--white)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4.5"/></svg></div>
     <div style="font-size:18px;font-weight:800;letter-spacing:-.3px;color:var(--white);line-height:1.35">debes verificar tu cuenta para poder participar en subastas Ruedda</div>
     <button onclick="const s=document.getElementById('kyc-gate-splash');if(s){s.style.opacity='0';setTimeout(()=>s.remove(),250);}showView('kyc');openKycView();" style="background:var(--w10);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border:1px solid var(--w18);border-radius:100px;padding:10px 22px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--white);cursor:pointer;display:inline-flex;align-items:center;gap:7px">verificar <span style="font-size:14px">&rarr;</span></button>
   </div>`;
@@ -21330,7 +21330,7 @@ async function _saDeletePat(id,cat){
     <div style="margin-top:28px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <div style="font-size:16px;font-weight:800">Nombre</div>
-        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(8,68,26,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
       </div>
       <input id="mi-perfil-nombre-input" class="form-input" type="text" placeholder="tu nombre">
     </div>
@@ -21338,7 +21338,7 @@ async function _saDeletePat(id,cat){
     <div style="margin-top:22px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <div style="font-size:16px;font-weight:800">Usuario</div>
-        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(8,68,26,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
       </div>
       <input id="mi-perfil-username-input" class="form-input" type="text" placeholder="@usuario">
     </div>
@@ -21346,7 +21346,7 @@ async function _saDeletePat(id,cat){
     <div style="margin-top:22px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <div style="font-size:16px;font-weight:800">Descripción</div>
-        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(8,68,26,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
       </div>
       <textarea id="mi-perfil-descripcion-input" placeholder="cuéntale algo de ti a la comunidad..." style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:13px;color:var(--white);font-size:14px;padding:14px;resize:none;font-family:var(--font);box-sizing:border-box;height:90px;line-height:1.6"></textarea>
     </div>
@@ -21354,7 +21354,7 @@ async function _saDeletePat(id,cat){
     <div style="margin-top:22px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
         <div style="font-size:16px;font-weight:800">Dream cars</div>
-        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(8,68,26,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
       </div>
       <div id="mi-perfil-dreamcars-list" style="display:flex;flex-direction:column;gap:8px"></div>
       <button onclick="_addDreamCarInput()" style="margin-top:10px;background:var(--w5);border:1px solid var(--border);border-radius:11px;color:var(--w70);font-size:13px;font-weight:700;padding:10px 14px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:6px">
@@ -21365,7 +21365,7 @@ async function _saDeletePat(id,cat){
     <div style="margin-top:22px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
         <div style="font-size:16px;font-weight:800">Mi Garage</div>
-        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(8,68,26,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
+        <svg fill="none" viewBox="0 0 24 24" stroke="rgba(230,240,59,.7)" stroke-width="2" style="width:13px;height:13px"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
       </div>
       <div style="font-size:12.5px;color:var(--muted);margin-bottom:10px">muéstrale tus carros o proyectos a la comunidad</div>
       <div id="mi-garage-list" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -21666,7 +21666,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Diagnóstico profesional de tu vehículo.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
         </div>
       </div>
     </div>
@@ -21692,7 +21692,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Merch oficial de Ruedda y STXX AutoClub.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l1 12.5h-13z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8h11l1 12.5h-13z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
         </div>
       </div>
     </div>
@@ -21761,7 +21761,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Gestores autorizados por Ruedda para agilizar la compra y venta.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-gestoria" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -21776,7 +21776,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">No te confíes de la labia. Busca profesionales.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-inspeccion" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -21835,7 +21835,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Taller de confianza cerca de ti.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-mecanicos" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -21849,7 +21849,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Conecta con la comunidad car enthusiast de Venezuela.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-socios" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -21863,7 +21863,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Valida el historial y procedencia del vehículo.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-vins" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -21877,7 +21877,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Traslados y logística automotriz a nivel nacional.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-movilidad" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -21891,7 +21891,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Opciones de crédito y financiamiento vehicular.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-financiamientos" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
@@ -21906,7 +21906,7 @@ async function _saDeletePat(id,cat){
           <div class="rx-menu-card-sub">Compra tus radio control favoritos.</div>
         </div>
         <div class="rx-menu-card-icon">
-          <svg fill="none" stroke="#08441A" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2M12 12v5M9.5 14.5h5"/></svg>
+          <svg fill="none" stroke="#e6f03b" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2M12 12v5M9.5 14.5h5"/></svg>
         </div>
         <svg class="rx-chevron" id="rxchev-rc" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="m6 9 6 6 6-6"/></svg>
       </button>
