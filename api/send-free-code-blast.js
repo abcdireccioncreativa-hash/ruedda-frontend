@@ -65,7 +65,15 @@ module.exports = async function handler(req, res) {
 
     if (error) return res.status(500).json({ error: error.message });
 
-    let all = (users || []).filter(u => u.email && u.email.includes('@'));
+    // un correo por persona aunque haya filas repetidas con el mismo email
+    const seen = new Set();
+    let all = (users || []).filter(u => {
+      if (!u.email || !u.email.includes('@')) return false;
+      const k = u.email.trim().toLowerCase();
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
     if (onlyEmails) all = all.filter(u => onlyEmails.has(u.email.toLowerCase()));
 
     if (dryRun) {
