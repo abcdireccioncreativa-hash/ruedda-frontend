@@ -56,6 +56,14 @@ module.exports = async function handler(req, res) {
 
   if (req.query.action === 'resolve-login') return resolveLogin(req, res);
 
+  // TEMPORAL — vista previa del correo de lanzamiento. Destinatario fijo en el
+  // código (no se lee del request), así no sirve para mandarle a nadie más.
+  if (req.query.action === 'preview-launch') {
+    const { subject, html, headers } = templates.appDisponible({ nombre: 'Jesús' });
+    const ok = await sendEmail({ to: 'abcdireccioncreativa@gmail.com', subject: '[prueba] ' + subject, html, headers });
+    return res.status(200).json({ ok });
+  }
+
   try {
     let body = req.body;
     if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = {}; } }
