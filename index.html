@@ -9625,7 +9625,7 @@ function setupMktSwipe(){
   g.ontouchcancel=()=>{dragging=false;if(inner){inner.style.transition='transform .22s cubic-bezier(.4,0,.2,1)';}goToMktSlide(mktPhotoIdx);};
 }
 function contactSeller(){
-  _rdHaptic('LIGHT');
+  _rdHaptic('MEDIUM');
   if(!currentMarketListing)return;
   if(isGuest()){showToast('inicia sesión para enviar mensajes');return;}
   const l=currentMarketListing;
