@@ -108,7 +108,8 @@ function _rdMountSplash(frame, src){
     // ritmo fintech: toque medio al salir la primera letra, dos suaves mientras se abren
     // y uno medio de cierre cuando "ruedda" queda armado.
     if(!_rm) frame.addEventListener('load', function(){
-      [[990,'MEDIUM'],[1120,'LIGHT'],[1250,'LIGHT'],[1450,'MEDIUM']].forEach(function(h){
+      // un toque firme por cada una de las 6 letras + uno fuerte de cierre
+      [[990,'MEDIUM'],[1040,'MEDIUM'],[1090,'MEDIUM'],[1140,'MEDIUM'],[1190,'MEDIUM'],[1240,'MEDIUM'],[1460,'HEAVY']].forEach(function(h){
         setTimeout(function(){ if(window._rdHapticNow) window._rdHapticNow(h[1]); }, h[0]);
       });
     }, {once:true});
