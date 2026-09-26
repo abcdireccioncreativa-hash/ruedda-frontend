@@ -5923,7 +5923,7 @@ function renderCards(filter){
       const _fp=new Date(a.fechaInicioProgramada);
       const _fechaTxt=String(_fp.getDate()).padStart(2,'0')+'/'+String(_fp.getMonth()+1).padStart(2,'0')+'/'+String(_fp.getFullYear()).slice(-2);
       el.innerHTML=`
-        <div class="sched-photo" style="${a.photoUrls&&a.photoUrls[0]?`background-image:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),url('${a.photoUrls[0]}');background-size:cover;background-position:center`:`background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),linear-gradient(${grads[_gidx(a.id)]})`}">
+        <div class="sched-photo" style="${a.photoUrls&&a.photoUrls[0]?`background-image:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),url('${_tImg(a.photoUrls[0],{width:380})}');background-size:cover;background-position:center`:`background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),linear-gradient(${grads[_gidx(a.id)]})`}">
           <div class="sched-badge">${a.condicion==='nuevo'?'nuevo':'usado'}</div>
           <div class="sched-center">
             <div class="sched-starts">Empieza:</div>
@@ -6123,7 +6123,7 @@ function _schedCalOpenDay(key){
   if(listEl){
     listEl.innerHTML=items.map(a=>`
       <div class="sched-pop-card">
-        <div class="sched-pop-thumb" style="${a.photoUrls&&a.photoUrls[0]?`background-image:url('${a.photoUrls[0]}')`:`background:linear-gradient(${grads[_gidx(a.id)]})`}"></div>
+        <div class="sched-pop-thumb" style="${a.photoUrls&&a.photoUrls[0]?`background-image:url('${_tImg(a.photoUrls[0],{width:100})}')`:`background:linear-gradient(${grads[_gidx(a.id)]})`}"></div>
         <div class="sched-pop-info">
           <div class="sched-pop-title">${_esc(a.title)}</div>
           <div class="sched-pop-sub">${a.chocado?'chocado · ':''}empieza ${new Date(a.fechaInicioProgramada).toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'})}</div>
@@ -6942,7 +6942,7 @@ function renderSponsorSlider(){
   // ni la posición del contenedor padre.
   track.innerHTML=MARKET_SPONSORS.map((s,i)=>`
     <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
-      ${s.imagen_url?`<img decoding="async" src="${s.imagen_url}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
+      ${s.imagen_url?`<img decoding="async" src="${_tImg(s.imagen_url,{width:1200})}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
     </div>`).join('');
   // [RDV] crossfade skeleton→foto: el shimmer se re-monta ENCIMA de las slides y
   // se desvanece; la imagen ya está haciendo su propio fade al decodificar debajo.
@@ -7652,7 +7652,7 @@ function renderChocSponsorSlider(){
   _chocSponsorIdx=0;
   track.innerHTML=CHOCADOS_SPONSORS.map((s,i)=>`
     <div class="sponsor-slide${i===0?' active':''}" ${s.link?`onclick="window.open('${_esc(s.link)}','_blank','noopener')"`:''}>
-      ${s.imagen_url?`<img decoding="async" src="${s.imagen_url}" alt="${_esc(s.nombre||'')}">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
+      ${s.imagen_url?`<img decoding="async" src="${_tImg(s.imagen_url,{width:1200})}" alt="${_esc(s.nombre||'')}">`:`<span>${_esc(s.nombre||'patrocinado')}</span>`}
     </div>`).join('');
   dotsEl.innerHTML=CHOCADOS_SPONSORS.length>1?CHOCADOS_SPONSORS.map((_,i)=>`<div class="sponsor-dot${i===0?' active':''}"></div>`).join(''):'';
   if(CHOCADOS_SPONSORS.length<2) return;
@@ -7769,7 +7769,7 @@ function renderTrendingHoy(){
     return `
     <div class="trending-cell" style="animation:rdvIn .6s cubic-bezier(.22,.61,.36,1) ${i*70}ms both" onclick="${isSubasta?`openDetail('${item.id}')`:`openMarketDetail('${item.id}')`}">
       <div class="trending-photo">
-        ${photoUrl?`<img decoding="async" src="${photoUrl}" loading="lazy" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
+        ${photoUrl?`<img decoding="async" src="${_tImg(photoUrl,{width:420})}" loading="lazy" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
         <div class="trending-rank">#${i+1}</div>
         <div class="trending-pill">${fmtBid(precio)}</div>
       </div>
@@ -7872,6 +7872,8 @@ async function renderLandingPortada(retriesLeft){
   }
 }
 function _landingPortadaSetPhoto(url){
+  // [perf] las fotos que sube el admin (PNG de hasta 8 MB) pasan por el mismo redimensionado de Supabase Pro que las de los carros
+  url=_tImg(url,{width:960});
   // [fix "foto con límites cortados"] antes la foto vivía dentro de
   // .landing-visual (la cajita chica pensada para el dibujo del carro,
   // max-width:580px). Ahora se inserta en .landing-hero-right (el panel
@@ -7929,6 +7931,8 @@ function _encuentraApplyOrder(raw){
   }catch(e){console.warn('[ruedda] _encuentraApplyOrder',e?.message||e);}
 }
 function _encuentraSetPhoto(slot,url){
+  // [perf] las fotos que sube el admin (PNG de hasta 8 MB) pasan por el mismo redimensionado de Supabase Pro que las de los carros
+  url=_tImg(url,{width:420});
   const card=document.getElementById('enc-'+slot+'-photo');
   const placeholder=document.getElementById('enc-'+slot+'-placeholder');
   if(!card)return;
@@ -9047,7 +9051,7 @@ function renderFavoritos(){
       const endTime=a?.endTime||Date.now();
       return `<div class="fav-thumb-card" style="animation-delay:${i*55}ms;cursor:pointer" onclick="openDetail('${a.id}')">
         <div class="fav-thumb-img" style="background:linear-gradient(${grads[_favGradIdx(a.id)]})">
-          ${imgUrl?`<img decoding="async" src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
+          ${imgUrl?`<img decoding="async" src="${_tImg(imgUrl,{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
           <div class="fav-thumb-badge-timer${isUrgent(endTime)?' urgent':''}" style="pointer-events:none">${fmtCountdown(endTime-Date.now())}</div>
         </div>
         <div class="fav-thumb-body">
@@ -9081,7 +9085,7 @@ function renderFavoritos(){
       const lid=String(l?.id||i);
       return `<div class="fav-thumb-card" style="animation-delay:${(favAuctions.length+i)*55}ms" onclick="openMarketDetail('${lid}','market')">
         <div class="fav-thumb-img" style="background:linear-gradient(${grads[_favGradIdx(lid)]})">
-          ${imgUrl?`<img decoding="async" src="${imgUrl}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(i,'small'))}
+          ${imgUrl?`<img decoding="async" src="${_tImg(imgUrl,{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(i,'small'))}
         </div>
         <div class="fav-thumb-body">
           <div class="fav-thumb-title">${titulo}</div>
@@ -13214,6 +13218,8 @@ async function _consLoadBanner(){
   }catch(e){console.warn('[ruedda] _consLoadBanner',e?.message||e);}
 }
 function _consSetBannerPhoto(url){
+  // [perf] las fotos que sube el admin (PNG de hasta 8 MB) pasan por el mismo redimensionado de Supabase Pro que las de los carros
+  url=_tImg(url,{width:1200});
   const card=document.getElementById('cons-banner');
   const placeholder=document.getElementById('cons-banner-placeholder');
   if(!card) return;
