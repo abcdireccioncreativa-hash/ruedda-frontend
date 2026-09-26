@@ -7550,24 +7550,25 @@ function setMarketCity(key){
   closeCitySheet();
   try{ const g=document.getElementById('market-grid'); if(g&&key) g.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
 }
-function _rdProj(lat,lon){ // Venezuela a una caja de 160x100
-  return [ (lon+73.6)/(73.6-59.6)*160, (12.4-lat)/(12.4-4.2)*100 ];
+const RD_VEN_PATH='M22.7 6.2 L22.4 8.6 L16.5 9.8 L19.8 14.3 L19.7 19.5 L15.3 25.3 L19.0 33.3 L23.4 32.6 L25.6 25.4 L22.5 21.9 L22.0 14.3 L34.4 10.2 L33.1 5.5 L36.6 2.4 L40.2 9.4 L47.2 9.6 L53.7 15.1 L54.1 18.5 L63.0 18.5 L73.7 17.5 L79.4 22.0 L87.1 23.2 L92.7 20.1 L92.8 17.6 L105.2 17.0 L117.2 16.8 L108.7 19.8 L112.1 24.5 L120.1 25.3 L127.7 30.2 L129.3 38.2 L134.5 38.0 L138.4 40.3 L130.5 46.2 L129.6 49.9 L133.0 53.6 L130.6 55.4 L124.4 57.0 L124.6 61.7 L121.9 64.4 L128.7 72.0 L130.0 74.8 L126.3 78.6 L115.1 82.4 L108.0 83.9 L105.1 86.3 L97.1 83.8 L89.7 82.5 L87.8 83.4 L92.3 86.0 L91.9 92.7 L93.3 99.0 L101.8 99.9 L102.3 102.0 L95.2 104.8 L94.0 109.1 L89.9 110.7 L82.5 113.0 L80.5 116.1 L72.7 116.8 L67.2 111.5 L64.2 101.5 L61.5 98.0 L57.9 95.8 L63.0 90.8 L62.6 88.6 L59.8 85.6 L57.8 79.0 L58.6 71.8 L60.8 68.4 L62.6 63.0 L59.0 61.3 L53.3 62.5 L46.1 61.9 L42.1 63.0 L35.1 54.4 L29.3 53.1 L16.4 54.1 L14.0 50.6 L11.6 49.8 L11.2 47.7 L12.4 44.0 L11.6 39.9 L9.4 37.7 L8.1 33.1 L3.0 32.5 L5.7 26.6 L6.9 19.5 L9.9 15.8 L13.7 12.9 L16.3 7.9 L22.7 6.2 Z'; // contorno real de Venezuela (Natural Earth)
+function _rdProj(lat,lon){ // 10 unidades por grado: lon -73.6..-59.6, lat 12.4..0.6
+  return [ (lon+73.6)*10, (12.4-lat)*10 ];
 }
 function openCitySheet(){
   if(document.getElementById('rd-city-sheet')) return;
   const cnt=_rdCityCounts(), max=Math.max(1,...Object.values(cnt));
   const sel=mFilters.city&&mFilters.city!=='todas'?_rdCityKey(mFilters.city):null;
   // retícula + todas las ciudades como puntos tenues; las que tienen carros brillan
-  let grid=''; for(let x=0;x<=160;x+=8) grid+=`<line class="rd-map-grid" x1="${x}" y1="0" x2="${x}" y2="100"/>`; for(let y=0;y<=100;y+=8) grid+=`<line class="rd-map-grid" x1="0" y1="${y}" x2="160" y2="${y}"/>`;
+  const grid=`<path class="rd-map-land" d="${RD_VEN_PATH}"/>`;
   let dots='', hots='';
   Object.entries(RD_CITIES).forEach(([k,[la,lo,name]])=>{
     const [x,y]=_rdProj(la,lo), n=cnt[k]||0;
     if(!n){ dots+=`<circle class="rd-map-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r=".7"/>`; return; }
     const r=1.6+2.4*Math.sqrt(n/max);
-    hots+=`<g class="rd-map-hot${sel===k?' sel':''}" onclick="setMarketCity('${k}')"><circle class="halo" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${(r*1.8).toFixed(1)}"/><circle class="core" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/><text class="n" x="${x.toFixed(1)}" y="${(y+.9).toFixed(1)}" text-anchor="middle">${n}</text><text x="${(x+r+1.2).toFixed(1)}" y="${(y+1.1).toFixed(1)}">${name}</text></g>`;
+    hots+=`<g class="rd-map-hot${sel===k?' sel':''}" onclick="setMarketCity('${k}')"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/><text class="n" x="${x.toFixed(1)}" y="${(y+.9).toFixed(1)}" text-anchor="middle">${n}</text><text x="${(x+r+1.2).toFixed(1)}" y="${(y+1.1).toFixed(1)}">${name}</text></g>`;
   });
   const total=Object.values(cnt).reduce((a,b)=>a+b,0);
-  const rows=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,n],i)=>`<div class="rd-city-row rd-city-in${sel===k?' sel':''}" style="animation-delay:${Math.min(i,10)*45+120}ms" onclick="setMarketCity('${k}')"><b>${_esc(RD_CITIES[k]?RD_CITIES[k][2]:k)}</b><span class="bar"><i style="width:${Math.round(n/max*100)}%"></i></span><span class="cnt">${n} ${n===1?'carro':'carros'}</span></div>`).join('');
+  const rows=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,n],i)=>`<div class="rd-city-row rd-city-in${sel===k?' sel':''}" style="animation-delay:${Math.min(i,10)*22+60}ms" onclick="setMarketCity('${k}')"><b>${_esc(RD_CITIES[k]?RD_CITIES[k][2]:k)}</b><span class="bar"><i style="width:${Math.round(n/max*100)}%"></i></span><span class="cnt">${n} ${n===1?'carro':'carros'}</span></div>`).join('');
   const ov=document.createElement('div'); ov.id='rd-city-sheet';
   ov.innerHTML=`<div id="rd-city-inner" role="dialog" aria-label="buscar por ciudad">
     <div style="width:38px;height:4px;border-radius:4px;background:var(--w15);margin:0 auto 18px"></div>
@@ -7576,7 +7577,7 @@ function openCitySheet(){
       <div style="font-size:13px;color:var(--muted);margin-top:5px">${total} carros publicados en ${Object.keys(cnt).length} ciudades · toca un punto</div></div>
       <button type="button" onclick="closeCitySheet()" aria-label="cerrar" style="background:var(--w6);border:none;color:var(--w60);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="width:14px;height:14px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
-    <div class="rd-map"><svg viewBox="0 0 160 100" preserveAspectRatio="xMidYMid meet">${grid}${dots}${hots}</svg><span class="rd-map-cap">venezuela · en vivo</span></div>
+    <div class="rd-map"><svg viewBox="0 0 140 118" preserveAspectRatio="xMidYMid meet">${grid}${dots}${hots}</svg><span class="rd-map-cap">venezuela</span><img class="rd-map-flag" src="${RD_IMG.extra}" alt="Ruedda"></div>
     <button type="button" class="rd-city-near" onclick="_rdNearestCity(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>usar mi ubicación</button>
     <div class="rd-city-list">${sel?`<div class="rd-city-row rd-city-in" onclick="setMarketCity(null)"><b>todas las ciudades</b><span class="cnt">${total} carros</span></div>`:''}${rows}</div>
   </div>`;
@@ -19765,7 +19766,6 @@ function _closePmPanel(){
   if(!panel) return;
   const inner=panel.querySelector('div');
   if(inner) inner.style.transform='translateY(100%)';
-  panel.style.opacity='0';
   panel.style.background='rgba(0,0,0,0)';
   setTimeout(()=>{panel.style.display='none';},320);
 }
@@ -19808,12 +19808,14 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
   </div>`;
   const pmMark=document.getElementById('pm-panel-mark');
   if(pmMark&&typeof _rdWaveFlag==='function') window._pmPanelMarkStop=_rdWaveFlag(pmMark,{size:32});
-  panel.style.opacity='0';
+  // [fix vidrio] la capa NO hace fundido: con opacity<1 el navegador apaga el
+  // backdrop-filter de la hoja y se veía plana hasta terminar la animación.
+  // Solo se oscurece el velo y la hoja sube; el vidrio está activo desde el inicio.
+  panel.style.opacity='1';
   panel.style.background='rgba(0,0,0,0)';
-  panel.style.transition='opacity .28s cubic-bezier(.32,.72,0,1),background .28s cubic-bezier(.32,.72,0,1)';
+  panel.style.transition='background .26s cubic-bezier(.32,.72,0,1)';
   panel.style.display='flex';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    panel.style.opacity='1';
     panel.style.background='rgba(0,0,0,.35)'; // mismo velo que el de iniciar sesión
     const inner=panel.querySelector('div');
     if(inner) inner.style.transform='translateY(0)';
@@ -23098,9 +23100,9 @@ _rdSetupSwipeExit('view-vitrina',_rdExitVitrina,'vitrina');
 
 /* [niveles] menú "ver niveles" — tarjetas por etapa con color propio; entrada
    escalonada liviana (solo opacity/transform) */
-#rd-levels-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.35);opacity:0;transition:opacity .28s ease}
-#rd-levels-sheet.on{opacity:1}
-#rd-levels-inner{width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--gc8);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w8);border-bottom:none;border-radius:28px 28px 0 0;padding:12px 20px calc(34px + env(safe-area-inset-bottom));transform:translateY(24px);transition:transform .38s cubic-bezier(.32,.72,0,1)}
+#rd-levels-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0);transition:background .26s ease}
+#rd-levels-sheet.on{background:rgba(0,0,0,.35)}
+#rd-levels-inner{width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--gc8);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w8);border-bottom:none;border-radius:28px 28px 0 0;padding:12px 20px calc(34px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)}
 #rd-levels-sheet.on #rd-levels-inner{transform:none}
 @media (min-width:900px){#rd-levels-sheet{align-items:center}#rd-levels-inner{border-radius:26px;border-bottom:1px solid var(--w8);max-height:84vh}}
 .rd-lv-in{animation:rdLvIn .5s cubic-bezier(.22,.61,.36,1) both}
@@ -23152,33 +23154,38 @@ html:not([data-theme="light"]) #login-splash .rd-wel-track{stroke:rgba(230,240,5
 .rd-city-btn svg{width:15px;height:15px}
 .rd-city-btn.on{background:var(--white);color:var(--bg);border-color:transparent}
 .rd-city-btn i{font-style:normal;font-size:15px;line-height:1;margin-left:2px;opacity:.7}
-#rd-city-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.35);opacity:0;transition:opacity .28s ease}
-#rd-city-sheet.on{opacity:1}
-#rd-city-inner{width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--gc8);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w8);border-bottom:none;border-radius:28px 28px 0 0;padding:12px 20px calc(30px + env(safe-area-inset-bottom));transform:translateY(24px);transition:transform .38s cubic-bezier(.32,.72,0,1)}
+#rd-city-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0);transition:background .24s ease}
+#rd-city-sheet.on{background:rgba(0,0,0,.35)}
+#rd-city-inner{width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;
+  background:color-mix(in srgb,var(--gc8) 78%,transparent);-webkit-backdrop-filter:blur(34px) saturate(180%);backdrop-filter:blur(34px) saturate(180%);
+  border:1px solid var(--w10);border-bottom:none;border-radius:28px 28px 0 0;padding:12px 20px calc(30px + env(safe-area-inset-bottom));
+  box-shadow:inset 0 1px 0 var(--w12);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1)}
 #rd-city-sheet.on #rd-city-inner{transform:none}
-.rd-map{position:relative;margin-top:18px;border-radius:22px;overflow:hidden;aspect-ratio:16/10;background:radial-gradient(120% 90% at 50% 0%,#15171a 0%,#07080a 70%);border:1px solid var(--w8)}
+.rd-map{position:relative;margin-top:16px;border-radius:22px;overflow:hidden;aspect-ratio:140/118;background:var(--w3);border:1px solid var(--w8)}
 .rd-map svg{position:absolute;inset:0;width:100%;height:100%}
-.rd-map-grid{stroke:rgba(255,255,255,.045);stroke-width:.3}
-.rd-map-dot{fill:rgba(255,255,255,.22)}
+.rd-map-land{fill:var(--w5);stroke:var(--w25);stroke-width:.45;stroke-linejoin:round}
+.rd-map-dot{fill:var(--w25)}
 .rd-map-hot{cursor:pointer}
-.rd-map-hot circle.core{fill:#e6f03b}
-.rd-map-hot circle.halo{fill:rgba(230,240,59,.18);animation:rdPulse 2.4s ease-out infinite;transform-box:fill-box;transform-origin:center}
-.rd-map-hot.sel circle.core{fill:#fff}
-.rd-map-hot text{fill:#fff;font-size:3.1px;font-weight:700;font-family:var(--font);paint-order:stroke;stroke:rgba(0,0,0,.8);stroke-width:.6px}
-.rd-map-hot text.n{fill:#0a0a0a;stroke:none;font-size:2.6px;font-weight:800}
-@keyframes rdPulse{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.9);opacity:0}}
-@media (prefers-reduced-motion:reduce){.rd-map-hot circle.halo{animation:none}}
-.rd-map-cap{position:absolute;left:14px;bottom:12px;font-size:11px;color:var(--w50);letter-spacing:.02em}
+.rd-map-hot circle{fill:#e6f03b;stroke:rgba(0,0,0,.55);stroke-width:.35}
+.rd-map-hot.sel circle{fill:#fff}
+.rd-map-hot text{fill:var(--white);font-size:3px;font-weight:700;font-family:var(--font);paint-order:stroke;stroke:var(--bg);stroke-width:.7px;stroke-linejoin:round}
+.rd-map-hot text.n{fill:#0a0a0a;stroke:none;font-size:2.5px;font-weight:800}
+.rd-map-cap{position:absolute;left:14px;bottom:12px;font-size:11px;color:var(--w45);letter-spacing:.02em}
+.rd-map-flag{position:absolute;top:12px;right:14px;width:15px;height:auto;opacity:.9;pointer-events:none}
+html[data-theme="light"] .rd-map-flag{filter:invert(1)}
 .rd-city-near{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px;height:48px;border-radius:14px;border:1px solid var(--w12);background:var(--w5);color:var(--white);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer}
 .rd-city-near svg{width:17px;height:17px}
 .rd-city-list{display:flex;flex-direction:column;gap:8px;margin-top:18px}
-.rd-city-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:var(--w3);border:1px solid var(--w6);cursor:pointer;transition:background .2s,border-color .2s}
+.rd-city-row{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:var(--w4);border:1px solid var(--w7);cursor:pointer;transition:background .15s,border-color .15s}
+.rd-city-row:active{background:var(--w8)}
 .rd-city-row.sel{border-color:rgba(230,240,59,.55);background:rgba(230,240,59,.07)}
 .rd-city-row b{flex:1;font-size:15px;font-weight:700;letter-spacing:-.2px}
 .rd-city-row .cnt{font-size:12.5px;font-weight:700;color:var(--w70);font-variant-numeric:tabular-nums}
 .rd-city-row .bar{width:64px;height:5px;border-radius:5px;background:var(--w8);overflow:hidden}
 .rd-city-row .bar i{display:block;height:100%;background:#e6f03b;border-radius:5px}
-.rd-city-in{animation:rdLvIn .45s cubic-bezier(.22,.61,.36,1) both}
+.rd-city-in{animation:rdCityIn .28s cubic-bezier(.22,.61,.36,1) both}
+@keyframes rdCityIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.rd-city-in{animation:none}#rd-city-inner{transition:none}}
 </style>
 <script>
 (function(){
