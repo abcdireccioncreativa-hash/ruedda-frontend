@@ -393,6 +393,11 @@ input[type=number]{-moz-appearance:textfield}
    opacidad a un tono casi sólido (mismo criterio que el navbar oscuro,
    que ya es .92) mantiene el mismo blur que el drawer, pero sin la costura. */
 html[data-theme="light"] .navbar{background:rgba(248,248,244,.94);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%)}
+/* glass al hacer scroll: arriba se ve igual que siempre; al bajar deja ver el
+   contenido por detrás, sutil. Sobre fondo negro sigue viéndose #000. */
+.navbar{transition:background-color .35s ease}
+.navbar.nav-glass{background:rgba(0,0,0,.62);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%)}
+html[data-theme="light"] .navbar.nav-glass{background:rgba(248,248,244,.7)}
 #view-cuenta{scrollbar-width:none}
 #view-cuenta::-webkit-scrollbar{display:none}
 html::-webkit-scrollbar{display:none}
@@ -823,7 +828,7 @@ html.rd-safari-tab .bottom-nav{box-shadow:0 5px 18px rgba(0,0,0,.4),inset 0 1px 
 #bnav-ruedda img{opacity:.55;transition:opacity .2s}
 #bnav-ruedda.active img,#bnav-ruedda:active img{opacity:1}
 #bnav-favoritos svg{width:25px;height:25px}
-.notif-dot{position:absolute;top:8px;right:13px;width:7px;height:7px;border-radius:50%;background:var(--lime);border:2px solid var(--gc11)}
+.notif-dot{position:absolute;top:8px;right:12px;width:9px;height:9px;border-radius:50%;background:var(--lime);border:0}
 
 /* VIEWS */
 .view{display:none}
@@ -2671,10 +2676,24 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   });
 
   document.getElementById('rd-intro-register').addEventListener('click', function(){
-    dismiss(function(){
-      if(typeof showMobileAuth === 'function') showMobileAuth('register');
-      else if(typeof showLandingAuth === 'function') showLandingAuth('register');
-    });
+    // [fix] el formulario se abre YA, debajo del intro (z-index menor), con el
+    // market de fondo — el intro se desvanece encima y lo deja a la vista. Antes
+    // se abría recién en el callback de dismiss(), y si ese paso no corría (se
+    // tragaba el error en silencio) el intro cerraba sin mostrar el formulario.
+    function openReg(){
+      try{
+        if(typeof showMobileAuth === 'function') showMobileAuth('register');
+        else if(typeof showLandingAuth === 'function') showLandingAuth('register');
+      }catch(e){}
+    }
+    function isOpen(){ var s = document.getElementById('auth-sheet'); return !!(s && s.classList.contains('open')); }
+    try{
+      window._homeSectionOverride = 'market';
+      if(typeof showView === 'function') showView('home');
+    }catch(e){}
+    openReg();
+    dismiss(function(){ if(!isOpen()) openReg(); });
+    setTimeout(function(){ if(!isOpen()) openReg(); }, 900); // red de seguridad
   });
 
   /* ── swipe / tap en la zona de la foto ────────────────────── */
@@ -6551,6 +6570,35 @@ function showView(name,param){
     else history.pushState({rueddaView:name,param:param!==undefined?param:null},'',location.href);
   }
 }
+// [header glass] clase según el scroll — rAF para no trabajar en cada evento
+(function(){
+  let _ng=false, _tick=false;
+  function upd(){ _tick=false; const nb=document.querySelector('.navbar'); if(!nb) return; const on=window.scrollY>12; if(on!==_ng){ _ng=on; nb.classList.toggle('nav-glass',on); } }
+  window.addEventListener('scroll',()=>{ if(!_tick){ _tick=true; requestAnimationFrame(upd); } },{passive:true});
+})();
+// [rebote arriba] la app nativa trae el rebote de iOS apagado (Capacitor): si se
+// llega al tope con impulso, el inicio hace un rebote corto con resorte,
+// proporcional a la velocidad. Solo en la app — en Safari el rebote es nativo.
+(function(){
+  let lastY=window.scrollY, lastT=performance.now(), vel=0, busy=false;
+  window.addEventListener('scroll',()=>{
+    const now=performance.now(), y=window.scrollY, dt=Math.max(1,now-lastT);
+    vel=(y-lastY)/dt; lastY=y; lastT=now;
+    if(y<=0 && vel<-0.9 && !busy){
+      try{
+        if(typeof _isNativeApp!=='function'||!_isNativeApp()) return;
+        if(typeof currentView==='undefined'||currentView!=='home') return;
+        const vh=document.getElementById('view-home');
+        if(!vh||vh.style.transform||!vh.animate) return; // pull-to-refresh en curso
+        if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        busy=true;
+        const d=Math.min(34, Math.abs(vel)*9);
+        const a=vh.animate([{transform:'translateY(0)'},{transform:'translateY('+d+'px)',offset:.35},{transform:'translateY(-2px)',offset:.75},{transform:'translateY(0)'}],{duration:520,easing:'cubic-bezier(.22,.61,.36,1)'});
+        a.onfinish=a.oncancel=()=>{ busy=false; };
+      }catch(e){ busy=false; }
+    }
+  },{passive:true});
+})();
 let _navigatingFromPopstate=false;
 window.addEventListener('popstate',(e)=>{
   const st=e.state;
