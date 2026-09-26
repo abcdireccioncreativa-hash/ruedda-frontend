@@ -18156,7 +18156,7 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
   if(!panel){
     panel=document.createElement('div');
     panel.id='pm-panel';
-    panel.style.cssText='position:fixed;inset:0;z-index:9000;display:none;align-items:flex-end;background:rgba(0,0,0,0);backdrop-filter:blur(0px);-webkit-backdrop-filter:blur(0px);opacity:0;transition:opacity .28s cubic-bezier(.32,.72,0,1)';
+    panel.style.cssText='position:fixed;inset:0;z-index:9000;display:none;align-items:flex-end;background:rgba(0,0,0,0);opacity:0;transition:opacity .28s cubic-bezier(.32,.72,0,1)';
     panel.onclick=e=>{if(e.target===panel)_closePmPanel();};
     document.body.appendChild(panel);
   }
@@ -21495,7 +21495,7 @@ html.lowfx .card-loading-ring{animation-duration:1.6s}
    escalonada liviana (solo opacity/transform) */
 #rd-levels-sheet,#checkout-level-perk,.rd-lv-link{--rd-green:#e6f03b;--rd-green-rgb:230,240,59;--rd-green-ink:#000}
 html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-level-perk,html[data-theme="light"] .rd-lv-link{--rd-green:#0a0a0a;--rd-green-rgb:10,10,10;--rd-green-ink:#fff}
-#rd-levels-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .28s ease}
+#rd-levels-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.35);opacity:0;transition:opacity .28s ease}
 #rd-levels-sheet.on{opacity:1}
 #rd-levels-inner{width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--gc8);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w8);border-bottom:none;border-radius:28px 28px 0 0;padding:12px 20px calc(34px + env(safe-area-inset-bottom));transform:translateY(24px);transition:transform .38s cubic-bezier(.32,.72,0,1)}
 #rd-levels-sheet.on #rd-levels-inner{transform:none}
