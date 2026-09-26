@@ -5412,7 +5412,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
       <!-- NAME + EMAIL -->
       <div style="text-align:center;margin-top:2px">
-        <div class="cuenta-name"><span style="font-weight:400;color:var(--w60)">hola, </span><span id="cuenta-nombre">mi cuenta</span></div>
+        <div class="cuenta-name"><span style="font-weight:400;color:var(--w60)">hola, </span><span id="cuenta-nombre">mi cuenta</span><span id="cuenta-verif" title="identidad verificada" style="display:none;margin-left:6px;vertical-align:-2px;line-height:0"><svg viewBox="0 0 24 24" style="width:18px;height:18px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></span></div>
         <div class="cuenta-email" id="cuenta-correo" style="margin-top:2px">usuario@ruedda.com</div>
       </div>
 
@@ -16971,7 +16971,11 @@ function updateCuentaView(){
     // [V102] saludo: nombre real, o username, nunca 'mi cuenta' para logueados
     const _cn=document.getElementById('cuenta-nombre');
     if(_cn){ const _disp=(USER_STATE.nombre||'').trim()||(USER_STATE.username||'').trim(); if(_disp)_cn.textContent=_disp; }
-    if(USER_STATE.email && document.getElementById('cuenta-correo')) document.getElementById('cuenta-correo').textContent=USER_STATE.email;
+    // [cuenta] bajo el nombre va el @usuario (antes el correo); el correo solo si no hay usuario
+    { const _cc=document.getElementById('cuenta-correo'); const _u=(USER_STATE.username||'').trim();
+      if(_cc){ if(_u) _cc.textContent='@'+_u; else if(USER_STATE.email) _cc.textContent=USER_STATE.email; } }
+    // sello azul de verificado junto al nombre (KYC aprobado)
+    { const _vf=document.getElementById('cuenta-verif'); if(_vf) _vf.style.display=USER_STATE.kycVerified?'inline-block':'none'; }
     // [V90] la foto manda; la inicial es solo fallback (antes este textContent borraba la foto en cada refresh de vista)
     const _cav=document.getElementById('cuenta-avatar');
     if(_cav){
@@ -17025,6 +17029,7 @@ function logOut(){
     if(typeof _syncNotifBadge==='function')_syncNotifBadge();
     const _dot=document.getElementById('notif-dot'); if(_dot)_dot.style.display='none';
     const _cn=document.getElementById('cuenta-nombre'); if(_cn)_cn.textContent='mi cuenta';
+    { const _vf=document.getElementById('cuenta-verif'); if(_vf)_vf.style.display='none'; }
     isLoggedIn=false;
     updateHamburgerAdmin();
     updateCuentaView();
