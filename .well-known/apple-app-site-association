@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["9VNWQFG295.com.cubica.ruedda"],
+        "components": [
+          { "/": "/api/*", "exclude": true },
+          { "/": "/repuestos*", "exclude": true },
+          { "/": "/splash/*", "exclude": true },
+          { "/": "/*.html", "exclude": true },
+          { "/": "/*" }
+        ]
+      }
+    ]
+  }
+}
