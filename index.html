@@ -109,7 +109,7 @@ function _rdMountSplash(frame, src){
     // y uno medio de cierre cuando "ruedda" queda armado.
     if(!_rm) frame.addEventListener('load', function(){
       // un toque firme por cada una de las 6 letras + uno fuerte de cierre
-      [[990,'MEDIUM'],[1040,'MEDIUM'],[1090,'MEDIUM'],[1140,'MEDIUM'],[1190,'MEDIUM'],[1240,'MEDIUM'],[1460,'HEAVY']].forEach(function(h){
+      [[990,'LIGHT'],[1050,'LIGHT'],[1110,'LIGHT'],[1170,'LIGHT'],[1230,'LIGHT'],[1290,'LIGHT'],[1480,'HEAVY']].forEach(function(h){
         setTimeout(function(){ if(window._rdHapticNow) window._rdHapticNow(h[1]); }, h[0]);
       });
     }, {once:true});
