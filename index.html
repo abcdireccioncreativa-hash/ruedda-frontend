@@ -9785,7 +9785,7 @@ function updateWatchlistBtn(){
   icon.style.fill=saved?'var(--rd-green)':'none';
   icon.style.stroke=saved?'var(--rd-green)':'currentColor';
   lbl.textContent=saved?'en favoritos':'guardar en favoritos';
-  document.getElementById('watchlist-btn').style.color=saved?'var(--lime)':'';
+  document.getElementById('watchlist-btn').style.color='';
   // [subastas programadas] sincroniza tambien el boton del panel bloqueado, si existe en el DOM
   const iconL=document.getElementById('watchlist-icon-locked');
   const lblL=document.getElementById('watchlist-label-locked');
@@ -9795,9 +9795,9 @@ function updateWatchlistBtn(){
     // contador global: ajusta por delta cuando el usuario cambia su propio estado
     if(_lockedFavPrevSaved!==null&&_lockedFavPrevSaved!==saved) _lockedFavCount=Math.max(0,_lockedFavCount+(saved?1:-1));
     _lockedFavPrevSaved=saved;
-    if(saved){btnL.style.background='var(--lime)';btnL.style.borderColor='var(--lime)';btnL.style.color='#fff';}
+    if(saved){btnL.style.background='var(--white)';btnL.style.borderColor='var(--white)';btnL.style.color='var(--bg)';}
     else{btnL.style.background='';btnL.style.borderColor='';btnL.style.color='';}
-    if(iconL){iconL.style.fill=saved?'#000':'none';iconL.style.stroke=saved?'#000':'currentColor';}
+    if(iconL){iconL.style.fill=saved?'currentColor':'none';iconL.style.stroke='currentColor';}
     if(lblL) lblL.textContent=saved?'en favoritos':'favoritos';
     if(countL){
       if(_lockedFavCount>0){countL.style.display='inline-block';countL.textContent=_lockedFavCount;countL.style.background=saved?'rgba(0,0,0,.15)':'var(--w12)';countL.style.color=saved?'#000':'var(--w75)';}
