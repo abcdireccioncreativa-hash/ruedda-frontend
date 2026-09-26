@@ -7548,23 +7548,20 @@ function setMarketCity(key){
   closeCitySheet();
   try{ const g=document.getElementById('market-grid'); if(g&&key) g.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
 }
-const RD_VEN_PATH='M22.7 6.2 L22.4 8.6 L16.5 9.8 L19.8 14.3 L19.7 19.5 L15.3 25.3 L19.0 33.3 L23.4 32.6 L25.6 25.4 L22.5 21.9 L22.0 14.3 L34.4 10.2 L33.1 5.5 L36.6 2.4 L40.2 9.4 L47.2 9.6 L53.7 15.1 L54.1 18.5 L63.0 18.5 L73.7 17.5 L79.4 22.0 L87.1 23.2 L92.7 20.1 L92.8 17.6 L105.2 17.0 L117.2 16.8 L108.7 19.8 L112.1 24.5 L120.1 25.3 L127.7 30.2 L129.3 38.2 L134.5 38.0 L138.4 40.3 L130.5 46.2 L129.6 49.9 L133.0 53.6 L130.6 55.4 L124.4 57.0 L124.6 61.7 L121.9 64.4 L128.7 72.0 L130.0 74.8 L126.3 78.6 L115.1 82.4 L108.0 83.9 L105.1 86.3 L97.1 83.8 L89.7 82.5 L87.8 83.4 L92.3 86.0 L91.9 92.7 L93.3 99.0 L101.8 99.9 L102.3 102.0 L95.2 104.8 L94.0 109.1 L89.9 110.7 L82.5 113.0 L80.5 116.1 L72.7 116.8 L67.2 111.5 L64.2 101.5 L61.5 98.0 L57.9 95.8 L63.0 90.8 L62.6 88.6 L59.8 85.6 L57.8 79.0 L58.6 71.8 L60.8 68.4 L62.6 63.0 L59.0 61.3 L53.3 62.5 L46.1 61.9 L42.1 63.0 L35.1 54.4 L29.3 53.1 L16.4 54.1 L14.0 50.6 L11.6 49.8 L11.2 47.7 L12.4 44.0 L11.6 39.9 L9.4 37.7 L8.1 33.1 L3.0 32.5 L5.7 26.6 L6.9 19.5 L9.9 15.8 L13.7 12.9 L16.3 7.9 L22.7 6.2 Z'; // contorno real de Venezuela (Natural Earth)
-function _rdProj(lat,lon){ // 10 unidades por grado: lon -73.6..-59.6, lat 12.4..0.6
-  return [ (lon+73.6)*10, (12.4-lat)*10 ];
+// [ciudad] mapa de Google embebido (sin API key): Venezuela, una ciudad o tu ubicación
+function _rdMapUrl(o){
+  let q='Venezuela', z=5;
+  if(o&&o.lat!=null){ q=o.lat.toFixed(4)+','+o.lng.toFixed(4); z=12; }
+  else if(o&&o.city&&RD_CITIES[o.city]){ q=RD_CITIES[o.city][2]+', Venezuela'; z=11; }
+  return 'https://maps.google.com/maps?q='+encodeURIComponent(q)+'&z='+z+'&hl=es&output=embed';
+}
+function _rdHaptic(style){
+  try{ const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics; if(H&&H.impact) H.impact({style:style||'LIGHT'}); else if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
 }
 function openCitySheet(){
   if(document.getElementById('rd-city-sheet')) return;
   const cnt=_rdCityCounts(), max=Math.max(1,...Object.values(cnt));
   const sel=mFilters.city&&mFilters.city!=='todas'?_rdCityKey(mFilters.city):null;
-  // retícula + todas las ciudades como puntos tenues; las que tienen carros brillan
-  const grid=`<path class="rd-map-land" d="${RD_VEN_PATH}"/>`;
-  let dots='', hots='';
-  Object.entries(RD_CITIES).forEach(([k,[la,lo,name]])=>{
-    const [x,y]=_rdProj(la,lo), n=cnt[k]||0;
-    if(!n){ dots+=`<circle class="rd-map-dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r=".7"/>`; return; }
-    const r=1.6+2.4*Math.sqrt(n/max);
-    hots+=`<g class="rd-map-hot${sel===k?' sel':''}" onclick="setMarketCity('${k}')"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"/><text class="n" x="${x.toFixed(1)}" y="${(y+.9).toFixed(1)}" text-anchor="middle">${n}</text><text x="${(x+r+1.2).toFixed(1)}" y="${(y+1.1).toFixed(1)}">${name}</text></g>`;
-  });
   const total=Object.values(cnt).reduce((a,b)=>a+b,0);
   const rows=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,n],i)=>`<div class="rd-city-row rd-city-in${sel===k?' sel':''}" style="animation-delay:${Math.min(i,10)*22+60}ms" onclick="setMarketCity('${k}')"><b>${_esc(RD_CITIES[k]?RD_CITIES[k][2]:k)}</b><span class="bar"><i style="width:${Math.round(n/max*100)}%"></i></span><span class="cnt">${n} ${n===1?'carro':'carros'}</span></div>`).join('');
   const ov=document.createElement('div'); ov.id='rd-city-sheet';
@@ -7575,7 +7572,7 @@ function openCitySheet(){
       <div style="font-size:13px;color:var(--muted);margin-top:5px">${total} carros publicados en ${Object.keys(cnt).length} ciudades · toca un punto</div></div>
       <button type="button" onclick="closeCitySheet()" aria-label="cerrar" style="background:var(--w6);border:none;color:var(--w60);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="width:14px;height:14px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
-    <div class="rd-map"><svg viewBox="0 0 140 118" preserveAspectRatio="xMidYMid meet">${grid}${dots}${hots}</svg><span class="rd-map-cap">venezuela</span><img class="rd-map-flag" src="${RD_IMG.extra}" alt="Ruedda"></div>
+    <div class="rd-map"><iframe id="rd-map-frame" src="${_rdMapUrl(sel?{city:sel}:null)}" title="mapa" loading="eager" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe><img class="rd-map-flag" src="${RD_IMG.extra}" alt="Ruedda"></div>
     <button type="button" class="rd-city-near" onclick="_rdNearestCity(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>usar mi ubicación</button>
     <div class="rd-city-list">${sel?`<div class="rd-city-row rd-city-in" onclick="setMarketCity(null)"><b>todas las ciudades</b><span class="cnt">${total} carros</span></div>`:''}${rows}</div>
   </div>`;
@@ -7585,14 +7582,24 @@ function openCitySheet(){
 }
 function closeCitySheet(){ const ov=document.getElementById('rd-city-sheet'); if(!ov) return; ov.classList.remove('on'); setTimeout(()=>ov.remove(),300); }
 function _rdNearestCity(btn){
+  _rdHaptic('LIGHT');
+  const reset=()=>{ btn.disabled=false; btn.innerHTML=btn.dataset.html||'usar mi ubicación'; };
   if(!navigator.geolocation){ showToast('tu dispositivo no comparte ubicación'); return; }
-  btn.textContent='buscando…';
+  btn.dataset.html=btn.innerHTML; btn.disabled=true; btn.textContent='buscando tu ubicación…';
   navigator.geolocation.getCurrentPosition(pos=>{
+    const lat=pos.coords.latitude, lng=pos.coords.longitude;
+    const fr=document.getElementById('rd-map-frame'); if(fr) fr.src=_rdMapUrl({lat,lng});
     const cnt=_rdCityCounts(); let best=null,bd=1e9;
-    Object.keys(cnt).forEach(k=>{ const c=RD_CITIES[k]; if(!c) return; const d=(c[0]-pos.coords.latitude)**2+(c[1]-pos.coords.longitude)**2; if(d<bd){bd=d;best=k;} });
-    if(best){ showToast('la más cercana con carros: '+RD_CITIES[best][2],true); setMarketCity(best); }
-    else { btn.textContent='usar mi ubicación'; showToast('no hay carros cerca todavía'); }
-  },()=>{ btn.textContent='usar mi ubicación'; showToast('activa la ubicación para usar esto'); },{timeout:8000,maximumAge:600000});
+    Object.keys(cnt).forEach(k=>{ const c=RD_CITIES[k]; if(!c) return; const d=(c[0]-lat)**2+(c[1]-lng)**2; if(d<bd){bd=d;best=k;} });
+    if(!best){ reset(); showToast('no hay carros cerca todavía'); return; }
+    document.querySelectorAll('.rd-city-row').forEach(r=>r.classList.toggle('sel',r.getAttribute('onclick')==="setMarketCity('"+best+"')"));
+    btn.textContent='más cerca: '+RD_CITIES[best][2];
+    _rdHaptic('MEDIUM');
+    setTimeout(()=>setMarketCity(best),1400); // deja ver el mapa en tu ubicación antes de filtrar
+  },err=>{
+    reset();
+    showToast(err&&err.code===1?'permite la ubicación para Ruedda en Ajustes':'no pudimos obtener tu ubicación, intenta de nuevo');
+  },{enableHighAccuracy:false,timeout:10000,maximumAge:600000});
 }
 function mktPill(el,cat){
   document.querySelectorAll('.mkt-pill').forEach(p=>p.classList.remove('active'));
@@ -9586,6 +9593,7 @@ function setupMktSwipe(){
   g.ontouchcancel=()=>{dragging=false;if(inner){inner.style.transition='transform .22s cubic-bezier(.4,0,.2,1)';}goToMktSlide(mktPhotoIdx);};
 }
 function contactSeller(){
+  _rdHaptic('LIGHT');
   if(!currentMarketListing)return;
   if(isGuest()){showToast('inicia sesión para enviar mensajes');return;}
   const l=currentMarketListing;
@@ -23156,18 +23164,12 @@ html:not([data-theme="light"]) #login-splash .rd-wel-track{stroke:rgba(230,240,5
   border:1px solid var(--w10);border-bottom:none;border-radius:28px 28px 0 0;padding:12px 20px calc(30px + env(safe-area-inset-bottom));
   box-shadow:inset 0 1px 0 var(--w12);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1)}
 #rd-city-sheet.on #rd-city-inner{transform:none}
-.rd-map{position:relative;margin-top:16px;border-radius:22px;overflow:hidden;aspect-ratio:140/118;background:var(--w3);border:1px solid var(--w8)}
-.rd-map svg{position:absolute;inset:0;width:100%;height:100%}
-.rd-map-land{fill:var(--w5);stroke:var(--w25);stroke-width:.45;stroke-linejoin:round}
-.rd-map-dot{fill:var(--w25)}
-.rd-map-hot{cursor:pointer}
-.rd-map-hot circle{fill:#e6f03b;stroke:rgba(0,0,0,.55);stroke-width:.35}
-.rd-map-hot.sel circle{fill:#fff}
-.rd-map-hot text{fill:var(--white);font-size:3px;font-weight:700;font-family:var(--font);paint-order:stroke;stroke:var(--bg);stroke-width:.7px;stroke-linejoin:round}
-.rd-map-hot text.n{fill:#0a0a0a;stroke:none;font-size:2.5px;font-weight:800}
-.rd-map-cap{position:absolute;left:14px;bottom:12px;font-size:11px;color:var(--w45);letter-spacing:.02em}
-.rd-map-flag{position:absolute;top:12px;right:14px;width:15px;height:auto;opacity:.9;pointer-events:none}
-html[data-theme="light"] .rd-map-flag{filter:invert(1)}
+.rd-map{position:relative;margin-top:16px;border-radius:22px;overflow:hidden;aspect-ratio:16/11;background:var(--w5);border:1px solid var(--w8)}
+.rd-map iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+/* en oscuro el mapa se ve en tonos oscuros para no encandilar */
+html:not([data-theme="light"]) .rd-map iframe{filter:invert(.92) hue-rotate(180deg) saturate(.7) brightness(.95) contrast(.95)}
+.rd-map-flag{position:absolute;top:10px;right:10px;width:30px;height:30px;padding:7px;box-sizing:border-box;object-fit:contain;border-radius:50%;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none;z-index:2}
+
 .rd-city-near{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px;height:48px;border-radius:14px;border:1px solid var(--w12);background:var(--w5);color:var(--white);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer}
 .rd-city-near svg{width:17px;height:17px}
 .rd-city-list{display:flex;flex-direction:column;gap:8px;margin-top:18px}
