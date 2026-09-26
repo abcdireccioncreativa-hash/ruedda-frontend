@@ -637,6 +637,13 @@ html:not([data-theme="light"]) #login-progress-bar{background:#e6f03b!important}
 .market-grid.mode-switching{opacity:0}
 ::view-transition-group(*){animation-duration:.42s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
 ::view-transition-old(*),::view-transition-new(*){animation-duration:.3s;height:100%;object-fit:cover}
+/* header y barra de abajo quedan quietos durante el cambio cuadrícula↔lista (no desaparecen) */
+.navbar{view-transition-name:rd-navbar}
+.bottom-nav{view-transition-name:rd-bottomnav}
+::view-transition-group(rd-navbar),::view-transition-group(rd-bottomnav){animation:none}
+::view-transition-old(rd-navbar),::view-transition-new(rd-navbar),::view-transition-old(rd-bottomnav),::view-transition-new(rd-bottomnav){animation:none}
+::view-transition-old(rd-navbar),::view-transition-old(rd-bottomnav){display:none}
+::view-transition-old(root),::view-transition-new(root){animation:none}
 /* volver a inicio liviano: la cascada por bloques (.rdv) sigue; lo que se apaga
    es la animación individual de cada tarjeta (cientos con scroll infinito) */
 #view-home.rd-warm .market-card,#view-home.rd-warm .auction-card,#view-home.rd-warm .dealer-card{animation:none!important}
