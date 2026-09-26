@@ -3820,11 +3820,22 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
           </div>
           <div class="specs-grid" id="mkt-specs"></div>
         </div>
-        <div class="detail-section" id="mkt-videos-section" style="display:none">
-          <div class="detail-section-title">videos</div>
-          <div id="mkt-videos-grid" style="display:flex;flex-direction:column;gap:10px"></div>
+        <div class="detail-section">
+          <div class="detail-section-title">descripción</div>
+          <p style="font-size:14px;color:var(--muted);line-height:1.75" id="mkt-desc"></p>
         </div>
-        <!-- [MINI BANNER] mobile — entre especificaciones y comparativa de precios -->
+        <!-- publicado por — debajo de la descripción -->
+        <div class="detail-section" id="mkt-seller-wrap">
+          <div class="seller-card" id="mkt-seller-card" style="cursor:default">
+            <div class="seller-card-avatar" id="mkt-seller-avatar">V</div>
+            <div class="seller-card-info">
+              <span class="seller-card-label">publicado por</span>
+              <span class="seller-card-name" id="mkt-seller-name">vendedor</span>
+              <span id="mkt-seller-dealer-badge" style="display:none;font-size:10px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">ir a vitrina ›</span>
+            </div>
+          </div>
+        </div>
+        <!-- [MINI BANNER] mobile — debajo de "publicado por", antes de la comparativa -->
         <div class="detail-section" id="mkt-minibanner-wrap">
           <div class="mini-banner-slider" id="mkt-minibanner-slider"></div>
         </div>
@@ -3838,9 +3849,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
             <div id="mkt-pricecmp-widget" style="padding-top:12px"></div>
           </div>
         </div>
-        <div class="detail-section">
-          <div class="detail-section-title">descripción</div>
-          <p style="font-size:14px;color:var(--muted);line-height:1.75" id="mkt-desc"></p>
+        <div class="detail-section" id="mkt-videos-section" style="display:none">
+          <div class="detail-section-title">videos</div>
+          <div id="mkt-videos-grid" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
         <!-- SERVICIOS -->
         <div class="detail-section">
@@ -3866,14 +3877,6 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
         <!-- COMMENTS -->
         <div class="detail-section comments-section">
-          <div class="seller-card" id="mkt-seller-card" style="cursor:default">
-            <div class="seller-card-avatar" id="mkt-seller-avatar">V</div>
-            <div class="seller-card-info">
-              <span class="seller-card-label">publicado por</span>
-              <span class="seller-card-name" id="mkt-seller-name">vendedor</span>
-              <span id="mkt-seller-dealer-badge" style="display:none;font-size:10px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">ir a vitrina ›</span>
-            </div>
-          </div>
           <div class="detail-section-title">preguntas al vendedor</div>
           <div class="comment-input-wrap">
             <textarea class="comment-input" id="mkt-comment-input" placeholder="pregúntale algo al vendedor..." rows="1" oninput="autoResizeComment(this)"></textarea>
