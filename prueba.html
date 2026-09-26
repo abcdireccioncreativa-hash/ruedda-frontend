@@ -19792,7 +19792,7 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
   // [V136] el isotipo animado anterior (si venía de otra conversación) sigue
   // corriendo su rAF sobre nodos ya reemplazados — se detiene antes de repintar.
   if(window._pmPanelMarkStop){ window._pmPanelMarkStop(); window._pmPanelMarkStop=null; }
-  panel.innerHTML=`<div style="position:relative;width:100%;max-width:560px;margin:0 auto;background:var(--gc7);border-radius:24px 24px 0 0;padding:24px 20px 36px;border-top:1px solid var(--w8);transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)">
+  panel.innerHTML=`<div style="position:relative;width:100%;max-width:560px;margin:0 auto;background:var(--gc8);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:26px 26px 0 0;padding:24px 20px 36px;border:1px solid var(--w8);border-bottom:none;transform:translateY(100%);transition:transform .32s cubic-bezier(.32,.72,0,1)">
     <div id="pm-panel-mark" style="position:absolute;top:18px;right:18px;width:32px;height:32px;color:var(--white)"></div>
     <div style="width:36px;height:4px;border-radius:2px;background:var(--w15);margin:0 auto 20px"></div>
     <div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">mensaje privado</div>
@@ -19814,7 +19814,7 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
   panel.style.display='flex';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     panel.style.opacity='1';
-    panel.style.background='rgba(0,0,0,.5)';
+    panel.style.background='rgba(0,0,0,.35)'; // mismo velo que el de iniciar sesión
     const inner=panel.querySelector('div');
     if(inner) inner.style.transform='translateY(0)';
   }));
