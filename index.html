@@ -17355,6 +17355,16 @@ async function _rueddaRegister(email,pass){
   if(bar){bar.style.transition='width .4s cubic-bezier(.22,1,.36,1)';bar.style.width='100%';}
   setTimeout(()=>_showLoginSplash(nombre||''),50);
   if(isDesktop()) setTimeout(()=>enterApp(),1200);
+  else {
+    // [pedido explícito] cuenta nueva en el cel/app: debajo del splash de
+    // bienvenida la app ya cambia al market, arriba de todo — cuando el splash
+    // se desvanece, lo primero que se ve es el inicio listo.
+    setTimeout(()=>{
+      window._homeSectionOverride='market';
+      showView('home');
+      document.documentElement.scrollTop=0;document.body.scrollTop=0;
+    },450);
+  }
   _rueddaLoadUserData(data.user.id,role);
 }
 
