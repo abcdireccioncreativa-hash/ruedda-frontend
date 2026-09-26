@@ -5069,12 +5069,12 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
 <!-- USUARIOS MAS POPULARES VIEW -->
 <div id="view-usuarios-top" class="view">
-  <div class="detail-back" onclick="showView('home');selectSection('market')">
+  <div class="detail-back" onclick="typeof _rdExitMarcas==='function'?_rdExitMarcas():(showView('home'),selectSection('market'))">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
     <span>volver al market</span>
   </div>
   <div style="padding:0 18px 10px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px"><div style="font-size:22px;font-weight:800;letter-spacing:-.3px">usuarios más populares</div><span class="rd-lv-link" onclick="openLevelsSheet(null,null)">ver niveles</span></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px"><div style="font-size:22px;font-weight:800;letter-spacing:-.3px">usuarios más populares</div><span class="rd-lv-link" onclick="openLevelsSheet(null,null)" style="font-size:12.5px;margin-right:6px">ver niveles</span></div>
     <div style="font-size:12.5px;color:var(--muted);margin-top:3px">ranking por actividad y confianza en la comunidad Ruedda</div>
   </div>
   <div id="usuarios-top-list" style="padding:8px 16px 100px"></div>
@@ -18580,7 +18580,7 @@ const RD_LEVEL_PERKS={
   10:[['3 publicaciones gratis al mes','ok'],['acceso a financiamiento para tu carro','soon'],['franela oficial Ruedda','prize']],
   11:[['5 publicaciones gratis al mes','ok'],['1 hot deal gratis al mes','soon']],
   12:[['5 publicaciones gratis al mes','ok'],['sesión de fotos profesional de tu carro','prize']],
-  13:[['7 publicaciones gratis al mes','ok'],['soporte prioritario por WhatsApp','soon']],
+  13:[['7 publicaciones gratis al mes','ok'],['acceso a financiamiento para tu carro','soon'],['soporte prioritario por WhatsApp','soon']],
   14:[['7 publicaciones gratis al mes','ok'],['detailing completo para tu carro','prize']],
   15:[['8 publicaciones gratis al mes','ok'],['acceso anticipado a subastas','soon'],['entrada VIP a eventos Ruedda','prize']],
   16:[['10 publicaciones gratis al mes','ok'],['kit Ruedda + tu carro destacado en el inicio una semana','prize'],['insignia animada exclusiva','soon']]
@@ -18601,11 +18601,13 @@ async function openLevelsSheet(curLevelNum,xp){
     try{ const{data}=await _supa.rpc('get_my_level_perks'); if(data&&data[0]){ curLevelNum=data[0].level; xp=data[0].xp; } }catch(e){}
   }
   const cur=curLevelNum||0, next=levels.find(l=>l.level===cur+1);
-  let d=0; const del=()=>`style="animation-delay:${Math.min(d++,18)*42}ms"`;
+  let d=0; const dl=()=>`animation-delay:${Math.min(d++,18)*42}ms`; const del=()=>`style="${dl()}"`;
+  const _dHead=dl(), _dMe=dl(), _dH1=dl(); // la cascada va de arriba hacia abajo
   const ICON_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
   const ICON_PRIZE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>';
   const ICON_LOCK='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
   const rules=RD_XP_RULES.map(([t,v,cap])=>`<div class="rd-lv-rule rd-lv-in" ${del()}><b>+${v}</b><span>${_esc(t)}</span>${cap?`<small>${_esc(cap)}</small>`:''}</div>`).join('');
+  const _dH2=dl();
   const cards=levels.map(l=>{
     const st=l.level===cur?'cur':(cur&&l.level>cur?'lock':'');
     const [ti,stage]=_rdStageOf(l.level);
@@ -18621,9 +18623,10 @@ async function openLevelsSheet(curLevelNum,xp){
       <div class="rd-lv-perks">${perks}</div>
     </div>`;
   }).join('');
-  const me=(cur&&xp!=null)?`<div class="rd-lv-in" ${del()} style="margin-top:22px;padding:18px;border-radius:20px;background:var(--w4);border:1px solid var(--w8)">
+  const _dFoot=dl();
+  const me=(cur&&xp!=null)?`<div class="rd-lv-in" style="${_dMe};margin-top:28px;padding:18px 18px 17px;border-radius:20px;background:var(--w4);border:1px solid var(--w8)">
       <div style="font-size:12px;color:var(--muted)">tu progreso</div>
-      <div style="font-size:26px;font-weight:800;letter-spacing:-.6px;margin-top:4px;font-variant-numeric:tabular-nums">${Number(xp).toLocaleString('es-VE')} XP</div>
+      <div style="font-size:24px;font-weight:800;letter-spacing:-.6px;margin-top:6px;font-variant-numeric:tabular-nums">${Number(xp).toLocaleString('es-VE')} XP</div>
       <div style="font-size:13px;color:var(--w70);margin-top:6px;line-height:1.45">${next?`te faltan <b style="color:var(--white)">${Number(next.xp_required-xp).toLocaleString('es-VE')} XP</b> para ${_esc(next.nombre||'el siguiente nivel')}`:'llegaste al nivel máximo'}</div>
     </div>`:'';
   const ov=document.createElement('div');
@@ -18631,18 +18634,18 @@ async function openLevelsSheet(curLevelNum,xp){
   ov.innerHTML=`<div id="rd-levels-inner" role="dialog" aria-label="niveles de Ruedda">
     <div style="width:38px;height:4px;border-radius:4px;background:var(--w15);margin:0 auto 18px"></div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
-      <div class="rd-lv-in" ${del()}>
+      <div class="rd-lv-in" style="${_dHead}">
         <div style="font-size:26px;font-weight:800;letter-spacing:-.6px">niveles</div>
         <div style="font-size:13.5px;color:var(--muted);margin-top:6px;line-height:1.55;max-width:38ch">Gana XP vendiendo, publicando y con tu comunidad. Mientras más subes, más desbloqueas y hasta ganas premios.</div>
       </div>
       <button type="button" onclick="closeLevelsSheet()" aria-label="cerrar" style="background:var(--w6);border:none;color:var(--w60);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="width:14px;height:14px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     ${me}
-    <div class="rd-lv-h rd-lv-in" ${del()}>cómo ganas XP</div>
+    <div class="rd-lv-h rd-lv-in" style="${_dH1}">cómo ganas XP</div>
     <div class="rd-lv-rules">${rules}</div>
-    <div class="rd-lv-h rd-lv-in" ${del()}>los ${levels.length} niveles</div>
+    <div class="rd-lv-h rd-lv-in" style="${_dH2}">los ${levels.length} niveles</div>
     <div class="rd-lv-cards">${cards}</div>
-    <div class="rd-lv-in" ${del()} style="font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:18px;text-align:center">Los premios se reclaman por WhatsApp al llegar al nivel.</div>
+    <div class="rd-lv-in" style="${_dFoot};font-size:10.5px;color:var(--muted);line-height:1.5;margin:22px auto 0;text-align:center;max-width:30ch;opacity:.8">los premios se reclaman por WhatsApp al llegar al nivel</div>
   </div>`;
   ov.addEventListener('click',e=>{ if(e.target===ov) closeLevelsSheet(); });
   document.body.appendChild(ov);
