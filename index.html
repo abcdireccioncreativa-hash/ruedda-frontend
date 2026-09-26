@@ -18533,7 +18533,7 @@ async function openUserProfile(userId){
   const isMe=USER_STATE?.id===userId;
 
   try{
-    const[{data:u},{data:dreamCars},{count:followersCount},{count:followingCount},{data:myFollow},{data:ratings},{data:soldAuctions},{data:topBid},{count:favCount},{count:commentsCount},{count:spotCount},{data:publishedListings},{data:publishedAuctions},{count:activeListingsCount},{count:activeAuctionsCount},{data:allLevels},{data:garageVehicles}]=await Promise.all([
+    const[{data:u},{data:dreamCars},{count:followersCount},{count:followingCount},{data:myFollow},{data:ratings},{data:soldAuctions},{data:topBid},{count:favCount},{count:commentsCount},{count:spotCount},{data:publishedListings},{data:publishedAuctions},{count:activeListingsCount},{count:activeAuctionsCount},{data:allLevels},{data:garageVehicles},{data:soldListings}]=await Promise.all([
       _supa.from('users').select('nombre,username,avatar_url,kyc_verified,descripcion,role').eq('id',userId).maybeSingle(),
       _supa.from('user_dream_cars').select('modelo').eq('user_id',userId).order('orden',{ascending:true}),
       _supa.from('user_follows').select('*',{count:'exact',head:true}).eq('followed_id',userId),
@@ -18542,7 +18542,7 @@ async function openUserProfile(userId){
       _supa.from('user_ratings').select('score,rater_id').eq('rated_id',userId),
       // "carros vendidos": no existe un estado real de venta en el sistema — se infiere de
       // subastas ya terminadas (end_time pasado) que tuvieron al menos una oferta.
-      _supa.from('auctions').select('id,titulo,marca,modelo,year,auction_photos(url,orden)').eq('user_id',userId).eq('estado','activa').lt('end_time',new Date().toISOString()).gt('bid_count',0).order('end_time',{ascending:false}).limit(8),
+      _supa.from('auctions').select('id,titulo,marca,modelo,year,auction_photos(url,orden)').eq('user_id',userId).or('estado.eq.cerrada,and(estado.eq.activa,end_time.lt.'+new Date().toISOString()+',bid_count.gt.0)').order('end_time',{ascending:false}).limit(8),
       // [V117] Métricas
       _supa.from('bids').select('amount').eq('user_id',userId).order('amount',{ascending:false}).limit(1),
       _supa.from('user_favorites').select('*',{count:'exact',head:true}).eq('user_id',userId),
@@ -18555,13 +18555,16 @@ async function openUserProfile(userId){
       _supa.from('listings').select('*',{count:'exact',head:true}).eq('user_id',userId).eq('estado','activa'),
       _supa.from('auctions').select('*',{count:'exact',head:true}).eq('user_id',userId).eq('estado','activa'),
       _supa.from('user_levels').select('*').order('level',{ascending:true}),
-      _supa.from('garage_vehicles').select('id,marca,modelo,year,titulo,descripcion,estado,owner_id,garage_vehicle_photos(url,orden)').eq('owner_id',userId).order('created_at',{ascending:false})
+      _supa.from('garage_vehicles').select('id,marca,modelo,year,titulo,descripcion,estado,owner_id,garage_vehicle_photos(url,orden)').eq('owner_id',userId).order('created_at',{ascending:false}),
+      // [fix] carros del market que el dueño marcó como vendidos (listings.vendido) — antes no se consultaban
+      _supa.from('listings').select('id,titulo,marca,modelo,year,vendido_at,listing_photos(url,orden)').eq('user_id',userId).eq('vendido',true).order('vendido_at',{ascending:false}).limit(24)
     ]);
 
     // si mientras cargaba el usuario abrió OTRO perfil, no pintamos esto encima del nuevo
     if(_profileViewingId!==userId) return;
 
     if(!u){ el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">usuario no encontrado</div>'; return; }
+    const _soldAll=[...(soldListings||[]).map(x=>({...x,_kind:'listing',_photos:x.listing_photos})),...(soldAuctions||[]).map(x=>({...x,_kind:'auction',_photos:x.auction_photos}))];
 
     // [Mi Garage] última transferencia de cada vehículo, para pintar "dueño anterior @user"
     let garageTransferMap={};
@@ -18700,10 +18703,10 @@ async function openUserProfile(userId){
       </div>`:''}
       <div style="margin-top:26px">
         <div style="font-size:16px;font-weight:800;margin-bottom:12px">Carros vendidos</div>
-        ${soldAuctions?.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          ${soldAuctions.map(a=>{
-            const photo=(a.auction_photos||[]).sort((x,y)=>x.orden-y.orden)[0]?.url;
-            return `<div onclick="openDetail('${a.id}')" style="aspect-ratio:1;border-radius:14px;background:${photo?`url('${photo}') center/cover`:'var(--card)'};border:1px solid var(--border);cursor:pointer;display:flex;align-items:flex-end;padding:8px;position:relative;overflow:hidden">
+        ${_soldAll.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${_soldAll.map(a=>{
+            const photo=(a._photos||[]).sort((x,y)=>x.orden-y.orden)[0]?.url;
+            return `<div onclick="${a._kind==='listing'?`openMarketDetail('${a.id}')`:`openDetail('${a.id}')`}" style="aspect-ratio:1;border-radius:14px;background:${photo?`url('${photo}') center/cover`:'var(--card)'};border:1px solid var(--border);cursor:pointer;display:flex;align-items:flex-end;padding:8px;position:relative;overflow:hidden">
               ${photo?'<div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7))"></div>':''}
               <span style="position:relative;font-size:11px;font-weight:700;color:${photo?'#fff':'var(--white)'};z-index:1">${a.year||''} ${_esc(a.marca||'')} ${_esc(a.modelo||'')}</span>
             </div>`;
