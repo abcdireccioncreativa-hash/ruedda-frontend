@@ -8681,7 +8681,7 @@ function openDetail(id){
     const bidCount=document.getElementById('detail-bid-count');
     if(bidCount&&_live){bidCount.innerHTML=(a.bidCount||0)+' ofertas';}
     // [RC V5] el oscurecido de "perdedor" es por subasta — nunca debe heredarse a la siguiente
-    const _gal=document.getElementById('mkt-gallery'); if(_gal) _gal.style.filter='';
+    const _gal=document.getElementById('photo-gallery'); if(_gal) _gal.style.filter='';
   })();
   // Gallery
   const inner=document.getElementById('gallery-inner');
@@ -8876,7 +8876,7 @@ function renderDetailAuctionEnded(){
     if(watchLabel){watchLabel.textContent='contactar vendedor';}
     if(watchIcon){watchIcon.style.display='none';}
     // [RC V5] el ganador ve la galería a color completo — nunca oscurecida
-    const gal=document.getElementById('mkt-gallery'); if(gal) gal.style.filter='';
+    const gal=document.getElementById('photo-gallery'); if(gal) gal.style.filter='';
     const alreadyNotified=NOTIFICATIONS.some(n=>n.type==='ganador'&&n.auctionId===currentAuction.id);
     if(!alreadyNotified){
       NOTIFICATIONS.unshift({id:(crypto?.randomUUID?.()||Date.now()+'_'+Math.random().toString(36).slice(2)),type:'ganador',auctionId:currentAuction.id,sellerId:currentAuction.ownerId||null,sourceTitle:currentAuction.title||'subasta',title:'¡ganaste la subasta!',body:'Tu oferta de '+fmtBid(currentAuction.currentBid)+' ganó en '+currentAuction.title,time:'ahora mismo',read:false,icon:'lime'});
@@ -8890,7 +8890,7 @@ function renderDetailAuctionEnded(){
   } else {
     if(bidBtn){bidBtn.textContent='subasta finalizada';bidBtn.disabled=true;bidBtn.style.opacity='.35';bidBtn.style.cursor='not-allowed';bidBtn.onclick=null;}
     // [RC V5] "debe salir darkened para los perdedores, no para el ganador"
-    const gal=document.getElementById('mkt-gallery'); if(gal) gal.style.filter='grayscale(.65) brightness(.55)';
+    const gal=document.getElementById('photo-gallery'); if(gal) gal.style.filter='grayscale(.65) brightness(.55)';
   }
 }
 
@@ -15208,8 +15208,7 @@ function updateVenderModal(){
   if(role === 'guest'){
     btnConsesion.querySelector('.vt-sub').textContent='solo por invitación del equipo Ruedda';
   } else if(role === 'particular'){
-    btnConsesion.style.opacity='.35'; btnConsesion.disabled=true;
-    btnConsesion.querySelector('.vt-sub').textContent='debes ser concesionario para acceder';
+    btnConsesion.style.display='none'; // el particular no ve la opción de concesionario
   } else if(role === 'consesionario'){
     btnParticular.style.display='none';
     btnConsesion.querySelector('.vt-sub').textContent='publica tu inventario completo';
