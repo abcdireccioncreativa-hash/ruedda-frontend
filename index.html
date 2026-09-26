@@ -2672,10 +2672,20 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   });
 
   document.getElementById('rd-intro-market').addEventListener('click', function(){
-    dismiss(function(){
+    // [fix] el market se arma y se oculta YA, mientras el intro todavía lo tapa;
+    // la cascada (misma de "volviendo a market") arranca cuando el intro se va.
+    // Antes el market quedaba visible debajo y la animación saltaba después.
+    var kids = null;
+    try{
+      window._homeSectionOverride = 'market';
       if(typeof showView === 'function') showView('home');
-      if(typeof selectSection === 'function') selectSection('market');
-    });
+      var vh = document.getElementById('view-home');
+      if(vh && typeof window._prepCascade === 'function'){ kids = window._prepCascade(vh); void vh.offsetHeight; }
+    }catch(e){ kids = null; }
+    dismiss(function(){});
+    setTimeout(function(){
+      try{ if(kids && typeof window._playCascade === 'function') window._playCascade(kids); }catch(e){}
+    }, 240);
   });
 
   document.getElementById('rd-intro-register').addEventListener('click', function(){
