@@ -423,8 +423,8 @@ html{scrollbar-width:none}
 /* [pedido explícito, igual que desktop] Vender siempre blanco/negro en
    modo oscuro, sin importar el color de marca elegido — el resto de los
    botones sigue usando --lime/--lime-ink normal. */
-html:not([data-theme="light"]) .btn-vender{background:#fff;color:#000}
-html:not([data-theme="light"]) .btn-vender:active{background:#e8e8e8}
+html:not([data-theme="light"]) .btn-vender{background:#e6f03b;color:#000}
+html:not([data-theme="light"]) .btn-vender:active{background:#c7cf22}
 
 /* VENDER TYPE MODAL */
 .vender-modal{display:none;position:fixed;inset:0;z-index:300;align-items:flex-end;background:rgba(0,0,0,.55);opacity:0;transition:opacity .42s cubic-bezier(.32,.72,0,1);color:var(--white)}
@@ -607,6 +607,8 @@ html:not([data-theme="light"]) .btn-vender:active{background:#e8e8e8}
 .mkt-hub-actions{display:flex;align-items:center;gap:18px;flex-shrink:0}
 .mkt-hub-btn{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;background:none;border:none;color:var(--white);font-family:var(--font);padding:0;opacity:0;transform:translateY(-22px) scale(.75)} /* [RC10 FIX] estado base idéntico al frame 0% de hubPopIn — sin esto el navegador pinta el botón visible ANTES de que JS aplique la animación, causando el flash "aparece→desaparece→cascada" */
 @keyframes ptrSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+#ptr-icon line{transition:opacity .12s linear}
+#ptr-icon.ptr-busy{animation:ptrSpin .8s steps(8) infinite}
 /* [fix] antes translateY(8px)→0 los hacía SUBIR desde abajo — "caen" es al revés:
    arrancan arriba (negativo) y bajan a su lugar, con un pelín de rebote al asentar. */
 @keyframes hubPopIn{
@@ -2920,9 +2922,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 </nav>
 
 <!-- [pull-to-refresh] indicador — vive fuera del navbar, nunca lo mueve -->
-<div id="ptr-indicator" style="position:fixed;top:58px;left:0;right:0;display:flex;justify-content:center;z-index:95;pointer-events:none;opacity:0">
-  <div id="ptr-spinner" style="width:34px;height:34px;border-radius:50%;background:var(--gc16);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.4)">
-    <svg id="ptr-icon" viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="2.3" stroke-linecap="round" style="width:17px;height:17px;transition:transform .1s linear"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+<div id="ptr-indicator" style="position:fixed;top:calc(58px + env(safe-area-inset-top));left:0;right:0;height:0;display:flex;justify-content:center;z-index:95;pointer-events:none;opacity:0">
+  <div id="ptr-spinner" style="width:26px;height:26px;margin-top:-13px;display:grid;place-items:center">
+    <svg id="ptr-icon" viewBox="-12 -12 24 24" fill="none" stroke="var(--white)" stroke-width="2.3" stroke-linecap="round" style="width:26px;height:26px;overflow:visible"><line x1="0" y1="-9.5" x2="0" y2="-5.2" transform="rotate(0)"/><line x1="0" y1="-9.5" x2="0" y2="-5.2" transform="rotate(45)"/><line x1="0" y1="-9.5" x2="0" y2="-5.2" transform="rotate(90)"/><line x1="0" y1="-9.5" x2="0" y2="-5.2" transform="rotate(135)"/><line x1="0" y1="-9.5" x2="0" y2="-5.2" transform="rotate(180)"/><line x1="0" y1="-9.5" x2="0" y2="-5.2" transform="rotate(225)"/><line x1="0" y1="-9.5" x2="0" y2="-5.2" transform="rotate(270)"/><line x1="0" y1="-9.5" x2="0" y2="-5.2" transform="rotate(315)"/></svg>
   </div>
 </div>
 
@@ -12618,6 +12620,40 @@ async function _registerNativePush(){
     return true;
   }catch(e){ console.warn('[ruedda] _registerNativePush',e?.message||e); return false; }
 }
+// [push] en la app nativa, el aviso de iPhone para activar notificaciones sale
+// una sola vez, cuando la persona ya está en el inicio (sin intro, sin splash,
+// sin el formulario de login abierto). Si ya hay sesión, se guarda el token;
+// si no, se guarda apenas inicie sesión (_rdPushSyncToken en _rueddaApplySession).
+async function _rdPushSyncToken(){
+  try{
+    if(!_isNativeApp()||!USER_STATE||!USER_STATE.id) return;
+    const{PushNotifications}=window.Capacitor.Plugins||{};
+    if(!PushNotifications) return;
+    const perm=await PushNotifications.checkPermissions();
+    if(perm.receive==='granted') _registerNativePush();
+  }catch(e){}
+}
+(function _rdAskPushOnHome(){
+  try{ if(localStorage.getItem('rd_push_asked')==='1') return; }catch(e){}
+  let tries=0;
+  const iv=setInterval(async()=>{
+    if(++tries>180){ clearInterval(iv); return; } // 3 min máximo esperando el momento
+    try{
+      if(typeof _isNativeApp!=='function'||!_isNativeApp()) { clearInterval(iv); return; }
+      if(typeof currentView==='undefined'||currentView!=='home') return;
+      if(document.getElementById('rd-intro')||document.getElementById('boot-splash')||document.getElementById('login-splash')) return;
+      const au=document.getElementById('auth-sheet'); if(au&&au.classList.contains('open')) return;
+      clearInterval(iv);
+      await new Promise(r=>setTimeout(r,1200)); // deja respirar el inicio antes del aviso
+      const{PushNotifications}=window.Capacitor.Plugins||{};
+      if(!PushNotifications) return;
+      let perm=await PushNotifications.checkPermissions();
+      try{ localStorage.setItem('rd_push_asked','1'); }catch(e){}
+      if(perm.receive==='prompt'||perm.receive==='prompt-with-rationale') perm=await PushNotifications.requestPermissions();
+      if(perm.receive==='granted') _rdPushSyncToken();
+    }catch(e){ clearInterval(iv); }
+  },1000);
+})();
 // pinta el estado real del toggle (suscrito o no) al entrar a Configuración —
 // separado de si el usuario dio permiso del sistema o no.
 async function _paintPushToggle(){
@@ -17315,6 +17351,7 @@ async function _rueddaRegister(email,pass){
 }
 
 function _rueddaApplySession(p){
+  setTimeout(()=>{ try{ _rdPushSyncToken(); }catch(e){} },1500);
   // [V102] limpiar notifs en memoria del estado previo antes de hidratar al nuevo usuario
   NOTIFICATIONS.length=0;
   // [V87] avatar persistente desde users.avatar_url
@@ -21226,59 +21263,84 @@ async function _saDeletePat(id,cat){
   });
   document.addEventListener('touchcancel',()=>{ if(_ptrPulling&&!_ptrRefreshing){_ptrPulling=false;_ptrApply(0);} });
 
+  const TICKS=8;
+  let _ptrArmed=false;
+  function _ptrHaptic(){
+    try{
+      const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics;
+      if(H&&H.impact) H.impact({style:'LIGHT'}); else if(navigator.vibrate) navigator.vibrate(10);
+    }catch(e){}
+  }
+  // el indicador nace justo en el borde inferior REAL del header (en la app el
+  // header incluye la zona de la hora/notch — por eso antes quedaba tapado).
+  function _ptrAnchor(ind){
+    const nb=document.querySelector('.navbar');
+    const top=nb?Math.round(nb.getBoundingClientRect().bottom):58;
+    ind.style.top=top+'px';
+  }
+  // rayitas estilo iOS: aparecen una a una mientras se jala; todas + giro al refrescar
+  function _ptrTicks(p,full){
+    const lines=document.querySelectorAll('#ptr-icon line');
+    const n=full?TICKS:Math.round(p*TICKS);
+    lines.forEach((l,i)=>{ l.style.opacity = i<n ? String(full ? (0.22+0.78*((i+1)/TICKS)) : 0.9) : '0'; });
+  }
   function _ptrApply(dist){
     const vh=document.getElementById('view-home');
     const ind=document.getElementById('ptr-indicator');
     const icon=document.getElementById('ptr-icon');
     if(!vh||!ind)return;
-    const progress=Math.min(1,dist/THRESHOLD);
-    const easing=dist===0?'transform .3s cubic-bezier(.32,.72,0,1)':'none';
+    if(dist>0&&!ind.dataset.anchored){ _ptrAnchor(ind); ind.dataset.anchored='1'; }
+    const trig=THRESHOLD*0.5;
+    const progress=Math.min(1,dist/trig);
+    const easing=dist===0?'transform .32s cubic-bezier(.32,.72,0,1)':'none';
     vh.style.transition=easing;
     vh.style.transform=`translateY(${dist}px)`;
-    // [FIX] el indicador ahora sigue el MISMO valor que el contenido — antes usaba
-    // un factor distinto (0.6) y nunca se realineaba en el trigger, por eso se veía
-    // "pegado"/desincronizado. misma transición, mismo valor, siempre.
-    ind.style.transition=dist===0?`opacity .25s ease, ${easing}`:'none';
-    ind.style.opacity=String(progress);
-    ind.style.transform=`translateY(${dist}px)`;
-    if(icon) icon.style.transform=`rotate(${progress*300}deg)`;
-    if(dist===0) setTimeout(()=>{vh.style.transform='';ind.style.transform='';},300);
+    // el spinner va centrado en el hueco que se abre entre el header y el contenido
+    ind.style.transition=dist===0?`opacity .2s ease, ${easing}`:'none';
+    ind.style.opacity=String(Math.min(1,progress*1.4));
+    ind.style.transform=`translateY(${dist/2}px)`;
+    if(icon){ icon.style.transform=`rotate(${progress*90}deg)`; _ptrTicks(progress,false); }
+    if(progress>=1&&!_ptrArmed){ _ptrArmed=true; _ptrHaptic(); }
+    if(progress<1) _ptrArmed=false;
+    if(dist===0) setTimeout(()=>{ if(!_ptrRefreshing){ vh.style.transform=''; ind.style.transform=''; delete ind.dataset.anchored; } },320);
   }
   async function _ptrTrigger(){
-    _ptrRefreshing=true;
+    _ptrRefreshing=true; _ptrArmed=false;
     const vh=document.getElementById('view-home'), ind=document.getElementById('ptr-indicator'), icon=document.getElementById('ptr-icon');
-    const _settleDist=56;
-    const _easing='transform .25s cubic-bezier(.32,.72,0,1)';
+    const _settleDist=58;
+    const _easing='transform .28s cubic-bezier(.32,.72,0,1)';
     vh.style.transition=_easing;
     vh.style.transform=`translateY(${_settleDist}px)`;
-    // [FIX] el indicador se mueve EXACTO junto al contenido durante todo el refresh,
-    // no solo cambia opacidad — así nunca se ve "cargando de más" ni descolgado.
     ind.style.transition=`opacity .2s ease, ${_easing}`;
-    ind.style.transform=`translateY(${_settleDist}px)`;
+    ind.style.transform=`translateY(${_settleDist/2}px)`;
     ind.style.opacity='1';
-    if(icon){ icon.style.transform=''; icon.style.animation='ptrSpin .6s linear infinite'; }
-    if(navigator.vibrate) navigator.vibrate(10); // haptic real donde el navegador lo soporte
+    if(icon){ icon.style.transform=''; _ptrTicks(1,true); icon.classList.add('ptr-busy'); }
+    const t0=Date.now();
     try{
+      // se fuerza el repintado real aunque la data venga igual
+      try{ _lastMarketHash=null; }catch(e){}
       if(currentSection==='subastas'&&typeof _loadAuctions==='function') await _loadAuctions();
       else if(currentSection==='market'&&typeof _loadMarket==='function') await _loadMarket();
       else if(currentSection==='consesionarios'&&typeof _loadConcesionarios==='function') await _loadConcesionarios();
-      if(typeof renderCurrentSection==='function') renderCurrentSection();
     }catch(e){ console.warn('[ptr]',e?.message||e); }
-    // seamless: deja el spinner un pelín más para que no se sienta un parpadeo instantáneo,
-    // y baja TODO junto — contenido e indicador comparten la misma transición de vuelta.
+    // mínimo ~0.8s girando: se nota que de verdad buscó, sin sentirse lento
+    const wait=Math.max(0,800-(Date.now()-t0));
     setTimeout(()=>{
+      try{ if(typeof renderCurrentSection==='function') renderCurrentSection(); }catch(e){}
+      _ptrHaptic();
       vh.style.transition=_easing;
       vh.style.transform='translateY(0)';
-      ind.style.transition=`opacity .22s ease, ${_easing}`;
+      ind.style.transition=`opacity .18s ease, ${_easing}`;
       ind.style.transform='translateY(0)';
       ind.style.opacity='0';
-      if(icon) icon.style.animation='';
+      // destello corto del contenido: confirma visualmente que se actualizó
+      try{ const c=document.getElementById(currentSection==='market'?'market-section':currentSection==='subastas'?'auctions-section':'concesionarios-section'); if(c&&c.animate) c.animate([{opacity:.45},{opacity:1}],{duration:420,easing:'ease-out'}); }catch(e){}
       setTimeout(()=>{
-        vh.style.transform='';ind.style.transform='';
-        if(icon) icon.style.transform='';
+        vh.style.transform='';ind.style.transform='';delete ind.dataset.anchored;
+        if(icon){ icon.classList.remove('ptr-busy'); icon.style.transform=''; _ptrTicks(0,false); }
         _ptrRefreshing=false;
-      },300);
-    },350);
+      },320);
+    },wait);
   }
 })();
 
