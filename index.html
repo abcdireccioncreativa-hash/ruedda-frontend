@@ -7548,38 +7548,40 @@ function setMarketCity(key){
   closeCitySheet();
   try{ const g=document.getElementById('market-grid'); if(g&&key) g.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
 }
-// [ciudad] mapa limpio (Leaflet + CARTO): se carga solo la primera vez que se abre la hoja
-let _rdLeafletP=null, _rdMap=null, _rdMeMarker=null;
-function _rdLoadLeaflet(){
-  if(window.L) return Promise.resolve(window.L);
-  if(_rdLeafletP) return _rdLeafletP;
-  _rdLeafletP=new Promise((res,rej)=>{
-    const css=document.createElement('link'); css.rel='stylesheet'; css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(css);
-    const js=document.createElement('script'); js.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'; js.async=true;
-    js.onload=()=>res(window.L); js.onerror=()=>{ _rdLeafletP=null; rej(new Error('leaflet')); };
+// [ciudad] mapa vectorial estilo apps de delivery (MapLibre + OpenFreeMap, sin clave):
+// oscuro en modo oscuro, "positron" en claro. Se carga solo la primera vez que se abre la hoja.
+let _rdMapLibP=null, _rdMap=null, _rdMeMarker=null;
+function _rdLoadMapLib(){
+  if(window.maplibregl) return Promise.resolve(window.maplibregl);
+  if(_rdMapLibP) return _rdMapLibP;
+  _rdMapLibP=new Promise((res,rej)=>{
+    const css=document.createElement('link'); css.rel='stylesheet'; css.href='https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css'; document.head.appendChild(css);
+    const js=document.createElement('script'); js.src='https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js'; js.async=true;
+    js.onload=()=>res(window.maplibregl); js.onerror=()=>{ _rdMapLibP=null; rej(new Error('maplibre')); };
     document.head.appendChild(js);
   });
-  return _rdLeafletP;
+  return _rdMapLibP;
 }
+function _rdPinEl(n,d,sel){ const e=document.createElement('div'); e.className='rd-pin'+(sel?' sel':''); e.style.width=e.style.height=d+'px'; e.innerHTML='<span>'+n+'</span>'; return e; }
 function _rdInitCityMap(sel,cnt){
   const el=document.getElementById('rd-map-el'); if(!el) return;
-  _rdLoadLeaflet().then(L=>{
+  _rdLoadMapLib().then(ml=>{
     if(!document.body.contains(el)) return;
     const light=document.documentElement.getAttribute('data-theme')==='light';
-    _rdMap=L.map(el,{zoomControl:false,attributionControl:true,scrollWheelZoom:false,tap:true}).setView([7.6,-66.2],5);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/'+(light?'light_all':'dark_all')+'/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:18,attribution:'© OpenStreetMap © CARTO'}).addTo(_rdMap);
-    _rdMap.attributionControl.setPrefix(false);
-    const max=Math.max(1,...Object.values(cnt)); const pts=[];
+    _rdMap=new ml.Map({container:el,style:'https://tiles.openfreemap.org/styles/'+(light?'positron':'dark'),center:[-66.2,7.6],zoom:4.4,
+      attributionControl:{compact:true},dragRotate:false,pitchWithRotate:false,touchPitch:false,fadeDuration:120});
+    try{ _rdMap.touchZoomRotate.disableRotation(); }catch(e){}
+    const max=Math.max(1,...Object.values(cnt)); const b=new ml.LngLatBounds(); let n0=0;
     Object.entries(cnt).forEach(([k,n])=>{
       const c=RD_CITIES[k]; if(!c) return;
-      const d=Math.round(24+14*Math.sqrt(n/max));
-      L.marker([c[0],c[1]],{icon:L.divIcon({className:'rd-pin'+(sel===k?' sel':''),html:'<span>'+n+'</span>',iconSize:[d,d],iconAnchor:[d/2,d/2]}),keyboard:false})
-        .on('click',()=>{ _rdHaptic('LIGHT'); setMarketCity(k); }).addTo(_rdMap);
-      pts.push([c[0],c[1]]);
+      const d=Math.round(26+14*Math.sqrt(n/max)), pin=_rdPinEl(n,d,sel===k);
+      pin.addEventListener('click',ev=>{ ev.stopPropagation(); _rdHaptic('LIGHT'); setMarketCity(k); });
+      new ml.Marker({element:pin}).setLngLat([c[1],c[0]]).addTo(_rdMap);
+      b.extend([c[1],c[0]]); n0++;
     });
-    if(sel&&RD_CITIES[sel]) _rdMap.setView([RD_CITIES[sel][0],RD_CITIES[sel][1]],9);
-    else if(pts.length>1) _rdMap.fitBounds(pts,{padding:[34,34],maxZoom:8});
-    setTimeout(()=>{ try{ _rdMap&&_rdMap.invalidateSize(); }catch(e){} },340); // tras la animación de la hoja
+    if(sel&&RD_CITIES[sel]) _rdMap.jumpTo({center:[RD_CITIES[sel][1],RD_CITIES[sel][0]],zoom:9});
+    else if(n0>1) _rdMap.fitBounds(b,{padding:40,maxZoom:8,duration:0});
+    setTimeout(()=>{ try{ _rdMap&&_rdMap.resize(); }catch(e){} },340); // tras la animación de la hoja
   }).catch(()=>{ el.innerHTML='<div class="rd-map-off">el mapa no cargó · elige tu ciudad abajo</div>'; });
 }
 function _rdHaptic(style){
@@ -7622,7 +7624,7 @@ function _rdNearestCity(btn){
   navigator.geolocation.getCurrentPosition(pos=>{
     if(done) return; done=true; clearTimeout(guard);
     const lat=pos.coords.latitude, lng=pos.coords.longitude;
-    try{ if(_rdMap&&window.L){ if(_rdMeMarker) _rdMeMarker.remove(); _rdMeMarker=L.circleMarker([lat,lng],{radius:7,color:'#fff',weight:2,fillColor:'#2f80ed',fillOpacity:1}).addTo(_rdMap); _rdMap.flyTo([lat,lng],9,{duration:.8}); } }catch(e){}
+    try{ if(_rdMap&&window.maplibregl){ if(_rdMeMarker) _rdMeMarker.remove(); const me=document.createElement('div'); me.className='rd-me'; _rdMeMarker=new maplibregl.Marker({element:me}).setLngLat([lng,lat]).addTo(_rdMap); _rdMap.flyTo({center:[lng,lat],zoom:9,duration:800}); } }catch(e){}
     const cnt=_rdCityCounts(); let best=null,bd=1e9;
     Object.keys(cnt).forEach(k=>{ const c=RD_CITIES[k]; if(!c) return; const d=(c[0]-lat)**2+(c[1]-lng)**2; if(d<bd){bd=d;best=k;} });
     if(!best){ btn.disabled=false; btn.innerHTML=orig; showToast('no hay carros cerca todavía'); return; }
@@ -23199,13 +23201,15 @@ html:not([data-theme="light"]) #login-splash .rd-wel-track{stroke:rgba(230,240,5
 #rd-city-sheet.on #rd-city-inner{transform:none}
 .rd-map{position:relative;margin-top:16px;border-radius:22px;overflow:hidden;aspect-ratio:16/11;background:var(--w5);border:1px solid var(--w8)}
 #rd-map-el{position:absolute;inset:0;background:var(--w5);z-index:0}
-#rd-map-el .leaflet-container,#rd-map-el{font-family:var(--font)}
-.rd-pin{display:grid;place-items:center;border-radius:50%;background:#e6f03b;color:#0a0a0a;font-weight:800;font-size:12px;box-shadow:0 0 0 2px rgba(0,0,0,.55),0 4px 12px rgba(0,0,0,.35);cursor:pointer;font-variant-numeric:tabular-nums}
+.rd-pin{display:grid;place-items:center;border-radius:50%;background:#e6f03b;color:#0a0a0a;font-weight:800;font-size:12px;box-shadow:0 0 0 2px rgba(0,0,0,.55),0 4px 12px rgba(0,0,0,.35);cursor:pointer;font-variant-numeric:tabular-nums;font-family:var(--font)}
 .rd-pin.sel{background:#fff}
 .rd-pin span{line-height:1}
-#rd-map-el .leaflet-control-attribution{background:rgba(0,0,0,.35);color:rgba(255,255,255,.55);font-size:8.5px;padding:1px 6px;border-radius:6px 0 0 0}
-#rd-map-el .leaflet-control-attribution a{color:inherit}
-html[data-theme="light"] #rd-map-el .leaflet-control-attribution{background:rgba(255,255,255,.6);color:rgba(0,0,0,.5)}
+.rd-me{width:16px;height:16px;border-radius:50%;background:#2f80ed;border:3px solid #fff;box-shadow:0 0 0 6px rgba(47,128,237,.25),0 2px 6px rgba(0,0,0,.4)}
+#rd-map-el .maplibregl-ctrl-attrib{font-size:9px;background:rgba(0,0,0,.35)!important;color:rgba(255,255,255,.6)}
+#rd-map-el .maplibregl-ctrl-attrib a{color:inherit}
+#rd-map-el .maplibregl-ctrl-attrib-button{filter:invert(1);opacity:.5;transform:scale(.8)}
+html[data-theme="light"] #rd-map-el .maplibregl-ctrl-attrib{background:rgba(255,255,255,.6)!important;color:rgba(0,0,0,.5)}
+html[data-theme="light"] #rd-map-el .maplibregl-ctrl-attrib-button{filter:none}
 .rd-map-off{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:var(--muted);text-align:center;padding:20px}
 .rd-map-flag{position:absolute;top:12px;right:13px;width:17px;height:auto;pointer-events:none;z-index:500;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
 html[data-theme="light"] .rd-map-flag{filter:invert(1) drop-shadow(0 1px 2px rgba(255,255,255,.6))}
