@@ -9575,6 +9575,8 @@ function sendMktComment(){
 // ===================== DETAIL =====================
 function openDetail(id){
   currentAuction=AUCTIONS.find(a=>a.id==id||String(a.id)===String(id))||AUCTIONS_CHOCADOS.find(a=>a.id==id||String(a.id)===String(id));
+  // [carga por intención] si es un chocado y todavía no llegó esa lista, esperarla y reintentar
+  if(!currentAuction&&typeof _rdEnsureSubastasExtra==='function'&&!_rdDeferred.subReady){ _rdEnsureSubastasExtra().then(()=>{ if(AUCTIONS_CHOCADOS.find(a=>String(a.id)===String(id))) openDetail(id); }); return; }
   if(!currentAuction)return;
   _loadMiniBanner(); // [V126] defensivo: cubre entradas directas (deep link) antes de que el boot lo cargue
   // [V87] vista real del comprador + chip (tras reasignar currentAuction al correcto)
@@ -9990,6 +9992,8 @@ function renderFavoritos(){
   const el=document.getElementById('favoritos-content');
   const emptyHtml='<div class="fav-empty"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg><h3>sin favoritos aún</h3><p>Guarda vehículos que te interesen para seguirlos de cerca.</p></div>';
   if(watchlist.size===0){el.innerHTML=emptyHtml;renderComunidad();return;}
+  // [carga por intención] los favoritos pueden incluir chocados: si aún no llegaron, repintar al llegar
+  if(typeof _rdEnsureSubastasExtra==='function'&&!_rdDeferred.subReady) _rdEnsureSubastasExtra().then(()=>{ if(currentView==='favoritos') renderFavoritos(); });
 
   // subastas
   const allAuctions=[...AUCTIONS,...AUCTIONS_CHOCADOS];
@@ -18169,6 +18173,7 @@ if(typeof _registerServiceWorker==='function') _registerServiceWorker();
 const _rdDeferred={};
 function _rdEnsureSubastasExtra(){
   if(!_rdDeferred.sub) _rdDeferred.sub=Promise.allSettled([_loadChocados(),_loadChocadosSponsors()]).then(()=>{
+    _rdDeferred.subReady=true;
     try{ if(currentView==='home'&&currentSection==='subastas') renderCurrentSection(); }catch(e){}
   });
   return _rdDeferred.sub;
