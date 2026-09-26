@@ -17029,83 +17029,91 @@ function _openCommentAuthorProfile(userId,isDealer){
 // ─────────────────────────────────────────────
 let _profileViewingId=null; // [V116] guarda qué perfil se está cargando — evita que datos de un fetch viejo se pinten sobre el perfil nuevo si el usuario abre otro antes de que termine
 // [niveles] reglas de XP y beneficios — mantener en sync con compute_user_xp()
-// y user_levels.free_pubs_month (migración 20260926000000_xp_v2_level_perks.sql).
-// Cada beneficio: [texto, ya funciona]. Los que aún no existen salen con "pronto".
-const RD_XP_RULES=[['carro vendido',150],['cuenta verificada',100],['publicación activa',40],['subasta activa',40],['calificación de 4★ o 5★',30],['seguidor',15],['carspotting',10],['comentario',3],['favorito guardado',1]];
+// y user_levels (migración 20260926000000_xp_v2_level_perks.sql).
+// Beneficio: [texto, estado] — 'ok' ya funciona · 'soon' pronto · 'prize' premio (se reclama por WhatsApp).
+const RD_XP_RULES=[['carro vendido',600,''],['cuenta verificada',400,''],['publicación activa',150,''],['subasta activa',150,''],['calificación de 4★ o 5★',100,''],['seguidor',60,''],['carspotting',60,'hasta 60'],['favorito',40,'hasta 150'],['comentario',25,'hasta 200']];
+const RD_LEVEL_STAGES=[[1,3,'calle'],[4,6,'pista'],[7,9,'podio'],[10,12,'élite'],[13,15,'leyenda'],[16,16,'eterno']];
 const RD_LEVEL_PERKS={
-  1:[['tu perfil en la comunidad Ruedda',true]],
-  2:[['insignia de nivel en tu perfil',true]],
-  3:[['apareces en usuarios más populares',false]],
-  4:[['borde de color en tu avatar',false]],
-  5:[['1 publicación gratis al mes',true]],
-  6:[['1 publicación gratis al mes',true]],
-  7:[['2 publicaciones gratis al mes',true],['sello "vendedor confiable"',false]],
-  8:[['2 publicaciones gratis al mes',true]],
-  9:[['3 publicaciones gratis al mes',true],['tus publicaciones primero en su categoría',false]],
-  10:[['3 publicaciones gratis al mes',true]],
-  11:[['5 publicaciones gratis al mes',true],['1 hot deal gratis al mes',false]],
-  12:[['5 publicaciones gratis al mes',true]],
-  13:[['7 publicaciones gratis al mes',true],['soporte prioritario por WhatsApp',false]],
-  14:[['7 publicaciones gratis al mes',true]],
-  15:[['8 publicaciones gratis al mes',true],['acceso anticipado a subastas',false]],
-  16:[['10 publicaciones gratis al mes',true],['insignia animada exclusiva',false]]
+  1:[['tu perfil en la comunidad Ruedda','ok']],
+  2:[['insignia de nivel en tu perfil','ok']],
+  3:[['apareces en usuarios más populares','soon']],
+  4:[['borde de color en tu avatar','soon']],
+  5:[['1 publicación gratis al mes','ok']],
+  6:[['1 publicación gratis al mes','ok']],
+  7:[['2 publicaciones gratis al mes','ok'],['sello "vendedor confiable"','soon']],
+  8:[['2 publicaciones gratis al mes','ok']],
+  9:[['3 publicaciones gratis al mes','ok'],['tus publicaciones primero en su categoría','soon']],
+  10:[['3 publicaciones gratis al mes','ok'],['acceso a financiamiento para tu carro','soon'],['franela oficial Ruedda','prize']],
+  11:[['5 publicaciones gratis al mes','ok'],['1 hot deal gratis al mes','soon']],
+  12:[['5 publicaciones gratis al mes','ok'],['sesión de fotos profesional de tu carro','prize']],
+  13:[['7 publicaciones gratis al mes','ok'],['soporte prioritario por WhatsApp','soon']],
+  14:[['7 publicaciones gratis al mes','ok'],['detailing completo para tu carro','prize']],
+  15:[['8 publicaciones gratis al mes','ok'],['acceso anticipado a subastas','soon'],['entrada VIP a eventos Ruedda','prize']],
+  16:[['10 publicaciones gratis al mes','ok'],['kit Ruedda + tu carro destacado en el inicio una semana','prize'],['insignia animada exclusiva','soon']]
 };
 function _rdLocalXp(c){
-  return (c.followers||0)*15+(c.favs||0)*1+(c.comments||0)*3+(c.spots||0)*10+(c.activeListings||0)*40+(c.activeAuctions||0)*40
-    +(c.soldListings||0)*150+(c.soldAuctions||0)*150+(c.goodRatings||0)*30+(c.kyc?100:0);
+  return (c.followers||0)*60+Math.min(c.favs||0,150)*40+Math.min(c.comments||0,200)*25+Math.min(c.spots||0,60)*60
+    +(c.activeListings||0)*150+(c.activeAuctions||0)*150+(c.soldListings||0)*600+(c.soldAuctions||0)*600
+    +(c.goodRatings||0)*100+(c.kyc?400:0);
 }
+function _rdStageOf(n){ const i=RD_LEVEL_STAGES.findIndex(([a,b])=>n>=a&&n<=b); return i<0?[0,'calle']:[i,RD_LEVEL_STAGES[i][2]]; }
 async function openLevelsSheet(curLevelNum,xp){
   if(document.getElementById('rd-levels-sheet')) return;
   let levels=window._rdLevelsCache;
   if(!levels||!levels.length){
     try{ const{data}=await _supa.from('user_levels').select('level,xp_required,nombre,badge_url').order('level',{ascending:true}); levels=data||[]; window._rdLevelsCache=levels; }catch(e){ levels=[]; }
   }
-  // sin nivel conocido (ej. desde usuarios top): usa el propio si hay sesión
   if((curLevelNum==null||xp==null)&&typeof isGuest==='function'&&!isGuest()&&_supa){
     try{ const{data}=await _supa.rpc('get_my_level_perks'); if(data&&data[0]){ curLevelNum=data[0].level; xp=data[0].xp; } }catch(e){}
   }
   const cur=curLevelNum||0, next=levels.find(l=>l.level===cur+1);
-  let d=0; const del=()=>`style="animation-delay:${(d++)*38}ms"`;
-  const rules=RD_XP_RULES.map(([t,v])=>`<div class="rd-lv-rule rd-lv-in" ${del()}><b>+${v}</b><span>${_esc(t)}</span></div>`).join('');
-  const rows=levels.map(l=>{
-    const st=l.level===cur?'cur':(cur&&l.level<cur?'done':(cur?'lock':''));
-    const perks=(RD_LEVEL_PERKS[l.level]||[]).map(([t,ok])=>`<div class="rd-lv-perk">${ok?'':'<i>pronto</i>'}${_esc(t)}</div>`).join('');
-    const num=l.badge_url?`<img src="${l.badge_url}" alt="" style="width:100%;height:100%;object-fit:cover">`:l.level;
-    return `<div class="rd-lv-row rd-lv-in ${st}" id="rd-lv-${l.level}" ${del()}>
-      <div class="rd-lv-num">${num}</div>
-      <div style="flex:1;min-width:0">
-        <div class="rd-lv-name">${_esc(l.nombre||('nivel '+l.level))}${st==='cur'?'<span class="rd-lv-tag">tu nivel</span>':''}</div>
-        <div class="rd-lv-xp">nivel ${l.level} · desde ${Number(l.xp_required).toLocaleString('es-VE')} XP</div>
-        ${perks}
-      </div>
+  let d=0; const del=()=>`style="animation-delay:${Math.min(d++,18)*42}ms"`;
+  const ICON_OK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  const ICON_PRIZE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>';
+  const ICON_LOCK='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  const rules=RD_XP_RULES.map(([t,v,cap])=>`<div class="rd-lv-rule rd-lv-in" ${del()}><b>+${v}</b><span>${_esc(t)}</span>${cap?`<small>${_esc(cap)}</small>`:''}</div>`).join('');
+  const cards=levels.map(l=>{
+    const st=l.level===cur?'cur':(cur&&l.level>cur?'lock':'');
+    const [ti,stage]=_rdStageOf(l.level);
+    const perks=(RD_LEVEL_PERKS[l.level]||[]).map(([t,k])=>k==='prize'
+      ?`<div class="rd-lv-perk prize">${ICON_PRIZE}<span><b style="font-weight:800">premio:</b> ${_esc(t)}</span></div>`
+      :`<div class="rd-lv-perk">${k==='soon'?'<i>pronto</i>':ICON_OK}<span>${_esc(t)}</span></div>`).join('');
+    const right=st==='cur'?'<span class="rd-lv-tag">tu nivel</span>':(st==='lock'?`<span class="rd-lv-lock">${ICON_LOCK}bloqueado</span>`:'');
+    return `<div class="rd-lv-card t${ti+1} rd-lv-in ${st}" id="rd-lv-${l.level}" ${del()}>
+      <span class="rd-lv-ghost" aria-hidden="true">${l.level}</span>
+      <div class="rd-lv-top"><span class="rd-lv-stage">${_esc(stage)} · nivel ${l.level}</span>${right}</div>
+      <div class="rd-lv-name">${_esc(l.nombre||('nivel '+l.level))}</div>
+      <span class="rd-lv-xp">desde ${Number(l.xp_required).toLocaleString('es-VE')} XP</span>
+      <div class="rd-lv-perks">${perks}</div>
     </div>`;
   }).join('');
-  const me=(cur&&xp!=null)?`<div class="rd-lv-in" ${del()} style="margin-top:16px;padding:14px 16px;border-radius:18px;background:var(--w4);border:1px solid var(--w8)">
+  const me=(cur&&xp!=null)?`<div class="rd-lv-in" ${del()} style="margin-top:22px;padding:18px;border-radius:20px;background:var(--w4);border:1px solid var(--w8)">
       <div style="font-size:12px;color:var(--muted)">tu progreso</div>
-      <div style="font-size:18px;font-weight:800;letter-spacing:-.3px;margin-top:2px;font-variant-numeric:tabular-nums">${Number(xp).toLocaleString('es-VE')} XP</div>
-      <div style="font-size:12.5px;color:var(--w70);margin-top:4px">${next?`te faltan <b style="color:var(--white)">${Number(next.xp_required-xp).toLocaleString('es-VE')} XP</b> para ${_esc(next.nombre||'el siguiente nivel')}`:'llegaste al nivel máximo'}</div>
+      <div style="font-size:26px;font-weight:800;letter-spacing:-.6px;margin-top:4px;font-variant-numeric:tabular-nums">${Number(xp).toLocaleString('es-VE')} XP</div>
+      <div style="font-size:13px;color:var(--w70);margin-top:6px;line-height:1.45">${next?`te faltan <b style="color:var(--white)">${Number(next.xp_required-xp).toLocaleString('es-VE')} XP</b> para ${_esc(next.nombre||'el siguiente nivel')}`:'llegaste al nivel máximo'}</div>
     </div>`:'';
   const ov=document.createElement('div');
   ov.id='rd-levels-sheet';
   ov.innerHTML=`<div id="rd-levels-inner" role="dialog" aria-label="niveles de Ruedda">
-    <div style="width:38px;height:4px;border-radius:4px;background:var(--w15);margin:0 auto 14px"></div>
+    <div style="width:38px;height:4px;border-radius:4px;background:var(--w15);margin:0 auto 18px"></div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
       <div class="rd-lv-in" ${del()}>
-        <div style="font-size:22px;font-weight:800;letter-spacing:-.5px">niveles</div>
-        <div style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.5;max-width:40ch">Gana XP vendiendo, publicando y con tu comunidad. Mientras más subes, más desbloqueas.</div>
+        <div style="font-size:26px;font-weight:800;letter-spacing:-.6px">niveles</div>
+        <div style="font-size:13.5px;color:var(--muted);margin-top:6px;line-height:1.55;max-width:38ch">Gana XP vendiendo, publicando y con tu comunidad. Mientras más subes, más desbloqueas y hasta ganas premios.</div>
       </div>
-      <button type="button" onclick="closeLevelsSheet()" aria-label="cerrar" style="background:var(--w6);border:none;color:var(--w60);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="width:14px;height:14px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      <button type="button" onclick="closeLevelsSheet()" aria-label="cerrar" style="background:var(--w6);border:none;color:var(--w60);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="width:14px;height:14px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
     ${me}
-    <div class="rd-lv-in" ${del()} style="font-size:13px;font-weight:700;margin:22px 0 10px">cómo ganas XP</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${rules}</div>
-    <div class="rd-lv-in" ${del()} style="font-size:13px;font-weight:700;margin:24px 0 10px">los ${levels.length} niveles</div>
-    <div style="display:flex;flex-direction:column;gap:8px">${rows}</div>
+    <div class="rd-lv-h rd-lv-in" ${del()}>cómo ganas XP</div>
+    <div class="rd-lv-rules">${rules}</div>
+    <div class="rd-lv-h rd-lv-in" ${del()}>los ${levels.length} niveles</div>
+    <div class="rd-lv-cards">${cards}</div>
+    <div class="rd-lv-in" ${del()} style="font-size:11.5px;color:var(--muted);line-height:1.55;margin-top:18px;text-align:center">Los premios se reclaman por WhatsApp al llegar al nivel.</div>
   </div>`;
   ov.addEventListener('click',e=>{ if(e.target===ov) closeLevelsSheet(); });
   document.body.appendChild(ov);
   requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('on')));
-  if(cur) setTimeout(()=>{ const r=document.getElementById('rd-lv-'+cur), box=document.getElementById('rd-levels-inner'); if(r&&box&&r.offsetTop>box.clientHeight*.7) box.scrollTo({top:r.offsetTop-box.clientHeight*.35,behavior:'smooth'}); },520);
+  if(cur) setTimeout(()=>{ const r=document.getElementById('rd-lv-'+cur), box=document.getElementById('rd-levels-inner'); if(r&&box&&r.offsetTop>box.clientHeight*.7) box.scrollTo({top:r.offsetTop-box.clientHeight*.3,behavior:'smooth'}); },560);
 }
 function closeLevelsSheet(){
   const ov=document.getElementById('rd-levels-sheet'); if(!ov) return;
@@ -21390,8 +21398,54 @@ html.lowfx .auction-card,
 html.lowfx .market-card{animation:none}
 html.lowfx .card-loading-ring{animation-duration:1.6s}
 
-/* [niveles] menú "ver niveles" — entrada escalonada liviana (solo opacity/transform) */
+/* [niveles] menú "ver niveles" — tarjetas por etapa con color propio; entrada
+   escalonada liviana (solo opacity/transform) */
 #rd-levels-sheet,#checkout-level-perk,.rd-lv-link{--rd-green:#e6f03b;--rd-green-rgb:230,240,59;--rd-green-ink:#000}
+html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-level-perk,html[data-theme="light"] .rd-lv-link{--rd-green:#0a0a0a;--rd-green-rgb:10,10,10;--rd-green-ink:#fff}
+#rd-levels-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .28s ease}
+#rd-levels-sheet.on{opacity:1}
+#rd-levels-inner{width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--gc8);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w8);border-bottom:none;border-radius:28px 28px 0 0;padding:12px 20px calc(34px + env(safe-area-inset-bottom));transform:translateY(24px);transition:transform .38s cubic-bezier(.32,.72,0,1)}
+#rd-levels-sheet.on #rd-levels-inner{transform:none}
+@media (min-width:900px){#rd-levels-sheet{align-items:center}#rd-levels-inner{border-radius:26px;border-bottom:1px solid var(--w8);max-height:84vh}}
+.rd-lv-in{animation:rdLvIn .5s cubic-bezier(.22,.61,.36,1) both}
+@keyframes rdLvIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.rd-lv-in{animation:none}#rd-levels-inner{transition:none}.rd-lv-card.t6::after{animation:none}}
+.rd-lv-h{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:34px 2px 14px}
+.rd-lv-rules{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rd-lv-rule{display:flex;flex-direction:column;gap:4px;padding:14px 14px 13px;border-radius:16px;background:var(--w3);border:1px solid var(--w7)}
+.rd-lv-rule b{font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--rd-green);font-variant-numeric:tabular-nums;line-height:1}
+.rd-lv-rule span{font-size:12.5px;color:var(--w75);line-height:1.35}
+.rd-lv-rule small{font-size:10.5px;color:var(--muted)}
+.rd-lv-cards{display:flex;flex-direction:column;gap:12px}
+.rd-lv-card{--c1:#2b2d31;--c2:#141517;position:relative;overflow:hidden;isolation:isolate;border-radius:22px;padding:18px 18px 18px;color:#fff;
+  background:linear-gradient(135deg,var(--c1) 0%,var(--c2) 100%);border:1px solid rgba(255,255,255,.08)}
+.rd-lv-card.t1{--c1:#3a3d44;--c2:#16171a}
+.rd-lv-card.t2{--c1:#1f6bff;--c2:#0b1f4d}
+.rd-lv-card.t3{--c1:#7b3cff;--c2:#23104f}
+.rd-lv-card.t4{--c1:#ff4d2e;--c2:#4a0f07}
+.rd-lv-card.t5{--c1:#f5b400;--c2:#4a3200}
+.rd-lv-card.t6{--c1:#e6f03b;--c2:#5b6000;color:#0a0a0a}
+.rd-lv-card.t6::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.45) 50%,transparent 70%);transform:translateX(-100%);animation:rdLvShine 3.2s ease-in-out infinite}
+@keyframes rdLvShine{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.rd-lv-ghost{position:absolute;right:-6px;bottom:-34px;z-index:-1;font-size:130px;font-weight:900;line-height:1;letter-spacing:-6px;color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.18);font-variant-numeric:tabular-nums;pointer-events:none}
+.rd-lv-card.t6 .rd-lv-ghost{-webkit-text-stroke-color:rgba(0,0,0,.18)}
+.rd-lv-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rd-lv-stage{font-size:10.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;opacity:.75}
+.rd-lv-name{font-size:21px;font-weight:800;letter-spacing:-.5px;text-transform:capitalize;margin-top:12px;line-height:1.1}
+.rd-lv-xp{display:inline-block;margin-top:8px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:100px;background:rgba(0,0,0,.28);font-variant-numeric:tabular-nums}
+.rd-lv-card.t6 .rd-lv-xp{background:rgba(0,0,0,.12)}
+.rd-lv-perks{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.rd-lv-perk{display:flex;align-items:flex-start;gap:9px;font-size:13px;line-height:1.35;font-weight:600}
+.rd-lv-perk svg{flex-shrink:0;width:15px;height:15px;margin-top:1px}
+.rd-lv-perk i{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:2px 7px;border-radius:100px;background:rgba(255,255,255,.16);flex-shrink:0;margin-top:1px}
+.rd-lv-card.t6 .rd-lv-perk i{background:rgba(0,0,0,.12)}
+.rd-lv-perk.prize{padding:9px 11px;border-radius:12px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.14)}
+.rd-lv-card.t6 .rd-lv-perk.prize{background:rgba(0,0,0,.1);border-color:rgba(0,0,0,.14)}
+.rd-lv-tag{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:#fff;color:#000}
+.rd-lv-lock{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;opacity:.8}
+.rd-lv-card.lock{filter:saturate(.9) brightness(.9)}
+.rd-lv-card.cur{box-shadow:0 0 0 2px #fff,0 12px 34px rgba(0,0,0,.45)}
+.rd-lv-link{font-size:12px;font-weight:600;color:var(--w55);cursor:pointer;white-space:nowrap;text-decoration:underline;text-underline-offset:3px}
 html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-level-perk,html[data-theme="light"] .rd-lv-link{--rd-green:#0a0a0a;--rd-green-rgb:10,10,10;--rd-green-ink:#fff}
 #rd-levels-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .28s ease}
 #rd-levels-sheet.on{opacity:1}
