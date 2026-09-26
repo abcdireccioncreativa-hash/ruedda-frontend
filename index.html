@@ -448,6 +448,7 @@ html{scrollbar-width:none}
 html:not([data-theme="light"]) .btn-vender{background:#fff;color:#000}
 html:not([data-theme="light"]) .btn-vender:active{background:#e8e8e8}
 html:not([data-theme="light"]) .notif-dot{background:#e6f03b}
+html:not([data-theme="light"]) #story-badge{background:#e6f03b!important}
 /* bottom nav: los íconos sin seleccionar en el mismo tono que Ruedda Extra
    (que es una imagen blanca) — todos iguales, el activo en blanco pleno */
 html:not([data-theme="light"]) .bnav-item:not(.active){color:rgba(255,255,255,.62)}
@@ -3300,7 +3301,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     <!-- MARKET HUB ACTIONS — solo market -->
     <div class="mkt-hub-actions" id="mkt-hub-actions" style="display:flex">
       <button class="mkt-hub-btn" onclick="openStories()" style="position:relative">
-        <span id="story-badge" style="display:none;position:absolute;top:0px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--lime);border:1.5px solid #000"></span>
+        <span id="story-badge" style="display:none;position:absolute;top:0px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--lime)"></span>
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.5" width="13" height="17" rx="3.2"/><path d="M17 7.2l3 1.4v10.8l-3 1.4"/></svg>
         <span>historias</span>
       </button>
@@ -18375,6 +18376,8 @@ window._rueddaBootPromise = (async function _rueddaInit(){
   // concesionarios, fotógrafos, sponsors y banners siguen cargando en paralelo
   // pero no bloquean la salida.
   window._rueddaFirstScreenReady=Promise.allSettled([_pAuctions,_pMarket]);
+  // punto de historias nuevas: se consulta también al abrir (antes solo al cambiar a market)
+  window._rueddaFirstScreenReady.then(()=>{ try{ if(typeof _storyRefreshBadge==='function') _storyRefreshBadge(); }catch(e){} });
   // [fix fotos Encuentra lentas] antes renderEncuentra() solo se disparaba cuando
   // _loadMarket() terminaba y llamaba a renderTrendingHoy() — quedaba en la cola
   // detrás de la consulta más pesada del boot (hasta 300 listings). Como no lee
