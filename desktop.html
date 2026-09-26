@@ -17205,7 +17205,7 @@ async function openUserProfile(userId){
           ${curLevel.badge_url?`<img src="${curLevel.badge_url}" style="width:100%;height:100%;object-fit:cover">`:`<span style="font-size:10px;font-weight:800;color:#08441A">${curLevel.level}</span>`}
         </div>
         <span style="font-size:12px;font-weight:700;color:#08441A;text-transform:capitalize">nivel ${curLevel.level} · ${_esc(curLevel.nombre||'')}</span>
-        <span class="rd-lv-link" onclick="event.stopPropagation();openLevelsSheet(${curLevel.level},${userXp})">ver niveles</span>
+        <span class="rd-lv-link" onclick="event.stopPropagation();openLevelsSheet(${curLevel.level},${userXp})">niveles</span>
       </div>`:'';
     const xpMeterHtml=curLevel?`
       <div style="margin-top:16px;cursor:pointer" onclick="openLevelsSheet(${curLevel.level},${userXp})">
@@ -21400,8 +21400,8 @@ html.lowfx .card-loading-ring{animation-duration:1.6s}
 
 /* [niveles] menú "ver niveles" — tarjetas por etapa con color propio; entrada
    escalonada liviana (solo opacity/transform) */
-#rd-levels-sheet,#checkout-level-perk,.rd-lv-link{--rd-green:#e6f03b;--rd-green-rgb:230,240,59;--rd-green-ink:#000}
-html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-level-perk,html[data-theme="light"] .rd-lv-link{--rd-green:#0a0a0a;--rd-green-rgb:10,10,10;--rd-green-ink:#fff}
+#rd-levels-sheet,#checkout-level-perk,.rd-lv-link{font-size:11px;font-weight:600;color:var(--w55);cursor:pointer;white-space:nowrap;padding:2px 0}
+html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-level-perk,html[data-theme="light"] .rd-lv-link{font-size:11px;font-weight:600;color:var(--w55);cursor:pointer;white-space:nowrap;padding:2px 0}
 #rd-levels-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .28s ease}
 #rd-levels-sheet.on{opacity:1}
 #rd-levels-inner{width:100%;max-width:560px;max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--gc8);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w8);border-bottom:none;border-radius:28px 28px 0 0;padding:12px 20px calc(34px + env(safe-area-inset-bottom));transform:translateY(24px);transition:transform .38s cubic-bezier(.32,.72,0,1)}
@@ -21445,8 +21445,8 @@ html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-lev
 .rd-lv-lock{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;opacity:.8}
 .rd-lv-card.lock{filter:saturate(.9) brightness(.9)}
 .rd-lv-card.cur{box-shadow:0 0 0 2px #fff,0 12px 34px rgba(0,0,0,.45)}
-.rd-lv-link{font-size:12px;font-weight:600;color:var(--w55);cursor:pointer;white-space:nowrap;text-decoration:underline;text-underline-offset:3px}
-html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-level-perk,html[data-theme="light"] .rd-lv-link{--rd-green:#0a0a0a;--rd-green-rgb:10,10,10;--rd-green-ink:#fff}
+.rd-lv-link{font-size:11px;font-weight:600;color:var(--w55);cursor:pointer;white-space:nowrap;padding:2px 0}
+html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-level-perk,html[data-theme="light"] .rd-lv-link{font-size:11px;font-weight:600;color:var(--w55);cursor:pointer;white-space:nowrap;padding:2px 0}
 #rd-levels-sheet{position:fixed;inset:0;z-index:400;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:0;transition:opacity .28s ease}
 #rd-levels-sheet.on{opacity:1}
 #rd-levels-inner{width:100%;max-width:560px;max-height:88vh;max-height:88dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--gc8);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w8);border-bottom:none;border-radius:26px 26px 0 0;padding:10px 18px calc(28px + env(safe-area-inset-bottom));transform:translateY(24px);transition:transform .38s cubic-bezier(.32,.72,0,1)}
@@ -21469,5 +21469,5 @@ html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-lev
 .rd-lv-perk{font-size:12.5px;color:var(--w75);margin-top:6px;display:flex;align-items:center;gap:6px;line-height:1.35}
 .rd-lv-perk i{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:2px 7px;border-radius:100px;background:var(--w8);color:var(--w55);flex-shrink:0}
 .rd-lv-tag{font-size:9.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:3px 8px;border-radius:100px;background:var(--rd-green);color:var(--rd-green-ink,#000)}
-.rd-lv-link{font-size:12px;font-weight:600;color:var(--w55);cursor:pointer;white-space:nowrap;text-decoration:underline;text-underline-offset:3px}
+.rd-lv-link{font-size:11px;font-weight:600;color:var(--w55);cursor:pointer;white-space:nowrap;padding:2px 0}
 </style>
