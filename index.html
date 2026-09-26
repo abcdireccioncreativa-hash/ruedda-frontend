@@ -5942,7 +5942,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       </div>
     </div>
     <div class="fb-sheet-opt" onclick="_feedbackOptionPick('rate')">
-      <div class="fb-sheet-opt-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+      <div class="fb-sheet-opt-icon" style="background:linear-gradient(180deg,#1bc0fc,#1f72f1)"><svg fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.2" stroke-linecap="round" style="width:24px;height:24px;color:#fff"><path d="M10.3 4.93l1.45 2.5M13.7 10.75l4.38 7.7M13.43 4.93L8.5 13.5M6.55 17l-.85 1.45M4.3 14.93H13M16.7 14.93h2.85"/></svg></div>
       <div>
         <div class="fb-sheet-opt-title">calificar en la app store</div>
         <div class="fb-sheet-opt-sub">déjanos una reseña y ayuda a que más gente nos descubra</div>
@@ -11161,7 +11161,11 @@ function _feedbackOptionPick(type){
     const APP_ID='6812039590';
     const nativo=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
     const ios=/iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if(nativo||ios){ window.location.href='itms-apps://apps.apple.com/app/id'+APP_ID+'?action=write-review'; }
+    // en la app nativa, location.href a itms-apps://apps.apple.com coincide con "*.apple.com" de
+    // allowNavigation → Capacitor lo intenta cargar DENTRO del WebView y no pasa nada. window.open
+    // cae en createWebViewWith, que lo entrega al sistema (UIApplication.open) → abre la App Store.
+    if(nativo){ window.open('itms-apps://apps.apple.com/app/id'+APP_ID+'?action=write-review','_blank'); }
+    else if(ios){ window.location.href='itms-apps://apps.apple.com/app/id'+APP_ID+'?action=write-review'; }
     else window.open('https://apps.apple.com/app/id'+APP_ID+'?action=write-review','_blank','noopener');
     return;
   }
