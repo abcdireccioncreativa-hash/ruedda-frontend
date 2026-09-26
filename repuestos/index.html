@@ -22,6 +22,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@700;800;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;600;700&display=swap">
 <style>
 
@@ -1106,51 +1107,45 @@ body.admin-mode .rr-bot{display:none}
 #v-home{background:var(--rx-bg);color:var(--rx-tx)}
 #frame:has(#v-home.on){background:var(--rx-bg)}
 
-/* ---------- HERO ---------- */
+/* ---------- HERO (patrón UT Racing: pantalla completa, video, marca abajo) ---------- */
+#frame:has(#v-home.on) .hdr{background:transparent;border-bottom-color:transparent;transition:background .3s,border-color .3s}
+#frame:has(#v-home.on) .hdr.rx-solid{background:rgba(10,10,10,.92);border-bottom-color:#151515;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+#frame:has(#v-home.on) .hdr-name{visibility:hidden}
+#frame:has(#v-home.on) .hdr.rx-solid .hdr-name{visibility:visible}
 .rx-hero{position:relative;overflow:hidden;background:#050505;color:#fff;isolation:isolate;
-  min-height:min(68svh,600px);display:flex;flex-direction:column;justify-content:flex-end}
+  margin-top:calc(-1 * var(--hdr));
+  height:100vh;height:100svh;min-height:520px;max-height:940px;
+  display:flex;flex-direction:column;justify-content:flex-end}
 .rx-hero-v,.rx-hero-p{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
 .rx-hero-v{opacity:0;transition:opacity 1.2s ease}
 .rx-hero-v.on{opacity:1}
-.rx-hero-scrim{position:absolute;inset:0;z-index:-1;
-  background:linear-gradient(180deg,rgba(10,10,10,.35) 0%,rgba(10,10,10,.15) 35%,rgba(10,10,10,.8) 72%,#0a0a0a 100%)}
-.rx-hero-in{padding:0 20px 28px;display:flex;flex-direction:column;gap:16px}
-.rx-kicker{margin:0;font-family:var(--rx-sys);font-size:13px;font-weight:500;color:rgba(255,255,255,.62)}
-.rx-title{margin:-4px 0 4px;font-family:var(--rx-sys);font-weight:700;font-size:clamp(40px,11.5vw,50px);line-height:1;letter-spacing:-.045em}
-.rx-title span{display:block}
-.rx-title span+span{color:rgba(255,255,255,.46)}
-.rx-search{display:flex;align-items:center;height:52px;border-radius:14px;padding:0 6px 0 14px;
-  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);
-  -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
-.rx-search svg.lead{flex:0 0 auto;color:rgba(255,255,255,.55)}
-.rx-search input{flex:1;min-width:0;height:100%;border:0;background:transparent;padding:0 10px;font-family:var(--rx-sys);font-size:16px;color:#fff;outline:none}
-.rx-search input::placeholder{color:rgba(255,255,255,.5)}
-.rx-search button{flex:0 0 40px;width:40px;height:40px;border-radius:10px;background:#fff;color:#000;display:grid;place-items:center}
-.rx-search button:active{transform:scale(.95)}
-.rx-note{margin:0;font-family:var(--rx-sys);font-size:12.5px;color:rgba(255,255,255,.5);line-height:1.5}
-@media (prefers-reduced-motion:reduce){.rx-hero-v{display:none}}
+.rx-hero-scrim{position:absolute;inset:0;z-index:-1;background:
+  linear-gradient(0deg,#000 0%,rgba(0,0,0,.2) 55%,rgba(0,0,0,.35) 100%),rgba(0,0,0,.4)}
+.rx-hero-in{padding:0 24px calc(64px + env(safe-area-inset-bottom));animation:rxUp 1s cubic-bezier(.2,.7,.2,1) both .15s}
+@keyframes rxUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+.rx-eyebrow{margin:0 0 20px;font-family:var(--rx-sys);font-size:11px;font-weight:500;letter-spacing:.4em;color:rgba(255,255,255,.6)}
+.rx-mark{display:flex;align-items:center;gap:14px}
+.rx-mark .logomark{height:62px;filter:invert(1)}
+.rx-mark span{display:flex;flex-direction:column;line-height:.92}
+.rx-mark b{font-family:var(--rx-sys);font-weight:700;font-size:46px;letter-spacing:-.04em}
+.rx-mark em{font-family:var(--rx-sys);font-style:normal;font-weight:300;font-size:46px;letter-spacing:-.04em}
+@media (prefers-reduced-motion:reduce){.rx-hero-v{display:none}.rx-hero-in{animation:none}}
 
-/* ---------- sección de videos ---------- */
-.rx-sec-h{padding:44px 20px 18px;display:flex;flex-direction:column;gap:8px}
-.rx-eyebrow{margin:0;font-family:var(--rx-sys);font-size:13px;font-weight:500;color:var(--rx-mute)}
-.rx-sec-h h2{margin:0;font-family:var(--rx-sys);font-weight:700;font-size:26px;line-height:1.12;letter-spacing:-.02em;color:#fff;text-wrap:balance}
-.rx-sec-h h2 em{font-style:normal}
-.rx-sec-h p{margin:0;max-width:42ch;color:var(--rx-mute);font-size:14px;line-height:1.55}
-.rx-reels{padding-bottom:26px}
-.rx-reel-row{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 20px 4px;scroll-padding:0 20px;scrollbar-width:none}
-.rx-reel-row::-webkit-scrollbar{display:none}
-.rx-reel{position:relative;flex:0 0 64%;margin:0;aspect-ratio:9/16;border-radius:16px;overflow:hidden;background:#111;scroll-snap-align:start;isolation:isolate}
-.rx-reel video,.rx-reel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
-.rx-reel video{opacity:0;transition:opacity .8s ease}
-.rx-reel video.on{opacity:1}
-.rx-reel::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.82) 100%)}
-.rx-reel .n{position:absolute;top:14px;left:16px;font-family:var(--rx-sys);font-size:12px;font-weight:600;color:rgba(255,255,255,.7)}
-.rx-reel figcaption{position:absolute;left:16px;right:16px;bottom:16px;display:flex;flex-direction:column;gap:4px}
-.rx-reel figcaption b{font-family:var(--rx-sys);font-weight:700;font-size:17px;line-height:1.2;letter-spacing:-.01em;color:#fff}
-.rx-reel figcaption span{font-size:12.5px;line-height:1.45;color:rgba(255,255,255,.72)}
-.rx-reel-dots{display:flex;justify-content:center;gap:5px;padding-top:14px}
-.rx-reel-dots b{width:5px;height:5px;border-radius:50%;background:#333;transition:background .3s}
-.rx-reel-dots b.on{background:#fff}
+/* ---------- 3 videos de fondo (patrón "brands" de UT) ---------- */
+.rx-trio{position:relative;overflow:hidden;isolation:isolate;min-height:560px;display:flex;align-items:flex-end;margin-top:34px}
+.rx-trio-bg{position:absolute;inset:0;z-index:-2;display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:#000}
+.rx-trio-c{position:relative;overflow:hidden;background:#111}
+.rx-trio-c img,.rx-trio-c video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rx-trio-c video{opacity:0;transition:opacity .8s ease}
+.rx-trio-c video.on{opacity:1}
+.rx-trio::after{content:'';position:absolute;inset:0;z-index:-1;background:
+  linear-gradient(180deg,rgba(10,10,10,.85) 0%,rgba(0,0,0,.1) 40%,rgba(0,0,0,.25) 60%,rgba(10,10,10,.95) 100%),rgba(0,0,0,.25)}
+.rx-trio-in{padding:0 24px 44px}
+.rx-trio-in .rx-eyebrow{color:var(--rx-acc);font-weight:600;margin-bottom:14px}
+.rx-trio h2{margin:0;font-family:'Oswald',var(--rx-sys);font-weight:600;font-size:34px;line-height:1.08;letter-spacing:-.005em;text-transform:uppercase;color:#fff}
+
+/* menos texto en el inicio: los subtítulos secundarios se ocultan (siguen en el código) */
+#v-home .promo-card span,#v-home .avalta-teaser .av-bd span,#v-home .f-note,#v-home .flotaiq-banner p{display:none}
 
 /* ---------- bloques existentes: piel oscura sobria ---------- */
 #v-home .ship-banner{background:transparent;color:#bdbdba;border-bottom:1px solid var(--rx-line);font-weight:500}
@@ -1210,18 +1205,13 @@ body.admin-mode .rr-bot{display:none}
     "rxhero rxhero" "ship ship" "live live" "side hero" "trackw trackw" "filter filter" "quick linkm"
     "mec mec" "avalta avalta" "promo promo" "rxreels rxreels" "flotaiq flotaiq" "topsearch topsearch"
     "recent recent" "dots dots" "featured featured" "catteaser catteaser"}
-  #v-home > .rx-hero{grid-area:rxhero;border-radius:22px;min-height:560px}
-  .rx-hero-in{padding:0 48px 44px;max-width:720px;gap:18px}
-  .rx-title{font-size:84px;letter-spacing:-.05em}
-  .rx-search{max-width:560px;height:56px}
-  #v-home > .rx-reels{grid-area:rxreels;padding:0}
-  #v-home > .rx-reels .rx-sec-h{padding:30px 0 20px;flex-direction:row;align-items:flex-end;justify-content:space-between;gap:40px}
-  #v-home > .rx-reels .rx-sec-h > div{display:flex;flex-direction:column;gap:8px}
-  #v-home > .rx-reels .rx-sec-h h2{font-size:36px}
-  .rx-reel-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0;overflow:visible}
-  .rx-reel{flex:none;border-radius:18px}
-  .rx-reel figcaption b{font-size:20px}
-  .rx-reel-dots{display:none}
+  #v-home > .rx-hero{grid-area:rxhero;border-radius:22px;margin-top:0;height:620px;min-height:0}
+  .rx-hero-in{padding:0 56px 56px}
+  .rx-mark .logomark{height:96px}
+  .rx-mark b,.rx-mark em{font-size:72px}
+  #v-home > .rx-trio{grid-area:rxreels;border-radius:22px;min-height:620px;margin-top:0}
+  .rx-trio-in{padding:0 56px 56px}
+  .rx-trio h2{font-size:52px}
   #v-home > .spon,#v-home > .filter,#v-home > .quick,#v-home > .track-widget,#v-home > .avalta-teaser,#v-home > .promo-grid,#v-home > .flotaiq-banner,#v-home > .mecbar{margin:0}
   #v-home > .quick,#v-home > .track-widget{padding:0}
   #v-home > .link-center{background:var(--rx-s1);border:1px solid var(--rx-line);border-radius:16px;padding:18px 22px;color:#fff;text-decoration:none}
@@ -1316,14 +1306,8 @@ body.admin-mode .rr-bot{display:none}
       <video class="rx-hero-v" id="rxHeroV" muted playsinline loop preload="none" aria-hidden="true"></video>
       <div class="rx-hero-scrim"></div>
       <div class="rx-hero-in">
-        <p class="rx-kicker">ruedda repuestos</p>
-        <h1 class="rx-title"><span>Cada pieza.</span><span>En todo el país.</span></h1>
-        <form class="rx-search" id="rxSearch" role="search">
-          <svg class="lead" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input id="rxSearchInput" placeholder="número de parte, marca o modelo" maxlength="60" autocomplete="off" enterkeyhint="search" aria-label="Buscar repuestos">
-          <button type="submit" aria-label="Buscar"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
-        </form>
-        <p class="rx-note">$ o Bs a tasa BCV · sin crear cuenta · envíos nacionales</p>
+        <p class="rx-eyebrow">HUB NACIONAL DE REPUESTOS</p>
+        <div class="rx-mark" role="img" aria-label="ruedda repuestos"><i class="logomark"></i><span><b>ruedda</b><em>repuestos</em></span></div>
       </div>
     </header>
     <div class="ship-banner">
@@ -1428,37 +1412,18 @@ body.admin-mode .rr-bot{display:none}
     </div>
 
 
-    <!-- [RX] 3 videos: DEMO. Para cambiarlos, reemplaza media/v1..v3 (.mp4 + .jpg de portada)
-         o edita data-src/src aquí. Cargan solo cuando la sección entra en pantalla. -->
-    <section class="rx-reels" id="rxReels">
-      <div class="rx-sec-h">
-        <div>
-          <p class="rx-eyebrow">cómo funciona</p>
-          <h2>La pieza exacta, no la que se parece.</h2>
-        </div>
-        <p>Del número de parte a tu puerta: buscas, un mecánico confirma que es la correcta y te llega a cualquier estado del país.</p>
+    <!-- [RX] 3 videos (DEMO): fondo de 3 columnas como UT Racing. Para cambiarlos,
+         reemplaza /repuestos/media/v1..v3 (.mp4 vertical + .jpg de portada). -->
+    <section class="rx-trio" id="rxReels">
+      <div class="rx-trio-bg" aria-hidden="true">
+          <div class="rx-trio-c"><img src="/repuestos/media/v1.jpg" alt="" loading="lazy" decoding="async"><video muted playsinline loop preload="none" data-src="/repuestos/media/v1.mp4" aria-hidden="true"></video></div>
+          <div class="rx-trio-c"><img src="/repuestos/media/v2.jpg" alt="" loading="lazy" decoding="async"><video muted playsinline loop preload="none" data-src="/repuestos/media/v2.mp4" aria-hidden="true"></video></div>
+          <div class="rx-trio-c"><img src="/repuestos/media/v3.jpg" alt="" loading="lazy" decoding="async"><video muted playsinline loop preload="none" data-src="/repuestos/media/v3.mp4" aria-hidden="true"></video></div>
       </div>
-      <div class="rx-reel-row" id="rxReelRow">
-        <figure class="rx-reel">
-          <img src="/repuestos/media/v1.jpg" alt="" loading="lazy" decoding="async">
-          <video muted playsinline loop preload="none" data-src="/repuestos/media/v1.mp4" aria-hidden="true"></video>
-          <span class="n">01</span>
-          <figcaption><b>Busca por número de parte</b><span>Si no está, te la conseguimos.</span></figcaption>
-        </figure>
-        <figure class="rx-reel">
-          <img src="/repuestos/media/v2.jpg" alt="" loading="lazy" decoding="async">
-          <video muted playsinline loop preload="none" data-src="/repuestos/media/v2.mp4" aria-hidden="true"></video>
-          <span class="n">02</span>
-          <figcaption><b>Confírmalo con un mecánico</b><span>Antes de pagar, sin piezas equivocadas.</span></figcaption>
-        </figure>
-        <figure class="rx-reel">
-          <img src="/repuestos/media/v3.jpg" alt="" loading="lazy" decoding="async">
-          <video muted playsinline loop preload="none" data-src="/repuestos/media/v3.mp4" aria-hidden="true"></video>
-          <span class="n">03</span>
-          <figcaption><b>Recíbelo en todo el país</b><span>MRW, ZOOM o entrega personal.</span></figcaption>
-        </figure>
+      <div class="rx-trio-in">
+        <p class="rx-eyebrow">CÓMO FUNCIONA</p>
+        <h2>Busca.<br>Confirma.<br>Recibe.</h2>
       </div>
-      <div class="rx-reel-dots" id="rxReelDots"><b class="on"></b><b></b><b></b></div>
     </section>
     <a class="flotaiq-banner" href="https://www.flotaiq.com" target="_blank" rel="noopener">
       <span class="flotaiq-tag">FlotaIQ · del mismo ecosistema Ruedda</span>
@@ -6185,7 +6150,7 @@ $('#dSearchForm').addEventListener('submit', function(e){
     document.querySelector('.rx-hero-p').src = '/repuestos/media/hero.jpg';
   }
   // 3 videos: cada uno carga solo al acercarse a la pantalla
-  if (!noVideo) document.querySelectorAll('.rx-reel video[data-src]').forEach(function(v){
+  if (!noVideo) document.querySelectorAll('.rx-trio-c video[data-src]').forEach(function(v){
     watch(v, function(){ arm(v, v.getAttribute('data-src')); });
   });
   // indicador de la fila en móvil
@@ -6195,15 +6160,17 @@ $('#dSearchForm').addEventListener('submit', function(e){
     var i = Math.min(dots.length - 1, Math.round(row.scrollLeft / w));
     dots.forEach(function(d, k){ d.classList.toggle('on', k === i); });
   }, { passive: true });
+  var hdr = document.querySelector('#frame .hdr');
+  if (hdr) { var onS = function(){ hdr.classList.toggle('rx-solid', window.scrollY > 40); }; onS(); window.addEventListener('scroll', onS, { passive: true }); }
   document.addEventListener('visibilitychange', function(){
-    if (document.hidden) document.querySelectorAll('.rx-hero-v, .rx-reel video').forEach(function(v){ v.pause(); });
+    if (document.hidden) document.querySelectorAll('.rx-hero-v, .rx-trio-c video').forEach(function(v){ v.pause(); });
   });
   // aparición al hacer scroll para los bloques del inicio
   if ('IntersectionObserver' in window && !reduce) {
     var io = new IntersectionObserver(function(ents){
       ents.forEach(function(en){ if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
     }, { rootMargin: '0px 0px -8% 0px' });
-    document.querySelectorAll('#v-home > .filter, #v-home > .quick, #v-home > .mecbar, #v-home > .avalta-teaser, #v-home > .promo-grid, #v-home > .rx-reels, #v-home > .flotaiq-banner, #v-home > .spon').forEach(function(el){
+    document.querySelectorAll('#v-home > .filter, #v-home > .quick, #v-home > .mecbar, #v-home > .avalta-teaser, #v-home > .promo-grid, #v-home > .rx-trio, #v-home > .flotaiq-banner, #v-home > .spon').forEach(function(el){
       var r = el.getBoundingClientRect();
       if (r.top < innerHeight) return; // lo que ya se ve, queda quieto
       el.classList.add('rx-rise'); io.observe(el);
