@@ -4946,6 +4946,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     <div style="display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:20px">
       <span style="font-size:14px;font-weight:600;color:var(--muted);letter-spacing:.3px">Comunidad</span>
       <div style="display:flex;align-items:center;gap:16px">
+        <div onclick="openUserSearch()" aria-label="buscar usuarios" style="display:flex;align-items:center;cursor:pointer;margin-right:-6px">
+          <svg fill="none" stroke="var(--white)" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" style="width:16px;height:16px;opacity:.85"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </div>
         <div onclick="openTopUsuarios()" style="display:flex;align-items:center;gap:6px;cursor:pointer">
           <span style="font-size:12px;font-weight:400;color:var(--w55)">usuarios top</span>
           <svg fill="none" stroke="var(--white)" stroke-width="2" viewBox="0 0 24 24" style="width:18px;height:18px;opacity:.85"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4z"/><path d="M7 6H4a2 2 0 0 0 0 4h1.5M17 6h3a2 2 0 0 1 0 4h-1.5"/></svg>
@@ -8596,7 +8599,7 @@ function renderGlobalChatMessages(){
     const time=m.created_at?new Date(m.created_at).toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'}):'';
     const av=_globalChatUsersCache[m.user_id]?.avatar_url;
     const avatarHtml=`<div style="width:26px;height:26px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;overflow:hidden;flex-shrink:0">${av?`<img src="${av}" style="width:100%;height:100%;object-fit:cover">`:_esc(name).charAt(0).toUpperCase()}</div>`;
-    const imgHtml=m.image_url?`<img src="${_tImg(m.image_url,{width:500,quality:75})}" loading="lazy" decoding="async" style="width:100%;max-width:220px;border-radius:10px;display:block;${m.text?'margin-bottom:6px':''}">`:'';
+    const imgHtml=m.image_url?`<img src="${_tImg(m.image_url,{width:500,quality:75})}" data-full="${_esc(m.image_url)}" onclick="openPhotoViewer([this.dataset.full],0)" loading="lazy" decoding="async" style="width:100%;max-width:220px;border-radius:10px;display:block;cursor:pointer;${m.text?'margin-bottom:6px':''}">`:'';
     return `<div class="thread-bubble ${mine?'mine':'theirs'}">
       <div style="display:flex;gap:8px;align-items:flex-end;flex-direction:${mine?'row-reverse':'row'}">
         ${!mine?avatarHtml:''}
@@ -9318,6 +9321,104 @@ function goToMarcaFilter(marca){
   setTimeout(()=>{ document.getElementById('market-grid')?.scrollIntoView({behavior:'smooth',block:'start'}); },60);
 }
 
+
+// ───────────────────────────────────────────
+// [comunidad] hoja liviana de usuarios: seguidores, siguiendo y búsqueda por @usuario.
+// Un solo nodo reutilizado, consultas acotadas (limit) y búsqueda con debounce.
+// ───────────────────────────────────────────
+let _rdUsSeq=0,_rdUsTimer=null;
+function _rdUsersSheet(title,withSearch){
+  let ov=document.getElementById('rd-users-sheet');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='rd-users-sheet'; ov.className='modal-overlay'; ov.style.alignItems='flex-end';
+    ov.onclick=e=>{ if(e.target===ov) _rdUsersSheetClose(); };
+    ov.innerHTML=`<style>@keyframes rdUsIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}#rd-us-list .rd-us-row{animation:rdUsIn .32s cubic-bezier(.22,.61,.36,1) both}</style>
+      <div class="modal-sheet" style="text-align:left;padding-bottom:calc(24px + env(safe-area-inset-bottom))">
+        <div class="modal-handle"></div>
+        <div id="rd-us-title" style="font-size:16px;font-weight:800;letter-spacing:-.2px;margin-bottom:12px"></div>
+        <div id="rd-us-search" style="display:none;position:relative;margin-bottom:12px">
+          <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);width:15px;height:15px;color:var(--w45);pointer-events:none"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="rd-us-input" type="search" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="buscar @usuario" style="width:100%;box-sizing:border-box;height:44px;border-radius:22px;background:var(--w6);border:1px solid var(--w10);color:var(--white);padding:0 16px 0 38px;font-size:16px;font-family:var(--font);outline:none;-webkit-appearance:none">
+        </div>
+        <div id="rd-us-list" style="height:52vh;height:52dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain"></div>
+      </div>`;
+    document.body.appendChild(ov);
+    const inp=ov.querySelector('#rd-us-input');
+    inp.addEventListener('input',()=>{ clearTimeout(_rdUsTimer); _rdUsTimer=setTimeout(()=>_rdUsersSearch(inp.value),260); });
+  }
+  ov.querySelector('#rd-us-title').textContent=title;
+  ov.querySelector('#rd-us-search').style.display=withSearch?'block':'none';
+  ov.querySelector('#rd-us-list').innerHTML='';
+  ov.classList.add('open');
+  return ov;
+}
+function _rdUsersSheetClose(){
+  _rdUsSeq++; clearTimeout(_rdUsTimer);
+  const ov=document.getElementById('rd-users-sheet'); if(ov) ov.classList.remove('open');
+}
+function _rdUsersMsg(msg){
+  const list=document.getElementById('rd-us-list');
+  if(list) list.innerHTML=`<div class="rd-us-row" style="padding:34px 8px;text-align:center;color:var(--muted);font-size:13px">${msg}</div>`;
+}
+function _rdUsersPaint(users,emptyMsg){
+  const list=document.getElementById('rd-us-list'); if(!list) return;
+  if(!users.length){ _rdUsersMsg(emptyMsg); return; }
+  const seal='<svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg>';
+  list.innerHTML=users.map((u,i)=>{
+    const nm=u.nombre||u.username||'usuario';
+    const av=u.avatar_url?`<img src="${_tImg(u.avatar_url,{width:96,quality:70})}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">`:_esc(nm).charAt(0).toUpperCase();
+    return `<div class="rd-us-row" onclick="_rdUsersSheetClose();openUserProfile('${u.id}')" style="display:flex;align-items:center;gap:12px;padding:10px 4px;cursor:pointer;animation-delay:${Math.min(i,12)*28}ms">
+      <div style="width:42px;height:42px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;overflow:hidden;flex-shrink:0">${av}</div>
+      <div style="min-width:0;flex:1">
+        <div style="font-size:14px;font-weight:700;display:flex;align-items:center;gap:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(nm)}${u.kyc_verified?seal:''}</div>
+        ${u.username?`<div style="font-size:12px;color:var(--muted);margin-top:1px">@${_esc(u.username)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+const _RD_US_COLS='id,nombre,username,avatar_url,kyc_verified';
+async function _rdOpenFollows(userId,mode){
+  _rdUsersSheet(mode,false);
+  _rdUsersMsg('cargando…');
+  if(!_supa) return;
+  const seq=++_rdUsSeq;
+  try{
+    const mine=mode==='seguidores'?'followed_id':'follower_id', other=mode==='seguidores'?'follower_id':'followed_id';
+    const{data:rows}=await _supa.from('user_follows').select(other).eq(mine,userId).limit(300);
+    const ids=[...new Set((rows||[]).map(r=>r[other]).filter(Boolean))];
+    if(seq!==_rdUsSeq) return;
+    if(!ids.length){ _rdUsersMsg(mode==='seguidores'?'todavía no tiene seguidores':'todavía no sigue a nadie'); return; }
+    const{data:us}=await _supa.from('users').select(_RD_US_COLS).in('id',ids);
+    if(seq!==_rdUsSeq) return;
+    const byId={}; (us||[]).forEach(u=>byId[u.id]=u);
+    _rdUsersPaint(ids.map(id=>byId[id]).filter(Boolean),'sin usuarios');
+  }catch(e){ if(seq===_rdUsSeq) _rdUsersMsg('no se pudo cargar'); }
+}
+function openUserSearch(){
+  const ov=_rdUsersSheet('buscar usuarios',true);
+  const inp=ov.querySelector('#rd-us-input');
+  inp.value='';
+  _rdUsersMsg('escribe un @usuario');
+  try{ inp.focus({preventScroll:true}); }catch(e){ inp.focus(); }
+}
+async function _rdUsersSearch(raw){
+  const q=String(raw||'').trim().replace(/^@+/,'').toLowerCase();
+  const seq=++_rdUsSeq;
+  if(q.length<2){ _rdUsersMsg('escribe un @usuario'); return; }
+  if(!_supa) return;
+  try{
+    const esc=q.replace(/[%_\\]/g,m=>'\\'+m);
+    const{data}=await _supa.from('users').select(_RD_US_COLS).ilike('username','%'+esc+'%').limit(20);
+    if(seq!==_rdUsSeq) return;
+    const list=(data||[]).sort((a,b)=>{
+      const ap=(a.username||'').toLowerCase().startsWith(q)?0:1, bp=(b.username||'').toLowerCase().startsWith(q)?0:1;
+      return ap-bp||(a.username||'').length-(b.username||'').length;
+    });
+    _rdUsersPaint(list,'no encontramos a @'+_esc(q));
+  }catch(e){ if(seq===_rdUsSeq) _rdUsersMsg('no se pudo buscar'); }
+}
+
 // ───────────────────────────────────────────
 // USUARIOS MÁS POPULARES — ranking por score combinado (ver migración SQL)
 // ───────────────────────────────────────────
@@ -9370,7 +9471,7 @@ async function openMarketDetail(id, origin){
   // [fix egress] con _loadMarket topeado, un id fuera del top 300 (link
   // compartido, notificación, favorito viejo) no está en el array — se trae puntual.
   let l=MARKET_LISTINGS.find(x=>x.id===id);
-  if(!l) l=await _ensureMarketListing(id);
+  if(!l) l=await _ensureMarketListing(id,origin==='perfil');
   if(_myMktToken!==_mktDetailToken) return; // ya se abrió otra publicación mientras esperábamos
   if(!l)return;
   _loadMiniBanner(); // [V126] defensivo: cubre entradas directas (deep link) antes de que el boot lo cargue
@@ -9732,11 +9833,13 @@ function sendMktComment(){
 }
 
 // ===================== DETAIL =====================
-function openDetail(id){
-  currentAuction=AUCTIONS.find(a=>a.id==id||String(a.id)===String(id))||AUCTIONS_CHOCADOS.find(a=>a.id==id||String(a.id)===String(id));
+function openDetail(id,origin){
+  window._rdAucOrigin=origin||null;
+  currentAuction=AUCTIONS.find(a=>a.id==id||String(a.id)===String(id))||AUCTIONS_CHOCADOS.find(a=>a.id==id||String(a.id)===String(id))||_rdAucExtra[String(id)];
   // [carga por intención] si es un chocado y todavía no llegó esa lista, esperarla y reintentar
-  if(!currentAuction&&typeof _rdEnsureSubastasExtra==='function'&&!_rdDeferred.subReady){ _rdEnsureSubastasExtra().then(()=>{ if(AUCTIONS_CHOCADOS.find(a=>String(a.id)===String(id))) openDetail(id); }); return; }
-  if(!currentAuction)return;
+  if(!currentAuction&&typeof _rdEnsureSubastasExtra==='function'&&!_rdDeferred.subReady){ _rdEnsureSubastasExtra().then(()=>{ if(AUCTIONS_CHOCADOS.find(a=>String(a.id)===String(id))) openDetail(id,origin); else _rdFetchAuction(id).then(a=>{ if(a) openDetail(id,origin); }); }); return; }
+  // subasta que ya no está en el feed (terminada, vendida): se trae puntual, sin tocar el feed
+  if(!currentAuction){ _rdFetchAuction(id).then(a=>{ if(a) openDetail(id,origin); }); return; }
   _loadMiniBanner(); // [V126] defensivo: cubre entradas directas (deep link) antes de que el boot lo cargue
   // [V87] vista real del comprador + chip (tras reasignar currentAuction al correcto)
   setTimeout(()=>{const a=currentAuction;const tm=document.getElementById('detail-timer');if(tm&&a){_registerRealView('auctions',a);let c=document.getElementById('detail-views-chip');if(!c){tm.insertAdjacentHTML('afterend','<span id="detail-views-chip" style="display:flex;justify-content:flex-end;margin-top:7px"></span>');c=document.getElementById('detail-views-chip');}c.innerHTML=_viewsChip(a.viewCount);const sv=document.getElementById('detail-stats-vistas');if(sv)sv.textContent=(((a.viewCount||0))*VIEW_DISPLAY_FACTOR).toLocaleString();}},80);
@@ -17787,11 +17890,46 @@ async function _checkWonAuctions(){
   }catch(e){console.warn('[ruedda auction winner check]',e?.message||e);}
 }
 
+// [perfil] mapeo de fila de subasta, compartido por _loadAuctions y _rdFetchAuction
+const _RD_AUC_COLS='id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id,es_chocado,tipo_dano,estado_chocado,es_destacado,es_programada,fecha_inicio_programada,auditado_ruedda';
+function _rdMapAuctionRow(a,photos,sellerName){
+      const sortedPhotos=(photos||[]).sort((x,y)=>x.orden-y.orden);
+      // [V83] specs completas: solo claves con valor real — adiós "undefined" en pills
+      const _cl={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'}[a.clasificacion]||a.clasificacion||'';
+      const _specsRaw={'transmisión':a.transmision,'combustible':a.combustible,'motor':a.motor,'tracción':a.traccion,'color':a.color,'categoría':a.tipo_vehiculo,'dueños':a.duenos,'estado físico':a.estado_fisico,'condición':a.condicion,'clasificación':_cl};
+      const specs={};Object.entries(_specsRaw).forEach(([k,v])=>{if(v!=null&&String(v).trim()!=='')specs[k]=v;});
+      // [subastas programadas] mismo patrón cliente-side que 'ended' (activa->finalizada):
+      // si es_programada=true y la fecha aún no llega, la subasta está "programada"
+      // (bloqueada), aunque en la DB su estado ya diga 'activa' (la aprobación de
+      // SuperAdmin no espera la fecha — solo el comportamiento visual/de acceso sí).
+      const _fechaProg=a.fecha_inicio_programada?new Date(a.fecha_inicio_programada).getTime():null;
+      const _esProgramadaAun=!!a.es_programada&&!!_fechaProg&&_fechaProg>Date.now();
+      // "recién publicado": se activó hace menos de 24h (mismo criterio de gracia
+      // que ya usamos para 'vendido' en market)
+      const _recienActivada=!!a.es_programada&&!!_fechaProg&&!_esProgramadaAun&&(Date.now()-_fechaProg)<24*3600*1000;
+      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',clasificacion:a.clasificacion||'',tipoVehiculo:a.tipo_vehiculo||'',viewCount:a.view_count||0,chocado:!!a.es_chocado,destacado:!!a.es_destacado,programada:_esProgramadaAun,fechaInicioProgramada:_fechaProg,recienActivada:_recienActivada,condicion:a.condicion||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerName||'Vendedor Ruedda',bids:[],comments:[],specs,auditadoRuedda:!!a.auditado_ruedda,pme_usd:a.pme_usd??null,pme_delta:a.pme_delta??null,pme_classification:a.pme_classification||null,pme_confianza:a.pme_confianza||null,pme_basado_en:a.pme_basado_en||null};
+}
+// subastas abiertas por id que no están en el feed (p. ej. vendidas, desde un perfil)
+const _rdAucExtra={};
+async function _rdFetchAuction(id){
+  if(!_supa||!id) return null;
+  if(_rdAucExtra[String(id)]) return _rdAucExtra[String(id)];
+  try{
+    const{data:a}=await _supa.from('auctions').select(_RD_AUC_COLS).eq('id',id).maybeSingle();
+    if(!a) return null;
+    const[{data:ph},{data:us}]=await Promise.all([
+      _supa.from('auction_photos').select('auction_id,url,orden').eq('auction_id',id),
+      a.user_id?_supa.from('users').select('nombre').eq('id',a.user_id).maybeSingle():Promise.resolve({data:null})
+    ]);
+    return (_rdAucExtra[String(id)]=_rdMapAuctionRow(a,ph,us?.nombre));
+  }catch(e){ console.warn('[ruedda] _rdFetchAuction',e?.message||e); return null; }
+}
+
 async function _loadAuctions(){
   if(!_supa) return;
   try{
     const _corte48h=new Date(Date.now()-48*3600*1000).toISOString();
-    const _aucCols='id,titulo,marca,modelo,year,km,current_bid,bid_count,end_time,sin_reserva,precio_reserva,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,condicion,ciudad,descripcion,view_count,user_id,es_chocado,tipo_dano,estado_chocado,es_destacado,es_programada,fecha_inicio_programada,auditado_ruedda';
+    const _aucCols=_RD_AUC_COLS;
     let{data,error:ae}=await _supa.from('auctions').select(_aucCols+',pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en').eq('tipo','subasta').eq('estado','activa').or('es_chocado.is.null,es_chocado.eq.false').gte('end_time',_corte48h).order('end_time',{ascending:true});
     // [defensivo] mismo patrón que _loadMarket: si pme_* aún no existe en Supabase
     // (migración de Precio Justo sin correr), reintenta sin esas columnas — no
@@ -17816,23 +17954,7 @@ async function _loadAuctions(){
     });
     const sellerMap={};
     (usersRes.data||[]).forEach(u=>{ sellerMap[u.id]=u.nombre||'Vendedor'; });
-    const mapped=data.map(a=>{
-      const sortedPhotos=(photosMap[a.id]||[]).sort((x,y)=>x.orden-y.orden);
-      // [V83] specs completas: solo claves con valor real — adiós "undefined" en pills
-      const _cl={comercial:'comercial',deportivo:'deportivo',clasico:'clásico',nicho:'de nicho',competencia:'de competencia'}[a.clasificacion]||a.clasificacion||'';
-      const _specsRaw={'transmisión':a.transmision,'combustible':a.combustible,'motor':a.motor,'tracción':a.traccion,'color':a.color,'categoría':a.tipo_vehiculo,'dueños':a.duenos,'estado físico':a.estado_fisico,'condición':a.condicion,'clasificación':_cl};
-      const specs={};Object.entries(_specsRaw).forEach(([k,v])=>{if(v!=null&&String(v).trim()!=='')specs[k]=v;});
-      // [subastas programadas] mismo patrón cliente-side que 'ended' (activa->finalizada):
-      // si es_programada=true y la fecha aún no llega, la subasta está "programada"
-      // (bloqueada), aunque en la DB su estado ya diga 'activa' (la aprobación de
-      // SuperAdmin no espera la fecha — solo el comportamiento visual/de acceso sí).
-      const _fechaProg=a.fecha_inicio_programada?new Date(a.fecha_inicio_programada).getTime():null;
-      const _esProgramadaAun=!!a.es_programada&&!!_fechaProg&&_fechaProg>Date.now();
-      // "recién publicado": se activó hace menos de 24h (mismo criterio de gracia
-      // que ya usamos para 'vendido' en market)
-      const _recienActivada=!!a.es_programada&&!!_fechaProg&&!_esProgramadaAun&&(Date.now()-_fechaProg)<24*3600*1000;
-      return {id:a.id,ownerId:a.user_id,title:`${a.year} ${a.marca} ${a.modelo}`,location:a.ciudad,km:a.km,currentBid:a.current_bid||0,bidCount:a.bid_count||0,endTime:new Date(a.end_time).getTime(),sinReserva:a.sin_reserva,precioReserva:Number(a.precio_reserva||0),owners:a.duenos||'',clasificacion:a.clasificacion||'',tipoVehiculo:a.tipo_vehiculo||'',viewCount:a.view_count||0,chocado:!!a.es_chocado,destacado:!!a.es_destacado,programada:_esProgramadaAun,fechaInicioProgramada:_fechaProg,recienActivada:_recienActivada,condicion:a.condicion||'',transmission:a.transmision,fuel:a.combustible,year:a.year,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),type:'subasta',desc:a.descripcion||'',seller:sellerMap[a.user_id]||'Vendedor Ruedda',bids:[],comments:[],specs,auditadoRuedda:!!a.auditado_ruedda,pme_usd:a.pme_usd??null,pme_delta:a.pme_delta??null,pme_classification:a.pme_classification||null,pme_confianza:a.pme_confianza||null,pme_basado_en:a.pme_basado_en||null};
-    });
+    const mapped=data.map(a=>_rdMapAuctionRow(a,photosMap[a.id],sellerMap[a.user_id]));
     AUCTIONS.splice(0,AUCTIONS.length,...mapped);
     if(typeof renderCards==='function') renderCards();
     // [FIX quirúrgico #2] _loadMarket() sí dispara renderTrendingHoy() cuando termina
@@ -17886,26 +18008,28 @@ async function _loadMarket(){
 // notificación, favorito) puede no estar en MARKET_LISTINGS. Antes de asumir que
 // no existe, esta función lo trae puntual por id y lo agrega al array — mismo
 // mapeo de campos que _loadMarket, una sola fila.
-async function _ensureMarketListing(id){
+async function _ensureMarketListing(id,allowSold){
   if(!id) return null;
   const existing=MARKET_LISTINGS.find(x=>x.id===id);
   if(existing) return existing;
   if(!_supa) return null;
   try{
     const _mktCols='id,user_id,titulo,marca,modelo,year,km,precio_usd,precio_anterior,view_count,transmision,combustible,motor,traccion,color,tipo_vehiculo,clasificacion,duenos,estado_fisico,ciudad,descripcion,condicion,concesionario_id,whatsapp,listing_photos(url,orden),es_destacado,vendido,vendido_at,auditado_ruedda';
-    let{data:l,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle,pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en').eq('estado','activa').eq('id',id).maybeSingle();
+    let{data:l,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle,pme_usd,pme_delta,pme_classification,pme_confianza,pme_basado_en').or(allowSold?'estado.eq.activa,vendido.eq.true':'estado.eq.activa').eq('id',id).maybeSingle();
     if(error&&/pme_/i.test(String(error?.message||''))){
-      ({data:l,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').eq('estado','activa').eq('id',id).maybeSingle());
+      ({data:l,error}=await _supa.from('listings').select(_mktCols+',financiamiento_disponible,financiamiento_detalle').or(allowSold?'estado.eq.activa,vendido.eq.true':'estado.eq.activa').eq('id',id).maybeSingle());
     }
     if(error&&/financiamiento/i.test(String(error?.message||''))){
-      ({data:l,error}=await _supa.from('listings').select(_mktCols).eq('estado','activa').eq('id',id).maybeSingle());
+      ({data:l,error}=await _supa.from('listings').select(_mktCols).or(allowSold?'estado.eq.activa,vendido.eq.true':'estado.eq.activa').eq('id',id).maybeSingle());
     }
     if(error||!l) return null;
     const _cutoffVendido=Date.now()-24*3600*1000;
-    if(l.vendido&&!(l.vendido_at&&new Date(l.vendido_at).getTime()>_cutoffVendido)) return null;
+    const _soldOld=!!l.vendido&&!(l.vendido_at&&new Date(l.vendido_at).getTime()>_cutoffVendido);
+    if(_soldOld&&!allowSold) return null;
     const sortedPhotos=(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden);
     const mapped={id:l.id,user_id:l.user_id,title:`${l.year} ${l.marca} ${l.modelo}`,marca:l.marca||'',modelo:l.modelo||'',location:l.ciudad,km:l.km,price:l.precio_usd,year:l.year,category:l.condicion||'sedan',condicion:l.condicion||'usado',type:'market',transmission:l.transmision,fuel:l.combustible,motor:l.motor||'',traccion:l.traccion||'',color:l.color||'',tipoVehiculo:l.tipo_vehiculo||'',clasificacion:l.clasificacion||'',estadoFisico:l.estado_fisico||'',owners:l.duenos||'',viewCount:l.view_count||0,precioAnterior:Number(l.precio_anterior||0),destacado:!!l.es_destacado,vendido:!!l.vendido,photos:sortedPhotos.length||0,photoUrls:sortedPhotos.map(p=>p.url),desc:l.descripcion||'',phone:l.whatsapp||'',dealerId:l.concesionario_id||null,seller:null,sellerType:null,auditadoRuedda:!!l.auditado_ruedda,financiamiento:!!l.financiamiento_disponible,financiamientoDetalle:l.financiamiento_detalle||'',pme_usd:l.pme_usd??null,pme_delta:l.pme_delta??null,pme_classification:l.pme_classification||null,pme_confianza:l.pme_confianza||null,pme_basado_en:l.pme_basado_en||null};
-    if(!MARKET_LISTINGS.find(x=>x.id===mapped.id)) MARKET_LISTINGS.push(mapped);
+    // un vendido viejo abierto desde un perfil NO entra al feed del market
+    if(!_soldOld&&!MARKET_LISTINGS.find(x=>x.id===mapped.id)) MARKET_LISTINGS.push(mapped);
     return mapped;
   }catch(e){console.error('[ruedda] _ensureMarketListing catch:',String(e?.message||e));return null;}
 }
@@ -19064,8 +19188,8 @@ async function openUserProfile(userId){
       </div>
       ${xpMeterHtml}
       <div style="display:flex;gap:22px;margin-top:18px">
-        <div><span style="font-weight:800;font-size:15px">${followersCount||0}</span> <span style="color:var(--muted);font-size:13px">seguidores</span></div>
-        <div><span style="font-weight:800;font-size:15px">${followingCount||0}</span> <span style="color:var(--muted);font-size:13px">siguiendo</span></div>
+        <div onclick="_rdOpenFollows('${userId}','seguidores')" style="cursor:pointer"><span style="font-weight:800;font-size:15px">${followersCount||0}</span> <span style="color:var(--muted);font-size:13px">seguidores</span></div>
+        <div onclick="_rdOpenFollows('${userId}','siguiendo')" style="cursor:pointer"><span style="font-weight:800;font-size:15px">${followingCount||0}</span> <span style="color:var(--muted);font-size:13px">siguiendo</span></div>
         ${ratings?.length?`<div><span style="font-weight:800;font-size:15px;color:var(--rd-green)">★ ${avgScore.toFixed(1)}</span> <span style="color:var(--muted);font-size:13px">(${ratings.length})</span></div>`:''}
       </div>
       ${!isMe?`
@@ -19097,7 +19221,7 @@ async function openUserProfile(userId){
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             ${pubs.map(p=>{
               const tag=p._tipo==='subasta'?'subasta':'market';
-              return `<div onclick="openDetail('${p.id}')" style="aspect-ratio:1;border-radius:14px;background:${p._photo?`url('${p._photo}') center/cover`:'var(--card)'};border:1px solid var(--border);cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:8px;position:relative;overflow:hidden">
+              return `<div onclick="${p._tipo==='subasta'?`openDetail('${p.id}','perfil')`:`openMarketDetail('${p.id}','perfil')`}" style="aspect-ratio:1;border-radius:14px;background:${p._photo?`url('${p._photo}') center/cover`:'var(--card)'};border:1px solid var(--border);cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:8px;position:relative;overflow:hidden">
                 ${p._photo?'<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,transparent 30%,transparent 55%,rgba(0,0,0,.7) 100%)"></div>':''}
                 <span style="position:relative;align-self:flex-start;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;color:var(--lime-ink);background:var(--lime);padding:2px 7px;border-radius:100px;z-index:1">${tag}</span>
                 <span style="position:relative;font-size:11px;font-weight:700;color:var(--white);z-index:1">${p.year||''} ${_esc(p.marca||'')} ${_esc(p.modelo||'')}</span>
@@ -19129,7 +19253,7 @@ async function openUserProfile(userId){
         ${_soldAll.length?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
           ${_soldAll.map(a=>{
             const photo=(a._photos||[]).sort((x,y)=>x.orden-y.orden)[0]?.url;
-            return `<div onclick="${a._kind==='listing'?`openMarketDetail('${a.id}')`:`openDetail('${a.id}')`}" style="aspect-ratio:1;border-radius:14px;background:${photo?`url('${photo}') center/cover`:'var(--card)'};border:1px solid var(--border);cursor:pointer;display:flex;align-items:flex-end;padding:8px;position:relative;overflow:hidden">
+            return `<div onclick="${a._kind==='listing'?`openMarketDetail('${a.id}','perfil')`:`openDetail('${a.id}','perfil')`}" style="aspect-ratio:1;border-radius:14px;background:${photo?`url('${photo}') center/cover`:'var(--card)'};border:1px solid var(--border);cursor:pointer;display:flex;align-items:flex-end;padding:8px;position:relative;overflow:hidden">
               ${photo?'<div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7))"></div>':''}
               <span style="position:relative;font-size:11px;font-weight:700;color:${photo?'#fff':'var(--white)'};z-index:1">${a.year||''} ${_esc(a.marca||'')} ${_esc(a.modelo||'')}</span>
             </div>`;
@@ -22829,9 +22953,10 @@ const _RD_GAVEL_ICON='<img src="'+RD_IMG.gavel+'" alt="" style="width:48px;heigh
 // ── punto único de salida por vista — todo lo que saca de la publicación pasa por acá ──
 function _rdExitMarketDetail(afterNav){
   if(typeof _stopViewerPresence==='function') _stopViewerPresence();
-  const label=(typeof mktDetailOrigin!=='undefined'&&mktDetailOrigin==='vitrina')?'volviendo a concesionarios':'volviendo a market';
+  const label=(typeof mktDetailOrigin!=='undefined'&&mktDetailOrigin==='vitrina')?'volviendo a concesionarios':(mktDetailOrigin==='perfil'?'volviendo al perfil':'volviendo a market');
   _rdSwipeExitSplash(label,'',()=>{
-    if(mktDetailOrigin==='vitrina') openVitrina(currentMarketListing&&currentMarketListing.dealerId?currentMarketListing.dealerId:(currentDealer&&currentDealer.id));
+    if(mktDetailOrigin==='perfil') showView('perfil-publico');
+    else if(mktDetailOrigin==='vitrina') openVitrina(currentMarketListing&&currentMarketListing.dealerId?currentMarketListing.dealerId:(currentDealer&&currentDealer.id));
     else if(mktDetailOrigin==='listado'){ showView('home'); selectSection('market'); openMktListado(); }
     else { showView('home'); selectSection('market'); }
     if(typeof afterNav==='function') afterNav();
@@ -22839,8 +22964,9 @@ function _rdExitMarketDetail(afterNav){
 }
 function _rdExitAuctionDetail(afterNav){
   if(typeof _stopViewerPresence==='function') _stopViewerPresence();
-  _rdSwipeExitSplash('volviendo a subastas',_RD_GAVEL_ICON,()=>{
-    showView('home');
+  const _fromPerfil=window._rdAucOrigin==='perfil';
+  _rdSwipeExitSplash(_fromPerfil?'volviendo al perfil':'volviendo a subastas',_fromPerfil?'':_RD_GAVEL_ICON,()=>{
+    if(_fromPerfil) showView('perfil-publico'); else showView('home');
     if(typeof afterNav==='function') afterNav();
   });
 }
