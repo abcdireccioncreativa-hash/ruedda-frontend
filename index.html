@@ -4529,7 +4529,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <label class="form-label">Estado.</label>
       <!-- SLIDER NUEVO / USADO -->
       <div style="display:flex;background:var(--w5);border:1px solid var(--w8);border-radius:14px;overflow:hidden;margin-bottom:14px">
-        <button type="button" id="cond-btn-usado" onclick="setListingCond('usado')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;background:var(--lime);color:var(--lime-ink);border-radius:13px 0 0 13px">usado</button>
+        <button type="button" id="cond-btn-usado" class="rd-cond-on" onclick="setListingCond('usado')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;background:var(--lime);color:var(--lime-ink);border-radius:13px 0 0 13px">usado</button>
         <button type="button" id="cond-btn-nuevo" onclick="setListingCond('nuevo')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;background:none;color:var(--w45);border-radius:0 13px 13px 0">nuevo</button>
       </div>
       <select class="form-select" id="estado-fisico-select">
@@ -12688,8 +12688,9 @@ function setListingCond(val){
   window._listingCondNuevo=(val==='nuevo');
   const btnU=document.getElementById('cond-btn-usado');
   const btnN=document.getElementById('cond-btn-nuevo');
-  if(btnU){btnU.style.background=val==='usado'?'var(--lime)':'none';btnU.style.color=val==='usado'?'#000':'var(--w45)';}
-  if(btnN){btnN.style.background=val==='nuevo'?'var(--lime)':'none';btnN.style.color=val==='nuevo'?'#000':'var(--w45)';}
+  if(btnU) btnU.classList.toggle('rd-cond-on',val==='usado');
+  if(btnN) btnN.classList.toggle('rd-cond-on',val==='nuevo');
+  [btnU,btnN].forEach(b=>{ if(b){ b.style.background=''; b.style.color=''; } });
 }
 function openVenderForm(){
   const cfg={
@@ -13761,8 +13762,8 @@ async function openEditListingModal(id){
         <div class="form-group">
           <label class="form-label">Estado.</label>
           <div style="display:flex;background:var(--w5);border:1px solid var(--w8);border-radius:14px;overflow:hidden">
-            <button type="button" id="edit-cond-usado" onclick="_setEditCond('usado')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;border-radius:13px 0 0 13px;background:${l.condicion==='nuevo'?'none':'var(--lime)'};color:${l.condicion==='nuevo'?'var(--w45)':'#000'}">usado</button>
-            <button type="button" id="edit-cond-nuevo" onclick="_setEditCond('nuevo')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;border-radius:0 13px 13px 0;background:${l.condicion==='nuevo'?'var(--lime)':'none'};color:${l.condicion==='nuevo'?'#000':'var(--w45)'}">nuevo</button>
+            <button type="button" id="edit-cond-usado" class="${l.condicion==='nuevo'?'':'rd-cond-on'}" onclick="_setEditCond('usado')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;border-radius:13px 0 0 13px;background:${l.condicion==='nuevo'?'none':'var(--lime)'};color:${l.condicion==='nuevo'?'var(--w45)':'#000'}">usado</button>
+            <button type="button" id="edit-cond-nuevo" class="${l.condicion==='nuevo'?'rd-cond-on':''}" onclick="_setEditCond('nuevo')" style="flex:1;padding:11px;font-family:var(--font);font-size:14px;font-weight:600;border:none;cursor:pointer;transition:background .2s,color .2s;border-radius:0 13px 13px 0;background:${l.condicion==='nuevo'?'var(--lime)':'none'};color:${l.condicion==='nuevo'?'#000':'var(--w45)'}">nuevo</button>
           </div>
         </div>
         <div class="form-group"><label class="form-label">Descripción.</label><textarea class="form-textarea" id="edit-desc" rows="4" placeholder="describe tu vehículo...">${(l.descripcion||'')}</textarea></div>
@@ -13853,8 +13854,9 @@ function _setEditCond(val){
   window._editListingCond=val;
   const btnU=document.getElementById('edit-cond-usado');
   const btnN=document.getElementById('edit-cond-nuevo');
-  if(btnU){btnU.style.background=val==='usado'?'var(--lime)':'none';btnU.style.color=val==='usado'?'#000':'var(--w45)';}
-  if(btnN){btnN.style.background=val==='nuevo'?'var(--lime)':'none';btnN.style.color=val==='nuevo'?'#000':'var(--w45)';}
+  if(btnU) btnU.classList.toggle('rd-cond-on',val==='usado');
+  if(btnN) btnN.classList.toggle('rd-cond-on',val==='nuevo');
+  [btnU,btnN].forEach(b=>{ if(b){ b.style.background=''; b.style.color=''; } });
 }
 async function _deleteEditPhoto(photoId, listingId, el){
   if(!_supa) return;
@@ -23227,6 +23229,15 @@ html[data-theme="light"] .rd-map-flag{filter:invert(1) drop-shadow(0 1px 2px rgb
 .rd-city-in{animation:rdCityIn .28s cubic-bezier(.22,.61,.36,1) both}
 @keyframes rdCityIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.rd-city-in{animation:none}#rd-city-inner{transition:none}}
+
+/* nuevo/usado en publicar y editar: activo blanco con relieve liquid glass, inactivo tenue */
+#cond-btn-usado,#cond-btn-nuevo,#edit-cond-usado,#edit-cond-nuevo{background:none!important;color:var(--w50)!important;border-radius:12px!important;transition:background .25s ease,color .25s ease,box-shadow .25s ease}
+#cond-btn-usado.rd-cond-on,#cond-btn-nuevo.rd-cond-on,#edit-cond-usado.rd-cond-on,#edit-cond-nuevo.rd-cond-on{
+  background:linear-gradient(180deg,#fff 0%,#f1f1ee 100%)!important;color:#0a0a0a!important;
+  box-shadow:inset 0 1px 0 #fff,inset 0 -2px 4px rgba(0,0,0,.1),0 0 0 1px rgba(255,255,255,.35),0 6px 16px rgba(0,0,0,.35)}
+html[data-theme="light"] #cond-btn-usado.rd-cond-on,html[data-theme="light"] #cond-btn-nuevo.rd-cond-on,html[data-theme="light"] #edit-cond-usado.rd-cond-on,html[data-theme="light"] #edit-cond-nuevo.rd-cond-on{box-shadow:inset 0 1px 0 #fff,inset 0 -2px 4px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.14)}
+/* switches encendidos (financiamiento, push…): amarillo Ruedda en oscuro */
+html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{background:#e6f03b}
 </style>
 <script>
 (function(){
