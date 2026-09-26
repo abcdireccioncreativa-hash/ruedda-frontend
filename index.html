@@ -590,6 +590,10 @@ html:not([data-theme="light"]) .btn-vender:active{background:#e8e8e8}
 /* MARKET GRID */
 .market-grid{display:flex;flex-direction:column;gap:12px;padding:10px 14px 100px;transition:opacity .2s cubic-bezier(.4,0,.2,1)}
 .market-grid.mode-switching{opacity:0}
+::view-transition-group(*){animation-duration:.42s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
+::view-transition-old(*),::view-transition-new(*){animation-duration:.3s;height:100%;object-fit:cover}
+/* volver a inicio liviano: las entradas en cascada solo corren la primera vez */
+#view-home.rd-warm .rdv,#view-home.rd-warm .market-card,#view-home.rd-warm .auction-card,#view-home.rd-warm .trending-cell,#view-home.rd-warm .dealer-card{animation:none!important}
 
 .market-card{background:var(--card);border-radius:20px;overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:transform .18s,border-color .2s;animation:fadeUp .3s ease both;display:flex;flex-direction:column;text-align:left}
 .market-card:active{transform:scale(.97)}
@@ -1259,11 +1263,11 @@ html.rd-safari-tab .bottom-nav{box-shadow:0 5px 18px rgba(0,0,0,.4),inset 0 1px 
 @keyframes splashCheck{from{opacity:0}to{opacity:1}}
 .save-spinner{width:20px;height:20px;border:2px solid rgba(0,0,0,0.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
 /* MARKET CONDITION TOGGLE */
-.mkt-cond-toggle{display:none;position:relative;background:var(--surface-mid);border:1px solid var(--w12);border-radius:100px;padding:3px;width:148px;flex-shrink:0}
-.mkt-cond-track{display:grid;grid-template-columns:1fr 1fr;position:relative;z-index:1}
-.mkt-cond-tab{font-size:12px;font-weight:700;padding:7px 10px;text-align:center;border-radius:100px;cursor:pointer;transition:color .25s;color:var(--w35);letter-spacing:-.1px;position:relative;z-index:2;user-select:none}
+.mkt-cond-toggle{display:none;position:relative;background:var(--surface-mid);border:1px solid var(--w12);border-radius:100px;padding:3px;flex:1;min-width:0}
+.mkt-cond-track{display:grid;grid-template-columns:1fr 1fr 1fr;position:relative;z-index:1;width:100%}
+.mkt-cond-tab{font-size:12.5px;font-weight:700;padding:8px 6px;text-align:center;border-radius:100px;cursor:pointer;transition:color .25s;color:var(--w35);letter-spacing:-.1px;position:relative;z-index:2;user-select:none}
 .mkt-cond-tab.active{color:#000}
-.mkt-cond-thumb{position:absolute;top:0;left:0;width:50%;height:100%;background:#fff;border-radius:100px;transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:1}
+.mkt-cond-thumb{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / 3);background:#fff;border-radius:100px;transition:transform .34s cubic-bezier(.32,.72,0,1);z-index:1;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .mkt-cond-toggle.show{display:flex}
 /* CUENTA NEO-FINTECH */
 .cnt-menu-item{display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer;transition:background .15s;border-bottom:1px solid var(--w5);position:relative}
@@ -2039,7 +2043,7 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
   position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;
   padding:max(16px,calc(env(safe-area-inset-top) + 12px)) 22px 0;
 }
-#rd-intro-logo{height:20px;width:auto;display:block;opacity:.94}
+#rd-intro-logo{height:24px;width:auto;display:block;opacity:.94}
 #rd-intro-skip{
   /* [fix] antes usaba --gc9 (var por tema) — en modo claro es blanco sólido,
      y con texto blanco fijo quedaba invisible. El fondo de la intro es
@@ -2172,7 +2176,7 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
   background:var(--w9);
 }
 #rd-intro-cta button{
-  width:100%;height:52px;border-radius:18px;font-family:inherit;
+  width:100%;height:52px;border-radius:999px;font-family:inherit;
   font-size:15px;font-weight:700;letter-spacing:-.1px;cursor:pointer;
   transition:transform .16s cubic-bezier(.32,.72,0,1),opacity .16s ease;
 }
@@ -3420,8 +3424,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
           <div class="mkt-cond-toggle show" id="mkt-cond-toggle" role="switch" aria-label="filtrar por condición">
             <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
             <div class="mkt-cond-track">
-              <div class="mkt-cond-tab active" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
-              <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')" style="padding-left:20px">nuevos</div>
+              <div class="mkt-cond-tab active" id="mkt-tab-todos" onclick="setMktCond('todos')">todos</div>
+              <div class="mkt-cond-tab" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
+              <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')">nuevos</div>
             </div>
           </div>
           <div class="mkt-view-toggle" role="group" aria-label="vista de resultados">
@@ -3431,11 +3436,6 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
             <div class="mkt-view-opt" id="mkt-view-list" onclick="setMktViewMode('lista')" aria-label="vista en lista">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </div>
-          </div>
-          <div class="mkt-marcas-chip" onclick="showView('marcas')">
-            <div class="mmc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18M3 12h18"/></svg></div>
-            <span>marcas</span>
-            <svg class="mmc-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m9 18 6-6-6-6"/></svg>
           </div>
         </div>
 
@@ -6463,6 +6463,7 @@ function showView(name,param){
   // (gesto interrumpido a medio camino), lo limpiamos antes de cualquier transición.
   const _vhReset=document.getElementById('view-home');
   if(_vhReset&&_vhReset.style.transform){_vhReset.style.transition='none';_vhReset.style.transform='';}
+  if(name==='home'&&currentView!=='home'){ const _vw=document.getElementById('view-home'); if(_vw) _vw.classList.add('rd-warm'); }
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   currentView=name;
@@ -7062,8 +7063,8 @@ function switchNotifTab(tab){
   const isNotifs=tab==='notifs';
   document.getElementById('notif-tab-notifs').style.display=isNotifs?'block':'none';
   document.getElementById('notif-tab-mensajes').style.display=isNotifs?'none':'flex';
-  document.getElementById('notif-tab-title').style.color=isNotifs?'var(--lime)':'var(--white)';
-  document.getElementById('mensajes-tab-btn').style.color=isNotifs?'var(--white)':'var(--lime)';
+  document.getElementById('notif-tab-title').style.color=isNotifs?'var(--white)':'var(--muted)';
+  document.getElementById('mensajes-tab-btn').style.color=isNotifs?'var(--muted)':'var(--white)';
   // animate dots
   const dotN=document.getElementById('dot-notifs');
   const dotM=document.getElementById('dot-mensajes');
@@ -7525,22 +7526,14 @@ async function toggleWatchlist(id,btn){
   }
 }
 // ── MARKET CONDITION FILTER ──
-let mktCond='usados';
+let mktCond='todos';
 function setMktCond(cond){
   if(mktCond===cond) return;
   mktCond=cond;
+  const order=['todos','usados','nuevos'], i=Math.max(0,order.indexOf(cond));
   const thumb=document.getElementById('mkt-cond-thumb');
-  const tabU=document.getElementById('mkt-tab-usados');
-  const tabN=document.getElementById('mkt-tab-nuevos');
-  if(cond==='nuevos'){
-    if(thumb) thumb.style.transform='translateX(100%)';
-    if(tabU){tabU.classList.remove('active');}
-    if(tabN){tabN.classList.add('active');}
-  } else {
-    if(thumb) thumb.style.transform='translateX(0)';
-    if(tabU){tabU.classList.add('active');}
-    if(tabN){tabN.classList.remove('active');}
-  }
+  if(thumb) thumb.style.transform='translateX('+(i*100)+'%)';
+  order.forEach(k=>document.getElementById('mkt-tab-'+k)?.classList.toggle('active',k===cond));
   renderMarket();
 }
 // ── MARKET VIEW MODE (grid/lista) ── [RC] toggle puramente visual: mismo template
@@ -7555,6 +7548,19 @@ function setMktViewMode(mode){
   document.getElementById('mkt-view-grid')?.classList.toggle('active',mode==='grid');
   document.getElementById('mkt-view-list')?.classList.toggle('active',mode==='lista');
   if(!grid) return;
+  // [smooth v3] donde el navegador lo soporta (Safari 18+/Chrome), cada tarjeta
+  // visible se transforma de su posición vieja a la nueva en vez de parpadear.
+  if(document.startViewTransition && !(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
+    const vh=window.innerHeight||800;
+    const cards=[...grid.children].filter(c=>{const r=c.getBoundingClientRect();return r.bottom>-40&&r.top<vh+40;}).slice(0,16);
+    cards.forEach((c,i)=>{c.style.viewTransitionName='mkc'+i;});
+    grid._switching=true;
+    try{
+      const t=document.startViewTransition(()=>{ grid.classList.toggle('mode-grid',mode==='grid'); });
+      t.finished.finally(()=>{ cards.forEach(c=>{c.style.viewTransitionName='';}); grid._switching=false; });
+      return;
+    }catch(e){ cards.forEach(c=>{c.style.viewTransitionName='';}); grid._switching=false; }
+  }
   // [RC transición fluida v2] flex↔grid no interpola (WebKit no anima cambios de tracks).
   // Antes: setTimeout fijo que removía la clase en el mismo frame del reflow → el reflow
   // pesado (cambio de aspect-ratio de las imágenes) coincidía con el fade y se veía "de
@@ -7584,7 +7590,7 @@ function renderMarket(){
   let data=[...MARKET_LISTINGS];
   // filtro condicion (usados/nuevos) — campo condicion en listings
   if(mktCond==='usados') data=data.filter(l=>!l.condicion||l.condicion!=='nuevo'&&l.condicion!=='0km');
-  else data=data.filter(l=>l.condicion==='nuevo'||l.condicion==='0km');
+  else if(mktCond==='nuevos') data=data.filter(l=>l.condicion==='nuevo'||l.condicion==='0km');
   if(mFilters.cat&&mFilters.cat!=='todos'){
     // [V103] cada pill matchea su campo real: clasificacion (comercial/deportivo/clasico), carroceria (camioneta/pickup), oferta (precio rebajado)
     const _c=mFilters.cat;
