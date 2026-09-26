@@ -5875,7 +5875,7 @@ function renderCards(filter){
       el.innerHTML=`
         <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
           ${a.photoUrls&&a.photoUrls[0]
-            ?`<img decoding="async" src="${_tImg(a.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+            ?`<img decoding="async" src="${_tImg(a.photoUrls[0],{width:320})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
             :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
           <div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>
           ${a.destacado?'<div class="badge-sinreserva" style="top:auto;bottom:10px;background:rgba(0,0,0,.8);border-color:rgba(212,175,55,.5);display:flex;align-items:center;gap:4px;color:#fff;font-weight:400"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
@@ -5923,7 +5923,7 @@ function renderCards(filter){
       const _fp=new Date(a.fechaInicioProgramada);
       const _fechaTxt=String(_fp.getDate()).padStart(2,'0')+'/'+String(_fp.getMonth()+1).padStart(2,'0')+'/'+String(_fp.getFullYear()).slice(-2);
       el.innerHTML=`
-        <div class="sched-photo" style="${a.photoUrls&&a.photoUrls[0]?`background-image:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),url('${_tImg(a.photoUrls[0],{width:380})}');background-size:cover;background-position:center`:`background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),linear-gradient(${grads[_gidx(a.id)]})`}">
+        <div class="sched-photo" style="${a.photoUrls&&a.photoUrls[0]?`background-image:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),url('${_tImg(a.photoUrls[0],{width:320})}');background-size:cover;background-position:center`:`background:linear-gradient(180deg,rgba(0,0,0,.15) 0%,rgba(0,0,0,.55) 55%,rgba(0,0,0,.82) 100%),linear-gradient(${grads[_gidx(a.id)]})`}">
           <div class="sched-badge">${a.condicion==='nuevo'?'nuevo':'usado'}</div>
           <div class="sched-center">
             <div class="sched-starts">Empieza:</div>
@@ -5960,7 +5960,7 @@ function renderCards(filter){
     el.innerHTML=`
       <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
         ${a.photoUrls&&a.photoUrls[0]
-          ?`<img decoding="async" src="${_tImg(a.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+          ?`<img decoding="async" src="${_tImg(a.photoUrls[0],{width:320})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
           :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
         ${a.sinReserva?'<div class="badge-sinreserva verde">sin reserva</div>':''}
         ${a.chocado?`<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>`:''}
@@ -6595,7 +6595,7 @@ function _filterListadoGrid(q){
     const badgeColor=esNuevo?'rgba(100,200,255,.9)':'var(--w75)';
     const isFav=watchlist.has('mkt-'+String(l.id))||watchlist.has(l.id)||watchlist.has(String(l.id));
     const img=l.photoUrls&&l.photoUrls[0]
-      ?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
+      ?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:320})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
       :(typeof carPlaceholder==='function'?carPlaceholder(l.id,'small'):'');
     return `<div class="listado-card" onclick="openMarketDetail('${l.id}','listado')" style="animation-delay:${idx*20}ms">
       <div class="listado-card-img" style="background:linear-gradient(${grads2[_gidx(l.id)%grads2.length]})">
@@ -6743,14 +6743,19 @@ function _mktRenderHero(data){
         <button class="market-hero-nav" onclick="event.stopPropagation();_mktHeroNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button>
       </div>`:'');
   if(pool.length>1) _mktHeroInterval=setInterval(()=>_mktHeroNav(1),4500);
+  if(pool.length>1) setTimeout(()=>{ try{ _mktHeroLoad(1); }catch(e){} },1800); // la 2da lista antes del primer giro
 }
 function _mktHeroSlideHTML(hero,i){
   const photos=(hero.photoUrls||[]).filter(Boolean);
-  const mainImg=photos[0]?_tImg(photos[0],{width:880}):'';
+  const mainImg=photos[0]?_tImg(photos[0],{width:720}):'';
+  // [perf] las diapositivas están apiladas en el mismo lugar: para el navegador todas
+  // "se ven" y el lazy no las frena. Solo la primera lleva src; el resto guarda la URL
+  // en data-hsrc y la baja _mktHeroLoad() al entrar (y la siguiente justo antes).
+  const _sa=i===0?'src':'data-hsrc';
   const sideImgs=[photos[1],photos[2],photos[3],photos[4]];
   const bg=`background:linear-gradient(${grads[_gidx(hero.id)]})`;
   return `<div class="market-hero-slide${i===0?' active':''}" onclick="openMarketDetail('${hero.id}')">
-    <div class="market-hero-main" style="${bg}">${mainImg?`<img decoding="async" src="${mainImg}" loading="${i===0?'eager':'lazy'}" style="opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'" onerror="this.remove()">`:carPlaceholder(hero.id,'large')}
+    <div class="market-hero-main" style="${bg}">${mainImg?`<img decoding="async" ${_sa}="${mainImg}" loading="${i===0?'eager':'lazy'}" style="opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'" onerror="this.remove()">`:carPlaceholder(hero.id,'large')}
       <div class="market-hero-badge">destacado</div>
       <div class="market-hero-titlebox">
         <div class="market-hero-title">${hero.title||''}</div>
@@ -6759,10 +6764,16 @@ function _mktHeroSlideHTML(hero,i){
       <div class="market-hero-pill"><span>${(hero.condicion==='nuevo'||hero.condicion==='0km')?'nuevo':'usado'}</span><span class="market-hero-pill-sep"></span><span>${fmtBid(hero.price)}</span></div>
     </div>
     <div class="market-hero-side">
-      ${sideImgs.map(p=>p?`<div style="${bg}"><img decoding="async" src="${_tImg(p,{width:270})}" loading="lazy" style="opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'" onerror="this.remove()"></div>`:`<div class="market-hero-side-empty"></div>`).join('')}
+      ${sideImgs.map(p=>p?`<div style="${bg}"><img decoding="async" ${_sa}="${_tImg(p,{width:270})}" loading="lazy" style="opacity:0;transition:opacity .4s ease" onload="this.style.opacity='1'" onerror="this.remove()"></div>`:`<div class="market-hero-side-empty"></div>`).join('')}
     </div>
   </div>`;
 }
+function _mktHeroLoad(i){
+  const slides=document.querySelectorAll('#market-hero-slides .market-hero-slide');
+  const sl=slides[i]; if(!sl) return;
+  sl.querySelectorAll('img[data-hsrc]').forEach(im=>{ im.src=im.getAttribute('data-hsrc'); im.removeAttribute('data-hsrc'); });
+}
+if(typeof window!=='undefined') window.addEventListener('load',()=>setTimeout(()=>{ try{ _mktHeroLoad(1); }catch(e){} },2500),{once:true});
 function _mktHeroNav(dir){
   const slides=document.querySelectorAll('#market-hero-slides .market-hero-slide');
   const dots=document.querySelectorAll('.market-hero-dot');
@@ -6770,6 +6781,7 @@ function _mktHeroNav(dir){
   slides[_mktHeroIdx]?.classList.remove('active');
   dots[_mktHeroIdx]?.classList.remove('active');
   _mktHeroIdx=(_mktHeroIdx+dir+slides.length)%slides.length;
+  _mktHeroLoad(_mktHeroIdx); _mktHeroLoad((_mktHeroIdx+1)%slides.length); // la actual y la que sigue
   slides[_mktHeroIdx]?.classList.add('active');
   dots[_mktHeroIdx]?.classList.add('active');
 }
@@ -6794,7 +6806,7 @@ function _mktAppendCards(list,startIdx){
     el.style.animationDelay=(i*40)+'ms'; // [fix] relativo a esta tanda, no acumulado desde el inicio del feed
     el.onclick=()=>openMarketDetail(l.id);
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:320})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
@@ -7103,7 +7115,7 @@ function renderAlquilerHome(){
   if(!RENTALS.length){ head.style.display='none'; shell.style.display='none'; return; }
   head.style.display='block'; shell.style.display='block';
   track.innerHTML=RENTALS.slice(0,12).map(r=>{
-    const img=(r.fotos&&r.fotos[0])?`<img class="hd-card-img" src="${_tImg(r.fotos[0],{width:380})}" loading="lazy" decoding="async">`:'<div class="hd-card-img"></div>';
+    const img=(r.fotos&&r.fotos[0])?`<img class="hd-card-img" src="${_tImg(r.fotos[0],{width:320})}" loading="lazy" decoding="async">`:'<div class="hd-card-img"></div>';
     return `<div class="hd-card" onclick="openAlquilerDetail('${r.id}')">
       <div class="hd-img-wrap">${img}</div>
       <div class="hd-body">
@@ -7769,7 +7781,7 @@ function renderTrendingHoy(){
     return `
     <div class="trending-cell" style="animation:rdvIn .6s cubic-bezier(.22,.61,.36,1) ${i*70}ms both" onclick="${isSubasta?`openDetail('${item.id}')`:`openMarketDetail('${item.id}')`}">
       <div class="trending-photo">
-        ${photoUrl?`<img decoding="async" src="${_tImg(photoUrl,{width:420})}" loading="lazy" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
+        ${photoUrl?`<img decoding="async" src="${_tImg(photoUrl,{width:320})}" loading="lazy" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
         <div class="trending-rank">#${i+1}</div>
         <div class="trending-pill">${fmtBid(precio)}</div>
       </div>
@@ -7988,7 +8000,7 @@ function openHotDealsAll(){
   const grid=document.getElementById('hotdeals-all-grid');
   if(!grid)return;
   grid.innerHTML=deals.map(l=>{
-    const img=(l.photoUrls&&l.photoUrls[0])?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:380})}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">`:'<div style="width:100%;aspect-ratio:4/3;background:var(--surface-mid)"></div>';
+    const img=(l.photoUrls&&l.photoUrls[0])?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:320})}" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block" loading="lazy">`:'<div style="width:100%;aspect-ratio:4/3;background:var(--surface-mid)"></div>';
     let belowImg,priceRow;
     if(isReal){
       const pct=Math.round((l.precioAnterior-l.price)/l.precioAnterior*100);
@@ -8044,7 +8056,7 @@ function renderHotDeals(){
   head.querySelector('.hd-title').textContent='hot deals';
   const countEl=document.getElementById('hd-count'); if(countEl) countEl.textContent=deals.length+' disponibles';
   track.innerHTML=deals.map(l=>{
-    const img=(l.photoUrls&&l.photoUrls[0])?`<img decoding="async" class="hd-card-img" src="${_tImg(l.photoUrls[0],{width:380})}" loading="lazy">`:'<div class="hd-card-img"></div>';
+    const img=(l.photoUrls&&l.photoUrls[0])?`<img decoding="async" class="hd-card-img" src="${_tImg(l.photoUrls[0],{width:320})}" loading="lazy">`:'<div class="hd-card-img"></div>';
     const belowImg=`<div class="hd-fallback-tag">${l.destacado?'destacado':'popular'}</div>`;
     const priceRow=`<span class="hd-new">${fmtBid(l.price)}</span>`;
     return `<div class="hd-card" onclick="openMarketDetail('${l.id}')">
@@ -8075,7 +8087,7 @@ function renderPriceDrops(){
   _lastPriceDropsHash=hash;
   head.style.display='block'; shell.style.display='block';
   track.innerHTML=deals.map(l=>{
-    const img=(l.photoUrls&&l.photoUrls[0])?`<img decoding="async" class="hd-card-img" src="${_tImg(l.photoUrls[0],{width:380})}" loading="lazy">`:'<div class="hd-card-img"></div>';
+    const img=(l.photoUrls&&l.photoUrls[0])?`<img decoding="async" class="hd-card-img" src="${_tImg(l.photoUrls[0],{width:320})}" loading="lazy">`:'<div class="hd-card-img"></div>';
     const pct=Math.round((l.precioAnterior-l.price)/l.precioAnterior*100);
     const belowImg=`<div class="hd-savebar"><i style="width:${pct}%"></i></div>
       <div class="hd-saverow"><span class="hd-savelabel">-${pct}%</span><span class="hd-savenum">ahorras ${fmtBid(l.precioAnterior-l.price)}</span></div>`;
@@ -9051,7 +9063,7 @@ function renderFavoritos(){
       const endTime=a?.endTime||Date.now();
       return `<div class="fav-thumb-card" style="animation-delay:${i*55}ms;cursor:pointer" onclick="openDetail('${a.id}')">
         <div class="fav-thumb-img" style="background:linear-gradient(${grads[_favGradIdx(a.id)]})">
-          ${imgUrl?`<img decoding="async" src="${_tImg(imgUrl,{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
+          ${imgUrl?`<img decoding="async" src="${_tImg(imgUrl,{width:320})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(a.id,'small'))}
           <div class="fav-thumb-badge-timer${isUrgent(endTime)?' urgent':''}" style="pointer-events:none">${fmtCountdown(endTime-Date.now())}</div>
         </div>
         <div class="fav-thumb-body">
@@ -9085,7 +9097,7 @@ function renderFavoritos(){
       const lid=String(l?.id||i);
       return `<div class="fav-thumb-card" style="animation-delay:${(favAuctions.length+i)*55}ms" onclick="openMarketDetail('${lid}','market')">
         <div class="fav-thumb-img" style="background:linear-gradient(${grads[_favGradIdx(lid)]})">
-          ${imgUrl?`<img decoding="async" src="${_tImg(imgUrl,{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(i,'small'))}
+          ${imgUrl?`<img decoding="async" src="${_tImg(imgUrl,{width:320})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s" loading="eager" onload="this.style.opacity='1'" onerror="this.style.display='none'">`:(carPlaceholder(i,'small'))}
         </div>
         <div class="fav-thumb-body">
           <div class="fav-thumb-title">${titulo}</div>
@@ -10016,7 +10028,7 @@ function _renderSearchPopMarcas(){
 function _searchCardHtml(a,kind){
   const isAuction=kind==='subasta';
   const img=a.photoUrls&&a.photoUrls[0]
-    ?`<img decoding="async" src="${_tImg(a.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager">`
+    ?`<img decoding="async" src="${_tImg(a.photoUrls[0],{width:320})}" style="width:100%;height:100%;object-fit:cover;display:block" loading="eager">`
     :carPlaceholder(a.id,isAuction?'large':'small');
   if(isAuction){
     return `<div class="auction-card" onclick="closeSearch();openDetail('${a.id}')">
@@ -11200,13 +11212,13 @@ function _tImg(url,opts){
     // la escalera vive dentro de la funcion a proposito: _tImg esta hoisteada y se
     // invoca desde plantillas de render que aparecen antes en el archivo, asi que
     // una const a nivel de bloque podria quedar en zona muerta temporal.
-    const LADDER=[480,960,1440,1920,2500]; // 2500 es el techo que acepta supabase
+    const LADDER=[480,640,960,1440,1920,2500]; // 2500 es el techo que acepta supabase
     const dpr=Math.min(Math.max(window.devicePixelRatio||1,1),2);
     const want=Math.min(Math.ceil((o.width||400)*dpr),2500);
     const w=LADDER.find(x=>x>=want)||2500;
     // calidad alta a proposito: en un marketplace de carros la foto ES el producto.
     // webp en este rango es indistinguible del original a simple vista.
-    const q=w<=480?80:(w<=960?84:(w<=1440?86:88));
+    const q=w<=640?80:(w<=960?84:(w<=1440?86:88));
     const base=url.replace(MARK,'/storage/v1/render/image/public/');
     const params=['width='+w,'quality='+q];
     if(o.height) params.push('height='+Math.min(Math.ceil(o.height*dpr),2500));
@@ -11274,7 +11286,7 @@ function _rdWarmFeedImages(){  if(window._rdWarmed) return;
     const low=document.documentElement.className.indexOf('lowfx')!==-1;
     // en equipo lento o red mala se precalienta menos: mas alla de eso el
     // precalentado deja de ayudar y empieza a estorbar.
-    const CARDS=slow?6:(low?10:24);
+    const CARDS=slow?4:(low?6:8); // [perf] antes 24: competía con las fotos visibles
     const MAXPAR=slow?2:4;
 
     const urls=[];
@@ -11285,14 +11297,14 @@ function _rdWarmFeedImages(){  if(window._rdWarmed) return;
     // 1. el hero del market primero: es la foto mas grande y la primera que se ve
     const dest=mkt.filter(l=>l.destacado);
     const pool=(dest.length?dest:mkt).slice(0,5);
-    pool.forEach(l=>add(l.photoUrls&&l.photoUrls[0],{width:880}));
+    if(pool[0]) add(pool[0].photoUrls&&pool[0].photoUrls[0],{width:720}); // solo la diapositiva visible
     // las cuatro celdas laterales del hero salen de la primera publicacion
     if(pool[0]&&pool[0].photoUrls) pool[0].photoUrls.slice(1,5).forEach(u=>add(u,{width:270}));
     // 2. el primer lote de cards del market
-    mkt.slice(0,CARDS).forEach(l=>add(l.photoUrls&&l.photoUrls[0],{width:380}));
+    mkt.slice(0,CARDS).forEach(l=>add(l.photoUrls&&l.photoUrls[0],{width:320}));
     // 3. las cards de subastas: esa seccion vive en display:none hasta que la
     //    abres, o sea que sus lazy jamas se disparaban por su cuenta
-    auc.slice(0,CARDS).forEach(a=>add(a.photoUrls&&a.photoUrls[0],{width:380}));
+    // [perf] subastas ya no se precalienta: vive oculta y bajaba 24 fotos de más al abrir
 
     const seen={}, list=[];
     for(let i=0;i<urls.length;i++){ const u=urls[i]; if(u&&!seen[u]){seen[u]=1;list.push(u);} }
@@ -12218,7 +12230,7 @@ function _renderMisPubGrid(){
     return `<div onclick="openEditListingModal('${l.id}')" style="background:var(--w4);border:1px solid var(--w8);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
         ${l.photoUrl
-          ?`<img decoding="async" src="${_tImg(l.photoUrl,{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
+          ?`<img decoding="async" src="${_tImg(l.photoUrl,{width:320})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,var(--w6) 25%,var(--w12) 50%,var(--w6) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
           :`<svg fill="none" viewBox="0 0 40 30" stroke="var(--w12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
         <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${badgeColor2||badgeColor}">${badgeLabel}</span>
@@ -13115,7 +13127,7 @@ function renderMarketFiltered(){
     // vieja (sin badges, sin views, precio antes de ciudad) y la grid cambiaba de estilo
     // según cuál de las dos funciones la pintara. Ahora es UNA sola apariencia siempre.
     el.innerHTML=`
-      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:380})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
+      <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img decoding="async" src="${_tImg(l.photoUrls[0],{width:320})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="this.style.opacity='1';const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
         ${l.destacado?'<div style="position:absolute;bottom:8px;left:8px;display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:400;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(212,175,55,.5);color:#fff"><svg viewBox="0 0 24 24" width="9" height="9" fill="none"><circle cx="12" cy="8.5" r="5.5" fill="#d4af37"/><path d="M8 13l-1.8 6.5L12 17l5.8 2.5L16 13" fill="#d4af37"/></svg>selección del editor</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
@@ -15077,7 +15089,7 @@ async function renderDhPubs(){
     return `<div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer" onclick="openMarketDetail('${l.id}','vitrina')">
       <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative">
         ${l.photoUrl
-          ?`<img decoding="async" src="${_tImg(l.photoUrl,{width:380})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none';const s=this.nextElementSibling;if(s)s.style.display='none'">
+          ?`<img decoding="async" src="${_tImg(l.photoUrl,{width:320})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" onload="this.style.opacity='1';const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none';const s=this.nextElementSibling;if(s)s.style.display='none'">
 <div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,var(--w6) 25%,var(--w12) 50%,var(--w6) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
           :`<svg fill="none" viewBox="0 0 40 30" stroke="var(--w12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
         <div style="position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);border-radius:100px;padding:3px 8px;font-size:10px;font-weight:700;color:${badgeColor}">${badgeLabel}</div>
@@ -16680,7 +16692,8 @@ window._rueddaBootPromise = (async function _rueddaInit(){
   // [PERF] apenas llega la data del feed arranca el precalentado de portadas por
   // detras, todavia con el splash puesto. no se le hace await a proposito: el
   // splash no debe esperarlo, solo aprovechar el tiempo que ya iba a estar ahi.
-  window._rueddaFirstScreenReady.then(()=>{ try{ _rdWarmFeedImages(); }catch(e){} });
+  // [perf] el precalentado arranca cuando ya cargaron las fotos visibles (evento load), no antes
+  window._rueddaFirstScreenReady.then(()=>{ const go=()=>setTimeout(()=>{ try{ _rdWarmFeedImages(); }catch(e){} },1200); if(document.readyState==='complete') go(); else window.addEventListener('load',go,{once:true}); });
   // [fix fotos Encuentra lentas] antes renderEncuentra() solo se disparaba cuando
   // _loadMarket() terminaba y llamaba a renderTrendingHoy() — quedaba en la cola
   // detrás de la consulta más pesada del boot (hasta 300 listings). Como no lee
