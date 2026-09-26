@@ -19886,6 +19886,7 @@ function openOfferSheet(tipo){
   if(l.user_id===USER_STATE.id){showToast('esta es tu publicación');return;}
   const isCambio=tipo==='cambio';
   _offerPhotos=[];
+  window._offerMyCar=null;
   _offerMenosAmount=isCambio?0:Math.max(25,Math.round((l.price||0)/25)*25);
   let overlay=document.getElementById('offer-overlay');
   if(overlay) overlay.remove();
@@ -19895,7 +19896,8 @@ function openOfferSheet(tipo){
   overlay.onclick=e=>{if(e.target===overlay)_closeOfferSheet();};
   const title=isCambio?'ofrecer cambio':'ofrecer menos';
   const body=isCambio
-    ?`<textarea id="offer-input-desc" placeholder="describe el vehículo que ofreces a cambio..." style="width:100%;box-sizing:border-box;background:var(--w5);border:1px solid var(--w10);border-radius:14px;padding:13px 14px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;resize:none;min-height:80px;line-height:1.6;margin-bottom:12px"></textarea>
+    ?`<div id="offer-mycar-slot" style="margin-bottom:10px"><button type="button" onclick="_offerPickMyCar()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:14px;border:1px dashed var(--w20);background:var(--w4);color:var(--white);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:17px;height:17px"><path d="M12 5v14M5 12h14"/></svg>ofrecer uno de mis carros publicados</button></div>
+       <textarea id="offer-input-desc" placeholder="describe el vehículo que ofreces a cambio..." style="width:100%;box-sizing:border-box;background:var(--w5);border:1px solid var(--w10);border-radius:14px;padding:13px 14px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;resize:none;min-height:80px;line-height:1.6;margin-bottom:12px"></textarea>
        <div id="offer-photos-grid" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px"></div>
        <div id="offer-photos-add" onclick="document.getElementById('offer-photos-file').click()" style="width:100%;background:var(--w5);backdrop-filter:blur(14px) saturate(160%);-webkit-backdrop-filter:blur(14px) saturate(160%);border:1px solid var(--w16);border-radius:12px;padding:14px;text-align:center;cursor:pointer;color:var(--w60);font-size:12.5px;box-sizing:border-box">+ agregar fotos</div>
        <input type="file" id="offer-photos-file" accept="image/*" multiple style="display:none" onchange="_offerAddPhotos(this)">`
@@ -19921,6 +19923,47 @@ function openOfferSheet(tipo){
     const inner=overlay.querySelector('div');
     if(inner) inner.style.transform='translateY(0)';
   });
+}
+// [cambio] el usuario ofrece uno de SUS carros publicados: llega al chat como tarjeta tocable
+async function _offerPickMyCar(){
+  const slot=document.getElementById('offer-mycar-slot'); if(!slot) return;
+  _rdHaptic('LIGHT');
+  slot.innerHTML='<div style="display:flex;justify-content:center;padding:14px"><div class="save-spinner" style="border-top-color:var(--w60)"></div></div>';
+  try{ if(!MOCK_MY_LISTINGS.length) await _loadMyListings(); }catch(e){}
+  const mine=(MOCK_MY_LISTINGS||[]).filter(x=>x.type!=='auction'&&x.status!=='vendido'&&!x.vendido);
+  if(!mine.length){ slot.innerHTML='<div style="font-size:12.5px;color:var(--muted);text-align:center;padding:10px">no tienes carros publicados · descríbelo abajo</div>'; return; }
+  slot.innerHTML='<div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;margin:2px 0 8px">elige cuál ofreces</div><div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px">'+
+    mine.map((x,i)=>`<div onclick="_offerSetMyCar(${i})" style="flex:0 0 118px;cursor:pointer;border-radius:14px;overflow:hidden;background:var(--w5);border:1px solid var(--w10)"><div style="aspect-ratio:4/3;background:var(--w8)">${x.photoUrl?`<img src="${_tImg(x.photoUrl,{width:160,quality:70})}" style="width:100%;height:100%;object-fit:cover;display:block">`:''}</div><div style="padding:7px 8px"><div style="font-size:11.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(x.title||'')}</div><div style="font-size:10.5px;color:var(--muted)">${_esc(x.price||'')}</div></div></div>`).join('')+'</div>';
+  window._offerMine=mine;
+}
+function _offerSetMyCar(i){
+  const x=(window._offerMine||[])[i]; if(!x) return;
+  _rdHaptic('LIGHT');
+  window._offerMyCar=x;
+  const slot=document.getElementById('offer-mycar-slot'); if(!slot) return;
+  slot.innerHTML=`<div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:14px;background:var(--w6);border:1px solid var(--w14)"><div style="width:52px;height:40px;border-radius:9px;overflow:hidden;background:var(--w8);flex-shrink:0">${x.photoUrl?`<img src="${_tImg(x.photoUrl,{width:120,quality:70})}" style="width:100%;height:100%;object-fit:cover;display:block">`:''}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(x.title||'')}</div><div style="font-size:11.5px;color:var(--muted)">${_esc(x.price||'')} · tu publicación</div></div><button type="button" onclick="window._offerMyCar=null;_offerPickMyCar()" aria-label="cambiar" style="background:var(--w8);border:none;color:var(--w70);width:28px;height:28px;border-radius:50%;cursor:pointer;flex-shrink:0">×</button></div>`;
+  const d=document.getElementById('offer-input-desc'); if(d) d.placeholder='tu propuesta (opcional): diferencia en dinero, condiciones…';
+}
+// en el chat: [[rdpost:ID]] se muestra como tarjeta; en vistas de texto como "📎 publicación"
+function _rdPostPlain(t){ return String(t||'').replace(/\n?\[\[rdpost:[\w-]+\]\]/g,' 📎 publicación').trim(); }
+function _rdPostCardsHtml(t){
+  const ids=[...String(t||'').matchAll(/\[\[rdpost:([\w-]+)\]\]/g)].map(m=>m[1]);
+  return ids.map(id=>`<div class="rd-post-card" data-lid="${id}" onclick="openMarketDetail('${id}')"><div class="rd-pc-img"></div><div class="rd-pc-bd"><b>publicación</b><span>toca para ver</span></div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></div>`).join('');
+}
+async function _rdHydratePostCards(root){
+  const cards=(root||document).querySelectorAll('.rd-post-card:not([data-ok])');
+  for(const c of cards){
+    c.setAttribute('data-ok','1');
+    try{
+      const id=c.getAttribute('data-lid');
+      let l=(typeof MARKET_LISTINGS!=='undefined'?MARKET_LISTINGS:[]).find(x=>String(x.id)===String(id));
+      if(!l&&typeof _ensureMarketListing==='function') l=await _ensureMarketListing(id);
+      if(!l) continue;
+      const ph=l.photoUrls&&l.photoUrls[0];
+      c.querySelector('.rd-pc-img').innerHTML=ph?`<img src="${_tImg(ph,{width:160,quality:72})}" alt="">`:'';
+      c.querySelector('.rd-pc-bd').innerHTML=`<b>${_esc(l.title||'publicación')}</b><span>${fmtBid(l.price)}${l.location?' · '+_esc(l.location):''}</span>`;
+    }catch(e){}
+  }
 }
 function _closeOfferSheet(){
   const overlay=document.getElementById('offer-overlay');
@@ -19961,7 +20004,8 @@ async function _submitOffer(tipo){
   const descEl=document.getElementById('offer-input-desc');
   const descripcion=(descEl?.value||'').trim();
   const monto=isCambio?null:_offerMenosAmount;
-  if(isCambio&&!descripcion){showToast('describe el vehículo que ofreces');return;}
+  const myCar=isCambio?window._offerMyCar:null;
+  if(isCambio&&!descripcion&&!myCar){showToast('elige uno de tus carros o describe el que ofreces');return;}
   if(!isCambio&&(!monto||monto<=0)){showToast('coloca un monto válido');return;}
   const btn=document.getElementById('offer-submit-btn');
   if(btn){btn.disabled=true;btn.textContent='enviando...';}
@@ -19977,7 +20021,7 @@ async function _submitOffer(tipo){
     }
   }
   const{error}=await _supa.from('offers').insert({
-    listing_id:l.id, user_id:USER_STATE.id, tipo, monto, descripcion:descripcion||null, fotos
+    listing_id:l.id, user_id:USER_STATE.id, tipo, monto, descripcion:(myCar?('ofrece su publicación: '+(myCar.title||'')+(descripcion?' — '+descripcion:'')):(descripcion||null)), fotos
   });
   if(error){ showToast('error enviando oferta: '+error.message); if(btn){btn.disabled=false;btn.textContent='enviar oferta';} return; }
   showToast('oferta enviada');
@@ -19986,10 +20030,10 @@ async function _submitOffer(tipo){
     const nombre=USER_STATE.nombre||USER_STATE.username||'Un usuario';
     const fotosTxt=fotos.length?` (con ${fotos.length} foto${fotos.length===1?'':'s'})`:'';
     const txt=isCambio
-      ?`${nombre} te ofrece esto a cambio de tu ${l.title||'publicación'}: ${descripcion}${fotosTxt}`
+      ?(myCar?`${nombre} te ofrece su ${myCar.title||'carro'} a cambio de tu ${l.title||'publicación'}${descripcion?': '+descripcion:''}${fotosTxt}\n[[rdpost:${myCar.id}]]`:`${nombre} te ofrece esto a cambio de tu ${l.title||'publicación'}: ${descripcion}${fotosTxt}`)
       :`${nombre} te ofrece ${fmtBid(monto)} por tu ${l.title||'publicación'}${descripcion?' — '+descripcion:''}`;
     _supa.from('private_messages').insert({sender_id:USER_STATE.id,receiver_id:l.user_id,source_id:l.id,source_type:'listing',source_title:l.title||'publicación',text:txt}).then(({error:pe})=>{if(pe)console.warn('[offer pm]',pe.message);});
-    _supa.from('notifications').insert({user_id:l.user_id,tipo:'offer',titulo:isCambio?'Te ofrecen un cambio':'Te ofrecen menos',body:txt,icon:'lime',source_id:String(l.id),source_type:'listing'}).then(({error:ne})=>{if(ne)console.warn('[offer notif]',ne.message);});
+    _supa.from('notifications').insert({user_id:l.user_id,tipo:'offer',titulo:isCambio?'Te ofrecen un cambio':'Te ofrecen menos',body:_rdPostPlain(txt),icon:'lime',source_id:String(l.id),source_type:'listing'}).then(({error:ne})=>{if(ne)console.warn('[offer notif]',ne.message);});
   }
 }
 
@@ -20192,7 +20236,7 @@ function renderMensajesList(){
       <div style="flex:1;min-width:0">
         <div class="msg-name">${nameStr}${dealerBadge}${pmTag}</div>
         <div class="msg-model">${t.carTitle||'—'}</div>
-        <div class="msg-preview">${last?.from||'—'}: ${last?.text||'—'}</div>
+        <div class="msg-preview">${last?.from||'—'}: ${last?.text?_rdPostPlain(last.text):'—'}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
         <div class="msg-time">${last?.time||'—'}</div>
@@ -20370,7 +20414,7 @@ function renderThreadMessages(){
     return `<div class="thread-bubble ${m.mine?'mine':'theirs'}">
       ${storyRef}
       <div class="bubble-name">${m.mine?'tú':_esc(m.from)}${badge}</div>
-      <div class="bubble-body">${_escLine(m.text)}</div>
+      <div class="bubble-body">${_escLine(String(m.text||'').replace(/\n?\[\[rdpost:[\w-]+\]\]/g,''))}${_rdPostCardsHtml(m.text)}</div>
       <div class="bubble-time">${_esc(m.time)}</div>
     </div>`;
   };
@@ -20386,6 +20430,7 @@ function renderThreadMessages(){
   }
   el.dataset.pmTid=tid;
   el.dataset.pmCount=String(msgs.length);
+  _rdHydratePostCards(el);
   setTimeout(()=>{el.scrollTop=el.scrollHeight;},50);
 }
 
@@ -23238,6 +23283,16 @@ html[data-theme="light"] .rd-map-flag{filter:invert(1) drop-shadow(0 1px 2px rgb
 html[data-theme="light"] #cond-btn-usado.rd-cond-on,html[data-theme="light"] #cond-btn-nuevo.rd-cond-on,html[data-theme="light"] #edit-cond-usado.rd-cond-on,html[data-theme="light"] #edit-cond-nuevo.rd-cond-on{box-shadow:inset 0 1px 0 #fff,inset 0 -2px 4px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.14)}
 /* switches encendidos (financiamiento, push…): amarillo Ruedda en oscuro */
 html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{background:#e6f03b}
+
+/* tarjeta de publicación dentro del chat (ofrecer cambio) */
+.rd-post-card{display:flex;align-items:center;gap:10px;margin-top:9px;padding:7px;border-radius:14px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.12);cursor:pointer;min-width:220px}
+.thread-bubble.mine .rd-post-card{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.1)}
+.rd-post-card .rd-pc-img{width:58px;height:44px;border-radius:9px;overflow:hidden;background:rgba(127,127,127,.2);flex-shrink:0}
+.rd-post-card .rd-pc-img img{width:100%;height:100%;object-fit:cover;display:block}
+.rd-post-card .rd-pc-bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rd-post-card .rd-pc-bd b{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd-post-card .rd-pc-bd span{font-size:11.5px;opacity:.7}
+.rd-post-card svg{width:16px;height:16px;opacity:.5;flex-shrink:0}
 </style>
 <script>
 (function(){
