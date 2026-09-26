@@ -5,6 +5,8 @@
 /* [nativo] acceso robusto a plugins de Capacitor: si Capacitor.Plugins.X no existe
    (app cargando la web remota), se registra con registerPlugin. */
 window._rdCapPlugin=function(n){try{var C=window.Capacitor;if(!C||!(C.isNativePlatform&&C.isNativePlatform()))return null;var p=C.Plugins&&C.Plugins[n];if(!p&&C.registerPlugin){window.__rdPl=window.__rdPl||{};p=window.__rdPl[n]||(window.__rdPl[n]=C.registerPlugin(n));}return p||null;}catch(e){return null;}};
+window._rdHapticWave=function(n,gap){try{var H=window._rdCapPlugin('Haptics');if(!H||!H.selectionChanged){return window._rdHapticNow('LIGHT');}n=n||7;gap=gap||38;try{H.selectionStart&&H.selectionStart();}catch(e){}for(var i=0;i<n;i++)(function(k){setTimeout(function(){try{H.selectionChanged();}catch(e){}if(k===n-1)setTimeout(function(){try{H.selectionEnd&&H.selectionEnd();}catch(e){}},gap);},k*gap);})(i);}catch(e){}};
+window._rdHapticSuccess=function(){try{var H=window._rdCapPlugin('Haptics');if(H&&H.notification){var r=H.notification({type:'SUCCESS'});if(r&&r.catch)r.catch(function(){});return;}}catch(e){}window._rdHapticNow('MEDIUM');};
 window._rdHapticNow=function(style){try{var H=window._rdCapPlugin('Haptics');if(H&&H.impact){var r=H.impact({style:style||'LIGHT'});if(r&&r.catch)r.catch(function(){});return true;}}catch(e){}try{if(navigator.vibrate)navigator.vibrate(10);}catch(e){}return false;};
 </script>
 <script>
@@ -2608,7 +2610,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       el.classList.add('rd-in');
     });
     // háptico escalonado: un toque por cada elemento que entra (mismos delays del CSS)
-    [120,190,260].forEach(function(t){ setTimeout(function(){ if(!dead) window._rdHapticNow('LIGHT'); }, t); });
+    setTimeout(function(){ if(!dead) window._rdHapticWave(7,38); }, 90); // ola de tics finos mientras suben las letras
   }
 
   // [pedido explícito] toquecito háptico al cambiar de foto en el intro —
@@ -2616,7 +2618,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   // el plugin Haptics de Capacitor SI está instalado (si no, no truena,
   // solo no vibra); en Android/Chrome como PWA cae a navigator.vibrate().
   // iOS Safari/PWA no tiene esa API — ahí solo vibra dentro de la app nativa.
-  function _hapticTick(){ window._rdHapticNow('LIGHT'); }
+  function _hapticTick(){ /* la ola de cascade() ya da el feedback: sin toque extra */ }
 
   function go(i){
     if(dead) return;
@@ -6759,6 +6761,7 @@ function _updateComoFuncionaLink(section){
 }
 
 function toggleDropdown(){
+  window._rdHapticNow('LIGHT');
   const dd=document.getElementById('section-dropdown');
   const title=document.getElementById('section-title-el');
   dd.classList.toggle('open');
@@ -6785,6 +6788,7 @@ function _hubPopIn(){
   });
 }
 function selectSection(s){
+  window._rdHapticNow('LIGHT');
   // show/hide acciones de market en el header
   const cl=document.getElementById('section-como-funciona-link');
   const hub=document.getElementById('mkt-hub-actions');
@@ -11548,7 +11552,7 @@ function _renderBudgetOnly(){
 }
 
 // ===================== VENDER =====================
-function openVenderModal(){updateVenderModal();const m=document.getElementById('vender-modal');m.style.display='flex';requestAnimationFrame(()=>m.classList.add('open'));}
+function openVenderModal(){window._rdHapticNow('MEDIUM');updateVenderModal();const m=document.getElementById('vender-modal');m.style.display='flex';requestAnimationFrame(()=>m.classList.add('open'));}
 function closeVenderModal(){const m=document.getElementById('vender-modal');m.classList.remove('open');setTimeout(()=>{m.style.display='none';},420);}
 function closeVenderModalOutside(e){if(e.target.id==='vender-modal')closeVenderModal()}
 // [BLOQUE 2] PARTNERS
@@ -17313,6 +17317,7 @@ function _showLoadingSplash(texto){
   });
 }
 function _showLoginSplash(nombre){
+  setTimeout(()=>window._rdHapticSuccess(),850); // cuando termina de dibujarse el check
   let sp=document.getElementById('login-splash');
   if(!sp){
     sp=document.createElement('div');
