@@ -101,6 +101,12 @@ window._rdOAuthReturn = (function(){
 // splash animado de marca (/splash/*.html): carga el iframe y resuelve cuando
 // ESE iframe avisa que terminó su animación (ruedda:splash-done).
 function _rdMountSplash(frame, src){
+  // háptico con las letras de "ruedda": el splash arranca apenas carga (sus imágenes van
+  // embebidas) y las 6 letras salen de la bandera entre 0,94 s y 1,12 s, una cada 36 ms.
+  try{
+    var _rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!_rm) frame.addEventListener('load', function(){ setTimeout(function(){ if(window._rdHapticWave) window._rdHapticWave(6,36); }, 990); }, {once:true});
+  }catch(e){}
   return new Promise(function(res){
     function onMsg(e){
       if(e && e.source === frame.contentWindow && e.data && e.data.type === 'ruedda:splash-done'){
@@ -2610,7 +2616,6 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       el.classList.add('rd-in');
     });
     // háptico escalonado: un toque por cada elemento que entra (mismos delays del CSS)
-    setTimeout(function(){ if(!dead) window._rdHapticWave(7,38); }, 90); // ola de tics finos mientras suben las letras
   }
 
   // [pedido explícito] toquecito háptico al cambiar de foto en el intro —
@@ -2618,7 +2623,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   // el plugin Haptics de Capacitor SI está instalado (si no, no truena,
   // solo no vibra); en Android/Chrome como PWA cae a navigator.vibrate().
   // iOS Safari/PWA no tiene esa API — ahí solo vibra dentro de la app nativa.
-  function _hapticTick(){ /* la ola de cascade() ya da el feedback: sin toque extra */ }
+  function _hapticTick(){ window._rdHapticNow('LIGHT'); } // un toque elegante por foto
 
   function go(i){
     if(dead) return;
