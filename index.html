@@ -17467,6 +17467,16 @@ function _showGoogleCompleteProfile(user){
   document.body.appendChild(m);
   requestAnimationFrame(()=>{m.style.opacity='1';const i=document.getElementById('gcp-inner');if(i){i.style.transform='scale(1)';i.style.opacity='1';}});
 }
+// [bienvenida] notificación de bienvenida al crear la cuenta — una sola vez por usuario
+// (source_type 'welcome'); va a la tabla notifications como todas las demás.
+async function _rdWelcomeNotif(userId){
+  if(!_supa||!userId) return;
+  try{
+    const{count}=await _supa.from('notifications').select('id',{count:'exact',head:true}).eq('user_id',userId).eq('source_type','welcome');
+    if(count) return;
+    await _supa.from('notifications').insert({user_id:userId,tipo:'system',titulo:'¡bienvenido a ruedda!',body:'tu cuenta está lista. compra, vende y subasta tu vehículo en un solo lugar. verifica tu identidad para ganar la confianza de compradores y vendedores.',icon:'lime',source_id:String(userId),source_type:'welcome'});
+  }catch(e){ console.warn('[ruedda] bienvenida',e?.message||e); }
+}
 async function _submitGoogleProfile(userId,email){
   const nombre=(document.getElementById('gcp-nombre')?.value||'').trim();
   let username=(document.getElementById('gcp-user')?.value||'').trim().replace('@','').replace(/\s+/g,'_');
@@ -17492,6 +17502,7 @@ async function _submitGoogleProfile(userId,email){
     if(error){ showToast('no se pudo guardar: '+error.message); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
     const m=document.getElementById('google-complete-sheet');
     if(m){ const i=document.getElementById('gcp-inner'); if(i){i.style.transform='scale(.94)';i.style.opacity='0';} m.style.opacity='0'; setTimeout(()=>m.remove(),320); }
+    await _rdWelcomeNotif(userId);
     const{data:profile}=await _supa.from('users').select('*').eq('id',userId).single();
     _rueddaApplySession(profile||{id:userId,nombre,username,role:'particular'});
     _showLoginSplash(nombre);
@@ -17682,6 +17693,7 @@ async function _rueddaRegister(email,pass){
         .then(({error:retryErr})=>{ if(retryErr) console.warn('[ruedda register] reintento en segundo plano también falló:',retryErr.message); });
     },4000);
   }
+  await _rdWelcomeNotif(data.user.id);
   const{data:profile}=await _supa.from('users').select('*').eq('id',data.user.id).single();
   // [FIX V119] red de seguridad: si por lo que sea la lectura vuelve incompleta, no perder lo
   // que el usuario ya escribió en el formulario.
