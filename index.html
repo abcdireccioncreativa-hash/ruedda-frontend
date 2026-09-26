@@ -105,13 +105,20 @@ function _rdMountSplash(frame, src){
   // embebidas) y las 6 letras salen de la bandera entre 0,94 s y 1,12 s, una cada 36 ms.
   try{
     var _rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // ritmo fintech: toque medio al salir la primera letra, dos suaves mientras se abren
-    // y uno medio de cierre cuando "ruedda" queda armado.
+    // coreografía sincronizada con la animación real del splash (ms desde que carga):
+    //  piezas de la bandera encajando → tics finos · bandera armada → toque medio ·
+    //  6 letras saliendo → tics finos · palabra completa → toque fuerte de cierre
     if(!_rm) frame.addEventListener('load', function(){
-      // un toque firme por cada una de las 6 letras + uno fuerte de cierre
-      [[990,'LIGHT'],[1050,'LIGHT'],[1110,'LIGHT'],[1170,'LIGHT'],[1230,'LIGHT'],[1290,'LIGHT'],[1480,'HEAVY']].forEach(function(h){
-        setTimeout(function(){ if(window._rdHapticNow) window._rdHapticNow(h[1]); }, h[0]);
-      });
+      var O=40, H=null; try{ H=window._rdCapPlugin&&window._rdCapPlugin('Haptics'); }catch(e){}
+      if(!H) return;
+      var sel=function(t){ setTimeout(function(){ try{ H.selectionChanged(); }catch(e){} }, t+O); };
+      var imp=function(t,st){ setTimeout(function(){ try{ var r=H.impact({style:st}); if(r&&r.catch) r.catch(function(){}); }catch(e){} }, t+O); };
+      setTimeout(function(){ try{ H.selectionStart&&H.selectionStart(); }catch(e){} }, 100);
+      [160,230,300,370,440].forEach(sel);            // piezas de la bandera
+      imp(600,'MEDIUM');                             // bandera armada
+      [970,1006,1042,1078,1114,1150].forEach(sel);  // letras de "ruedda"
+      setTimeout(function(){ try{ H.selectionEnd&&H.selectionEnd(); }catch(e){} }, 1260+O);
+      imp(1360,'HEAVY');                             // palabra completa
     }, {once:true});
   }catch(e){}
   return new Promise(function(res){
