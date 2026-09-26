@@ -18685,7 +18685,19 @@ async function openUserProfile(userId){
   _profileViewingId=userId;
   const el=document.getElementById('perfil-publico-content');
   if(!el) return;
-  el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">cargando perfil...</div>';
+  // [perfil] esqueleto con la forma real del perfil mientras carga (sin texto suelto)
+  el.innerHTML=`<div aria-busy="true" aria-label="cargando perfil" style="padding-top:6px">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="rdv-skel" style="width:84px;height:84px;border-radius:50%;flex-shrink:0"></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+        <div class="rdv-skel" style="height:18px;width:62%;border-radius:8px"></div>
+        <div class="rdv-skel" style="height:12px;width:40%;border-radius:6px"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:22px">${'<div class="rdv-skel" style="flex:1;height:44px;border-radius:12px"></div>'.repeat(3)}</div>
+    <div class="rdv-skel" style="height:40px;border-radius:14px;margin-top:16px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:28px">${'<div class="rdv-skel" style="aspect-ratio:1;border-radius:14px"></div>'.repeat(4)}</div>
+  </div>`;
   showView('perfil-publico');
 
   const isMe=USER_STATE?.id===userId;
@@ -18877,6 +18889,12 @@ async function openUserProfile(userId){
       </div>
       ${metricsHtml}
     `;
+    // [perfil] entrada en cascada: cada bloque sube y aparece, de arriba hacia abajo
+    try{
+      if(!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){
+        [...el.children].forEach((c,i)=>{ if(c.animate) c.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:480,delay:Math.min(i,9)*60,easing:'cubic-bezier(.22,.61,.36,1)',fill:'backwards'}); });
+      }
+    }catch(_e){}
   }catch(e){
     console.error('[openUserProfile]',e);
     if(_profileViewingId===userId) el.innerHTML='<div style="padding:60px 16px;text-align:center;color:var(--muted);font-size:14px">error cargando perfil</div>';
