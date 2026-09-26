@@ -12964,21 +12964,24 @@ async function _rdPushSyncToken(){
   }catch(e){}
 }
 (function _rdAskPushOnHome(){
-  try{ if(localStorage.getItem('rd_push_asked')==='1') return; }catch(e){}
+  // [fix "no sale en ajustes"] antes un flag rd_push_asked se guardaba ANTES de que iOS
+  // mostrara el aviso: si ese intento fallaba, nunca se volvía a pedir permiso y la app
+  // no aparecía en Ajustes → Notificaciones. Ahora se decide solo por el estado real:
+  // mientras sea 'prompt' se pide (iOS lo muestra una sola vez; luego queda granted/denied).
   let tries=0;
   const iv=setInterval(async()=>{
     if(++tries>180){ clearInterval(iv); return; } // 3 min máximo esperando el momento
     try{
       if(typeof _isNativeApp!=='function'||!_isNativeApp()) { clearInterval(iv); return; }
       if(typeof currentView==='undefined'||currentView!=='home') return;
-      if(document.getElementById('rd-intro')||document.getElementById('boot-splash')||document.getElementById('login-splash')) return;
+      const _vis=id=>{const e=document.getElementById(id);return !!(e&&e.getClientRects().length&&getComputedStyle(e).display!=='none');};
+      if(_vis('rd-intro')||_vis('boot-splash')||_vis('login-splash')) return;
       const au=document.getElementById('auth-sheet'); if(au&&au.classList.contains('open')) return;
       clearInterval(iv);
       await new Promise(r=>setTimeout(r,1200)); // deja respirar el inicio antes del aviso
       const PushNotifications=window._rdCapPlugin('PushNotifications');
       if(!PushNotifications) return;
       let perm=await PushNotifications.checkPermissions();
-      try{ localStorage.setItem('rd_push_asked','1'); }catch(e){}
       if(perm.receive==='prompt'||perm.receive==='prompt-with-rationale') perm=await PushNotifications.requestPermissions();
       if(perm.receive==='granted') _rdPushSyncToken();
     }catch(e){ clearInterval(iv); }
