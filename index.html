@@ -105,7 +105,13 @@ function _rdMountSplash(frame, src){
   // embebidas) y las 6 letras salen de la bandera entre 0,94 s y 1,12 s, una cada 36 ms.
   try{
     var _rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(!_rm) frame.addEventListener('load', function(){ setTimeout(function(){ if(window._rdHapticWave) window._rdHapticWave(6,36); }, 990); }, {once:true});
+    // ritmo fintech: toque medio al salir la primera letra, dos suaves mientras se abren
+    // y uno medio de cierre cuando "ruedda" queda armado.
+    if(!_rm) frame.addEventListener('load', function(){
+      [[990,'MEDIUM'],[1120,'LIGHT'],[1250,'LIGHT'],[1450,'MEDIUM']].forEach(function(h){
+        setTimeout(function(){ if(window._rdHapticNow) window._rdHapticNow(h[1]); }, h[0]);
+      });
+    }, {once:true});
   }catch(e){}
   return new Promise(function(res){
     function onMsg(e){
