@@ -11118,7 +11118,7 @@ function markNotifRead(id){
 
 // ===================== SEARCH =====================
 
-function openSearch(){document.getElementById('search-overlay').classList.add('open');setTimeout(()=>document.getElementById('search-input').focus(),150);_loadMarcaLogos().then(_renderSearchPopMarcas);}
+function openSearch(){document.getElementById('search-overlay').classList.add('open');/* sin autofocus: el teclado sale solo al tocar el campo */_loadMarcaLogos().then(_renderSearchPopMarcas);}
 function closeSearch(){document.getElementById('search-overlay').classList.remove('open');document.getElementById('search-input').value='';_resetSearchBudget();resetSearchResults()}
 function resetSearchResults(){
   document.getElementById('search-results').innerHTML=`<div class="search-cat-label" style="margin-bottom:8px">categorías rápidas</div>
@@ -16485,6 +16485,14 @@ function goHome(){
                 : currentView==='marcas' ? _rdExitMarcas
                 : null;
   if(typeof _exitFn==='function'){ _exitFn(); return; }
+  // [pedido explícito] desde cualquier otra parte de la app (comunidad,
+  // notificaciones, cuenta...), la casita usa el mismo splash elegante
+  // "volviendo a market" que el botón volver de una publicación: el inicio
+  // se pinta tapado y aparece ya listo, sin tirones.
+  if(currentView!=='home'){
+    _rdSwipeExitSplash('volviendo a market','',()=>{ window._homeSectionOverride='market'; showView('home'); });
+    return;
+  }
   // [RC10] la casita ahora es "ir a market" de forma explícita — siempre el
   // mismo destino sin importar en qué sección estés, para que la coreografía
   // de entrada se pueda ver cada vez que quieras, tocando desde cualquier lado.
