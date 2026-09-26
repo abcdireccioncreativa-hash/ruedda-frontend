@@ -8904,7 +8904,7 @@ function renderTrendingHoy(){
     const title=isSubasta?item.title:`${item.year} ${item.marca||''} ${item.modelo||item.title}`;
     return `
     <div class="trending-cell" style="animation:rdvIn .6s cubic-bezier(.22,.61,.36,1) ${i*70}ms both" onclick="${isSubasta?`openDetail('${item.id}')`:`openMarketDetail('${item.id}')`}">
-      ${photoUrl?`<img src="${_tImg(photoUrl,{width:420})}" loading="lazy" decoding="async" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
+      ${photoUrl?`<img src="${_tImg(photoUrl,{width:900})}" loading="lazy" decoding="async" style="opacity:0;transition:opacity .5s ease" onload="this.style.opacity='1'">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
       <div class="trending-rank">#${i+1}</div>
       <div class="trending-info">
         <div class="trending-price">${fmtBid(precio)}</div>
