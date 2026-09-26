@@ -828,7 +828,7 @@ html.rd-safari-tab .bottom-nav{box-shadow:0 5px 18px rgba(0,0,0,.4),inset 0 1px 
 #bnav-ruedda img{opacity:.55;transition:opacity .2s}
 #bnav-ruedda.active img,#bnav-ruedda:active img{opacity:1}
 #bnav-favoritos svg{width:25px;height:25px}
-.notif-dot{position:absolute;top:8px;right:12px;width:9px;height:9px;border-radius:50%;background:var(--lime);border:0}
+.notif-dot{position:absolute;top:8px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--lime);border:0}
 
 /* VIEWS */
 .view{display:none}
@@ -2664,6 +2664,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     }, 460);
   }
 
+  // para que el login/registro abierto encima del intro pueda cerrarlo al terminar
+  window._rdIntroDismiss = function(){ try{ dismiss(); }catch(e){} };
+
   document.getElementById('rd-intro-skip').addEventListener('click', function(){
     try{ window.open('https://www.instagram.com/ruedda.app','_blank','noopener'); }catch(e){}
   });
@@ -2687,13 +2690,13 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       }catch(e){}
     }
     function isOpen(){ var s = document.getElementById('auth-sheet'); return !!(s && s.classList.contains('open')); }
-    try{
-      window._homeSectionOverride = 'market';
-      if(typeof showView === 'function') showView('home');
-    }catch(e){}
+    // [pedido explícito] el formulario sale ENCIMA del intro (no lo cierra): si lo
+    // cierras vuelves al intro; si creas la cuenta, el splash tapa todo y
+    // aterrizas en el market (ver completeAuth / _rueddaRegister).
+    try{ window._homeSectionOverride = 'market'; if(typeof showView === 'function') showView('home'); }catch(e){}
+    var sh = document.getElementById('auth-sheet'); if(sh) sh.style.zIndex = '100010';
     openReg();
-    dismiss(function(){ if(!isOpen()) openReg(); });
-    setTimeout(function(){ if(!isOpen()) openReg(); }, 900); // red de seguridad
+    setTimeout(function(){ if(!isOpen()){ if(sh) sh.style.zIndex = '100010'; openReg(); } }, 600); // red de seguridad
   });
 
   /* ── swipe / tap en la zona de la foto ────────────────────── */
@@ -6580,23 +6583,26 @@ function showView(name,param){
 // llega al tope con impulso, el inicio hace un rebote corto con resorte,
 // proporcional a la velocidad. Solo en la app — en Safari el rebote es nativo.
 (function(){
-  let lastY=window.scrollY, lastT=performance.now(), vel=0, busy=false;
+  let busy=false; const hist=[]; // [t, y] de los últimos ~140ms
   window.addEventListener('scroll',()=>{
-    const now=performance.now(), y=window.scrollY, dt=Math.max(1,now-lastT);
-    vel=(y-lastY)/dt; lastY=y; lastT=now;
-    if(y<=0 && vel<-0.9 && !busy){
-      try{
-        if(typeof _isNativeApp!=='function'||!_isNativeApp()) return;
-        if(typeof currentView==='undefined'||currentView!=='home') return;
-        const vh=document.getElementById('view-home');
-        if(!vh||vh.style.transform||!vh.animate) return; // pull-to-refresh en curso
-        if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        busy=true;
-        const d=Math.min(34, Math.abs(vel)*9);
-        const a=vh.animate([{transform:'translateY(0)'},{transform:'translateY('+d+'px)',offset:.35},{transform:'translateY(-2px)',offset:.75},{transform:'translateY(0)'}],{duration:520,easing:'cubic-bezier(.22,.61,.36,1)'});
-        a.onfinish=a.oncancel=()=>{ busy=false; };
-      }catch(e){ busy=false; }
-    }
+    const now=performance.now(), y=window.scrollY;
+    hist.push([now,y]); while(hist.length&&now-hist[0][0]>140) hist.shift();
+    if(y>0||busy||hist.length<2) return;
+    const travelled=hist[0][1]-y, dt=Math.max(16,now-hist[0][0]);
+    const vel=travelled/dt; // px/ms hacia arriba
+    if(travelled<40||vel<0.35) return;
+    try{
+      if(typeof _isNativeApp!=='function'||!_isNativeApp()) return;
+      if(typeof currentView==='undefined'||currentView!=='home') return;
+      const vh=document.getElementById('view-home');
+      if(!vh||!vh.animate) return;
+      const tf=vh.style.transform; if(tf&&tf!=='translateY(0px)'&&tf!=='translateY(0)') return; // pull-to-refresh en curso
+      if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      busy=true; hist.length=0;
+      const d=Math.max(10,Math.min(36, vel*14));
+      const a=vh.animate([{transform:'translateY(0)'},{transform:'translateY('+d+'px)',offset:.32},{transform:'translateY(-2px)',offset:.72},{transform:'translateY(0)'}],{duration:540,easing:'cubic-bezier(.22,.61,.36,1)'});
+      a.onfinish=a.oncancel=()=>{ busy=false; };
+    }catch(e){ busy=false; }
   },{passive:true});
 })();
 let _navigatingFromPopstate=false;
@@ -16922,7 +16928,7 @@ function closeAuthSheet(){
   const el=document.getElementById('auth-sheet');
   if(!el)return;
   el.classList.remove('open');
-  setTimeout(()=>{ el.style.display='none'; },350);
+  setTimeout(()=>{ el.style.display='none'; el.style.zIndex=''; },350);
 }
 let _rememberChecked=false;
 function _toggleRemember(){
@@ -17234,9 +17240,12 @@ async function completeAuth(){
   if(btn){btn.textContent='cargando...';btn.disabled=true;}
   // [V83] splash idéntico para ambos flujos — registro muestra "Creando cuenta"
   _showLoadingSplash(authMode==='register'?'Creando cuenta':'Iniciando sesión');
+  const _overIntro=!!document.getElementById('rd-intro');
+  if(_overIntro){ const _ls=document.getElementById('login-splash'); if(_ls) _ls.style.zIndex='100020'; }
   try{
     if(authMode==='register') await _rueddaRegister(email,pass);
     else await _rueddaLogin(email,pass);
+    if(_overIntro&&document.getElementById('rd-intro')&&typeof window._rdIntroDismiss==='function') window._rdIntroDismiss();
   }catch(e){
     console.error('[ruedda auth]',e);
     // remueve loading splash si falla
