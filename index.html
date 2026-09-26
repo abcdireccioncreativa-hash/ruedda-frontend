@@ -423,8 +423,9 @@ html{scrollbar-width:none}
 /* [pedido explícito, igual que desktop] Vender siempre blanco/negro en
    modo oscuro, sin importar el color de marca elegido — el resto de los
    botones sigue usando --lime/--lime-ink normal. */
-html:not([data-theme="light"]) .btn-vender{background:#e6f03b;color:#000}
-html:not([data-theme="light"]) .btn-vender:active{background:#c7cf22}
+html:not([data-theme="light"]) .btn-vender{background:#fff;color:#000}
+html:not([data-theme="light"]) .btn-vender:active{background:#e8e8e8}
+html:not([data-theme="light"]) .notif-dot{background:#e6f03b}
 
 /* VENDER TYPE MODAL */
 .vender-modal{display:none;position:fixed;inset:0;z-index:300;align-items:flex-end;background:rgba(0,0,0,.55);opacity:0;transition:opacity .42s cubic-bezier(.32,.72,0,1);color:var(--white)}
