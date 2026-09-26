@@ -592,8 +592,9 @@ html:not([data-theme="light"]) .btn-vender:active{background:#c7cf22}
 .market-grid.mode-switching{opacity:0}
 ::view-transition-group(*){animation-duration:.42s;animation-timing-function:cubic-bezier(.32,.72,0,1)}
 ::view-transition-old(*),::view-transition-new(*){animation-duration:.3s;height:100%;object-fit:cover}
-/* volver a inicio liviano: las entradas en cascada solo corren la primera vez */
-#view-home.rd-warm .rdv,#view-home.rd-warm .market-card,#view-home.rd-warm .auction-card,#view-home.rd-warm .trending-cell,#view-home.rd-warm .dealer-card{animation:none!important}
+/* volver a inicio liviano: la cascada por bloques (.rdv) sigue; lo que se apaga
+   es la animación individual de cada tarjeta (cientos con scroll infinito) */
+#view-home.rd-warm .market-card,#view-home.rd-warm .auction-card,#view-home.rd-warm .dealer-card{animation:none!important}
 
 .market-card{background:var(--card);border-radius:20px;overflow:hidden;cursor:pointer;border:1px solid var(--border);transition:transform .18s,border-color .2s;animation:fadeUp .3s ease both;display:flex;flex-direction:column;text-align:left}
 .market-card:active{transform:scale(.97)}
