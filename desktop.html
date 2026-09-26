@@ -17020,7 +17020,7 @@ async function openUserProfile(userId){
       _supa.from('comments').select('*',{count:'exact',head:true}).eq('user_id',userId),
       _supa.from('carspotting').select('*',{count:'exact',head:true}).eq('user_id',userId),
       // [RC V5] "carros publicados" — sus listings y subastas ACTIVAS ahora mismo (no solo vendidas)
-      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,listing_photos(url,orden)').eq('user_id',userId).eq('estado','activa').order('created_at',{ascending:false}).limit(12),
+      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,listing_photos(url,orden)').eq('user_id',userId).eq('estado','activa').or('vendido.is.null,vendido.eq.false').order('created_at',{ascending:false}).limit(12),
       _supa.from('auctions').select('id,titulo,marca,modelo,year,current_bid,end_time,auction_photos(url,orden)').eq('user_id',userId).eq('estado','activa').order('created_at',{ascending:false}).limit(12),
       // [XP/niveles] conteos exactos (sin límite) para la fórmula de XP — mismo peso que compute_user_xp() en la DB
       _supa.from('listings').select('*',{count:'exact',head:true}).eq('user_id',userId).eq('estado','activa'),
