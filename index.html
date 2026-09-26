@@ -7548,12 +7548,39 @@ function setMarketCity(key){
   closeCitySheet();
   try{ const g=document.getElementById('market-grid'); if(g&&key) g.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
 }
-// [ciudad] mapa de Google embebido (sin API key): Venezuela, una ciudad o tu ubicación
-function _rdMapUrl(o){
-  let q='Venezuela', z=5;
-  if(o&&o.lat!=null){ q=o.lat.toFixed(4)+','+o.lng.toFixed(4); z=12; }
-  else if(o&&o.city&&RD_CITIES[o.city]){ q=RD_CITIES[o.city][2]+', Venezuela'; z=11; }
-  return 'https://maps.google.com/maps?q='+encodeURIComponent(q)+'&z='+z+'&hl=es&output=embed';
+// [ciudad] mapa limpio (Leaflet + CARTO): se carga solo la primera vez que se abre la hoja
+let _rdLeafletP=null, _rdMap=null, _rdMeMarker=null;
+function _rdLoadLeaflet(){
+  if(window.L) return Promise.resolve(window.L);
+  if(_rdLeafletP) return _rdLeafletP;
+  _rdLeafletP=new Promise((res,rej)=>{
+    const css=document.createElement('link'); css.rel='stylesheet'; css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(css);
+    const js=document.createElement('script'); js.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'; js.async=true;
+    js.onload=()=>res(window.L); js.onerror=()=>{ _rdLeafletP=null; rej(new Error('leaflet')); };
+    document.head.appendChild(js);
+  });
+  return _rdLeafletP;
+}
+function _rdInitCityMap(sel,cnt){
+  const el=document.getElementById('rd-map-el'); if(!el) return;
+  _rdLoadLeaflet().then(L=>{
+    if(!document.body.contains(el)) return;
+    const light=document.documentElement.getAttribute('data-theme')==='light';
+    _rdMap=L.map(el,{zoomControl:false,attributionControl:true,scrollWheelZoom:false,tap:true}).setView([7.6,-66.2],5);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/'+(light?'light_all':'dark_all')+'/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:18,attribution:'© OpenStreetMap © CARTO'}).addTo(_rdMap);
+    _rdMap.attributionControl.setPrefix(false);
+    const max=Math.max(1,...Object.values(cnt)); const pts=[];
+    Object.entries(cnt).forEach(([k,n])=>{
+      const c=RD_CITIES[k]; if(!c) return;
+      const d=Math.round(24+14*Math.sqrt(n/max));
+      L.marker([c[0],c[1]],{icon:L.divIcon({className:'rd-pin'+(sel===k?' sel':''),html:'<span>'+n+'</span>',iconSize:[d,d],iconAnchor:[d/2,d/2]}),keyboard:false})
+        .on('click',()=>{ _rdHaptic('LIGHT'); setMarketCity(k); }).addTo(_rdMap);
+      pts.push([c[0],c[1]]);
+    });
+    if(sel&&RD_CITIES[sel]) _rdMap.setView([RD_CITIES[sel][0],RD_CITIES[sel][1]],9);
+    else if(pts.length>1) _rdMap.fitBounds(pts,{padding:[34,34],maxZoom:8});
+    setTimeout(()=>{ try{ _rdMap&&_rdMap.invalidateSize(); }catch(e){} },340); // tras la animación de la hoja
+  }).catch(()=>{ el.innerHTML='<div class="rd-map-off">el mapa no cargó · elige tu ciudad abajo</div>'; });
 }
 function _rdHaptic(style){
   try{ const H=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Haptics; if(H&&H.impact) H.impact({style:style||'LIGHT'}); else if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
@@ -7572,34 +7599,40 @@ function openCitySheet(){
       <div style="font-size:13px;color:var(--muted);margin-top:5px">${total} carros publicados en ${Object.keys(cnt).length} ciudades · toca un punto</div></div>
       <button type="button" onclick="closeCitySheet()" aria-label="cerrar" style="background:var(--w6);border:none;color:var(--w60);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;cursor:pointer;flex-shrink:0"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="width:14px;height:14px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
     </div>
-    <div class="rd-map"><iframe id="rd-map-frame" src="${_rdMapUrl(sel?{city:sel}:null)}" title="mapa" loading="eager" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe><img class="rd-map-flag" src="${RD_IMG.extra}" alt="Ruedda"></div>
+    <div class="rd-map"><div id="rd-map-el"></div><img class="rd-map-flag" src="${RD_IMG.extra}" alt="Ruedda"></div>
     <button type="button" class="rd-city-near" onclick="_rdNearestCity(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>usar mi ubicación</button>
     <div class="rd-city-list">${sel?`<div class="rd-city-row rd-city-in" onclick="setMarketCity(null)"><b>todas las ciudades</b><span class="cnt">${total} carros</span></div>`:''}${rows}</div>
   </div>`;
   ov.addEventListener('click',e=>{ if(e.target===ov) closeCitySheet(); });
   document.body.appendChild(ov);
   requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('on')));
+  _rdInitCityMap(sel,cnt);
 }
-function closeCitySheet(){ const ov=document.getElementById('rd-city-sheet'); if(!ov) return; ov.classList.remove('on'); setTimeout(()=>ov.remove(),300); }
+function closeCitySheet(){ const ov=document.getElementById('rd-city-sheet'); if(!ov) return; ov.classList.remove('on'); setTimeout(()=>{ try{ if(_rdMap){ _rdMap.remove(); _rdMap=null; _rdMeMarker=null; } }catch(e){} ov.remove(); },300); }
 function _rdNearestCity(btn){
   _rdHaptic('LIGHT');
-  const reset=()=>{ btn.disabled=false; btn.innerHTML=btn.dataset.html||'usar mi ubicación'; };
+  if(btn.disabled) return;
+  const orig=btn.innerHTML;
+  let done=false;
+  const reset=msg=>{ if(done) return; done=true; clearTimeout(guard); btn.disabled=false; btn.innerHTML=orig; if(msg) showToast(msg); };
   if(!navigator.geolocation){ showToast('tu dispositivo no comparte ubicación'); return; }
-  btn.dataset.html=btn.innerHTML; btn.disabled=true; btn.textContent='buscando tu ubicación…';
+  btn.disabled=true; btn.textContent='buscando tu ubicación…';
+  // tope propio: algunos WebView nunca responden si el permiso no está disponible
+  const guard=setTimeout(()=>reset('no pudimos obtener tu ubicación · elige tu ciudad en la lista'),9000);
   navigator.geolocation.getCurrentPosition(pos=>{
+    if(done) return; done=true; clearTimeout(guard);
     const lat=pos.coords.latitude, lng=pos.coords.longitude;
-    const fr=document.getElementById('rd-map-frame'); if(fr) fr.src=_rdMapUrl({lat,lng});
+    try{ if(_rdMap&&window.L){ if(_rdMeMarker) _rdMeMarker.remove(); _rdMeMarker=L.circleMarker([lat,lng],{radius:7,color:'#fff',weight:2,fillColor:'#2f80ed',fillOpacity:1}).addTo(_rdMap); _rdMap.flyTo([lat,lng],9,{duration:.8}); } }catch(e){}
     const cnt=_rdCityCounts(); let best=null,bd=1e9;
     Object.keys(cnt).forEach(k=>{ const c=RD_CITIES[k]; if(!c) return; const d=(c[0]-lat)**2+(c[1]-lng)**2; if(d<bd){bd=d;best=k;} });
-    if(!best){ reset(); showToast('no hay carros cerca todavía'); return; }
+    if(!best){ btn.disabled=false; btn.innerHTML=orig; showToast('no hay carros cerca todavía'); return; }
     document.querySelectorAll('.rd-city-row').forEach(r=>r.classList.toggle('sel',r.getAttribute('onclick')==="setMarketCity('"+best+"')"));
     btn.textContent='más cerca: '+RD_CITIES[best][2];
     _rdHaptic('MEDIUM');
-    setTimeout(()=>setMarketCity(best),1400); // deja ver el mapa en tu ubicación antes de filtrar
+    setTimeout(()=>setMarketCity(best),1500);
   },err=>{
-    reset();
-    showToast(err&&err.code===1?'permite la ubicación para Ruedda en Ajustes':'no pudimos obtener tu ubicación, intenta de nuevo');
-  },{enableHighAccuracy:false,timeout:10000,maximumAge:600000});
+    reset(err&&err.code===1?'permite la ubicación para Ruedda en Ajustes':'no pudimos obtener tu ubicación · elige tu ciudad en la lista');
+  },{enableHighAccuracy:false,timeout:8000,maximumAge:600000});
 }
 function mktPill(el,cat){
   document.querySelectorAll('.mkt-pill').forEach(p=>p.classList.remove('active'));
@@ -23165,10 +23198,17 @@ html:not([data-theme="light"]) #login-splash .rd-wel-track{stroke:rgba(230,240,5
   box-shadow:inset 0 1px 0 var(--w12);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1)}
 #rd-city-sheet.on #rd-city-inner{transform:none}
 .rd-map{position:relative;margin-top:16px;border-radius:22px;overflow:hidden;aspect-ratio:16/11;background:var(--w5);border:1px solid var(--w8)}
-.rd-map iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-/* en oscuro el mapa se ve en tonos oscuros para no encandilar */
-html:not([data-theme="light"]) .rd-map iframe{filter:invert(.92) hue-rotate(180deg) saturate(.7) brightness(.95) contrast(.95)}
-.rd-map-flag{position:absolute;top:10px;right:10px;width:30px;height:30px;padding:7px;box-sizing:border-box;object-fit:contain;border-radius:50%;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none;z-index:2}
+#rd-map-el{position:absolute;inset:0;background:var(--w5);z-index:0}
+#rd-map-el .leaflet-container,#rd-map-el{font-family:var(--font)}
+.rd-pin{display:grid;place-items:center;border-radius:50%;background:#e6f03b;color:#0a0a0a;font-weight:800;font-size:12px;box-shadow:0 0 0 2px rgba(0,0,0,.55),0 4px 12px rgba(0,0,0,.35);cursor:pointer;font-variant-numeric:tabular-nums}
+.rd-pin.sel{background:#fff}
+.rd-pin span{line-height:1}
+#rd-map-el .leaflet-control-attribution{background:rgba(0,0,0,.35);color:rgba(255,255,255,.55);font-size:8.5px;padding:1px 6px;border-radius:6px 0 0 0}
+#rd-map-el .leaflet-control-attribution a{color:inherit}
+html[data-theme="light"] #rd-map-el .leaflet-control-attribution{background:rgba(255,255,255,.6);color:rgba(0,0,0,.5)}
+.rd-map-off{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;color:var(--muted);text-align:center;padding:20px}
+.rd-map-flag{position:absolute;top:12px;right:13px;width:17px;height:auto;pointer-events:none;z-index:500;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6))}
+html[data-theme="light"] .rd-map-flag{filter:invert(1) drop-shadow(0 1px 2px rgba(255,255,255,.6))}
 
 .rd-city-near{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px;height:48px;border-radius:14px;border:1px solid var(--w12);background:var(--w5);color:var(--white);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer}
 .rd-city-near svg{width:17px;height:17px}
