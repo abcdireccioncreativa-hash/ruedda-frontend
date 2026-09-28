@@ -14,13 +14,6 @@
       "continue": true
     },
     {
-      "src": "^/maintenance\\.js$",
-      "headers": {
-        "Cache-Control": "no-cache, no-store, must-revalidate"
-      },
-      "continue": true
-    },
-    {
       "src": "^/\\.well-known/apple-app-site-association$",
       "headers": {
         "Content-Type": "application/json",
