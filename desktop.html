@@ -11280,7 +11280,9 @@ async function _uploadVenderVideos(recordId,userId,isListing=false){
 // devuelve error → imágenes rotas. Mientras esté en false, _tImg devuelve la URL
 // original intacta (full calidad) y la app funciona normal. Al actualizar a Pro,
 // cambia esta línea a true y despliega — nada más que tocar.
-window.RUEDDA_IMG_TRANSFORMS = true;
+// [2026-09-28] OFF: el proyecto volvió a plan Free (/render/ responde 403 FeatureNotEnabled).
+// Se sirven las fotos originales tal cual están en Storage. Al volver a Pro: poner true.
+window.RUEDDA_IMG_TRANSFORMS = false;
 // ────────────────────────────────────────────────────────────────────────────
 
 // [perf/calidad] _tImg: reescribe una URL pública de Supabase Storage a su endpoint
