@@ -43,6 +43,14 @@
       "continue": true
     },
     {
+      "src": "^/control/?$",
+      "headers": {
+        "Cache-Control": "no-cache",
+        "X-Robots-Tag": "noindex, nofollow"
+      },
+      "dest": "/control.html"
+    },
+    {
       "src": "^/repuestos$",
       "status": 308,
       "headers": {

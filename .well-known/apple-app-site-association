@@ -2,13 +2,33 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["9VNWQFG295.com.cubica.ruedda"],
+        "appIDs": [
+          "9VNWQFG295.com.cubica.ruedda"
+        ],
         "components": [
-          { "/": "/api/*", "exclude": true },
-          { "/": "/repuestos*", "exclude": true },
-          { "/": "/splash/*", "exclude": true },
-          { "/": "/*.html", "exclude": true },
-          { "/": "/*" }
+          {
+            "/": "/control*",
+            "exclude": true
+          },
+          {
+            "/": "/api/*",
+            "exclude": true
+          },
+          {
+            "/": "/repuestos*",
+            "exclude": true
+          },
+          {
+            "/": "/splash/*",
+            "exclude": true
+          },
+          {
+            "/": "/*.html",
+            "exclude": true
+          },
+          {
+            "/": "/*"
+          }
         ]
       }
     ]

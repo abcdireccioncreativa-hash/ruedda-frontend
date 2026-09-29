@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#f5f5f7">
+<title>Ruedda Control</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preconnect" href="https://ltodsegzbbdcaublkgtp.supabase.co" crossorigin>
+<link rel="preconnect" href="https://ltodsegzbbdcaublkgtp.supabase.co">
+<style>
+:root{
+  --bg:#f5f5f7;--panel:#fff;--ink:#1d1d1f;--ink2:#424245;--mute:#6e6e73;--mute2:#86868b;
+  --line:#e8e8ed;--line2:#d2d2d7;--hover:#f0f0f3;--blue:#0071e3;--blue-bg:#e8f1fc;
+  --green:#1d8a3a;--green-bg:#e7f6ea;--red:#d70015;--red-bg:#fdebed;--orange:#c25e00;--orange-bg:#fff2e0;
+  --brand:#e6f03b;--r:14px;--r-sm:10px;--sh:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.04);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--blue);text-decoration:none}
+.num{font-variant-numeric:tabular-nums}
+.hidden{display:none!important}
+
+/* ── login ── */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{width:100%;max-width:380px;background:var(--panel);border-radius:20px;box-shadow:var(--sh);border:1px solid var(--line);padding:40px 32px 32px}
+.login-card img{height:30px;display:block;margin-bottom:28px}
+.login-card h1{font-size:24px;font-weight:600;letter-spacing:-.02em}
+.login-card p{color:var(--mute);margin:6px 0 24px;line-height:1.45}
+.field{display:block;margin-bottom:12px}
+.field span{display:block;font-size:12px;font-weight:600;color:var(--mute);margin-bottom:6px}
+.input{width:100%;height:44px;border-radius:var(--r-sm);border:1px solid var(--line2);background:#fff;padding:0 14px;font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s}
+.input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(0,113,227,.15)}
+textarea.input{height:auto;padding:12px 14px;resize:vertical;line-height:1.45}
+select.input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2386868b' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;padding:0 16px;border-radius:999px;font-size:13.5px;font-weight:600;transition:background .15s,opacity .15s,transform .1s;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn-primary{background:var(--ink);color:#fff}.btn-primary:hover{background:#000}
+.btn-blue{background:var(--blue);color:#fff}.btn-blue:hover{background:#0077ed}
+.btn-soft{background:var(--hover);color:var(--ink)}.btn-soft:hover{background:#e8e8ed}
+.btn-green{background:var(--green-bg);color:var(--green)}.btn-green:hover{background:#d9f0de}
+.btn-red{background:var(--red-bg);color:var(--red)}.btn-red:hover{background:#fbdde1}
+.btn-lg{height:46px;width:100%;font-size:15px}
+.login-err{color:var(--red);font-size:13px;min-height:18px;margin:4px 0 8px}
+
+/* ── shell ── */
+#app{display:grid;grid-template-columns:252px 1fr;min-height:100vh}
+aside{position:sticky;top:0;height:100vh;overflow-y:auto;background:rgba(251,251,253,.9);border-right:1px solid var(--line);padding:22px 14px 18px;display:flex;flex-direction:column}
+aside .logo{height:22px;margin:4px 10px 26px;display:block}
+.nav-h{font-size:11px;font-weight:600;color:var(--mute2);text-transform:uppercase;letter-spacing:.06em;margin:18px 10px 6px}
+.nav a{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:8px;color:var(--ink2);font-size:13.5px;font-weight:500;transition:background .12s}
+.nav a:hover{background:var(--hover)}
+.nav a.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.06),0 0 0 1px var(--line)}
+.nav a svg{width:17px;height:17px;flex-shrink:0;color:var(--mute)}
+.nav a.on svg{color:var(--ink)}
+.nav .badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--red);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.nav .badge.zero{display:none}
+.aside-foot{margin-top:auto;padding:14px 10px 0;border-top:1px solid var(--line);font-size:12px;color:var(--mute);line-height:1.5}
+.aside-foot b{color:var(--ink2);font-weight:600;display:block;overflow:hidden;text-overflow:ellipsis}
+.aside-foot button{color:var(--blue);font-size:12px;font-weight:600;margin-top:6px}
+main{min-width:0}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(245,245,247,.82);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid transparent;padding:18px 32px 14px;display:flex;align-items:center;gap:14px}
+.topbar.scrolled{border-bottom-color:var(--line)}
+.topbar h2{font-size:26px;font-weight:600;letter-spacing:-.025em}
+.topbar .sub{font-size:12.5px;color:var(--mute);margin-top:2px}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.live{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--mute)}
+.live i{width:7px;height:7px;border-radius:50%;background:#30d158;box-shadow:0 0 0 0 rgba(48,209,88,.5);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(48,209,88,.45)}70%{box-shadow:0 0 0 7px rgba(48,209,88,0)}100%{box-shadow:0 0 0 0 rgba(48,209,88,0)}}
+.menu-btn{display:none;width:36px;height:36px;border-radius:10px;align-items:center;justify-content:center}
+.menu-btn:hover{background:var(--hover)}
+.content{padding:6px 32px 60px;max-width:1320px}
+
+/* ── cards / kpis ── */
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g21{grid-template-columns:2fr 1fr}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+.card-h{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px}
+.card-h h3{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.card-h .muted{font-size:12px}
+.card-b{padding:4px 18px 18px}
+.kpi{padding:16px 18px 14px;position:relative;overflow:hidden}
+.kpi .l{font-size:12px;font-weight:500;color:var(--mute);display:flex;align-items:center;gap:6px}
+.kpi .v{font-size:32px;font-weight:600;letter-spacing:-.03em;margin-top:8px;line-height:1.05}
+.kpi .d{font-size:12px;margin-top:6px;color:var(--mute)}
+.kpi .d .up{color:var(--green);font-weight:600}.kpi .d .dn{color:var(--red);font-weight:600}
+.kpi svg.spark{position:absolute;right:14px;bottom:14px;width:88px;height:30px}
+.section-t{font-size:13px;font-weight:600;color:var(--mute);margin:26px 2px 10px;display:flex;align-items:center;gap:8px}
+.muted{color:var(--mute)}
+.skel{background:linear-gradient(90deg,#efeff2 0,#f7f7f9 50%,#efeff2 100%);background-size:200% 100%;animation:sk 1.3s infinite;border-radius:8px;color:transparent!important}
+@keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
+
+/* queue */
+.queue a{display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--line);color:var(--ink);transition:background .12s}
+.queue a:first-child{border-top:0}
+.queue a:hover{background:#fafafa}
+.queue .qi{width:32px;height:32px;border-radius:9px;background:var(--hover);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.queue .qi svg{width:16px;height:16px;color:var(--ink2)}
+.queue .qn{margin-left:auto;font-size:20px;font-weight:600;letter-spacing:-.02em}
+.queue .qn.hot{color:var(--red)}
+.queue small{display:block;color:var(--mute);font-size:12px;margin-top:1px}
+
+/* chart */
+.bars{display:flex;align-items:flex-end;gap:3px;height:120px;padding-top:6px}
+.bars div{flex:1;background:#1d1d1f;border-radius:3px 3px 0 0;min-height:2px;opacity:.85;transition:opacity .15s;position:relative}
+.bars div:hover{opacity:1}
+.bars div.today{background:var(--blue)}
+.bars div[data-t]:hover::after{content:attr(data-t);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:11px;padding:4px 8px;border-radius:6px;white-space:nowrap;z-index:2}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:var(--mute2);margin-top:6px}
+
+/* feed */
+.feed .ev{display:flex;gap:12px;padding:11px 18px;border-top:1px solid var(--line);align-items:flex-start}
+.feed .ev:first-child{border-top:0}
+.feed .dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--hover)}
+.feed .dot svg{width:14px;height:14px}
+.feed .t{font-size:13px;line-height:1.4}
+.feed .t b{font-weight:600}
+.feed .w{font-size:11.5px;color:var(--mute2);margin-top:2px}
+
+/* table */
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:4px 0 14px}
+.toolbar .input{height:36px;font-size:13.5px;max-width:320px}
+.seg{display:inline-flex;background:#e8e8ed;border-radius:9px;padding:2px}
+.seg button{height:30px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:500;color:var(--ink2)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1);font-weight:600}
+.tbl{width:100%;border-collapse:separate;border-spacing:0}
+.tbl th{position:sticky;top:0;text-align:left;font-size:11.5px;font-weight:600;color:var(--mute);padding:10px 14px;border-bottom:1px solid var(--line);background:#fcfcfd;white-space:nowrap}
+.tbl td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle;font-size:13.5px}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr{transition:background .1s}
+.tbl tbody tr.click{cursor:pointer}
+.tbl tbody tr.click:hover{background:#fafafc}
+.tbl .r{text-align:right}
+.tbl-wrap{overflow:auto;border-radius:var(--r)}
+.who{display:flex;align-items:center;gap:10px;min-width:0}
+.av{width:30px;height:30px;border-radius:50%;background:#e8e8ed;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--ink2);overflow:hidden;flex-shrink:0}
+.av img{width:100%;height:100%;object-fit:cover}
+.who .n{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.who .u{font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
+.thumb{width:52px;height:38px;border-radius:7px;background:#e8e8ed;object-fit:cover;display:block;flex-shrink:0}
+.pill{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--hover);color:var(--ink2);white-space:nowrap}
+.pill.g{background:var(--green-bg);color:var(--green)}.pill.r{background:var(--red-bg);color:var(--red)}
+.pill.o{background:var(--orange-bg);color:var(--orange)}.pill.b{background:var(--blue-bg);color:var(--blue)}
+.pill.k{background:var(--ink);color:#fff}
+.empty{padding:48px 20px;text-align:center;color:var(--mute)}
+.empty svg{width:34px;height:34px;color:var(--line2);margin-bottom:10px}
+.empty b{display:block;color:var(--ink2);font-weight:600;margin-bottom:4px;font-size:14px}
+.more{display:flex;justify-content:center;padding:14px}
+.notice{background:var(--orange-bg);color:#6b3a00;border-radius:var(--r-sm);padding:12px 14px;font-size:13px;line-height:1.5}
+.notice code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px;font-size:12px}
+
+/* item cards (queues) */
+.items{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.item{overflow:hidden;display:flex;flex-direction:column}
+.item .ph{aspect-ratio:16/10;background:#e8e8ed center/cover no-repeat;position:relative}
+.item .ph .pill{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px)}
+.item .ib{padding:14px 16px 10px;flex:1}
+.item .it{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.item .im{font-size:12.5px;color:var(--mute);margin-top:4px;line-height:1.45}
+.item .ia{display:flex;gap:8px;padding:0 16px 16px}
+.item .ia .btn{flex:1}
+
+/* modal / drawer */
+.ov{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.28);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;transition:opacity .2s}
+.ov.on{opacity:1}
+.modal{background:var(--panel);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.25);width:100%;max-width:640px;max-height:calc(100vh - 48px);display:flex;flex-direction:column;transform:translateY(10px) scale(.985);transition:transform .25s cubic-bezier(.22,1,.36,1)}
+.ov.on .modal{transform:none}
+.modal.wide{max-width:880px}
+.modal-h{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 14px;border-bottom:1px solid var(--line)}
+.modal-h h3{font-size:18px;font-weight:600;letter-spacing:-.02em}
+.modal-h .x{margin-left:auto;width:30px;height:30px;border-radius:50%;background:var(--hover);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-h .x svg{width:14px;height:14px}
+.modal-b{padding:18px 22px;overflow:auto}
+.modal-f{display:flex;gap:10px;justify-content:flex-end;padding:14px 22px;border-top:1px solid var(--line)}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:9px 16px;font-size:13.5px}
+.kv dt{color:var(--mute)}
+.kv dd{font-weight:500;word-break:break-word}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:14px}
+.gal img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:9px;cursor:zoom-in;background:#e8e8ed}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .full{grid-column:1/-1}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.switch input{appearance:none;-webkit-appearance:none;width:42px;height:26px;border-radius:13px;background:#e3e3e8;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .22s cubic-bezier(.22,1,.36,1)}
+.switch input:checked{background:#34c759}
+.switch input:checked::after{transform:translateX(16px)}
+#lightbox{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;padding:30px;cursor:zoom-out}
+#lightbox.on{display:flex}
+#lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+#toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;font-weight:500;opacity:0;transition:all .25s cubic-bezier(.22,1,.36,1);z-index:300;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#toast.err{background:var(--red)}
+
+@media (max-width:1100px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g21{grid-template-columns:1fr}}
+@media (max-width:860px){
+  #app{grid-template-columns:1fr}
+  aside{position:fixed;left:0;top:0;bottom:0;width:272px;z-index:50;transform:translateX(-100%);transition:transform .28s cubic-bezier(.22,1,.36,1);background:#fbfbfd;box-shadow:0 0 60px rgba(0,0,0,.15)}
+  body.nav-open aside{transform:none}
+  .menu-btn{display:flex}
+  .topbar{padding:14px 16px 12px}.topbar h2{font-size:22px}
+  .content{padding:4px 16px 50px}
+  .g3,.g2{grid-template-columns:1fr}
+  .kv{grid-template-columns:110px 1fr}
+  .form{grid-template-columns:1fr}
+  .live span{display:none}
+}
+@media (max-width:520px){.g4{grid-template-columns:1fr 1fr}.kpi .v{font-size:26px}.kpi svg.spark{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ═════ LOGIN ═════ -->
+<div id="login" class="hidden">
+  <form class="login-card" id="login-form" autocomplete="on">
+    <img src="/assets/ruedda-wordmark-negro.png" alt="Ruedda">
+    <h1>Ruedda Control</h1>
+    <p>Panel de administración. Inicia sesión una vez y tu navegador lo recordará.</p>
+    <label class="field"><span>Correo</span><input class="input" type="email" name="username" id="lg-email" autocomplete="username" value="empresa@ruedda.com" required></label>
+    <label class="field"><span>Contraseña</span><input class="input" type="password" name="password" id="lg-pass" autocomplete="current-password" required></label>
+    <div class="login-err" id="lg-err"></div>
+    <button class="btn btn-primary btn-lg" type="submit" id="lg-btn">Entrar</button>
+  </form>
+</div>
+
+<!-- ═════ APP ═════ -->
+<div id="app" class="hidden">
+  <aside id="aside">
+    <img class="logo" src="/assets/ruedda-wordmark-negro.png" alt="Ruedda">
+    <nav class="nav" id="nav"></nav>
+    <div class="aside-foot">
+      <b id="me-name">—</b><span id="me-mail"></span><br>
+      <button onclick="logout()">Cerrar sesión</button>
+    </div>
+  </aside>
+  <main id="main">
+    <div class="topbar" id="topbar">
+      <button class="menu-btn" onclick="document.body.classList.toggle('nav-open')" aria-label="menú"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <div><h2 id="page-t">Control</h2><div class="sub" id="page-s"></div></div>
+      <div class="right"><span class="live"><i></i><span id="upd">en vivo</span></span><button class="btn btn-soft" onclick="refresh(true)" title="actualizar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg></button></div>
+    </div>
+    <div class="content" id="view"></div>
+  </main>
+</div>
+<div id="lightbox" onclick="this.classList.remove('on')"><img alt=""></div>
+<div id="toast"></div>
+
+<script src="/vendor/supabase-js-2.116.0.min.js"></script>
+<script>
+'use strict';
+/* ════════════════════════════════════════════════════════════════
+   RUEDDA CONTROL — panel de superadmin (ruedda.app/control)
+   · Misma sesión que la app (storageKey 'ruedda-auth'), recordada.
+   · Todo dato pasa por RLS de Supabase (is_superadmin) y las acciones
+     sensibles por las APIs del servidor (/api/mod-listing, /api/verify-payment,
+     /api/admin-user), que vuelven a validar superadmin.
+   ════════════════════════════════════════════════════════════════ */
+const SB_URL='https://ltodsegzbbdcaublkgtp.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0b2RzZWd6YmJkY2F1YmxrZ3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjIwOTgsImV4cCI6MjA5NTI5ODA5OH0.WXbnE5_XfNwwVUtDGSWa6Voetcflcl7m2vDOpEofs_w';
+const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,storageKey:'ruedda-auth'}});
+const $=s=>document.querySelector(s);
+let ME=null;
+
+/* ── utilidades ── */
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf=new Intl.NumberFormat('es-VE');
+const n=v=>nf.format(Math.round(v||0));
+const usd=v=>v==null||v===''?'—':'$'+nf.format(Math.round(v));
+const DAY=864e5;
+const startOfDay=(d=new Date())=>{const x=new Date(d);x.setHours(0,0,0,0);return x;};
+function ago(ts){
+  if(!ts) return '—'; const s=(Date.now()-new Date(ts).getTime())/1000;
+  if(s<60) return 'hace un momento'; if(s<3600) return 'hace '+Math.floor(s/60)+' min';
+  if(s<86400) return 'hace '+Math.floor(s/3600)+' h'; if(s<86400*7) return 'hace '+Math.floor(s/86400)+' d';
+  return new Date(ts).toLocaleDateString('es-VE',{day:'numeric',month:'short',year:'numeric'});
+}
+const fdate=ts=>ts?new Date(ts).toLocaleString('es-VE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+function left(end){
+  const ms=new Date(end).getTime()-Date.now(); if(ms<=0) return 'finalizada';
+  const d=Math.floor(ms/DAY),h=Math.floor(ms%DAY/36e5),m=Math.floor(ms%36e5/6e4);
+  return d?`${d}d ${h}h`:h?`${h}h ${m}m`:`${m}m`;
+}
+function toast(msg,err){const t=$('#toast');t.textContent=msg;t.className='on'+(err?' err':'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='',2600);}
+function lightbox(src){const l=$('#lightbox');l.querySelector('img').src=src;l.classList.add('on');}
+function tImg(url,w){ // miniaturas vía el redimensionador de Supabase (plan Pro)
+  if(!url||typeof url!=='string'||url.indexOf('/storage/v1/object/public/')===-1) return url||'';
+  return url.replace('/storage/v1/object/public/','/storage/v1/render/image/public/')+'?width='+w+'&quality=75&resize=contain';
+}
+const initials=s=>esc((s||'?').trim().charAt(0).toUpperCase());
+const avatar=u=>`<div class="av">${u&&u.avatar_url?`<img src="${esc(tImg(u.avatar_url,80))}" alt="" loading="lazy">`:initials(u&&(u.nombre||u.username))}</div>`;
+const carName=x=>x?[x.year,x.marca,x.modelo].filter(Boolean).join(' ')||x.titulo||'vehículo':'vehículo';
+async function api(path,body){
+  const{data:{session}}=await sb.auth.getSession();
+  const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(session?.access_token||'')},body:JSON.stringify(body)});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok) throw new Error(j.error||('error '+r.status));
+  return j;
+}
+async function cnt(table,f){
+  let q=sb.from(table).select('*',{count:'exact',head:true}); if(f) q=f(q);
+  const{count,error}=await q; if(error) return {error}; return count||0;
+}
+async function usersMap(ids){
+  ids=[...new Set(ids.filter(Boolean))]; if(!ids.length) return {};
+  const{data}=await sb.from('users').select('id,nombre,username,email,avatar_url,kyc_verified,role,cedula,cedula_tipo,telefono,celular,ciudad').in('id',ids);
+  const m={}; (data||[]).forEach(u=>m[u.id]=u); return m;
+}
+const uname=u=>u?(u.nombre||u.username||u.email||'usuario'):'usuario';
+const I={
+  home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/>',
+  mod:'<path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/>',
+  kyc:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h4"/>',
+  pay:'<rect x="2.5" y="5.5" width="19" height="13" rx="2.5"/><path d="M2.5 10h19"/>',
+  key:'<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3"/>',
+  flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 20a6.5 6.5 0 0 0-3-5.5"/>',
+  car:'<path d="M5 17h14M3 13l2-5.5A2 2 0 0 1 6.9 6h10.2a2 2 0 0 1 1.9 1.5L21 13v4a1 1 0 0 1-1 1h-1.5M3 13v4a1 1 0 0 0 1 1h1.5M3 13h18"/><circle cx="7.5" cy="17" r="1.5"/><circle cx="16.5" cy="17" r="1.5"/>',
+  gavel:'<path d="M14 5l5 5M11 8l5 5M9.5 9.5l5 5M3 21l7.5-7.5"/><path d="M12.5 3.5l8 8-2 2-8-8z"/>',
+  offer:'<path d="M20 12l-8 8-8-8V4h8z"/><circle cx="8" cy="8" r="1.5"/>',
+  act:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+  up:'<path d="M12 19V5M5 12l7-7 7 7"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  bid:'<path d="M12 2v20M17 6.5C17 4.6 14.8 3.5 12 3.5S7 4.6 7 6.5 9 9.4 12 10s5 1.6 5 3.5S14.8 17 12 17s-5-1-5-3"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  msg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  empty:'<circle cx="12" cy="12" r="9"/><path d="M8 12h8"/>'
+};
+const ico=(k,sz)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"${sz?` style="width:${sz}px;height:${sz}px"`:''}>${I[k]||''}</svg>`;
+const empty=(t,s)=>`<div class="empty">${ico('empty')}<b>${esc(t)}</b>${s?esc(s):''}</div>`;
+
+/* ── modal ── */
+function modal({title,sub,body,foot,wide}){
+  closeModal();
+  const ov=document.createElement('div'); ov.className='ov'; ov.id='ov';
+  ov.innerHTML=`<div class="modal${wide?' wide':''}" role="dialog"><div class="modal-h"><div><h3>${title}</h3>${sub?`<div class="muted" style="font-size:12.5px;margin-top:3px">${sub}</div>`:''}</div><button class="x" onclick="closeModal()" aria-label="cerrar">${ico('x')}</button></div><div class="modal-b">${body}</div>${foot?`<div class="modal-f">${foot}</div>`:''}</div>`;
+  ov.addEventListener('mousedown',e=>{ if(e.target===ov) closeModal(); });
+  document.body.appendChild(ov); requestAnimationFrame(()=>ov.classList.add('on'));
+  return ov;
+}
+function closeModal(){const o=$('#ov'); if(!o) return; o.classList.remove('on'); o.id=''; setTimeout(()=>o.remove(),200);}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ $('#lightbox').classList.remove('on'); closeModal(); } });
+
+/* ════════════ SESIÓN ════════════ */
+async function boot(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session) return showLogin();
+  const{data:me,error}=await sb.from('users').select('id,nombre,username,email,role').eq('id',session.user.id).maybeSingle();
+  if(error||!me||me.role!=='superadmin'){
+    showLogin('Esta cuenta no tiene acceso al panel.'); await sb.auth.signOut().catch(()=>{}); return;
+  }
+  ME=me; $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#me-name').textContent=me.nombre||'Ruedda'; $('#me-mail').textContent=me.email||session.user.email||'';
+  buildNav(); route(); startLive();
+}
+function showLogin(msg){ $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); $('#lg-err').textContent=msg||''; setTimeout(()=>$('#lg-pass').focus(),50); }
+$('#login-form').addEventListener('submit',async e=>{
+  e.preventDefault(); const b=$('#lg-btn'); b.disabled=true; b.textContent='Entrando…'; $('#lg-err').textContent='';
+  const{error}=await sb.auth.signInWithPassword({email:$('#lg-email').value.trim(),password:$('#lg-pass').value});
+  b.disabled=false; b.textContent='Entrar';
+  if(error){ $('#lg-err').textContent=/invalid/i.test(error.message)?'Correo o contraseña incorrectos.':error.message; return; }
+  boot();
+});
+async function logout(){ await sb.auth.signOut().catch(()=>{}); location.hash=''; showLogin(); }
+
+/* ════════════ NAVEGACIÓN ════════════ */
+const VIEWS=[
+  {h:'General'},
+  {id:'control',t:'Control',i:'home',s:'Resumen en tiempo real de Ruedda'},
+  {id:'actividad',t:'Actividad',i:'act',s:'Todo lo que pasa en la plataforma'},
+  {h:'Pendientes'},
+  {id:'moderacion',t:'Moderación',i:'mod',s:'Publicaciones esperando revisión o pago',b:'mod'},
+  {id:'kyc',t:'Verificación KYC',i:'kyc',s:'Identidades por validar',b:'kyc'},
+  {id:'pagos',t:'Pagos',i:'pay',s:'Referencias de pago de publicaciones y vitrinas',b:'pay'},
+  {id:'accesos',t:'Accesos a subastas',i:'key',s:'Solicitudes con comprobante',b:'acc'},
+  {id:'reportes',t:'Reportes',i:'flag',s:'Usuarios reportados por la comunidad',b:'rep'},
+  {h:'Operación'},
+  {id:'usuarios',t:'Usuarios',i:'users',s:'Cuentas registradas'},
+  {id:'publicaciones',t:'Market',i:'car',s:'Publicaciones del marketplace'},
+  {id:'subastas',t:'Subastas',i:'gavel',s:'En vivo, programadas y finalizadas'},
+  {id:'ofertas',t:'Ofertas',i:'offer',s:'Ofertas de compra y de cambio'}
+];
+function buildNav(){
+  $('#nav').innerHTML=VIEWS.map(v=>v.h?`<div class="nav-h">${v.h}</div>`:`<a href="#/${v.id}" data-v="${v.id}">${ico(v.i)}<span>${v.t}</span>${v.b?`<span class="badge zero" data-b="${v.b}">0</span>`:''}</a>`).join('')
+    +`<div class="nav-h">Más herramientas</div><div style="font-size:12px;color:var(--mute);line-height:1.5;padding:2px 10px">Patrocinantes, eventos, códigos, fotógrafos, mensajes y configuración siguen en el panel SuperAdmin de la app mientras llegan aquí.</div>`;
+}
+window.addEventListener('hashchange',route);
+let CUR=null, VIEW_TOKEN=0;
+function route(){
+  if(!ME) return;
+  const [id,...rest]=(location.hash.replace(/^#\/?/,'')||'control').split('/');
+  const v=VIEWS.find(x=>x.id===id)||VIEWS[1];
+  CUR=v.id; document.body.classList.remove('nav-open');
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===v.id));
+  $('#page-t').textContent=v.t; $('#page-s').textContent=v.s||''; document.title=v.t+' · Ruedda Control';
+  window.scrollTo(0,0);
+  const tok=++VIEW_TOKEN;
+  RENDER[v.id](tok,rest);
+}
+const stale=tok=>tok!==VIEW_TOKEN;
+window.addEventListener('scroll',()=>$('#topbar').classList.toggle('scrolled',scrollY>4),{passive:true});
+
+/* ════════════ EN VIVO ════════════ */
+let lastUpd=Date.now(), liveCh=null;
+function startLive(){
+  refreshBadges();
+  setInterval(()=>{ if(document.visibilityState==='visible') refresh(false); },30000);
+  setInterval(()=>{ const s=Math.round((Date.now()-lastUpd)/1000); $('#upd').textContent=s<5?'en vivo':'actualizado hace '+(s<60?s+' s':Math.round(s/60)+' min'); },5000);
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-lastUpd>15000) refresh(false); });
+  try{
+    liveCh=sb.channel('control-bids').on('postgres_changes',{event:'INSERT',schema:'public',table:'bids'},()=>{
+      if(CUR==='control'||CUR==='subastas'||CUR==='actividad') refresh(false);
+      toast('nueva puja recibida');
+    }).subscribe();
+  }catch(e){}
+}
+function refresh(manual){ lastUpd=Date.now(); refreshBadges(); if(CUR) RENDER[CUR](VIEW_TOKEN,[],true); if(manual) toast('actualizado'); }
+let BADGES={};
+async function refreshBadges(){
+  const [mod1,mod2,kyc,pay,acc,rep]=await Promise.all([
+    cnt('listings',q=>q.in('estado',['revision','pendiente_pago'])),
+    cnt('auctions',q=>q.in('estado',['revision','pendiente_pago'])),
+    cnt('kyc_submissions',q=>q.eq('estado','pendiente')),
+    cnt('payment_refs',q=>q.eq('status','pendiente')),
+    cnt('auction_access_requests',q=>q.eq('estado','pendiente')),
+    cnt('user_reports',q=>q.eq('estado','pendiente'))
+  ]);
+  const v=x=>typeof x==='number'?x:0;
+  BADGES={mod:v(mod1)+v(mod2),kyc:v(kyc),pay:v(pay),acc:v(acc),rep:v(rep),repMissing:!!(rep&&rep.error)};
+  document.querySelectorAll('[data-b]').forEach(b=>{ const k=b.dataset.b; b.textContent=BADGES[k]; b.classList.toggle('zero',!BADGES[k]); });
+  return BADGES;
+}
+
+/* ════════════ VISTAS ════════════ */
+const RENDER={};
+
+/* ── CONTROL ── */
+RENDER.control=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft) V.innerHTML=`<div class="grid g4" id="k1">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
+    <div class="grid g4" id="k2" style="margin-top:14px">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
+    <div class="grid g21" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Registros · últimos 30 días</h3><span class="muted" id="c1s"></span></div><div class="card-b" id="c1"><div class="skel" style="height:120px"></div></div></div>
+    <div class="card"><div class="card-h"><h3>Por atender</h3><a href="#/moderacion" class="muted" style="font-size:12px">ver cola</a></div><div class="queue" id="q"></div></div></div>
+    <div class="grid g21" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Subastas en vivo</h3><a href="#/subastas" style="font-size:12px">ver todas</a></div><div id="live"></div></div>
+    <div class="card"><div class="card-h"><h3>Actividad</h3><a href="#/actividad" style="font-size:12px">ver todo</a></div><div class="feed" id="feed"></div></div></div>
+    <div class="grid g2" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Publicaciones nuevas · 30 días</h3><span class="muted" id="c2s"></span></div><div class="card-b" id="c2"><div class="skel" style="height:120px"></div></div></div>
+    <div class="card"><div class="card-h"><h3>Pujas · 14 días</h3><span class="muted" id="c3s"></span></div><div class="card-b" id="c3"><div class="skel" style="height:120px"></div></div></div></div>`;
+  const now=Date.now(), today=startOfDay().toISOString(), d7=new Date(now-7*DAY).toISOString(), d14=new Date(now-14*DAY).toISOString(), d30=new Date(now-30*DAY).toISOString();
+  const nowIso=new Date().toISOString();
+  const [uTot,uKyc,uDealer,uNew60,lAct,lSold,aLive,bids14,pubs30,aucs30,badges]=await Promise.all([
+    cnt('users'), cnt('users',q=>q.eq('kyc_verified',true)), cnt('users',q=>q.in('role',['consesionario','concesionario'])),
+    sb.from('users').select('created_at').gte('created_at',new Date(now-60*DAY).toISOString()).limit(5000),
+    cnt('listings',q=>q.eq('estado','activa').not('vendido','is',true)),
+    cnt('listings',q=>q.eq('vendido',true)),
+    sb.from('auctions').select('id,titulo,marca,modelo,year,current_bid,bid_count,end_time,precio_reserva,sin_reserva,es_chocado,auction_photos(url,orden)').eq('estado','activa').gt('end_time',nowIso).order('end_time',{ascending:true}).limit(50),
+    sb.from('bids').select('amount,created_at').gte('created_at',d14).limit(10000),
+    sb.from('listings').select('created_at').gte('created_at',d30).limit(5000),
+    sb.from('auctions').select('created_at').gte('created_at',d30).limit(5000),
+    refreshBadges()
+  ]);
+  if(stale(tok)) return;
+  const u60=(uNew60.data||[]).map(r=>new Date(r.created_at).getTime());
+  const new7=u60.filter(t=>t>=now-7*DAY).length, prev7=u60.filter(t=>t<now-7*DAY&&t>=now-14*DAY).length, newToday=u60.filter(t=>t>=startOfDay().getTime()).length;
+  const delta=(a,b)=>b?`<span class="${a>=b?'up':'dn'}">${a>=b?'▲':'▼'} ${Math.abs(Math.round((a-b)/b*100))}%</span> vs 7 días previos`:(a?'<span class="up">▲ nuevo</span>':'sin cambios');
+  const series=(ts,days)=>{const out=Array(days).fill(0);const base=startOfDay().getTime()-(days-1)*DAY;ts.forEach(t=>{const i=Math.floor((t-base)/DAY);if(i>=0&&i<days)out[i]++;});return out;};
+  const sU=series(u60,30);
+  const bidRows=bids14.data||[]; const bidTs=bidRows.map(b=>new Date(b.created_at).getTime());
+  const bidsToday=bidRows.filter(b=>new Date(b.created_at).getTime()>=startOfDay().getTime());
+  const volToday=bidsToday.reduce((a,b)=>a+(+b.amount||0),0);
+  const live=aLive.data||[];
+  const pct=(a,b)=>b?Math.round(a/b*100):0;
+  const spark=arr=>{const m=Math.max(1,...arr);const w=88/arr.length;return `<svg class="spark" viewBox="0 0 88 30" preserveAspectRatio="none">${arr.map((v,i)=>`<rect x="${(i*w).toFixed(2)}" y="${(30-v/m*28).toFixed(2)}" width="${Math.max(1,w-1).toFixed(2)}" height="${(v/m*28+ (v?0:1)).toFixed(2)}" rx="1" fill="${i===arr.length-1?'#0071e3':'#d2d2d7'}"/>`).join('')}</svg>`;};
+  const K=(l,v,d,sp)=>`<div class="card kpi"><div class="l">${l}</div><div class="v num">${v}</div><div class="d">${d}</div>${sp||''}</div>`;
+  const tot=typeof uTot==='number'?uTot:0;
+  $('#k1').innerHTML=K('Usuarios registrados',n(tot),`${n(newToday)} nuevos hoy`,spark(sU.slice(-14)))
+    +K('Nuevos · 7 días',n(new7),delta(new7,prev7))
+    +K('Identidad verificada',n(uKyc),`${pct(uKyc,tot)}% de las cuentas`)
+    +K('Concesionarios',n(uDealer),`${n(tot-(+uDealer||0))} particulares y admins`);
+  $('#k2').innerHTML=K('Market · activas',n(lAct),`${n(lSold)} vendidos`)
+    +K('Subastas en vivo',n(live.length),live.filter(a=>a.es_chocado).length?`${live.filter(a=>a.es_chocado).length} de chocados`:'marketplace de subastas')
+    +K('Pujas hoy',n(bidsToday.length),`${n(bidRows.length)} en 14 días`,spark(series(bidTs,14)))
+    +K('Volumen ofertado hoy',usd(volToday),'suma de pujas del día');
+  $('#c1s').textContent=`${n(sU.reduce((a,b)=>a+b,0))} en 30 días`;
+  $('#c1').innerHTML=barChart(sU,30);
+  const sP=series([...(pubs30.data||[]),...(aucs30.data||[])].map(r=>new Date(r.created_at).getTime()),30);
+  $('#c2s').textContent=`${n(sP.reduce((a,b)=>a+b,0))} publicaciones`; $('#c2').innerHTML=barChart(sP,30);
+  const sB=series(bidTs,14); $('#c3s').textContent=`${n(bidRows.length)} pujas`; $('#c3').innerHTML=barChart(sB,14);
+  const B=badges;
+  const Q=(href,i,t,s,v)=>`<a href="#/${href}"><div class="qi">${ico(i)}</div><div><div style="font-weight:600">${t}</div><small>${s}</small></div><div class="qn num ${v?'hot':''}">${v}</div></a>`;
+  $('#q').innerHTML=Q('moderacion','mod','Moderación','publicaciones por revisar',B.mod)+Q('kyc','kyc','Verificación KYC','identidades',B.kyc)+Q('pagos','pay','Pagos','referencias sin confirmar',B.pay)+Q('accesos','key','Accesos a subastas','con comprobante',B.acc)+Q('reportes','flag','Reportes',B.repMissing?'falta activar (SQL)':'usuarios reportados',B.repMissing?'—':B.rep);
+  $('#live').innerHTML=live.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vehículo</th><th class="r">Oferta actual</th><th class="r">Pujas</th><th class="r">Termina</th></tr></thead><tbody>${live.slice(0,6).map(a=>{
+    const ph=(a.auction_photos||[]).sort((x,y)=>x.orden-y.orden)[0]?.url;
+    const reserve=!a.sin_reserva&&a.precio_reserva>0?(a.current_bid>=a.precio_reserva?'<span class="pill g">reserva alcanzada</span>':'<span class="pill o">bajo reserva</span>'):'<span class="pill">sin reserva</span>';
+    return `<tr class="click" onclick="openAuction('${a.id}')"><td><div class="who"><img class="thumb" src="${esc(tImg(ph,160))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="n">${esc(carName(a))}</div><div class="u">${reserve}</div></div></div></td><td class="r num" style="font-weight:600">${usd(a.current_bid)}</td><td class="r num">${n(a.bid_count)}</td><td class="r num">${left(a.end_time)}</td></tr>`;}).join('')}</tbody></table></div>`:empty('No hay subastas en vivo','Aparecerán aquí apenas se active una.');
+  renderFeed($('#feed'),10);
+};
+function barChart(arr,days){
+  const m=Math.max(1,...arr); const base=startOfDay().getTime()-(days-1)*DAY;
+  const lbl=i=>new Date(base+i*DAY).toLocaleDateString('es-VE',{day:'numeric',month:'short'});
+  return `<div class="bars">${arr.map((v,i)=>`<div class="${i===arr.length-1?'today':''}" style="height:${Math.max(2,v/m*100)}%" data-t="${lbl(i)} · ${v}"></div>`).join('')}</div><div class="axis"><span>${lbl(0)}</span><span>hoy</span></div>`;
+}
+
+/* ── ACTIVIDAD ── */
+async function loadEvents(limit){
+  const L=Math.min(limit,40);
+  const [u,l,a,b,p,k,o,c]=await Promise.all([
+    sb.from('users').select('id,nombre,username,role,created_at').order('created_at',{ascending:false}).limit(L),
+    sb.from('listings').select('id,user_id,marca,modelo,year,estado,created_at').order('created_at',{ascending:false}).limit(L),
+    sb.from('auctions').select('id,user_id,marca,modelo,year,estado,created_at').order('created_at',{ascending:false}).limit(L),
+    sb.from('bids').select('id,user_id,auction_id,amount,created_at').order('created_at',{ascending:false}).limit(L),
+    sb.from('payment_refs').select('id,user_id,amount_usd,metodo,status,created_at').order('created_at',{ascending:false}).limit(L),
+    sb.from('kyc_submissions').select('id,user_id,estado,created_at').order('created_at',{ascending:false}).limit(L),
+    sb.from('offers').select('id,user_id,listing_id,tipo,monto,created_at').order('created_at',{ascending:false}).limit(L),
+    sb.from('comments').select('id,user_id,body,created_at').order('created_at',{ascending:false}).limit(L)
+  ]);
+  const ev=[];
+  (u.data||[]).forEach(x=>ev.push({t:x.created_at,i:'user',c:'#0071e3',uid:x.id,txt:u=>`<b>${esc(uname(u)||x.nombre)}</b> creó su cuenta${x.role==='consesionario'||x.role==='concesionario'?' de concesionario':''}`,go:`openUser('${x.id}')`}));
+  (l.data||[]).forEach(x=>ev.push({t:x.created_at,i:'car',c:'#1d1d1f',uid:x.user_id,txt:u=>`<b>${esc(uname(u))}</b> publicó <b>${esc(carName(x))}</b> en el market`,go:`openListing('${x.id}')`}));
+  (a.data||[]).forEach(x=>ev.push({t:x.created_at,i:'gavel',c:'#1d1d1f',uid:x.user_id,txt:u=>`<b>${esc(uname(u))}</b> creó la subasta <b>${esc(carName(x))}</b>`,go:`openAuction('${x.id}')`}));
+  (b.data||[]).forEach(x=>ev.push({t:x.created_at,i:'bid',c:'#1d8a3a',uid:x.user_id,txt:u=>`<b>${esc(uname(u))}</b> pujó <b>${usd(x.amount)}</b>`,go:`openAuction('${x.auction_id}')`}));
+  (p.data||[]).forEach(x=>ev.push({t:x.created_at,i:'pay',c:'#c25e00',uid:x.user_id,txt:u=>`<b>${esc(uname(u))}</b> reportó un pago de <b>${usd(x.amount_usd)}</b> · ${esc(x.metodo||'')} <span class="pill ${x.status==='confirmado'?'g':x.status==='rechazado'?'r':'o'}">${esc(x.status)}</span>`,go:`location.hash='#/pagos'`}));
+  (k.data||[]).forEach(x=>ev.push({t:x.created_at,i:'kyc',c:'#5e5ce6',uid:x.user_id,txt:u=>`<b>${esc(uname(u))}</b> envió su verificación de identidad`,go:`location.hash='#/kyc'`}));
+  (o.data||[]).forEach(x=>ev.push({t:x.created_at,i:'offer',c:'#c25e00',uid:x.user_id,txt:u=>`<b>${esc(uname(u))}</b> hizo una oferta ${x.tipo==='cambio'?'de cambio':'de '+usd(x.monto)}`,go:`location.hash='#/ofertas'`}));
+  (c.data||[]).forEach(x=>ev.push({t:x.created_at,i:'msg',c:'#6e6e73',uid:x.user_id,txt:u=>`<b>${esc(uname(u))}</b> comentó: “${esc((x.body||'').slice(0,70))}${(x.body||'').length>70?'…':''}”`}));
+  ev.sort((a,b)=>new Date(b.t)-new Date(a.t));
+  const top=ev.slice(0,limit); const um=await usersMap(top.map(e=>e.uid)); return top.map(e=>({...e,u:um[e.uid]}));
+}
+async function renderFeed(el,limit){
+  if(!el.innerHTML) el.innerHTML='<div style="padding:18px"><div class="skel" style="height:14px;margin-bottom:10px"></div><div class="skel" style="height:14px;width:70%"></div></div>';
+  const ev=await loadEvents(limit);
+  el.innerHTML=ev.length?ev.map(e=>`<div class="ev"${e.go?` style="cursor:pointer" onclick="${e.go}"`:''}><div class="dot" style="color:${e.c}">${ico(e.i)}</div><div><div class="t">${e.txt(e.u)}</div><div class="w">${ago(e.t)}</div></div></div>`).join(''):empty('Sin actividad todavía');
+}
+RENDER.actividad=async(tok,_,soft)=>{ if(!soft) $('#view').innerHTML='<div class="card feed" id="feedall"></div>'; await renderFeed($('#feedall'),80); };
+
+/* ── MODERACIÓN ── */
+RENDER.moderacion=async(tok,_,soft)=>{
+  const V=$('#view'); if(!soft) V.innerHTML='<div class="items" id="modl"><div class="card skel" style="height:320px"></div><div class="card skel" style="height:320px"></div></div>';
+  const cols='id,user_id,concesionario_id,titulo,marca,modelo,year,km,estado,ciudad,descripcion,created_at';
+  const [L,A]=await Promise.all([
+    sb.from('listings').select(cols+',precio_usd,listing_photos(url,orden)').in('estado',['revision','pendiente_pago']).order('created_at',{ascending:true}),
+    sb.from('auctions').select(cols+',precio_reserva,sin_reserva,es_chocado,duracion_dias,auction_photos(url,orden)').in('estado',['revision','pendiente_pago']).order('created_at',{ascending:true})
+  ]);
+  if(stale(tok)) return;
+  const items=[...(L.data||[]).map(x=>({...x,_t:'listing',_ph:x.listing_photos})),...(A.data||[]).map(x=>({...x,_t:'auction',_ph:x.auction_photos}))].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  window._MOD=items;
+  if(!items.length){ V.innerHTML=`<div class="card">${empty('Todo al día','No hay publicaciones esperando revisión.')}</div>`; return; }
+  const um=await usersMap(items.map(i=>i.user_id)); if(stale(tok)) return;
+  V.innerHTML=`<div class="items">${items.map(x=>{
+    const ph=(x._ph||[]).sort((a,b)=>a.orden-b.orden)[0]?.url; const u=um[x.user_id];
+    return `<div class="card item"><div class="ph" style="background-image:url('${esc(tImg(ph,700))}')"><span class="pill ${x.estado==='pendiente_pago'?'o':'b'}">${x._t==='auction'?(x.es_chocado?'subasta · chocado':'subasta'):'market'} · ${x.estado==='pendiente_pago'?'esperando pago':'en revisión'}</span></div>
+      <div class="ib"><div class="it">${esc(carName(x))}</div><div class="im">${esc(uname(u))}${x.concesionario_id?' · concesionario':''} · ${esc(x.ciudad||'—')} · ${x.km!=null?n(x.km)+' km':''}<br>${x._t==='listing'?usd(x.precio_usd):(x.sin_reserva?'sin reserva':'reserva '+usd(x.precio_reserva))} · ${ago(x.created_at)} · ${(x._ph||[]).length} fotos</div></div>
+      <div class="ia"><button class="btn btn-soft" onclick="modDetail('${x.id}')">Revisar</button><button class="btn btn-green" onclick="modAct('${x.id}','aprobar',this)">Aprobar</button><button class="btn btn-red" onclick="modAct('${x.id}','rechazar',this)">Rechazar</button></div></div>`;}).join('')}</div>`;
+};
+async function modDetail(id){
+  const x=(window._MOD||[]).find(i=>i.id===id); if(!x) return;
+  const um=await usersMap([x.user_id]); const u=um[x.user_id];
+  const phs=(x._ph||[]).sort((a,b)=>a.orden-b.orden);
+  modal({wide:true,title:esc(carName(x)),sub:`${x._t==='auction'?'Subasta':'Market'} · enviada ${ago(x.created_at)}`,
+    body:`<dl class="kv"><dt>Vendedor</dt><dd><a href="javascript:void 0" onclick="openUser('${x.user_id}')">${esc(uname(u))}</a> ${u&&u.kyc_verified?'<span class="pill g">verificado</span>':'<span class="pill">sin verificar</span>'}</dd>
+      <dt>Estado</dt><dd>${x.estado==='pendiente_pago'?'<span class="pill o">esperando confirmación de pago</span>':'<span class="pill b">en revisión</span>'}</dd>
+      <dt>${x._t==='listing'?'Precio':'Reserva'}</dt><dd class="num">${x._t==='listing'?usd(x.precio_usd):(x.sin_reserva?'sin reserva':usd(x.precio_reserva))}</dd>
+      <dt>Ciudad · km</dt><dd>${esc(x.ciudad||'—')} · ${x.km!=null?n(x.km)+' km':'—'}</dd>
+      <dt>Descripción</dt><dd style="white-space:pre-wrap;font-weight:400">${esc(x.descripcion||'—')}</dd></dl>
+      <div class="gal">${phs.map(p=>`<img src="${esc(tImg(p.url,400))}" data-full="${esc(tImg(p.url,1600))}" onclick="lightbox(this.dataset.full)" loading="lazy" alt="">`).join('')||'<div class="muted">sin fotos</div>'}</div>`,
+    foot:`<button class="btn btn-soft" onclick="closeModal();${x._t==='listing'?`openListing('${x.id}')`:`openAuction('${x.id}')`}">Editar datos</button><button class="btn btn-red" onclick="modAct('${x.id}','rechazar',this)">Rechazar</button><button class="btn btn-green" onclick="modAct('${x.id}','aprobar',this)">Aprobar y publicar</button>`});
+}
+async function modAct(id,action,btn){
+  const x=(window._MOD||[]).find(i=>i.id===id); if(!x) return;
+  if(action==='rechazar'&&!confirm('¿Rechazar esta publicación? Se le notificará al vendedor.')) return;
+  if(btn){btn.disabled=true;}
+  try{ await api('/api/mod-listing',{item_id:id,item_type:x._t,action}); toast(action==='aprobar'?'publicación aprobada y activa':'publicación rechazada'); closeModal(); }
+  catch(e){ if(/estado actual/i.test(e.message)) toast('ya estaba '+(action==='aprobar'?'activa':'rechazada')); else { toast('error: '+e.message,true); if(btn) btn.disabled=false; return; } }
+  refreshBadges(); RENDER.moderacion(VIEW_TOKEN,[],true);
+}
+
+/* ── KYC ── */
+RENDER.kyc=async(tok,_,soft)=>{
+  const V=$('#view'); if(!soft) V.innerHTML='<div class="card"><div style="padding:18px"><div class="skel" style="height:40px"></div></div></div>';
+  const{data,error}=await sb.from('kyc_submissions').select('id,user_id,estado,created_at').eq('estado','pendiente').order('created_at',{ascending:true});
+  if(stale(tok)) return;
+  if(error){ V.innerHTML=`<div class="card">${empty('No se pudo cargar',error.message)}</div>`; return; }
+  if(!data.length){ V.innerHTML=`<div class="card">${empty('Sin verificaciones pendientes')}</div>`; return; }
+  const um=await usersMap(data.map(d=>d.user_id)); if(stale(tok)) return;
+  V.innerHTML=`<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Usuario</th><th>Cédula registrada</th><th>Contacto</th><th>Enviado</th><th></th></tr></thead><tbody>${data.map(s=>{const u=um[s.user_id]||{};return `<tr class="click" onclick="kycOpen('${s.id}','${s.user_id}')"><td><div class="who">${avatar(u)}<div><div class="n">${esc(uname(u))}</div><div class="u">@${esc(u.username||'—')}</div></div></div></td><td class="num">${esc((u.cedula_tipo||'V')+'-'+(u.cedula||'—'))}</td><td class="muted">${esc(u.email||'')}<br>${esc(u.celular||u.telefono||'')}</td><td class="muted">${ago(s.created_at)}</td><td class="r"><button class="btn btn-blue">Revisar</button></td></tr>`;}).join('')}</tbody></table></div>`;
+};
+async function kycOpen(id,uid){
+  const ov=modal({wide:true,title:'Verificación de identidad',sub:'Compara el nombre y la cédula registrados con los documentos',body:'<div class="skel" style="height:260px"></div>'});
+  const [{data:s},um]=await Promise.all([sb.from('kyc_submissions').select('doc_b64,selfie_b64,created_at').eq('id',id).maybeSingle(),usersMap([uid])]);
+  const u=um[uid]||{}; if(!ov.isConnected) return;
+  ov.querySelector('.modal-b').innerHTML=`<dl class="kv"><dt>Nombre registrado</dt><dd>${esc([u.nombre,u.apellido].filter(Boolean).join(' ')||uname(u))}</dd><dt>Cédula registrada</dt><dd class="num">${esc((u.cedula_tipo||'V')+'-'+(u.cedula||'—'))}</dd><dt>Usuario</dt><dd>@${esc(u.username||'—')} · ${esc(u.email||'')}</dd></dl>
+    <div class="grid g2" style="margin-top:16px"><div><div class="muted" style="font-size:12px;margin-bottom:6px">Documento</div>${s&&s.doc_b64?`<img src="${s.doc_b64}" onclick="lightbox(this.src)" style="width:100%;border-radius:10px;cursor:zoom-in;background:#000;max-height:340px;object-fit:contain">`:'<div class="muted">no enviado</div>'}</div>
+    <div><div class="muted" style="font-size:12px;margin-bottom:6px">Selfie</div>${s&&s.selfie_b64?`<img src="${s.selfie_b64}" onclick="lightbox(this.src)" style="width:100%;border-radius:10px;cursor:zoom-in;background:#000;max-height:340px;object-fit:contain">`:'<div class="muted">no enviada</div>'}</div></div>`;
+  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><button class="btn btn-red" onclick="kycResolve('${id}','${uid}',false,this)">Rechazar</button><button class="btn btn-green" onclick="kycResolve('${id}','${uid}',true,this)">Aprobar identidad</button></div>`);
+}
+async function kycResolve(id,uid,ok,btn){
+  btn.disabled=true;
+  try{
+    const{error}=await sb.from('kyc_submissions').update({estado:ok?'aprobada':'rechazada'}).eq('id',id); if(error) throw error;
+    if(ok){ const{error:e2}=await sb.from('users').update({kyc_verified:true}).eq('id',uid); if(e2) throw e2;
+      sb.from('notifications').insert({user_id:uid,tipo:'system',titulo:'¡Tu cuenta fue verificada!',body:'Tu verificación KYC fue aprobada. Ya puedes participar en subastas a nivel nacional y tu usuario lleva el sello de verificado.',icon:'lime'}).then(()=>{});
+    } else sb.from('notifications').insert({user_id:uid,tipo:'system',titulo:'verificación KYC rechazada',body:'No pudimos validar tus documentos. Revisa que las fotos sean nítidas y legibles e inténtalo de nuevo desde configuración.',icon:'lime'}).then(()=>{});
+    toast(ok?'identidad aprobada':'verificación rechazada'); closeModal(); refreshBadges(); RENDER.kyc(VIEW_TOKEN,[],true);
+  }catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
+
+/* ── PAGOS ── */
+let PAY_F='pendiente';
+RENDER.pagos=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft||!$('#payt')) V.innerHTML=`<div class="toolbar"><div class="seg" id="payseg">${[['pendiente','Pendientes'],['confirmado','Confirmados'],['rechazado','Rechazados'],['todos','Todos']].map(([k,t])=>`<button data-k="${k}" class="${k===PAY_F?'on':''}" onclick="PAY_F='${k}';RENDER.pagos(VIEW_TOKEN)">${t}</button>`).join('')}</div></div><div class="card" id="payt"><div style="padding:18px"><div class="skel" style="height:40px"></div></div></div>`;
+  document.querySelectorAll('#payseg button').forEach(b=>b.classList.toggle('on',b.dataset.k===PAY_F));
+  let q=sb.from('payment_refs').select('*').order('created_at',{ascending:false}).limit(200); if(PAY_F!=='todos') q=q.eq('status',PAY_F);
+  const{data,error}=await q; if(stale(tok)) return;
+  const T=$('#payt');
+  if(error){ T.innerHTML=empty('No se pudo cargar',error.message); return; }
+  if(!data.length){ T.innerHTML=empty(PAY_F==='pendiente'?'Sin pagos por confirmar':'Sin registros'); return; }
+  const um=await usersMap(data.map(r=>r.user_id)); if(stale(tok)) return; window._PAY=data;
+  const st=s=>s==='confirmado'?'<span class="pill g">confirmado</span>':s==='rechazado'?'<span class="pill r">rechazado</span>':'<span class="pill o">pendiente</span>';
+  T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Referencia</th><th>Usuario</th><th>Método</th><th class="r">USD</th><th class="r">Bs</th><th>Fecha de pago</th><th>Concepto</th><th>Estado</th><th></th></tr></thead><tbody>${data.map(r=>{const u=um[r.user_id];return `<tr class="click" onclick="payOpen('${r.id}')"><td class="num" style="font-weight:600">${esc(r.ref_num||'—')}</td><td><div class="who">${avatar(u)}<div class="n">${esc(uname(u))}</div></div></td><td>${esc((r.metodo||'—').replace('_',' '))}</td><td class="r num">${usd(r.amount_usd)}</td><td class="r num">${r.monto_bs?esc(r.monto_bs):'—'}</td><td class="muted">${esc(r.fecha_pago||'—')}</td><td>${r.tipo==='vitrina'?'vitrina':r.auction_id?'subasta':r.listing_id?'publicación':'—'}</td><td>${st(r.status)}</td><td class="r"><button class="btn btn-soft">Ver</button></td></tr>`;}).join('')}</tbody></table></div>`;
+};
+async function payOpen(id){
+  const r=(window._PAY||[]).find(x=>x.id===id); if(!r) return; const um=await usersMap([r.user_id]); const u=um[r.user_id];
+  const linked=r.listing_id?`<a href="javascript:void 0" onclick="closeModal();openListing('${r.listing_id}')">ver publicación</a>`:r.auction_id?`<a href="javascript:void 0" onclick="closeModal();openAuction('${r.auction_id}')">ver subasta</a>`:'—';
+  modal({title:'Pago · ref '+esc(r.ref_num||'—'),sub:'registrado '+fdate(r.created_at),
+    body:`<dl class="kv"><dt>Usuario</dt><dd><a href="javascript:void 0" onclick="openUser('${r.user_id}')">${esc(uname(u))}</a> · ${esc(u&&u.email||'')}</dd>
+      <dt>Método</dt><dd>${esc((r.metodo||'—').replace('_',' '))}</dd><dt>Monto</dt><dd class="num">${usd(r.amount_usd)}${r.monto_bs?' · Bs '+esc(r.monto_bs):''}</dd>
+      <dt>Fecha de pago</dt><dd>${esc(r.fecha_pago||'—')}</dd><dt>Celular emisor</dt><dd class="num">${esc(r.celular||'—')}</dd>
+      <dt>Concepto</dt><dd>${r.tipo==='vitrina'?'Vitrina de concesionario':r.auction_id?'Publicación de subasta':r.listing_id?'Publicación en market':'—'} · ${linked}</dd>
+      <dt>Estado</dt><dd>${esc(r.status)}${r.confirmado_at?' · '+fdate(r.confirmado_at):''}${r.razon_rechazo?' · '+esc(r.razon_rechazo):''}</dd>
+      ${r.raw_sms?`<dt>SMS del banco</dt><dd style="white-space:pre-wrap;font-weight:400;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--bg);padding:10px;border-radius:8px">${esc(r.raw_sms)}</dd>`:''}</dl>
+      <div class="notice" style="margin-top:16px">Este tipo de pago no incluye foto: la app pide número de referencia${r.metodo==='pago_movil'?', monto, fecha y celular':''}. Verifica contra tu estado de cuenta.</div>`,
+    foot:r.status==='pendiente'?`<button class="btn btn-red" onclick="payAct('${r.id}','rechazar',this)">Rechazar</button><button class="btn btn-green" onclick="payAct('${r.id}','confirmar',this)">Confirmar pago</button>`:''});
+}
+async function payAct(id,action,btn){
+  if(action==='rechazar'&&!confirm('¿Rechazar este pago?')) return; btn.disabled=true;
+  try{ await api('/api/verify-payment',{ref_id:id,action}); toast(action==='confirmar'?'pago confirmado':'pago rechazado'); closeModal(); refreshBadges(); RENDER.pagos(VIEW_TOKEN,[],true); }
+  catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
+
+/* ── ACCESOS A SUBASTAS ── */
+RENDER.accesos=async(tok,_,soft)=>{
+  const V=$('#view'); if(!soft) V.innerHTML='<div class="card"><div style="padding:18px"><div class="skel" style="height:40px"></div></div></div>';
+  const{data,error}=await sb.from('auction_access_requests').select('id,user_id,auction_id,auction_title,phone,cedula,estado,created_at').eq('estado','pendiente').order('created_at',{ascending:true});
+  if(stale(tok)) return;
+  if(error){ V.innerHTML=`<div class="card">${empty('No se pudo cargar',error.message)}</div>`; return; }
+  if(!data.length){ V.innerHTML=`<div class="card">${empty('Sin solicitudes pendientes')}</div>`; return; }
+  const um=await usersMap(data.map(r=>r.user_id)); if(stale(tok)) return;
+  V.innerHTML=`<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Subasta</th><th>Usuario</th><th>Teléfono</th><th>Cédula</th><th>Enviada</th><th class="r">Acciones</th></tr></thead><tbody>${data.map(r=>{const u=um[r.user_id];return `<tr><td style="font-weight:600">${esc(r.auction_title||'subasta')}</td><td><div class="who">${avatar(u)}<div class="n">${esc(uname(u))}</div></div></td><td class="num">${esc(r.phone||'—')}</td><td class="num">V-${esc(r.cedula||'—')}</td><td class="muted">${ago(r.created_at)}</td><td class="r" style="white-space:nowrap"><button class="btn btn-soft" onclick="accProof('${r.id}',this)">Ver comprobante</button> <button class="btn btn-red" onclick="accReject('${r.id}',this)">Rechazar</button> <button class="btn btn-green" onclick="accSend('${r.id}','${r.user_id}','${r.auction_id}',this)">Enviar código</button></td></tr>`;}).join('')}</tbody></table></div>`;
+};
+async function accProof(id,btn){
+  btn.disabled=true; const t=btn.textContent; btn.textContent='cargando…';
+  const{data}=await sb.from('auction_access_requests').select('comprobante_b64').eq('id',id).maybeSingle();
+  btn.disabled=false; btn.textContent=t;
+  if(data&&data.comprobante_b64) lightbox(data.comprobante_b64); else toast('esta solicitud no tiene comprobante',true);
+}
+function genCode(){const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';let s='';for(let i=0;i<6;i++)s+=c[Math.floor(Math.random()*c.length)];return s;}
+async function accSend(id,uid,aid,btn){
+  btn.disabled=true;
+  try{
+    const{data:auc,error}=await sb.from('auctions').select('access_code,marca,modelo,year').eq('id',aid).maybeSingle(); if(error) throw error;
+    let code=auc&&auc.access_code; if(!code){ code=genCode(); const{error:e1}=await sb.from('auctions').update({access_code:code}).eq('id',aid); if(e1) throw e1; }
+    const{error:e2}=await sb.from('auction_access_requests').update({estado:'aprobada'}).eq('id',id); if(e2) throw e2;
+    await sb.from('notifications').insert({user_id:uid,tipo:'system',titulo:'¡Tu código de acceso está listo!',body:`Tu código para ofertar en ${carName(auc)} es: ${code}. Ingrésalo en el formulario de la subasta para participar.`,icon:'lime'});
+    toast('código '+code+' enviado'); refreshBadges(); RENDER.accesos(VIEW_TOKEN,[],true);
+  }catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
+async function accReject(id,btn){
+  if(!confirm('¿Rechazar esta solicitud de acceso?')) return; btn.disabled=true;
+  const{error}=await sb.from('auction_access_requests').update({estado:'rechazada'}).eq('id',id);
+  if(error){ toast('error: '+error.message,true); btn.disabled=false; return; }
+  toast('solicitud rechazada'); refreshBadges(); RENDER.accesos(VIEW_TOKEN,[],true);
+}
+
+/* ── REPORTES ── */
+const REASONS={estafa:'Estafa o intento de fraude',suplantacion:'Suplantación de identidad',publicacion_falsa:'Publicación falsa o engañosa',acoso:'Acoso o lenguaje ofensivo',spam:'Spam o publicidad',contenido_inapropiado:'Contenido inapropiado',otro:'Otro motivo'};
+RENDER.reportes=async(tok,_,soft)=>{
+  const V=$('#view'); if(!soft) V.innerHTML='<div class="card"><div style="padding:18px"><div class="skel" style="height:40px"></div></div></div>';
+  const{data,error}=await sb.from('user_reports').select('id,reporter_id,reported_id,motivo,detalle,estado,created_at').eq('estado','pendiente').order('created_at',{ascending:false}).limit(200);
+  if(stale(tok)) return;
+  if(error){ V.innerHTML=`<div class="notice">Los reportes todavía no están activos: falta correr en Supabase el SQL <code>20260929000000_reviews_and_user_reports.sql</code> (repo ruedda-backend). Apenas lo corras, aparecerán aquí.</div>`; return; }
+  if(!data.length){ V.innerHTML=`<div class="card">${empty('Sin reportes pendientes','Cuando alguien reporte a un usuario, llegará aquí.')}</div>`; return; }
+  const um=await usersMap(data.flatMap(r=>[r.reporter_id,r.reported_id])); if(stale(tok)) return;
+  const c={}; data.forEach(r=>c[r.reported_id]=(c[r.reported_id]||0)+1);
+  V.innerHTML=`<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Reportado</th><th>Motivo</th><th>Detalle</th><th>Reportado por</th><th>Fecha</th><th class="r">Acciones</th></tr></thead><tbody>${data.map(r=>{const a=um[r.reported_id],b=um[r.reporter_id];return `<tr><td><div class="who" style="cursor:pointer" onclick="openUser('${r.reported_id}')">${avatar(a)}<div><div class="n">${esc(uname(a))}</div>${c[r.reported_id]>1?`<span class="pill r">${c[r.reported_id]} reportes</span>`:''}</div></div></td><td><span class="pill o">${esc(REASONS[r.motivo]||r.motivo)}</span></td><td style="max-width:320px;white-space:pre-wrap">${esc(r.detalle||'—')}</td><td class="muted">${esc(uname(b))}</td><td class="muted">${ago(r.created_at)}</td><td class="r" style="white-space:nowrap"><button class="btn btn-soft" onclick="repSet('${r.id}','descartado',this)">Descartar</button> <button class="btn btn-primary" onclick="repSet('${r.id}','revisado',this)">Marcar revisado</button></td></tr>`;}).join('')}</tbody></table></div>`;
+};
+async function repSet(id,estado,btn){ btn.disabled=true; const{error}=await sb.from('user_reports').update({estado}).eq('id',id); if(error){toast('error: '+error.message,true);btn.disabled=false;return;} toast(estado==='revisado'?'reporte revisado':'reporte descartado'); refreshBadges(); RENDER.reportes(VIEW_TOKEN,[],true); }
+
+/* ── USUARIOS ── */
+let U_F={q:'',role:'todos',kyc:'todos',page:0};
+RENDER.usuarios=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft||!$('#ut')) V.innerHTML=`<div class="toolbar"><input class="input" id="uq" placeholder="Buscar por nombre, @usuario, correo o cédula" value="${esc(U_F.q)}">
+    <div class="seg" id="urole">${[['todos','Todos'],['particular','Particulares'],['dealer','Concesionarios'],['superadmin','Admins']].map(([k,t])=>`<button data-k="${k}" class="${U_F.role===k?'on':''}">${t}</button>`).join('')}</div>
+    <div class="seg" id="ukyc">${[['todos','Todos'],['si','Verificados'],['no','Sin verificar']].map(([k,t])=>`<button data-k="${k}" class="${U_F.kyc===k?'on':''}">${t}</button>`).join('')}</div>
+    <span class="muted" id="ucount" style="margin-left:auto;font-size:12.5px"></span></div><div class="card" id="ut"></div><div class="more" id="umore"></div>`;
+  const qi=$('#uq'); qi.oninput=()=>{clearTimeout(qi._t);qi._t=setTimeout(()=>{U_F.q=qi.value.trim();U_F.page=0;RENDER.usuarios(++VIEW_TOKEN,[],true);},280);};
+  $('#urole').onclick=e=>{const b=e.target.closest('button');if(!b)return;U_F.role=b.dataset.k;U_F.page=0;document.querySelectorAll('#urole button').forEach(x=>x.classList.toggle('on',x===b));RENDER.usuarios(++VIEW_TOKEN,[],true);};
+  $('#ukyc').onclick=e=>{const b=e.target.closest('button');if(!b)return;U_F.kyc=b.dataset.k;U_F.page=0;document.querySelectorAll('#ukyc button').forEach(x=>x.classList.toggle('on',x===b));RENDER.usuarios(++VIEW_TOKEN,[],true);};
+  const PS=50;
+  let q=sb.from('users').select('id,nombre,apellido,username,email,role,kyc_verified,ciudad,avatar_url,cedula,created_at,activo',{count:'exact'}).order('created_at',{ascending:false}).range(0,(U_F.page+1)*PS-1);
+  if(U_F.role==='dealer') q=q.in('role',['consesionario','concesionario']); else if(U_F.role!=='todos') q=q.eq('role',U_F.role);
+  if(U_F.kyc!=='todos') q=q.eq('kyc_verified',U_F.kyc==='si');
+  if(U_F.q){ const s=U_F.q.replace(/[%,()]/g,' ').trim(); q=q.or(`nombre.ilike.%${s}%,username.ilike.%${s}%,email.ilike.%${s}%,cedula.ilike.%${s}%,apellido.ilike.%${s}%`); }
+  const{data,error,count}=await q; if(stale(tok)) return;
+  const T=$('#ut'); $('#ucount').textContent=count!=null?n(count)+' cuentas':'';
+  if(error){ T.innerHTML=empty('No se pudo cargar',error.message); return; }
+  if(!data.length){ T.innerHTML=empty('Sin resultados'); $('#umore').innerHTML=''; return; }
+  const role=r=>r==='superadmin'?'<span class="pill k">admin</span>':(r==='consesionario'||r==='concesionario')?'<span class="pill b">concesionario</span>':'<span class="pill">particular</span>';
+  T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Identidad</th><th>Ciudad</th><th>Registro</th></tr></thead><tbody>${data.map(u=>`<tr class="click" onclick="openUser('${u.id}')"><td><div class="who">${avatar(u)}<div><div class="n">${esc([u.nombre,u.apellido].filter(Boolean).join(' ')||'sin nombre')}</div><div class="u">@${esc(u.username||'—')}</div></div></div></td><td class="muted">${esc(u.email||'—')}</td><td>${role(u.role)}</td><td>${u.kyc_verified?'<span class="pill g">verificado</span>':'<span class="pill">no</span>'}${u.activo===false?' <span class="pill r">inactivo</span>':''}</td><td class="muted">${esc(u.ciudad||'—')}</td><td class="muted">${ago(u.created_at)}</td></tr>`).join('')}</tbody></table></div>`;
+  $('#umore').innerHTML=count>data.length?`<button class="btn btn-soft" onclick="U_F.page++;RENDER.usuarios(++VIEW_TOKEN,[],true)">Mostrar más (${n(count-data.length)} restantes)</button>`:'';
+};
+async function openUser(id){
+  closeModal();
+  const ov=modal({wide:true,title:'Usuario',body:'<div class="skel" style="height:220px"></div>'});
+  const [{data:u},L,A,B,R,F]=await Promise.all([
+    sb.from('users').select('*').eq('id',id).maybeSingle(),
+    sb.from('listings').select('id,marca,modelo,year,estado,vendido,precio_usd,created_at').eq('user_id',id).order('created_at',{ascending:false}).limit(20),
+    sb.from('auctions').select('id,marca,modelo,year,estado,current_bid,end_time').eq('user_id',id).order('created_at',{ascending:false}).limit(20),
+    cnt('bids',q=>q.eq('user_id',id)),
+    sb.from('user_ratings').select('score').eq('rated_id',id),
+    cnt('user_follows',q=>q.eq('followed_id',id))
+  ]);
+  if(!ov.isConnected) return;
+  if(!u){ ov.querySelector('.modal-b').innerHTML=empty('Usuario no encontrado'); return; }
+  const rs=R.data||[]; const avg=rs.length?(rs.reduce((a,b)=>a+b.score,0)/rs.length).toFixed(1):'—';
+  ov.querySelector('.modal-h h3').innerHTML=esc([u.nombre,u.apellido].filter(Boolean).join(' ')||u.username||'Usuario');
+  const pubs=[...(L.data||[]).map(x=>({...x,_t:'listing'})),...(A.data||[]).map(x=>({...x,_t:'auction'}))];
+  ov.querySelector('.modal-b').innerHTML=`<div style="display:flex;gap:16px;align-items:center;margin-bottom:18px"><div class="av" style="width:56px;height:56px;font-size:20px">${u.avatar_url?`<img src="${esc(tImg(u.avatar_url,160))}">`:initials(u.nombre||u.username)}</div>
+      <div><div style="font-size:15px;font-weight:600">@${esc(u.username||'—')} ${u.kyc_verified?'<span class="pill g">verificado</span>':''}</div><div class="muted" style="font-size:12.5px;margin-top:3px">registrado ${fdate(u.created_at)}</div></div></div>
+    <div class="grid g4" style="margin-bottom:18px">${[['Publicaciones',pubs.length],['Pujas',typeof B==='number'?B:0],['Seguidores',typeof F==='number'?F:0],['Calificación',avg+(rs.length?' ('+rs.length+')':'')]].map(([l,v])=>`<div class="card kpi" style="box-shadow:none"><div class="l">${l}</div><div class="v num" style="font-size:22px">${v}</div></div>`).join('')}</div>
+    <dl class="kv"><dt>Correo</dt><dd>${esc(u.email||'—')}</dd><dt>Cédula</dt><dd class="num">${esc((u.cedula_tipo||'V')+'-'+(u.cedula||'—'))}</dd><dt>Teléfono</dt><dd class="num">${esc(u.celular||u.telefono||'—')}</dd><dt>Ciudad</dt><dd>${esc(u.ciudad||'—')}</dd><dt>Rol</dt><dd>${esc(u.role||'—')}</dd>${u.descripcion?`<dt>Descripción</dt><dd style="font-weight:400;white-space:pre-wrap">${esc(u.descripcion)}</dd>`:''}</dl>
+    <div class="switch" style="margin-top:14px"><div><div style="font-weight:600">Identidad verificada</div><div class="muted" style="font-size:12px">Muestra el sello azul en su perfil</div></div><input type="checkbox" ${u.kyc_verified?'checked':''} onchange="userSet('${u.id}',{kyc_verified:this.checked},this)"></div>
+    <div class="switch"><div><div style="font-weight:600">Cuenta activa</div><div class="muted" style="font-size:12px">Desactívala para suspenderla sin borrarla</div></div><input type="checkbox" ${u.activo!==false?'checked':''} onchange="userSet('${u.id}',{activo:this.checked},this)"></div>
+    <div class="section-t" style="margin-top:18px">Publicaciones</div>${pubs.length?`<div class="card" style="box-shadow:none"><table class="tbl"><tbody>${pubs.map(p=>`<tr class="click" onclick="${p._t==='listing'?`openListing('${p.id}')`:`openAuction('${p.id}')`}"><td style="font-weight:600">${esc(carName(p))}</td><td>${p._t==='listing'?'market':'subasta'}</td><td>${stPill(p)}</td><td class="r num">${usd(p._t==='listing'?p.precio_usd:p.current_bid)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Sin publicaciones.</div>'}`;
+  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><a class="btn btn-soft" href="https://www.ruedda.app/" target="_blank" rel="noopener">Abrir Ruedda</a>${u.role!=='superadmin'?`<button class="btn btn-red" onclick="userDelete('${u.id}','${esc(u.username||u.email||'')}',this)">Eliminar cuenta</button>`:''}</div>`);
+}
+function stPill(p){
+  if(p.vendido) return '<span class="pill k">vendido</span>';
+  const e=p.estado; if(e==='activa'){ if(p.end_time&&new Date(p.end_time)<new Date()) return '<span class="pill">finalizada</span>'; return '<span class="pill g">activa</span>'; }
+  if(e==='revision') return '<span class="pill b">en revisión</span>'; if(e==='pendiente_pago') return '<span class="pill o">esperando pago</span>';
+  if(e==='rechazada') return '<span class="pill r">rechazada</span>'; return `<span class="pill">${esc(e||'—')}</span>`;
+}
+async function userSet(id,patch,input){
+  const{error}=await sb.from('users').update(patch).eq('id',id);
+  if(error){ toast('error: '+error.message,true); if(input) input.checked=!input.checked; return; }
+  toast('guardado'); if(CUR==='usuarios') RENDER.usuarios(VIEW_TOKEN,[],true);
+}
+async function userDelete(id,label,btn){
+  if(!confirm(`¿Eliminar la cuenta ${label}? Se borra el usuario y su acceso. No se puede deshacer.`)) return;
+  btn.disabled=true;
+  try{ await api('/api/admin-user',{action:'delete',id}); toast('cuenta eliminada'); closeModal(); if(CUR==='usuarios') RENDER.usuarios(VIEW_TOKEN,[],true); }
+  catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
+
+/* ── MARKET ── */
+let L_F={q:'',st:'activa'};
+RENDER.publicaciones=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft||!$('#lt')) V.innerHTML=`<div class="toolbar"><input class="input" id="lq" placeholder="Buscar marca, modelo o ciudad" value="${esc(L_F.q)}"><div class="seg" id="lseg">${[['activa','Activas'],['vendido','Vendidas'],['revision','En revisión'],['rechazada','Rechazadas'],['todos','Todas']].map(([k,t])=>`<button data-k="${k}" class="${L_F.st===k?'on':''}">${t}</button>`).join('')}</div><span class="muted" id="lcount" style="margin-left:auto;font-size:12.5px"></span></div><div class="card" id="lt"></div>`;
+  const qi=$('#lq'); qi.oninput=()=>{clearTimeout(qi._t);qi._t=setTimeout(()=>{L_F.q=qi.value.trim();RENDER.publicaciones(++VIEW_TOKEN,[],true);},280);};
+  $('#lseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;L_F.st=b.dataset.k;document.querySelectorAll('#lseg button').forEach(x=>x.classList.toggle('on',x===b));RENDER.publicaciones(++VIEW_TOKEN,[],true);};
+  let q=sb.from('listings').select('id,user_id,titulo,marca,modelo,year,km,ciudad,precio_usd,precio_anterior,estado,vendido,es_destacado,auditado_ruedda,view_count,created_at,listing_photos(url,orden)',{count:'exact'}).order('created_at',{ascending:false}).limit(300);
+  if(L_F.st==='vendido') q=q.eq('vendido',true); else if(L_F.st==='activa') q=q.eq('estado','activa').not('vendido','is',true); else if(L_F.st==='revision') q=q.in('estado',['revision','pendiente_pago']); else if(L_F.st!=='todos') q=q.eq('estado',L_F.st);
+  if(L_F.q){ const s=L_F.q.replace(/[%,()]/g,' ').trim(); q=q.or(`marca.ilike.%${s}%,modelo.ilike.%${s}%,ciudad.ilike.%${s}%,titulo.ilike.%${s}%`); }
+  const{data,error,count}=await q; if(stale(tok)) return;
+  const T=$('#lt'); $('#lcount').textContent=count!=null?n(count)+' publicaciones':'';
+  if(error){ T.innerHTML=empty('No se pudo cargar',error.message); return; }
+  if(!data.length){ T.innerHTML=empty('Sin publicaciones en este filtro'); return; }
+  const um=await usersMap(data.map(x=>x.user_id)); if(stale(tok)) return;
+  T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vehículo</th><th>Vendedor</th><th>Ciudad</th><th class="r">Precio</th><th class="r">Vistas</th><th>Estado</th><th>Publicada</th></tr></thead><tbody>${data.map(x=>{const ph=(x.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url;return `<tr class="click" onclick="openListing('${x.id}')"><td><div class="who"><img class="thumb" src="${esc(tImg(ph,160))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="n">${esc(carName(x))}</div><div class="u">${x.km!=null?n(x.km)+' km':''}${x.es_destacado?' · destacado':''}${x.auditado_ruedda?' · auditado':''}</div></div></div></td><td class="muted">${esc(uname(um[x.user_id]))}</td><td class="muted">${esc(x.ciudad||'—')}</td><td class="r num" style="font-weight:600">${usd(x.precio_usd)}${x.precio_anterior>x.precio_usd?`<div class="muted" style="text-decoration:line-through;font-weight:400;font-size:12px">${usd(x.precio_anterior)}</div>`:''}</td><td class="r num">${n(x.view_count)}</td><td>${stPill(x)}</td><td class="muted">${ago(x.created_at)}</td></tr>`;}).join('')}</tbody></table></div>`;
+};
+const LISTING_FIELDS=[['titulo','Título (opcional)','text'],['marca','Marca','text'],['modelo','Modelo','text'],['year','Año','number'],['km','Kilometraje','number'],['precio_usd','Precio (USD)','number'],['precio_anterior','Precio anterior (USD)','number'],['ciudad','Ciudad','text'],['color','Color','text'],['transmision','Transmisión','text'],['combustible','Combustible','text'],['motor','Motor','text'],['whatsapp','WhatsApp','text'],['descripcion','Descripción','area']];
+const AUCTION_FIELDS=[['titulo','Título (opcional)','text'],['marca','Marca','text'],['modelo','Modelo','text'],['year','Año','number'],['km','Kilometraje','number'],['precio_reserva','Precio de reserva (USD)','number'],['ciudad','Ciudad','text'],['color','Color','text'],['transmision','Transmisión','text'],['combustible','Combustible','text'],['motor','Motor','text'],['whatsapp','WhatsApp','text'],['descripcion','Descripción','area']];
+function formHtml(fields,x){ return `<div class="form">${fields.map(([k,l,t])=>`<label class="field ${t==='area'?'full':''}"><span>${l}</span>${t==='area'?`<textarea class="input" rows="5" data-f="${k}">${esc(x[k]??'')}</textarea>`:`<input class="input" type="${t}" data-f="${k}" value="${esc(x[k]??'')}" ${t==='number'?'step="any"':''}>`}</label>`).join('')}</div>`; }
+function readForm(root,fields){ const o={}; fields.forEach(([k,,t])=>{ const el=root.querySelector(`[data-f="${k}"]`); if(!el) return; let v=el.value.trim(); if(t==='number') v=v===''?null:Number(v); else if(v==='') v=null; o[k]=v; }); return o; }
+async function openListing(id){
+  closeModal(); const ov=modal({wide:true,title:'Publicación',body:'<div class="skel" style="height:300px"></div>'});
+  const{data:x,error}=await sb.from('listings').select('*,listing_photos(url,orden)').eq('id',id).maybeSingle();
+  if(!ov.isConnected) return; if(error||!x){ ov.querySelector('.modal-b').innerHTML=empty('No encontrada',error&&error.message); return; }
+  const um=await usersMap([x.user_id]); const u=um[x.user_id];
+  ov.querySelector('.modal-h h3').textContent=carName(x);
+  ov.querySelector('.modal-h div').insertAdjacentHTML('beforeend',`<div class="muted" style="font-size:12.5px;margin-top:3px">${stPill(x)} · de <a href="javascript:void 0" onclick="openUser('${x.user_id}')">${esc(uname(u))}</a> · ${n(x.view_count)} vistas · ${fdate(x.created_at)}</div>`);
+  const phs=(x.listing_photos||[]).sort((a,b)=>a.orden-b.orden);
+  ov.querySelector('.modal-b').innerHTML=`${phs.length?`<div class="gal" style="margin:0 0 16px">${phs.map(p=>`<img src="${esc(tImg(p.url,400))}" data-full="${esc(tImg(p.url,1600))}" onclick="lightbox(this.dataset.full)" loading="lazy" alt="">`).join('')}</div>`:''}${formHtml(LISTING_FIELDS,x)}
+    <div style="margin-top:8px">${[['es_destacado','Destacada','Aparece primero en el market'],['vendido','Vendida','La marca como vendida en su perfil'],['auditado_ruedda','Auditada por Ruedda','Muestra el sello de auditoría']].map(([k,t,d])=>`<div class="switch"><div><div style="font-weight:600">${t}</div><div class="muted" style="font-size:12px">${d}</div></div><input type="checkbox" data-b="${k}" ${x[k]?'checked':''}></div>`).join('')}</div>`;
+  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><a class="btn btn-soft" href="https://www.ruedda.app/?market=${x.id}" target="_blank" rel="noopener">Ver en Ruedda</a><button class="btn btn-primary" onclick="saveListing('${x.id}',this)">Guardar cambios</button></div>`);
+}
+async function saveListing(id,btn){
+  const root=$('#ov .modal'); const patch=readForm(root,LISTING_FIELDS);
+  root.querySelectorAll('[data-b]').forEach(el=>patch[el.dataset.b]=el.checked);
+  if(patch.vendido) patch.vendido_at=patch.vendido_at||new Date().toISOString();
+  if(!patch.marca||!patch.modelo){ toast('marca y modelo son obligatorios',true); return; }
+  btn.disabled=true; patch.updated_at=new Date().toISOString();
+  const{error}=await sb.from('listings').update(patch).eq('id',id);
+  btn.disabled=false; if(error){ toast('error: '+error.message,true); return; }
+  toast('publicación actualizada'); closeModal(); if(CUR==='publicaciones') RENDER.publicaciones(VIEW_TOKEN,[],true);
+}
+
+/* ── SUBASTAS ── */
+let A_F='vivo';
+RENDER.subastas=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft||!$('#at')) V.innerHTML=`<div class="toolbar"><div class="seg" id="aseg">${[['vivo','En vivo'],['finalizadas','Finalizadas'],['revision','En revisión'],['todas','Todas']].map(([k,t])=>`<button data-k="${k}" class="${A_F===k?'on':''}">${t}</button>`).join('')}</div></div><div class="card" id="at"></div>`;
+  $('#aseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;A_F=b.dataset.k;document.querySelectorAll('#aseg button').forEach(x=>x.classList.toggle('on',x===b));RENDER.subastas(++VIEW_TOKEN,[],true);};
+  const nowIso=new Date().toISOString();
+  let q=sb.from('auctions').select('id,user_id,titulo,marca,modelo,year,ciudad,estado,current_bid,bid_count,end_time,precio_reserva,sin_reserva,es_chocado,es_programada,fecha_inicio_programada,view_count,access_code,created_at,auction_photos(url,orden)').limit(300);
+  if(A_F==='vivo') q=q.eq('estado','activa').gt('end_time',nowIso).order('end_time',{ascending:true});
+  else if(A_F==='finalizadas') q=q.eq('estado','activa').lte('end_time',nowIso).order('end_time',{ascending:false});
+  else if(A_F==='revision') q=q.in('estado',['revision','pendiente_pago']).order('created_at',{ascending:true});
+  else q=q.order('created_at',{ascending:false});
+  const{data,error}=await q; if(stale(tok)) return; const T=$('#at');
+  if(error){ T.innerHTML=empty('No se pudo cargar',error.message); return; }
+  if(!data.length){ T.innerHTML=empty(A_F==='vivo'?'No hay subastas en vivo':'Sin subastas en este filtro'); return; }
+  const um=await usersMap(data.map(x=>x.user_id)); if(stale(tok)) return;
+  T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vehículo</th><th>Vendedor</th><th class="r">Oferta actual</th><th class="r">Pujas</th><th>Reserva</th><th class="r">${A_F==='finalizadas'?'Terminó':'Termina'}</th><th>Estado</th></tr></thead><tbody>${data.map(a=>{const ph=(a.auction_photos||[]).sort((x,y)=>x.orden-y.orden)[0]?.url;const res=a.sin_reserva?'<span class="pill">sin reserva</span>':a.precio_reserva>0?(a.current_bid>=a.precio_reserva?`<span class="pill g">${usd(a.precio_reserva)} ✓</span>`:`<span class="pill o">${usd(a.precio_reserva)}</span>`):'—';
+    const prog=a.es_programada&&a.fecha_inicio_programada&&new Date(a.fecha_inicio_programada)>new Date();
+    return `<tr class="click" onclick="openAuction('${a.id}')"><td><div class="who"><img class="thumb" src="${esc(tImg(ph,160))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="n">${esc(carName(a))}</div><div class="u">${a.es_chocado?'chocado · ':''}${esc(a.ciudad||'')}${a.access_code?' · código '+esc(a.access_code):''}</div></div></div></td><td class="muted">${esc(uname(um[a.user_id]))}</td><td class="r num" style="font-weight:600">${usd(a.current_bid)}</td><td class="r num">${n(a.bid_count)}</td><td>${res}</td><td class="r num">${A_F==='finalizadas'?ago(a.end_time):left(a.end_time)}</td><td>${prog?'<span class="pill b">programada</span>':stPill(a)}</td></tr>`;}).join('')}</tbody></table></div>`;
+};
+async function openAuction(id){
+  closeModal(); const ov=modal({wide:true,title:'Subasta',body:'<div class="skel" style="height:300px"></div>'});
+  const [{data:a,error},{data:bids}]=await Promise.all([sb.from('auctions').select('*,auction_photos(url,orden)').eq('id',id).maybeSingle(),sb.from('bids').select('id,user_id,amount,created_at').eq('auction_id',id).order('amount',{ascending:false}).limit(50)]);
+  if(!ov.isConnected) return; if(error||!a){ ov.querySelector('.modal-b').innerHTML=empty('No encontrada',error&&error.message); return; }
+  const um=await usersMap([a.user_id,...(bids||[]).map(b=>b.user_id)]);
+  ov.querySelector('.modal-h h3').textContent=carName(a);
+  ov.querySelector('.modal-h div').insertAdjacentHTML('beforeend',`<div class="muted" style="font-size:12.5px;margin-top:3px">${stPill(a)} · de <a href="javascript:void 0" onclick="openUser('${a.user_id}')">${esc(uname(um[a.user_id]))}</a> · termina ${fdate(a.end_time)} (${left(a.end_time)})</div>`);
+  const phs=(a.auction_photos||[]).sort((x,y)=>x.orden-y.orden);
+  ov.querySelector('.modal-b').innerHTML=`<div class="grid g3" style="margin-bottom:16px">${[['Oferta actual',usd(a.current_bid)],['Pujas',n(a.bid_count)],['Código de acceso',a.access_code||'—']].map(([l,v])=>`<div class="card kpi" style="box-shadow:none"><div class="l">${l}</div><div class="v num" style="font-size:22px">${esc(v)}</div></div>`).join('')}</div>
+    ${phs.length?`<div class="gal" style="margin:0 0 16px">${phs.map(p=>`<img src="${esc(tImg(p.url,400))}" data-full="${esc(tImg(p.url,1600))}" onclick="lightbox(this.dataset.full)" loading="lazy" alt="">`).join('')}</div>`:''}
+    ${formHtml(AUCTION_FIELDS,a)}
+    <div style="margin-top:8px">${[['sin_reserva','Sin reserva','Se vende al mejor postor'],['es_destacado','Destacada','Aparece primero en subastas']].map(([k,t,d])=>`<div class="switch"><div><div style="font-weight:600">${t}</div><div class="muted" style="font-size:12px">${d}</div></div><input type="checkbox" data-b="${k}" ${a[k]?'checked':''}></div>`).join('')}</div>
+    <div class="section-t">Historial de pujas</div>${(bids||[]).length?`<div class="card" style="box-shadow:none"><table class="tbl"><tbody>${bids.map((b,i)=>`<tr><td><div class="who">${avatar(um[b.user_id])}<div class="n">${esc(uname(um[b.user_id]))}</div>${i===0?'<span class="pill g">mayor</span>':''}</div></td><td class="r num" style="font-weight:600">${usd(b.amount)}</td><td class="r muted">${fdate(b.created_at)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Sin pujas todavía.</div>'}`;
+  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><a class="btn btn-soft" href="https://www.ruedda.app/?auction=${a.id}" target="_blank" rel="noopener">Ver en Ruedda</a><button class="btn btn-primary" onclick="saveAuction('${a.id}',this)">Guardar cambios</button></div>`);
+}
+async function saveAuction(id,btn){
+  const root=$('#ov .modal'); const patch=readForm(root,AUCTION_FIELDS);
+  root.querySelectorAll('[data-b]').forEach(el=>patch[el.dataset.b]=el.checked);
+  if(!patch.marca||!patch.modelo){ toast('marca y modelo son obligatorios',true); return; }
+  btn.disabled=true; patch.updated_at=new Date().toISOString();
+  const{error}=await sb.from('auctions').update(patch).eq('id',id);
+  btn.disabled=false; if(error){ toast('error: '+error.message,true); return; }
+  toast('subasta actualizada'); closeModal(); if(CUR==='subastas') RENDER.subastas(VIEW_TOKEN,[],true);
+}
+
+/* ── OFERTAS ── */
+RENDER.ofertas=async(tok,_,soft)=>{
+  const V=$('#view'); if(!soft) V.innerHTML='<div class="card"><div style="padding:18px"><div class="skel" style="height:40px"></div></div></div>';
+  const{data,error}=await sb.from('offers').select('id,listing_id,user_id,tipo,monto,descripcion,estado,created_at').order('created_at',{ascending:false}).limit(200);
+  if(stale(tok)) return;
+  if(error){ V.innerHTML=`<div class="card">${empty('No se pudo cargar',error.message)}</div>`; return; }
+  if(!data.length){ V.innerHTML=`<div class="card">${empty('Sin ofertas todavía')}</div>`; return; }
+  const ids=[...new Set(data.map(o=>o.listing_id).filter(Boolean))];
+  const [um,{data:ls}]=await Promise.all([usersMap(data.map(o=>o.user_id)),ids.length?sb.from('listings').select('id,marca,modelo,year,precio_usd,user_id').in('id',ids):Promise.resolve({data:[]})]);
+  if(stale(tok)) return; const lm={}; (ls||[]).forEach(l=>lm[l.id]=l);
+  V.innerHTML=`<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Publicación</th><th>Quién ofrece</th><th>Tipo</th><th class="r">Oferta</th><th class="r">Precio publicado</th><th>Detalle</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>${data.map(o=>{const l=lm[o.listing_id];return `<tr class="click" onclick="openListing('${o.listing_id}')"><td style="font-weight:600">${esc(carName(l))}</td><td><div class="who">${avatar(um[o.user_id])}<div class="n">${esc(uname(um[o.user_id]))}</div></div></td><td>${o.tipo==='cambio'?'<span class="pill b">cambio</span>':'<span class="pill">compra</span>'}</td><td class="r num" style="font-weight:600">${o.monto?usd(o.monto):'—'}</td><td class="r num muted">${l?usd(l.precio_usd):'—'}</td><td style="max-width:260px" class="muted">${esc((o.descripcion||'').replace(/\[\[rdpost:[^\]]+\]\]/g,'(vehículo adjunto)').slice(0,90))}</td><td>${esc(o.estado||'—')}</td><td class="muted">${ago(o.created_at)}</td></tr>`;}).join('')}</tbody></table></div>`;
+};
+
+boot();
+</script>
+</body>
+</html>
