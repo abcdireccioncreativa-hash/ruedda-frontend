@@ -112,8 +112,8 @@
   '.rdp-arr button[disabled]{opacity:.3;cursor:default;background:#fff}'+
   '.rdp-arr svg{width:16px;height:16px}'+
   '.rdp-tagt:empty{display:none}'+
-  '.rdp-tb{border:0;background:none;padding:0;margin-left:4px;font:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;color:inherit;text-transform:none;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:4px;transition:color .15s}'+
-  '.rdp-tb svg{width:10px;height:10px;display:block;transition:transform .25s cubic-bezier(.22,1,.36,1)}'+
+  '.rdp-tb{border:0;background:none;padding:0;margin-left:4px;font:inherit;font-size:14.5px;font-weight:400;line-height:1.55;letter-spacing:0;color:#2b2b2b;text-transform:none;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:2px;transition:color .15s}'+
+  '.rdp-tb svg{width:13px;height:13px;display:block;transition:transform .25s cubic-bezier(.22,1,.36,1)}'+
   '.rdp-tb:hover svg{transform:translateX(2px)}'+
   '.rdp-tb:hover{color:#0b0b0b}'+
   '.rdp.tour [data-a="tour"]{display:none}'+
