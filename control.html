@@ -28,7 +28,7 @@ a{color:var(--blue);text-decoration:none}
 /* ── login ── */
 #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 .login-card{width:100%;max-width:380px;background:var(--panel);border-radius:20px;box-shadow:var(--sh);border:1px solid var(--line);padding:40px 32px 32px}
-.login-card img{height:30px;width:auto;object-fit:contain;display:block;margin-bottom:28px}
+.login-card img{height:38px;width:auto;object-fit:contain;display:block;margin-bottom:28px}
 .login-card h1{font-size:24px;font-weight:600;letter-spacing:-.02em}
 .login-card p{color:var(--mute);margin:6px 0 24px;line-height:1.45}
 .field{display:block;margin-bottom:12px}
@@ -51,7 +51,7 @@ select.input{appearance:none;-webkit-appearance:none;background-image:url("data:
 /* ── shell ── */
 #app{display:grid;grid-template-columns:252px 1fr;min-height:100vh}
 aside{position:sticky;top:0;height:100vh;overflow-y:auto;background:rgba(251,251,253,.9);border-right:1px solid var(--line);padding:22px 14px 18px;display:flex;flex-direction:column}
-aside .logo{height:22px;width:auto;align-self:flex-start;object-fit:contain;margin:4px 10px 26px;display:block}
+aside .logo{height:32px;width:auto;align-self:flex-start;object-fit:contain;margin:2px 10px 24px;display:block}
 .nav-h{font-size:11px;font-weight:600;color:var(--mute2);text-transform:uppercase;letter-spacing:.06em;margin:18px 10px 6px}
 .nav a{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:8px;color:var(--ink2);font-size:13.5px;font-weight:500;transition:background .12s}
 .nav a:hover{background:var(--hover)}
@@ -384,11 +384,29 @@ const VIEWS=[
   {id:'usuarios',t:'Usuarios',i:'users',s:'Cuentas registradas'},
   {id:'publicaciones',t:'Market',i:'car',s:'Publicaciones del marketplace'},
   {id:'subastas',t:'Subastas',i:'gavel',s:'En vivo, programadas y finalizadas'},
-  {id:'ofertas',t:'Ofertas',i:'offer',s:'Ofertas de compra y de cambio'}
+  {id:'ofertas',t:'Ofertas',i:'offer',s:'Ofertas de compra y de cambio'},
+  {h:'Comercial'},
+  {id:'solicitudes',t:'Solicitudes',i:'msg',s:'Leads: buscan carro, partners y publicar por ellos'},
+  {id:'documentos',t:'Documentos',i:'kyc',s:'Papeles para el sello "auditado por Ruedda"'},
+  {id:'patrocinantes',t:'Patrocinantes',i:'offer',s:'Marcas y aliados por sección'},
+  {id:'fotografos',t:'Fotógrafos',i:'user',s:'Directorio de fotógrafos'},
+  {id:'codigos',t:'Códigos',i:'key',s:'Códigos de publicación gratis'},
+  {h:'Contenido'},
+  {id:'noticias',t:'Noticias',i:'msg',s:'Noticias de la comunidad'},
+  {id:'clips',t:'Clips',i:'act',s:'Videos de la comunidad'},
+  {id:'eventos',t:'Eventos',i:'home',s:'Car meets y eventos'},
+  {id:'mensajes',t:'Mensajes Ruedda',i:'msg',s:'Anuncios oficiales a todos los usuarios'},
+  {id:'sugerencias',t:'Sugerencias',i:'flag',s:'Buzón de sugerencias y reportes de bugs'},
+  {h:'Precios'},
+  {id:'criterio',t:'Criterio Ruedda',i:'bid',s:'Precio justo manual por publicación'},
+  {id:'comparativa',t:'Comparativa',i:'act',s:'Histórico de precios por modelo'},
+  {h:'Ajustes'},
+  {id:'apariencia',t:'Apariencia',i:'car',s:'Banners, Encuentra, intro, logos e insignias'},
+  {id:'configuracion',t:'Configuración',i:'pay',s:'Datos de pago e historia de Ruedda'}
 ];
 function buildNav(){
   $('#nav').innerHTML=VIEWS.map(v=>v.h?`<div class="nav-h">${v.h}</div>`:`<a href="#/${v.id}" data-v="${v.id}">${ico(v.i)}<span>${v.t}</span>${v.b?`<span class="badge zero" data-b="${v.b}">0</span>`:''}</a>`).join('')
-    +`<div class="nav-h">Más herramientas</div><div style="font-size:12px;color:var(--mute);line-height:1.5;padding:2px 10px">Patrocinantes, eventos, códigos, fotógrafos, mensajes y configuración siguen en el panel SuperAdmin de la app mientras llegan aquí.</div>`;
+;
 }
 window.addEventListener('hashchange',route);
 let CUR=null, VIEW_TOKEN=0;
@@ -429,8 +447,9 @@ async function refreshBadges(){
     cnt('kyc_submissions',q=>q.eq('estado','pendiente')),
     cnt('payment_refs',q=>q.eq('status','pendiente')),
     cnt('auction_access_requests',q=>q.eq('estado','pendiente')),
-    cnt('user_reports',q=>q.eq('estado','pendiente'))
+    window._repMissing?Promise.resolve({error:true}):cnt('user_reports',q=>q.eq('estado','pendiente'))
   ]);
+  if(rep&&rep.error) window._repMissing=true; // tabla aún no creada: no se vuelve a consultar hasta recargar
   const v=x=>typeof x==='number'?x:0;
   BADGES={mod:v(mod1)+v(mod2),kyc:v(kyc),pay:v(pay),acc:v(acc),rep:v(rep),repMissing:!!(rep&&rep.error)};
   document.querySelectorAll('[data-b]').forEach(b=>{ const k=b.dataset.b; b.textContent=BADGES[k]; b.classList.toggle('zero',!BADGES[k]); });
@@ -698,7 +717,7 @@ RENDER.usuarios=async(tok,_,soft)=>{
   if(!soft||!$('#ut')) V.innerHTML=`<div class="toolbar"><input class="input" id="uq" placeholder="Buscar por nombre, @usuario, correo o cédula" value="${esc(U_F.q)}">
     <div class="seg" id="urole">${[['todos','Todos'],['particular','Particulares'],['dealer','Concesionarios'],['superadmin','Admins']].map(([k,t])=>`<button data-k="${k}" class="${U_F.role===k?'on':''}">${t}</button>`).join('')}</div>
     <div class="seg" id="ukyc">${[['todos','Todos'],['si','Verificados'],['no','Sin verificar']].map(([k,t])=>`<button data-k="${k}" class="${U_F.kyc===k?'on':''}">${t}</button>`).join('')}</div>
-    <span class="muted" id="ucount" style="margin-left:auto;font-size:12.5px"></span></div><div class="card" id="ut"></div><div class="more" id="umore"></div>`;
+    <span class="muted" id="ucount" style="margin-left:auto;font-size:12.5px"></span><button class="btn btn-primary" onclick="newAccount()">Crear cuenta</button></div><div class="card" id="ut"></div><div class="more" id="umore"></div>`;
   const qi=$('#uq'); qi.oninput=()=>{clearTimeout(qi._t);qi._t=setTimeout(()=>{U_F.q=qi.value.trim();U_F.page=0;RENDER.usuarios(++VIEW_TOKEN,[],true);},280);};
   $('#urole').onclick=e=>{const b=e.target.closest('button');if(!b)return;U_F.role=b.dataset.k;U_F.page=0;document.querySelectorAll('#urole button').forEach(x=>x.classList.toggle('on',x===b));RENDER.usuarios(++VIEW_TOKEN,[],true);};
   $('#ukyc').onclick=e=>{const b=e.target.closest('button');if(!b)return;U_F.kyc=b.dataset.k;U_F.page=0;document.querySelectorAll('#ukyc button').forEach(x=>x.classList.toggle('on',x===b));RENDER.usuarios(++VIEW_TOKEN,[],true);};
@@ -789,7 +808,7 @@ async function openListing(id){
   const phs=(x.listing_photos||[]).sort((a,b)=>a.orden-b.orden);
   ov.querySelector('.modal-b').innerHTML=`${phs.length?`<div class="gal" style="margin:0 0 16px">${phs.map(p=>`<img src="${esc(tImg(p.url,400))}" data-full="${esc(tImg(p.url,1600))}" onclick="lightbox(this.dataset.full)" loading="lazy" alt="">`).join('')}</div>`:''}${formHtml(LISTING_FIELDS,x)}
     <div style="margin-top:8px">${[['es_destacado','Destacada','Aparece primero en el market'],['vendido','Vendida','La marca como vendida en su perfil'],['auditado_ruedda','Auditada por Ruedda','Muestra el sello de auditoría']].map(([k,t,d])=>`<div class="switch"><div><div style="font-weight:600">${t}</div><div class="muted" style="font-size:12px">${d}</div></div><input type="checkbox" data-b="${k}" ${x[k]?'checked':''}></div>`).join('')}</div>`;
-  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><a class="btn btn-soft" href="https://www.ruedda.app/?market=${x.id}" target="_blank" rel="noopener">Ver en Ruedda</a><button class="btn btn-primary" onclick="saveListing('${x.id}',this)">Guardar cambios</button></div>`);
+  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><button class="btn btn-red" onclick="deletePub('listings','${x.id}')" style="margin-right:auto">Eliminar</button><button class="btn btn-soft" onclick="coverPicker('listing','${x.id}')">Portada</button><a class="btn btn-soft" href="https://www.ruedda.app/?market=${x.id}" target="_blank" rel="noopener">Ver en Ruedda</a><button class="btn btn-primary" onclick="saveListing('${x.id}',this)">Guardar cambios</button></div>`);
 }
 async function saveListing(id,btn){
   const root=$('#ov .modal'); const patch=readForm(root,LISTING_FIELDS);
@@ -835,7 +854,7 @@ async function openAuction(id){
     ${formHtml(AUCTION_FIELDS,a)}
     <div style="margin-top:8px">${[['sin_reserva','Sin reserva','Se vende al mejor postor'],['es_destacado','Destacada','Aparece primero en subastas']].map(([k,t,d])=>`<div class="switch"><div><div style="font-weight:600">${t}</div><div class="muted" style="font-size:12px">${d}</div></div><input type="checkbox" data-b="${k}" ${a[k]?'checked':''}></div>`).join('')}</div>
     <div class="section-t">Historial de pujas</div>${(bids||[]).length?`<div class="card" style="box-shadow:none"><table class="tbl"><tbody>${bids.map((b,i)=>`<tr><td><div class="who">${avatar(um[b.user_id])}<div class="n">${esc(uname(um[b.user_id]))}</div>${i===0?'<span class="pill g">mayor</span>':''}</div></td><td class="r num" style="font-weight:600">${usd(b.amount)}</td><td class="r muted">${fdate(b.created_at)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="muted">Sin pujas todavía.</div>'}`;
-  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><a class="btn btn-soft" href="https://www.ruedda.app/?auction=${a.id}" target="_blank" rel="noopener">Ver en Ruedda</a><button class="btn btn-primary" onclick="saveAuction('${a.id}',this)">Guardar cambios</button></div>`);
+  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><button class="btn btn-red" onclick="deletePub('auctions','${a.id}')" style="margin-right:auto">Eliminar</button><button class="btn btn-soft" onclick="regenCode('${a.id}')">${a.access_code?'Nuevo código':'Generar código'}</button><button class="btn btn-soft" onclick="coverPicker('auction','${a.id}')">Portada</button><a class="btn btn-soft" href="https://www.ruedda.app/?auction=${a.id}" target="_blank" rel="noopener">Ver en Ruedda</a><button class="btn btn-primary" onclick="saveAuction('${a.id}',this)">Guardar cambios</button></div>`);
 }
 async function saveAuction(id,btn){
   const root=$('#ov .modal'); const patch=readForm(root,AUCTION_FIELDS);
@@ -859,6 +878,346 @@ RENDER.ofertas=async(tok,_,soft)=>{
   if(stale(tok)) return; const lm={}; (ls||[]).forEach(l=>lm[l.id]=l);
   V.innerHTML=`<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Publicación</th><th>Quién ofrece</th><th>Tipo</th><th class="r">Oferta</th><th class="r">Precio publicado</th><th>Detalle</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>${data.map(o=>{const l=lm[o.listing_id];return `<tr class="click" onclick="openListing('${o.listing_id}')"><td style="font-weight:600">${esc(carName(l))}</td><td><div class="who">${avatar(um[o.user_id])}<div class="n">${esc(uname(um[o.user_id]))}</div></div></td><td>${o.tipo==='cambio'?'<span class="pill b">cambio</span>':'<span class="pill">compra</span>'}</td><td class="r num" style="font-weight:600">${o.monto?usd(o.monto):'—'}</td><td class="r num muted">${l?usd(l.precio_usd):'—'}</td><td style="max-width:260px" class="muted">${esc((o.descripcion||'').replace(/\[\[rdpost:[^\]]+\]\]/g,'(vehículo adjunto)').slice(0,90))}</td><td>${esc(o.estado||'—')}</td><td class="muted">${ago(o.created_at)}</td></tr>`;}).join('')}</tbody></table></div>`;
 };
+
+/* ════════════════════════════════════════════════════════════════
+   ETAPA 2 — contenido, comercial, precios, apariencia y configuración
+   (misma lógica que el panel SuperAdmin de la app, rediseñada)
+   ════════════════════════════════════════════════════════════════ */
+function compressImage(file,maxDim,quality){
+  return new Promise(res=>{ try{ const img=new Image(),url=URL.createObjectURL(file);
+    img.onload=()=>{ URL.revokeObjectURL(url); let w=img.naturalWidth,h=img.naturalHeight; const s=Math.min(1,maxDim/Math.max(w,h)); w=Math.round(w*s); h=Math.round(h*s);
+      const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); c.toBlob(b=>res(b||file),'image/jpeg',quality); };
+    img.onerror=()=>res(file); img.src=url; }catch(e){ res(file); } });
+}
+// sube un archivo a un bucket público y devuelve su URL
+async function upload(bucket,file,prefix,opt){
+  opt=opt||{}; let body=file, ext=(file.name.split('.').pop()||'jpg').toLowerCase(), ct=file.type||undefined;
+  if(opt.compress){ body=await compressImage(file,opt.compress,opt.q||0.85); ext='jpg'; ct='image/jpeg'; }
+  const path=`${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+  const{error}=await sb.storage.from(bucket).upload(path,body,{upsert:false,contentType:ct});
+  if(error) throw error;
+  return sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+}
+function pickFile(accept){ return new Promise(r=>{ const i=document.createElement('input'); i.type='file'; i.accept=accept||'image/*'; i.onchange=()=>r(i.files&&i.files[0]||null); i.click(); }); }
+async function setSetting(key,value){ const{error}=await sb.from('app_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'}); if(error) throw error; }
+const card=(title,sub,body,right)=>`<div class="card" style="margin-bottom:14px"><div class="card-h"><div><h3>${title}</h3>${sub?`<div class="muted" style="font-size:12px;margin-top:2px">${sub}</div>`:''}</div>${right||''}</div><div class="card-b">${body}</div></div>`;
+const rowList=items=>items.length?`<div class="tbl-wrap"><table class="tbl"><tbody>${items.join('')}</tbody></table></div>`:empty('Nada todavía');
+const delBtn=(fn)=>`<button class="btn btn-red" onclick="${fn}" style="height:30px;padding:0 12px">Eliminar</button>`;
+function imgSlot(url,onclick,ratio){ return `<div onclick="${onclick}" style="aspect-ratio:${ratio||'16/9'};border-radius:10px;border:1px dashed var(--line2);background:#fafafa center/cover no-repeat;${url?`background-image:url('${esc(url)}');border-style:solid;`:''}display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mute);font-size:12.5px">${url?'':'Subir imagen'}</div>`; }
+
+/* ── NOTICIAS ── */
+RENDER.noticias=async(tok)=>{
+  const V=$('#view');
+  V.innerHTML=card('Nueva noticia','Aparece en la sección de noticias de la comunidad',`<div class="form"><div class="full" id="nw-img">${imgSlot('',"nwPick()")}</div><label class="field"><span>Título</span><input class="input" id="nw-t"></label><label class="field"><span>Autor</span><input class="input" id="nw-a" placeholder="Ruedda"></label><label class="field full"><span>Contenido</span><textarea class="input" id="nw-c" rows="4"></textarea></label></div><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="nwSave(this)">Publicar noticia</button></div>`)+`<div id="nwl"></div>`;
+  window._nwFile=null;
+  const{data}=await sb.from('noticias').select('*').order('created_at',{ascending:false}).limit(50); if(stale(tok)) return;
+  $('#nwl').innerHTML=card('Publicadas',(data||[]).length+' noticias',rowList((data||[]).map(x=>`<tr><td style="width:84px"><img class="thumb" src="${esc(tImg(x.banner_image_url,200))}" style="width:72px;height:44px"></td><td><div style="font-weight:600">${esc(x.titulo||'sin título')}</div><div class="muted" style="font-size:12px">${esc((x.content||'').slice(0,110))}</div></td><td class="muted">${esc(x.autor||'')} · ${ago(x.created_at)}</td><td class="r">${delBtn(`delRow('noticias','${x.id}','noticias')`)}</td></tr>`)));
+};
+async function nwPick(){ const f=await pickFile(); if(!f) return; window._nwFile=f; $('#nw-img').innerHTML=imgSlot(URL.createObjectURL(f),"nwPick()"); }
+async function nwSave(btn){
+  if(!window._nwFile){ toast('elige un banner',true); return; } btn.disabled=true;
+  try{ const url=await upload('noticias',window._nwFile,'noticia',{compress:1800});
+    const{error}=await sb.from('noticias').insert({banner_image_url:url,titulo:$('#nw-t').value.trim()||null,autor:$('#nw-a').value.trim()||'Ruedda',content:$('#nw-c').value.trim()||null}); if(error) throw error;
+    toast('noticia publicada'); RENDER.noticias(++VIEW_TOKEN);
+  }catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
+async function delRow(table,id,view,col){
+  if(!confirm('¿Eliminar? No se puede deshacer.')) return;
+  const{error}=await sb.from(table).delete().eq(col||'id',id);
+  if(error){ toast('error: '+error.message,true); return; } toast('eliminado'); RENDER[view](++VIEW_TOKEN);
+}
+
+/* ── CLIPS ── */
+RENDER.clips=async(tok)=>{
+  const V=$('#view');
+  V.innerHTML=card('Nuevo clip','Video de Instagram, TikTok o YouTube para la comunidad',`<div class="form"><label class="field full"><span>Link del video</span><input class="input" id="cl-u" placeholder="https://www.instagram.com/reel/…"></label><div id="cl-img">${imgSlot('',"clPick()",'9/16')}</div><div class="muted" style="font-size:12.5px;align-self:center">La portada es opcional, pero hace que el clip cargue al instante y no dependa del reproductor externo.</div></div><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="clSave(this)">Agregar clip</button></div>`)+`<div id="cll"></div>`;
+  window._clFile=null;
+  const{data}=await sb.from('ruedda_clips').select('*').order('created_at',{ascending:false}); if(stale(tok)) return;
+  $('#cll').innerHTML=card('Clips',(data||[]).length+' publicados',rowList((data||[]).map(x=>`<tr><td style="width:56px">${x.thumbnail_url?`<img class="thumb" src="${esc(tImg(x.thumbnail_url,120))}" style="width:40px;height:56px">`:''}</td><td><a href="${esc(x.url_video)}" target="_blank" rel="noopener">${esc(x.url_video)}</a></td><td class="muted">${ago(x.created_at)}</td><td class="r">${delBtn(`delRow('ruedda_clips','${x.id}','clips')`)}</td></tr>`)));
+};
+async function clPick(){ const f=await pickFile(); if(!f) return; window._clFile=f; $('#cl-img').innerHTML=imgSlot(URL.createObjectURL(f),"clPick()",'9/16'); }
+async function clSave(btn){
+  const u=$('#cl-u').value.trim(); if(!/^https?:\/\//.test(u)){ toast('pega un link válido',true); return; } btn.disabled=true;
+  try{ let thumb=null; if(window._clFile) thumb=await upload('clips',window._clFile,'clip',{compress:900,q:0.82});
+    const{error}=await sb.from('ruedda_clips').insert({url_video:u,thumbnail_url:thumb}); if(error) throw error; toast('clip agregado'); RENDER.clips(++VIEW_TOKEN);
+  }catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
+
+/* ── EVENTOS ── */
+function evStatus(ev){ try{ const s=new Date(ev.fecha+'T'+(ev.hora_inicio||'00:00')), e=new Date(ev.fecha+'T'+(ev.hora_fin||'23:59')), n=new Date(); return n<s?'próximo':n>e?'finalizado':'en curso'; }catch(e){ return ''; } }
+RENDER.eventos=async(tok)=>{
+  const V=$('#view');
+  V.innerHTML=card('Nuevo evento','Car meets, exhibiciones y eventos de la comunidad',`<div class="form"><div class="full" id="ev-img">${imgSlot('',"evPick()")}</div>
+    <label class="field full"><span>Título</span><input class="input" id="ev-t"></label>
+    <label class="field"><span>Fecha</span><input class="input" type="date" id="ev-f"></label><label class="field"><span>Ubicación</span><input class="input" id="ev-u"></label>
+    <label class="field"><span>Hora de inicio</span><input class="input" type="time" id="ev-hi"></label><label class="field"><span>Hora de fin</span><input class="input" type="time" id="ev-hf"></label>
+    <label class="field"><span>Entrada</span><select class="input" id="ev-e" onchange="$('#ev-lw').style.display=this.value==='pagada'?'':'none'"><option value="libre">Libre</option><option value="pagada">Pagada</option></select></label>
+    <label class="field" id="ev-lw" style="display:none"><span>Link de entradas</span><input class="input" id="ev-l" placeholder="https://"></label>
+    <label class="field full"><span>Descripción</span><textarea class="input" id="ev-d" rows="3"></textarea></label></div>
+    <div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="evSave(this)">Publicar evento</button></div>`)+`<div id="evl"></div>`;
+  window._evFile=null;
+  const{data}=await sb.from('eventos').select('*').order('fecha',{ascending:false}).limit(60); if(stale(tok)) return;
+  $('#evl').innerHTML=card('Eventos',(data||[]).length+' publicados',rowList((data||[]).map(x=>{const st=evStatus(x);return `<tr><td style="width:84px"><img class="thumb" src="${esc(tImg(x.foto_url,200))}" style="width:72px;height:44px"></td><td><div style="font-weight:600">${esc(x.titulo)}</div><div class="muted" style="font-size:12px">${esc(x.ubicacion||'')}</div></td><td class="num">${esc(x.fecha)} · ${esc((x.hora_inicio||'').slice(0,5))}–${esc((x.hora_fin||'').slice(0,5))}</td><td><span class="pill ${st==='en curso'?'r':st==='próximo'?'b':''}">${st}</span> ${x.entrada_tipo==='pagada'?'<span class="pill o">pagada</span>':''}</td><td class="r">${delBtn(`delRow('eventos','${x.id}','eventos')`)}</td></tr>`;})));
+};
+async function evPick(){ const f=await pickFile(); if(!f) return; window._evFile=f; $('#ev-img').innerHTML=imgSlot(URL.createObjectURL(f),"evPick()"); }
+async function evSave(btn){
+  const t=$('#ev-t').value.trim(),f=$('#ev-f').value,hi=$('#ev-hi').value,hf=$('#ev-hf').value,e=$('#ev-e').value,l=$('#ev-l').value.trim();
+  if(!t) return toast('ponle un título',true); if(!f||!hi||!hf) return toast('falta fecha u horas',true); if(!window._evFile) return toast('elige una foto',true); if(e==='pagada'&&!l) return toast('falta el link de entradas',true);
+  btn.disabled=true;
+  try{ const url=await upload('eventos',window._evFile,'evento',{compress:1600});
+    const{error}=await sb.from('eventos').insert({titulo:t,foto_url:url,fecha:f,hora_inicio:hi,hora_fin:hf,ubicacion:$('#ev-u').value.trim()||null,descripcion:$('#ev-d').value.trim()||null,entrada_tipo:e,link_entradas:e==='pagada'?l:null}); if(error) throw error;
+    toast('evento publicado'); RENDER.eventos(++VIEW_TOKEN);
+  }catch(err){ toast('error: '+err.message,true); btn.disabled=false; }
+}
+
+/* ── MENSAJES RUEDDA ── */
+RENDER.mensajes=async(tok)=>{
+  const V=$('#view');
+  const [{data:av},{data:ms}]=await Promise.all([sb.from('app_settings').select('value').eq('key','ruedda_team_avatar_url').maybeSingle(),sb.from('ruedda_team_messages').select('*').order('created_at',{ascending:false}).limit(40)]);
+  if(stale(tok)) return;
+  V.innerHTML=`<div class="grid g21"><div>${card('Anuncio a todos los usuarios','Llega al buzón de mensajes de cada usuario desde el canal oficial de Ruedda',`<textarea class="input" id="rtm" rows="5" placeholder="Escribe el anuncio…"></textarea><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="rtmSend(this)">Enviar a todos</button></div>`)}${card('Anuncios enviados',(ms||[]).length+'',rowList((ms||[]).map(m=>`<tr><td style="white-space:pre-wrap">${esc(m.body)}</td><td class="muted" style="white-space:nowrap">${ago(m.created_at)}</td><td class="r">${delBtn(`delRow('ruedda_team_messages','${m.id}','mensajes')`)}</td></tr>`)))}</div>
+    <div>${card('Foto del canal','Avatar del canal oficial',`<div style="max-width:160px">${imgSlot(av&&av.value,"setImageSetting('ruedda_team_avatar_url','mensajes')",'1/1')}</div>`)}</div></div>`;
+};
+async function rtmSend(btn){
+  const b=$('#rtm').value.trim(); if(!b) return toast('escribe un mensaje',true);
+  if(!confirm('¿Enviar este anuncio a TODOS los usuarios?')) return; btn.disabled=true;
+  const{error}=await sb.from('ruedda_team_messages').insert({body:b,created_by:ME.id});
+  if(error){ toast('error: '+error.message,true); btn.disabled=false; return; } toast('anuncio enviado'); RENDER.mensajes(++VIEW_TOKEN);
+}
+async function setImageSetting(key,view,opt){
+  const f=await pickFile(); if(!f) return; toast('subiendo…');
+  try{ const url=await upload('assets',f,key.replace(/_url$/,''),opt||{}); await setSetting(key,url); toast('imagen actualizada'); RENDER[view](++VIEW_TOKEN); }catch(e){ toast('error: '+e.message,true); }
+}
+
+/* ── SUGERENCIAS ── */
+RENDER.sugerencias=async(tok)=>{
+  const{data,error}=await sb.from('sugerencias').select('*').order('created_at',{ascending:false}).limit(200); if(stale(tok)) return;
+  const V=$('#view'); if(error){ V.innerHTML=`<div class="card">${empty('No se pudo cargar',error.message)}</div>`; return; }
+  const um=await usersMap((data||[]).map(s=>s.user_id)); if(stale(tok)) return;
+  V.innerHTML=(data||[]).length?`<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Tipo</th><th>Mensaje</th><th>Usuario</th><th>Fecha</th><th></th></tr></thead><tbody>${data.map(s=>{const bug=/^\s*\[BUG\]/i.test(s.content||'');return `<tr><td>${bug?'<span class="pill r">bug</span>':'<span class="pill b">sugerencia</span>'}</td><td style="white-space:pre-wrap;max-width:560px">${esc((s.content||'').replace(/^\s*\[BUG\]\s*/i,''))}</td><td class="muted">${esc(s.user_id?uname(um[s.user_id]):'anónimo')}</td><td class="muted">${ago(s.created_at)}</td><td class="r">${delBtn(`delRow('sugerencias','${s.id}','sugerencias')`)}</td></tr>`;}).join('')}</tbody></table></div>`:`<div class="card">${empty('Buzón vacío','Las sugerencias y reportes de bugs de los usuarios llegan aquí.')}</div>`;
+};
+
+/* ── PATROCINANTES ── */
+const PAT_CATS=['market','promo grande','mini banner detalle','chocados','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
+RENDER.patrocinantes=async(tok)=>{
+  const{data}=await sb.from('patrocinantes').select('*').order('categoria').order('created_at',{ascending:false}); if(stale(tok)) return;
+  const by={}; (data||[]).forEach(p=>(by[p.categoria]=by[p.categoria]||[]).push(p));
+  $('#view').innerHTML=`<div class="items">${PAT_CATS.map((c,ci)=>`<div class="card" style="padding:16px 16px 14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:600;text-transform:capitalize">${esc(c)}</div><span class="muted" style="font-size:12px">${(by[c]||[]).length}</span></div>
+    ${(by[c]||[]).map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)"><img class="thumb" src="${esc(tImg(p.imagen_url,160))}" onerror="this.style.visibility='hidden'" style="width:44px;height:44px"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">${esc(p.nombre||'—')}</div><div class="muted" style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.link||'sin link')}</div></div><button class="btn btn-soft" style="height:28px;padding:0 10px" onclick="delRow('patrocinantes','${p.id}','patrocinantes')">Quitar</button></div>`).join('')}
+    <div style="border-top:1px solid var(--line);padding-top:10px;margin-top:4px;display:grid;gap:8px"><div id="pat-img-${ci}">${imgSlot('',`patPick(${ci})`,'3/1')}</div><input class="input" id="pat-n-${ci}" placeholder="Nombre"><input class="input" id="pat-l-${ci}" placeholder="Link (opcional)"><button class="btn btn-primary" onclick="patAdd(${ci},this)">Agregar</button></div></div>`).join('')}</div>`;
+};
+window._patFiles={};
+async function patPick(ci){ const f=await pickFile(); if(!f) return; window._patFiles[ci]=f; $('#pat-img-'+ci).innerHTML=imgSlot(URL.createObjectURL(f),`patPick(${ci})`,'3/1'); }
+async function patAdd(ci,btn){
+  const n=$('#pat-n-'+ci).value.trim(); if(!n) return toast('nombre requerido',true); btn.disabled=true;
+  try{ let img=null; if(window._patFiles[ci]) img=await upload('assets',window._patFiles[ci],'patrocinante-'+PAT_CATS[ci].replace(/\s+/g,'_'));
+    const{error}=await sb.from('patrocinantes').insert({categoria:PAT_CATS[ci],imagen_url:img,nombre:n,link:$('#pat-l-'+ci).value.trim()||null}); if(error) throw error;
+    delete window._patFiles[ci]; toast('patrocinante agregado'); RENDER.patrocinantes(++VIEW_TOKEN);
+  }catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
+
+/* ── FOTÓGRAFOS ── */
+RENDER.fotografos=async(tok)=>{
+  const{data}=await sb.from('fotografos').select('*').order('created_at',{ascending:false}); if(stale(tok)) return;
+  $('#view').innerHTML=card('Nuevo fotógrafo','Aparece en el directorio de fotógrafos de Ruedda Extra',`<div class="form"><label class="field"><span>Nombre</span><input class="input" id="fo-n"></label><label class="field"><span>Ciudad</span><input class="input" id="fo-c"></label><label class="field"><span>WhatsApp</span><input class="input" id="fo-w" placeholder="0412…"></label><label class="field"><span>Instagram</span><input class="input" id="fo-i" placeholder="@usuario"></label><label class="field"><span>Especialidad</span><input class="input" id="fo-e" placeholder="fotografía automotriz"></label><label class="field"><span>Precio desde (USD)</span><input class="input" type="number" id="fo-p"></label><label class="field full"><span>Links del portafolio (uno por línea)</span><textarea class="input" id="fo-l" rows="3" placeholder="https://instagram.com/p/…"></textarea></label></div><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="foSave(this)">Publicar fotógrafo</button></div>`)
+    +card('Directorio',(data||[]).length+' fotógrafos',rowList((data||[]).map(f=>`<tr><td><div style="font-weight:600">${esc(f.nombre)}</div><div class="muted" style="font-size:12px">${esc(f.especialidad||'')}</div></td><td class="muted">${esc(f.ciudad||'')}</td><td class="muted num">${esc(f.whatsapp||'')}${f.instagram?' · '+esc(f.instagram):''}</td><td class="num">${f.precio_usd?usd(f.precio_usd):''}</td><td><label class="switch" style="border:0;padding:0;gap:8px"><span class="muted" style="font-size:12px">${f.activo?'visible':'oculto'}</span><input type="checkbox" ${f.activo?'checked':''} onchange="rowSet('fotografos','${f.id}',{activo:this.checked},'fotografos')"></label></td><td class="r">${delBtn(`delRow('fotografos','${f.id}','fotografos')`)}</td></tr>`)));
+};
+async function foSave(btn){
+  const n=$('#fo-n').value.trim(),c=$('#fo-c').value.trim(); if(!n||!c) return toast('nombre y ciudad son obligatorios',true); btn.disabled=true;
+  const p=$('#fo-p').value; const{error}=await sb.from('fotografos').insert({nombre:n,ciudad:c,whatsapp:$('#fo-w').value.trim()||null,instagram:$('#fo-i').value.trim()||null,especialidad:$('#fo-e').value.trim()||'fotografía automotriz',precio_usd:p?Number(p):null,fotos_url:$('#fo-l').value.split('\n').map(x=>x.trim()).filter(Boolean),rating:5,activo:true});
+  if(error){ toast('error: '+error.message,true); btn.disabled=false; return; } toast('fotógrafo publicado'); RENDER.fotografos(++VIEW_TOKEN);
+}
+async function rowSet(table,id,patch,view,col){ const{error}=await sb.from(table).update(patch).eq(col||'id',id); if(error){ toast('error: '+error.message,true); return; } toast('guardado'); if(view) RENDER[view](++VIEW_TOKEN); }
+
+/* ── CÓDIGOS DE INVITACIÓN ── */
+RENDER.codigos=async(tok)=>{
+  const{data}=await sb.from('invitation_codes').select('*').order('created_at',{ascending:false}).limit(200); if(stale(tok)) return;
+  $('#view').innerHTML=card('Nuevo código','Publicación gratis para quien lo use',`<div class="form"><label class="field"><span>Código</span><input class="input" id="cd-c" style="text-transform:uppercase;letter-spacing:.08em;font-weight:600" placeholder="RUEDDA2026"></label><div class="field"><span>Sirve para</span><div class="seg" id="cd-t"><button data-k="particular" class="on">Market</button><button data-k="subasta">Subasta</button><button data-k="concesionario">Concesionario</button></div></div><label class="field"><span>Usos máximos</span><input class="input" type="number" id="cd-u" value="1" min="1"></label><label class="field"><span>Vence en (días)</span><input class="input" type="number" id="cd-d" value="30" min="1"></label></div><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="cdSave(this)">Crear código</button></div>`)
+    +card('Códigos',(data||[]).length+'',rowList((data||[]).map(c=>{const exp=c.expires_at&&new Date(c.expires_at)<new Date();const left=(c.usos_maximos||0)-(c.usos_actuales||0);return `<tr><td class="num" style="font-weight:700;letter-spacing:.06em">${esc(c.code)} <button class="btn btn-soft" style="height:24px;padding:0 8px;font-size:11px" onclick="navigator.clipboard.writeText('${esc(c.code)}');toast('copiado')">copiar</button></td><td>${(c.tipos||[]).map(t=>`<span class="pill">${esc(t)}</span>`).join(' ')}</td><td class="num">${c.usos_actuales||0}/${c.usos_maximos} usos</td><td class="muted">${c.expires_at?(exp?'venció':'vence')+' '+new Date(c.expires_at).toLocaleDateString('es-VE'):'—'}</td><td>${!c.activo?'<span class="pill">desactivado</span>':exp?'<span class="pill r">vencido</span>':left<=0?'<span class="pill o">agotado</span>':'<span class="pill g">activo</span>'}</td><td class="r">${c.activo?`<button class="btn btn-soft" style="height:30px" onclick="rowSet('invitation_codes','${c.id}',{activo:false},'codigos')">Desactivar</button>`:`<button class="btn btn-soft" style="height:30px" onclick="rowSet('invitation_codes','${c.id}',{activo:true},'codigos')">Activar</button>`}</td></tr>`;})));
+  $('#cd-t').onclick=e=>{const b=e.target.closest('button'); if(b) b.classList.toggle('on');};
+};
+async function cdSave(btn){
+  const code=$('#cd-c').value.trim().toUpperCase().replace(/\s+/g,''); if(!code) return toast('escribe un código',true);
+  const tipos=[...document.querySelectorAll('#cd-t button.on')].map(b=>b.dataset.k); if(!tipos.length) return toast('elige al menos un tipo',true);
+  const usos=parseInt($('#cd-u').value)||1, dias=parseInt($('#cd-d').value)||30; btn.disabled=true;
+  const{data:ex}=await sb.from('invitation_codes').select('id').eq('code',code).limit(1);
+  if(ex&&ex.length){ toast('ese código ya existe',true); btn.disabled=false; return; }
+  const{error}=await sb.from('invitation_codes').insert({code,tipos,usos_maximos:usos,usos_actuales:0,dias,expires_at:new Date(Date.now()+dias*DAY).toISOString(),activo:true});
+  if(error){ toast('error: '+error.message,true); btn.disabled=false; return; } toast('código '+code+' creado'); RENDER.codigos(++VIEW_TOKEN);
+}
+
+/* ── SOLICITUDES ── */
+let SOL_K='car';
+const SOL={car:{t:'car_requests',l:'Buscan un carro',tel:'celular',done:'atendida'},partner:{t:'partner_leads',l:'Quieren ser partner',tel:'telefono',done:'contactado'},publicar:{t:'publish_for_me_leads',l:'Publicar por ellos',tel:'whatsapp',done:'atendida'}};
+RENDER.solicitudes=async(tok)=>{
+  const V=$('#view'); V.innerHTML=`<div class="toolbar"><div class="seg" id="solseg">${Object.entries(SOL).map(([k,v])=>`<button data-k="${k}" class="${k===SOL_K?'on':''}">${v.l}</button>`).join('')}</div></div><div class="card" id="solt"></div>`;
+  $('#solseg').onclick=e=>{const b=e.target.closest('button'); if(!b) return; SOL_K=b.dataset.k; RENDER.solicitudes(++VIEW_TOKEN);};
+  const S=SOL[SOL_K]; const{data,error}=await sb.from(S.t).select('*').order('created_at',{ascending:false}).limit(200); if(stale(tok)) return;
+  const T=$('#solt'); if(error){ T.innerHTML=empty('No se pudo cargar',error.message); return; } if(!data.length){ T.innerHTML=empty('Sin solicitudes'); return; }
+  const wa=t=>'https://wa.me/'+String(t||'').replace(/[^0-9]/g,'').replace(/^0/,'58');
+  T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Solicitud</th><th>Detalle</th><th>Contacto</th><th>Estado</th><th>Fecha</th><th class="r">Acciones</th></tr></thead><tbody>${data.map(r=>{
+    const tel=r[S.tel]; const title=SOL_K==='car'?[r.anio,r.marca,r.modelo].filter(Boolean).join(' ')||'sin especificar':SOL_K==='partner'?(r.marca_nombre||'—'):[r.tipo,r.anio,r.marca,r.modelo].filter(Boolean).join(' ')||'sin datos';
+    const sub=SOL_K==='car'?(r.especificaciones||''):SOL_K==='partner'?[r.representante,r.motivo].filter(Boolean).join(' · '):'pidió que publiquemos por él/ella';
+    return `<tr><td style="font-weight:600">${esc(title)}</td><td class="muted" style="max-width:320px">${esc(sub)}</td><td class="num">${tel?`<a href="${wa(tel)}" target="_blank" rel="noopener">${esc(tel)}</a>`:'—'}</td><td>${r.estado==='pendiente'?'<span class="pill o">pendiente</span>':`<span class="pill g">${esc(r.estado)}</span>`}</td><td class="muted">${ago(r.created_at)}</td><td class="r" style="white-space:nowrap">${tel?`<a class="btn btn-green" style="height:30px" href="${wa(tel)}" target="_blank" rel="noopener">WhatsApp</a> `:''}${r.estado==='pendiente'?`<button class="btn btn-soft" style="height:30px" onclick="rowSet('${S.t}','${r.id}',{estado:'${S.done}'},'solicitudes')">Marcar atendida</button> `:''}${delBtn(`delRow('${S.t}','${r.id}','solicitudes')`)}</td></tr>`;}).join('')}</tbody></table></div>`;
+};
+
+/* ── DOCUMENTOS (sello auditado por Ruedda) ── */
+RENDER.documentos=async(tok)=>{
+  const V=$('#view'); const{data,error}=await sb.from('vehicle_documents').select('*').eq('estado','pendiente').order('created_at',{ascending:true}); if(stale(tok)) return;
+  if(error){ V.innerHTML=`<div class="card">${empty('No se pudo cargar',error.message)}</div>`; return; }
+  if(!data.length){ V.innerHTML=`<div class="card">${empty('Sin documentos pendientes','Cuando un vendedor suba papeles de su vehículo para obtener el sello "auditado por Ruedda", aparecerán aquí.')}</div>`; return; }
+  const g={}; data.forEach(d=>(g[d.item_type+'|'+d.item_id]=g[d.item_type+'|'+d.item_id]||[]).push(d));
+  const groups=await Promise.all(Object.values(g).map(async docs=>{ const t=docs[0].item_type, id=docs[0].item_id, tb=t==='market'?'listings':'auctions', pt=t==='market'?'listing_photos':'auction_photos';
+    const{data:it}=await sb.from(tb).select(`id,marca,modelo,year,${pt}(url,orden)`).eq('id',id).maybeSingle(); return {t,id,it,ph:it&&(it[pt]||[]).sort((a,b)=>a.orden-b.orden)[0]?.url,docs}; }));
+  if(stale(tok)) return;
+  V.innerHTML=`<div class="items">${groups.map(x=>`<div class="card item"><div class="ph" style="background-image:url('${esc(tImg(x.ph,700))}')"><span class="pill">${x.t==='market'?'market':'subasta'} · ${x.docs.length} documento(s)</span></div><div class="ib"><div class="it">${esc(x.it?carName(x.it):'publicación no encontrada')}</div><div style="display:grid;gap:6px;margin-top:10px">${x.docs.map(d=>`<a href="${esc(d.file_url)}" target="_blank" rel="noopener" class="btn btn-soft" style="justify-content:flex-start;height:32px">${esc(d.file_name||'documento')}</a>`).join('')}</div></div><div class="ia"><button class="btn btn-soft" onclick="docAct('${x.t}','${x.id}',false,this)">Negar</button><button class="btn btn-green" onclick="docAct('${x.t}','${x.id}',true,this)">Aprobar y dar sello</button></div></div>`).join('')}</div>`;
+};
+async function docAct(t,id,ok,btn){
+  btn.disabled=true;
+  const{error}=await sb.from('vehicle_documents').update({estado:ok?'aprobado':'negado',reviewed_at:new Date().toISOString()}).eq('item_type',t).eq('item_id',id).eq('estado','pendiente');
+  if(!error&&ok){ const{error:e2}=await sb.from(t==='market'?'listings':'auctions').update({auditado_ruedda:true}).eq('id',id); if(e2){ toast('error: '+e2.message,true); btn.disabled=false; return; } }
+  if(error){ toast('error: '+error.message,true); btn.disabled=false; return; }
+  toast(ok?'sello "auditado por Ruedda" otorgado':'documentos negados'); RENDER.documentos(++VIEW_TOKEN);
+}
+
+/* ── CRITERIO RUEDDA (precio justo manual) ── */
+let CRIT_T='listings';
+const CRIT_CLS=[['super_oferta','Súper oferta','g'],['buen_precio','Buen precio','g'],['precio_justo','Precio justo','b'],['costoso','Por encima del mercado','o']];
+const critCls=d=>d<-10?'super_oferta':d<-3?'buen_precio':d<5?'precio_justo':'costoso';
+RENDER.criterio=async(tok)=>{
+  const V=$('#view'); V.innerHTML=`<div class="toolbar"><div class="seg" id="crseg"><button data-k="listings" class="${CRIT_T==='listings'?'on':''}">Market</button><button data-k="auctions" class="${CRIT_T==='auctions'?'on':''}">Subastas</button></div><span class="muted" style="font-size:12.5px">Define el precio estimado de mercado; la clasificación se calcula sola y puedes ajustarla.</span></div><div class="card" id="crt"></div>`;
+  $('#crseg').onclick=e=>{const b=e.target.closest('button'); if(!b) return; CRIT_T=b.dataset.k; RENDER.criterio(++VIEW_TOKEN);};
+  const pc=CRIT_T==='auctions'?'current_bid':'precio_usd';
+  const{data,error}=await sb.from(CRIT_T).select(`id,titulo,marca,modelo,year,${pc},pme_usd,pme_delta,pme_classification,pme_confianza`).eq('estado','activa').order('created_at',{ascending:false}).limit(150); if(stale(tok)) return;
+  const T=$('#crt'); if(error){ T.innerHTML=empty('No se pudo cargar',error.message); return; } if(!data.length){ T.innerHTML=empty('Sin publicaciones activas'); return; }
+  window._CRIT=Object.fromEntries(data.map(p=>[p.id,p]));
+  T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vehículo</th><th class="r">Precio publicado</th><th class="r">Estimado Ruedda</th><th class="r">Diferencia</th><th>Clasificación</th><th></th></tr></thead><tbody>${data.map(p=>{const c=CRIT_CLS.find(x=>x[0]===p.pme_classification);return `<tr class="click" onclick="critOpen('${p.id}')"><td style="font-weight:600">${esc(carName(p))}</td><td class="r num">${usd(p[pc])}</td><td class="r num">${p.pme_usd!=null?usd(p.pme_usd):'—'}</td><td class="r num">${p.pme_delta!=null?(p.pme_delta>0?'+':'')+p.pme_delta+'%':'—'}</td><td>${c?`<span class="pill ${c[2]}">${c[1]}</span>`:'<span class="pill">sin activar</span>'}${p.pme_confianza?` <span class="muted" style="font-size:12px">confianza ${esc(p.pme_confianza)}</span>`:''}</td><td class="r"><button class="btn btn-soft">Editar</button></td></tr>`;}).join('')}</tbody></table></div>`;
+};
+function critOpen(id){
+  const p=window._CRIT[id]; const pc=CRIT_T==='auctions'?'current_bid':'precio_usd'; const price=+p[pc]||0;
+  const est=p.pme_usd!=null?Math.round(+p.pme_usd):price; window._critSel={cls:p.pme_classification||critCls(est?((price-est)/est*100):0),conf:p.pme_confianza||'alta'};
+  modal({title:esc(carName(p)),sub:'Precio publicado '+usd(price),body:`<label class="field"><span>Precio estimado de mercado (USD)</span><input class="input num" type="number" id="cr-est" value="${est}" oninput="critRecalc(${price})"></label>
+    <div class="notice" style="background:var(--hover);color:var(--ink2);margin:6px 0 14px">Diferencia: <b id="cr-d" class="num"></b> vs. precio publicado</div>
+    <div class="field"><span>Clasificación</span><div class="seg" id="cr-cls" style="flex-wrap:wrap">${CRIT_CLS.map(c=>`<button data-k="${c[0]}">${c[1]}</button>`).join('')}</div></div>
+    <div class="field" style="margin-top:12px"><span>Confianza</span><div class="seg" id="cr-conf"><button data-k="alta">Alta</button><button data-k="media">Media</button><button data-k="baja">Baja</button></div></div>`,
+    foot:`<button class="btn btn-primary" onclick="critSave('${id}',${price},this)">Guardar criterio</button>`});
+  const paint=()=>{ document.querySelectorAll('#cr-cls button').forEach(b=>b.classList.toggle('on',b.dataset.k===window._critSel.cls)); document.querySelectorAll('#cr-conf button').forEach(b=>b.classList.toggle('on',b.dataset.k===window._critSel.conf)); };
+  $('#cr-cls').onclick=e=>{const b=e.target.closest('button'); if(b){ window._critSel.cls=b.dataset.k; paint(); }};
+  $('#cr-conf').onclick=e=>{const b=e.target.closest('button'); if(b){ window._critSel.conf=b.dataset.k; paint(); }};
+  window._critPaint=paint; critRecalc(price,true); paint();
+}
+function critRecalc(price,keep){ const est=+$('#cr-est').value||0, d=est?((price-est)/est*100):0; $('#cr-d').textContent=(d>0?'+':'')+d.toFixed(1)+'%'; if(!keep){ window._critSel.cls=critCls(d); window._critPaint&&window._critPaint(); } }
+async function critSave(id,price,btn){
+  const est=+$('#cr-est').value||0; if(!est) return toast('pon un precio estimado',true); const d=+((price-est)/est*100).toFixed(1); btn.disabled=true;
+  const{error}=await sb.from(CRIT_T).update({pme_usd:est,pme_delta:d,pme_classification:window._critSel.cls,pme_confianza:window._critSel.conf,pme_basado_en:'manual',pme_updated_at:new Date().toISOString()}).eq('id',id);
+  if(error){ toast('error: '+error.message,true); btn.disabled=false; return; } toast('criterio guardado'); closeModal(); RENDER.criterio(++VIEW_TOKEN);
+}
+
+/* ── COMPARATIVA DE PRECIOS ── */
+RENDER.comparativa=async(tok)=>{
+  const{data,error}=await sb.from('price_comparisons').select('marca,modelo,payload,updated_at').order('updated_at',{ascending:false}); if(stale(tok)) return;
+  $('#view').innerHTML=card('Comparativa de precios por modelo','Rangos 3m · 6m · 1a · 3a · 5a. Cada rango necesita al menos 2 precios en "p".',`<div class="form"><label class="field"><span>Marca</span><input class="input" id="cp-m" placeholder="toyota"></label><label class="field"><span>Modelo</span><input class="input" id="cp-o" placeholder="corolla"></label><label class="field full"><span>Datos (JSON)</span><textarea class="input" id="cp-j" rows="8" style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px" placeholder='{"1a":{"p":[12000,12500,13000]}}'></textarea></label></div><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="cpSave(this)">Guardar comparativa</button></div>`)
+    +card('Modelos cargados',error?esc(error.message):(data||[]).length+'',rowList((data||[]).map(r=>{const rg=Object.keys(r.payload||{}).filter(k=>r.payload[k]&&r.payload[k].p&&r.payload[k].p.length);return `<tr><td style="font-weight:600;text-transform:capitalize">${esc(r.marca)} ${esc(r.modelo)}</td><td>${rg.map(k=>`<span class="pill">${esc(k)}</span>`).join(' ')||'—'}</td><td class="muted">${ago(r.updated_at)}</td><td class="r" style="white-space:nowrap"><button class="btn btn-soft" style="height:30px" onclick='cpEdit(${JSON.stringify(r.marca)},${JSON.stringify(r.modelo)})'>Editar</button> <button class="btn btn-red" style="height:30px" onclick='cpDel(${JSON.stringify(r.marca)},${JSON.stringify(r.modelo)})'>Borrar</button></td></tr>`;})));
+};
+async function cpEdit(m,o){ const{data}=await sb.from('price_comparisons').select('payload').eq('marca',m).eq('modelo',o).maybeSingle(); $('#cp-m').value=m; $('#cp-o').value=o; $('#cp-j').value=data&&data.payload?JSON.stringify(data.payload,null,2):''; window.scrollTo({top:0,behavior:'smooth'}); }
+async function cpDel(m,o){ if(!confirm(`¿Borrar la comparativa de ${m} ${o}?`)) return; const{error}=await sb.from('price_comparisons').delete().eq('marca',m).eq('modelo',o); if(error) return toast('error: '+error.message,true); toast('borrada'); RENDER.comparativa(++VIEW_TOKEN); }
+async function cpSave(btn){
+  const m=$('#cp-m').value.trim().toLowerCase(), o=$('#cp-o').value.trim().toLowerCase(); if(!m||!o) return toast('marca y modelo son obligatorios',true);
+  let p; try{ p=JSON.parse($('#cp-j').value); }catch(e){ return toast('el JSON no es válido: '+e.message,true); }
+  if(!['3m','6m','1a','3a','5a'].some(k=>p[k]&&p[k].p&&p[k].p.length>1)) return toast('necesita al menos un rango con 2+ precios',true);
+  btn.disabled=true; const{error}=await sb.from('price_comparisons').upsert({marca:m,modelo:o,payload:p,updated_at:new Date().toISOString()},{onConflict:'marca,modelo'});
+  if(error){ toast('error: '+error.message,true); btn.disabled=false; return; } toast('comparativa guardada'); RENDER.comparativa(++VIEW_TOKEN);
+}
+
+/* ── APARIENCIA: banners, encuentra, intro, logos, insignias ── */
+const ENC={comunidad:'Comunidad',agencias:'Agencias',marcas:'Busca por marcas',postventa:'Red post-venta',subastas:'Subastas',repuestos:'Repuestos',alquileres:'Alquileres',importaciones:'Importaciones'};
+const INTRO={1:'Bienvenida',2:'Market',3:'Compra / venta / subasta',4:'Concesionarios',5:'Verificados',6:'Eventos y noticias',7:'Ruedda Extra',8:'Café',9:'Ya estás adentro'};
+const MARCAS=['Alfa Romeo','Audi','BAIC','Bentley','Bera','BMW','BYD','Cadillac','Changan','Chery','Chevrolet','Chrysler','Citroën','Dodge','Ferrari','Fiat','Ford','GAC','Geely','GMC','Great Wall','Honda','Hummer','Hyundai','Infiniti','JAC','Jaguar','Jeep','Kia','Lamborghini','Land Rover','Lexus','Lincoln','Maserati','Mazda','Mercedes-Benz','MINI','Mitsubishi','Nissan','Peugeot','Pontiac','Porsche','Ram','Renault','Rolls-Royce','SAIC','Seat','Skoda','SsangYong','Subaru','Suzuki','Tesla','Toyota','Volkswagen','Volvo','Zotye'];
+RENDER.apariencia=async(tok)=>{
+  const [{data:st},{data:lg},{data:lv}]=await Promise.all([sb.from('app_settings').select('key,value'),sb.from('marca_logos').select('marca,logo_url'),sb.from('user_levels').select('level,nombre,badge_url').order('level')]);
+  if(stale(tok)) return;
+  const S={}; (st||[]).forEach(r=>S[r.key]=r.value); const L={}; (lg||[]).forEach(r=>L[r.marca]=r.logo_url);
+  let order=[]; try{ order=JSON.parse(S.encuentra_order||'[]'); }catch(e){}
+  const seq=order.filter(k=>ENC[k]).concat(Object.keys(ENC).filter(k=>!order.includes(k)));
+  const slot=(key,label,ratio)=>`<div><div class="muted" style="font-size:12px;margin-bottom:6px">${label}</div>${imgSlot(S[key],`setImageSetting('${key}','apariencia')`,ratio)}</div>`;
+  $('#view').innerHTML=
+    card('Banners','Imágenes principales de la app',`<div class="grid g3">${slot('pricing_banner_url','Banner de precios (checkout)','16/7')}${slot('concesionarios_banner_url','Banner de concesionarios','16/7')}${slot('landing_portada_url','Portada de la landing','16/7')}${slot('fotografos_cover_url','Portada de fotógrafos','16/7')}</div>${S.pricing_banner_url?`<div style="margin-top:10px"><button class="btn btn-soft" onclick="clearSetting('pricing_banner_url')">Quitar banner de precios</button></div>`:''}`)
+    +card('Encuentra','Fotos del menú "Encuentra" del market. Arrastra para cambiar el orden.',`<div class="grid g4">${Object.keys(ENC).map(k=>slot('encuentra_'+k+'_url',ENC[k],'1/1')).join('')}</div><div class="section-t">Orden</div><div id="encord" style="display:grid;gap:6px;max-width:420px">${seq.map((k,i)=>`<div class="enc-it" draggable="true" data-k="${k}" style="display:flex;align-items:center;gap:10px;height:40px;padding:0 12px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:grab"><span class="muted">⠿</span><span style="flex:1;font-weight:500">${ENC[k]}</span><span class="muted num">${i+1}</span></div>`).join('')}</div>`)
+    +card('Intro de la app','Fotos de las 9 pantallas de bienvenida (se optimizan al subir)',`<div class="grid g3">${Object.entries(INTRO).map(([n,l])=>`<div><div class="muted" style="font-size:12px;margin-bottom:6px">${n}. ${l}</div>${imgSlot(S['intro_'+n+'_url'],`setImageSetting('intro_${n}_url','apariencia',{compress:1600,q:0.82})`,'9/16')}</div>`).join('')}</div>`)
+    +card('Logos de marcas','Se usan en "Busca por marcas" y en las publicaciones',`<input class="input" id="lgq" placeholder="Buscar marca" style="max-width:260px;margin-bottom:12px" oninput="document.querySelectorAll('.lg-it').forEach(x=>x.style.display=x.dataset.m.toLowerCase().includes(this.value.toLowerCase())?'':'none')"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px">${MARCAS.map(m=>`<div class="lg-it" data-m="${esc(m)}" onclick='logoUp(${JSON.stringify(m)})' style="border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;background:#fff"><div style="width:48px;height:48px;display:flex;align-items:center;justify-content:center">${L[m]?`<img src="${esc(L[m])}" style="max-width:100%;max-height:100%;object-fit:contain">`:'<span class="muted" style="font-size:11px">sin logo</span>'}</div><div style="font-size:12.5px;font-weight:600;text-align:center">${esc(m)}</div></div>`).join('')}</div>`)
+    +card('Insignias de nivel','Una por cada uno de los 16 niveles (PNG o SVG, fondo transparente)',`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px">${(lv||[]).map(l=>`<div style="text-align:center"><div onclick="badgeUp(${l.level})" style="aspect-ratio:1/1;border-radius:14px;border:1px dashed var(--line2);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:#fafafa">${l.badge_url?`<img src="${esc(l.badge_url)}" style="width:100%;height:100%;object-fit:cover">`:`<span class="muted" style="font-weight:600">${l.level}</span>`}</div><div style="font-size:11.5px;margin-top:6px;text-transform:capitalize">nv.${l.level} · ${esc(l.nombre||'')}</div></div>`).join('')}</div>`);
+  encDrag();
+};
+async function clearSetting(key){ try{ await setSetting(key,''); toast('quitado'); RENDER.apariencia(++VIEW_TOKEN); }catch(e){ toast('error: '+e.message,true); } }
+function encDrag(){
+  const list=$('#encord'); if(!list) return; let drag=null;
+  list.addEventListener('dragstart',e=>{ drag=e.target.closest('.enc-it'); if(drag) drag.style.opacity='.5'; });
+  list.addEventListener('dragover',e=>{ e.preventDefault(); const t=e.target.closest('.enc-it'); if(!drag||!t||t===drag) return; const r=t.getBoundingClientRect(); list.insertBefore(drag,(e.clientY-r.top)>r.height/2?t.nextSibling:t); });
+  list.addEventListener('dragend',async()=>{ if(!drag) return; drag.style.opacity=''; drag=null;
+    const order=[...list.querySelectorAll('.enc-it')].map(x=>x.dataset.k); list.querySelectorAll('.enc-it .num').forEach((n,i)=>n.textContent=i+1);
+    try{ await setSetting('encuentra_order',JSON.stringify(order)); toast('orden guardado'); }catch(e){ toast('error: '+e.message,true); } });
+}
+async function logoUp(m){ const f=await pickFile(); if(!f) return; toast('subiendo logo…');
+  try{ const url=await upload('assets',f,'marca-logo-'+m.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g,'-'));
+    const{error}=await sb.from('marca_logos').upsert({marca:m,logo_url:url,updated_at:new Date().toISOString()},{onConflict:'marca'}); if(error) throw error; toast('logo actualizado'); RENDER.apariencia(++VIEW_TOKEN);
+  }catch(e){ toast('error: '+e.message,true); } }
+async function badgeUp(level){ const f=await pickFile('image/png,image/svg+xml'); if(!f) return; toast('subiendo insignia…');
+  try{ const url=await upload('assets',f,'badge-level-'+level); const{error}=await sb.from('user_levels').update({badge_url:url,updated_at:new Date().toISOString()}).eq('level',level); if(error) throw error; toast('insignia actualizada'); RENDER.apariencia(++VIEW_TOKEN);
+  }catch(e){ toast('error: '+e.message,true); } }
+
+/* ── CONFIGURACIÓN: datos de pago + historia ── */
+RENDER.configuracion=async(tok)=>{
+  const [{data:pd},{data:hi}]=await Promise.all([sb.from('app_settings').select('value').eq('key','payment_data').maybeSingle(),sb.from('historia_app').select('id,content').limit(1)]);
+  if(stale(tok)) return;
+  let P={banco:'Banesco',telefono:'04123921048',cedula:'28187688',cuenta:''}; try{ if(pd&&pd.value) P=Object.assign(P,JSON.parse(pd.value)); }catch(e){}
+  window._histId=hi&&hi[0]&&hi[0].id;
+  $('#view').innerHTML=card('Datos de Pago Móvil','Lo que ven los usuarios en el checkout para pagar publicaciones',`<div class="form"><label class="field"><span>Banco</span><input class="input" id="pd-b" value="${esc(P.banco)}"></label><label class="field"><span>Teléfono</span><input class="input num" id="pd-t" value="${esc(P.telefono)}"></label><label class="field"><span>Cédula / RIF</span><input class="input num" id="pd-c" value="${esc(P.cedula)}"></label><label class="field"><span>Número de cuenta (opcional)</span><input class="input num" id="pd-a" value="${esc(P.cuenta||'')}"></label></div><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="pdSave(this)">Guardar datos de pago</button></div>`)
+    +card('Historia de Ruedda','Texto de la sección "nuestra historia" en la app',`<textarea class="input" id="hi-c" rows="10">${esc(hi&&hi[0]&&hi[0].content||'')}</textarea><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="hiSave(this)">Guardar historia</button></div>`);
+};
+async function pdSave(btn){
+  const P={banco:$('#pd-b').value.trim(),telefono:$('#pd-t').value.trim(),cedula:$('#pd-c').value.trim(),cuenta:$('#pd-a').value.trim()};
+  if(!P.banco||!P.telefono||!P.cedula) return toast('banco, teléfono y cédula son obligatorios',true);
+  if(!confirm('¿Cambiar los datos de pago que ven todos los usuarios?')) return; btn.disabled=true;
+  try{ await setSetting('payment_data',JSON.stringify(P)); toast('datos de pago guardados'); }catch(e){ toast('error: '+e.message,true); } btn.disabled=false;
+}
+async function hiSave(btn){
+  const c=$('#hi-c').value.trim(); if(!c) return toast('el texto no puede quedar vacío',true); btn.disabled=true;
+  const q=window._histId?sb.from('historia_app').update({content:c,updated_at:new Date().toISOString()}).eq('id',window._histId):sb.from('historia_app').insert({content:c});
+  const{error}=await q; btn.disabled=false; if(error) return toast('error: '+error.message,true); toast('historia guardada');
+}
+
+/* ── CREAR CUENTA (usuarios) ── */
+function newAccount(){
+  modal({title:'Crear cuenta',sub:'La cuenta queda confirmada y lista para iniciar sesión',body:`<div class="form"><label class="field"><span>Tipo</span><select class="input" id="na-r"><option value="particular">Particular</option><option value="concesionario">Concesionario</option><option value="superadmin">Administrador</option></select></label><label class="field"><span>Nombre</span><input class="input" id="na-n"></label><label class="field"><span>Correo</span><input class="input" type="email" id="na-e" autocomplete="off"></label><label class="field"><span>@usuario</span><input class="input" id="na-u" autocomplete="off"></label><label class="field full"><span>Contraseña inicial</span><input class="input" type="text" id="na-p" autocomplete="new-password" placeholder="mínimo 8 caracteres"></label></div><div class="notice" style="margin-top:12px">Comparte la contraseña por un canal privado y pide que la cambie al entrar.</div>`,
+    foot:`<button class="btn btn-primary" onclick="naSave(this)">Crear cuenta</button>`});
+}
+async function naSave(btn){
+  const role=$('#na-r').value, nombre=$('#na-n').value.trim(), email=$('#na-e').value.trim(), username=$('#na-u').value.trim().replace(/^@+/,'').replace(/\s+/g,'_'), password=$('#na-p').value;
+  if(!nombre||!email||!password) return toast('nombre, correo y contraseña son obligatorios',true);
+  if(password.length<8) return toast('la contraseña debe tener al menos 8 caracteres',true);
+  if(role==='superadmin'&&!confirm('Esta cuenta tendrá control total de Ruedda. ¿Continuar?')) return;
+  btn.disabled=true;
+  try{ await api('/api/admin-user',{action:'create',email,password,nombre,username:username||nombre.toLowerCase().replace(/\s+/g,'_'),role}); toast('cuenta creada: '+email); closeModal(); if(CUR==='usuarios') RENDER.usuarios(++VIEW_TOKEN,[],true); }
+  catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
+
+/* ── PORTADA y ELIMINAR publicación, CÓDIGO de subasta ── */
+async function coverPicker(type,id){
+  const pt=type==='listing'?'listing_photos':'auction_photos', fk=type==='listing'?'listing_id':'auction_id';
+  const{data}=await sb.from(pt).select('id,url,orden').eq(fk,id).order('orden',{ascending:true});
+  modal({title:'Elegir portada',sub:'Toca la foto que quieres que salga primero',body:(data||[]).length?`<div class="gal" style="margin:0">${data.map((p,i)=>`<div style="position:relative"><img src="${esc(tImg(p.url,400))}" onclick="setCover('${type}','${id}','${p.id}')" style="${i===0?'outline:3px solid var(--blue);outline-offset:-3px':''}">${i===0?'<span class="pill b" style="position:absolute;left:6px;bottom:6px">portada</span>':''}</div>`).join('')}</div>`:empty('Sin fotos')});
+}
+async function setCover(type,id,photo){ try{ await api('/api/set-cover-photo',{item_id:id,item_type:type,photo_id:photo}); toast('portada actualizada'); coverPicker(type,id); }catch(e){ toast('error: '+e.message,true); } }
+async function deletePub(table,id){
+  if(!confirm('¿Eliminar esta publicación definitivamente? No se puede deshacer.')) return;
+  const{error}=await sb.from(table).delete().eq('id',id); if(error) return toast('error: '+error.message,true);
+  toast('publicación eliminada'); closeModal(); if(RENDER[CUR]) RENDER[CUR](++VIEW_TOKEN,[],true);
+}
+async function regenCode(id){
+  if(!confirm('¿Generar un código nuevo? El anterior deja de servir.')) return;
+  const code=genCode(); const{error}=await sb.from('auctions').update({access_code:code}).eq('id',id);
+  if(error) return toast('error: '+error.message,true); toast('código nuevo: '+code); openAuction(id);
+}
 
 boot();
 </script>

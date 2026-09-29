@@ -34,7 +34,7 @@
   var pct = function (v) { return (v * 100) + '%'; };
 
   var lock = document.getElementById('lock'), iso = document.getElementById('iso');
-  iso.style.left = pct(ISO.x); iso.style.top = pct(ISO.y); iso.style.width = pct(ISO.w); iso.style.height = pct(ISO.h);
+  iso.style.left = pct(ISO.x - (HERO - 1) * ISO.w / 2); iso.style.top = pct(ISO.y - (HERO - 1) * ISO.h / 2); iso.style.width = pct(ISO.w * HERO); iso.style.height = pct(ISO.h * HERO);
   var letters = LET.map(function (l) {
     var im = new Image(); im.src = SRC[l.f]; im.alt = '';
     im.style.left = pct(l.x); im.style.top = pct(l.y); im.style.width = pct(l.w); im.style.height = pct(l.h); im.style.opacity = 0;
@@ -53,7 +53,7 @@
     var isoW = ISO.w * LW, isoH = ISO.h * LH;
     var s = ease(0.62, 0.58, T), k = HERO + (1 - HERO) * s;
     var dx = (LW / 2 - (ISO.x * LW + isoW / 2)) * (1 - s), dy = (LH / 2 - (ISO.y * LH + isoH / 2)) * (1 - s);
-    var st = { iso: 'translate(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px) scale(' + k.toFixed(4) + ')', cells: [], strips: [], letters: [] };
+    var st = { iso: 'translate(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px) scale(' + (k / HERO).toFixed(5) + ')', cells: [], strips: [], letters: [] };
     var assembled = T >= 0.58;
     CELLS.forEach(function (c, i) {
       var p = ease(0.06 + i * 0.07, 0.32, T);
@@ -63,7 +63,7 @@
     var amp = wave * (0.16 + 0.84 * decay) * (T >= END ? 0 : 1), ph = w * 7.4;
     for (var j = 0; j < STRIPS; j++) {
       var u = (j + OVER / 2) / STRIPS, y = Math.sin(ph - u * 2.6) * amp * isoH * 0.045, sy = 1 + Math.cos(ph - u * 2.6) * amp * 0.03;
-      st.strips.push({ on: assembled, tf: 'translateY(' + y.toFixed(3) + 'px) scaleY(' + sy.toFixed(5) + ')' });
+      st.strips.push({ on: assembled, tf: 'translateY(' + (y * HERO).toFixed(3) + 'px) scaleY(' + sy.toFixed(5) + ')' });
     }
     LET.forEach(function (l, i) {
       var p = ease(0.94 + (5 - i) * 0.036, 0.52, T), gap = (ISO.x * LW - (l.x + l.w) * LW) * 0.34;
