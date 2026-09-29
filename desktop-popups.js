@@ -77,7 +77,7 @@
   '.rdp-iso{position:relative;width:20px;height:23px;display:block;flex-shrink:0}'+
   '.rdp-iso img{position:absolute;inset:0;width:100%;height:100%;animation:rdpIsoWave .7s ease-in-out infinite alternate;will-change:transform}'+
   '@keyframes rdpIsoWave{from{transform:translateY(-5%)}to{transform:translateY(5%)}}'+
-  '.rdp:not(.m) .rdp-iso img{animation:none}'+  // desktop: isotipo quieto
+  '.rdp.m .rdp-iso img{animation:none}'+  // móvil/app: isotipo quieto; ondea solo en desktop
   '.rdp-title{font-size:20px;line-height:1.22;font-weight:800;letter-spacing:-.02em;margin:0 26px 10px 0}'+
   '.rdp-body{font-size:14.5px;line-height:1.55;color:#2b2b2b;margin:0 0 18px}'+
   '.rdp-list{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:11px}'+
