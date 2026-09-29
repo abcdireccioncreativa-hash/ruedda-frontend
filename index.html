@@ -2583,7 +2583,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   // boot-splash de abajo no carga el suyo (así no corren dos a la vez).
   window._rdIntroActive = true;
   var _introSplashFrame = document.getElementById('rd-intro-preload-frame');
-  var _introSplashDone = _introSplashFrame ? _rdMountSplash(_introSplashFrame, '/splash/ruedda-splash.html?v=1427ca63') : Promise.resolve();
+  var _introSplashDone = _introSplashFrame ? _rdMountSplash(_introSplashFrame, '/splash/ruedda-splash.html?v=c6ed582e') : Promise.resolve();
 
   /* ── montaje ──────────────────────────────────────────────── */
   var media   = document.getElementById('rd-intro-media');
@@ -3019,7 +3019,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         window._rdSplashDone = Promise.resolve();
       } else {
         window._rdSplashDone = _rdMountSplash(document.getElementById('boot-splash-frame'),
-          light ? '/splash/ruedda-splash-blanco.html?v=93a564e6' : '/splash/ruedda-splash.html?v=1427ca63');
+          light ? '/splash/ruedda-splash-blanco.html?v=3f895ef7' : '/splash/ruedda-splash.html?v=c6ed582e');
       }
       // [app nativa] se retira el splash NATIVO apenas este ya está pintado.
       try{
