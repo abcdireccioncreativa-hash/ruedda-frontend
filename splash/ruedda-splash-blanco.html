@@ -34,89 +34,65 @@
   var pct = function (v) { return (v * 100) + '%'; };
 
   var lock = document.getElementById('lock'), iso = document.getElementById('iso');
-  iso.style.left = pct(ISO.x - (HERO - 1) * ISO.w / 2); iso.style.top = pct(ISO.y - (HERO - 1) * ISO.h / 2); iso.style.width = pct(ISO.w * HERO); iso.style.height = pct(ISO.h * HERO);
+  iso.style.left = pct(ISO.x); iso.style.top = pct(ISO.y); iso.style.width = pct(ISO.w); iso.style.height = pct(ISO.h);
   var letters = LET.map(function (l) {
     var im = new Image(); im.src = SRC[l.f]; im.alt = '';
     im.style.left = pct(l.x); im.style.top = pct(l.y); im.style.width = pct(l.w); im.style.height = pct(l.h); im.style.opacity = 0;
     lock.insertBefore(im, iso); return im;
   });
-  var cells = CELLS.map(function () { var im = new Image(); im.src = SRC.iso; im.alt = ''; im.style.display = 'none'; iso.appendChild(im); return im; });
-  var strips = []; for (var i = 0; i < STRIPS; i++) { var im = new Image(); im.src = SRC.iso; im.alt = ''; im.style.opacity = 0; iso.appendChild(im); strips.push(im); }
-  // recorte fijo de cada franja (no se anima → la franja solo mueve transform, en el compositor)
-  strips.forEach(function (im, i) {
-    var l = i / STRIPS * 100, r = Math.max(0, (1 - (i + OVER) / STRIPS) * 100);
-    im.style.clipPath = 'inset(-14% ' + r + '% -14% ' + l + '%)';
-  });
+  var cells = CELLS.map(function () { var im = new Image(); im.src = SRC.iso; im.alt = ''; iso.appendChild(im); return im; });
+  var strips = []; for (var i = 0; i < STRIPS; i++) { var im = new Image(); im.src = SRC.iso; im.alt = ''; im.style.display = 'none'; iso.appendChild(im); strips.push(im); }
 
-  // ── misma matemática del splash original, evaluada en un instante T (s) ──
-  function stateAt(T, LW, LH) {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var t0 = null, done = false;
+  function frame(T) {
+    var LW = lock.clientWidth, LH = lock.clientHeight;
     var isoW = ISO.w * LW, isoH = ISO.h * LH;
     var s = ease(0.62, 0.58, T), k = HERO + (1 - HERO) * s;
     var dx = (LW / 2 - (ISO.x * LW + isoW / 2)) * (1 - s), dy = (LH / 2 - (ISO.y * LH + isoH / 2)) * (1 - s);
-    var st = { iso: 'translate(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px) scale(' + (k / HERO).toFixed(5) + ')', cells: [], strips: [], letters: [] };
+    iso.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + k + ')';
     var assembled = T >= 0.58;
-    CELLS.forEach(function (c, i) {
-      var p = ease(0.06 + i * 0.07, 0.32, T);
-      st.cells.push({ on: !assembled && p > 0, clip: 'inset(' + (c[1] / 4 * 100) + '% ' + ((1 - (c[0] + p) / 3) * 100).toFixed(3) + '% ' + ((1 - (c[1] + 1) / 4) * 100) + '% ' + (c[0] / 3 * 100) + '%)' });
+    cells.forEach(function (im, i) {
+      if (assembled) { im.style.display = 'none'; return; }
+      var p = ease(0.06 + i * 0.07, 0.32, T), c = CELLS[i];
+      im.style.display = p > 0 ? 'block' : 'none';
+      im.style.clipPath = 'inset(' + (c[1] / 4 * 100) + '% ' + ((1 - (c[0] + p) / 3) * 100) + '% ' + ((1 - (c[1] + 1) / 4) * 100) + '% ' + (c[0] / 3 * 100) + '%)';
     });
     var w = T - 1.2, wave = w >= 0 ? Math.min(1, w / 0.22) : 0, decay = w >= 0 ? Math.max(0, 1 - Math.max(0, T - 2.65) / 0.5) : 0;
     var amp = wave * (0.16 + 0.84 * decay) * (T >= END ? 0 : 1), ph = w * 7.4;
-    for (var j = 0; j < STRIPS; j++) {
-      var u = (j + OVER / 2) / STRIPS, y = Math.sin(ph - u * 2.6) * amp * isoH * 0.045, sy = 1 + Math.cos(ph - u * 2.6) * amp * 0.03;
-      st.strips.push({ on: assembled, tf: 'translateY(' + (y * HERO).toFixed(3) + 'px) scaleY(' + sy.toFixed(5) + ')' });
-    }
-    LET.forEach(function (l, i) {
-      var p = ease(0.94 + (5 - i) * 0.036, 0.52, T), gap = (ISO.x * LW - (l.x + l.w) * LW) * 0.34;
-      st.letters.push({ o: Math.min(1, p * 2.4), tf: 'translateX(' + ((1 - p) * gap).toFixed(2) + 'px)' });
+    strips.forEach(function (im, i) {
+      if (!assembled) return; im.style.display = 'block';
+      var u = (i + OVER / 2) / STRIPS, y = Math.sin(ph - u * 2.6) * amp * isoH * 0.045, sy = 1 + Math.cos(ph - u * 2.6) * amp * 0.03;
+      var l = i / STRIPS * 100, r = Math.max(0, (1 - (i + OVER) / STRIPS) * 100);
+      im.style.clipPath = 'inset(-14% ' + r + '% -14% ' + l + '%)';
+      im.style.transform = 'translateY(' + y + 'px) scaleY(' + sy + ')';
     });
-    return st;
+    letters.forEach(function (im, i) {
+      var l = LET[i], p = ease(0.94 + (5 - i) * 0.036, 0.52, T), gap = (ISO.x * LW - (l.x + l.w) * LW) * 0.34;
+      im.style.opacity = Math.min(1, p * 2.4); im.style.transform = 'translateX(' + ((1 - p) * gap) + 'px)';
+    });
   }
-  // pinta un instante fijo (reducir movimiento / al redimensionar después de terminar)
-  function paintStatic(T) {
-    var st = stateAt(T, lock.clientWidth, lock.clientHeight);
-    iso.style.transform = st.iso;
-    cells.forEach(function (im, i) { im.style.display = st.cells[i].on ? 'block' : 'none'; im.style.clipPath = st.cells[i].clip; });
-    strips.forEach(function (im, i) { im.style.opacity = st.strips[i].on ? 1 : 0; im.style.transform = st.strips[i].tf; });
-    letters.forEach(function (im, i) { im.style.opacity = st.letters[i].o; im.style.transform = st.letters[i].tf; });
-  }
-
-  // ── animación nativa (Web Animations): se muestrean las curvas y el sistema la
-  // reproduce en el compositor, al ritmo de la pantalla (120 Hz en ProMotion) y
-  // sin depender del hilo principal. Cero JavaScript por cuadro.
-  var anims = [], done = false;
   function finish() {
     if (done) return; done = true;
     try { window.dispatchEvent(new CustomEvent('ruedda:splash-done')); } catch (e) {}
     try { if (window.parent !== window) window.parent.postMessage({ type: 'ruedda:splash-done' }, '*'); } catch (e) {}
     try { window.ReactNativeWebView && window.ReactNativeWebView.postMessage('ruedda:splash-done'); } catch (e) {}
   }
-  function play() {
-    anims.forEach(function (a) { try { a.cancel(); } catch (e) {} }); anims = [];
-    var LW = lock.clientWidth, LH = lock.clientHeight, FPS = 60, N = Math.round(END * FPS);
-    var K = { iso: [], cells: CELLS.map(function () { return []; }), strips: strips.map(function () { return []; }), letters: LET.map(function () { return []; }) };
-    for (var f = 0; f <= N; f++) {
-      var T = f / FPS, off = f / N, st = stateAt(T, LW, LH);
-      K.iso.push({ offset: off, transform: st.iso });
-      st.cells.forEach(function (c, i) { K.cells[i].push({ offset: off, clipPath: c.clip, opacity: c.on ? 1 : 0 }); });
-      st.strips.forEach(function (s, i) { K.strips[i].push({ offset: off, transform: s.tf, opacity: s.on ? 1 : 0 }); });
-      st.letters.forEach(function (l, i) { K.letters[i].push({ offset: off, transform: l.tf, opacity: l.o }); });
-    }
-    var opt = { duration: END * 1000, easing: 'linear', fill: 'forwards' };
-    cells.forEach(function (im) { im.style.display = 'block'; });
-    anims.push(iso.animate(K.iso, opt));
-    cells.forEach(function (im, i) { anims.push(im.animate(K.cells[i], opt)); });
-    strips.forEach(function (im, i) { anims.push(im.animate(K.strips[i], opt)); });
-    letters.forEach(function (im, i) { anims.push(im.animate(K.letters[i], opt)); });
-    anims[0].finished.then(finish, finish);
-    setTimeout(finish, END * 1000 + 400); // respaldo
+  // [120 Hz] en iPhone ProMotion la app pide hasta 120 cuadros/s y cada cuadro de esta
+  // animación es pesado; se dibuja a ~60/s, igual que Safari. Es por tiempo, así que se ve
+  // idéntica: mismas curvas y misma duración, solo con la mitad del trabajo.
+  var lastF = -1e9;
+  function tick(now) {
+    if (t0 === null) t0 = now;
+    var T = (now - t0) / 1000;
+    if (T >= END) { frame(END); return finish(); }
+    if (now - lastF >= 15) { lastF = now; frame(T); }
+    requestAnimationFrame(tick);
   }
-  window.addEventListener('resize', function () { if (done) { anims.forEach(function (a) { try { a.cancel(); } catch (e) {} }); anims = []; paintStatic(END); } });
-  window.RueddaSplash = { replay: function () { done = false; play(); } };
+  window.addEventListener('resize', function () { if (done) frame(END); });
+  window.RueddaSplash = { replay: function () { done = false; t0 = null; lastF = -1e9; requestAnimationFrame(tick); } };
   Promise.all(letters.concat(cells, strips).map(function (im) { return im.decode ? im.decode().catch(function () {}) : null; }))
-    .then(function () {
-      var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduce || !document.body.animate) { paintStatic(END); finish(); } else play();
-    });
+    .then(function () { if (reduce) { frame(END); finish(); } else requestAnimationFrame(tick); });
 })();
 </script>
 </body>

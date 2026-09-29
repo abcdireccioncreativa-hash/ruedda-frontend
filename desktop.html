@@ -7430,13 +7430,13 @@ let _globalChatUsersCache={};
 async function _loadGlobalChatMessages(){
   if(!_supa) return;
   try{
-    const{data,error}=await _supa.from('public_chat_messages').select('*').eq('room',GLOBAL_CHAT_ROOM).order('created_at',{ascending:true}).limit(35);
+    const{data,error}=await _supa.from('public_chat_messages').select('*').eq('room',GLOBAL_CHAT_ROOM).order('created_at',{ascending:false}).limit(35); // los 35 MÁS RECIENTES (antes traía los más viejos)
     if(error){
       console.error('[ruedda] _loadGlobalChatMessages',error.message||error);
       GLOBAL_CHAT_MSGS=[]; renderGlobalChatMessages(); // [fix] sin esto la vista quedaba en blanco en vez del empty-state
       return;
     }
-    GLOBAL_CHAT_MSGS=data||[];
+    GLOBAL_CHAT_MSGS=(data||[]).slice().reverse(); // se muestran en orden cronológico
     const missingIds=[...new Set(GLOBAL_CHAT_MSGS.map(m=>m.user_id).filter(id=>!_globalChatUsersCache[id]))];
     if(missingIds.length){
       const{data:users}=await _supa.from('users').select('id,nombre,username,avatar_url').in('id',missingIds);
@@ -7487,6 +7487,8 @@ function renderGlobalChatMessages(){
     </div>`;
   }).join('');
   box.scrollTop=box.scrollHeight;
+  // si una foto termina de cargar después, mantener el final a la vista (solo si ya estabas abajo)
+  box.querySelectorAll('img').forEach(im=>{ if(!im.complete) im.addEventListener('load',()=>{ if(box.scrollHeight-box.scrollTop-box.clientHeight<320) box.scrollTop=box.scrollHeight; },{once:true}); });
 }
 function openGlobalChat(){
   _gcPendingPhoto=null; _gcRenderPhotoPreview();
