@@ -32,8 +32,37 @@
         'Operaciones con identidad y historial verificados.'
       ],
       cta:'Crear mi cuenta',
-      later:'Explorar primero'
-    }
+      later:'Explorar primero',
+      tourBtn:'Beneficios'
+    },
+    // mini tour de beneficios (solo lo que YA existe en Ruedda)
+    tour:[
+      {tag:'subastas', title:'Subastas en tiempo real.',
+       body:'Vende al mejor postor o gana el carro que buscas, oferta a oferta.',
+       bullets:['Pujas en vivo con cuenta regresiva e historial transparente.',
+                'Precio de reserva: tu carro no se va por menos de lo que vale.',
+                'Subastas de deportivos, clásicos, comerciales y chocados.']},
+      {tag:'market', title:'Compra y vende con datos, no con suposiciones.',
+       body:'Cada publicación se compara con el mercado para que sepas si es buen negocio.',
+       bullets:['Precio Justo: súper oferta, buen precio o por encima del mercado.',
+                'Hot deals con rebajas reales, ordenadas por descuento.',
+                'Vendedores y concesionarios con identidad verificada.']},
+      {tag:'niveles', title:'Cada operación te sube de nivel.',
+       body:'Gana XP comprando, vendiendo, subastando y participando. 16 niveles, de novato a leyenda eterna.',
+       bullets:['Hasta 10 publicaciones gratis al mes según tu nivel.',
+                'Premios reales: franela oficial, sesión de fotos, detailing y entrada VIP a eventos.',
+                'Tu insignia de nivel visible en tu perfil y en la comunidad.']},
+      {tag:'comunidad', title:'La comunidad car enthusiast de Venezuela.',
+       body:'Más que un marketplace: el lugar de los que viven los carros.',
+       bullets:['Carspotting, historias y el chat global del mercado.',
+                'Tu garage digital, con el historial de dueños de cada carro.',
+                'Sigue, califica y conecta con compradores y vendedores.']},
+      {tag:'petrolheads', title:'Herramientas hechas para petrolheads.',
+       body:'Todo lo que un fanático necesita, en la misma app.',
+       bullets:['Scanner OBD2 para diagnosticar tu carro.',
+                'Medidor de decibeles de escape, by STXX.',
+                'Verificación de placa y VIN, fotógrafos y store oficial.']}
+    ]
   };
 
   var CSS=
@@ -69,7 +98,24 @@
   '.rdp.m.out{transform:translate(-50%,-48%) scale(.98)}'+
   '.rdp.m .rdp-title{font-size:19px}'+
   '.rdp.m .rdp-list{margin-bottom:20px;gap:9px}'+
-  '@media (prefers-reduced-motion:reduce){.rdp{transition-duration:.01s}.rdp-iso img{animation:none}}';
+  '.rdp-slide{transition:opacity .22s ease,transform .22s cubic-bezier(.22,1,.36,1)}'+
+  '.rdp-slide.go-l{opacity:0;transform:translateX(-14px)}'+
+  '.rdp-slide.go-r{opacity:0;transform:translateX(14px)}'+
+  '.rdp-nav{display:none;align-items:center;justify-content:space-between;margin:-4px 0 16px}'+
+  '.rdp.tour .rdp-nav{display:flex}'+
+  '.rdp-dots{display:flex;gap:6px;align-items:center}'+
+  '.rdp-dots i{width:6px;height:6px;background:#d6d6d6;display:block;transition:width .3s cubic-bezier(.22,1,.36,1),background .3s}'+
+  '.rdp-dots i.on{width:18px;background:#0b0b0b}'+
+  '.rdp-arr{display:flex;gap:8px}'+
+  '.rdp-arr button{width:36px;height:36px;border:1px solid #e3e3e3;border-radius:6px;background:#fff;color:#0b0b0b;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .15s,border-color .15s,opacity .15s}'+
+  '.rdp-arr button:hover{background:#f4f4f4;border-color:#cfcfcf}'+
+  '.rdp-arr button[disabled]{opacity:.3;cursor:default;background:#fff}'+
+  '.rdp-arr svg{width:16px;height:16px}'+
+  '.rdp-tb{display:inline-flex;align-items:center;gap:6px}'+
+  '.rdp-tb svg{width:14px;height:14px;transition:transform .2s}'+
+  '.rdp-tb:hover svg{transform:translateX(3px)}'+
+  '.rdp.tour [data-a="tour"]{display:none}'+
+  '@media (prefers-reduced-motion:reduce){.rdp{transition-duration:.01s}.rdp-iso img{animation:none}.rdp-slide{transition:none}}';
 
   function injectCss(){
     if(document.getElementById('rdp-css')) return;
@@ -127,15 +173,23 @@
     // sale en cada carga mientras no haya sesión iniciada
     if(!guest()) return;
     if(busy()){ if(++waits<60) setTimeout(showSignup,2000); return; }
-    var c=COPY.signup;
+    var c=COPY.signup, T=COPY.tour;
+    var slides=[{tag:c.tag,title:c.title,body:c.body,bullets:c.bullets}].concat(T);
+    var CH_L='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+    var CH_R='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>';
+    function slideHtml(sl){
+      return '<div class="rdp-title">'+esc(sl.title)+'</div>'+
+        '<p class="rdp-body">'+esc(sl.body)+'</p>'+
+        '<ul class="rdp-list">'+sl.bullets.map(function(b){ return '<li>'+esc(b)+'</li>'; }).join('')+'</ul>';
+    }
     var el=mount(
       '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
-      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span>'+esc(c.tag)+'</div>'+
-      '<div class="rdp-title">'+esc(c.title)+'</div>'+
-      '<p class="rdp-body">'+esc(c.body)+'</p>'+
-      '<ul class="rdp-list">'+c.bullets.map(function(b){ return '<li>'+esc(b)+'</li>'; }).join('')+'</ul>'+
+      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">'+esc(c.tag)+'</span></div>'+
+      '<div class="rdp-slide" aria-live="polite">'+slideHtml(slides[0])+'</div>'+
+      '<div class="rdp-nav"><div class="rdp-dots">'+slides.map(function(_,k){ return '<i'+(k===0?' class="on"':'')+'></i>'; }).join('')+'</div>'+
+        '<div class="rdp-arr"><button data-a="prev" aria-label="anterior">'+CH_L+'</button><button data-a="next" aria-label="siguiente">'+CH_R+'</button></div></div>'+
       '<button class="rdp-btn" data-a="cta">'+esc(c.cta)+'</button>'+
-      '<div class="rdp-row"><button class="rdp-link soft" data-a="later">'+esc(c.later)+'</button></div>',
+      '<div class="rdp-row"><button class="rdp-link rdp-tb" data-a="tour">'+esc(c.tourBtn)+CH_R+'</button><button class="rdp-link soft" data-a="later">'+esc(c.later)+'</button></div>',
       'crear cuenta');
     // isotipo real del splash de inicio (misma imagen), ondeando en franjas como el splash.
     // Solo CSS (transform en el compositor): cero JavaScript por frame.
@@ -147,17 +201,47 @@
       }
       box.innerHTML=h;
     })(el.querySelector('.rdp-iso'));
+    // ── mini tour: cambia el contenido dentro del mismo popup ──
+    var cur=0, busyAnim=false, box=el.querySelector('.rdp-slide'), tagt=el.querySelector('.rdp-tagt');
+    var dots=el.querySelectorAll('.rdp-dots i'), prev=el.querySelector('[data-a="prev"]'), next=el.querySelector('[data-a="next"]');
+    function paintNav(){
+      for(var k=0;k<dots.length;k++) dots[k].className=k===cur?'on':'';
+      prev.disabled=cur===0; next.disabled=cur===slides.length-1;
+    }
+    function go(n){
+      if(busyAnim||n<0||n>=slides.length||n===cur) return;
+      var dir=n>cur?'go-l':'go-r', back=n>cur?'go-r':'go-l';
+      busyAnim=true;
+      box.style.minHeight=Math.max(box.offsetHeight,parseFloat(box.style.minHeight)||0)+'px'; // no brinca de alto
+      box.classList.add(dir);
+      setTimeout(function(){
+        cur=n; box.innerHTML=slideHtml(slides[n]); tagt.textContent=slides[n].tag;
+        box.classList.remove(dir); box.classList.add(back);
+        void box.offsetWidth;
+        box.classList.remove(back);
+        paintNav(); busyAnim=false;
+      },200);
+    }
+    function onKey(e){ if(!el.classList.contains('tour')) return; if(e.key==='ArrowRight') go(cur+1); else if(e.key==='ArrowLeft') go(cur-1); }
+    document.addEventListener('keydown',onKey);
+    // deslizar con el dedo (móvil)
+    var sx=null;
+    box.addEventListener('touchstart',function(e){ sx=e.touches[0].clientX; },{passive:true});
+    box.addEventListener('touchend',function(e){ if(sx==null||!el.classList.contains('tour')) return; var dx=e.changedTouches[0].clientX-sx; sx=null; if(Math.abs(dx)>40) go(cur+(dx<0?1:-1)); },{passive:true});
+    function close(){ clearInterval(iv); document.removeEventListener('keydown',onKey); unmount(el); }
     // si inicia sesión mientras está abierto, se retira solo
-    var iv=setInterval(function(){ if(!guest()){ clearInterval(iv); unmount(el); } },1500);
+    var iv=setInterval(function(){ if(!guest()) close(); },1500);
     el.addEventListener('click',function(e){
       var b=e.target.closest('[data-a],.rdp-x'); if(!b) return;
-      clearInterval(iv);
-      if(b.getAttribute('data-a')==='cta'){
-        unmount(el);
-        try{ if(typeof showLandingAuth==='function') showLandingAuth('register'); }catch(err){}
-      } else unmount(el);
+      var a=b.getAttribute('data-a');
+      if(a==='tour'){ el.classList.add('tour'); paintNav(); go(1); return; }
+      if(a==='next') return go(cur+1);
+      if(a==='prev') return go(cur-1);
+      close();
+      if(a==='cta'){ try{ if(typeof showLandingAuth==='function') showLandingAuth('register'); }catch(err){} }
     });
   }
+
 
   // ── secuencia: después del splash → cookies → cuenta ───────
   function start(){
