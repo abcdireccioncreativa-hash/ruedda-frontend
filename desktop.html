@@ -2020,6 +2020,11 @@ html:not([data-theme="light"]) #login-progress-bar{background:#e6f03b!important}
    isolation crea el contexto para que quede sobre el fondo del contenedor */
 :has(>.rd-lq){isolation:isolate}
 .photo-slide{position:relative;overflow:hidden}
+/* [favoritos] estado guardado: amarillo suave + rebote del corazón */
+.btn-watchlist{transition:background .35s ease,color .35s ease,border-color .35s ease}
+.btn-watchlist.rd-saved{background:#e6f03b!important;color:#0b0b0b!important;border-color:#e6f03b!important}
+.btn-watchlist.rd-pop svg{animation:rdHeartPop .45s cubic-bezier(.22,1.4,.36,1)}
+@keyframes rdHeartPop{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
 </style>
 <style>
 /* [Criterio Ruedda] chip minimalista, solo dentro de la ficha, pegado al precio */
@@ -8714,6 +8719,17 @@ async function toggleWatchlistMarket(id,btn){
   }
 }
 
+// [favoritos] pinta TODOS los botones de guardar de esa acción: el original y la copia
+// del panel móvil (el clon no lleva IDs, por eso antes el botón visible no cambiaba).
+function _rdPaintFavBtns(action,saved){
+  document.querySelectorAll('.btn-watchlist[onclick="'+action+'"]').forEach(b=>{
+    const was=b.classList.contains('rd-saved');
+    b.classList.toggle('rd-saved',saved);
+    const sp=b.querySelector('span'); if(sp) sp.textContent=saved?'guardado':'guardar en favoritos';
+    const ic=b.querySelector('svg'); if(ic){ ic.style.fill=saved?'currentColor':'none'; ic.style.stroke='currentColor'; }
+    if(saved&&!was){ b.classList.remove('rd-pop'); void b.offsetWidth; b.classList.add('rd-pop'); }
+  });
+}
 async function toggleMktWatchlist(){
   if(isGuest()){
     showView('cuenta');
@@ -8724,7 +8740,7 @@ async function toggleMktWatchlist(){
   // [RC FIX] optimista: mismo patrón que las cards — pinta ya, persiste después
   const removing=watchlist.has(key);
   if(removing){watchlist.delete(key);showToast('eliminado de favoritos');}
-  else{watchlist.add(key);showToast('guardado en favoritos',true);}
+  else{watchlist.add(key);if(!(window.rdSavedPopup&&window.rdSavedPopup()))showToast('guardado en favoritos',true);}
   updateMktWatchlist();
   _persistFav(key,!removing).catch(()=>{
     if(removing) watchlist.add(key); else watchlist.delete(key);
@@ -8735,9 +8751,7 @@ async function toggleMktWatchlist(){
 function updateMktWatchlist(){
   if(!currentMarketListing)return;
   const saved=watchlist.has('mkt-'+currentMarketListing.id);
-  document.getElementById('mkt-watchlist-icon').style.fill=saved?'#08441A':'none';
-  document.getElementById('mkt-watchlist-icon').style.stroke=saved?'#08441A':'currentColor';
-  document.getElementById('mkt-watchlist-label').textContent=saved?'en favoritos':'guardar en favoritos';
+  _rdPaintFavBtns('toggleMktWatchlist()',saved);
 }
 function sendMktComment(){
   if(isGuest()){showToast('inicia sesión para preguntar');setTimeout(()=>showView('cuenta'),700);return;}
@@ -9063,7 +9077,7 @@ function toggleWatchlist(){
   if(!currentAuction)return;
   const id=currentAuction.id;
   if(watchlist.has(id)){watchlist.delete(id);showToast('eliminado de favoritos');_persistFav(id,false);}
-  else{watchlist.add(id);showToast('guardado en favoritos',true);_persistFav(id,true);}
+  else{watchlist.add(id);if(!(window.rdSavedPopup&&window.rdSavedPopup()))showToast('guardado en favoritos',true);_persistFav(id,true);}
   updateWatchlistBtn();
   // Add notification
   if(watchlist.has(id)){
@@ -9077,10 +9091,7 @@ function updateWatchlistBtn(){
   const saved=watchlist.has(currentAuction.id);
   const icon=document.getElementById('watchlist-icon');
   const lbl=document.getElementById('watchlist-label');
-  icon.style.fill=saved?'#08441A':'none';
-  icon.style.stroke=saved?'#08441A':'currentColor';
-  lbl.textContent=saved?'en favoritos':'guardar en favoritos';
-  document.getElementById('watchlist-btn').style.color=saved?'var(--lime)':'';
+  _rdPaintFavBtns('toggleWatchlist()',saved);
   // [subastas programadas] sincroniza tambien el boton del panel bloqueado, si existe en el DOM
   const iconL=document.getElementById('watchlist-icon-locked');
   const lblL=document.getElementById('watchlist-label-locked');
@@ -14285,7 +14296,7 @@ function saCategory(cat){
   saTab(SA_CATEGORIES[cat]);
 }
 function saTab(tab){
-  ['cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa','criterio','portada'].forEach(t=>{
+  ['reportes','cuentas','usuarios','codigos','moderacion','fotografos','pagos','bypass','comunidad','patrocinantes','publicaciones','kyc','acceso','aucodigos','mensajes','documentos','solicitudes','logos','comparativa','criterio','portada'].forEach(t=>{
     const el=document.getElementById('sa-'+t);
     const tb=document.getElementById('sa-tab-'+t);
     if(el) el.style.display = t===tab ? 'flex' : 'none';
@@ -14296,6 +14307,7 @@ function saTab(tab){
   if(tab==='fotografos'){ _loadFotografos().then(renderSAFotografosList); renderSAFotografosList(); }
   if(tab==='usuarios') renderSAUsuarios();
   if(tab==='kyc') renderSAKyc();
+  if(tab==='reportes') saLoadReportes();
   if(tab==='acceso') renderSAAccessRequests();
   if(tab==='aucodigos') renderSAAuctionCodes();
   if(tab==='pagos'){ renderPendingRefs(); _saLoadPricingBannerPreview(); }
@@ -17407,6 +17419,174 @@ function closeLevelsSheet(){
   const ov=document.getElementById('rd-levels-sheet'); if(!ov) return;
   ov.classList.remove('on'); setTimeout(()=>ov.remove(),300);
 }
+// ───────────────────────────────────────────
+// [perfil] reseñas (calificar + escribir) y reporte de usuarios.
+// Hojas livianas reutilizadas (un nodo por hoja), mismas clases modal-overlay/modal-sheet.
+// ───────────────────────────────────────────
+function _rdSheet(id,html){
+  let ov=document.getElementById(id);
+  if(!ov){
+    ov=document.createElement('div'); ov.id=id; ov.className='modal-overlay'; ov.style.alignItems='flex-end';
+    ov.onclick=e=>{ if(e.target===ov) ov.classList.remove('open'); };
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML='<div class="modal-sheet" style="text-align:left;padding-bottom:calc(24px + env(safe-area-inset-bottom));max-height:86vh;max-height:86dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">'+html+'</div>';
+  ov.classList.add('open');
+  return ov;
+}
+const _RD_STAR='<path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/>';
+function _rdStars(n,size){
+  let h=''; for(let i=1;i<=5;i++) h+=`<svg viewBox="0 0 24 24" style="width:${size}px;height:${size}px;flex-shrink:0" fill="${i<=n?'var(--rd-green)':'none'}" stroke="${i<=n?'var(--rd-green)':'var(--w25)'}" stroke-width="1.6">${_RD_STAR}</svg>`;
+  return `<span style="display:inline-flex;gap:2px;align-items:center">${h}</span>`;
+}
+let _rdRvState=null;
+async function _rdOpenReviews(userId,nombre,myScore,openForm){
+  const isMe=!!USER_STATE.id&&userId===USER_STATE.id;
+  _rdRvState={userId,nombre,score:myScore||0,comentario:''};
+  _rdSheet('rd-reviews-sheet',`<style>#rd-rv-list .rd-rv{animation:rdUsIn .32s cubic-bezier(.22,.61,.36,1) both}@keyframes rdUsIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}#rd-rv-form{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s cubic-bezier(.22,1,.36,1)}#rd-rv-form.open{grid-template-rows:1fr}#rd-rv-form>div{overflow:hidden}</style>
+    <div class="modal-handle"></div>
+    <div style="font-size:16px;font-weight:800;letter-spacing:-.2px">reseñas de ${_esc(nombre)}</div>
+    <div id="rd-rv-sum" style="font-size:12.5px;color:var(--muted);margin:4px 0 16px">cargando…</div>
+    ${isMe?'':`<button id="rd-rv-toggle" onclick="_rdRvToggleForm()" style="width:100%;height:46px;border-radius:14px;border:1px solid var(--w10);background:var(--w5);color:var(--white);font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px">calificar y escribir reseña</button>
+    <div id="rd-rv-form"><div>
+      <div id="rd-rv-stars" style="display:flex;gap:10px;justify-content:center;padding:6px 0 14px"></div>
+      <textarea id="rd-rv-text" maxlength="500" rows="3" placeholder="cuenta cómo fue tu experiencia con ${_esc(nombre)} (opcional)" style="width:100%;box-sizing:border-box;border-radius:14px;background:var(--w5);border:1px solid var(--w10);color:var(--white);padding:12px 14px;font-family:var(--font);font-size:16px;resize:none;outline:none"></textarea>
+      <button id="rd-rv-send" onclick="_rdRvSubmit()" style="width:100%;height:48px;border-radius:14px;border:0;background:var(--white);color:var(--bg);font-family:var(--font);font-size:14.5px;font-weight:800;cursor:pointer;margin:12px 0 18px">publicar reseña</button>
+    </div></div>`}
+    <div id="rd-rv-list"></div>`);
+  if(!isMe){ _rdRvPaintStars(); if(openForm) _rdRvToggleForm(true); }
+  await _rdRvLoad();
+}
+function _rdRvPaintStars(){
+  const w=document.getElementById('rd-rv-stars'); if(!w||!_rdRvState) return;
+  w.innerHTML=[1,2,3,4,5].map(n=>`<svg onclick="_rdRvState.score=${n};_rdRvPaintStars()" viewBox="0 0 24 24" style="width:34px;height:34px;cursor:pointer;transition:transform .15s" fill="${n<=_rdRvState.score?'var(--rd-green)':'none'}" stroke="${n<=_rdRvState.score?'var(--rd-green)':'var(--w30)'}" stroke-width="1.5">${_RD_STAR}</svg>`).join('');
+}
+function _rdRvToggleForm(force){
+  if(isGuest()){ showToast('inicia sesión para calificar'); return; }
+  const f=document.getElementById('rd-rv-form'), b=document.getElementById('rd-rv-toggle'); if(!f) return;
+  const open=force===true?true:!f.classList.contains('open');
+  f.classList.toggle('open',open); if(b) b.style.display=open?'none':'';
+  if(open) setTimeout(()=>{ try{ document.getElementById('rd-rv-text').focus({preventScroll:true}); }catch(e){} },350);
+}
+async function _rdRvLoad(){
+  const st=_rdRvState; if(!st||!_supa) return;
+  const list=document.getElementById('rd-rv-list'), sum=document.getElementById('rd-rv-sum');
+  let rows=null, hasText=true;
+  let r=await _supa.from('user_ratings').select('score,comentario,rater_id,updated_at,created_at').eq('rated_id',st.userId).order('updated_at',{ascending:false}).limit(60);
+  if(r.error&&/comentario/i.test(r.error.message||'')){ hasText=false; r=await _supa.from('user_ratings').select('score,rater_id,updated_at,created_at').eq('rated_id',st.userId).order('updated_at',{ascending:false}).limit(60); }
+  if(r.error){ if(sum) sum.textContent='no se pudieron cargar las reseñas'; return; }
+  rows=r.data||[];
+  if(_rdRvState!==st) return;
+  const mine=rows.find(x=>x.rater_id===USER_STATE.id);
+  if(mine){ st.score=mine.score; st.comentario=mine.comentario||''; const t=document.getElementById('rd-rv-text'); if(t&&!t.value) t.value=st.comentario; _rdRvPaintStars(); const b=document.getElementById('rd-rv-toggle'); if(b) b.textContent='editar mi reseña'; }
+  const avg=rows.length?rows.reduce((a,x)=>a+(x.score||0),0)/rows.length:0;
+  if(sum) sum.innerHTML=rows.length?`<span style="color:var(--rd-green);font-weight:800">★ ${avg.toFixed(1)}</span> · ${rows.length} ${rows.length===1?'calificación':'calificaciones'}`:'todavía no tiene calificaciones';
+  if(!list) return;
+  if(!rows.length){ list.innerHTML=''; return; }
+  const ids=[...new Set(rows.map(x=>x.rater_id))];
+  const{data:us}=await _supa.from('users').select('id,nombre,username,avatar_url,kyc_verified').in('id',ids);
+  if(_rdRvState!==st) return;
+  const um={}; (us||[]).forEach(u=>um[u.id]=u);
+  list.innerHTML=rows.map((x,i)=>{
+    const u=um[x.rater_id]||{}; const nm=u.nombre||u.username||'usuario';
+    const av=u.avatar_url?`<img src="${_tImg(u.avatar_url,{width:80,quality:70})}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">`:_esc(nm).charAt(0).toUpperCase();
+    const when=new Date(x.updated_at||x.created_at).toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'numeric'});
+    return `<div class="rd-rv" style="display:flex;gap:12px;padding:12px 2px;border-top:1px solid var(--w6);animation-delay:${Math.min(i,12)*28}ms">
+      <div onclick="document.getElementById('rd-reviews-sheet').classList.remove('open');openUserProfile('${x.rater_id}')" style="width:36px;height:36px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;overflow:hidden;flex-shrink:0;cursor:pointer">${av}</div>
+      <div style="min-width:0;flex:1">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><span style="font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(nm)}</span><span style="font-size:11px;color:var(--muted);flex-shrink:0">${when}</span></div>
+        <div style="margin-top:4px">${_rdStars(x.score||0,12)}</div>
+        ${hasText&&x.comentario?`<div style="font-size:13.5px;color:var(--w70);line-height:1.5;margin-top:6px;white-space:pre-wrap;word-break:break-word">${_esc(x.comentario)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function _rdRvSubmit(){
+  const st=_rdRvState; if(!st||!_supa) return;
+  if(isGuest()){ showToast('inicia sesión para calificar'); return; }
+  if(!st.score){ showToast('toca las estrellas para calificar'); return; }
+  const btn=document.getElementById('rd-rv-send'); if(btn){ btn.disabled=true; btn.style.opacity='.6'; }
+  const txt=(document.getElementById('rd-rv-text')?.value||'').trim().slice(0,500);
+  const base={rater_id:USER_STATE.id,rated_id:st.userId,score:st.score,updated_at:new Date().toISOString()};
+  let {error}=await _supa.from('user_ratings').upsert({...base,comentario:txt||null},{onConflict:'rater_id,rated_id'});
+  let noText=false;
+  if(error&&/comentario/i.test(error.message||'')){ noText=true; ({error}=await _supa.from('user_ratings').upsert(base,{onConflict:'rater_id,rated_id'})); }
+  if(btn){ btn.disabled=false; btn.style.opacity=''; }
+  if(error){ showToast('no se pudo guardar tu reseña'); return; }
+  showToast(noText?'calificación guardada':'reseña publicada',true);
+  _rdRvToggleForm(false);
+  const b=document.getElementById('rd-rv-toggle'); if(b){ b.style.display=''; b.textContent='editar mi reseña'; }
+  await _rdRvLoad();
+  if(typeof _profileViewingId!=='undefined'&&_profileViewingId===st.userId) openUserProfile(st.userId);
+}
+const RD_REPORT_REASONS=[['estafa','Estafa o intento de fraude'],['suplantacion','Suplantación de identidad'],['publicacion_falsa','Publicación falsa o engañosa'],['acoso','Acoso o lenguaje ofensivo'],['spam','Spam o publicidad no deseada'],['contenido_inapropiado','Contenido inapropiado'],['otro','Otro motivo']];
+let _rdRepState=null;
+function _rdOpenReport(userId,nombre){
+  if(isGuest()){ showToast('inicia sesión para reportar'); return; }
+  if(userId===USER_STATE.id) return;
+  _rdRepState={userId,nombre,motivo:null};
+  _rdSheet('rd-report-sheet',`<style>.rd-rep-opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--w4);border:1px solid var(--w8);border-radius:14px;padding:13px 14px;margin-bottom:8px;color:var(--white);font-family:var(--font);font-size:14px;cursor:pointer;transition:border-color .2s,background .2s}.rd-rep-opt i{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--w30);flex-shrink:0;transition:all .2s;box-sizing:border-box}.rd-rep-opt.on{border-color:var(--w35);background:var(--w8)}.rd-rep-opt.on i{border:5px solid var(--rd-green)}</style>
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg><div style="font-size:16px;font-weight:800;letter-spacing:-.2px">reportar usuario</div></div>
+    <div style="font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:16px">¿qué pasó con ${_esc(nombre)}? tu reporte es confidencial: la persona no sabrá quién lo envió.</div>
+    <div id="rd-rep-opts">${RD_REPORT_REASONS.map(([k,t])=>`<button class="rd-rep-opt" data-k="${k}" onclick="_rdRepPick('${k}')"><i></i>${t}</button>`).join('')}</div>
+    <textarea id="rd-rep-text" maxlength="1000" rows="3" placeholder="detalles (opcional): qué pasó, cuándo, en qué publicación…" style="width:100%;box-sizing:border-box;border-radius:14px;background:var(--w5);border:1px solid var(--w10);color:var(--white);padding:12px 14px;font-family:var(--font);font-size:16px;resize:none;outline:none;margin-top:6px"></textarea>
+    <button id="rd-rep-send" onclick="_rdRepSubmit()" disabled style="width:100%;height:48px;border-radius:14px;border:0;background:var(--white);color:var(--bg);font-family:var(--font);font-size:14.5px;font-weight:800;cursor:pointer;margin-top:12px;opacity:.35;transition:opacity .2s">enviar reporte</button>`);
+}
+function _rdRepPick(k){
+  if(!_rdRepState) return; _rdRepState.motivo=k;
+  document.querySelectorAll('#rd-rep-opts .rd-rep-opt').forEach(b=>b.classList.toggle('on',b.dataset.k===k));
+  const s=document.getElementById('rd-rep-send'); if(s){ s.disabled=false; s.style.opacity='1'; }
+}
+async function _rdRepSubmit(){
+  const st=_rdRepState; if(!st||!st.motivo||!_supa) return;
+  const btn=document.getElementById('rd-rep-send'); if(btn){ btn.disabled=true; btn.style.opacity='.6'; btn.textContent='enviando…'; }
+  const detalle=(document.getElementById('rd-rep-text')?.value||'').trim().slice(0,1000)||null;
+  const{error}=await _supa.from('user_reports').insert({reporter_id:USER_STATE.id,reported_id:st.userId,motivo:st.motivo,detalle});
+  if(error){
+    if(btn){ btn.disabled=false; btn.style.opacity='1'; btn.textContent='enviar reporte'; }
+    showToast(error.code==='23505'?'ya tienes un reporte pendiente sobre este usuario':'no se pudo enviar el reporte');
+    return;
+  }
+  const ov=document.getElementById('rd-report-sheet'); const sh=ov&&ov.querySelector('.modal-sheet');
+  if(sh) sh.innerHTML=`<div class="modal-handle"></div><div style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:18px 8px 8px;gap:12px"><svg viewBox="0 0 24 24" style="width:46px;height:46px"><circle cx="12" cy="12" r="11" fill="var(--rd-green)"/><path fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><div style="font-size:16px;font-weight:800">reporte enviado</div><div style="font-size:13px;color:var(--muted);line-height:1.5;max-width:280px">el equipo de Ruedda lo revisará. gracias por cuidar la comunidad.</div></div>`;
+  setTimeout(()=>{ if(ov) ov.classList.remove('open'); },2200);
+}
+// ── superadmin: reportes de usuarios ──
+const _RD_REP_LABEL=Object.fromEntries(RD_REPORT_REASONS);
+async function saLoadReportes(){
+  const list=document.getElementById('sa-reportes-list'); if(!list||!_supa) return;
+  list.innerHTML='<div style="color:var(--muted);font-size:13px;font-weight:300">cargando reportes…</div>';
+  const{data:reps,error}=await _supa.from('user_reports').select('id,reporter_id,reported_id,motivo,detalle,estado,created_at').eq('estado','pendiente').order('created_at',{ascending:false}).limit(100);
+  if(error){ list.innerHTML='<div style="color:#ff9b9b;font-size:13px">error: '+_esc(error.message)+'</div>'; return; }
+  if(!reps?.length){ list.innerHTML='<div style="color:var(--muted);font-size:13px;font-weight:300">sin reportes pendientes.</div>'; return; }
+  const ids=[...new Set(reps.flatMap(r=>[r.reporter_id,r.reported_id]))];
+  const{data:us}=await _supa.from('users').select('id,nombre,username').in('id',ids);
+  const um={}; (us||[]).forEach(u=>um[u.id]=u);
+  const nm=id=>{ const u=um[id]||{}; return _esc(u.nombre||u.username||String(id).slice(0,8))+(u.username?` <span style="color:var(--muted);font-weight:400">@${_esc(u.username)}</span>`:''); };
+  // cuántos reportes pendientes tiene cada reportado (para priorizar)
+  const cnt={}; reps.forEach(r=>cnt[r.reported_id]=(cnt[r.reported_id]||0)+1);
+  list.innerHTML=reps.map(r=>`<div style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:16px;padding:14px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+        <div onclick="openUserProfile('${r.reported_id}')" style="font-size:15px;font-weight:700;letter-spacing:-.2px;cursor:pointer">${nm(r.reported_id)}</div>
+        ${cnt[r.reported_id]>1?`<span style="font-size:11px;font-weight:800;background:#ff5a5a;color:#fff;border-radius:100px;padding:2px 8px;flex-shrink:0">${cnt[r.reported_id]} reportes</span>`:''}
+      </div>
+      <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--rd-green);margin-top:8px">${_esc(_RD_REP_LABEL[r.motivo]||r.motivo)}</div>
+      ${r.detalle?`<div style="font-size:13px;color:var(--w70);line-height:1.5;margin-top:6px;white-space:pre-wrap;word-break:break-word">${_esc(r.detalle)}</div>`:''}
+      <div style="font-size:11.5px;color:var(--muted);margin-top:8px">reportado por ${nm(r.reporter_id)} · ${new Date(r.created_at).toLocaleString('es-VE',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="saSetReporte('${r.id}','revisado')" style="flex:1;background:var(--w8);border:1px solid var(--w12);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--white);cursor:pointer">marcar revisado</button>
+        <button onclick="saSetReporte('${r.id}','descartado')" style="flex:1;background:none;border:1px solid var(--w12);border-radius:10px;padding:9px;font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);cursor:pointer">descartar</button>
+      </div>
+    </div>`).join('');
+}
+async function saSetReporte(id,estado){
+  const{error}=await _supa.from('user_reports').update({estado}).eq('id',id);
+  if(error){ showToast('error actualizando el reporte'); return; }
+  showToast(estado==='revisado'?'reporte marcado como revisado':'reporte descartado',true);
+  saLoadReportes();
+}
+
 async function openUserProfile(userId){
   if(!userId||!_supa) return;
   // [FIX] si ya estás viendo un perfil y abres otro desde ahí, no pisamos el
@@ -17545,16 +17725,17 @@ async function openUserProfile(userId){
           ${u.kyc_verified?`<div style="display:flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;color:var(--w50)">usuario verificado en Ruedda <svg viewBox="0 0 24 24" style="width:13px;height:13px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></div>`:''}
           ${levelBadgeHtml}
         </div>
+        ${!isMe?`<button onclick="_rdOpenReport('${userId}','${safeName}')" aria-label="reportar usuario" title="reportar usuario" style="align-self:flex-start;flex-shrink:0;background:none;border:0;padding:6px;margin:-2px -6px 0 0;cursor:pointer;color:var(--w35);border-radius:8px;display:flex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg></button>`:''}
       </div>
       ${xpMeterHtml}
       <div style="display:flex;gap:22px;margin-top:18px">
         <div onclick="_rdOpenFollows('${userId}','seguidores')" style="cursor:pointer"><span style="font-weight:800;font-size:15px">${followersCount||0}</span> <span style="color:var(--muted);font-size:13px">seguidores</span></div>
         <div onclick="_rdOpenFollows('${userId}','siguiendo')" style="cursor:pointer"><span style="font-weight:800;font-size:15px">${followingCount||0}</span> <span style="color:var(--muted);font-size:13px">siguiendo</span></div>
-        ${ratings?.length?`<div><span style="font-weight:800;font-size:15px;color:#08441A">★ ${avgScore.toFixed(1)}</span> <span style="color:var(--muted);font-size:13px">(${ratings.length})</span></div>`:''}
+        <div onclick="_rdOpenReviews('${userId}','${safeName}',${myRating})" style="cursor:pointer">${ratings?.length?`<span style="font-weight:800;font-size:15px;color:#08441A">★ ${avgScore.toFixed(1)}</span> <span style="color:var(--muted);font-size:13px">(${ratings.length})</span>`:`<span style="font-weight:800;font-size:15px;color:var(--muted)">☆</span> <span style="color:var(--muted);font-size:13px">reseñas</span>`}</div>
       </div>
       ${!isMe?`
       <div style="display:flex;gap:10px;margin-top:18px">
-        <button onclick="_openRatingModal('${userId}','${safeName}',${myRating})" style="background:var(--lime);border:none;color:var(--lime-ink);border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">calificar <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg></button>
+        <button onclick="_rdOpenReviews('${userId}','${safeName}',${myRating},true)" style="background:var(--lime);border:none;color:var(--lime-ink);border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0">calificar <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px"><path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.771l-7.416 3.642 1.48-8.279-6.064-5.828 8.332-1.151z"/></svg></button>
         <button id="follow-btn-${userId}" data-following="${amIFollowing}" onclick="_followToggle('${userId}',this)" style="background:${amIFollowing?'var(--w8)':'#08441A'};border:${amIFollowing?'1px solid var(--border)':'none'};color:#fff;border-radius:100px;font-size:13px;font-weight:800;padding:10px 18px;cursor:pointer;font-family:var(--font);display:inline-flex;align-items:center;gap:7px;flex-shrink:0"><span id="follow-btn-label-${userId}">${amIFollowing?'siguiendo':'seguir'}</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg></button>
       </div>`:`<div style="margin-top:16px;font-size:12px;color:var(--muted)">este es tu perfil · edítalo desde configuración</div>`}
       ${u.descripcion?`

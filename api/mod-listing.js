@@ -77,6 +77,7 @@ const ADMIN_PANEL_HTML_MOBILE = `  <div class="detail-back" onclick="showView('c
       <div class="tab active" id="sa-tab-cuentas" onclick="saTab('cuentas')" style="white-space:nowrap;flex-shrink:0">cuentas</div>
       <div class="tab" id="sa-tab-usuarios" onclick="saTab('usuarios')" style="white-space:nowrap;flex-shrink:0">usuarios</div>
       <div class="tab" id="sa-tab-kyc" onclick="saTab('kyc')" style="white-space:nowrap;flex-shrink:0">KYC</div>
+      <div class="tab" id="sa-tab-reportes" onclick="saTab('reportes')" style="white-space:nowrap;flex-shrink:0">reportes</div>
       <div class="tab" id="sa-tab-bypass" onclick="saTab('bypass')" style="white-space:nowrap;flex-shrink:0">bypass</div>
       <div class="tab" id="sa-tab-acceso" onclick="saTab('acceso')" style="white-space:nowrap;flex-shrink:0">enviar código</div>
     </div>
@@ -251,6 +252,10 @@ const ADMIN_PANEL_HTML_MOBILE = `  <div class="detail-back" onclick="showView('c
   <div id="sa-aucodigos" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
     <div style="font-size:13px;color:var(--muted);font-weight:300">cada subasta tiene su código de acceso. cópialo para entregarlo, o regenéralo.</div>
     <div id="sa-aucodes-list" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+  <div id="sa-reportes" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
+    <div style="font-size:13px;color:var(--muted);font-weight:300">reportes de usuarios pendientes · los más reportados salen marcados en rojo. toca el nombre para ver su perfil.</div>
+    <div id="sa-reportes-list" style="display:flex;flex-direction:column;gap:14px"></div>
   </div>
   <div id="sa-kyc" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
     <div style="font-size:13px;color:var(--muted);font-weight:300">solicitudes de verificación pendientes · compara el nombre registrado con la cédula de las fotos.</div>
@@ -647,6 +652,7 @@ const ADMIN_PANEL_HTML_DESKTOP = `  <div class="detail-back" onclick="showView('
       <div class="tab active" id="sa-tab-cuentas" onclick="saTab('cuentas')" style="white-space:nowrap;flex-shrink:0">cuentas</div>
       <div class="tab" id="sa-tab-usuarios" onclick="saTab('usuarios')" style="white-space:nowrap;flex-shrink:0">usuarios</div>
       <div class="tab" id="sa-tab-kyc" onclick="saTab('kyc')" style="white-space:nowrap;flex-shrink:0">KYC</div>
+      <div class="tab" id="sa-tab-reportes" onclick="saTab('reportes')" style="white-space:nowrap;flex-shrink:0">reportes</div>
       <div class="tab" id="sa-tab-bypass" onclick="saTab('bypass')" style="white-space:nowrap;flex-shrink:0">bypass</div>
       <div class="tab" id="sa-tab-acceso" onclick="saTab('acceso')" style="white-space:nowrap;flex-shrink:0">enviar código</div>
     </div>
@@ -820,6 +826,10 @@ const ADMIN_PANEL_HTML_DESKTOP = `  <div class="detail-back" onclick="showView('
   <div id="sa-aucodigos" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
     <div style="font-size:13px;color:var(--muted);font-weight:300">cada subasta tiene su código de acceso. cópialo para entregarlo, o regenéralo.</div>
     <div id="sa-aucodes-list" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+  <div id="sa-reportes" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
+    <div style="font-size:13px;color:var(--muted);font-weight:300">reportes de usuarios pendientes · los más reportados salen marcados en rojo. toca el nombre para ver su perfil.</div>
+    <div id="sa-reportes-list" style="display:flex;flex-direction:column;gap:14px"></div>
   </div>
   <div id="sa-kyc" style="display:none;padding:18px 18px 100px;flex-direction:column;gap:12px">
     <div style="font-size:13px;color:var(--muted);font-weight:300">solicitudes de verificación pendientes · compara el nombre registrado con la cédula de las fotos.</div>

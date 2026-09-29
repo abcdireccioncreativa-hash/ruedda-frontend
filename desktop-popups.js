@@ -118,6 +118,12 @@
   '.rdp-tb:hover svg{transform:translateX(2px)}'+
   '.rdp-tb:hover{color:#0b0b0b}'+
   '.rdp.tour [data-a="tour"]{display:none}'+
+  '.rdp.b{left:12px;right:12px;top:auto;bottom:calc(92px + env(safe-area-inset-bottom));width:auto;max-width:none;padding:24px 22px 16px;transform:translateY(28px)}'+
+  '.rdp.b.in{transform:none}'+
+  '.rdp.b.out{transform:translateY(20px)}'+
+  '.rdp.b .rdp-iso img{animation:none}'+
+  '.rdp.b .rdp-title{font-size:19px}'+
+  '.rdp-sub{font-size:12.5px;line-height:1.5;color:#6a6a6a;margin:-8px 0 18px;padding-top:12px;border-top:1px solid #efefef}'+
   '@media (prefers-reduced-motion:reduce){.rdp{transition-duration:.01s}.rdp-iso img{animation:none}.rdp-slide{transition:none}}';
 
   function injectCss(){
@@ -127,12 +133,23 @@
   var X='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
   function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
 
-  function mount(html,label){
+  // isotipo real del splash de inicio (misma imagen), ondeando en franjas como el splash.
+  // Solo CSS (transform en el compositor): cero JavaScript por frame.
+  function isoFill(box){
+    if(!box) return; var N=12,OV=2,P=1.4,h='';
+    for(var i=0;i<N;i++){
+      var u=(i+OV/2)/N, l=i/N*100, r=Math.max(0,(1-(i+OV)/N)*100);
+      h+='<img src="/assets/ruedda-iso-negro.png" alt="" style="clip-path:inset(-14% '+r+'% -14% '+l+'%);animation-delay:-'+(u*2.6/(2*Math.PI)*P).toFixed(3)+'s">';
+    }
+    box.innerHTML=h;
+  }
+  function mount(html,label,opt){
     injectCss();
     var el=document.createElement('div');
-    el.className='rdp'+(MOBILE?' m':''); el.setAttribute('role','dialog'); el.setAttribute('aria-label',label);
+    opt=opt||{};
+    el.className='rdp'+(MOBILE?(opt.bottom?' b':' m'):''); el.setAttribute('role','dialog'); el.setAttribute('aria-label',label);
     el.innerHTML=html;
-    if(MOBILE){
+    if(MOBILE&&!opt.bottom){
       var bd=document.createElement('div'); bd.className='rdp-bd';
       bd.addEventListener('click',function(){ var x=el.querySelector('.rdp-x'); if(x) x.click(); });
       document.body.appendChild(bd); el._bd=bd;
@@ -194,16 +211,7 @@
       '<button class="rdp-btn" data-a="cta">'+esc(c.cta)+'</button>'+
       '<div class="rdp-row"><button class="rdp-link soft" data-a="later">'+esc(c.later)+'</button></div>',
       'crear cuenta');
-    // isotipo real del splash de inicio (misma imagen), ondeando en franjas como el splash.
-    // Solo CSS (transform en el compositor): cero JavaScript por frame.
-    (function(box){
-      if(!box) return; var N=12,OV=2,P=1.4,h='';
-      for(var i=0;i<N;i++){
-        var u=(i+OV/2)/N, l=i/N*100, r=Math.max(0,(1-(i+OV)/N)*100);
-        h+='<img src="/assets/ruedda-iso-negro.png" alt="" style="clip-path:inset(-14% '+r+'% -14% '+l+'%);animation-delay:-'+(u*2.6/(2*Math.PI)*P).toFixed(3)+'s">';
-      }
-      box.innerHTML=h;
-    })(el.querySelector('.rdp-iso'));
+    isoFill(el.querySelector('.rdp-iso'));
     // ── mini tour: cambia el contenido dentro del mismo popup ──
     var cur=0, busyAnim=false, box=el.querySelector('.rdp-slide'), tagt=el.querySelector('.rdp-tagt');
     var dots=el.querySelectorAll('.rdp-dots i'), prev=el.querySelector('[data-a="prev"]'), next=el.querySelector('[data-a="next"]');
@@ -245,6 +253,39 @@
     });
   }
 
+
+
+  // ── 3) vehículo guardado en favoritos (se llama desde el botón de guardar) ──
+  var savedEl=null, savedT=null;
+  window.rdSavedPopup=function(){
+    try{
+      if(document.querySelector('.rdp:not(.b):not(.out)')) return false; // no encima de otro popup
+      if(savedEl){ clearTimeout(savedT); unmount(savedEl); savedEl=null; }
+      var el=mount(
+        '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
+        '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">guardado</span></div>'+
+        '<div class="rdp-title">Tu vehículo está guardado.</div>'+
+        '<p class="rdp-body">Encuéntralo cuando quieras en el ícono de corazón'+(MOBILE?' de la barra de abajo.':' del menú.')+'</p>'+
+        '<p class="rdp-sub">Esa sección es también la comunidad de Ruedda: clips, historias y lo que comparten los petrolheads de Venezuela.</p>'+
+        '<button class="rdp-btn" data-a="fav">Ver mis favoritos</button>'+
+        '<div class="rdp-row"><button class="rdp-link soft" data-a="later">Seguir explorando</button></div>',
+        'vehículo guardado',{bottom:true});
+      isoFill(el.querySelector('.rdp-iso'));
+      savedEl=el;
+      var close=function(){ clearTimeout(savedT); unmount(el); if(savedEl===el) savedEl=null; };
+      var arm=function(){ clearTimeout(savedT); savedT=setTimeout(close,6500); };
+      arm();
+      el.addEventListener('pointerdown',function(){ clearTimeout(savedT); },{passive:true});
+      el.addEventListener('mouseenter',function(){ clearTimeout(savedT); });
+      el.addEventListener('mouseleave',arm);
+      el.addEventListener('click',function(e){
+        var b=e.target.closest('[data-a],.rdp-x'); if(!b) return;
+        close();
+        if(b.getAttribute('data-a')==='fav'){ try{ if(typeof showView==='function') showView('favoritos'); }catch(err){} }
+      });
+      return true;
+    }catch(e){ return false; }
+  };
 
   // ── secuencia: después del splash → cookies → cuenta ───────
   function start(){
