@@ -21,7 +21,7 @@
       policy:'Política de privacidad'
     },
     signup:{
-      tag:'Cuenta Ruedda · gratis',
+      tag:'gratis',
       title:'Expande tu futuro financiero con activos automotrices.',
       body:'Tu carro es un activo. Conoce su valor real, síguelo en el mercado y conviértelo en liquidez cuando tú decidas.',
       bullets:[
@@ -42,8 +42,8 @@
   '.rdp-x{position:absolute;top:16px;right:16px;width:30px;height:30px;border:0;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:6px;color:#111;transition:background .15s}'+
   '.rdp-x:hover{background:#f1f1f1}'+
   '.rdp-x svg{width:16px;height:16px}'+
-  '.rdp-tag{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6a6a6a;margin-bottom:14px}'+
-  '.rdp-tag svg{width:12px;height:13px;display:block;flex-shrink:0}'+
+  '.rdp-tag{display:inline-flex;align-items:center;gap:9px;font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6a6a6a;margin-bottom:14px}'+
+  '.rdp-tag svg{width:16px;height:17px;display:block;flex-shrink:0}'+
   '.rdp-title{font-size:20px;line-height:1.22;font-weight:800;letter-spacing:-.02em;margin:0 26px 10px 0}'+
   '.rdp-body{font-size:14.5px;line-height:1.55;color:#2b2b2b;margin:0 0 18px}'+
   '.rdp-list{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:11px}'+
