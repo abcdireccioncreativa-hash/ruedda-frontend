@@ -186,7 +186,7 @@
     }
     var el=mount(
       '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
-      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">'+esc(c.tag)+'</span><button class="rdp-tb" data-a="tour">'+esc(c.tourBtn)+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>'+
+      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">'+esc(c.tag)+'</span><button class="rdp-tb" data-a="tour">'+esc(c.tourBtn)+'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button></div>'+
       '<div class="rdp-slide" aria-live="polite">'+slideHtml(slides[0])+'</div>'+
       '<div class="rdp-nav"><div class="rdp-dots">'+slides.map(function(_,k){ return '<i'+(k===0?' class="on"':'')+'></i>'; }).join('')+'</div>'+
         '<div class="rdp-arr"><button data-a="prev" aria-label="anterior">'+CH_L+'</button><button data-a="next" aria-label="siguiente">'+CH_R+'</button></div></div>'+
