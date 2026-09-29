@@ -22,7 +22,28 @@ self.addEventListener('activate', (event) => {
 // las peticiones a Supabase/APIs — si esas fallan, el propio código de la app
 // ya las maneja (toasts de error, reintentos). Esto es solo para el caso
 // "el usuario abrió/recargó la app y no hay red en absoluto".
+// [pwa-perf] estáticos propios: fuentes/íconos con hash → cache-first (nunca cambian);
+// splash, isotipo y popups → stale-while-revalidate (sale al instante y se refresca atrás).
+const STATIC_CACHE = 'ruedda-static-v1';
+function isImmutable(u){ return u.origin === self.location.origin && /^\/assets\/(fonts|inline)\//.test(u.pathname); }
+function isSWR(u){ return u.origin === self.location.origin && (/^\/splash\//.test(u.pathname) || /^\/assets\//.test(u.pathname) || u.pathname === '/desktop-popups.js'); }
 self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method === 'GET' && req.mode !== 'navigate') {
+    let u; try { u = new URL(req.url); } catch (e) { return; }
+    if (isImmutable(u)) {
+      event.respondWith(caches.open(STATIC_CACHE).then(c => c.match(req).then(hit => hit || fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }))));
+      return;
+    }
+    if (isSWR(u)) {
+      event.respondWith(caches.open(STATIC_CACHE).then(c => c.match(req).then(hit => {
+        const net = fetch(req).then(r => { if (r.ok) c.put(req, r.clone()); return r; }).catch(() => hit);
+        return hit || net;
+      })));
+      return;
+    }
+    return;
+  }
   if (event.request.mode !== 'navigate') return;
   event.respondWith(
     fetch(event.request).catch(() =>
