@@ -43,6 +43,7 @@ try{
 <!-- [PERF] handshake anticipado. antes, la primera peticion a supabase pagaba DNS +
      TCP + TLS completo en serie antes de que saliera un solo byte de datos. -->
 <link rel="preconnect" href="https://ltodsegzbbdcaublkgtp.supabase.co" crossorigin>
+<link rel="preconnect" href="https://ltodsegzbbdcaublkgtp.supabase.co"><!-- fotos (img sin CORS) -->
 <link rel="dns-prefetch" href="https://ltodsegzbbdcaublkgtp.supabase.co">
 <link rel="preload" as="script" href="/vendor/supabase-js-2.116.0.min.js">
 
@@ -11283,7 +11284,8 @@ async function _uploadVenderVideos(recordId,userId,isListing=false){
 // cambia esta línea a true y despliega — nada más que tocar.
 // [2026-09-28] OFF: el proyecto volvió a plan Free (/render/ responde 403 FeatureNotEnabled).
 // Se sirven las fotos originales tal cual están en Storage. Al volver a Pro: poner true.
-window.RUEDDA_IMG_TRANSFORMS = false;
+// [2026-09-29] ON de nuevo: plan Pro reactivado, /render/ verificado (200, resize=contain).
+window.RUEDDA_IMG_TRANSFORMS = true;
 // ────────────────────────────────────────────────────────────────────────────
 
 // [perf/calidad] _tImg: reescribe una URL pública de Supabase Storage a su endpoint

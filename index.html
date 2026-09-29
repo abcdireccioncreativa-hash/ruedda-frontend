@@ -205,6 +205,9 @@ function _rdWaveFlag(el, opts){
 <link rel="apple-touch-icon" href="/icon-180.png">
 <link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
 <link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://ltodsegzbbdcaublkgtp.supabase.co" crossorigin><!-- datos (fetch CORS) -->
+<link rel="preconnect" href="https://ltodsegzbbdcaublkgtp.supabase.co"><!-- fotos (img sin CORS) -->
+<link rel="dns-prefetch" href="https://ltodsegzbbdcaublkgtp.supabase.co">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Ruedda | Vende o subasta tu carro</title>
 <meta name="description" content="El nuevo estándar automotriz de Venezuela: subastas, marketplace, concesionarios, mecánicos, comunidad, petrolheads y RueddaExtra">
@@ -2504,7 +2507,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   // directo, sin flag.
   // [2026-09-28] plan Free: sin transformaciones → la intro usa la foto original.
   // Al volver a Pro: poner _INTRO_TRANSFORMS = true (igual que RUEDDA_IMG_TRANSFORMS).
-  var _INTRO_TRANSFORMS = false;
+  var _INTRO_TRANSFORMS = true; // [2026-09-29] Pro reactivado
   function _introTImg(url, width, quality){
     try{
       if(!_INTRO_TRANSFORMS) return url;
@@ -12757,7 +12760,8 @@ async function _uploadVenderVideos(recordId,userId,isListing=false){
 // (200 OK, ~68KB vs ~2.9MB del original) antes de activar.
 // [2026-09-28] OFF: el proyecto volvió a plan Free (/render/ responde 403 FeatureNotEnabled).
 // Se sirven las fotos originales tal cual están en Storage. Al volver a Pro: poner true.
-window.RUEDDA_IMG_TRANSFORMS = false;
+// [2026-09-29] ON de nuevo: plan Pro reactivado, /render/ verificado (200, resize=contain).
+window.RUEDDA_IMG_TRANSFORMS = true;
 // ────────────────────────────────────────────────────────────────────────────
 
 // [perf/calidad] _tImg: reescribe una URL pública de Supabase Storage a su endpoint
