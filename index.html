@@ -65,6 +65,25 @@ window.RD_IMG={logo:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPkAAABECAYAA
   var _rdLightBoot = false;
   try{ var _rdPref = localStorage.getItem('ruedda_theme'); _rdLightBoot = _rdPref === 'light' || (_rdPref === 'system' && !!(window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches)); }catch(e){}
   if(_rdLightBoot) document.documentElement.setAttribute('data-theme','light');
+  // [app nativa] la intro de marca la dibuja iOS (misma animación, Core Animation):
+  // el app inyecta __RD_NATIVE_SPLASH. Se le avisa qué splash toca en el próximo
+  // arranque (sin sesión o 1ra vez → intro, siempre negro; si no, el tema elegido).
+  window._rdNativeSplash = function(msg){
+    try{ if(window.__RD_NATIVE_SPLASH && window.webkit && webkit.messageHandlers && webkit.messageHandlers.rdSplash){ webkit.messageHandlers.rdSplash.postMessage(msg); return true; } }catch(e){}
+    return false;
+  };
+  window._rdNextSplash = function(){
+    var v = 'dark';
+    try{
+      var m = localStorage.getItem('ruedda_theme');
+      if(localStorage.getItem('rd_intro_v1')==='1' && localStorage.getItem('ruedda-auth') && (m==='light'||m==='system')) v = m;
+    }catch(e){}
+    return v;
+  };
+  if(window._rdNativeSplash({ev:'hello', next:_rdNextSplash()})){
+    document.documentElement.classList.add('rd-native-splash');
+    document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden') _rdNativeSplash({ev:'next', next:_rdNextSplash()}); });
+  }
 
   // el selector de color se retiró — se limpia la elección vieja para que
   // todos queden en el color base.
@@ -109,7 +128,21 @@ window._rdOAuthReturn = (function(){
 })();
 // splash animado de marca (/splash/*.html): carga el iframe y resuelve cuando
 // ESE iframe avisa que terminó su animación (ruedda:splash-done).
-function _rdMountSplash(frame, src){
+function _rdMountSplash(frame, src, webOnly){
+  // [app nativa] la animación ya la está corriendo iOS encima: no se carga el iframe
+  // ni los hápticos (los hace iOS). Resuelve cuando iOS termina; si el splash nativo
+  // ya no está (p. ej. recarga), sigue el camino web de siempre.
+  if(!webOnly && window.__RD_NATIVE_SPLASH){
+    var _p = new Promise(function(res){
+      (window.__rdNSQ = window.__rdNSQ || []).push(function(st){
+        if(st === 'gone'){ document.documentElement.classList.remove('rd-native-splash'); _rdMountSplash(frame, src, true).then(res); }
+        else res();
+      });
+      window.__rdNativeSplashReply = window.__rdNativeSplashReply || function(st){ (window.__rdNSQ||[]).splice(0).forEach(function(f){ f(st); }); };
+    });
+    if(window._rdNativeSplash({ev:'mount'})) return _p;
+    window.__rdNSQ = [];
+  }
   // háptico con las letras de "ruedda": el splash arranca apenas carga (sus imágenes van
   // embebidas) y las 6 letras salen de la bandera entre 0,94 s y 1,12 s, una cada 36 ms.
   try{
@@ -1403,6 +1436,7 @@ html[data-theme="light"] [stroke^="rgba(230,240,59"]{stroke:rgba(10,10,10,.35)}
   #rd-landscape-guard{display:flex}
 }
 #boot-splash.boot-splash-exit{opacity:0;pointer-events:none}
+html.rd-native-splash #boot-splash,html.rd-native-splash #rd-intro-preload{transition:none}
 
 /* SEARCH OVERLAY */
 .search-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;padding:calc(18px + env(safe-area-inset-top)) 18px 18px;flex-direction:column;gap:16px;color:var(--white)}
@@ -2843,6 +2877,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   var contentStarted = false;
   function _startIntroContent(){
     if(contentStarted) return; contentStarted = true;
+    try{ window._rdNativeSplash && _rdNativeSplash({ev:'reveal'}); }catch(e){}
     if(preloadEl){
       preloadEl.classList.add('rd-preload-out');
       setTimeout(function(){ if(preloadEl.parentNode) preloadEl.parentNode.removeChild(preloadEl); }, 270);
@@ -2997,6 +3032,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         // "bienvenido" sobre el mismo div, sin corte.
         box.style.display = 'none';
         window._rdSplashDone = Promise.resolve();
+        try{ window._rdNativeSplash && _rdNativeSplash({ev:'reveal'}); }catch(e){}
         var ls = document.createElement('div');
         ls.id = 'login-splash';
         ls.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:var(--splash-bg);opacity:1;transition:opacity .35s ease';
@@ -18762,6 +18798,8 @@ const _pbi=document.getElementById('pb-mobile');if(_pbi&&window.innerWidth<768)_
 
   function _reveal(){
     if(revealed) return; revealed=true;
+    // (con la intro activa, quien retira el splash nativo es la intro)
+    try{ if(!window._rdIntroActive && window._rdNativeSplash) _rdNativeSplash({ev:'reveal'}); }catch(e){}
     const splash=document.getElementById('boot-splash');
     const active=document.querySelector('.view.active');
     // 1) los hijos se ponen invisibles YA, mientras el splash todavía tapa todo —
