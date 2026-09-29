@@ -307,10 +307,19 @@ async function cnt(table,f){
   let q=sb.from(table).select('*',{count:'exact',head:true}); if(f) q=f(q);
   const{count,error}=await q; if(error) return {error}; return count||0;
 }
+const PUB_COLS='id,nombre,apellido,username,ciudad,role,avatar_url,activo,created_at,updated_at,kyc_verified,descripcion,default_view';
+// correo, cédula y teléfono no se leen directo de users: pasan por admin_users_private (solo superadmin).
+// Si la función aún no existe en la base, se leen como antes.
+async function privMap(ids){
+  ids=[...new Set((ids||[]).filter(Boolean))]; const m={}; if(!ids.length) return m;
+  try{ const r=await sb.rpc('admin_users_private',{p_ids:ids}); if(!r.error){ (r.data||[]).forEach(x=>m[x.id]=x); return m; } }catch(e){}
+  const{data}=await sb.from('users').select('id,email,cedula,cedula_tipo,telefono,celular').in('id',ids); (data||[]).forEach(x=>m[x.id]=x); return m;
+}
+async function adminFind(q){ try{ const r=await sb.rpc('admin_find_users',{p_q:q}); if(!r.error) return (r.data||[]).map(x=>x.id||x); }catch(e){} return null; }
 async function usersMap(ids){
   ids=[...new Set(ids.filter(Boolean))]; if(!ids.length) return {};
-  const{data}=await sb.from('users').select('id,nombre,username,email,avatar_url,kyc_verified,role,cedula,cedula_tipo,telefono,celular,ciudad').in('id',ids);
-  const m={}; (data||[]).forEach(u=>m[u.id]=u); return m;
+  const [{data},pv]=await Promise.all([sb.from('users').select(PUB_COLS).in('id',ids),privMap(ids)]);
+  const m={}; (data||[]).forEach(u=>m[u.id]=Object.assign(u,pv[u.id]||{})); return m;
 }
 const uname=u=>u?(u.nombre||u.username||u.email||'usuario'):'usuario';
 const I={
@@ -351,7 +360,8 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ $('#lightbox').cl
 async function boot(){
   const{data:{session}}=await sb.auth.getSession();
   if(!session) return showLogin();
-  const{data:me,error}=await sb.from('users').select('id,nombre,username,email,role').eq('id',session.user.id).maybeSingle();
+  const{data:me,error}=await sb.from('users').select('id,nombre,username,role').eq('id',session.user.id).maybeSingle();
+  if(me) me.email=session.user.email;
   if(error||!me||me.role!=='superadmin'){
     showLogin('Esta cuenta no tiene acceso al panel.'); await sb.auth.signOut().catch(()=>{}); return;
   }
@@ -722,11 +732,15 @@ RENDER.usuarios=async(tok,_,soft)=>{
   $('#urole').onclick=e=>{const b=e.target.closest('button');if(!b)return;U_F.role=b.dataset.k;U_F.page=0;document.querySelectorAll('#urole button').forEach(x=>x.classList.toggle('on',x===b));RENDER.usuarios(++VIEW_TOKEN,[],true);};
   $('#ukyc').onclick=e=>{const b=e.target.closest('button');if(!b)return;U_F.kyc=b.dataset.k;U_F.page=0;document.querySelectorAll('#ukyc button').forEach(x=>x.classList.toggle('on',x===b));RENDER.usuarios(++VIEW_TOKEN,[],true);};
   const PS=50;
-  let q=sb.from('users').select('id,nombre,apellido,username,email,role,kyc_verified,ciudad,avatar_url,cedula,created_at,activo',{count:'exact'}).order('created_at',{ascending:false}).range(0,(U_F.page+1)*PS-1);
+  let q=sb.from('users').select(PUB_COLS,{count:'exact'}).order('created_at',{ascending:false}).range(0,(U_F.page+1)*PS-1);
   if(U_F.role==='dealer') q=q.in('role',['consesionario','concesionario']); else if(U_F.role!=='todos') q=q.eq('role',U_F.role);
   if(U_F.kyc!=='todos') q=q.eq('kyc_verified',U_F.kyc==='si');
-  if(U_F.q){ const s=U_F.q.replace(/[%,()]/g,' ').trim(); q=q.or(`nombre.ilike.%${s}%,username.ilike.%${s}%,email.ilike.%${s}%,cedula.ilike.%${s}%,apellido.ilike.%${s}%`); }
+  if(U_F.q){ const s=U_F.q.replace(/[%,()]/g,' ').trim();
+    const ids=await adminFind(s); // coincidencias por correo, cédula o teléfono (función segura)
+    const base=`nombre.ilike.%${s}%,username.ilike.%${s}%,apellido.ilike.%${s}%`;
+    q=q.or(ids===null?`${base},email.ilike.%${s}%,cedula.ilike.%${s}%`:(ids.length?`${base},id.in.(${ids.join(',')})`:base)); }
   const{data,error,count}=await q; if(stale(tok)) return;
+  if(data&&data.length){ const pv=await privMap(data.map(u=>u.id)); if(stale(tok)) return; data.forEach(u=>Object.assign(u,pv[u.id]||{})); }
   const T=$('#ut'); $('#ucount').textContent=count!=null?n(count)+' cuentas':'';
   if(error){ T.innerHTML=empty('No se pudo cargar',error.message); return; }
   if(!data.length){ T.innerHTML=empty('Sin resultados'); $('#umore').innerHTML=''; return; }
@@ -738,7 +752,7 @@ async function openUser(id){
   closeModal();
   const ov=modal({wide:true,title:'Usuario',body:'<div class="skel" style="height:220px"></div>'});
   const [{data:u},L,A,B,R,F]=await Promise.all([
-    sb.from('users').select('*').eq('id',id).maybeSingle(),
+    sb.from('users').select(PUB_COLS).eq('id',id).maybeSingle().then(async r=>{ if(r.data){ const pv=await privMap([id]); Object.assign(r.data,pv[id]||{}); } return r; }),
     sb.from('listings').select('id,marca,modelo,year,estado,vendido,precio_usd,created_at').eq('user_id',id).order('created_at',{ascending:false}).limit(20),
     sb.from('auctions').select('id,marca,modelo,year,estado,current_bid,end_time').eq('user_id',id).order('created_at',{ascending:false}).limit(20),
     cnt('bids',q=>q.eq('user_id',id)),

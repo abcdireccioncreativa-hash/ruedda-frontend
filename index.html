@@ -16210,7 +16210,8 @@ async function renderSAUsuarios(query=''){
   if(!list) return;
   list.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">cargando...</div>';
   if(!_supa){list.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:var(--muted)">sin conexión</div>';return;}
-  const{data,error}=await _supa.from('users').select('id,nombre,username,email,role').order('created_at',{ascending:false}).limit(100);
+  const{data,error}=await _supa.from('users').select('id,nombre,username,role').order('created_at',{ascending:false}).limit(100);
+  if(data&&data.length){ const _pv=await _rdAdminPrivate(data.map(u=>u.id)); data.forEach(u=>{ u.email=(_pv[u.id]||{}).email||''; }); }
   if(error){list.innerHTML='<div style="text-align:center;padding:20px;font-size:13px;color:rgba(255,80,80,.7)">error: '+error.message+'</div>';return;}
   const q=(query||'').toLowerCase().trim();
   const filtered=(data||[]).filter(u=>!q||
@@ -16424,8 +16425,8 @@ async function openModReview(id){
   item.title=`${item.year||''} ${item.marca||''} ${item.modelo||''}`.trim();
   item.user='usuario';
   if(_supa && item.user_id){
-    const{data:uData}=await _supa.from('users').select('nombre,email').eq('id',item.user_id).maybeSingle();
-    if(uData) item.user=uData.nombre||uData.email||'usuario';
+    const{data:uData}=await _supa.from('users').select('nombre,username').eq('id',item.user_id).maybeSingle();
+    if(uData) item.user=uData.nombre||uData.username||'usuario';
   }
   item.km=item.km?item.km.toLocaleString()+' km':'—';
   item.ciudad=item.ciudad||'—';
@@ -17575,9 +17576,27 @@ async function _appleSignIn(){
 // se llama al volver de Google con sesión activa. Si ya tiene perfil completo
 // (username+cédula), entra directo como cualquier login normal. Si es la
 // primera vez (o el perfil quedó a medias), pide que lo complete.
+// ── [privacidad] correo, cédula y teléfono de users NO son legibles directo (ver SQL
+// 20260929000100_users_privacidad.sql). El perfil propio completo, la verificación de
+// cédula duplicada y los datos privados para superadmin pasan por funciones seguras.
+// Si esas funciones aún no existen en la base, se usa la lectura de antes (sin romper nada).
+async function _rdMyProfile(uid){
+  try{ const r=await _supa.rpc('get_my_profile'); if(!r.error){ const row=Array.isArray(r.data)?r.data[0]:r.data; if(row&&row.id===uid) return {data:row,error:null}; } }catch(e){}
+  return await _supa.from('users').select('*').eq('id',uid).maybeSingle();
+}
+async function _rdCedulaTaken(cedula,tipo,excluir){
+  try{ const r=await _supa.rpc('cedula_en_uso',{p_cedula:String(cedula),p_tipo:tipo||null,p_excluir:excluir||null}); if(!r.error) return !!r.data; }catch(e){}
+  let q=_supa.from('users').select('id').eq('cedula',cedula).eq('cedula_tipo',tipo); if(excluir) q=q.neq('id',excluir);
+  const{data}=await q.limit(1); return !!(data&&data.length);
+}
+async function _rdAdminPrivate(ids){
+  ids=[...new Set((ids||[]).filter(Boolean))]; const m={}; if(!ids.length) return m;
+  try{ const r=await _supa.rpc('admin_users_private',{p_ids:ids}); if(!r.error){ (r.data||[]).forEach(x=>m[x.id]=x); return m; } }catch(e){}
+  const{data}=await _supa.from('users').select('id,email,cedula,cedula_tipo,telefono,celular').in('id',ids); (data||[]).forEach(x=>m[x.id]=x); return m;
+}
 async function _handleGoogleSignIn(user){
   try{
-    const{data:profile}=await _supa.from('users').select('*').eq('id',user.id).maybeSingle();
+    const{data:profile}=await _rdMyProfile(user.id);
     if(profile&&profile.username&&profile.cedula){
       closeAuthSheet();
       _rueddaApplySession(profile);
@@ -17649,7 +17668,7 @@ async function _submitGoogleProfile(userId,email){
     if(_existingUser){ showToast('ese nombre de usuario ya existe — elige otro'); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
   }catch(e){ console.warn('[ruedda] check username google',e?.message||e); }
   try{
-    const{data:_existingCedula}=await _supa.from('users').select('id').eq('cedula',cedula).eq('cedula_tipo',cedTipo).neq('id',userId).maybeSingle();
+    const _existingCedula=await _rdCedulaTaken(cedula,cedTipo,userId);
     if(_existingCedula){ showToast('ya existe una cuenta registrada con esta cédula'); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
   }catch(e){ console.warn('[ruedda] check cedula google',e?.message||e); }
   try{
@@ -17658,7 +17677,7 @@ async function _submitGoogleProfile(userId,email){
     const m=document.getElementById('google-complete-sheet');
     if(m){ const i=document.getElementById('gcp-inner'); if(i){i.style.transform='scale(.94)';i.style.opacity='0';} m.style.opacity='0'; setTimeout(()=>m.remove(),320); }
     await _rdWelcomeNotif(userId);
-    const{data:profile}=await _supa.from('users').select('*').eq('id',userId).single();
+    const{data:profile}=await _rdMyProfile(userId);
     _rueddaApplySession(profile||{id:userId,nombre,username,role:'particular'});
     _showLoginSplash(nombre);
     if(isDesktop()) setTimeout(()=>enterApp(),1200);
@@ -17740,7 +17759,7 @@ async function _rueddaLogin(identifier,pass){
   try{ sessionStorage.removeItem('rd_oauth_pending'); }catch(e){}
   const{data,error}=await _supa.auth.signInWithPassword({email,password:pass});
   if(error) throw new Error(error.message==='Invalid login credentials'?'correo o contraseña incorrectos':error.message);
-  const{data:profile,error:pe}=await _supa.from('users').select('*').eq('id',data.user.id).single();
+  const{data:profile,error:pe}=await _rdMyProfile(data.user.id);
   if(pe||!profile) throw new Error('perfil no encontrado');
   // si es concesionario, cargar su perfil de vitrina
   if(profile.role==='concesionario'||profile.role==='consesionario'){
@@ -17806,7 +17825,7 @@ async function _rueddaRegister(email,pass){
   // chequeo en sí falla por red (fail-open ante error de red, fail-closed ante
   // duplicado real encontrado).
   try{
-    const{data:_existingCedula}=await _supa.from('users').select('id').eq('cedula',cedula).eq('cedula_tipo',cedTipo).maybeSingle();
+    const _existingCedula=await _rdCedulaTaken(cedula,cedTipo,null);
     if(_existingCedula) throw new Error('ya existe una cuenta registrada con esta cédula');
   }catch(_cedErr){
     if(_cedErr.message==='ya existe una cuenta registrada con esta cédula') throw _cedErr;
@@ -17849,7 +17868,7 @@ async function _rueddaRegister(email,pass){
     },4000);
   }
   await _rdWelcomeNotif(data.user.id);
-  const{data:profile}=await _supa.from('users').select('*').eq('id',data.user.id).single();
+  const{data:profile}=await _rdMyProfile(data.user.id);
   // [FIX V119] red de seguridad: si por lo que sea la lectura vuelve incompleta, no perder lo
   // que el usuario ya escribió en el formulario.
   const _safeProfile=profile?{...profile,nombre:profile.nombre||nombre,username:profile.username||username}:{role,nombre,email,username};
@@ -18665,7 +18684,7 @@ window._rueddaBootPromise = (async function _rueddaInit(){
   const _authBoot=(async()=>{
     const{data:{session}}=await _supa.auth.getSession();
     if(session?.user){
-      const{data:profile}=await _supa.from('users').select('*').eq('id',session.user.id).single();
+      const{data:profile}=await _rdMyProfile(session.user.id);
       if(profile){
         if(profile.role==='concesionario'||profile.role==='consesionario'){
           const{data:dealer}=await _supa.from('concesionarios').select('id,activo,plan_expiry').eq('user_id',session.user.id).maybeSingle();
