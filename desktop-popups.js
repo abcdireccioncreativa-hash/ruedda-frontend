@@ -45,7 +45,7 @@
   '.rdp-x:hover{background:#f1f1f1}'+
   '.rdp-x svg{width:16px;height:16px}'+
   '.rdp-tag{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6a6a6a;margin-bottom:14px}'+
-  '.rdp-tag i{width:8px;height:8px;background:#e6f03b;outline:1.5px solid #0b0b0b;display:block}'+
+  '.rdp-tag svg{width:12px;height:13px;display:block;flex-shrink:0}'+
   '.rdp-title{font-size:20px;line-height:1.22;font-weight:800;letter-spacing:-.02em;margin:0 26px 10px 0}'+
   '.rdp-body{font-size:14.5px;line-height:1.55;color:#2b2b2b;margin:0 0 18px}'+
   '.rdp-list{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:11px}'+
@@ -112,7 +112,7 @@
     var c=COPY.signup;
     var el=mount(
       '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
-      '<div class="rdp-tag"><i></i>'+esc(c.tag)+'</div>'+
+      '<div class="rdp-tag"><svg viewBox="0 25 350 375" fill="#0b0b0b" aria-hidden="true"><rect x="110" y="25" width="120" height="90"/><rect x="0" y="115" width="110" height="100"/><rect x="230" y="115" width="120" height="100"/><rect x="110" y="215" width="120" height="90"/><rect x="230" y="300" width="120" height="100"/></svg>'+esc(c.tag)+'</div>'+
       '<div class="rdp-title">'+esc(c.title)+'</div>'+
       '<p class="rdp-body">'+esc(c.body)+'</p>'+
       '<ul class="rdp-list">'+c.bullets.map(function(b){ return '<li>'+esc(b)+'</li>'; }).join('')+'</ul>'+
