@@ -33,7 +33,7 @@
       ],
       cta:'Crear mi cuenta',
       later:'Explorar primero',
-      tourBtn:'Beneficios'
+      tourBtn:'beneficios'
     },
     // mini tour de beneficios (solo lo que YA existe en Ruedda)
     tour:[
@@ -111,9 +111,8 @@
   '.rdp-arr button:hover{background:#f4f4f4;border-color:#cfcfcf}'+
   '.rdp-arr button[disabled]{opacity:.3;cursor:default;background:#fff}'+
   '.rdp-arr svg{width:16px;height:16px}'+
-  '.rdp-tb{display:inline-flex;align-items:center;gap:6px}'+
-  '.rdp-tb svg{width:14px;height:14px;transition:transform .2s}'+
-  '.rdp-tb:hover svg{transform:translateX(3px)}'+
+  '.rdp-tb{border:0;background:none;padding:0;margin-left:6px;font:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;color:inherit;text-transform:none;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer;transition:color .15s}'+
+  '.rdp-tb:hover{color:#0b0b0b}'+
   '.rdp.tour [data-a="tour"]{display:none}'+
   '@media (prefers-reduced-motion:reduce){.rdp{transition-duration:.01s}.rdp-iso img{animation:none}.rdp-slide{transition:none}}';
 
@@ -184,12 +183,12 @@
     }
     var el=mount(
       '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
-      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">'+esc(c.tag)+'</span></div>'+
+      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">'+esc(c.tag)+'</span><button class="rdp-tb" data-a="tour">'+esc(c.tourBtn)+'</button></div>'+
       '<div class="rdp-slide" aria-live="polite">'+slideHtml(slides[0])+'</div>'+
       '<div class="rdp-nav"><div class="rdp-dots">'+slides.map(function(_,k){ return '<i'+(k===0?' class="on"':'')+'></i>'; }).join('')+'</div>'+
         '<div class="rdp-arr"><button data-a="prev" aria-label="anterior">'+CH_L+'</button><button data-a="next" aria-label="siguiente">'+CH_R+'</button></div></div>'+
       '<button class="rdp-btn" data-a="cta">'+esc(c.cta)+'</button>'+
-      '<div class="rdp-row"><button class="rdp-link rdp-tb" data-a="tour">'+esc(c.tourBtn)+CH_R+'</button><button class="rdp-link soft" data-a="later">'+esc(c.later)+'</button></div>',
+      '<div class="rdp-row"><button class="rdp-link soft" data-a="later">'+esc(c.later)+'</button></div>',
       'crear cuenta');
     // isotipo real del splash de inicio (misma imagen), ondeando en franjas como el splash.
     // Solo CSS (transform en el compositor): cero JavaScript por frame.
