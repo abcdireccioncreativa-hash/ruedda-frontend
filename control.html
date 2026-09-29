@@ -396,7 +396,7 @@ const VIEWS=[
   {id:'subastas',t:'Subastas',i:'gavel',s:'En vivo, programadas y finalizadas'},
   {id:'ofertas',t:'Ofertas',i:'offer',s:'Ofertas de compra y de cambio'},
   {h:'Comercial'},
-  {id:'solicitudes',t:'Solicitudes',i:'msg',s:'Leads: buscan carro, partners y publicar por ellos'},
+  {id:'solicitudes',t:'Solicitudes',i:'msg',s:'Vitrinas de concesionarios, buscan carro y publicar por ellos',b:'sol'},
   {id:'documentos',t:'Documentos',i:'kyc',s:'Papeles para el sello "auditado por Ruedda"'},
   {id:'patrocinantes',t:'Patrocinantes',i:'offer',s:'Marcas y aliados por sección'},
   {id:'fotografos',t:'Fotógrafos',i:'user',s:'Directorio de fotógrafos'},
@@ -451,17 +451,18 @@ function startLive(){
 function refresh(manual){ lastUpd=Date.now(); refreshBadges(); if(CUR) RENDER[CUR](VIEW_TOKEN,[],true); if(manual) toast('actualizado'); }
 let BADGES={};
 async function refreshBadges(){
-  const [mod1,mod2,kyc,pay,acc,rep]=await Promise.all([
+  const [mod1,mod2,kyc,pay,acc,rep,sol]=await Promise.all([
     cnt('listings',q=>q.in('estado',['revision','pendiente_pago'])),
     cnt('auctions',q=>q.in('estado',['revision','pendiente_pago'])),
     cnt('kyc_submissions',q=>q.eq('estado','pendiente')),
     cnt('payment_refs',q=>q.eq('status','pendiente')),
     cnt('auction_access_requests',q=>q.eq('estado','pendiente')),
-    window._repMissing?Promise.resolve({error:true}):cnt('user_reports',q=>q.eq('estado','pendiente'))
+    window._repMissing?Promise.resolve({error:true}):cnt('user_reports',q=>q.eq('estado','pendiente')),
+    cnt('partner_leads',q=>q.eq('estado','pendiente'))
   ]);
   if(rep&&rep.error) window._repMissing=true; // tabla aún no creada: no se vuelve a consultar hasta recargar
   const v=x=>typeof x==='number'?x:0;
-  BADGES={mod:v(mod1)+v(mod2),kyc:v(kyc),pay:v(pay),acc:v(acc),rep:v(rep),repMissing:!!(rep&&rep.error)};
+  BADGES={mod:v(mod1)+v(mod2),kyc:v(kyc),pay:v(pay),acc:v(acc),rep:v(rep),sol:v(sol),repMissing:!!(rep&&rep.error)};
   document.querySelectorAll('[data-b]').forEach(b=>{ const k=b.dataset.b; b.textContent=BADGES[k]; b.classList.toggle('zero',!BADGES[k]); });
   return BADGES;
 }
@@ -522,7 +523,7 @@ RENDER.control=async(tok,_,soft)=>{
   const sB=series(bidTs,14); $('#c3s').textContent=`${n(bidRows.length)} pujas`; $('#c3').innerHTML=barChart(sB,14);
   const B=badges;
   const Q=(href,i,t,s,v)=>`<a href="#/${href}"><div class="qi">${ico(i)}</div><div><div style="font-weight:600">${t}</div><small>${s}</small></div><div class="qn num ${v?'hot':''}">${v}</div></a>`;
-  $('#q').innerHTML=Q('moderacion','mod','Moderación','publicaciones por revisar',B.mod)+Q('kyc','kyc','Verificación KYC','identidades',B.kyc)+Q('pagos','pay','Pagos','referencias sin confirmar',B.pay)+Q('accesos','key','Accesos a subastas','con comprobante',B.acc)+Q('reportes','flag','Reportes',B.repMissing?'falta activar (SQL)':'usuarios reportados',B.repMissing?'—':B.rep);
+  $('#q').innerHTML=Q('moderacion','mod','Moderación','publicaciones por revisar',B.mod)+Q('kyc','kyc','Verificación KYC','identidades',B.kyc)+Q('pagos','pay','Pagos','referencias sin confirmar',B.pay)+Q('accesos','key','Accesos a subastas','con comprobante',B.acc)+Q('reportes','flag','Reportes',B.repMissing?'falta activar (SQL)':'usuarios reportados',B.repMissing?'—':B.rep)+Q('solicitudes','car','Solicitudes de vitrina','concesionarios interesados',B.sol);
   $('#live').innerHTML=live.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vehículo</th><th class="r">Oferta actual</th><th class="r">Pujas</th><th class="r">Termina</th></tr></thead><tbody>${live.slice(0,6).map(a=>{
     const ph=(a.auction_photos||[]).sort((x,y)=>x.orden-y.orden)[0]?.url;
     const reserve=!a.sin_reserva&&a.precio_reserva>0?(a.current_bid>=a.precio_reserva?'<span class="pill g">reserva alcanzada</span>':'<span class="pill o">bajo reserva</span>'):'<span class="pill">sin reserva</span>';
@@ -1061,8 +1062,8 @@ async function cdSave(btn){
 }
 
 /* ── SOLICITUDES ── */
-let SOL_K='car';
-const SOL={car:{t:'car_requests',l:'Buscan un carro',tel:'celular',done:'atendida'},partner:{t:'partner_leads',l:'Quieren ser partner',tel:'telefono',done:'contactado'},publicar:{t:'publish_for_me_leads',l:'Publicar por ellos',tel:'whatsapp',done:'atendida'}};
+let SOL_K='partner';
+const SOL={partner:{t:'partner_leads',l:'Vitrinas',tel:'telefono',done:'contactado'},car:{t:'car_requests',l:'Buscan un carro',tel:'celular',done:'atendida'},publicar:{t:'publish_for_me_leads',l:'Publicar por ellos',tel:'whatsapp',done:'atendida'}};
 RENDER.solicitudes=async(tok)=>{
   const V=$('#view'); V.innerHTML=`<div class="toolbar"><div class="seg" id="solseg">${Object.entries(SOL).map(([k,v])=>`<button data-k="${k}" class="${k===SOL_K?'on':''}">${v.l}</button>`).join('')}</div></div><div class="card" id="solt"></div>`;
   $('#solseg').onclick=e=>{const b=e.target.closest('button'); if(!b) return; SOL_K=b.dataset.k; RENDER.solicitudes(++VIEW_TOKEN);};
@@ -1071,8 +1072,9 @@ RENDER.solicitudes=async(tok)=>{
   const wa=t=>'https://wa.me/'+String(t||'').replace(/[^0-9]/g,'').replace(/^0/,'58');
   T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Solicitud</th><th>Detalle</th><th>Contacto</th><th>Estado</th><th>Fecha</th><th class="r">Acciones</th></tr></thead><tbody>${data.map(r=>{
     const tel=r[S.tel]; const title=SOL_K==='car'?[r.anio,r.marca,r.modelo].filter(Boolean).join(' ')||'sin especificar':SOL_K==='partner'?(r.marca_nombre||'—'):[r.tipo,r.anio,r.marca,r.modelo].filter(Boolean).join(' ')||'sin datos';
-    const sub=SOL_K==='car'?(r.especificaciones||''):SOL_K==='partner'?[r.representante,r.motivo].filter(Boolean).join(' · '):'pidió que publiquemos por él/ella';
-    return `<tr><td style="font-weight:600">${esc(title)}</td><td class="muted" style="max-width:320px">${esc(sub)}</td><td class="num">${tel?`<a href="${wa(tel)}" target="_blank" rel="noopener">${esc(tel)}</a>`:'—'}</td><td>${r.estado==='pendiente'?'<span class="pill o">pendiente</span>':`<span class="pill g">${esc(r.estado)}</span>`}</td><td class="muted">${ago(r.created_at)}</td><td class="r" style="white-space:nowrap">${tel?`<a class="btn btn-green" style="height:30px" href="${wa(tel)}" target="_blank" rel="noopener">WhatsApp</a> `:''}${r.estado==='pendiente'?`<button class="btn btn-soft" style="height:30px" onclick="rowSet('${S.t}','${r.id}',{estado:'${S.done}'},'solicitudes')">Marcar atendida</button> `:''}${delBtn(`delRow('${S.t}','${r.id}','solicitudes')`)}</td></tr>`;}).join('')}</tbody></table></div>`;
+    const fund=SOL_K==='partner'&&/fundador/i.test(r.motivo||''); const ciudad=SOL_K==='partner'?((r.motivo||'').split(' · ').slice(2).join(' · ')):'';
+    const sub=SOL_K==='car'?(r.especificaciones||''):SOL_K==='partner'?[r.representante?('Representante: '+r.representante):'',ciudad].filter(Boolean).join(' · ')+(fund?'':(r.motivo?' · '+r.motivo:'')):'pidió que publiquemos por él/ella';
+    return `<tr><td style="font-weight:600">${esc(title)}${fund?' <span class="pill k" style="margin-left:4px">🏁 fundador</span>':''}</td><td class="muted" style="max-width:320px">${esc(sub)}</td><td class="num">${tel?`<a href="${wa(tel)}" target="_blank" rel="noopener">${esc(tel)}</a>`:'—'}</td><td>${r.estado==='pendiente'?'<span class="pill o">pendiente</span>':`<span class="pill g">${esc(r.estado)}</span>`}</td><td class="muted">${ago(r.created_at)}</td><td class="r" style="white-space:nowrap">${tel?`<a class="btn btn-green" style="height:30px" href="${wa(tel)}" target="_blank" rel="noopener">WhatsApp</a> `:''}${r.estado==='pendiente'?`<button class="btn btn-soft" style="height:30px" onclick="rowSet('${S.t}','${r.id}',{estado:'${S.done}'},'solicitudes')">Marcar atendida</button> `:''}${delBtn(`delRow('${S.t}','${r.id}','solicitudes')`)}</td></tr>`;}).join('')}</tbody></table></div>`;
 };
 
 /* ── DOCUMENTOS (sello auditado por Ruedda) ── */
