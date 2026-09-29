@@ -28,7 +28,7 @@ a{color:var(--blue);text-decoration:none}
 /* ── login ── */
 #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 .login-card{width:100%;max-width:380px;background:var(--panel);border-radius:20px;box-shadow:var(--sh);border:1px solid var(--line);padding:40px 32px 32px}
-.login-card img{height:30px;display:block;margin-bottom:28px}
+.login-card img{height:30px;width:auto;object-fit:contain;display:block;margin-bottom:28px}
 .login-card h1{font-size:24px;font-weight:600;letter-spacing:-.02em}
 .login-card p{color:var(--mute);margin:6px 0 24px;line-height:1.45}
 .field{display:block;margin-bottom:12px}
@@ -51,7 +51,7 @@ select.input{appearance:none;-webkit-appearance:none;background-image:url("data:
 /* ── shell ── */
 #app{display:grid;grid-template-columns:252px 1fr;min-height:100vh}
 aside{position:sticky;top:0;height:100vh;overflow-y:auto;background:rgba(251,251,253,.9);border-right:1px solid var(--line);padding:22px 14px 18px;display:flex;flex-direction:column}
-aside .logo{height:22px;margin:4px 10px 26px;display:block}
+aside .logo{height:22px;width:auto;align-self:flex-start;object-fit:contain;margin:4px 10px 26px;display:block}
 .nav-h{font-size:11px;font-weight:600;color:var(--mute2);text-transform:uppercase;letter-spacing:.06em;margin:18px 10px 6px}
 .nav a{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:8px;color:var(--ink2);font-size:13.5px;font-weight:500;transition:background .12s}
 .nav a:hover{background:var(--hover)}
