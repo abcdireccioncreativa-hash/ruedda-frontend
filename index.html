@@ -21783,6 +21783,10 @@ function _injectPmButton(sellerCardId,receiverId,receiverName,sourceId,sourceTyp
   btn.onmouseleave=()=>btn.style.opacity='.75';
   btn.onclick=e=>{
     e.stopPropagation();
+    // [fix "ver perfil abre de golpe"] hace EXACTAMENTE lo mismo que tocar la tarjeta del
+    // vendedor (que ya abre bien, con su animación): antes, para concesionarios, pasaba por
+    // _openVitrinaByUserId → espera de red + cambio a "concesionarios" y luego a la vitrina.
+    if(typeof card.onclick==='function'){ card.onclick(e); return; }
     if(isDealer){ if(typeof _openVitrinaByUserId==='function') _openVitrinaByUserId(receiverId); }
     else { if(typeof openUserProfile==='function') openUserProfile(receiverId); }
   };
