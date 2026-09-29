@@ -1,15 +1,14 @@
 /* ─────────────────────────────────────────────────────────────
    RUEDDA · POPUPS (módulo independiente)
    desktop.html: 1) cookies & privacidad → 2) crear cuenta, esquina inferior derecha.
-   index.html (data-mode="mobile"): solo crear cuenta, sube desde abajo.
-   Nunca en la app nativa. Crear cuenta sale siempre que no haya sesión.
+   index.html (data-mode="mobile", app y web móvil): solo crear cuenta, centrado.
+   Crear cuenta sale siempre que no haya sesión.
    Para apagarlos: RD_POPUPS = false.
    ───────────────────────────────────────────────────────────── */
 (function(){
   var RD_POPUPS = true;
   if(!RD_POPUPS) return;
   var MOBILE=((document.currentScript&&document.currentScript.getAttribute('data-mode'))==='mobile');
-  try{ if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) return; }catch(e){}
 
   var K_CONSENT='rd_cookie_consent_v1';   // fecha en que se cerró el aviso
   function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
@@ -46,7 +45,9 @@
   '.rdp-x:hover{background:#f1f1f1}'+
   '.rdp-x svg{width:16px;height:16px}'+
   '.rdp-tag{display:inline-flex;align-items:center;gap:9px;font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6a6a6a;margin-bottom:14px}'+
-  '.rdp-iso{width:19px;height:20px;display:block;flex-shrink:0;color:#0b0b0b}'+
+  '.rdp-iso{position:relative;width:20px;height:23px;display:block;flex-shrink:0}'+
+  '.rdp-iso img{position:absolute;inset:0;width:100%;height:100%;animation:rdpIsoWave .7s ease-in-out infinite alternate;will-change:transform}'+
+  '@keyframes rdpIsoWave{from{transform:translateY(-5%)}to{transform:translateY(5%)}}'+
   '.rdp-title{font-size:20px;line-height:1.22;font-weight:800;letter-spacing:-.02em;margin:0 26px 10px 0}'+
   '.rdp-body{font-size:14.5px;line-height:1.55;color:#2b2b2b;margin:0 0 18px}'+
   '.rdp-list{list-style:none;margin:0 0 22px;padding:0;display:flex;flex-direction:column;gap:11px}'+
@@ -61,12 +62,14 @@
   '.rdp-link.soft:hover{color:#0b0b0b}'+
   '.rdp-policy{display:block;text-align:center;margin-top:16px;font-size:12px;color:#8a8a8a;text-decoration:none}'+
   '.rdp-policy:hover{color:#0b0b0b;text-decoration:underline}'+
-  '.rdp.m{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));width:auto;max-width:none;padding:26px 22px 18px;border-radius:8px;transform:translateY(calc(100% + 32px));transition:opacity .45s ease,transform .6s cubic-bezier(.22,1,.36,1)}'+
-  '.rdp.m.in{transform:none}'+
-  '.rdp.m.out{transform:translateY(calc(100% + 32px));opacity:1;transition-duration:.35s}'+
+  '.rdp-bd{position:fixed;inset:0;z-index:259;background:rgba(0,0,0,.5);opacity:0;transition:opacity .4s ease}'+
+  '.rdp-bd.on{opacity:1}'+
+  '.rdp.m{left:50%;top:50%;right:auto;bottom:auto;width:min(400px,calc(100vw - 32px));max-height:calc(100vh - 40px);max-height:calc(100dvh - 40px);overflow:auto;padding:26px 22px 18px;transform:translate(-50%,-46%) scale(.97)}'+
+  '.rdp.m.in{transform:translate(-50%,-50%)}'+
+  '.rdp.m.out{transform:translate(-50%,-48%) scale(.98)}'+
   '.rdp.m .rdp-title{font-size:19px}'+
   '.rdp.m .rdp-list{margin-bottom:20px;gap:9px}'+
-  '@media (prefers-reduced-motion:reduce){.rdp{transition-duration:.01s}}';
+  '@media (prefers-reduced-motion:reduce){.rdp{transition-duration:.01s}.rdp-iso img{animation:none}}';
 
   function injectCss(){
     if(document.getElementById('rdp-css')) return;
@@ -80,13 +83,18 @@
     var el=document.createElement('div');
     el.className='rdp'+(MOBILE?' m':''); el.setAttribute('role','dialog'); el.setAttribute('aria-label',label);
     el.innerHTML=html;
+    if(MOBILE){
+      var bd=document.createElement('div'); bd.className='rdp-bd';
+      bd.addEventListener('click',function(){ var x=el.querySelector('.rdp-x'); if(x) x.click(); });
+      document.body.appendChild(bd); el._bd=bd;
+    }
     document.body.appendChild(el);
-    requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.classList.add('in'); }); });
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.classList.add('in'); if(el._bd) el._bd.classList.add('on'); }); });
     return el;
   }
   function unmount(el,cb){
     if(!el||el._gone) return; el._gone=true;
-    if(el._stopFlag) try{ el._stopFlag(); }catch(e){}
+    if(el._bd){ var bd=el._bd; bd.classList.remove('on'); setTimeout(function(){ if(bd.parentNode) bd.parentNode.removeChild(bd); },400); }
     el.classList.remove('in'); el.classList.add('out');
     setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); if(cb) cb(); },300);
   }
@@ -112,9 +120,13 @@
   // ── 2) crear cuenta (solo visitantes) ──────────────────────
   function guest(){ try{ return typeof isGuest==='function'&&isGuest(); }catch(e){ return false; } }
   function authOpen(){ var a=document.querySelector('.auth-sheet.open,#auth-sheet.open,#auth-modal.open'); return !!a; }
+  function vis(id){ var e=document.getElementById(id); return !!(e&&e.getClientRects().length&&getComputedStyle(e).display!=='none'); }
+  function busy(){ return authOpen()||vis('rd-intro')||vis('boot-splash')||vis('login-splash')||!!document.querySelector('.modal-overlay.open'); }
+  var waits=0;
   function showSignup(){
     // sale en cada carga mientras no haya sesión iniciada
-    if(!guest()||authOpen()) return;
+    if(!guest()) return;
+    if(busy()){ if(++waits<60) setTimeout(showSignup,2000); return; }
     var c=COPY.signup;
     var el=mount(
       '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
@@ -125,8 +137,16 @@
       '<button class="rdp-btn" data-a="cta">'+esc(c.cta)+'</button>'+
       '<div class="rdp-row"><button class="rdp-link soft" data-a="later">'+esc(c.later)+'</button></div>',
       'crear cuenta');
-    // isotipo real: la misma bandera ondeando de la intro (_rdWaveFlag, ~30fps, se detiene al cerrar)
-    try{ if(typeof _rdWaveFlag==='function') el._stopFlag=_rdWaveFlag(el.querySelector('.rdp-iso')); }catch(e){}
+    // isotipo real del splash de inicio (misma imagen), ondeando en franjas como el splash.
+    // Solo CSS (transform en el compositor): cero JavaScript por frame.
+    (function(box){
+      if(!box) return; var N=12,OV=2,P=1.4,h='';
+      for(var i=0;i<N;i++){
+        var u=(i+OV/2)/N, l=i/N*100, r=Math.max(0,(1-(i+OV)/N)*100);
+        h+='<img src="/assets/ruedda-iso-negro.png" alt="" style="clip-path:inset(-14% '+r+'% -14% '+l+'%);animation-delay:-'+(u*2.6/(2*Math.PI)*P).toFixed(3)+'s">';
+      }
+      box.innerHTML=h;
+    })(el.querySelector('.rdp-iso'));
     // si inicia sesión mientras está abierto, se retira solo
     var iv=setInterval(function(){ if(!guest()){ clearInterval(iv); unmount(el); } },1500);
     el.addEventListener('click',function(e){
