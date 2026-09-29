@@ -4766,15 +4766,6 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       </div>
       <div style="display:flex;gap:14px;align-items:flex-start">
         <div style="width:42px;height:42px;flex-shrink:0;border-radius:12px;background:rgba(8,68,26,.1);display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="1.7" style="width:20px;height:20px"><path d="M3 21h18"/><path d="M5 21V9l7-6 7 6v12"/><path d="M9 21v-6h6v6"/></svg>
-        </div>
-        <div>
-          <div style="font-size:15px;font-weight:700;letter-spacing:-.2px;color:#000">reconstrucción del país</div>
-          <div style="font-size:13px;color:rgba(0,0,0,.55);line-height:1.4;margin-top:2px">Parte de los ingresos de nuestros partners se destina a nuestro programa de apoyo tras los sismos. Además, ofrecemos la publicación de vehículos chocados de forma totalmente gratuita.</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:14px;align-items:flex-start">
-        <div style="width:42px;height:42px;flex-shrink:0;border-radius:12px;background:rgba(8,68,26,.1);display:flex;align-items:center;justify-content:center">
           <svg fill="none" viewBox="0 0 24 24" stroke="#000" stroke-width="1.7" style="width:20px;height:20px"><rect x="1" y="6" width="10" height="12" rx="3"/><path d="M11 10h10v4H11"/><path d="M14 10v2M17 10v2M20 10v2"/></svg>
         </div>
         <div>
@@ -10257,7 +10248,7 @@ function openVenderModal(){updateVenderModal();const m=document.getElementById('
 function closeVenderModal(){const m=document.getElementById('vender-modal');m.classList.remove('open');setTimeout(()=>{m.style.display='none';},420);}
 function closeVenderModalOutside(e){if(e.target.id==='vender-modal')closeVenderModal()}
 // [BLOQUE 2] PARTNERS
-function openPartnersModal(){const m=document.getElementById('partners-modal');m.style.display='flex';requestAnimationFrame(()=>m.classList.add('open'));}
+function openPartnersModal(){if(window.rdPartnersPopup&&window.rdPartnersPopup())return;const m=document.getElementById('partners-modal');m.style.display='flex';requestAnimationFrame(()=>m.classList.add('open'));}
 function closePartnersModal(){const m=document.getElementById('partners-modal');m.classList.remove('open');setTimeout(()=>{m.style.display='none';},420);}
 function closePartnersModalOutside(e){if(e.target.id==='partners-modal')closePartnersModal()}
 const PLANS = {

@@ -99,6 +99,22 @@
   '.rdp.m.out{transform:translate(-50%,-48%) scale(.98)}'+
   '.rdp.m .rdp-title{font-size:19px}'+
   '.rdp.m .rdp-list{margin-bottom:20px;gap:9px}'+
+  '.rdp.m.pt{width:min(460px,calc(100vw - 32px))}'+
+  '.rdp-feat{list-style:none;margin:4px 0 20px;padding:0;display:flex;flex-direction:column;gap:14px}'+
+  '.rdp-feat li{display:flex;gap:13px;align-items:flex-start}'+
+  '.rdp-feat .e{flex:0 0 34px;height:34px;border-radius:6px;background:#f4f4f5;display:flex;align-items:center;justify-content:center;font-size:17px;line-height:1}'+
+  '.rdp-feat b{display:block;font-size:14px;font-weight:700;letter-spacing:-.01em;color:#0b0b0b}'+
+  '.rdp-feat span{display:block;font-size:12.8px;line-height:1.45;color:#5c5c5c;margin-top:2px}'+
+  '.rdp-feat .soon{display:inline-block;margin-left:6px;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;background:#0b0b0b;color:#e6f03b;padding:2px 6px;border-radius:3px;vertical-align:1px}'+
+  '.rdp-founder{display:flex;gap:12px;align-items:center;background:#0b0b0b;color:#fff;border-radius:6px;padding:13px 14px;margin:0 0 18px}'+
+  '.rdp-founder .e{font-size:22px;line-height:1}'+
+  '.rdp-founder b{display:block;font-size:13.5px;font-weight:800;letter-spacing:-.01em}'+
+  '.rdp-founder span{display:block;font-size:12px;color:rgba(255,255,255,.72);margin-top:2px;line-height:1.4}'+
+  '.rdp-in{width:100%;height:46px;border:1px solid #e3e3e3;border-radius:6px;background:#fff;color:#0b0b0b;padding:0 14px;font:inherit;font-size:16px;outline:none;margin-bottom:10px;transition:border-color .15s}'+
+  '.rdp-in:focus{border-color:#0b0b0b}'+
+  '.rdp-lbl{display:block;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#6a6a6a;margin:4px 0 6px}'+
+  '.rdp-ok{display:flex;flex-direction:column;align-items:center;text-align:center;padding:10px 4px 6px}'+
+  '.rdp-ok .e{font-size:40px;line-height:1;margin-bottom:12px}'+
   '.rdp-slide{transition:opacity .22s ease,transform .22s cubic-bezier(.22,1,.36,1)}'+
   '.rdp-slide.go-l{opacity:0;transform:translateX(-14px)}'+
   '.rdp-slide.go-r{opacity:0;transform:translateX(14px)}'+
@@ -147,9 +163,9 @@
     injectCss();
     var el=document.createElement('div');
     opt=opt||{};
-    el.className='rdp'+(MOBILE?(opt.bottom?' b':' m'):''); el.setAttribute('role','dialog'); el.setAttribute('aria-label',label);
+    el.className='rdp'+(opt.bottom?(MOBILE?' b':''):((MOBILE||opt.center)?' m':''))+(opt.cls?' '+opt.cls:''); el.setAttribute('role','dialog'); el.setAttribute('aria-label',label);
     el.innerHTML=html;
-    if(MOBILE&&!opt.bottom){
+    if((MOBILE||opt.center)&&!opt.bottom){
       var bd=document.createElement('div'); bd.className='rdp-bd';
       bd.addEventListener('click',function(){ var x=el.querySelector('.rdp-x'); if(x) x.click(); });
       document.body.appendChild(bd); el._bd=bd;
@@ -282,6 +298,78 @@
         var b=e.target.closest('[data-a],.rdp-x'); if(!b) return;
         close();
         if(b.getAttribute('data-a')==='fav'){ try{ if(typeof showView==='function') showView('favoritos'); }catch(err){} }
+      });
+      return true;
+    }catch(e){ return false; }
+  };
+
+
+  // ── 4) Ruedda Partners · vitrina para concesionarios (se abre desde el botón "partners") ──
+  var PT={
+    tag:'ruedda partners',
+    title:'Tu concesionario, en la vitrina automotriz de Venezuela.',
+    body:'Un canal de ventas digital con compradores activos todos los días, herramientas de gestión y la marca Ruedda respaldando cada operación.',
+    founder:['🏁','Programa Fundadores · 10 cupos','Los primeros 10 concesionarios reciben 1 mes de prueba y un brand kit profesional.'],
+    feats:[
+      ['🪟','Vitrina propia','Tu marca, tu inventario y tus datos de contacto en un perfil verificado.'],
+      ['🎨','Brand kit de fundador','Portada, adaptación de tu logo, plantillas para redes y sello de fundador.'],
+      ['📈','Prioridad en búsquedas','Tus vehículos destacados frente a compradores con intención real.'],
+      ['🛡️','Sello de concesionario verificado','Confianza desde el primer vistazo, en cada publicación.'],
+      ['🌐','Pagos a proveedores en el exterior','Paga facturas internacionales desde la app. Exclusivo para concesionarios suscritos.',true],
+      ['🤝','Acompañamiento dedicado','Un equipo de Ruedda que te ayuda a publicar, vender y crecer.']
+    ]
+  };
+  function partnersIntro(){
+    return '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">'+esc(PT.tag)+'</span></div>'+
+      '<div class="rdp-title">'+esc(PT.title)+'</div>'+
+      '<p class="rdp-body">'+esc(PT.body)+'</p>'+
+      '<div class="rdp-founder"><div class="e">'+PT.founder[0]+'</div><div><b>'+esc(PT.founder[1])+'</b><span>'+esc(PT.founder[2])+'</span></div></div>'+
+      '<ul class="rdp-feat">'+PT.feats.map(function(f){ return '<li><div class="e">'+f[0]+'</div><div><b>'+esc(f[1])+(f[3]?'<i class="soon">pronto</i>':'')+'</b><span>'+esc(f[2])+'</span></div></li>'; }).join('')+'</ul>'+
+      '<button class="rdp-btn" data-a="form">Solicitar vitrina</button>'+
+      '<div class="rdp-row"><button class="rdp-link soft" data-a="later">Ahora no</button></div>';
+  }
+  function partnersForm(){
+    return '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">solicitar vitrina</span></div>'+
+      '<div class="rdp-title">Cuéntanos de tu concesionario.</div>'+
+      '<p class="rdp-body">Nuestro equipo te contacta por WhatsApp para activar tu vitrina.</p>'+
+      '<label class="rdp-lbl">Concesionario</label><input class="rdp-in" id="rdp-pt-n" autocomplete="organization" placeholder="Nombre comercial">'+
+      '<label class="rdp-lbl">Representante</label><input class="rdp-in" id="rdp-pt-r" autocomplete="name" placeholder="Nombre y apellido">'+
+      '<label class="rdp-lbl">WhatsApp</label><input class="rdp-in" id="rdp-pt-t" type="tel" inputmode="tel" autocomplete="tel" placeholder="0412 000 0000">'+
+      '<label class="rdp-lbl">Ciudad</label><input class="rdp-in" id="rdp-pt-c" autocomplete="address-level2" placeholder="Caracas" style="margin-bottom:18px">'+
+      '<button class="rdp-btn" data-a="send">Enviar solicitud</button>'+
+      '<div class="rdp-row"><button class="rdp-link soft" data-a="back">Volver</button></div>';
+  }
+  function partnersOk(nombre){
+    return '<div class="rdp-ok"><div class="e">✅</div><div class="rdp-title" style="margin:0 0 8px">Solicitud recibida.</div>'+
+      '<p class="rdp-body" style="margin:0 0 18px">Gracias, '+esc(nombre)+'. Nuestro equipo te contactará por WhatsApp para activar tu vitrina.</p></div>'+
+      '<button class="rdp-btn" data-a="later">Listo</button>';
+  }
+  var ptEl=null;
+  window.rdPartnersPopup=function(){
+    try{
+      if(ptEl){ unmount(ptEl); ptEl=null; }
+      var el=mount('<button class="rdp-x" aria-label="cerrar">'+X+'</button><div class="rdp-slide" id="rdp-pt">'+partnersIntro()+'</div>','ruedda partners',{center:true,cls:'pt'});
+      ptEl=el;
+      var box=el.querySelector('#rdp-pt');
+      function paint(html){ box.style.minHeight=''; box.classList.add('go-l'); setTimeout(function(){ box.innerHTML=html; isoFill(box.querySelector('.rdp-iso')); box.classList.remove('go-l'); box.classList.add('go-r'); void box.offsetWidth; box.classList.remove('go-r'); el.scrollTop=0; },200); }
+      isoFill(box.querySelector('.rdp-iso'));
+      el.addEventListener('click',async function(e){
+        var b=e.target.closest('[data-a],.rdp-x'); if(!b) return;
+        var a=b.getAttribute('data-a');
+        if(a==='form') return paint(partnersForm());
+        if(a==='back') return paint(partnersIntro());
+        if(a==='send'){
+          var v=function(id){ var i=el.querySelector('#'+id); return i?i.value.trim():''; };
+          var n=v('rdp-pt-n'), r=v('rdp-pt-r'), t=v('rdp-pt-t'), c=v('rdp-pt-c');
+          if(!n||!r||!t){ var f=el.querySelector(!n?'#rdp-pt-n':!r?'#rdp-pt-r':'#rdp-pt-t'); if(f){ f.style.borderColor='#d70015'; f.focus(); } return; }
+          if(typeof _supa==='undefined'||!_supa) return;
+          b.disabled=true; b.textContent='Enviando…';
+          var uid=null; try{ if(typeof USER_STATE!=='undefined'&&USER_STATE.id&&!(typeof isGuest==='function'&&isGuest())) uid=USER_STATE.id; }catch(err){}
+          var res=await _supa.from('partner_leads').insert({user_id:uid,marca_nombre:n,representante:r,telefono:t,motivo:'Solicitud de vitrina · Programa Fundadores'+(c?' · '+c:'')});
+          if(res.error){ b.disabled=false; b.textContent='Enviar solicitud'; try{ showToast('no se pudo enviar, intenta de nuevo'); }catch(err){} return; }
+          return paint(partnersOk(r.split(' ')[0]));
+        }
+        unmount(el); if(ptEl===el) ptEl=null;
       });
       return true;
     }catch(e){ return false; }
