@@ -23,7 +23,7 @@
       policy:'Política de privacidad'
     },
     signup:{
-      tag:'gratis',
+      tag:'',
       title:'Expande tu futuro financiero con activos automotrices.',
       body:'Tu carro es un activo. Conoce su valor real, síguelo en el mercado y conviértelo en liquidez cuando tú decidas.',
       bullets:[
@@ -111,7 +111,8 @@
   '.rdp-arr button:hover{background:#f4f4f4;border-color:#cfcfcf}'+
   '.rdp-arr button[disabled]{opacity:.3;cursor:default;background:#fff}'+
   '.rdp-arr svg{width:16px;height:16px}'+
-  '.rdp-tb{border:0;background:none;padding:0;margin-left:6px;font:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;color:inherit;text-transform:none;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer;transition:color .15s}'+
+  '.rdp-tagt:empty{display:none}'+
+  '.rdp-tb{border:0;background:none;padding:0;margin-left:4px;font:inherit;font-size:inherit;font-weight:inherit;letter-spacing:inherit;color:inherit;text-transform:none;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer;transition:color .15s}'+
   '.rdp-tb:hover{color:#0b0b0b}'+
   '.rdp.tour [data-a="tour"]{display:none}'+
   '@media (prefers-reduced-motion:reduce){.rdp{transition-duration:.01s}.rdp-iso img{animation:none}.rdp-slide{transition:none}}';
