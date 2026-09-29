@@ -1,6 +1,6 @@
 /* ─────────────────────────────────────────────────────────────
    RUEDDA · POPUPS DESKTOP (módulo independiente, solo desktop.html)
-   1) cookies & privacidad  →  2) crear cuenta (solo visitantes)
+   1) cookies & privacidad  →  2) crear cuenta (siempre, si no hay sesión)
    Aparecen uno tras otro en la esquina inferior derecha.
    Para apagarlos: RD_POPUPS = false.
    ───────────────────────────────────────────────────────────── */
@@ -9,8 +9,6 @@
   if(!RD_POPUPS) return;
 
   var K_CONSENT='rd_cookie_consent_v1';   // fecha en que se cerró el aviso
-  var K_SIGNUP='rd_signup_popup_until';   // no volver a mostrar hasta esta fecha (ms)
-  var SIGNUP_SNOOZE=7*24*3600*1000;
   function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
   function set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
 
@@ -106,9 +104,8 @@
   function guest(){ try{ return typeof isGuest==='function'&&isGuest(); }catch(e){ return false; } }
   function authOpen(){ var a=document.querySelector('.auth-sheet.open,#auth-sheet.open,#auth-modal.open'); return !!a; }
   function showSignup(){
-    var until=+get(K_SIGNUP)||0;
-    if(Date.now()<until||!guest()||authOpen()) return;
-    try{ if(sessionStorage.getItem('rd_signup_seen')) return; sessionStorage.setItem('rd_signup_seen','1'); }catch(e){}
+    // sale en cada carga mientras no haya sesión iniciada
+    if(!guest()||authOpen()) return;
     var c=COPY.signup;
     var el=mount(
       '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
@@ -124,7 +121,6 @@
     el.addEventListener('click',function(e){
       var b=e.target.closest('[data-a],.rdp-x'); if(!b) return;
       clearInterval(iv);
-      set(K_SIGNUP,String(Date.now()+SIGNUP_SNOOZE));
       if(b.getAttribute('data-a')==='cta'){
         unmount(el);
         try{ if(typeof showLandingAuth==='function') showLandingAuth('register'); }catch(err){}
@@ -138,7 +134,7 @@
     function go(){
       if(fired) return; fired=true;
       if(!get(K_CONSENT)) setTimeout(function(){ showCookies(function(){ setTimeout(showSignup,2200); }); },1200);
-      else setTimeout(showSignup,9000);
+      else setTimeout(showSignup,6000);
     }
     try{ if(window._rdSplashDone&&window._rdSplashDone.then) window._rdSplashDone.then(go,go); else go(); }catch(e){ go(); }
     setTimeout(go,5000);
