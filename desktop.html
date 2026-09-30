@@ -2149,6 +2149,13 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       } else {
       // el splash avisa por postMessage al terminar su animación (3,2 s); se
       // guarda como promesa para que la orquestación de abajo la espere.
+      // [perf desktop] la bandera saluda en la primera visita de la sesión; recargas y
+      // vueltas dentro de la misma sesión entran directo (con el fundido de siempre).
+      var _rdSplashSeen=false;
+      try{ _rdSplashSeen=sessionStorage.getItem('rd_splash_s')==='1'; sessionStorage.setItem('rd_splash_s','1'); }catch(e){}
+      if(_rdSplashSeen){
+        window._rdSplashDone = Promise.resolve();
+      } else {
       window._rdSplashDone = new Promise(function(res){
         window.addEventListener('message', function onMsg(e){
           if(e && e.data && e.data.type === 'ruedda:splash-done'){
@@ -2158,6 +2165,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       });
       document.getElementById('boot-splash-frame').src =
         light ? '/splash/ruedda-splash-blanco.html?v=3f895ef7' : '/splash/ruedda-splash.html?v=c6ed582e';
+      }
       }
       try{
         if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()){
@@ -7950,11 +7958,13 @@ let _landingPortadaLoaded=false;
 async function renderLandingPortada(retriesLeft){
   try{ if(_landingPortadaLoaded||!_supa) return; }catch(e){ return; }
   if(retriesLeft===undefined) retriesLeft=2;
+  // [perf] la última portada conocida se pinta YA (sale de caché); la consulta solo la cambia si es otra
+  try{ const _c=localStorage.getItem('rd_landing_portada'); if(_c) _landingPortadaSetPhoto(_c); }catch(e){}
   try{
     const{data,error}=await _supa.from('app_settings').select('value').eq('key','landing_portada_url').maybeSingle();
     if(error) throw error;
     _landingPortadaLoaded=true;
-    if(data?.value) _landingPortadaSetPhoto(data.value);
+    if(data?.value){ try{ localStorage.setItem('rd_landing_portada',data.value); }catch(e){} _landingPortadaSetPhoto(data.value); }
   }catch(e){
     console.warn('[ruedda] renderLandingPortada',e?.message||e);
     if(retriesLeft>0) setTimeout(()=>renderLandingPortada(retriesLeft-1),1500);
@@ -7982,6 +7992,8 @@ function _landingPortadaSetPhoto(url){
     heroRight.insertBefore(img,heroRight.firstChild);
   }
   img.onload=()=>{
+    // desde caché aparece sin fundido (igual que el resto de fotos: _rdShow)
+    try{ const _e=performance.getEntriesByName(img.currentSrc||img.src), _l=_e&&_e[_e.length-1]; if(!_l||_l.duration<80) img.style.transition='none'; }catch(e){}
     requestAnimationFrame(()=>{ img.style.opacity='1'; });
     // El SVG se esconde con visibility (no display:none) para que
     // .landing-visual conserve su tamaño y el badge flotante ("subasta
@@ -8039,6 +8051,8 @@ function _encuentraSetPhoto(slot,url){
   img.decoding='async';
   img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;opacity:0;transition:opacity .45s ease;z-index:0;pointer-events:none';
   img.onload=()=>{
+    // desde caché aparece sin fundido (igual que el resto de fotos: _rdShow)
+    try{ const _e=performance.getEntriesByName(img.currentSrc||img.src), _l=_e&&_e[_e.length-1]; if(!_l||_l.duration<80) img.style.transition='none'; }catch(e){}
     requestAnimationFrame(()=>{ img.style.opacity='1'; });
     if(placeholder){ placeholder.style.opacity='0'; setTimeout(()=>{placeholder.style.display='none';},400); }
     if(_prev) setTimeout(()=>{ _prev.remove(); },500);
@@ -13431,6 +13445,8 @@ function _consSetBannerPhoto(url){
   img.decoding='async';
   img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;opacity:0;transition:opacity .45s ease;z-index:0;pointer-events:none';
   img.onload=()=>{
+    // desde caché aparece sin fundido (igual que el resto de fotos: _rdShow)
+    try{ const _e=performance.getEntriesByName(img.currentSrc||img.src), _l=_e&&_e[_e.length-1]; if(!_l||_l.duration<80) img.style.transition='none'; }catch(e){}
     requestAnimationFrame(()=>{ img.style.opacity='1'; });
     if(placeholder){ placeholder.style.opacity='0'; setTimeout(()=>{placeholder.style.display='none';},400); }
     if(_prev) setTimeout(()=>{ _prev.remove(); },500);
@@ -13464,6 +13480,8 @@ function _consSetPhotoInto(cardId,placeholderId,url){
   img.alt=''; img.decoding='async';
   img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:inherit;opacity:0;transition:opacity .45s ease;z-index:0;pointer-events:none';
   img.onload=()=>{
+    // desde caché aparece sin fundido (igual que el resto de fotos: _rdShow)
+    try{ const _e=performance.getEntriesByName(img.currentSrc||img.src), _l=_e&&_e[_e.length-1]; if(!_l||_l.duration<80) img.style.transition='none'; }catch(e){}
     requestAnimationFrame(()=>{ img.style.opacity='1'; });
     if(placeholder){ placeholder.style.opacity='0'; setTimeout(()=>{placeholder.style.display='none';},400); }
     if(_prev) setTimeout(()=>{ _prev.remove(); },500);
