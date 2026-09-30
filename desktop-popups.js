@@ -133,6 +133,10 @@
   '.rdp.b.out{transform:translateY(20px)}'+
   '.rdp.b .rdp-iso img{animation:none}'+
   '.rdp.b .rdp-title{font-size:19px}'+
+  '.rdp-insp .rdp-title{font-size:17px;line-height:1.28;margin-bottom:8px}.rdp.m.rdp-insp .rdp-title{font-size:17px}'+
+  '.rdp-insp .rdp-body{font-size:13.5px;line-height:1.5;color:#555;margin-bottom:16px}'+
+  '.rdp-insp .rdp-il{gap:10px;margin-bottom:18px}.rdp-insp .rdp-il li{font-size:13px;line-height:1.42;align-items:flex-start}.rdp-insp .rdp-il i{flex-basis:28px;height:28px}'+
+  '.rdp-insp .rdp-btn{height:46px}'+
   '.rdp-sub{font-size:12.5px;line-height:1.5;color:#6a6a6a;margin:-8px 0 18px;padding-top:12px;border-top:1px solid #efefef}'+
   '@media (prefers-reduced-motion:reduce){.rdp{transition-duration:.01s}.rdp-iso img{animation:none}.rdp-slide{transition:none}}';
 
@@ -491,11 +495,10 @@
         '<div class="rdp-title">'+esc(s.title)+'</div>'+
         '<p class="rdp-body">'+esc(s.body)+'</p>'+
         '<ul class="rdp-il">'+s.items.map(function(it){ return '<li>'+ic(it[0])+'<span>'+esc(it[1])+'</span></li>'; }).join('')+'</ul>'+
-        (logged?'':'<label class="rdp-lbl" for="rdp-insp-mail">tu correo</label><input class="rdp-in" id="rdp-insp-mail" type="email" inputmode="email" autocomplete="email" placeholder="correo electrónico">')+
         '<button class="rdp-btn" data-a="go">'+esc(s.cta)+'</button>'+
         '<div class="rdp-row"><button class="rdp-link soft" data-a="later">'+esc(s.later)+'</button></div>'+
       '</div>',
-      'peritaje',{center:true});
+      'peritaje',{center:true,cls:'rdp-insp'});
     isoFill(el.querySelector('.rdp-iso'));
     function onKey(e){ if(e.key==='Escape'){ var x=el.querySelector('.rdp-x'); if(x) x.click(); } }
     document.addEventListener('keydown',onKey);
@@ -504,10 +507,6 @@
       var a=b.getAttribute('data-a');
       if(a==='go'){
         var mail='';
-        if(!logged){
-          var inp=el.querySelector('#rdp-insp-mail'); mail=(inp&&inp.value||'').trim();
-          if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)){ if(inp){ inp.focus(); inp.style.borderColor='#e5484d'; } return; }
-        }
         b.disabled=true; b.textContent='enviando…';
         try{
           var uid=null, nm=''; try{ if(typeof USER_STATE!=='undefined'&&USER_STATE.id&&!guest()){ uid=USER_STATE.id; nm=USER_STATE.nombre||USER_STATE.username||''; } }catch(err){}
@@ -544,6 +543,59 @@
       }catch(e){}
     },1000);
   })();
+
+  // ── subastas desde EE. UU.: muy pronto (selector VEN/USA) ──
+  var USA={
+    tag:'subastas usa',
+    title:'Subastas de activos desde EE. UU. Muy pronto.',
+    body:'Accede al mercado automotriz más grande del mundo con liquidación transparente, telemetría verificada e historial de dominio garantizado.',
+    items:[
+      ['<path d="M14 5l5 5M11 8l5 5M9.5 9.5l5 5M3 21l7.5-7.5"/><path d="M12.5 3.5l8 8-2 2-8-8z"/>','Acceso directo a inventario exclusivo y lotes de subasta en tiempo real.'],
+      ['<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>','Verificación técnica e historial mecánico respaldado por la tecnología de FlotaIQ.'],
+      ['<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>','Gestión logística e importación integradas en una sola plataforma.']
+    ],
+    cta:'Notificarme al lanzar', later:'Explorar marketplace local'
+  };
+  window.rdUsaPopup=function(onClose){
+    var s=USA, ic=function(p){ return '<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg></i>'; };
+    var el=mount(
+      '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
+      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">'+esc(s.tag)+'</span></div>'+
+      '<div class="rdp-slide">'+
+        '<div class="rdp-title">'+esc(s.title)+'</div>'+
+        '<p class="rdp-body">'+esc(s.body)+'</p>'+
+        '<ul class="rdp-il">'+s.items.map(function(it){ return '<li>'+ic(it[0])+'<span>'+esc(it[1])+'</span></li>'; }).join('')+'</ul>'+
+        '<button class="rdp-btn" data-a="go">'+esc(s.cta)+'</button>'+
+        '<div class="rdp-row"><button class="rdp-link soft" data-a="local">'+esc(s.later)+'</button></div>'+
+      '</div>',
+      'subastas usa',{center:true,cls:'rdp-insp'});
+    isoFill(el.querySelector('.rdp-iso'));
+    var done=false;
+    function finish(go){ if(done) return; done=true; document.removeEventListener('keydown',onKey); unmount(el,function(){ try{ onClose&&onClose(); }catch(e){} if(go==='local'){ try{ selectSection('market'); window.scrollTo({top:0,behavior:'smooth'}); }catch(e){} } }); }
+    function onKey(e){ if(e.key==='Escape') finish(); }
+    document.addEventListener('keydown',onKey);
+    el.addEventListener('click',async function(e){
+      var b=e.target.closest('[data-a],.rdp-x'); if(!b) return;
+      var a=b.getAttribute('data-a');
+      if(a==='go'){
+        b.disabled=true; b.textContent='guardando…';
+        try{
+          var uid=null,nm=''; try{ if(typeof USER_STATE!=='undefined'&&USER_STATE.id&&!guest()){ uid=USER_STATE.id; nm=USER_STATE.nombre||USER_STATE.username||''; } }catch(err){}
+          if(typeof _supa!=='undefined'&&_supa) await _supa.from('partner_leads').insert({user_id:uid,marca_nombre:'Subastas USA',representante:nm||'visitante',telefono:'',motivo:'Subastas USA · lista de espera'});
+        }catch(err){}
+        try{ var H=window._rdCapPlugin&&window._rdCapPlugin('Haptics'); H&&H.notification&&H.notification({type:'SUCCESS'}); }catch(err){}
+        var box=el.querySelector('.rdp-slide'); box.classList.add('go-l');
+        setTimeout(function(){
+          box.innerHTML='<div class="rdp-ok"><div class="e"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#0b0b0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.3l3 3 6-6.5"/></svg></div>'+
+            '<div class="rdp-title" style="margin:0 0 8px">Estás en la lista.</div><p class="rdp-body" style="margin:0 0 18px">Te avisaremos apenas abramos las subastas desde EE. UU.</p>'+
+            '<button class="rdp-btn" data-a="close">Entendido</button></div>';
+          box.classList.remove('go-l');
+        },220);
+        return;
+      }
+      finish(a);
+    });
+  };
 
   // ── vender: la primera vez que alguien toca "vender" ────────
   var K_SELL='rd_sell_intro_v1';

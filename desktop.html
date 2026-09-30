@@ -1987,6 +1987,17 @@ html[data-theme="light"] .rx-menu-card-icon svg{stroke:#000!important}
   cursor:pointer;transition:transform .2s cubic-bezier(.32,.72,0,1);position:relative;overflow:hidden;
 }
 .enc-card:active{transform:scale(.96)}
+
+/* [ver todo · encuentra] cuadrícula centrada: las tarjetas clonadas llegan visibles
+   (sin la animación de entrada del carrusel, que las dejaba invisibles y corridas) */
+#encuentra-all-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;justify-items:stretch}
+#encuentra-all-grid .enc-card{width:auto;height:auto;aspect-ratio:118/116;min-width:0;opacity:1;transform:none;transition:transform .2s cubic-bezier(.32,.72,0,1);animation:rdEncAll .34s cubic-bezier(.22,.61,.36,1) both}
+#encuentra-all-grid .enc-card:active{transform:scale(.96)}
+#encuentra-all-grid .enc-card:nth-child(2){animation-delay:30ms}#encuentra-all-grid .enc-card:nth-child(3){animation-delay:60ms}
+#encuentra-all-grid .enc-card:nth-child(4){animation-delay:90ms}#encuentra-all-grid .enc-card:nth-child(5){animation-delay:120ms}
+#encuentra-all-grid .enc-card:nth-child(6){animation-delay:150ms}#encuentra-all-grid .enc-card:nth-child(n+7){animation-delay:180ms}
+@keyframes rdEncAll{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (min-width:768px){#encuentra-all-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
 .enc-title{font-size:9.5px;font-weight:800;text-align:center;line-height:1.2;color:var(--white);margin-bottom:auto}
 /* icono de Agencias, un pelin mas chico que el resto — el dibujo del garaje se
    siente mas denso que los otros a igual tamaño */
@@ -2115,6 +2126,26 @@ body.on-landing .landing-footer{display:none}
 @media (max-width:1100px){.rd-footer .rf-main{grid-template-columns:1fr 1fr 1fr}.rd-footer .rf-why{grid-template-columns:1fr}}
 .mkt-cb-count{position:absolute;right:14px;bottom:14px;z-index:3;display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:999px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-size:12px;font-weight:700;letter-spacing:.02em;pointer-events:none}
 .mkt-cb-count span{font-weight:500;opacity:.7;letter-spacing:.1em}
+
+/* [subastas] selector de mercado VEN / USA — píldora con pastilla deslizante (sin librerías) */
+.rd-region-row{display:flex;padding:14px 18px 2px}
+.rd-region{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:999px;background:var(--w6);box-shadow:inset 0 0 0 1px var(--w8);isolation:isolate;-webkit-tap-highlight-color:transparent}
+.rd-region button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 15px 0 11px;border:0;background:none;border-radius:999px;font:700 12.5px/1 var(--font);letter-spacing:.06em;color:var(--w50);cursor:pointer;transition:color .25s ease}
+.rd-region button.on{color:var(--bg)}
+.rd-region button svg{width:17px;height:17px;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.18);flex-shrink:0;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+.rd-region button.on svg{transform:scale(1.08)}
+.rd-region button:active svg{transform:scale(.9)}
+.rd-region-thumb{position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:999px;background:var(--white);box-shadow:0 2px 10px rgba(0,0,0,.28),0 0 0 .5px rgba(0,0,0,.06);transition:transform .42s cubic-bezier(.34,1.3,.64,1)}
+.rd-region.us .rd-region-thumb{transform:translateX(100%)}
+@media (prefers-reduced-motion:reduce){.rd-region-thumb,.rd-region button svg{transition:none}}
+
+/* banners opcionales (se cargan desde Control; si no hay foto no ocupan nada) */
+.rd-slot-banner{position:relative;aspect-ratio:40/7;margin:6px 16px 22px;border-radius:8px;overflow:hidden;background:var(--card);box-shadow:0 0 0 1px var(--w6)}
+.rd-slot-banner[hidden]{display:none}
+.rd-slot-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .45s ease}
+.rd-slot-banner.in img{opacity:1}
+.rd-slot-banner:not(.in)::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,var(--w6) 50%,transparent 70%);background-size:200% 100%;animation:rdSlotSk 1.2s ease-in-out infinite}
+@keyframes rdSlotSk{from{background-position:120% 0}to{background-position:-80% 0}}
 </style>
 <style>
 /* [Criterio Ruedda] chip minimalista, solo dentro de la ficha, pegado al precio */
@@ -2140,7 +2171,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <link rel="prefetch" href="store.html" as="document">
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
 <script src="/rd-map.js?v=1" data-desktop="1" defer></script>
-<script src="/desktop-popups.js?v=20260930h" defer></script><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
+<script src="/desktop-popups.js?v=20260930i" defer></script><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 </head>
 <body>
 
@@ -2593,6 +2624,12 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
   <!-- AUCTIONS SECTION -->
   <div id="auctions-section" style="display:none;animation:fadeIn .25s ease">
+    <!-- [subastas] mercado: Venezuela (activo) / EE. UU. (muy pronto) -->
+    <div class="rd-region-row"><div class="rd-region" id="rd-region" role="tablist" aria-label="mercado de subastas">
+      <i class="rd-region-thumb" aria-hidden="true"></i>
+      <button type="button" role="tab" aria-selected="true" data-r="ve" class="on" onclick="rdRegion('ve')"><svg viewBox="0 0 20 20" aria-hidden="true"><clipPath id="rgc-ve"><circle cx="10" cy="10" r="10"/></clipPath><g clip-path="url(#rgc-ve)"><rect width="20" height="6.7" fill="#FFCC00"/><rect y="6.7" width="20" height="6.6" fill="#00247D"/><rect y="13.3" width="20" height="6.7" fill="#CF142B"/><g fill="#fff"><circle cx="5.2" cy="11.4" r=".7"/><circle cx="6.9" cy="9.3" r=".7"/><circle cx="9" cy="8.3" r=".7"/><circle cx="11" cy="8.3" r=".7"/><circle cx="13.1" cy="9.3" r=".7"/><circle cx="14.8" cy="11.4" r=".7"/></g></g></svg><span>VEN</span></button>
+      <button type="button" role="tab" aria-selected="false" data-r="us" onclick="rdRegion('us')"><svg viewBox="0 0 20 20" aria-hidden="true"><clipPath id="rgc-us"><circle cx="10" cy="10" r="10"/></clipPath><g clip-path="url(#rgc-us)"><rect width="20" height="20" fill="#fff"/><g fill="#B22234"><rect width="20" height="1.54"/><rect y="3.08" width="20" height="1.54"/><rect y="6.15" width="20" height="1.54"/><rect y="9.23" width="20" height="1.54"/><rect y="12.3" width="20" height="1.54"/><rect y="15.4" width="20" height="1.54"/><rect y="18.46" width="20" height="1.54"/></g><rect width="9.5" height="10.77" fill="#3C3B6E"/><g fill="#fff"><circle cx="2.2" cy="2.2" r=".55"/><circle cx="4.7" cy="2.2" r=".55"/><circle cx="7.2" cy="2.2" r=".55"/><circle cx="3.45" cy="4.4" r=".55"/><circle cx="5.95" cy="4.4" r=".55"/><circle cx="2.2" cy="6.6" r=".55"/><circle cx="4.7" cy="6.6" r=".55"/><circle cx="7.2" cy="6.6" r=".55"/><circle cx="3.45" cy="8.8" r=".55"/><circle cx="5.95" cy="8.8" r=".55"/></g></g></svg><span>USA</span></button>
+    </div></div>
     <div class="tabs">
       <div class="tab active" id="tab-pronto" onclick="switchTab('pronto')">terminando pronto</div>
       <div class="tab" id="tab-reciente" onclick="switchTab('reciente')">programadas</div>
@@ -2892,7 +2929,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     </div>
 
     <!-- MEJORES AGENCIAS -->
-    <div class="rdv" style="animation-delay:.24s;padding:30px 18px 8px;display:flex;align-items:center;justify-content:space-between">
+    <div class="rdv" style="animation-delay:.24s;padding:30px 18px 8px;display:flex;align-items:center;justify-content:space-between;position:relative;z-index:30">
       <h2 id="cons-grid-title" style="font-size:20px;font-weight:800;letter-spacing:-.3px">Mejores agencias</h2>
             <button id="dealer-city-btn" onclick="toggleDealerCityMenu()" style="background:#000;border:1px solid var(--w15);border-radius:100px;padding:7px 14px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--white);cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .15s;position:relative" onmouseover="this.style.borderColor='var(--w35)'" onmouseout="this.style.borderColor='var(--w15)'">
         <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;opacity:.6"><path d="M8 2C5.79 2 4 4.24 4 7c0 3.5 4 7 4 7s4-3.5 4-7c0-2.76-1.79-5-4-5z"/><circle cx="8" cy="7" r="1.5"/></svg>
@@ -4208,6 +4245,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       </div>
     </div>
 
+    <div class="rd-slot-banner" data-rdslot="comunidad" hidden><img alt="" decoding="async"></div>
     <!-- Ruedda Clips -->
     <div style="padding:0 16px;margin-bottom:6px">
       <div style="font-size:28px;font-weight:800;line-height:1.1;margin-bottom:4px">
@@ -4601,6 +4639,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     </div>
 
     </div><!-- /glass card -->
+    <div class="rd-slot-banner" style="margin:0 20px 16px" data-rdslot="cuenta" hidden><img alt="" decoding="async"></div>
     <!-- WHAT YOU GET -->
     <div style="margin:0 20px;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden">
       <div style="padding:14px 18px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border)">con tu cuenta puedes</div>
@@ -22209,5 +22248,45 @@ html:not([data-theme="light"]) #login-splash .rd-wel-track{stroke:rgba(230,240,5
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
   if(fs&&fs.then) fs.then(function(){ setTimeout(stats,300); },function(){});
   setTimeout(stats,6000);
+})();
+</script>
+
+<script>
+/* [subastas] VEN / USA: USA abre el aviso "muy pronto" y al cerrarlo vuelve a VEN */
+function rdRegion(r){
+  var el=document.getElementById('rd-region'); if(!el) return;
+  var set=function(v){ el.classList.toggle('us',v==='us'); el.querySelectorAll('button').forEach(function(b){ var on=b.getAttribute('data-r')===v; b.classList.toggle('on',on); b.setAttribute('aria-selected',on?'true':'false'); }); };
+  if(r==='ve'){ set('ve'); return; }
+  if(el.classList.contains('us')) return;
+  set('us');
+  try{ window._rdHapticNow&&window._rdHapticNow('LIGHT'); }catch(e){}
+  setTimeout(function(){
+    if(window.rdUsaPopup) window.rdUsaPopup(function(){ set('ve'); });
+    else setTimeout(function(){ set('ve'); },900);
+  },260);
+}
+</script>
+<script>
+/* [banners opcionales] comunidad y cuenta: una sola consulta cuando se abre esa vista */
+(function(){
+  var asked=false, urls=null;
+  function fill(){
+    document.querySelectorAll('.rd-slot-banner').forEach(function(b){
+      var u=urls&&urls['banner_'+b.getAttribute('data-rdslot')+'_url'];
+      if(!u){ b.hidden=true; return; }
+      var im=b.querySelector('img'), src=(typeof _tImg==='function')?_tImg(u,{width:1200,quality:82}):u;
+      if(im.getAttribute('src')!==src){ im.onload=function(){ b.classList.add('in'); }; im.src=src; }
+      b.hidden=false;
+    });
+  }
+  window._rdSlotBanners=function(){
+    if(urls){ fill(); return; }
+    if(asked||typeof _supa==='undefined'||!_supa) return; asked=true;
+    _supa.from('app_settings').select('key,value').in('key',['banner_comunidad_url','banner_cuenta_url']).then(function(r){
+      urls={}; (r.data||[]).forEach(function(x){ if(x.value) urls[x.key]=x.value; }); fill();
+    },function(){ asked=false; });
+  };
+  var sv=window.showView;
+  if(typeof sv==='function') window.showView=function(name){ var r=sv.apply(this,arguments); if(name==='favoritos'||name==='cuenta') setTimeout(window._rdSlotBanners,60); return r; };
 })();
 </script>
