@@ -2617,7 +2617,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         <span>store</span>
       </button>
     </div>
-    <div class="rd-sec-right"><span class="section-link" id="section-como-funciona-link" style="display:none" onclick="showView('como-funciona')">como funciona</span><div class="rd-region" id="rd-region" role="tablist" aria-label="mercado de subastas" style="display:none"><i class="rd-region-thumb" aria-hidden="true"></i><button type="button" role="tab" aria-selected="true" data-r="ve" class="on" onclick="rdRegion('ve')">ven</button><button type="button" role="tab" aria-selected="false" data-r="us" onclick="rdRegion('us')">usa</button></div></div>
+    <div class="rd-sec-right" style="display:none"><span class="section-link" id="section-como-funciona-link" style="display:none" onclick="showView('como-funciona')">como funciona</span><div class="rd-region" id="rd-region" role="tablist" aria-label="mercado de subastas" style="display:none"><i class="rd-region-thumb" aria-hidden="true"></i><button type="button" role="tab" aria-selected="true" data-r="ve" class="on" onclick="rdRegion('ve')">ven</button><button type="button" role="tab" aria-selected="false" data-r="us" onclick="rdRegion('us')">usa</button></div></div>
   </div>
 
   <!-- AUCTIONS SECTION -->
@@ -5025,9 +5025,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <span style="font-size:14px;font-weight:300;color:var(--w60)">¿eres concesionario? </span><span style="font-size:14px;font-weight:700;color:var(--white)">afíliate</span>
     </div>
     <div style="font-size:11px;color:var(--muted2);margin-bottom:10px">ruedda™ · venezuela · 2025</div>
-      <span style="font-size:10px;color:var(--w50);letter-spacing:.4px;font-weight:400">powered by</span>
-      <div style="display:flex;align-items:center;gap:5px">
-        <svg width="46" height="12" style="flex-shrink:0;margin-left:3px;position:relative;top:4px;left:-7px"><use href="#csym"/></svg>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:10px;line-height:12px;color:var(--w50);letter-spacing:.4px;font-weight:400">powered by</span>
+        <svg width="46" height="12" style="flex-shrink:0;display:block"><use href="#csym"/></svg>
       </div>
     </div>
   </div>
@@ -5751,7 +5751,7 @@ function showView(name,param){
     _updateSeoMeta(_target);
     const _hub=document.getElementById('mkt-hub-actions');if(_hub)_hub.style.display=_target==='market'?'flex':'none';
     if(_target==='market'&&typeof _hubPopIn==='function') _hubPopIn(); // [RC FIX] consistente con selectSection: pop cada vez que se entra a market
-    const _cl=document.getElementById('section-como-funciona-link');if(_cl)_cl.style.display=_target==='market'?'none':'inline';const _rg=document.getElementById('rd-region');if(_rg)_rg.style.display=_target==='subastas'?'':'none';
+    const _cl=document.getElementById('section-como-funciona-link');if(_cl)_cl.style.display=_target==='market'?'none':'inline';if(_cl&&_cl.parentNode&&_cl.parentNode.classList.contains('rd-sec-right'))_cl.parentNode.style.display=_target==='market'?'none':'flex';const _rg=document.getElementById('rd-region');if(_rg)_rg.style.display=_target==='subastas'?'':'none';
     _updateComoFuncionaLink(_target);
     document.getElementById('section-title-text').textContent=_target==='consesionarios'?'concesionarios':_target;
     document.querySelectorAll('.dropdown-item').forEach((i)=>{
@@ -5935,6 +5935,7 @@ function selectSection(s){
   const cl=document.getElementById('section-como-funciona-link');
   const hub=document.getElementById('mkt-hub-actions');
   if(cl){cl.style.display=s==='market'?'none':'inline';}
+  if(cl&&cl.parentNode&&cl.parentNode.classList.contains('rd-sec-right')) cl.parentNode.style.display=s==='market'?'none':'flex';
   { const _rg=document.getElementById('rd-region'); if(_rg){ _rg.style.display=s==='subastas'?'':'none'; if(s!=='subastas'&&typeof rdRegion==='function') rdRegion('ve'); } }
   _updateComoFuncionaLink(s);
   if(hub){hub.style.display=s==='market'?'flex':'none';}
