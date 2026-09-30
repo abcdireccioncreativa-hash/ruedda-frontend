@@ -209,10 +209,10 @@
   // tal cual estaba en vez de ir al inicio.
   var parked=null, ROOTS=['home','notificaciones','favoritos','cuenta'];
   RDNC.peek=async function(a){
-    parked={t:Date.now(),view:null};
+    parked={t:Date.now(),view:null,from:currentView};
     doAction(a);
     // espera a que la vista nueva esté puesta (el perfil y la vitrina cargan async)
-    for(var i=0;i<20;i++){ await new Promise(function(r){ setTimeout(r,40); }); if(currentView!=='notificaciones') break; }
+    for(var i=0;i<20;i++){ await new Promise(function(r){ setTimeout(r,40); }); if(currentView!==parked.from) break; }
     parked.view=currentView;
     return parked.view;
   };
@@ -230,7 +230,7 @@
   window.showView=function(name){
     if(parked&&parked.view){
       // volver desde el perfil (su "atrás" va a la bandeja) → regresa el chat
-      if(name==='notificaciones'&&currentView===parked.view){ resume(null); return; }
+      if(name===parked.from&&currentView===parked.view){ var from=parked.from; resume(function(){ webShowView(from); if(from==='notificaciones'&&typeof switchNotifTab==='function') switchNotifTab('mensajes'); }); return; }
       // se fue a otra sección desde otra pantalla: el chat en pausa se suelta
       if(ROOTS.indexOf(name)>-1&&currentView!==parked.view){ parked=null; post({ev:'unpark'}); }
     }
@@ -241,8 +241,9 @@
     var orig=window[fn]; if(typeof orig!=='function') return;
     window[fn]=function(afterNav){
       if(parked&&parked.view&&currentView===parked.view){
+        var from=parked.from;
         try{ if(fn!=='_rdExitVitrina'&&typeof _stopViewerPresence==='function') _stopViewerPresence(); }catch(e){}
-        resume(function(){ webShowView('notificaciones'); if(typeof switchNotifTab==='function') switchNotifTab('mensajes'); if(typeof afterNav==='function') afterNav(); });
+        resume(function(){ webShowView(from||'notificaciones'); if(from==='notificaciones'&&typeof switchNotifTab==='function') switchNotifTab('mensajes'); if(typeof afterNav==='function') afterNav(); });
         return;
       }
       return orig.apply(this,arguments);
