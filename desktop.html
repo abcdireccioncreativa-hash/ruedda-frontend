@@ -22030,8 +22030,10 @@ html:not([data-theme="light"]) #login-splash .rd-wel-track{stroke:rgba(230,240,5
       if(img.complete&&img.naturalWidth) return;
       var box=img.parentElement; if(!box) return;
       for(var c=box.firstElementChild;c;c=c.nextElementSibling){ if(c.classList&&c.classList.contains('rd-lq')) return; }
+      // solo fotos posicionadas (inset:0 dentro de su tarjeta): la borrosa usa el MISMO marco
+      // que la foto. Nunca se toca el estilo de la caja que la envuelve (romperia su layout).
+      if(getComputedStyle(img).position!=='absolute') return;
       img.dataset.rdlq='1';
-      if(getComputedStyle(box).position==='static') box.style.position='relative';
       var l=document.createElement('img'); l.className='rd-lq'; l.alt=''; l.setAttribute('aria-hidden','true'); l.decoding='async';
       if(img.loading==='lazy') l.loading='lazy';
       l.src=mini(src);
