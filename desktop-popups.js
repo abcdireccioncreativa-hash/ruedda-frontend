@@ -431,12 +431,14 @@
     '.rdp-qr-code{display:block;width:176px;height:176px;margin:0 auto;border-radius:14px;box-shadow:0 0 0 1px #ededed}'+
     '.rdp-qr-foot{display:flex;justify-content:center;gap:12px;margin-top:12px;font-size:10.5px;font-weight:600;color:#8a8a8a;white-space:nowrap}'+
     '.rdp-qr-foot b{color:#0b0b0b;font-weight:700}'+
-    '@media (max-width:1099px),(max-height:620px){.rdp.rdp-qr{display:none}}';
+    '.rdp.rdp-qr.solo{right:24px}'+
+    '@media (max-width:1099px),(max-height:620px){.rdp.rdp-qr:not(.solo){display:none}}';
+  window.rdShowQR=function(){ if(!document.querySelector('.rdp-qr')) showQR(null); };
   function showQR(signup){
-    if(window.innerWidth<1100||window.innerHeight<620) return;
+    if(signup&&(window.innerWidth<1100||window.innerHeight<620)) return;
     if(!document.getElementById('rdp-qr-css')){ var st=document.createElement('style'); st.id='rdp-qr-css'; st.textContent=QR_CSS; document.head.appendChild(st); }
     var el=document.createElement('div');
-    el.className='rdp rdp-qr'; el.setAttribute('role','dialog'); el.setAttribute('aria-label','prueba Ruedda en tu teléfono');
+    el.className='rdp rdp-qr'+(signup?'':' solo'); el.setAttribute('role','dialog'); el.setAttribute('aria-label','prueba Ruedda en tu teléfono');
     el.innerHTML='<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
       '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">la app</span></div>'+
       '<div class="rdp-title">Prueba Ruedda en tu teléfono.</div>'+
@@ -450,7 +452,7 @@
     function out(){ if(el._gone) return; el._gone=true; el.classList.remove('in'); el.classList.add('out'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); },300); }
     el.querySelector('.rdp-x').addEventListener('click',out);
     // si se cierra el de crear cuenta, este se va con él
-    try{ new MutationObserver(function(){ if(!signup.classList.contains('in')||!signup.isConnected) out(); }).observe(signup,{attributes:true,attributeFilter:['class']}); }catch(e){}
+    if(signup) try{ new MutationObserver(function(){ if(!signup.classList.contains('in')||!signup.isConnected) out(); }).observe(signup,{attributes:true,attributeFilter:['class']}); }catch(e){}
   }
 
   // ── vender: la primera vez que alguien toca "vender" ────────
