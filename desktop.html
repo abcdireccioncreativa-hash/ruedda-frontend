@@ -434,6 +434,7 @@ html[data-theme="light"]{
   --w92:rgba(21,22,14,.92);--w94:rgba(21,22,14,.94);--w95:rgba(21,22,14,.95);
 }
 html[data-theme="light"] .logo img,
+html[data-theme="light"] .rd-footer .rf-brand img,
 html[data-theme="light"] .landing-nav-logo img,
 html[data-theme="light"] .bottom-nav::before,
 html[data-theme="light"] .mkt-hub-btn img,
@@ -2078,6 +2079,39 @@ html:not([data-theme="light"]) #login-progress-bar{background:#e6f03b!important}
 .btn-watchlist.rd-saved{background:#e6f03b!important;color:#0b0b0b!important;border-color:#e6f03b!important}
 .btn-watchlist.rd-pop svg{animation:rdHeartPop .45s cubic-bezier(.22,1.4,.36,1)}
 @keyframes rdHeartPop{0%{transform:scale(1)}40%{transform:scale(1.28)}100%{transform:scale(1)}}
+
+/* ── footer corporativo (desktop) ── */
+.rd-footer{max-width:1400px;margin:72px auto 0;padding:0 40px;box-sizing:border-box;color:var(--white);font-family:var(--font)}
+.rd-footer .rf-why{display:grid;grid-template-columns:1.1fr 2fr;gap:48px;padding:40px 0 44px;border-top:1px solid var(--border)}
+.rd-footer .rf-why h3{font-size:22px;font-weight:800;letter-spacing:-.4px;margin:0 0 8px}
+.rd-footer .rf-why p{margin:0;font-size:14px;line-height:1.6;color:var(--muted)}
+.rd-footer .rf-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.rd-footer .rf-stat b{display:inline-block;font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1.1;box-shadow:inset 0 -6px 0 rgba(var(--rd-green-rgb),.35)}
+html[data-theme="light"] .rd-footer .rf-stat b{box-shadow:inset 0 -6px 0 rgba(230,240,59,.9)}
+.rd-footer .rf-stat span{display:block;margin-top:6px;font-size:13px;color:var(--muted)}
+.rd-footer .rf-main{display:grid;grid-template-columns:1.4fr repeat(4,1fr) 1.3fr;gap:32px;padding:44px 0 36px;border-top:1px solid var(--border)}
+.rd-footer .rf-brand img{height:26px;width:auto;display:block}
+.rd-footer .rf-brand p{margin:14px 0 0;font-size:13px;line-height:1.6;color:var(--muted);max-width:240px}
+.rd-footer .rf-col h4{margin:4px 0 16px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.rd-footer .rf-col a{display:block;margin:0 0 11px;font-size:14px;color:var(--white);text-decoration:none;cursor:pointer;opacity:.86;transition:opacity .15s}
+.rd-footer .rf-col a:hover{opacity:1;text-decoration:underline;text-underline-offset:3px}
+.rd-footer .rf-apps{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.rd-footer .rf-badge{display:flex;align-items:center;gap:9px;height:42px;padding:0 14px 0 11px;border-radius:9px;background:var(--white);color:var(--bg);text-decoration:none;min-width:150px;box-sizing:border-box}
+.rd-footer .rf-badge svg{width:20px;height:20px;flex-shrink:0}
+.rd-footer .rf-badge small{display:block;font-size:9.5px;line-height:1;opacity:.75;letter-spacing:.02em}
+.rd-footer .rf-badge b{display:block;font-size:15px;line-height:1.15;font-weight:700;letter-spacing:-.2px}
+.rd-footer .rf-badge.soon{background:transparent;color:var(--white);box-shadow:inset 0 0 0 1px var(--w20);cursor:default}
+.rd-footer .rf-social{display:flex;gap:10px;margin-top:14px}
+.rd-footer .rf-social a{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--w6);color:var(--white);transition:background .15s}
+.rd-footer .rf-social a:hover{background:var(--w14)}
+.rd-footer .rf-social svg{width:16px;height:16px}
+.rd-footer .rf-bottom{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 0 34px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.rd-footer .rf-bottom a{color:var(--muted);text-decoration:none;margin-left:18px;cursor:pointer}
+.rd-footer .rf-bottom a:hover{color:var(--white)}
+body.on-landing .rd-footer{display:none}
+@media (max-width:1100px){.rd-footer .rf-main{grid-template-columns:1fr 1fr 1fr}.rd-footer .rf-why{grid-template-columns:1fr}}
+.mkt-cb-count{position:absolute;right:14px;bottom:14px;z-index:3;display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:999px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-size:12px;font-weight:700;letter-spacing:.02em;pointer-events:none}
+.mkt-cb-count span{font-weight:500;opacity:.7;letter-spacing:.1em}
 </style>
 <style>
 /* [Criterio Ruedda] chip minimalista, solo dentro de la ficha, pegado al precio */
@@ -6822,10 +6856,10 @@ function _mktRenderHero(data){
   el.innerHTML=`<div class="market-hero-slides" id="market-hero-slides">${pool.map((l,i)=>_mktHeroSlideHTML(l,i)).join('')}</div>`+
     (pool.length>1?`<div class="market-hero-dots">${pool.map((_,i)=>`<span class="market-hero-dot${i===0?' active':''}"></span>`).join('')}</div>
       <div class="market-hero-arrows">
-        <button class="market-hero-nav" onclick="event.stopPropagation();_mktHeroNav(-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
-        <button class="market-hero-nav" onclick="event.stopPropagation();_mktHeroNav(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="market-hero-nav" onclick="event.stopPropagation();_mktHeroNav(-1);_mktHeroStart()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button class="market-hero-nav" onclick="event.stopPropagation();_mktHeroNav(1);_mktHeroStart()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></button>
       </div>`:'');
-  if(pool.length>1) _mktHeroInterval=setInterval(()=>_mktHeroNav(1),4500);
+  if(pool.length>1) _mktHeroStart();
   if(pool.length>1) setTimeout(()=>{ try{ _mktHeroLoad(1); }catch(e){} },1800); // la 2da lista antes del primer giro
 }
 function _mktHeroSlideHTML(hero,i){
@@ -6850,6 +6884,24 @@ function _mktHeroSlideHTML(hero,i){
       ${sideImgs.map(p=>p?`<div style="${bg}"><img decoding="async" ${_sa}="${_tImg(p,{width:270})}" loading="lazy" style="opacity:0;transition:opacity .4s ease" onload="_rdShow(this)" onerror="this.remove()"></div>`:`<div class="market-hero-side-empty"></div>`).join('')}
     </div>
   </div>`;
+}
+// solo gira cuando el market está a la vista (no en la portada, no con el mouse encima, no
+// en otra pestaña). Al entrar al market arranca desde el primero y lo deja ver completo.
+function _mktHeroVisible(){
+  const el=document.getElementById('market-hero'); if(!el||!el.getClientRects().length) return false;
+  const land=document.getElementById('view-landing'); if(land&&land.classList.contains('active')) return false;
+  const r=el.getBoundingClientRect(); if(r.bottom<80||r.top>innerHeight-80) return false;
+  return document.visibilityState==='visible'&&!el.matches(':hover');
+}
+function _mktHeroStart(){
+  if(_mktHeroInterval) clearInterval(_mktHeroInterval);
+  if(document.querySelectorAll('#market-hero-slides .market-hero-slide').length<2) return;
+  _mktHeroInterval=setInterval(()=>{ if(_mktHeroVisible()) _mktHeroNav(1); },6500);
+}
+function _mktHeroReset(){
+  const n=document.querySelectorAll('#market-hero-slides .market-hero-slide').length; if(!n) return;
+  if(_mktHeroIdx!==0) _mktHeroNav(-_mktHeroIdx);
+  _mktHeroStart();
 }
 function _mktHeroLoad(i){
   const slides=document.querySelectorAll('#market-hero-slides .market-hero-slide');
@@ -8461,8 +8513,10 @@ function _mktRenderCbGallery(l){
   const photos=(l.photoUrls||[]).filter(Boolean);
   if(!photos.length){wrap.style.display='none';return;}
   wrap.style.display='grid';
-  main.innerHTML=`<img decoding="async" src="${_tImg(photos[0],{width:880})}" loading="eager">${l.destacado?'<div class="mkt-cb-badge">destacado</div>':''}`;
-  main.onclick=()=>openPhotoViewer(l.photoUrls,0,{type:'market',id:l.id,title:l.title});
+  _mktMainIdx=0;
+  main.innerHTML=`<img decoding="async" src="${_tImg(photos[0],{width:880})}" loading="eager">${l.destacado?'<div class="mkt-cb-badge">destacado</div>':''}${photos.length>1?`<div class="mkt-cb-count" id="mkt-cb-count">1 / ${photos.length}<span>← →</span></div>`:''}`;
+  main.onclick=()=>openPhotoViewer(l.photoUrls,_mktMainIdx,{type:'market',id:l.id,title:l.title});
+  if(photos[1]){ const pre=new Image(); pre.src=_tImg(photos[1],{width:880}); }
   const rest=photos.slice(1,5);
   const totalMore=photos.length-5;
   grid.innerHTML=rest.map((p,i)=>{
@@ -8471,6 +8525,40 @@ function _mktRenderCbGallery(l){
   }).join('');
   _mktRenderRelated(l);
 }
+// ← → en la publicación: cambia la foto principal (fundido corto) y precarga la siguiente
+let _mktMainIdx=0;
+function _mktMainStep(d){
+  const l=currentMarketListing; if(!l) return;
+  const ph=(l.photoUrls||[]).filter(Boolean); if(ph.length<2) return;
+  const main=document.getElementById('mkt-cb-main'); if(!main) return;
+  const img=main.querySelector('img:not(.rd-lq)'); if(!img) return;
+  _mktMainIdx=(_mktMainIdx+d+ph.length)%ph.length;
+  const next=new Image(); next.decoding='async'; next.src=_tImg(ph[_mktMainIdx],{width:880});
+  const swap=()=>{ img.style.transition='opacity .16s ease'; img.style.opacity='.35'; setTimeout(()=>{ img.src=next.src; img.style.opacity='1'; },110); };
+  if(next.complete) swap(); else { next.onload=swap; next.onerror=swap; }
+  const c=document.getElementById('mkt-cb-count'); if(c) c.firstChild.nodeValue=(_mktMainIdx+1)+' / '+ph.length;
+  const after=new Image(); after.src=_tImg(ph[(_mktMainIdx+d+ph.length)%ph.length],{width:880});
+}
+document.addEventListener('keydown',function(e){
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const t=e.target; if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+  const k=e.key; if(k!=='ArrowLeft'&&k!=='ArrowRight'&&k!=='Escape') return;
+  const ov=document.getElementById('photo-viewer-overlay');
+  if(ov&&ov.classList.contains('open')){
+    // visor abierto: ← → recorren todas las fotos (y dan la vuelta), Esc cierra
+    if(k==='Escape'){ closePhotoViewer(); return; }
+    e.preventDefault();
+    const n=_pvPhotos.length; if(n<2) return;
+    _pvGoTo((_pvIndex+(k==='ArrowRight'?1:-1)+n)%n);
+    return;
+  }
+  if(k==='Escape') return;
+  if(typeof currentView!=='undefined'&&currentView==='market-detail'){ e.preventDefault(); _mktMainStep(k==='ArrowRight'?1:-1); return; }
+  if(_mktHeroVisible&&document.getElementById('market-hero')&&document.getElementById('market-hero').getClientRects().length&&typeof currentView!=='undefined'&&currentView==='home'){
+    const r=document.getElementById('market-hero').getBoundingClientRect();
+    if(r.bottom>80&&r.top<innerHeight-80){ e.preventDefault(); _mktHeroNav(k==='ArrowRight'?1:-1); _mktHeroStart(); }
+  }
+});
 function _mktRenderRelated(l){
   const wrap=document.getElementById('mkt-related-section');
   if(!wrap) return;
@@ -9455,6 +9543,7 @@ function _pvOnScroll(){
 
 function _pvGoTo(i){
   _pvIndex=i;
+  try{ document.getElementById('pv-counter').textContent=(i+1)+' / '+_pvPhotos.length; document.querySelectorAll('.pv-thumb').forEach((t,j)=>t.classList.toggle('active',j===i)); }catch(e){}
   const inner=document.getElementById('pv-inner');
   inner.scrollTo({left:i*inner.clientWidth,behavior:'smooth'});
 }
@@ -15596,6 +15685,7 @@ function enterApp(){
   document.getElementById('view-landing').classList.remove('active');
   document.body.classList.remove('on-landing');
   showView('home');
+  try{ _mktHeroReset(); }catch(e){}
   // los avisos salen apenas se entra al market (no esperan su temporizador)
   try{ if(window._rdPopupsNow) setTimeout(window._rdPopupsNow,350); }catch(e){}
 }
@@ -22067,5 +22157,52 @@ html:not([data-theme="light"]) #login-splash .rd-wel-track{stroke:rgba(230,240,5
   var fs=window._rueddaFirstScreenReady||window._rueddaBootPromise;
   var go=function(){ (window.requestIdleCallback||function(f){ setTimeout(f,300); })(warm,{timeout:1500}); };
   if(fs&&fs.then) fs.then(function(){ setTimeout(go,400); },go); else addEventListener('load',function(){ setTimeout(go,1200); });
+})();
+</script>
+
+<script>
+/* [desktop] footer corporativo: se inserta después de la última vista */
+(function(){
+  function nav(sec){ try{ if(document.body.classList.contains('on-landing')&&typeof enterApp==='function') enterApp(); showView('home'); if(sec) selectSection(sec); window.scrollTo({top:0,behavior:'smooth'}); }catch(e){} }
+  window._rfNav=nav;
+  function build(){
+    var views=document.querySelectorAll('.view'); if(!views.length) return;
+    var last=views[views.length-1];
+    if(document.getElementById('rd-footer')) return;
+    var logo=(document.querySelector('.navbar .logo img')||{}).src||'';
+    var ig='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>';
+    var mail='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>';
+    var apple='<svg viewBox="0 0 170 170" fill="currentColor"><path d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.2-2.12-9.97-3.17-14.34-3.17-4.58 0-9.49 1.05-14.75 3.17-5.26 2.13-9.5 3.24-12.74 3.35-4.93.21-9.84-1.96-14.75-6.52-3.13-2.73-7.05-7.41-11.74-14.04-5.03-7.08-9.17-15.29-12.41-24.65-3.47-10.11-5.21-19.9-5.21-29.38 0-10.86 2.35-20.22 7.04-28.07 3.69-6.3 8.6-11.27 14.75-14.92s12.79-5.51 19.95-5.63c3.91 0 9.05 1.21 15.43 3.59 6.36 2.39 10.45 3.6 12.24 3.6 1.34 0 5.88-1.42 13.57-4.24 7.28-2.62 13.42-3.7 18.45-3.28 13.63 1.1 23.87 6.47 30.68 16.15-12.19 7.39-18.22 17.73-18.1 31 .11 10.34 3.86 18.94 11.23 25.77 3.34 3.17 7.07 5.62 11.22 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.1-2.96 15.67-8.86 22.67-7.12 8.32-15.73 13.13-25.07 12.37a25.2 25.2 0 0 1-.19-3.07c0-7.78 3.39-16.1 9.4-22.9 3-3.44 6.82-6.31 11.45-8.6 4.62-2.25 8.99-3.5 13.1-3.71.12 1.08.17 2.17.17 3.24z"/></svg>';
+    var play='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.2 2.6 13.5 12l-9.3 9.4a1.6 1.6 0 0 1-.7-1.4V4a1.6 1.6 0 0 1 .7-1.4zm10.4 10.5 2.5 2.5-11.4 6.5 8.9-9zm0-2.2L5.7 1.9l11.4 6.5-2.5 2.5zm3.4-1.9 3 1.7a1.5 1.5 0 0 1 0 2.6l-3 1.7-2.8-2.9 2.8-3.1z"/></svg>';
+    var f=document.createElement('footer'); f.className='rd-footer'; f.id='rd-footer';
+    f.innerHTML=
+      '<div class="rf-why"><div><h3>¿Por qué Ruedda?</h3><p>El marketplace automotriz de Venezuela: precio justo con datos del mercado, compradores verificados y subastas en vivo.</p></div>'+
+        '<div class="rf-stats" id="rf-stats"></div></div>'+
+      '<div class="rf-main">'+
+        '<div class="rf-brand">'+(logo?'<img src="'+logo+'" alt="ruedda">':'<b>ruedda</b>')+'<p>Tu carro es un activo. Conoce su valor real, síguelo en el mercado y conviértelo en liquidez cuando tú decidas.</p></div>'+
+        '<div class="rf-col"><h4>Comprar</h4><a onclick="_rfNav(\'market\')">Market</a><a onclick="_rfNav(\'subastas\')">Subastas</a><a onclick="_rfNav(\'consesionarios\')">Concesionarios</a><a onclick="window.open(\'https://ruedda.app/repuestos\',\'_blank\')">Repuestos</a></div>'+
+        '<div class="rf-col"><h4>Vender</h4><a onclick="openVenderModal()">Vender mi carro</a><a onclick="window.rdPartnersPopup&&rdPartnersPopup()">Programa Fundadores</a><a onclick="window.rdPartnersPopup&&rdPartnersPopup()">Vitrina para concesionarios</a></div>'+
+        '<div class="rf-col"><h4>Ruedda</h4><a onclick="showView(\'como-funciona\');scrollTo({top:0})">Nosotros</a><a onclick="showView(\'favoritos\');scrollTo({top:0})">Comunidad</a><a href="https://instagram.com/ruedda.app" target="_blank" rel="noopener">Instagram</a></div>'+
+        '<div class="rf-col"><h4>Ayuda</h4><a href="mailto:contactoruedda@gmail.com">Contacto</a><a href="/ruedda_legal.html">Términos</a><a href="/ruedda_legal.html">Privacidad</a></div>'+
+        '<div class="rf-apps"><a class="rf-badge" href="https://apps.apple.com/app/ruedda-la-app-automotriz/id6812039590" target="_blank" rel="noopener">'+apple+'<span><small>Descárgala en el</small><b>App Store</b></span></a>'+
+          '<div class="rf-badge soon">'+play+'<span><small>Muy pronto en</small><b>Google Play</b></span></div>'+
+          '<div class="rf-social"><a href="https://instagram.com/ruedda.app" target="_blank" rel="noopener" aria-label="Instagram">'+ig+'</a><a href="mailto:contactoruedda@gmail.com" aria-label="Correo">'+mail+'</a></div></div>'+
+      '</div>'+
+      '<div class="rf-bottom"><span>© '+new Date().getFullYear()+' Ruedda · Hecho en Venezuela</span><span><a href="/ruedda_legal.html">Términos</a><a href="/ruedda_legal.html">Privacidad</a><a href="mailto:contactoruedda@gmail.com">Contacto</a></span></div>';
+    last.parentNode.insertBefore(f,last.nextSibling);
+    stats();
+  }
+  // cifras reales de lo que ya está cargado (sin inventar números)
+  function stats(){
+    var el=document.getElementById('rf-stats'); if(!el) return;
+    var n=function(v){ try{ return v; }catch(e){ return 0; } };
+    // los diferenciadores reales de Ruedda (nada inventado)
+    var items=[['Gratis','publicar tu carro en el market'],['Precio Justo','cada carro frente al mercado venezolano'],['Verificados','compradores y vendedores con identidad validada'],['En vivo','subastas con pujas en tiempo real']];
+    el.innerHTML=items.map(function(it){ return '<div class="rf-stat"><b>'+it[0]+'</b><span>'+it[1]+'</span></div>'; }).join('');
+  }
+  var fs=window._rueddaFirstScreenReady||window._rueddaBootPromise;
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',build); else build();
+  if(fs&&fs.then) fs.then(function(){ setTimeout(stats,300); },function(){});
+  setTimeout(stats,6000);
 })();
 </script>
