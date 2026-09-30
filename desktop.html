@@ -2130,7 +2130,8 @@ body.on-landing .landing-footer{display:none}
 /* [subastas] selector de mercado VEN / USA — sobrio, en la línea del título (sin librerías) */
 .rd-sec-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
 .rd-region{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;padding:2px;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 1px var(--w14);isolation:isolate;-webkit-tap-highlight-color:transparent}
-.rd-region button{position:relative;z-index:1;height:24px;min-width:40px;padding:0 10px;border:0;background:none;border-radius:999px;font:700 10.5px/24px var(--font);letter-spacing:.12em;color:var(--w45);cursor:pointer;transition:color .25s ease}
+.rd-region button{position:relative;z-index:1;height:24px;min-width:38px;padding:0 10px;border:0;background:none;border-radius:999px;font:400 12px/24px var(--font);letter-spacing:0;text-transform:lowercase;color:var(--w50);cursor:pointer;transition:color .25s ease}
+.rd-sec-right .section-link{font-size:12.5px}
 .rd-region button.on{color:var(--bg)}
 .rd-region-thumb{position:absolute;z-index:0;top:2px;bottom:2px;left:2px;width:calc(50% - 2px);border-radius:999px;background:var(--white);transition:transform .38s cubic-bezier(.32,.72,0,1)}
 .rd-region.us .rd-region-thumb{transform:translateX(100%)}
@@ -2616,7 +2617,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         <span>store</span>
       </button>
     </div>
-    <div class="rd-sec-right"><span class="section-link" id="section-como-funciona-link" style="display:none" onclick="showView('como-funciona')">como funciona</span><div class="rd-region" id="rd-region" role="tablist" aria-label="mercado de subastas" style="display:none"><i class="rd-region-thumb" aria-hidden="true"></i><button type="button" role="tab" aria-selected="true" data-r="ve" class="on" onclick="rdRegion('ve')">VEN</button><button type="button" role="tab" aria-selected="false" data-r="us" onclick="rdRegion('us')">USA</button></div></div>
+    <div class="rd-sec-right"><span class="section-link" id="section-como-funciona-link" style="display:none" onclick="showView('como-funciona')">como funciona</span><div class="rd-region" id="rd-region" role="tablist" aria-label="mercado de subastas" style="display:none"><i class="rd-region-thumb" aria-hidden="true"></i><button type="button" role="tab" aria-selected="true" data-r="ve" class="on" onclick="rdRegion('ve')">ven</button><button type="button" role="tab" aria-selected="false" data-r="us" onclick="rdRegion('us')">usa</button></div></div>
   </div>
 
   <!-- AUCTIONS SECTION -->

@@ -2,10 +2,62 @@
 <html lang="es">
 <head>
 <script>
+/* [perf · arranque adelantado] Las 2 consultas del primer pantallazo (publicaciones y
+   subastas) salen AQUÍ, apenas llega el HTML, en paralelo con todo lo demás. Cuando
+   supabase-js pide exactamente lo mismo (misma URL y misma sesión), recibe esta
+   respuesta ya lista en vez de esperar la red. Si la consulta cambia en el código, o la
+   sesión no coincide, simplemente no se usa: la app consulta normal. Además, se piden
+   ya las fotos que estaban a la vista en la visita anterior. */
+(function(){
+  try{
+    var K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0b2RzZWd6YmJkY2F1YmxrZ3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjIwOTgsImV4cCI6MjA5NTI5ODA5OH0.WXbnE5_XfNwwVUtDGSWa6Voetcflcl7m2vDOpEofs_w', auth='Bearer '+K;
+    try{ var s=JSON.parse(localStorage.getItem('ruedda-auth')||'null'); if(s&&s.access_token&&(!s.expires_at||s.expires_at*1000>Date.now()+60000)) auth='Bearer '+s.access_token; }catch(e){}
+    var norm=function(u){ return String(u).replace(/&end_time=gte\.[^&]*/,''); };
+    var q={};
+    var go=function(url){
+      q[norm(url)]={a:auth,t:Date.now(),p:fetch(url,{headers:{apikey:K,Authorization:auth,'Accept-Profile':'public'}}).then(function(r){
+        return r.text().then(function(b){ var h={}; r.headers.forEach(function(v,k){ h[k]=v; }); return {s:r.status,h:h,b:b}; });
+      }).catch(function(){ return null; })};
+    };
+    go('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/listings?select=id%2Cuser_id%2Ctitulo%2Cmarca%2Cmodelo%2Cyear%2Ckm%2Cprecio_usd%2Cprecio_anterior%2Cview_count%2Ctransmision%2Ccombustible%2Cmotor%2Ctraccion%2Ccolor%2Ctipo_vehiculo%2Cclasificacion%2Cduenos%2Cestado_fisico%2Cciudad%2Cdescripcion%2Ccondicion%2Cconcesionario_id%2Cwhatsapp%2Clisting_photos%28url%2Corden%29%2Ces_destacado%2Cvendido%2Cvendido_at%2Cauditado_ruedda%2Cfinanciamiento_disponible%2Cfinanciamiento_detalle%2Cpme_usd%2Cpme_delta%2Cpme_classification%2Cpme_confianza%2Cpme_basado_en&estado=eq.activa&order=created_at.desc&limit=300');
+    go('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/auctions?select=id%2Ctitulo%2Cmarca%2Cmodelo%2Cyear%2Ckm%2Ccurrent_bid%2Cbid_count%2Cend_time%2Csin_reserva%2Cprecio_reserva%2Ctransmision%2Ccombustible%2Cmotor%2Ctraccion%2Ccolor%2Ctipo_vehiculo%2Cclasificacion%2Cduenos%2Cestado_fisico%2Ccondicion%2Cciudad%2Cdescripcion%2Cview_count%2Cuser_id%2Ces_chocado%2Ctipo_dano%2Cestado_chocado%2Ces_destacado%2Ces_programada%2Cfecha_inicio_programada%2Cauditado_ruedda%2Cpme_usd%2Cpme_delta%2Cpme_classification%2Cpme_confianza%2Cpme_basado_en&tipo=eq.subasta&estado=eq.activa&or=%28es_chocado.is.null%2Ces_chocado.eq.false%29&end_time=gte.{T}&order=end_time.asc'.replace('{T}',encodeURIComponent(new Date(Date.now()-48*3600*1000).toISOString())));
+    var nf=window.fetch;
+    window.fetch=function(input,init){
+      try{
+        var u=typeof input==='string'?input:(input&&input.url);
+        var e=u&&q[norm(u)];
+        if(e&&Date.now()-e.t<20000&&(!init||!init.method||init.method==='GET')){
+          var h=init&&init.headers, a=h&&(h.get?h.get('Authorization'):(h.Authorization||h.authorization));
+          if(a===e.a){
+            delete q[norm(u)];
+            var self=this,args=arguments;
+            return e.p.then(function(x){ return x?new Response(x.b,{status:x.s,headers:x.h}):nf.apply(self,args); });
+          }
+        }
+      }catch(err){}
+      return nf.apply(this,arguments);
+    };
+    // fotos que estaban arriba en la visita anterior → se piden ya, con prioridad alta
+    try{
+      (JSON.parse(localStorage.getItem('rd_atf_'+(innerWidth>=768?'d':'m'))||'[]')).slice(0,6).forEach(function(src){
+        var l=document.createElement('link'); l.rel='preload'; l.as='image'; l.href=src; l.setAttribute('fetchpriority','high'); document.head.appendChild(l);
+      });
+      addEventListener('load',function(){ setTimeout(function(){ try{
+        var v=[].slice.call(document.images).filter(function(im){ var r=im.getBoundingClientRect(); return im.complete&&r.width>120&&r.top<innerHeight&&r.bottom>0&&/^https:/.test(im.currentSrc||''); }).map(function(im){ return im.currentSrc; });
+        localStorage.setItem('rd_atf_'+(innerWidth>=768?'d':'m'),JSON.stringify(v.slice(0,6)));
+      }catch(e){} },5000); });
+    }catch(e){}
+  }catch(e){}
+})();
+</script>
+<script>
 // [pwa-perf] fundido de fotos solo cuando la imagen YA está decodificada: así el
 // fundido suave nunca se salta (antes, decodificar en el mismo cuadro lo cortaba).
 window._rdShow=function(img){
   if(!img) return; var done=false;
+  // [perf] si la foto salió de caché (o llegó en <80 ms) aparece YA, sin fundido
+  try{ var _e=performance.getEntriesByName(img.currentSrc||img.src), _l=_e&&_e[_e.length-1];
+    if(!_l||_l.duration<80) img.style.transition='none'; }catch(_x){}
   var go=function(){ if(done) return; done=true; img.style.opacity='1'; };
   try{ if(img.decode) img.decode().then(go,go); else go(); }catch(e){ go(); }
   setTimeout(go,800); // respaldo: nunca queda invisible
@@ -2383,7 +2435,8 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
 /* [subastas] selector de mercado VEN / USA — sobrio, en la línea del título (sin librerías) */
 .rd-sec-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
 .rd-region{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;padding:2px;border-radius:999px;background:transparent;box-shadow:inset 0 0 0 1px var(--w14);isolation:isolate;-webkit-tap-highlight-color:transparent}
-.rd-region button{position:relative;z-index:1;height:24px;min-width:40px;padding:0 10px;border:0;background:none;border-radius:999px;font:700 10.5px/24px var(--font);letter-spacing:.12em;color:var(--w45);cursor:pointer;transition:color .25s ease}
+.rd-region button{position:relative;z-index:1;height:24px;min-width:38px;padding:0 10px;border:0;background:none;border-radius:999px;font:400 12px/24px var(--font);letter-spacing:0;text-transform:lowercase;color:var(--w50);cursor:pointer;transition:color .25s ease}
+.rd-sec-right .section-link{font-size:12.5px}
 .rd-region button.on{color:var(--bg)}
 .rd-region-thumb{position:absolute;z-index:0;top:2px;bottom:2px;left:2px;width:calc(50% - 2px);border-radius:999px;background:var(--white);transition:transform .38s cubic-bezier(.32,.72,0,1)}
 .rd-region.us .rd-region-thumb{transform:translateX(100%)}
@@ -3477,7 +3530,7 @@ function rdRegion(r){
         <span>store</span>
       </button>
     </div>
-    <div class="rd-sec-right"><span class="section-link" id="section-como-funciona-link" style="display:none" onclick="showView('como-funciona')">como funciona</span><div class="rd-region" id="rd-region" role="tablist" aria-label="mercado de subastas" style="display:none"><i class="rd-region-thumb" aria-hidden="true"></i><button type="button" role="tab" aria-selected="true" data-r="ve" class="on" onclick="rdRegion('ve')">VEN</button><button type="button" role="tab" aria-selected="false" data-r="us" onclick="rdRegion('us')">USA</button></div></div>
+    <div class="rd-sec-right"><span class="section-link" id="section-como-funciona-link" style="display:none" onclick="showView('como-funciona')">como funciona</span><div class="rd-region" id="rd-region" role="tablist" aria-label="mercado de subastas" style="display:none"><i class="rd-region-thumb" aria-hidden="true"></i><button type="button" role="tab" aria-selected="true" data-r="ve" class="on" onclick="rdRegion('ve')">ven</button><button type="button" role="tab" aria-selected="false" data-r="us" onclick="rdRegion('us')">usa</button></div></div>
   </div>
 
   <!-- AUCTIONS SECTION -->
@@ -9068,7 +9121,7 @@ function renderTrendingHoy(){
     const title=isSubasta?item.title:`${item.year} ${item.marca||''} ${item.modelo||item.title}`;
     return `
     <div class="trending-cell" style="animation:rdvIn .6s cubic-bezier(.22,.61,.36,1) ${i*70}ms both" onclick="${isSubasta?`openDetail('${item.id}')`:`openMarketDetail('${item.id}')`}">
-      ${photoUrl?`<img src="${_tImg(photoUrl,{width:1400,quality:86})}" loading="lazy" decoding="async" style="opacity:0;transition:opacity .5s ease" onload="_rdShow(this)">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
+      ${photoUrl?`<img src="${_tImg(photoUrl,{width:1400,quality:86})}"${_tSrcset(photoUrl,[600,900,1400],86)} sizes="(max-width:767px) 50vw, 700px" ${i<2?'fetchpriority="high"':'loading="lazy"'} decoding="async" style="opacity:0;transition:opacity .5s ease" onload="_rdShow(this)">`:`<div style="position:absolute;inset:0;background:linear-gradient(${grads[_gidx(item.id)]})"></div>`}
       <div class="trending-rank">#${i+1}</div>
       <div class="trending-info">
         <div class="trending-price">${fmtBid(precio)}</div>
@@ -12906,6 +12959,13 @@ window.RUEDDA_IMG_TRANSFORMS = true;
 // seamless sin perder estética: la grilla pide ~800px, el detalle ~1280px, y el visor
 // a pantalla completa (zoom) pide el master en 2000px. Defensivo: si el interruptor está
 // apagado (Free), o la URL no es de Supabase Storage, o algo falla, devuelve la URL tal cual.
+// [perf] srcset: misma foto y calidad; el navegador baja el ancho justo para los píxeles reales
+function _tSrcset(url,widths,quality){
+  try{
+    if(!window.RUEDDA_IMG_TRANSFORMS||!url||url.indexOf('/storage/v1/object/public/')===-1) return '';
+    return ' srcset="'+widths.map(function(w){ return _tImg(url,{width:w,quality:quality})+' '+w+'w'; }).join(', ')+'"';
+  }catch(e){ return ''; }
+}
 function _tImg(url,opts){
   try{
     if(!window.RUEDDA_IMG_TRANSFORMS) return url; // plan Free: original intacto, sin transformar
