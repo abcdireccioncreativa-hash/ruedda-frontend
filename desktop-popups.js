@@ -197,7 +197,7 @@
   function guest(){ try{ return typeof isGuest==='function'&&isGuest(); }catch(e){ return false; } }
   function authOpen(){ var a=document.querySelector('.auth-sheet.open,#auth-sheet.open,#auth-modal.open'); return !!a; }
   function vis(id){ var e=document.getElementById(id); return !!(e&&e.getClientRects().length&&getComputedStyle(e).display!=='none'); }
-  function busy(){ return authOpen()||vis('rd-intro')||vis('boot-splash')||vis('login-splash')||!!document.querySelector('.modal-overlay.open'); }
+  function busy(){ return authOpen()||vis('rd-intro')||vis('boot-splash')||vis('login-splash')||!!document.querySelector('.modal-overlay.open,#rd-city-sheet,#photo-viewer-overlay.open'); }
   var waits=0;
   function showSignup(){
     // sale en cada carga mientras no haya sesión iniciada
@@ -454,6 +454,94 @@
     // si se cierra el de crear cuenta, este se va con él
     if(signup) try{ new MutationObserver(function(){ if(!signup.classList.contains('in')||!signup.isConnected) out(); }).observe(signup,{attributes:true,attributeFilter:['class']}); }catch(e){}
   }
+
+  // ── peritaje: a los 20 s mirando el mismo carro (market, subastas, concesionarios) ──
+  var K_INSP='rd_insp_last';            // último día en que salió (máximo una vez al día)
+  var INSP={
+    tag:'peritaje ruedda',
+    title:'¿Interesado en este activo? Solicita un peritaje profesional',
+    body:'No comprometas tu capital; valida el estado real del activo con el rigor técnico que tu patrimonio exige.',
+    items:[
+      ['<circle cx="12" cy="12" r="9"/><path d="M12 12l4-3M12 3v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 7l1.4-1.4"/>','Inspección física y diagnóstico de telemetría ejecutado por especialistas certificados por Ruedda y FlotaIQ.'],
+      ['<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>','Auditoría legal, trazabilidad de seriales e historial de dominio sin sesgos ni intermediarios.'],
+      ['<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 17v-3M12 17v-6M15 17v-4"/>','Dossier institucional con Health Score, estado de conservación y valoración objetiva de mercado.']
+    ],
+    cta:'Solicitar inspección', later:'Solo estoy viendo',
+    doneTitle:'Las inspecciones están a la vuelta de la esquina.', doneBody:'Te avisaremos por correo.'
+  };
+  function inspCar(){
+    try{
+      if(typeof currentView==='undefined') return null;
+      if(currentView==='market-detail'&&typeof currentMarketListing!=='undefined'&&currentMarketListing) return {id:'l'+currentMarketListing.id,rid:currentMarketListing.id,type:'market',title:currentMarketListing.title||'vehículo'};
+      if(currentView==='detail'&&typeof currentAuction!=='undefined'&&currentAuction) return {id:'a'+currentAuction.id,rid:currentAuction.id,type:'subasta',title:currentAuction.title||'vehículo'};
+    }catch(e){}
+    return null;
+  }
+  function inspToday(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+  function showInsp(car){
+    set(K_INSP,inspToday());
+    var s=INSP, ic=function(p){ return '<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg></i>'; };
+    var logged=!guest();
+    var el=mount(
+      '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
+      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">'+esc(s.tag)+'</span></div>'+
+      '<div class="rdp-slide" data-step="1">'+
+        '<div class="rdp-title">'+esc(s.title)+'</div>'+
+        '<p class="rdp-body">'+esc(s.body)+'</p>'+
+        '<ul class="rdp-il">'+s.items.map(function(it){ return '<li>'+ic(it[0])+'<span>'+esc(it[1])+'</span></li>'; }).join('')+'</ul>'+
+        (logged?'':'<label class="rdp-lbl" for="rdp-insp-mail">tu correo</label><input class="rdp-in" id="rdp-insp-mail" type="email" inputmode="email" autocomplete="email" placeholder="correo electrónico">')+
+        '<button class="rdp-btn" data-a="go">'+esc(s.cta)+'</button>'+
+        '<div class="rdp-row"><button class="rdp-link soft" data-a="later">'+esc(s.later)+'</button></div>'+
+      '</div>',
+      'peritaje',{center:true});
+    isoFill(el.querySelector('.rdp-iso'));
+    function onKey(e){ if(e.key==='Escape'){ var x=el.querySelector('.rdp-x'); if(x) x.click(); } }
+    document.addEventListener('keydown',onKey);
+    el.addEventListener('click',async function(e){
+      var b=e.target.closest('[data-a],.rdp-x'); if(!b) return;
+      var a=b.getAttribute('data-a');
+      if(a==='go'){
+        var mail='';
+        if(!logged){
+          var inp=el.querySelector('#rdp-insp-mail'); mail=(inp&&inp.value||'').trim();
+          if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)){ if(inp){ inp.focus(); inp.style.borderColor='#e5484d'; } return; }
+        }
+        b.disabled=true; b.textContent='enviando…';
+        try{
+          var uid=null, nm=''; try{ if(typeof USER_STATE!=='undefined'&&USER_STATE.id&&!guest()){ uid=USER_STATE.id; nm=USER_STATE.nombre||USER_STATE.username||''; } }catch(err){}
+          if(typeof _supa!=='undefined'&&_supa) await _supa.from('partner_leads').insert({user_id:uid,marca_nombre:car.title,representante:nm||mail||'visitante',telefono:'',motivo:'Peritaje · lista de espera · '+car.type+' '+car.rid+(mail?' · '+mail:'')});
+        }catch(err){}
+        try{ var H=window._rdCapPlugin&&window._rdCapPlugin('Haptics'); H&&H.notification&&H.notification({type:'SUCCESS'}); }catch(err){}
+        var box=el.querySelector('.rdp-slide');
+        box.classList.add('go-l');
+        setTimeout(function(){
+          box.innerHTML='<div class="rdp-ok"><div class="e"><svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#0b0b0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.3l3 3 6-6.5"/></svg></div>'+
+            '<div class="rdp-title" style="margin:0 0 8px">'+esc(s.doneTitle)+'</div><p class="rdp-body" style="margin:0 0 18px">'+esc(s.doneBody)+'</p>'+
+            '<button class="rdp-btn" data-a="close">Entendido</button></div>';
+          box.classList.remove('go-l');
+        },220);
+        return;
+      }
+      document.removeEventListener('keydown',onKey);
+      unmount(el);
+    });
+  }
+  (function(){
+    var cur=null, since=0;
+    setInterval(function(){
+      try{
+        if(document.hidden) return;
+        var c=inspCar();
+        if(!c){ cur=null; return; }
+        if(!cur||cur.id!==c.id){ cur=c; since=Date.now(); return; }
+        if(cur.done||Date.now()-since<20000) return;
+        cur.done=true;
+        if(get(K_INSP)===inspToday()) return;
+        if(busy()||document.querySelector('.rdp.in')||document.querySelector('#photo-viewer-overlay.open,#rd-city-sheet')) { cur.done=false; since=Date.now()-15000; return; }
+        showInsp(c);
+      }catch(e){}
+    },1000);
+  })();
 
   // ── vender: la primera vez que alguien toca "vender" ────────
   var K_SELL='rd_sell_intro_v1';

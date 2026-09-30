@@ -2409,7 +2409,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 </style>
 <link rel="prefetch" href="store.html" as="document">
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
-<script src="/desktop-popups.js?v=20260930c" data-mode="mobile" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
+<script src="/rd-map.js?v=1" defer></script>
+<script src="/desktop-popups.js?v=20260930f" data-mode="mobile" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
 <!-- chat nativo: solo en la app iOS que lo trae (__RD_NATIVE_CHAT); se carga al final, después de todas las funciones de mensajes -->
 <script>(function(){try{if(window.__RD_NATIVE_CHAT){var go=function(){var s=document.createElement('script');s.src='/native-chat.js?v=3';document.head.appendChild(s);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();}}catch(e){}})();</script>
 <!-- aviso "actualiza la app": solo en la app iOS con una versión más vieja que la anunciada en Ruedda Control
@@ -3631,7 +3632,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
             <span id="market-filter-count"></span>
           </button>
-          <button type="button" class="rd-city-btn" id="rd-city-btn" onclick="openCitySheet()" aria-label="buscar por ciudad">
+          <button type="button" class="rd-city-btn" id="rd-city-btn" onpointerdown="window.RDMap&&RDMap.preload()" onclick="openCitySheet()" aria-label="buscar por ciudad">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
             <span id="rd-city-label">ciudad</span>
             <i id="rd-city-clear" onclick="event.stopPropagation();setMarketCity(null)" hidden>×</i>
@@ -3692,7 +3693,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     <!-- MEJORES AGENCIAS -->
     <div class="rdv" style="animation-delay:.12s;padding:26px 18px 8px;display:flex;align-items:center;justify-content:space-between">
       <h2 id="cons-grid-title" style="font-size:20px;font-weight:800;letter-spacing:-.3px">Mejores agencias</h2>
-      <button id="dealer-city-btn" onclick="toggleDealerCityMenu()" style="background:#000;border:1px solid var(--w15);border-radius:100px;padding:7px 14px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--white);cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .15s;position:relative" onmouseover="this.style.borderColor='var(--w35)'" onmouseout="this.style.borderColor='var(--w15)'">
+            <button id="dealer-city-btn" onclick="toggleDealerCityMenu()" style="background:#000;border:1px solid var(--w15);border-radius:100px;padding:7px 14px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--white);cursor:pointer;display:flex;align-items:center;gap:6px;transition:border-color .15s;position:relative" onmouseover="this.style.borderColor='var(--w35)'" onmouseout="this.style.borderColor='var(--w15)'">
         <svg fill="none" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" style="width:11px;height:11px;opacity:.6"><path d="M8 2C5.79 2 4 4.24 4 7c0 3.5 4 7 4 7s4-3.5 4-7c0-2.76-1.79-5-4-5z"/><circle cx="8" cy="7" r="1.5"/></svg>
         <span id="dealer-city-label">ciudad</span>
         <svg fill="none" viewBox="0 0 10 10" stroke="var(--w40)" stroke-width="2" style="width:8px;height:8px"><path d="m2 3.5 3 3 3-3"/></svg>
@@ -3839,7 +3840,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         <div id="detail-stats-card"></div>
         <div class="detail-section">
           <div class="detail-section-title">descripción</div>
-          <p style="font-size:14px;color:var(--muted);line-height:1.75" id="detail-desc"></p>
+          <p style="font-size:14px;color:var(--white);opacity:.7;line-height:1.75" id="detail-desc"></p>
         </div>
         <div class="detail-section">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
@@ -3978,7 +3979,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         </div>
         <div class="detail-section">
           <div class="detail-section-title">descripción</div>
-          <p style="font-size:14px;color:var(--muted);line-height:1.75" id="mkt-desc"></p>
+          <p style="font-size:14px;color:var(--white);opacity:.7;line-height:1.75" id="mkt-desc"></p>
         </div>
         <!-- publicado por — debajo de la descripción -->
         <div class="detail-section" id="mkt-seller-wrap">
@@ -4746,10 +4747,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   </div>
   <div style="padding:4px 18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
     <div style="font-size:13px;color:var(--muted);font-weight:500">fotógrafos autorizados por Ruedda.</div>
-    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="1.6" style="opacity:.8;flex-shrink:0">
-      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-      <circle cx="12" cy="13" r="4"/>
-    </svg>
+    <button type="button" class="rd-map-btn" onpointerdown="window.RDMap&&RDMap.preload()" onclick="window.RDMap&&RDMap.open('fotografos')" aria-label="fotógrafos en el mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>mapa</button>
   </div>
 
   <!-- COVER 4:3 — mismo patrón de app_settings key/value + crossfade que el resto de fotos
@@ -6863,10 +6861,12 @@ function _updateComoFuncionaLink(section){
   if(!cl) return;
   if(section==='consesionarios'){
     cl.innerHTML='<span style="color:var(--lime-text);font-weight:700;font-size:14px">Mapas</span> <span style="font-weight:700;color:var(--white);font-size:14px">de agencias</span>';
-    cl.onclick=function(){ showSoonPill('próximamente'); };
+    cl.onclick=function(){ if(window.RDMap) RDMap.open('agencias'); else showSoonPill('próximamente'); };
+    cl.onpointerdown=function(){ window.RDMap&&RDMap.preload(); };
   }else{
     cl.textContent='como funciona';
     cl.onclick=function(){ showView('como-funciona'); };
+    cl.onpointerdown=null;
   }
 }
 
@@ -7698,7 +7698,7 @@ function _rdInitCityMap(sel,cnt){
 function _rdHaptic(style){
   window._rdHapticNow(style||'LIGHT');
 }
-function openCitySheet(){
+function _rdOldOpenCitySheet(){
   if(document.getElementById('rd-city-sheet')) return;
   const cnt=_rdCityCounts(), max=Math.max(1,...Object.values(cnt));
   const sel=mFilters.city&&mFilters.city!=='todas'?_rdCityKey(mFilters.city):null;
@@ -7721,7 +7721,9 @@ function openCitySheet(){
   requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('on')));
   _rdInitCityMap(sel,cnt);
 }
-function closeCitySheet(){ const ov=document.getElementById('rd-city-sheet'); if(!ov) return; ov.classList.remove('on'); setTimeout(()=>{ try{ if(_rdMap){ _rdMap.remove(); _rdMap=null; _rdMeMarker=null; } }catch(e){} ov.remove(); },300); }
+function _rdOldCloseCitySheet(){ const ov=document.getElementById('rd-city-sheet'); if(!ov) return; ov.classList.remove('on'); setTimeout(()=>{ try{ if(_rdMap){ _rdMap.remove(); _rdMap=null; _rdMeMarker=null; } }catch(e){} ov.remove(); },300); }
+function openCitySheet(){ if(window.RDMap) return RDMap.open('market'); return _rdOldOpenCitySheet(); }
+function closeCitySheet(){ if(window.RDMap&&document.getElementById('rd-city-sheet')&&!_rdMap) return RDMap.close(); return _rdOldCloseCitySheet(); }
 function _rdNearestCity(btn){
   _rdHaptic('LIGHT');
   if(btn.disabled) return;
@@ -7735,11 +7737,11 @@ function _rdNearestCity(btn){
   navigator.geolocation.getCurrentPosition(pos=>{
     if(done) return; done=true; clearTimeout(guard);
     const lat=pos.coords.latitude, lng=pos.coords.longitude;
-    try{ if(_rdMap&&window.maplibregl){ if(_rdMeMarker) _rdMeMarker.remove(); const me=document.createElement('div'); me.className='rd-me'; _rdMeMarker=new maplibregl.Marker({element:me}).setLngLat([lng,lat]).addTo(_rdMap); _rdMap.flyTo({center:[lng,lat],zoom:9,duration:800}); } }catch(e){}
+    try{ if(window.RDMap&&RDMap.map()) RDMap.me(lng,lat); else if(_rdMap&&window.maplibregl){ if(_rdMeMarker) _rdMeMarker.remove(); const me=document.createElement('div'); me.className='rd-me'; _rdMeMarker=new maplibregl.Marker({element:me}).setLngLat([lng,lat]).addTo(_rdMap); _rdMap.flyTo({center:[lng,lat],zoom:8.5,duration:900}); } }catch(e){}
     const cnt=_rdCityCounts(); let best=null,bd=1e9;
     Object.keys(cnt).forEach(k=>{ const c=RD_CITIES[k]; if(!c) return; const d=(c[0]-lat)**2+(c[1]-lng)**2; if(d<bd){bd=d;best=k;} });
     if(!best){ btn.disabled=false; btn.innerHTML=orig; showToast('no hay carros cerca todavía'); return; }
-    document.querySelectorAll('.rd-city-row').forEach(r=>r.classList.toggle('sel',r.getAttribute('onclick')==="setMarketCity('"+best+"')"));
+    document.querySelectorAll('.rd-city-row').forEach(r=>r.classList.toggle('sel',r.getAttribute('data-city')===best||r.getAttribute('onclick')==="setMarketCity('"+best+"')"));
     btn.textContent='más cerca: '+RD_CITIES[best][2];
     _rdHaptic('MEDIUM');
     setTimeout(()=>setMarketCity(best),1500);
