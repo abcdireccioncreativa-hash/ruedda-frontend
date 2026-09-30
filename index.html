@@ -2412,8 +2412,24 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/desktop-popups.js?v=20260930b" data-mode="mobile" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
 <!-- chat nativo: solo en la app iOS que lo trae (__RD_NATIVE_CHAT); se carga al final, después de todas las funciones de mensajes -->
 <script>(function(){try{if(window.__RD_NATIVE_CHAT){var go=function(){var s=document.createElement('script');s.src='/native-chat.js?v=3';document.head.appendChild(s);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();}}catch(e){}})();</script>
-<!-- aviso "actualiza a la 1.5": solo se descarga en la app iOS 1.4 o anterior (sin __RD_NATIVE_SPLASH), una sola vez -->
-<script>(function(){try{var C=window.Capacitor;if(!window.__RD_NATIVE_SPLASH&&C&&C.getPlatform&&C.getPlatform()==='ios'&&!localStorage.getItem('rd_upd_15')){var s=document.createElement('script');s.src='/app-update.js?v=1';s.defer=true;document.head.appendChild(s);}}catch(e){}})();</script>
+<!-- aviso "actualiza la app": solo en la app iOS con una versión más vieja que la anunciada en Ruedda Control
+     (app_settings.app_update_notice). Versión instalada: __RD_APP_VERSION (1.7+) o, en builds anteriores, por
+     sus marcas (__RD_NATIVE_CHAT = 1.6 · __RD_NATIVE_SPLASH = 1.5 · ninguna = 1.4 o menos). Una vez por versión. -->
+<script>(function(){try{
+  var C=window.Capacitor; if(!(C&&C.getPlatform&&C.getPlatform()==='ios')) return;
+  var inst=window.__RD_APP_VERSION||(window.__RD_NATIVE_CHAT?'1.6':window.__RD_NATIVE_SPLASH?'1.5':'1.4');
+  var lt=function(a,b){a=String(a).split('.').map(Number);b=String(b).split('.').map(Number);for(var i=0;i<Math.max(a.length,b.length);i++){var x=a[i]||0,y=b[i]||0;if(x!==y)return x<y;}return false;};
+  var seen=function(v){try{return !!localStorage.getItem(v==='1.5'?'rd_upd_15':'rd_upd_'+v);}catch(e){return true;}};
+  var load=function(n){ if(seen(n.version)) return; window.__RD_UPD=n; var s=document.createElement('script'); s.src='/app-update.js?v=2'; s.defer=true; document.head.appendChild(s); };
+  var go=function(){ setTimeout(async function(){ try{
+    var n=null;
+    if(typeof _supa!=='undefined'&&_supa){ var r=await _supa.from('app_settings').select('value').eq('key','app_update_notice').maybeSingle();
+      var v=r&&r.data&&r.data.value; if(v){ n=typeof v==='string'?JSON.parse(v):v; } }
+    if(n&&n.active!==false&&n.version&&lt(inst,n.version)) return load(n);
+    if(!n&&lt(inst,'1.5')) load({version:'1.5'});
+  }catch(e){} },1500); };
+  if(document.readyState==='complete') go(); else window.addEventListener('load',go);
+}catch(e){}})();</script>
 </head>
 <body>
 

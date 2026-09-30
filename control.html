@@ -323,6 +323,7 @@ async function usersMap(ids){
 }
 const uname=u=>u?(u.nombre||u.username||u.email||'usuario'):'usuario';
 const I={
+  upd:'<path d="M12 16V4M6.5 9.5 12 4l5.5 5.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>',
   home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/>',
   mod:'<path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/>',
   kyc:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h4"/>',
@@ -413,6 +414,7 @@ const VIEWS=[
   {id:'comparativa',t:'Comparativa',i:'act',s:'Histórico de precios por modelo'},
   {h:'Ajustes'},
   {id:'apariencia',t:'Apariencia',i:'car',s:'Banners, Encuentra, intro, logos e insignias'},
+  {id:'actualizacion',t:'Actualización de la app',i:'upd',s:'Aviso para que actualicen la app de iPhone, con sus novedades'},
   {id:'configuracion',t:'Configuración',i:'pay',s:'Datos de pago e historia de Ruedda'}
 ];
 function buildNav(){
@@ -1031,6 +1033,76 @@ function gcLive(){
   _gcCh=sb.channel('control-chatglobal').on('postgres_changes',{event:'*',schema:'public',table:'public_chat_messages'},()=>{
     clearTimeout(gcLive._t); gcLive._t=setTimeout(()=>{ if(CUR==='chatglobal') RENDER.chatglobal(VIEW_TOKEN,[],true); },400);
   }).subscribe();
+}
+
+/* ── ACTUALIZACIÓN DE LA APP (aviso en la app iOS) ── */
+const UPD_DEF={title:'Ruedda se renovó. Actualiza tu app.',body:'Estás usando una versión anterior. Actualiza para tener la experiencia completa, más rápida y más fluida.'};
+const UPD_IC={bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/>',photo:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',star:'<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.5l-5.3 2.9 1.2-6-4.5-4.1 6-.7z"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',store:'<path d="M3 9l1.5-5h15L21 9M4 9v11h16V9M3 9h18M9 20v-6h6v6"/>',bell:'<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',car:'<path d="M5 17h14M3 13l2-5.5A2 2 0 0 1 6.9 6h10.2a2 2 0 0 1 1.9 1.5L21 13v4a1 1 0 0 1-1 1h-1.5M3 13v4a1 1 0 0 0 1 1h1.5M3 13h18"/>',gavel:'<path d="M14 5l5 5M11 8l5 5M9.5 9.5l5 5M3 21l7.5-7.5"/><path d="M12.5 3.5l8 8-2 2-8-8z"/>',lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>'};
+// mismo criterio de íconos que app-update.js
+function updIcon(t){t=t.toLowerCase();if(/chat|mensaj|convers/.test(t))return UPD_IC.chat;if(/foto|imagen|galer/.test(t))return UPD_IC.photo;if(/notific|push|aviso/.test(t))return UPD_IC.bell;if(/reseñ|calific|estrell/.test(t))return UPD_IC.star;if(/subast|puja|oferta/.test(t))return UPD_IC.gavel;if(/concesionari|fundador|vitrina|tienda/.test(t))return UPD_IC.store;if(/segur|privac|verific|protec/.test(t))return UPD_IC.lock;if(/fluid|rápid|rapid|120|veloc|intro|animaci/.test(t))return UPD_IC.bolt;if(/carro|vehícul|vehicul|market|publica/.test(t))return UPD_IC.car;return UPD_IC.shield;}
+let _updStore=null;
+RENDER.actualizacion=async(tok)=>{
+  const V=$('#view');
+  const [{data:row},store]=await Promise.all([
+    sb.from('app_settings').select('value,updated_at').eq('key','app_update_notice').maybeSingle(),
+    fetch('https://itunes.apple.com/lookup?id=6812039590&country=ve').then(r=>r.json()).then(j=>j.results&&j.results[0]).catch(()=>null)
+  ]);
+  if(stale(tok)) return;
+  _updStore=store;
+  let n=null; try{ n=row&&row.value?(typeof row.value==='string'?JSON.parse(row.value):row.value):null; }catch(e){}
+  const storeV=store?store.version:'';
+  const notes=store&&store.releaseNotes?store.releaseNotes.split(/\n+/).map(s=>s.replace(/^[\s•·\-–]+/,'').trim()).filter(Boolean):[];
+  const f=n||{version:storeV,title:UPD_DEF.title,body:UPD_DEF.body,items:notes,active:false};
+  const state=n?(n.active!==false?`<span class="pill g">activo · versión ${esc(n.version)}</span>`:`<span class="pill">desactivado</span>`):`<span class="pill">sin aviso publicado</span>`;
+  V.innerHTML=`<div class="grid g21"><div>
+    ${card('Aviso de actualización',`Sale una sola vez en la app de iPhone a quien tenga una versión anterior a la que pongas aquí, con botón directo a App Store.`,`
+      <div class="form">
+        <label class="field"><span>Versión a anunciar</span><input class="input" id="up-v" value="${esc(f.version||'')}" placeholder="1.7" oninput="updPrev()"></label>
+        <div class="field" style="align-self:end"><span>En App Store ahora</span><div style="height:40px;display:flex;align-items:center;gap:8px">${storeV?`<b>${esc(storeV)}</b><button class="btn" style="height:30px;padding:0 10px" onclick="updUseStore()">usar notas de App Store</button>`:'<span class="muted">no disponible</span>'}</div></div>
+        <label class="field full"><span>Título</span><input class="input" id="up-t" value="${esc(f.title||'')}" oninput="updPrev()"></label>
+        <label class="field full"><span>Texto</span><textarea class="input" id="up-b" rows="3" oninput="updPrev()">${esc(f.body||'')}</textarea></label>
+        <label class="field full"><span>Mejoras · una por línea (el ícono se elige solo)</span><textarea class="input" id="up-i" rows="7" oninput="updPrev()">${esc((f.items||[]).join('\n'))}</textarea></label>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap">${state}
+        <div style="display:flex;gap:10px">${n&&n.active!==false?`<button class="btn" onclick="updSave(false,this)">Desactivar</button>`:''}<button class="btn btn-primary" onclick="updSave(true,this)">Publicar aviso</button></div></div>`)}
+  </div><div>
+    ${card('Vista previa','Así lo ve el usuario en la app',`<div id="up-prev" style="display:flex;justify-content:center;padding:6px 0"></div>`)}
+  </div></div>`;
+  updPrev();
+};
+function updData(){
+  return {version:$('#up-v').value.trim(),title:$('#up-t').value.trim()||UPD_DEF.title,body:$('#up-b').value.trim()||UPD_DEF.body,
+    items:$('#up-i').value.split('\n').map(s=>s.replace(/^[\s•·\-–]+/,'').trim()).filter(Boolean)};
+}
+function updPrev(){
+  const d=updData(), box=$('#up-prev'); if(!box) return;
+  const ic=p=>`<i style="flex:0 0 30px;height:30px;border-radius:6px;background:#f4f4f5;display:flex;align-items:center;justify-content:center;color:#0b0b0b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">${p}</svg></i>`;
+  box.innerHTML=`<div style="width:360px;max-width:100%;background:#fff;color:#0b0b0b;border-radius:8px;padding:26px 22px 18px;box-shadow:0 24px 60px rgba(0,0,0,.18),0 2px 8px rgba(0,0,0,.1);position:relative;font-family:var(--font)">
+    <div style="position:absolute;top:18px;right:18px;font-size:16px;color:#111">✕</div>
+    <div style="display:flex;align-items:center;gap:9px;font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6a6a6a;margin-bottom:14px"><img src="/assets/ruedda-iso-negro.png" style="width:20px;height:23px" alt="">versión ${esc(d.version||'—')}</div>
+    <div style="font-size:19px;line-height:1.22;font-weight:800;letter-spacing:-.02em;margin:0 26px 10px 0">${esc(d.title)}</div>
+    <p style="font-size:14.5px;line-height:1.55;color:#2b2b2b;margin:0 0 18px;white-space:pre-line">${esc(d.body)}</p>
+    <ul style="list-style:none;margin:0 0 20px;padding:0;display:flex;flex-direction:column;gap:11px">${d.items.map(t=>`<li style="display:flex;gap:12px;align-items:center;font-size:14px;line-height:1.4;color:#2b2b2b">${ic(updIcon(t))}<span>${esc(t)}</span></li>`).join('')}</ul>
+    <div style="height:50px;border-radius:6px;background:#0b0b0b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800">Actualizar ahora</div>
+    <div style="text-align:center;margin-top:16px;font-size:14px;font-weight:600;color:#6a6a6a">Más tarde</div></div>`;
+}
+function updUseStore(){
+  const s=_updStore; if(!s) return;
+  $('#up-v').value=s.version||'';
+  if(s.releaseNotes) $('#up-i').value=s.releaseNotes.split(/\n+/).map(x=>x.replace(/^[\s•·\-–]+/,'').trim()).filter(Boolean).join('\n');
+  updPrev();
+}
+async function updSave(active,btn){
+  const d=updData();
+  if(!/^\d+(\.\d+){0,2}$/.test(d.version)) return toast('versión inválida (ej. 1.7)',true);
+  if(active&&!d.items.length) return toast('agrega al menos una mejora',true);
+  const sv=_updStore&&_updStore.version;
+  const newer=(a,b)=>{a=a.split('.').map(Number);b=b.split('.').map(Number);for(let i=0;i<Math.max(a.length,b.length);i++){const x=a[i]||0,y=b[i]||0;if(x!==y)return x>y;}return false;};
+  if(active&&sv&&newer(d.version,sv)&&!confirm(`La ${d.version} todavía no está en App Store (ahí está la ${sv}). Si lo publicas, los usuarios irán a App Store y no verán la actualización. ¿Publicar igual?`)) return;
+  if(active&&!confirm(`¿Publicar el aviso? Lo verá una vez cada usuario de iPhone con una versión anterior a la ${d.version}.`)) return;
+  btn.disabled=true;
+  try{ await setSetting('app_update_notice',JSON.stringify(Object.assign(d,{active,at:new Date().toISOString()}))); toast(active?'aviso publicado':'aviso desactivado'); RENDER.actualizacion(++VIEW_TOKEN); }
+  catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
 }
 
 /* ── SUGERENCIAS ── */
