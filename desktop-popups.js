@@ -455,7 +455,7 @@
     if(signup) try{ new MutationObserver(function(){ if(!signup.classList.contains('in')||!signup.isConnected) out(); }).observe(signup,{attributes:true,attributeFilter:['class']}); }catch(e){}
   }
 
-  // ── peritaje: a los 20 s mirando el mismo carro (market, subastas, concesionarios) ──
+  // ── peritaje: a los 10 s mirando el mismo carro (market, subastas, concesionarios) ──
   var K_INSP='rd_insp_last';            // último día en que salió (máximo una vez al día)
   var INSP={
     tag:'peritaje ruedda',
@@ -534,10 +534,10 @@
         var c=inspCar();
         if(!c){ cur=null; return; }
         if(!cur||cur.id!==c.id){ cur=c; since=Date.now(); return; }
-        if(cur.done||Date.now()-since<20000) return;
+        if(cur.done||Date.now()-since<10000) return;
         cur.done=true;
         if(get(K_INSP)===inspToday()) return;
-        if(busy()||document.querySelector('.rdp.in')||document.querySelector('#photo-viewer-overlay.open,#rd-city-sheet')) { cur.done=false; since=Date.now()-15000; return; }
+        if(busy()||document.querySelector('.rdp.in')||document.querySelector('#photo-viewer-overlay.open,#rd-city-sheet')) { cur.done=false; since=Date.now()-7000; return; }
         showInsp(c);
       }catch(e){}
     },1000);
