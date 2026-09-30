@@ -456,7 +456,9 @@
   }
 
   // ── peritaje: a los 10 s mirando el mismo carro (market, subastas, concesionarios) ──
-  var K_INSP='rd_insp_last';            // último día en que salió (máximo una vez al día)
+  var K_INSP='rd_insp_posts';           // publicaciones donde ya salió (una vez por publicación)
+  function inspSeen(id){ try{ return (JSON.parse(get(K_INSP)||'[]')).indexOf(id)>-1; }catch(e){ return false; } }
+  function inspMark(id){ try{ var l=JSON.parse(get(K_INSP)||'[]'); if(l.indexOf(id)<0) l.push(id); set(K_INSP,JSON.stringify(l.slice(-300))); }catch(e){} }
   var INSP={
     tag:'peritaje ruedda',
     title:'¿Interesado en este activo? Solicita un peritaje profesional',
@@ -479,7 +481,7 @@
   }
   function inspToday(){ var d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
   function showInsp(car){
-    set(K_INSP,inspToday());
+    inspMark(car.id);
     var s=INSP, ic=function(p){ return '<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg></i>'; };
     var logged=!guest();
     var el=mount(
@@ -536,7 +538,7 @@
         if(!cur||cur.id!==c.id){ cur=c; since=Date.now(); return; }
         if(cur.done||Date.now()-since<10000) return;
         cur.done=true;
-        if(get(K_INSP)===inspToday()) return;
+        if(inspSeen(c.id)) return;
         if(busy()||document.querySelector('.rdp.in')||document.querySelector('#photo-viewer-overlay.open,#rd-city-sheet')) { cur.done=false; since=Date.now()-7000; return; }
         showInsp(c);
       }catch(e){}
