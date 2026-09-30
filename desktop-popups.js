@@ -423,6 +423,122 @@
     }catch(e){ return false; }
   };
 
+  // ── vender: la primera vez que alguien toca "vender" ────────
+  var K_SELL='rd_sell_intro_v1';
+  var IC={
+    price:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+    shield:'<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>',
+    gavel:'<path d="M14 5l5 5M11 8l5 5M9.5 9.5l5 5M3 21l7.5-7.5"/><path d="M12.5 3.5l8 8-2 2-8-8z"/>',
+    reach:'<circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/>'
+  };
+  var SELL={
+    tag:'vender en ruedda',
+    title:'Publicar es igual de fácil que en la app azul. Vender, aquí es más rápido.',
+    body:'Tu carro queda en vitrina en minutos. La diferencia es todo lo que viaja con él: datos, confianza y compradores que sí van en serio.',
+    items:[
+      [IC.price,'Precio Justo: tu carro frente al mercado venezolano, para que se venda a lo que vale.'],
+      [IC.shield,'Compradores verificados y chat privado dentro de Ruedda. Sin números regados.'],
+      [IC.gavel,'Precio fijo en el market o subasta en vivo: tú decides cómo vender.'],
+      [IC.reach,'Más ojos encima: trending, hot deals y la comunidad car enthusiast.']
+    ],
+    cta:'Empezar a publicar', later:'Ahora no'
+  };
+  function showSell(cb){
+    var s=SELL, ic=function(p){ return '<i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+p+'</svg></i>'; };
+    var el=mount(
+      '<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
+      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">'+esc(s.tag)+'</span></div>'+
+      '<div class="rdp-title">'+esc(s.title)+'</div>'+
+      '<p class="rdp-body">'+esc(s.body)+'</p>'+
+      '<ul class="rdp-il">'+s.items.map(function(it){ return '<li>'+ic(it[0])+'<span>'+esc(it[1])+'</span></li>'; }).join('')+'</ul>'+
+      '<button class="rdp-btn" data-a="go">'+esc(s.cta)+'</button>'+
+      '<div class="rdp-row"><button class="rdp-link soft" data-a="later">'+esc(s.later)+'</button></div>',
+      'vender en ruedda',{center:true});
+    isoFill(el.querySelector('.rdp-iso'));
+    function onKey(e){ if(e.key==='Escape'){ var x=el.querySelector('.rdp-x'); if(x) x.click(); } }
+    document.addEventListener('keydown',onKey);
+    el.addEventListener('click',function(e){
+      var b=e.target.closest('[data-a],.rdp-x'); if(!b) return;
+      var go=b.getAttribute('data-a')==='go';
+      document.removeEventListener('keydown',onKey);
+      unmount(el,function(){ cb(go); });
+    });
+  }
+  function hookSell(){
+    var orig=window.openVenderModal;
+    if(typeof orig!=='function'||orig._rdSell) return;
+    var w=function(){
+      var self=this,args=arguments;
+      if(get(K_SELL)) return orig.apply(self,args);
+      set(K_SELL,String(Date.now()));
+      showSell(function(go){ if(go) orig.apply(self,args); });
+    };
+    w._rdSell=1; window.openVenderModal=w;
+  }
+
+  // ── correo: sugerencias de dominio al escribir (@gmail.com, …) ──
+  var DOMAINS=['gmail.com','hotmail.com','outlook.com','icloud.com','yahoo.com'];
+  var AC_CSS='.rdp-ac{position:fixed;z-index:10060;box-sizing:border-box;background:#fff;color:#0b0b0b;border-radius:8px;padding:6px;box-shadow:0 18px 44px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.14);font-family:var(--font,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif);opacity:0;transform:translateY(-6px);transition:opacity .16s ease,transform .22s cubic-bezier(.22,1,.36,1);pointer-events:none}'+
+    '.rdp-ac.in{opacity:1;transform:none;pointer-events:auto}'+
+    '.rdp-ac.up{transform:translateY(6px)}.rdp-ac.up.in{transform:none}'+
+    '.rdp-ac button{display:flex;align-items:center;width:100%;border:0;background:none;padding:11px 12px;border-radius:6px;font:inherit;font-size:14.5px;line-height:1.2;color:#6a6a6a;text-align:left;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-tap-highlight-color:transparent}'+
+    '.rdp-ac button span{color:#0b0b0b}.rdp-ac button b{color:#0b0b0b;font-weight:700}'+
+    '.rdp-ac button.on,.rdp-ac button:hover{background:#f4f4f5}';
+  var ac=null, acFor=null, acIdx=-1;
+  function isMail(t){ return !!(t&&t.tagName==='INPUT'&&t.type==='email'&&!t.readOnly&&!t.disabled); }
+  function acHide(){
+    if(!ac) return; var a=ac; ac=null; acFor=null; acIdx=-1;
+    a.classList.remove('in'); setTimeout(function(){ if(a.parentNode) a.parentNode.removeChild(a); },220);
+  }
+  function acPlace(){
+    if(!ac||!acFor) return;
+    var r=acFor.getBoundingClientRect(), vv=window.visualViewport, vh=vv?vv.height+vv.offsetTop:window.innerHeight;
+    ac.style.left=Math.max(8,r.left)+'px'; ac.style.width=Math.max(220,r.width)+'px';
+    var h=ac.offsetHeight, below=vh-r.bottom;
+    if(below<h+12&&r.top>h+12){ ac.classList.add('up'); ac.style.top=(r.top-h-6)+'px'; }
+    else { ac.classList.remove('up'); ac.style.top=(r.bottom+6)+'px'; }
+  }
+  function acPick(t,val){
+    t.value=val;
+    try{ t.setSelectionRange(val.length,val.length); }catch(e){}
+    acHide();
+    try{ t.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
+  }
+  function acUpdate(t){
+    var v=(t.value||'').trim();
+    if(!v||/\s/.test(v)) return acHide();
+    var at=v.indexOf('@'), user=at<0?v:v.slice(0,at), dom=at<0?'':v.slice(at+1).toLowerCase();
+    if(!user||v.indexOf('@',at+1)>-1) return acHide();
+    var list=DOMAINS.filter(function(d){ return d.indexOf(dom)===0&&d!==dom; });
+    if(!list.length) return acHide();
+    if(!document.getElementById('rdp-ac-css')){ var st=document.createElement('style'); st.id='rdp-ac-css'; st.textContent=AC_CSS; document.head.appendChild(st); }
+    if(!ac){
+      ac=document.createElement('div'); ac.className='rdp-ac'; ac.setAttribute('role','listbox');
+      // pointerdown sin perder el foco del campo (el teclado no se cierra)
+      ac.addEventListener('pointerdown',function(e){ e.preventDefault(); });
+      ac.addEventListener('click',function(e){ var b=e.target.closest('button'); if(b&&acFor) acPick(acFor,b.getAttribute('data-v')); });
+      document.body.appendChild(ac);
+      requestAnimationFrame(function(){ if(ac) ac.classList.add('in'); });
+    }
+    acFor=t; acIdx=-1;
+    ac.innerHTML=list.map(function(d){ var val=user+'@'+d; return '<button type="button" role="option" data-v="'+esc(val)+'"><span>'+esc(user)+'</span>@<b>'+esc(d)+'</b></button>'; }).join('');
+    acPlace();
+  }
+  document.addEventListener('input',function(e){ if(isMail(e.target)) acUpdate(e.target); },true);
+  document.addEventListener('focusout',function(e){ if(e.target===acFor) setTimeout(function(){ if(document.activeElement!==acFor) acHide(); },150); },true);
+  document.addEventListener('keydown',function(e){
+    if(!ac||e.target!==acFor) return;
+    var bs=ac.querySelectorAll('button'); if(!bs.length) return;
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault(); acIdx=(acIdx+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;
+      for(var k=0;k<bs.length;k++) bs[k].className=k===acIdx?'on':'';
+    } else if((e.key==='Enter'||e.key==='Tab')&&acIdx>-1){ e.preventDefault(); acPick(acFor,bs[acIdx].getAttribute('data-v')); }
+    else if(e.key==='Escape') acHide();
+  },true);
+  window.addEventListener('resize',acPlace);
+  if(window.visualViewport) window.visualViewport.addEventListener('resize',acPlace);
+  window.addEventListener('scroll',acPlace,true);
+
   // ── secuencia: después del splash → cookies → cuenta ───────
   function start(){
     var fired=false;
@@ -435,5 +551,5 @@
     try{ if(window._rdSplashDone&&window._rdSplashDone.then) window._rdSplashDone.then(go,go); else go(); }catch(e){ go(); }
     setTimeout(go,5000);
   }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',function(){ hookSell(); start(); }); else { hookSell(); start(); }
 })();
