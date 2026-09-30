@@ -406,6 +406,7 @@ const VIEWS=[
   {id:'clips',t:'Clips',i:'act',s:'Videos de la comunidad'},
   {id:'eventos',t:'Eventos',i:'home',s:'Car meets y eventos'},
   {id:'mensajes',t:'Mensajes Ruedda',i:'msg',s:'Anuncios oficiales a todos los usuarios'},
+  {id:'chatglobal',t:'Chat global',i:'msg',s:'Conduciendo el mercado · modera los mensajes de la comunidad'},
   {id:'sugerencias',t:'Sugerencias',i:'flag',s:'Buzón de sugerencias y reportes de bugs'},
   {h:'Precios'},
   {id:'criterio',t:'Criterio Ruedda',i:'bid',s:'Precio justo manual por publicación'},
@@ -1002,6 +1003,34 @@ async function rtmSend(btn){
 async function setImageSetting(key,view,opt){
   const f=await pickFile(); if(!f) return; toast('subiendo…');
   try{ const url=await upload('assets',f,key.replace(/_url$/,''),opt||{}); await setSetting(key,url); toast('imagen actualizada'); RENDER[view](++VIEW_TOKEN); }catch(e){ toast('error: '+e.message,true); }
+}
+
+/* ── CHAT GLOBAL (moderación) ── */
+RENDER.chatglobal=async(tok,_,soft)=>{
+  const V=$('#view'); if(!soft) V.innerHTML='<div class="card"><div style="padding:18px"><div class="skel" style="height:40px"></div></div></div>';
+  const{data,error}=await sb.from('public_chat_messages').select('id,user_id,text,image_url,created_at').eq('room','conduciendo-el-mercado').order('created_at',{ascending:false}).limit(35);
+  if(stale(tok)) return;
+  if(error){ V.innerHTML=`<div class="card">${empty('No se pudo cargar',error.message)}</div>`; return; }
+  gcLive();
+  if(!data.length){ V.innerHTML=`<div class="card">${empty('Chat vacío','Los mensajes de la comunidad en "conduciendo el mercado" aparecen aquí.')}</div>`; return; }
+  const um=await usersMap(data.map(m=>m.user_id)); if(stale(tok)) return;
+  V.innerHTML=`<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Usuario</th><th>Mensaje</th><th>Foto</th><th>Fecha</th><th class="r"></th></tr></thead><tbody>${data.map(m=>{const u=um[m.user_id];return `<tr id="gc-${m.id}"><td><div class="who" style="cursor:pointer" onclick="openUser('${m.user_id}')">${avatar(u)}<div><div class="n">${esc(uname(u))}</div>${u&&u.username?`<div class="muted" style="font-size:12px">@${esc(u.username)}</div>`:''}</div></div></td><td style="white-space:pre-wrap;max-width:520px">${m.text?esc(m.text):'<span class="muted">—</span>'}</td><td>${m.image_url?`<img src="${esc(tImg(m.image_url,120))}" alt="" loading="lazy" onclick="lightbox('${esc(m.image_url)}')" style="width:56px;height:56px;object-fit:cover;border-radius:8px;cursor:zoom-in;display:block">`:''}</td><td class="muted" style="white-space:nowrap">${ago(m.created_at)}</td><td class="r">${delBtn(`gcDel('${m.id}',this)`)}</td></tr>`;}).join('')}</tbody></table></div>`;
+};
+async function gcDel(id,btn){
+  if(!confirm('¿Eliminar este mensaje del chat global? Desaparece para todos.')) return;
+  btn.disabled=true;
+  const{data,error}=await sb.from('public_chat_messages').delete().eq('id',id).select('id');
+  if(error||!data||!data.length){ toast(error?('error: '+error.message):'no se pudo eliminar (sin permiso)',true); btn.disabled=false; return; }
+  const tr=document.getElementById('gc-'+id); if(tr) tr.remove();
+  toast('mensaje eliminado');
+}
+// en vivo: si entra o se borra un mensaje mientras estás en la sección, se refresca sola
+let _gcCh=null;
+function gcLive(){
+  if(_gcCh) return;
+  _gcCh=sb.channel('control-chatglobal').on('postgres_changes',{event:'*',schema:'public',table:'public_chat_messages'},()=>{
+    clearTimeout(gcLive._t); gcLive._t=setTimeout(()=>{ if(CUR==='chatglobal') RENDER.chatglobal(VIEW_TOKEN,[],true); },400);
+  }).subscribe();
 }
 
 /* ── SUGERENCIAS ── */
