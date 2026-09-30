@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ruedda</title><meta name="robots" content="noindex">
+<style>html,body{margin:0;height:100%;background:#000}</style>
+<script>
+/* QR "prueba Ruedda en tu teléfono": iPhone → App Store · Android y el resto → la web.
+   Si la app ya está instalada, iOS abre este link en la app (universal link) y aquí se va al inicio. */
+(function(){
+  var ua=navigator.userAgent||'';
+  var inApp=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+  if(inApp){ location.replace('/'); return; }
+  var ios=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  location.replace(ios?'https://apps.apple.com/app/ruedda-la-app-automotriz/id6812039590':'/');
+})();
+</script></head><body></body></html>

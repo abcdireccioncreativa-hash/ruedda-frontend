@@ -43,6 +43,14 @@
       "continue": true
     },
     {
+      "src": "^/app/?$",
+      "headers": {
+        "Cache-Control": "no-cache",
+        "X-Robots-Tag": "noindex"
+      },
+      "dest": "/app.html"
+    },
+    {
       "src": "^/control/?$",
       "headers": {
         "Cache-Control": "no-cache",

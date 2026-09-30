@@ -222,6 +222,7 @@
       '<div class="rdp-row"><button class="rdp-link soft" data-a="later">'+esc(c.later)+'</button></div>',
       'crear cuenta');
     isoFill(el.querySelector('.rdp-iso'));
+    if(!MOBILE) showQR(el);
     // ── mini tour: cambia el contenido dentro del mismo popup ──
     var cur=0, busyAnim=false, box=el.querySelector('.rdp-slide'), tagt=el.querySelector('.rdp-tagt');
     var dots=el.querySelectorAll('.rdp-dots i'), prev=el.querySelector('[data-a="prev"]'), next=el.querySelector('[data-a="next"]');
@@ -422,6 +423,35 @@
       return true;
     }catch(e){ return false; }
   };
+
+  // ── desktop: "prueba Ruedda en tu teléfono" con QR, al lado del de crear cuenta ──
+  var QR_CSS='.rdp.rdp-qr{right:calc(24px + 384px + 14px);width:252px;padding:22px 22px 18px;text-align:left}'+
+    '.rdp-qr .rdp-title{font-size:17px;margin:0 26px 8px 0}'+
+    '.rdp-qr .rdp-body{font-size:13px;line-height:1.5;margin:0 0 14px;color:#4a4a4a}'+
+    '.rdp-qr-code{display:block;width:176px;height:176px;margin:0 auto;border-radius:14px;box-shadow:0 0 0 1px #ededed}'+
+    '.rdp-qr-foot{display:flex;justify-content:center;gap:12px;margin-top:12px;font-size:10.5px;font-weight:600;color:#8a8a8a;white-space:nowrap}'+
+    '.rdp-qr-foot b{color:#0b0b0b;font-weight:700}'+
+    '@media (max-width:1099px),(max-height:620px){.rdp.rdp-qr{display:none}}';
+  function showQR(signup){
+    if(window.innerWidth<1100||window.innerHeight<620) return;
+    if(!document.getElementById('rdp-qr-css')){ var st=document.createElement('style'); st.id='rdp-qr-css'; st.textContent=QR_CSS; document.head.appendChild(st); }
+    var el=document.createElement('div');
+    el.className='rdp rdp-qr'; el.setAttribute('role','dialog'); el.setAttribute('aria-label','prueba Ruedda en tu teléfono');
+    el.innerHTML='<button class="rdp-x" aria-label="cerrar">'+X+'</button>'+
+      '<div class="rdp-tag"><span class="rdp-iso" aria-hidden="true"></span><span class="rdp-tagt">la app</span></div>'+
+      '<div class="rdp-title">Prueba Ruedda en tu teléfono.</div>'+
+      '<p class="rdp-body">Escanea con la cámara y lleva el market, las subastas y tus chats en el bolsillo.</p>'+
+      '<img class="rdp-qr-code" src="/assets/qr-app.svg" alt="QR para descargar Ruedda" width="176" height="176" decoding="async">'+
+      '<div class="rdp-qr-foot"><span><b>iPhone</b> · App Store</span><span><b>Android</b> · pronto</span></div>';
+    document.body.appendChild(el);
+    isoFill(el.querySelector('.rdp-iso'));
+    // entra un instante después que el de crear cuenta, como pareja
+    setTimeout(function(){ requestAnimationFrame(function(){ el.classList.add('in'); }); },160);
+    function out(){ if(el._gone) return; el._gone=true; el.classList.remove('in'); el.classList.add('out'); setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); },300); }
+    el.querySelector('.rdp-x').addEventListener('click',out);
+    // si se cierra el de crear cuenta, este se va con él
+    try{ new MutationObserver(function(){ if(!signup.classList.contains('in')||!signup.isConnected) out(); }).observe(signup,{attributes:true,attributeFilter:['class']}); }catch(e){}
+  }
 
   // ── vender: la primera vez que alguien toca "vender" ────────
   var K_SELL='rd_sell_intro_v1';
