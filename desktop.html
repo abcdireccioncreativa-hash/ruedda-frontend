@@ -2102,7 +2102,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 </style>
 <link rel="prefetch" href="store.html" as="document">
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
-<script src="/desktop-popups.js?v=20260930c" defer></script><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
+<script src="/desktop-popups.js?v=20260930d" defer></script><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 </head>
 <body>
 
@@ -11416,11 +11416,14 @@ function _tImg(url,opts){
     const dpr=Math.min(Math.max(window.devicePixelRatio||1,1),2);
     // +25 % en fotos de tarjeta: object-fit:cover recorta y la foto necesita más píxeles que
     // el ancho de la tarjeta (tarjetas más altas que la foto) — nítidas como en Cars & Bids.
-    const want=Math.min(Math.ceil((o.width||400)*dpr*((o.width||400)<=900?1.25:1)),2500);
-    const w=LADDER.find(x=>x>=want)||2500;
-    // calidad alta a proposito: en un marketplace de carros la foto ES el producto.
-    // webp en este rango es indistinguible del original a simple vista.
-    const q=w<=640?80:(w<=960?84:(w<=1440?86:88));
+    // miniaturas (vista previa borrosa, avatares): tamaño exacto, sin escalera — pesan ~2 KB
+    const tiny=(o.width||400)<=96;
+    // retina exacta (2x) con techo 1920: nítidas como Cars & Bids sin bajar de más
+    const want=tiny?Math.ceil((o.width||40)*dpr):Math.min(Math.ceil((o.width||400)*dpr),1920);
+    const w=tiny?want:(LADDER.find(x=>x>=want)||1920);
+    // calidad por tamaño, como Cars & Bids (ellos usan 70): las grandes pesan la mitad que
+    // a 86 y a 2x no se nota la diferencia; las chicas conservan más calidad.
+    const q=tiny?(o.quality||40):(w<=640?80:(w<=960?78:75));
     const base=url.replace(MARK,'/storage/v1/render/image/public/');
     const params=['width='+w,'quality='+q];
     if(o.height) params.push('height='+Math.min(Math.ceil(o.height*dpr),2500));
@@ -15593,6 +15596,8 @@ function enterApp(){
   document.getElementById('view-landing').classList.remove('active');
   document.body.classList.remove('on-landing');
   showView('home');
+  // los avisos salen apenas se entra al market (no esperan su temporizador)
+  try{ if(window._rdPopupsNow) setTimeout(window._rdPopupsNow,350); }catch(e){}
 }
 let authMode='register';
 function showLandingAuth(mode){
@@ -22008,3 +22013,57 @@ html[data-theme="light"] #rd-levels-sheet,html[data-theme="light"] #checkout-lev
 html:not([data-theme="light"]) #login-splash .rd-wel{stroke:#e6f03b}
 html:not([data-theme="light"]) #login-splash .rd-wel-track{stroke:rgba(230,240,59,.15)}
 </style>
+
+<script>
+/* [desktop · fotos] mientras una foto carga se ve su versión mini BORROSA (como en la app),
+   nunca una caja oscura; al llegar la nítida, la borrosa se desvanece. Automático para toda
+   foto de Supabase que aún no esté lista. Y mientras estás en la portada, el primer
+   pantallazo del market se baja por detrás: "ir al market" abre con las fotos listas. */
+(function(){
+  var RE=/\/storage\/v1\/render\/image\/public\//;
+  function mini(src){ return src.replace(/([?&])width=\d+/,'$1width='+Math.ceil(48*Math.min(2,window.devicePixelRatio||1))).replace(/([?&])quality=\d+/,'$1quality=40').replace(/&height=\d+/,''); }
+  function attach(img){
+    try{
+      if(!img||img.tagName!=='IMG'||img.classList.contains('rd-lq')||img.dataset.rdlq) return;
+      var src=img.getAttribute('src'); if(!src||!RE.test(src)) return;
+      var w=+((src.match(/[?&]width=(\d+)/)||[])[1]||0); if(w&&w<200) return;
+      if(img.complete&&img.naturalWidth) return;
+      var box=img.parentElement; if(!box) return;
+      for(var c=box.firstElementChild;c;c=c.nextElementSibling){ if(c.classList&&c.classList.contains('rd-lq')) return; }
+      img.dataset.rdlq='1';
+      if(getComputedStyle(box).position==='static') box.style.position='relative';
+      var l=document.createElement('img'); l.className='rd-lq'; l.alt=''; l.setAttribute('aria-hidden','true'); l.decoding='async';
+      if(img.loading==='lazy') l.loading='lazy';
+      l.src=mini(src);
+      box.insertBefore(l,img);
+      img.addEventListener('load',function(){ setTimeout(function(){ l.style.transition='opacity .4s ease'; l.style.opacity='0'; setTimeout(function(){ l.remove(); },450); },420); },{once:true});
+      img.addEventListener('error',function(){ l.remove(); },{once:true});
+    }catch(e){}
+  }
+  function scan(root){ if(root.tagName==='IMG') attach(root); else if(root.querySelectorAll) root.querySelectorAll('img').forEach(attach); }
+  new MutationObserver(function(ms){
+    ms.forEach(function(m){ if(m.type==='attributes') attach(m.target); else m.addedNodes.forEach(function(n){ if(n.nodeType===1) scan(n); }); });
+  }).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['src']});
+  scan(document);
+
+  // precarga del market desde la portada (fotos del primer pantallazo + sus miniaturas)
+  function warm(){
+    try{
+      var land=document.getElementById('view-landing'); if(!land||!land.classList.contains('active')) return;
+      var home=document.getElementById('view-home'); if(!home) return;
+      var n=0;
+      home.querySelectorAll('img').forEach(function(im){
+        if(n>=14) return;
+        var s=im.getAttribute('src')||im.getAttribute('data-hsrc'); if(!s||!RE.test(s)||im.classList.contains('rd-lq')) return;
+        var w=+((s.match(/[?&]width=(\d+)/)||[])[1]||0); if(w&&w<200) return;
+        n++;
+        var a=new Image(); a.decoding='async'; try{ a.fetchPriority='low'; }catch(e){} a.src=s;
+        var b=new Image(); b.src=mini(s);
+      });
+    }catch(e){}
+  }
+  var fs=window._rueddaFirstScreenReady||window._rueddaBootPromise;
+  var go=function(){ (window.requestIdleCallback||function(f){ setTimeout(f,300); })(warm,{timeout:1500}); };
+  if(fs&&fs.then) fs.then(function(){ setTimeout(go,400); },go); else addEventListener('load',function(){ setTimeout(go,1200); });
+})();
+</script>

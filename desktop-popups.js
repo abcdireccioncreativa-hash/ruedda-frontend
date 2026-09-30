@@ -586,13 +586,22 @@
 
   // ── secuencia: después del splash → cookies → cuenta ───────
   function start(){
-    var fired=false;
+    var fired=false, tm=[], now=false;
+    function later(f,ms){ tm.push(setTimeout(f,ms)); }
     function go(){
       if(fired) return; fired=true;
-      if(MOBILE) return void setTimeout(showSignup,6000);
-      if(!get(K_CONSENT)) setTimeout(function(){ showCookies(function(){ setTimeout(showSignup,2200); }); },1200);
-      else setTimeout(showSignup,6000);
+      if(MOBILE) return void later(showSignup,6000);
+      if(!get(K_CONSENT)) later(function(){ showCookies(function(){ later(showSignup,now?500:2200); }); },1200);
+      else later(showSignup,6000);
     }
+    // desktop: al entrar al market salen YA (sin esperar el temporizador)
+    window._rdPopupsNow=function(){
+      if(MOBILE||now) return; now=true;
+      tm.forEach(clearTimeout); tm=[]; fired=true;
+      if(document.querySelector('.rdp.in')) return;
+      if(!get(K_CONSENT)) showCookies(function(){ later(showSignup,500); });
+      else showSignup();
+    };
     try{ if(window._rdSplashDone&&window._rdSplashDone.then) window._rdSplashDone.then(go,go); else go(); }catch(e){ go(); }
     setTimeout(go,5000);
   }
