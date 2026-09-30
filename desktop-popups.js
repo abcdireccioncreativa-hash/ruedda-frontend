@@ -478,7 +478,7 @@
 
   // ── correo: sugerencias de dominio al escribir (@gmail.com, …) ──
   var DOMAINS=['gmail.com','hotmail.com','outlook.com','icloud.com','yahoo.com'];
-  var AC_CSS='.rdp-ac{position:fixed;z-index:10060;box-sizing:border-box;background:#fff;color:#0b0b0b;border-radius:8px;padding:6px;box-shadow:0 18px 44px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.14);font-family:var(--font,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif);opacity:0;transform:translateY(-6px);transition:opacity .16s ease,transform .22s cubic-bezier(.22,1,.36,1);pointer-events:none}'+
+  var AC_CSS='.rdp-ac{position:fixed;z-index:2147483600;box-sizing:border-box;background:#fff;color:#0b0b0b;border-radius:8px;padding:6px;box-shadow:0 18px 44px rgba(0,0,0,.3),0 2px 8px rgba(0,0,0,.14);font-family:var(--font,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif);opacity:0;transform:translateY(-6px);transition:opacity .16s ease,transform .22s cubic-bezier(.22,1,.36,1);pointer-events:none}'+
     '.rdp-ac.in{opacity:1;transform:none;pointer-events:auto}'+
     '.rdp-ac.up{transform:translateY(6px)}.rdp-ac.up.in{transform:none}'+
     '.rdp-ac button{display:flex;align-items:center;width:100%;border:0;background:none;padding:11px 12px;border-radius:6px;font:inherit;font-size:14.5px;line-height:1.2;color:#6a6a6a;text-align:left;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;-webkit-tap-highlight-color:transparent}'+
@@ -486,7 +486,16 @@
     '.rdp-ac button.on,.rdp-ac button:hover{background:#f4f4f5}';
   var ac=null, acFor=null, acIdx=-1;
   function isMail(t){ return !!(t&&t.tagName==='INPUT'&&t.type==='email'&&!t.readOnly&&!t.disabled); }
+  // sigue a la caja en cada cuadro mientras está abierto (el formulario se anima y el teclado lo mueve)
+  var acRaf=0, acLast='';
+  function acFollow(){
+    acRaf=0; if(!ac||!acFor) return;
+    var r=acFor.getBoundingClientRect(), k=r.top+'|'+r.left+'|'+r.width+'|'+(window.visualViewport?window.visualViewport.height+'|'+window.visualViewport.offsetTop:'');
+    if(k!==acLast){ acLast=k; acPlace(); }
+    acRaf=requestAnimationFrame(acFollow);
+  }
   function acHide(){
+    if(acRaf){ cancelAnimationFrame(acRaf); acRaf=0; } acLast='';
     if(!ac) return; var a=ac; ac=null; acFor=null; acIdx=-1;
     a.classList.remove('in'); setTimeout(function(){ if(a.parentNode) a.parentNode.removeChild(a); },220);
   }
@@ -494,9 +503,14 @@
     if(!ac||!acFor) return;
     var r=acFor.getBoundingClientRect(), vv=window.visualViewport, vh=vv?vv.height+vv.offsetTop:window.innerHeight;
     ac.style.left=Math.max(8,r.left)+'px'; ac.style.width=Math.max(220,r.width)+'px';
-    var h=ac.offsetHeight, below=vh-r.bottom;
-    if(below<h+12&&r.top>h+12){ ac.classList.add('up'); ac.style.top=(r.top-h-6)+'px'; }
-    else { ac.classList.remove('up'); ac.style.top=(r.bottom+6)+'px'; }
+    var vtop=vv?vv.offsetTop:0, h=ac.scrollHeight, below=vh-r.bottom-8, above=r.top-vtop-8;
+    // nunca encima de la caja: abajo si cabe; si no, arriba; si tampoco, abajo con scroll interno
+    var up=below<h+6&&above>below;
+    var room=Math.max(96,(up?above:below)-6);
+    ac.style.maxHeight=room+'px'; ac.style.overflowY=h>room?'auto':'hidden';
+    h=Math.min(h,room);
+    ac.classList.toggle('up',up);
+    ac.style.top=(up?r.top-h-6:r.bottom+6)+'px';
   }
   function acPick(t,val){
     t.value=val;
@@ -520,7 +534,8 @@
       document.body.appendChild(ac);
       requestAnimationFrame(function(){ if(ac) ac.classList.add('in'); });
     }
-    acFor=t; acIdx=-1;
+    acFor=t; acIdx=-1; acLast='';
+    if(!acRaf) acRaf=requestAnimationFrame(acFollow);
     ac.innerHTML=list.map(function(d){ var val=user+'@'+d; return '<button type="button" role="option" data-v="'+esc(val)+'"><span>'+esc(user)+'</span>@<b>'+esc(d)+'</b></button>'; }).join('');
     acPlace();
   }
