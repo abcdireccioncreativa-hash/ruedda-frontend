@@ -25,7 +25,7 @@ self.addEventListener('activate', (event) => {
 // [pwa-perf] estáticos propios: fuentes/íconos con hash → cache-first (nunca cambian);
 // splash, isotipo y popups → stale-while-revalidate (sale al instante y se refresca atrás).
 const STATIC_CACHE = 'ruedda-static-v1';
-function isImmutable(u){ return u.origin === self.location.origin && /^\/assets\/(fonts|inline)\//.test(u.pathname); }
+function isImmutable(u){ return u.origin === self.location.origin && (/^\/assets\/(fonts|inline)\//.test(u.pathname) || /^\/_rd\//.test(u.pathname)); }
 function isSWR(u){ return u.origin === self.location.origin && (/^\/splash\//.test(u.pathname) || /^\/assets\//.test(u.pathname) || u.pathname === '/desktop-popups.js'); }
 self.addEventListener('fetch', (event) => {
   const req = event.request;
