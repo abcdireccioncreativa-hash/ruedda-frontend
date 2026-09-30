@@ -2411,7 +2411,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
 <script src="/desktop-popups.js" data-mode="mobile" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
 <!-- chat nativo: solo en la app iOS que lo trae (__RD_NATIVE_CHAT); se carga al final, después de todas las funciones de mensajes -->
-<script>(function(){try{if(window.__RD_NATIVE_CHAT){var go=function(){var s=document.createElement('script');s.src='/native-chat.js?v=1';document.head.appendChild(s);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();}}catch(e){}})();</script>
+<script>(function(){try{if(window.__RD_NATIVE_CHAT){var go=function(){var s=document.createElement('script');s.src='/native-chat.js?v=2';document.head.appendChild(s);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();}}catch(e){}})();</script>
 <!-- aviso "actualiza a la 1.5": solo se descarga en la app iOS 1.4 o anterior (sin __RD_NATIVE_SPLASH), una sola vez -->
 <script>(function(){try{var C=window.Capacitor;if(!window.__RD_NATIVE_SPLASH&&C&&C.getPlatform&&C.getPlatform()==='ios'&&!localStorage.getItem('rd_upd_15')){var s=document.createElement('script');s.src='/app-update.js?v=1';s.defer=true;document.head.appendChild(s);}}catch(e){}})();</script>
 </head>

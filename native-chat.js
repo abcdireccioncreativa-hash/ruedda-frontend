@@ -188,18 +188,66 @@
     ch=c; return true;
   };
 
-  // ── cerrar: la bandeja se refresca y, si hace falta, se abre lo tocado ──
-  RDNC.closed=function(a){
-    stopLive(); cur=null;
-    try{ if(typeof _loadPrivateMessages==='function') _loadPrivateMessages(true); }catch(e){}
+  function doAction(a){
     try{
-      if(!a||!a.t) return true;
+      if(!a||!a.t) return;
       if(a.t==='profile') (a.dealer?_openVitrinaByUserId:openUserProfile)(a.id);
       else if(a.t==='source') _goToSource(String(a.id),a.type||'');
       else if(a.t==='listing') openMarketDetail(String(a.id));
     }catch(e){}
+  }
+  // ── cerrar: la bandeja se refresca y, si hace falta, se abre lo tocado ──
+  RDNC.closed=function(a){
+    stopLive(); cur=null; parked=null;
+    try{ if(typeof _loadPrivateMessages==='function') _loadPrivateMessages(true); }catch(e){}
+    doAction(a);
     return true;
   };
+
+  // ── perfil / publicación POR ENCIMA del chat (como WhatsApp) ─────────
+  // El chat queda en pausa en iOS; al volver de esa pantalla, el chat regresa
+  // tal cual estaba en vez de ir al inicio.
+  var parked=null, ROOTS=['home','notificaciones','favoritos','cuenta'];
+  RDNC.peek=async function(a){
+    parked={t:Date.now(),view:null};
+    doAction(a);
+    // espera a que la vista nueva esté puesta (el perfil y la vitrina cargan async)
+    for(var i=0;i<20;i++){ await new Promise(function(r){ setTimeout(r,40); }); if(currentView!=='notificaciones') break; }
+    parked.view=currentView;
+    return parked.view;
+  };
+  function resume(nav){
+    parked=null; post({ev:'resume'});
+    window.__rdResumeNav=nav;
+  }
+  RDNC.resumed=function(){
+    var n=window.__rdResumeNav; window.__rdResumeNav=null;
+    try{ if(n) n(); else { webShowView('notificaciones'); if(typeof switchNotifTab==='function') switchNotifTab('mensajes'); } }catch(e){}
+    return true;
+  };
+  RDNC.unparked=function(){ parked=null; return true; };
+  var webShowView=window.showView;
+  window.showView=function(name){
+    if(parked&&parked.view){
+      // volver desde el perfil (su "atrás" va a la bandeja) → regresa el chat
+      if(name==='notificaciones'&&currentView===parked.view){ resume(null); return; }
+      // se fue a otra sección desde otra pantalla: el chat en pausa se suelta
+      if(ROOTS.indexOf(name)>-1&&currentView!==parked.view){ parked=null; post({ev:'unpark'}); }
+    }
+    return webShowView.apply(this,arguments);
+  };
+  // publicaciones, subastas y vitrinas salen por su propio "volver": desde un chat, vuelven al chat
+  ['_rdExitMarketDetail','_rdExitAuctionDetail','_rdExitVitrina'].forEach(function(fn){
+    var orig=window[fn]; if(typeof orig!=='function') return;
+    window[fn]=function(afterNav){
+      if(parked&&parked.view&&currentView===parked.view){
+        try{ if(fn!=='_rdExitVitrina'&&typeof _stopViewerPresence==='function') _stopViewerPresence(); }catch(e){}
+        resume(function(){ webShowView('notificaciones'); if(typeof switchNotifTab==='function') switchNotifTab('mensajes'); if(typeof afterNav==='function') afterNav(); });
+        return;
+      }
+      return orig.apply(this,arguments);
+    };
+  });
   // al volver del segundo plano, el socket de iOS puede haber muerto: iOS lo pide de nuevo
   RDNC.wake=function(){ if(cur) RDNC.live(cur.kind,cur.otherId); return true; };
 
