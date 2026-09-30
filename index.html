@@ -2410,6 +2410,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <link rel="prefetch" href="store.html" as="document">
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
 <script src="/desktop-popups.js" data-mode="mobile" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
+<!-- chat nativo: solo en la app iOS que lo trae (__RD_NATIVE_CHAT); se carga al final, después de todas las funciones de mensajes -->
+<script>(function(){try{if(window.__RD_NATIVE_CHAT){var go=function(){var s=document.createElement('script');s.src='/native-chat.js?v=1';document.head.appendChild(s);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();}}catch(e){}})();</script>
 <!-- aviso "actualiza a la 1.5": solo se descarga en la app iOS 1.4 o anterior (sin __RD_NATIVE_SPLASH), una sola vez -->
 <script>(function(){try{var C=window.Capacitor;if(!window.__RD_NATIVE_SPLASH&&C&&C.getPlatform&&C.getPlatform()==='ios'&&!localStorage.getItem('rd_upd_15')){var s=document.createElement('script');s.src='/app-update.js?v=1';s.defer=true;document.head.appendChild(s);}}catch(e){}})();</script>
 </head>
@@ -13165,6 +13167,30 @@ async function _rdPushSyncToken(){
       if(perm.receive==='granted') _rdPushSyncToken();
     }catch(e){ clearInterval(iv); }
   },1000);
+})();
+// [push] tocar una notificación en la app abre lo que corresponde: el chat con
+// quien escribió (mensajes) o la publicación/subasta de origen. Si la app venía
+// cerrada, espera a que haya sesión y a que termine el arranque.
+(function(){
+  try{
+    if(typeof _isNativeApp!=='function'||!_isNativeApp()) return;
+    const P=window._rdCapPlugin&&window._rdCapPlugin('PushNotifications'); if(!P) return;
+    P.addListener('pushNotificationActionPerformed',a=>{
+      const d=(a&&a.notification&&a.notification.data)||{};
+      let tries=0;
+      const vis=id=>{const e=document.getElementById(id);return !!(e&&e.getClientRects().length&&getComputedStyle(e).display!=='none');};
+      const go=()=>{
+        let ready=false; try{ ready=!!(USER_STATE&&USER_STATE.id); }catch(e){}
+        if((!ready||vis('boot-splash')||vis('rd-intro')||vis('login-splash'))&&++tries<60) return void setTimeout(go,250);
+        try{
+          if((d.tipo==='pm'||d.source_type==='pm')&&d.source_id) _openPmThreadFrom(String(d.source_id));
+          else if(d.source_id&&d.source_type&&d.source_type!=='pm') _goToSource(String(d.source_id),d.source_type);
+          else { showView('notificaciones'); if(typeof switchNotifTab==='function') switchNotifTab('notifs'); }
+        }catch(e){}
+      };
+      go();
+    });
+  }catch(e){}
 })();
 // pinta el estado real del toggle (suscrito o no) al entrar a Configuración —
 // separado de si el usuario dio permiso del sistema o no.
