@@ -552,7 +552,8 @@
     items:[
       ['<path d="M14 5l5 5M11 8l5 5M9.5 9.5l5 5M3 21l7.5-7.5"/><path d="M12.5 3.5l8 8-2 2-8-8z"/>','Acceso directo a inventario exclusivo y lotes de subasta en tiempo real.'],
       ['<path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/>','Verificación técnica e historial mecánico respaldado por la tecnología de FlotaIQ.'],
-      ['<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>','Gestión logística e importación integradas en una sola plataforma.']
+      ['<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/>','Gestión logística e importación integradas en una sola plataforma.'],
+      ['<circle cx="12" cy="12" r="9"/><path d="M8.5 9.5h7M12 9.5v7M8 12.3c1.1.6 2.5.9 4 .9s2.9-.3 4-.9"/>','Paga tus facturas en USDT a través de Xendora y liquidamos en dólares reales en EE. UU.: sin bancos intermediarios, con tipo de cambio transparente.']
     ],
     cta:'Notificarme al lanzar', later:'Explorar marketplace local'
   };
