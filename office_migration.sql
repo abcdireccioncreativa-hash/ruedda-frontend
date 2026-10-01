@@ -117,11 +117,15 @@ create table if not exists public.office_accounts (
   created_at   timestamptz not null default now()
 );
 insert into public.office_accounts (username, display_name, slot, cargo, is_admin) values
-  ('rueddaco', 'Ruedda',  'yo',     'Dirección', true),
+  ('jesus',    'Jesús',   'yo',     'Dirección', true),
+  ('rueddaco', 'Iván',    'ivan',   'Socio',     false),
   ('ruben',    'Rubén',   'ruben',  'Socio',     false),
-  ('ivan',     'Iván',    'ivan',   'Socio',     false),
   ('felipe',   'Felipe',  'felipe', 'Socio',     false)
 on conflict (username) do nothing;
+-- corrección de la primera versión (rueddaco es Iván; jesus es el admin). Solo toca cuentas que nunca entraron.
+update public.office_accounts set display_name = 'Iván', slot = 'ivan', cargo = 'Socio', is_admin = false
+ where username = 'rueddaco' and user_id is null and display_name = 'Ruedda';
+delete from public.office_accounts where username = 'ivan' and user_id is null;
 
 -- ════════════ DATOS INICIALES ════════════
 -- Oficinas por defecto: tú (el superadmin que entre primero) + @ruben, @ivan, @felipe.
