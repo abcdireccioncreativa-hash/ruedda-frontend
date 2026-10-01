@@ -182,12 +182,13 @@ const EVT = {
   buy: e => `<b>${who(e)}</b> compró ${esc(e.payload && e.payload.name)}`,
   board_clear: e => `<b>${who(e)}</b> borró la pizarra`,
   vip: e => `<b>${who(e)}</b> encontró algo secreto…`,
-  'award:checkin': e => `<b>${who(e)}</b> llegó a la oficina`
+  'award:checkin': e => `<b>${who(e)}</b> llegó a la oficina`,
+  lottery: e => e.payload && e.payload.win ? `<b>${who(e)}</b> ganó ${e.payload.coins} monedas en la lotería${e.payload.jackpot ? ' 🎰 ¡PREMIO MAYOR!' : ''}` : ''
 };
 function who(e) { return esc(RO.nameOf(e.actor)); }
 UI.renderFeed = () => {
   const box = $('#sd-feed'); if (!box) return;
-  const ev = RO.S.events.filter(e => EVT[e.kind]).slice(0, 30);
+  const ev = RO.S.events.filter(e => EVT[e.kind] && EVT[e.kind](e)).slice(0, 30);
   box.innerHTML = ev.length ? ev.map(e => `<div class="fe">${EVT[e.kind](e)}<time>${RO.ago(e.created_at)}</time></div>`).join('') : '<div class="fe muted">Todavía no pasa nada. Sé el primero.</div>';
 };
 UI.setRoom = name => { $('#tb-room').textContent = name || '—'; };
@@ -212,7 +213,17 @@ UI.initChat = () => {
   const log = $('#ch-log'), form = $('#ch-form'), input = $('#ch-input'), box = $('#chat');
   try { if (localStorage.getItem('ro_chat_min') === '1') box.classList.add('min'); } catch (e) {}
   $('.ch-h').onclick = e => { box.classList.toggle('min'); setTimeout(() => RO.G.layout(), 30); chatUnread = 0; UI.renderChatBadge(); try { localStorage.setItem('ro_chat_min', box.classList.contains('min') ? '1' : '0'); } catch (x) {} if (!box.classList.contains('min')) log.scrollTop = log.scrollHeight; };
+  // selector de emojis
+  const EMO = '😀 😂 🤣 😍 😎 🤩 😏 😉 😅 🙃 😴 🤔 🤯 😳 🥳 😤 🙌 👏 👍 👎 🙏 💪 👀 🔥 💯 ✅ ❌ ⚡ 🚀 🚗 🏎️ 🚙 🔑 🏁 💸 💰 📈 📉 🤝 ☕ 🍕 🍻 🥂 🎉 ❤️ 💛 🖤 ✨'.split(' ');
+  const eb = document.createElement('button'); eb.type = 'button'; eb.className = 'ch-emo'; eb.textContent = '😀'; eb.title = 'Emojis';
+  form.insertBefore(eb, form.firstChild);
+  const pop = document.createElement('div'); pop.className = 'emo-pop hidden'; pop.innerHTML = EMO.map(e => `<button type="button">${e}</button>`).join('');
+  box.appendChild(pop);
+  eb.onclick = () => pop.classList.toggle('hidden');
+  pop.onclick = e => { const b = e.target.closest('button'); if (!b) return; const i = input.selectionStart ?? input.value.length; input.value = input.value.slice(0, i) + b.textContent + input.value.slice(i); input.focus(); input.selectionStart = input.selectionEnd = i + b.textContent.length; };
+  document.addEventListener('mousedown', e => { if (!pop.contains(e.target) && e.target !== eb) pop.classList.add('hidden'); });
   form.onsubmit = async e => {
+    pop.classList.add('hidden');
     e.preventDefault(); const t = input.value.trim(); if (!t) { input.blur(); return; }
     input.value = '';
     try { await RO.Net.sendChat(t); } catch (x) { err(x); input.value = t; }
@@ -259,7 +270,7 @@ UI.askNotify = () => { try { if ('Notification' in window && Notification.permis
 const HINTS = {
   desk: h => { const o = officeAt(h.pos), m = o && RO.memberBySlot(o.slot); if (!m) return 'Oficina libre'; return m.user_id === RO.S.me.user_id ? 'Mi escritorio' : 'Dejar un post-it a ' + esc(m.display_name); },
   seat: h => esc(h.label || 'Sentarte'), stand: () => 'Levantarte (o camina)',
-  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
+  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', lottery: () => 'Jugar a la lotería 🎰', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
   board: () => 'Abrir la pizarra general', gong: () => 'Tocar la campana de ventas', clocks: () => 'Ver los relojes',
   tv: () => 'Ver Ruedda en vivo', secret: () => 'Examinar la estantería', coffee: () => 'Servirte un café', snacks: () => 'Comprar un snack',
   arcade: () => 'Jugar arcade', pingpong: () => 'Jugar ping-pong', grill: () => 'Prender la parrilla', aquarium: () => 'Mirar la pecera',
@@ -305,6 +316,7 @@ RO.on('interact', h => {
       else { RO.G.drop(); RO.sfx.drop(); RO.Net.send({ t: 'drop', u: S.me.user_id }); }
       RO.G.bubbleMe('🔊'); return;
     case 'cat': RO.G.petCat(h.idx); RO.G.bubbleMe('🐈'); return;
+    case 'lottery': return UI.lottery();
     case 'jukebox':
       if (RO.muted) return UI.toast('Activa el sonido (🔊 arriba) para escuchar la rocola');
       UI.jukebox = !UI.jukebox;
@@ -370,6 +382,38 @@ UI.personCard = uid => {
     if (a === 'avatar') UI.avatarEditor(uid);
     if (a === 'invite') UI.summon(uid);
   });
+};
+
+/* ════════════ LOTERÍA ════════════ */
+UI.lottery = () => {
+  const SYM = ['🚗', '💸', '🏁', '⭐', '🍒', '7️⃣', '🔑'];
+  const mo = UI.modal({
+    title: '🎰 Lotería Ruedda', sub: 'Gratis · 25 tiradas al día · 1 de cada 4 gana monedas y puntos · premio mayor 1.000',
+    body: `<div class="slot"><div class="reels"><span>🚗</span><span>💸</span><span>🏁</span></div><div class="slot-msg mono" id="sl-m">tira la palanca</div></div>`,
+    foot: `<span class="muted" id="sl-left" style="font-size:12px"></span><span class="sp"></span><button class="btn y" id="sl-go">Tirar 🎰</button>`
+  });
+  const reels = mo.querySelectorAll('.reels span'), btn = mo.querySelector('#sl-go'), msg = mo.querySelector('#sl-m');
+  btn.onclick = async () => {
+    btn.disabled = true; msg.textContent = 'girando…'; RO.sfx.blip();
+    const spin = setInterval(() => reels.forEach(r => r.textContent = SYM[Math.floor(Math.random() * SYM.length)]), 70);
+    let r; try { r = await RO.Net.lottery(); } catch (e) { r = { ok: false, reason: e.message }; }
+    await new Promise(z => setTimeout(z, 1200));
+    clearInterval(spin);
+    if (!r.ok) { msg.textContent = r.reason === 'limite' ? 'ya usaste tus 25 tiradas de hoy. vuelve mañana' : 'no se pudo: ' + (r.reason || ''); btn.disabled = r.reason === 'limite'; return; }
+    let show;
+    if (r.jackpot) show = ['7️⃣', '7️⃣', '7️⃣'];
+    else if (r.win) { const s = SYM[Math.floor(Math.random() * 5)]; show = [s, s, s]; }
+    else { do { show = [0, 1, 2].map(() => SYM[Math.floor(Math.random() * SYM.length)]); } while (show[0] === show[1] && show[1] === show[2]); }
+    for (let i = 0; i < 3; i++) { await new Promise(z => setTimeout(z, 260)); reels[i].textContent = show[i]; RO.sfx.blip(); }
+    if (r.win) {
+      msg.innerHTML = r.jackpot ? '<b style="color:var(--y)">¡¡PREMIO MAYOR!! +1.000 monedas · +100 pts</b>' : `<b style="color:var(--green)">¡Ganaste! +${r.coins} monedas · +${r.points} pts</b>`;
+      RO.sfx.coin(); setTimeout(RO.sfx.cash, 200); RO.G.fxConfetti(); RO.G.bubbleMe(r.jackpot ? '🎰💰💰💰' : '💰');
+      RO.S.me.coins = (RO.S.me.coins || 0) + r.coins; RO.S.me.points = (RO.S.me.points || 0) + r.points; UI.renderTop();
+      if (r.jackpot) RO.Net.send({ t: 'deal', u: RO.S.me.user_id, text: '¡Premio mayor en la lotería! 🎰' });
+    } else msg.textContent = ['casi…', 'nada esta vez', 'otra vez será', 'la próxima es la buena'][Math.floor(Math.random() * 4)];
+    if (r.left != null) mo.querySelector('#sl-left').textContent = 'quedan ' + r.left + ' tiradas hoy';
+    btn.disabled = false;
+  };
 };
 
 /* ════════════ POMODORO ════════════ */
@@ -586,7 +630,11 @@ function drawSeg(ctx, color, size, pts, from) {
   ctx.stroke();
 }
 let miniT = 0;
-function miniSoon() { clearTimeout(miniT); miniT = setTimeout(() => { RO.G.updateBoardMini(WB.canvas); }, 300); }
+function miniSoon() { clearTimeout(miniT); miniT = setTimeout(() => {
+  const c = document.createElement('canvas'); c.width = BW; c.height = BH; const g = c.getContext('2d'); g.drawImage(WB.canvas, 0, 0);
+  (WB.notes || []).forEach(n => { g.fillStyle = n.color || '#fff27a'; g.fillRect(n.x, n.y, 160, 100); g.fillStyle = '#1b1b14'; g.font = '22px sans-serif'; g.fillText(String(n.body).slice(0, 14), n.x + 10, n.y + 40); });
+  RO.G.updateBoardMini(c);
+}, 300); }
 WB.redraw = () => {
   wctx.fillStyle = BOARD_BG; wctx.fillRect(0, 0, BW, BH);
   WB.strokes.forEach(s => drawSeg(wctx, s.color, s.size, s.pts));
@@ -606,6 +654,7 @@ WB.show = () => {
       <span class="vsep"></span>
       <div class="sz sw">${[3, 7, 14].map((s, i) => `<button data-s="${s}" class="${i ? '' : 'on'}"><i style="width:${s + 2}px;height:${s + 2}px"></i></button>`).join('')}</div>
       <span class="vsep"></span>
+      <button class="btn sm y" data-a="note">+ Nota</button>
       <button class="btn sm" data-a="erase">Borrador</button>
       <button class="btn sm" data-a="png">Descargar</button>
       <button class="btn sm red" data-a="clear">Limpiar</button>
@@ -617,18 +666,19 @@ WB.show = () => {
   document.body.appendChild(el);
   WB.el = el;
   const view = el.querySelector('#wb-view'), stage = el.querySelector('.wb-stage');
-  const fit = () => { const s = Math.min((innerWidth - 80) / BW, (innerHeight - 150) / BH); view.width = Math.round(BW * s); view.height = Math.round(BH * s); WB.blit(); };
+  const fit = () => { const s = Math.min((innerWidth - 32) / BW, (innerHeight - 150) / BH); view.width = Math.round(BW * s); view.height = Math.round(BH * s); WB.blit(); WB.renderNotes(); };
   WB.view = view; fit(); WB._fit = fit; addEventListener('resize', fit);
   el.querySelector('.wb-bar').onclick = async e => {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.c) { WB.color = b.dataset.c; WB.erase = false; el.querySelectorAll('[data-c]').forEach(x => x.classList.toggle('on', x === b)); el.querySelector('[data-a="erase"]').classList.remove('y'); }
     else if (b.dataset.s) { WB.size = +b.dataset.s; el.querySelectorAll('[data-s]').forEach(x => x.classList.toggle('on', x === b)); }
+    else if (b.dataset.a === 'note') { WB.noteMode = true; UI.toast('Haz clic en la pizarra donde quieres la nota'); }
     else if (b.dataset.a === 'erase') { WB.erase = !WB.erase; b.classList.toggle('y', WB.erase); }
     else if (b.dataset.a === 'png') { const a = document.createElement('a'); a.download = 'pizarra-ruedda-' + new Date().toISOString().slice(0, 10) + '.png'; a.href = WB.canvas.toDataURL('image/png'); a.click(); }
     else if (b.dataset.a === 'clear') {
       WB.open = false; const ok = await UI.confirm('Limpiar la pizarra', 'Se borra para todo el equipo. ¿Seguro?', 'Limpiar', true); WB.open = true;
       if (!ok) return;
-      try { await RO.Net.clearBoard('main'); WB.strokes = []; WB.redraw(); RO.Net.send({ t: 'bc', u: RO.S.me.user_id }); } catch (x) { err(x); }
+      try { await RO.Net.clearBoard('main'); WB.strokes = []; WB.notes = []; WB.renderNotes(); WB.redraw(); RO.Net.send({ t: 'bc', u: RO.S.me.user_id }); } catch (x) { err(x); }
     }
     else if (b.dataset.a === 'close') WB.hide();
   };
@@ -641,6 +691,7 @@ WB.show = () => {
     cur.sent = true; pending = [];
   };
   view.addEventListener('pointerdown', e => {
+    if (WB.noteMode) { WB.noteMode = false; const q = pt(e); WB.addNote(q[0], q[1]); return; }
     view.setPointerCapture(e.pointerId);
     const p = pt(e);
     cur = { sid: RO.uid(), color: WB.erase ? BOARD_BG : WB.color, size: WB.erase ? 36 : WB.size, pts: [p], sent: false };
@@ -666,6 +717,40 @@ WB.show = () => {
   view.addEventListener('pointerup', end); view.addEventListener('pointercancel', end);
   WB.cursors = {}; WB.stage = stage;
   if (!WB.loaded) WB.load();
+  WB.loadNotes();
+};
+/* notas escritas de la pizarra (se arrastran; se guardan en office_board_notes) */
+WB.notes = [];
+WB.loadNotes = async () => { try { WB.notes = (await RO.Net.loadBoardNotes('main')) || []; } catch (e) { WB.notes = []; } WB.renderNotes(); miniSoon(); };
+WB.renderNotes = () => {
+  if (!WB.stage || !WB.view) return;
+  WB.stage.querySelectorAll('.wb-note').forEach(n => n.remove());
+  const r = WB.view.getBoundingClientRect(), sx = r.width / BW, sy = r.height / BH;
+  WB.notes.forEach(n => {
+    const el = document.createElement('div'); el.className = 'wb-note'; el.dataset.id = n.id;
+    el.style.cssText = `left:${n.x * sx}px;top:${n.y * sy}px;background:${esc(n.color || '#fff27a')}`;
+    el.innerHTML = `<div class="wb-nb">${esc(n.body)}</div><div class="wb-nf"><span>${esc(RO.nameOf(n.author))}</span><button data-e title="Editar">✎</button><button data-d title="Borrar">✕</button></div>`;
+    let drag = null;
+    el.addEventListener('pointerdown', e => { if (e.target.closest('button')) return; drag = { px: e.clientX, py: e.clientY, x: n.x, y: n.y }; el.setPointerCapture(e.pointerId); el.classList.add('drag'); e.stopPropagation(); });
+    el.addEventListener('pointermove', e => { if (!drag) return; n.x = Math.round(RO.clamp(drag.x + (e.clientX - drag.px) / sx, 0, BW - 160)); n.y = Math.round(RO.clamp(drag.y + (e.clientY - drag.py) / sy, 0, BH - 100)); el.style.left = n.x * sx + 'px'; el.style.top = n.y * sy + 'px'; RO.Net.send({ t: 'bnote', u: RO.S.me.user_id, op: 'move', id: n.id, x: n.x, y: n.y }); });
+    el.addEventListener('pointerup', () => { if (!drag) return; drag = null; el.classList.remove('drag'); RO.Net.updateBoardNote(n.id, { x: n.x, y: n.y }).catch(() => {}); miniSoon(); });
+    el.querySelector('[data-d]').onclick = async () => { WB.notes = WB.notes.filter(z => z.id !== n.id); WB.renderNotes(); RO.Net.send({ t: 'bnote', u: RO.S.me.user_id, op: 'del', id: n.id }); RO.Net.deleteBoardNote(n.id).catch(() => {}); miniSoon(); };
+    el.querySelector('[data-e]').onclick = () => { const t = prompt('Editar nota', n.body); if (t == null || !t.trim()) return; n.body = t.trim().slice(0, 300); WB.renderNotes(); RO.Net.send({ t: 'bnote', u: RO.S.me.user_id, op: 'upd', note: n }); RO.Net.updateBoardNote(n.id, { body: n.body }).catch(() => {}); miniSoon(); };
+    WB.stage.appendChild(el);
+  });
+};
+WB.addNote = async (x, y) => {
+  const t = prompt('Escribe la nota para la pizarra'); if (!t || !t.trim()) return;
+  const COLS = ['#fff27a', '#ffb3d4', '#9fd3ff', '#a8f0c0', '#ffd08a'];
+  const n = { body: t.trim().slice(0, 300), x: Math.round(x), y: Math.round(y), color: COLS[WB.notes.length % COLS.length] };
+  try { const saved = await RO.Net.addBoardNote('main', n); WB.notes.push(saved); WB.renderNotes(); RO.Net.send({ t: 'bnote', u: RO.S.me.user_id, op: 'add', note: saved }); miniSoon(); RO.Net.award('whiteboard').catch(() => {}); } catch (e) { err(e); }
+};
+WB.onNote = m => {
+  if (m.op === 'add' && m.note && !WB.notes.find(z => z.id === m.note.id)) WB.notes.push(m.note);
+  if (m.op === 'upd' && m.note) { const o = WB.notes.find(z => z.id === m.note.id); if (o) Object.assign(o, m.note); }
+  if (m.op === 'move') { const o = WB.notes.find(z => z.id === m.id); if (o) { o.x = m.x; o.y = m.y; } }
+  if (m.op === 'del') WB.notes = WB.notes.filter(z => z.id !== m.id);
+  WB.renderNotes(); miniSoon();
 };
 WB.hide = () => {
   if (!WB.open) return; WB.open = false;
@@ -682,7 +767,7 @@ WB.onSeg = m => {
   WB.blit(); miniSoon();
 };
 WB.onEnd = m => { const L = WB.live[m.sid]; if (L) { WB.strokes.push({ color: L.color, size: L.size, pts: L.pts }); delete WB.live[m.sid]; } };
-WB.onClear = () => { WB.strokes = []; WB.live = {}; WB.redraw(); };
+WB.onClear = () => { WB.strokes = []; WB.live = {}; WB.notes = []; WB.renderNotes(); WB.redraw(); };
 WB.onCursor = m => {
   if (!WB.open || !WB.stage) return;
   let c = WB.cursors[m.u];
@@ -760,7 +845,7 @@ UI.shop = () => {
 UI.startEdit = e => {
   RO.G.setEdit(e);
   const bar = $('#edit-bar');
-  bar.innerHTML = e.mode === 'place'
+  bar.innerHTML = e.mode === 'desk' ? `<span>Moviendo tu <b>escritorio</b> — clic dentro de tu oficina</span><button data-x>Cancelar (Esc)</button>` : e.mode === 'place'
     ? `<span>${e.moveId ? 'Moviendo' : e.buy ? 'Comprando' : 'Colocando'}: <b>${esc(e.name || A.ITEMS[e.item].name || e.item)}</b>${e.buy ? ` · ${e.price} monedas` : ''} — clic en el piso para ponerlo</span><button data-x>Cancelar (Esc)</button>`
     : `<span>Clic sobre una decoración para moverla o quitarla</span><button data-x>Listo</button>`;
   bar.classList.remove('hidden');
@@ -974,7 +1059,7 @@ UI.myOffice = () => {
       <label class="lbl">piso y paredes</label><div class="chips" id="mo-th">${Object.entries(RO.THEMES).map(([k, t]) => `<button data-v="${k}" class="${theme === k ? 'on' : ''}"><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${t.a};margin-right:6px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)"></i>${esc(t.name)}</button>`).join('')}</div>
       <label class="lbl">muebles base</label><div class="chips" id="mo-b"><button data-v="0" class="${bare ? '' : 'on'}">Completa (sofá, estantería, plantas…)</button><button data-v="1" class="${bare ? 'on' : ''}">Mínima (solo escritorio)</button></div>
       <p class="muted" style="margin-top:14px;font-size:12.5px;line-height:1.5">Con "Decorar" eliges cualquier artículo de la tienda y lo pones gratis dentro de tu oficina. También puedes decorar las áreas comunes (con monedas), pero no las oficinas de otros.</p>`,
-    foot: `<button class="btn" id="mo-mv">Mover / quitar</button><button class="btn" id="mo-dec">Decorar</button><span class="sp"></span><button class="btn y" id="mo-save">Guardar</button>`
+    foot: `<button class="btn" id="mo-desk">Mover escritorio</button>${o.bare ? '' : '<button class="btn" id="mo-unpack">Soltar muebles base</button>'}<button class="btn" id="mo-mv">Mover / quitar</button><button class="btn" id="mo-dec">Decorar</button><span class="sp"></span><button class="btn y" id="mo-save">Guardar</button>`
   });
   mo.querySelector('#mo-th').onclick = e => { const b = e.target.closest('button'); if (!b) return; theme = b.dataset.v; mo.querySelectorAll('#mo-th button').forEach(x => x.classList.toggle('on', x === b)); };
   mo.querySelector('#mo-b').onclick = e => { const b = e.target.closest('button'); if (!b) return; bare = b.dataset.v === '1'; mo.querySelectorAll('#mo-b button').forEach(x => x.classList.toggle('on', x === b)); };
@@ -988,7 +1073,32 @@ UI.myOffice = () => {
   };
   mo.querySelector('#mo-dec').onclick = () => { UI.close(); UI.shop(); };
   mo.querySelector('#mo-mv').onclick = () => { UI.close(); UI.startEdit({ mode: 'move' }); };
+  mo.querySelector('#mo-desk').onclick = () => { UI.close(); RO.G.goToOffice(o.pos); UI.startEdit({ mode: 'desk' }); };
+  const un = mo.querySelector('#mo-unpack');
+  if (un) un.onclick = async () => { try { await RO.Net.unpackBase(); o.bare = true; RO.G.rebuild(); UI.close(); UI.toast('Listo: los muebles base ahora se mueven y se quitan con "Mover / quitar"'); UI.startEdit({ mode: 'move' }); } catch (e) { err(e); } };
 };
+RO.on('edit:desk', async (x, y) => {
+  try { await RO.Net.setMyDesk(x, y); const r = RO.World.officeRect(RO.S.me.slot, RO.S.config); const o = (RO.S.config.offices || []).find(z => z.slot === RO.S.me.slot); if (o && r) o.desk = [x - r.x0, y]; RO.G.rebuild(); RO.sfx.coin(); UI.toast('Escritorio movido'); } catch (e) { err(e); }
+  UI.endEdit();
+});
+
+/* ════════════ CELULAR / TABLET ════════════ */
+UI.initTouch = () => {
+  const joy = document.createElement('div'); joy.id = 'joy'; joy.innerHTML = '<i></i>'; $('#app').appendChild(joy);
+  const knob = joy.querySelector('i'); let id = null, cx = 0, cy = 0;
+  const R = 46;
+  const move = e => { const dx = e.clientX - cx, dy = e.clientY - cy, d = Math.min(R, Math.hypot(dx, dy)), a = Math.atan2(dy, dx);
+    const x = Math.cos(a) * d, y = Math.sin(a) * d; knob.style.transform = `translate(${x}px,${y}px)`;
+    const m = d / R; RO.G.setStick(m > 0.2 ? Math.cos(a) : 0, m > 0.2 ? Math.sin(a) : 0, m > 0.85); };
+  joy.addEventListener('pointerdown', e => { id = e.pointerId; joy.setPointerCapture(id); const r = joy.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + r.height / 2; move(e); e.preventDefault(); });
+  joy.addEventListener('pointermove', e => { if (e.pointerId === id) move(e); });
+  const end = () => { id = null; knob.style.transform = ''; RO.G.setStick(0, 0, false); };
+  joy.addEventListener('pointerup', end); joy.addEventListener('pointercancel', end);
+  // panel y chat empiezan cerrados en pantallas chicas
+  if (innerWidth < 1100) { UI.togglePanel(true); $('#chat').classList.add('min'); }
+};
+// el aviso de interacción se puede tocar (celular) o clicar
+document.addEventListener('click', e => { if (e.target.closest('#hint')) RO.G.interact(); });
 
 /* panel lateral: se puede esconder para ver más mapa */
 UI.togglePanel = force => {
@@ -1015,6 +1125,7 @@ UI.initHud = () => {
     else if (a === 'zout') RO.G.zoom(-1);
     else if (a === 'panel') UI.togglePanel();
     else if (a === 'myoffice') UI.myOffice();
+    else if (a === 'voice') { Promise.resolve(RO.Voice.toggle()).then(on => { $('#tb-voice').classList.toggle('on', !!on); if (on) UI.toast('🎙️ Voz activada: te escuchan los que estén cerca de ti (y tú a ellos)'); }); }
     else if (a === 'garage') RO.G.goVip('garage');
     else if (a === 'club') RO.G.goVip('club');
     else if (a === 'logout') RO.emit('logout');

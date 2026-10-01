@@ -79,7 +79,8 @@ async function enter() {
       await Promise.all([
         loadScript('/vendor/phaser-3.90.0.min.js'),
         document.fonts ? Promise.race([document.fonts.load('10px Silkscreen'), new Promise(r => setTimeout(r, 2500))]) : null,
-        A.loadLogo().then(img => { if (img) RO.logoBits = A.logoBits(img, 88); })
+        A.loadLogo().then(img => { if (img) RO.logoBits = A.logoBits(img, 88); }),
+        A.loadKenney()
       ]);
     });
     await step(0.52, 'sincronizando oficinas', 'sincronizando oficinas, notas y decoración', async () => {
@@ -91,9 +92,9 @@ async function enter() {
       if (mine) S.me = Object.assign(mine, { _superadmin: S.me._superadmin });
       else S.members.push(S.me);
     });
-    await step(0.72, 'conectando a servidores realtime', 'abriendo canal privado office:main', () => RO.Net.connect(S.me, RO.channelKey, NET));
+    await step(0.72, 'conectando a servidores realtime', 'abriendo tiempo real', () => RO.Net.connect(S.me, RO.channelKey, NET).catch(e => { console.warn('[office] tiempo real no disponible, respaldo HTTP', e); }));
     await step(0.9, 'generando mundo', 'generando mundo pixel · ' + S.members.length + ' miembros', async () => {
-      UI.WB.load();
+      UI.WB.load(); UI.WB.loadNotes();
       // el contenedor debe tener tamaño real antes de crear el canvas (WebGL falla con 0×0); la intro lo tapa
       $('#app').classList.remove('hidden');
       await RO.G.start();
@@ -116,6 +117,7 @@ async function enter() {
 
 function afterEnter() {
   UI.initHud();
+  if (document.body.classList.contains('touch')) UI.initTouch();
   setTimeout(() => UI.pendingNotesNotice(), 900);
   RO.Net.award('checkin').then(r => { if (r && r.ok) setTimeout(() => UI.toast('☀️ Check-in del día: +' + r.amount + ' pts'), 2200); }).catch(() => {});
   RO.Net.send({ t: 'hello', u: S.me.user_id });
@@ -187,6 +189,7 @@ function startPolling() {
 function stopPolling() { if (CONN.polling) { clearInterval(CONN.polling); CONN.polling = null; } }
 function watchdog() {
   if (RO.DEMO) return;
+  if (!RO.Net.isLive()) { CONN.lastOk = 0; startPolling(); setLive('respaldo', 'off'); }
   setInterval(async () => {
     const live = RO.Net.isLive();
     if (live) {
@@ -278,6 +281,8 @@ const NET = {
       case 'be': return UI.WB.onEnd(m);
       case 'bc': return UI.WB.onClear(m);
       case 'bk': return UI.WB.onCursor(m);
+      case 'bnote': return UI.WB.onNote(m);
+      case 'rtc': return RO.Voice && RO.Voice.onSignal(m);
     }
   },
   onDb(table, type, nw, old) {
@@ -321,7 +326,9 @@ const NET = {
 
 /* ── arranque ── */
 (async function boot() {
-  if (!isDesktop()) { show('gate'); return; }
+  // también en celular/tablet: controles táctiles y diseño compacto
+  if (!isDesktop()) document.body.classList.add('touch');
+  if (innerWidth < 760) document.body.classList.add('small');
   RO.PixLogo.mountAll(document);
   let session = null;
   try { session = await RO.Net.session(); } catch (e) {}

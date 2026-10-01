@@ -126,8 +126,8 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 let sb = null;
 const client = () => sb || (sb = supabase.createClient(SB_URL, SB_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'ruedda-office-auth' },
-  // worker: el latido del WebSocket corre en un Web Worker (las pestañas en segundo plano no se desconectan)
-  realtime: { params: { eventsPerSecond: 40 }, heartbeatIntervalMs: 15000, worker: true, reconnectAfterMs: n => [500, 1000, 2000, 4000][n - 1] || 6000 }
+  // sin Web Worker: en algunos navegadores impedía conectar el WebSocket
+  realtime: { params: { eventsPerSecond: 40 }, heartbeatIntervalMs: 15000, reconnectAfterMs: n => [500, 1000, 2000, 4000][n - 1] || 6000 }
 }));
 // reintenta escrituras ante cortes de red (no ante errores de permisos/validación)
 async function retry(fn, tries = 4) {
@@ -217,7 +217,7 @@ const Real = {
     });
     const results = await Promise.allSettled([open('office:main', true, 'privado'), open('office-' + channelKey, false, 'llave')]);
     results.forEach((r, i) => { if (r.status === 'fulfilled') this.chs.push(r.value); else console.warn('[office] canal', i ? 'con llave' : 'privado', 'no disponible:', r.reason && r.reason.message); });
-    if (!this.chs.length) throw new Error('no se pudo abrir el tiempo real');
+    // si ningún canal abrió, se entra igual: el vigilante usa el respaldo HTTP y sigue reintentando
     status();
     const db = s.channel('office-db-' + me.user_id);
     ['office_members', 'office_config', 'office_catalog', 'office_decor', 'office_notes', 'office_events', 'office_chat'].forEach(t =>
@@ -267,11 +267,18 @@ const Real = {
   async loadStrokes(board) { return chk(await client().from('office_strokes').select('id,color,size,pts,author').eq('board', board).order('id').limit(5000)); },
   async addStroke(board, st) { await client().from('office_strokes').insert({ board, color: st.color, size: st.size, pts: st.pts, author: RO.S.me.user_id }); },
   clearBoard: board => Real.rpc('office_clear_board', { p_board: board }),
+  async loadBoardNotes(board) { const r = await client().from('office_board_notes').select('*').eq('board', board).order('id'); return r.error ? [] : r.data; },
+  async addBoardNote(board, n) { return chk(await client().from('office_board_notes').insert({ board, body: n.body, x: n.x, y: n.y, color: n.color, author: RO.S.me.user_id }).select().single()); },
+  async updateBoardNote(id, patch) { chk(await client().from('office_board_notes').update(Object.assign({ updated_at: new Date().toISOString() }, patch)).eq('id', id)); },
+  async deleteBoardNote(id) { chk(await client().from('office_board_notes').delete().eq('id', id)); },
   async sendChat(body) { await retry(async () => chk(await client().from('office_chat').insert({ author: RO.S.me.user_id, body }))); },
   async deleteChat(id) { chk(await client().from('office_chat').delete().eq('id', id)); },
   async logEvent(kind, payload) { await client().from('office_events').insert({ kind, actor: RO.S.me.user_id, payload: payload || {} }); },
   async saveConfig(data) { chk(await client().from('office_config').update({ data, updated_at: new Date().toISOString(), updated_by: RO.S.me.user_id }).eq('id', 1)); },
   async saveCatalog(row) { chk(await client().from('office_catalog').upsert(row)); },
+  lottery: () => Real.rpc('office_lottery'),
+  setMyDesk: (x, y) => Real.rpc('office_set_my_desk', { px: x, py: y }),
+  unpackBase: () => Real.rpc('office_unpack_base'),
   updateMyOffice: (title, theme, bare) => Real.rpc('office_update_my_office', { p_title: title, p_theme: theme, p_bare: bare }),
   placeOwn: (item, x, y) => Real.rpc('office_place_own', { p_item: item, p_x: x, p_y: y }),
   upsertMember: (target, slot, name, cargo, admin) => Real.rpc('office_upsert_member', { target, p_slot: slot, p_name: name, p_cargo: cargo, p_admin: admin }),
@@ -321,6 +328,7 @@ const DEMO_PEOPLE = [
   { user_id: 'u-felipe', slot: 'felipe', display_name: 'Felipe', cargo: 'Socio' }
 ];
 const SEED_CATALOG = [['planta','Planta',20,'plantas'],['planta_grande','Palmera',35,'plantas'],['bonsai','Bonsái',40,'plantas'],['silla','Silla',25,'muebles'],['escritorio','Escritorio',60,'muebles'],['sofa','Sofá',80,'muebles'],['puff','Puff',25,'muebles'],['estanteria','Estantería',55,'muebles'],['mesa','Mesa café',50,'muebles'],['monitor','Monitor',45,'tech'],['tv','Pantalla',90,'tech'],['servidor','Servidor',110,'tech'],['arcade','Arcade',150,'ocio'],['cafetera','Cafetera',70,'ocio'],['dispensador','Dispensador',35,'ocio'],['maquina_snacks','Snacks',85,'ocio'],['pecera','Pecera',130,'ocio'],['lampara','Lámpara',30,'deco'],['alfombra','Alfombra',40,'deco'],['cuadro','Cuadro',50,'deco'],['neon','Neón Ruedda',100,'deco'],['trofeo','Trofeo',120,'deco'],['estatua_oro','Estatua de oro',500,'deco']]
+  .map(r => [r[0], r[1], Math.round(r[2] * 2.5 / 5) * 5, r[3]]).concat([["flores", "Flores", 60, "plantas"], ["cactus", "Cactus", 50, "plantas"], ["palmera_neon", "Palmera neón", 225, "plantas"], ["sillon_gamer", "Silla gamer", 175, "muebles"], ["banca", "Banca", 115, "muebles"], ["standing", "Escritorio de pie", 190, "muebles"], ["archivador", "Archivador", 100, "muebles"], ["impresora", "Impresora", 115, "tech"], ["globo", "Globo terráqueo", 90, "tech"], ["billar", "Mesa de billar", 550, "ocio"], ["futbolito", "Futbolito", 400, "ocio"], ["piano", "Piano", 650, "ocio"], ["bici", "Bici estática", 225, "ocio"], ["nevera", "Nevera", 200, "cocina"], ["microondas", "Microondas", 100, "cocina"], ["flotador", "Flotador", 40, "piscina"], ["reloj_pie", "Reloj de pie", 275, "deco"], ["poster", "Póster Ruedda", 75, "deco"], ["extintor", "Extintor", 25, "deco"], ["telescopio", "Telescopio", 240, "deco"], ["k_maceta", "Maceta tropical", 45, "plantas"], ["k_maceta2", "Maceta azul", 45, "plantas"], ["k_arbusto", "Arbusto", 60, "plantas"], ["k_brote", "Brote", 25, "plantas"], ["k_hongos", "Hongos", 30, "plantas"], ["k_arbol", "Arbolito", 95, "plantas"], ["k_arbol_otono", "Arbolito de otoño", 95, "plantas"], ["k_arbol_alto", "Árbol alto", 160, "plantas"], ["k_arbol_alto_otono", "Árbol de otoño", 160, "plantas"], ["k_tapete", "Tapete naranja", 90, "deco"], ["k_tapete_verde", "Tapete verde", 120, "deco"], ["k_cuadro_oro", "Cuadro dorado", 110, "deco"], ["k_retrato", "Retrato", 90, "deco"], ["k_espejo", "Espejo", 80, "deco"], ["k_jarron", "Jarrón dorado", 140, "deco"], ["k_jarron_plata", "Jarrón plateado", 120, "deco"], ["k_candelabro", "Candelabro", 85, "deco"], ["k_escudo", "Escudo", 70, "deco"], ["k_barra_bebidas", "Barra de bebidas", 220, "cocina"], ["k_estufa", "Cocina", 150, "cocina"], ["k_fregadero", "Fregadero", 110, "cocina"], ["k_vitrina", "Vitrina", 130, "muebles"], ["k_mesa_larga", "Mesa larga", 160, "muebles"], ["k_mesa_oval", "Mesa ovalada", 120, "muebles"], ["k_mesa_redonda", "Mesa redonda", 75, "muebles"], ["k_mesita", "Mesita de noche", 65, "muebles"], ["k_taburete", "Taburete", 40, "muebles"], ["k_silla_madera", "Silla de madera", 45, "muebles"], ["k_parlante", "Bocina", 120, "tech"], ["k_barril", "Barril de agua", 50, "deco"], ["k_letrero", "Letrero", 35, "deco"], ["k_colmena", "Colmena", 55, "deco"]])
   .map((r, i) => ({ item: r[0], name: r[1], price: r[2], category: r[3], active: true, sort: i }));
 
 const Demo = {
@@ -403,12 +411,34 @@ const Demo = {
   async savePos(p) { this._mut(d => { d.positions = d.positions.filter(z => z.user_id !== RO.S.me.user_id); d.positions.push(Object.assign({ user_id: RO.S.me.user_id }, p)); }); },
   async loadStrokes() { return this._db().strokes; },
   async addStroke(board, st) { this._mut(d => { d.strokes.push(st); if (d.strokes.length > 800) d.strokes.shift(); }); },
-  async clearBoard() { this._mut(d => { d.strokes = []; }); },
+  async clearBoard() { this._mut(d => { d.strokes = []; d.bnotes = []; }); },
+  async loadBoardNotes() { return this._db().bnotes || []; },
+  async addBoardNote(board, n) { return this._mut(d => { d.bnotes = d.bnotes || []; const o = Object.assign({ id: d.seq++, author: RO.S.me.user_id }, n); d.bnotes.push(o); return o; }); },
+  async updateBoardNote(id, patch) { this._mut(d => { const o = (d.bnotes || []).find(z => z.id === id); if (o) Object.assign(o, patch); }); },
+  async deleteBoardNote(id) { this._mut(d => { d.bnotes = (d.bnotes || []).filter(z => z.id !== id); }); },
   async sendChat(body) { const c = this._mut(d => { d.chat = d.chat || []; const c = { id: d.seq++, author: RO.S.me.user_id, body, created_at: new Date().toISOString() }; d.chat.push(c); d.chat = d.chat.slice(-200); return c; }); this._db_ev('office_chat', 'INSERT', c); },
   async deleteChat(id) { this._mut(d => { d.chat = (d.chat || []).filter(c => c.id !== id); }); this._db_ev('office_chat', 'DELETE', null, { id }); },
   async logEvent(kind, payload) { const e = this._mut(d => { const e = { id: d.seq++, kind, actor: RO.S.me.user_id, payload: payload || {}, created_at: new Date().toISOString() }; d.events.push(e); d.events = d.events.slice(-80); return e; }); this._db_ev('office_events', 'INSERT', e); },
   async saveConfig(data) { this._mut(d => { d.config = data; }); this._db_ev('office_config', 'UPDATE', { id: 1, data }); },
   async saveCatalog(row) { const r = this._mut(d => { const i = d.catalog.findIndex(c => c.item === row.item); if (i >= 0) d.catalog[i] = Object.assign(d.catalog[i], row); else d.catalog.push(row); return Object.assign({}, i >= 0 ? d.catalog[i] : row); }); this._db_ev('office_catalog', 'UPDATE', r); },
+  async lottery() {
+    const r = Math.random(), win = r < 0.25, jack = r < 0.01, coins = jack ? 1000 : win ? 40 + Math.floor(Math.random() * 161) : 0, points = jack ? 100 : win ? 5 + Math.floor(Math.random() * 16) : 0;
+    if (win) { const m = this._mut(d => { const m = d.members.find(x => x.user_id === RO.S.me.user_id); m.coins += coins; m.points += points; return Object.assign({}, m); }); this._db_ev('office_members', 'UPDATE', m); }
+    return { ok: true, win, jackpot: jack, coins, points, left: 20 };
+  },
+  async setMyDesk(x, y) {
+    const r = RO.World.officeRect(RO.S.me.slot, RO.S.config); if (!r) throw new Error('sin oficina');
+    const data = this._mut(d => { const c = RO.mergeConfig(d.config); c.offices = c.offices.map(o => o.slot === RO.S.me.slot ? Object.assign({}, o, { desk: [x - r.x0, y] }) : o); d.config = c; return c; });
+    this._db_ev('office_config', 'UPDATE', { id: 1, data });
+  },
+  async unpackBase() {
+    const r = RO.World.officeRect(RO.S.me.slot, RO.S.config); if (!r) throw new Error('sin oficina'); const X = r.x0, me = RO.S.me.user_id;
+    const items = [['estanteria', X, 1], ['planta_grande', X + 12, 1], ['alfombra', X + 4, 5], ['mesa', X + 9, 6], ['sofa', X + 9, 8], ['planta', X, 8], ['lampara', X + 12, 8]];
+    const decs = this._mut(d => items.map(([item, x, y]) => { const o = { id: d.seq++, item, x, y, placed_by: me }; d.decor.push(o); return o; }));
+    decs.forEach(o => this._db_ev('office_decor', 'INSERT', o));
+    const data = this._mut(d => { const c = RO.mergeConfig(d.config); c.offices = c.offices.map(o => o.slot === RO.S.me.slot ? Object.assign({}, o, { bare: true }) : o); d.config = c; return c; });
+    this._db_ev('office_config', 'UPDATE', { id: 1, data });
+  },
   async updateMyOffice(title, theme, bare) {
     const data = this._mut(d => { const c = RO.mergeConfig(d.config); c.offices = c.offices.map(o => o.slot === RO.S.me.slot ? Object.assign({}, o, { title: String(title || '').slice(0, 24), theme, bare: !!bare }) : o); d.config = c; return c; });
     this._db_ev('office_config', 'UPDATE', { id: 1, data });
@@ -508,6 +538,7 @@ RO.sfx = {
   engine: () => { tone(55, 1.4, 'sawtooth', 0.08, 0, 140); tone(80, 1.2, 'square', 0.03, 0.2, 220); },
   hi5:    () => { tone(1200, 0.05, 'square', 0.05); tone(300, 0.12, 'triangle', 0.05, 0.02); },
   err:    () => tone(160, 0.18, 'square', 0.04),
+  splash: () => { tone(900, 0.25, 'triangle', 0.04, 0, 200); tone(400, 0.3, 'sawtooth', 0.02, 0.05, 120); },
   purr:   () => { for (let i = 0; i < 6; i++) tone(48 + (i % 2) * 6, 0.18, 'sawtooth', 0.03, i * 0.2); },
   cash:   () => { for (let i = 0; i < 8; i++) tone(1400 + Math.random() * 900, 0.05, 'square', 0.025, i * 0.06); },
   drop:   () => { tone(880, 0.6, 'sawtooth', 0.04, 0, 110); }

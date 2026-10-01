@@ -46,10 +46,13 @@ Wd.build = (cfg) => {
   const S = [];   // {key, x, y, opts, depthBias}
   const add = (key, x, y, opts) => { S.push({ key, x, y, opts: opts || {} }); };
   const offices = (cfg.offices || []).slice().sort((a, b) => a.pos - b.pos);
+  const desks = [];
   OFF_X.forEach((X, p) => {
     const o = offices.find(z => z.pos === p) || {}, th = RO.THEMES[o.theme] || RO.THEMES.madera;
-    add('silla', X + 6, 3, { color: '#16171b' });
-    add('escritorio_pc', X + 5, 4, { lamp: A.YELLOW });
+    const dk = Array.isArray(o.desk) && o.desk.length === 2 ? [RO.clamp(+o.desk[0] || 0, 0, 10), RO.clamp(+o.desk[1] || 4, 2, 8)] : [5, 4];
+    const dx = X + dk[0], dy = dk[1]; desks[p] = { x: dx, y: dy };
+    add('silla', dx + 1, dy - 1, { color: '#16171b', desk: p });
+    add('escritorio_pc', dx, dy, { lamp: A.YELLOW });
     add('placa', X + 9, 10);
     if (!o.bare) {   // muebles base (el dueño los puede quitar desde "Mi oficina")
       add('estanteria', X, 1);
@@ -71,6 +74,7 @@ Wd.build = (cfg) => {
   [[6, 23], [8, 23], [10, 23]].forEach(([x, y]) => add('silla', x, y, { color: '#16171b' }));
   add('silla', 4, 21, { color: '#16171b' }); add('silla', 12, 21, { color: '#16171b' });
   add('planta_grande', 1, 15); add('planta', 15, 15); add('planta', 1, 29); add('trofeo', 14, 15); add('estanteria', 1, 26);
+  add('archivador', 15, 26); add('extintor', 15, 28);
   // recepción
   for (let x = 30; x <= 37; x++) add('panel', x, 15);
   add('recepcion', 30, 17);
@@ -78,10 +82,22 @@ Wd.build = (cfg) => {
   add('planta_grande', 17, 15); add('planta', 38, 15); add('planta', 17, 29); add('planta_grande', 38, 28);
   add('sofa_lobby', 18, 27); add('mesa', 18, 25); add('sofa_lobby', 33, 27); add('mesa', 35, 25);
   add('lampara', 21, 27); add('lampara', 32, 27);
+  add('flores', 29, 17); add('banca', 24, 28); add('reloj_pie', 17, 20);
+  add('loteria', 35, 21); add('loteria', 36, 21);
+  // plantas (Kenney CC0 + propias)
+  [['k_arbol_alto', 17, 17], ['k_maceta', 30, 16], ['k_maceta2', 36, 16], ['k_arbusto', 38, 25], ['k_jarron', 17, 23]].forEach(([k, x, y]) => add(k, x, y));
+  [['k_maceta', 1, 12], ['k_maceta2', 55, 13], ['k_arbusto', 18, 13], ['k_brote', 33, 13], ['k_hongos', 45, 13]].forEach(([k, x, y]) => add(k, x, y));
+  [['k_arbol', 1, 18], ['k_maceta', 3, 15], ['k_cuadro_oro', 10, 15], ['k_candelabro', 2, 25]].forEach(([k, x, y]) => add(k, x, y));
+  [['k_arbol_otono', 55, 20], ['k_maceta2', 43, 15], ['k_brote', 54, 17], ['k_espejo', 40, 24]].forEach(([k, x, y]) => add(k, x, y));
+  [['k_barra_bebidas', 26, 36], ['k_estufa', 28, 33], ['k_fregadero', 29, 33], ['k_vitrina', 34, 36], ['k_arbol_alto_otono', 36, 37], ['k_maceta', 11, 31], ['k_hongos', 17, 38], ['loteria', 9, 31]].forEach(([k, x, y]) => add(k, x, y));
+  [['k_arbol_alto', 55, 33], ['k_arbusto', 39, 35], ['k_arbusto', 47, 33], ['k_barril', 54, 31], ['k_letrero', 45, 37], ['k_colmena', 38, 36], ['k_arbol', 44, 35]].forEach(([k, x, y]) => add(k, x, y));
+  [['k_arbol_alto', 2, 44], ['k_arbol_alto', 54, 44], ['k_jarron_plata', 47, 44], ['k_escudo', 46, 46], ['loteria', 18, 47]].forEach(([k, x, y]) => add(k, x, y));
+  [['k_tapete_verde', 21, 66], ['k_maceta', 8, 60], ['k_arbol_alto', 48, 64], ['loteria', 47, 58]].forEach(([k, x, y]) => add(k, x, y));
   // sala creativa
   add('pizarra', 44, 14);
   add('puff', 44, 19, { color: '#e6f03b' }); add('puff', 46, 20, { color: '#2c5bd6' }); add('puff', 49, 19, { color: '#d7262e' }); add('puff', 51, 20, { color: '#1f7a4a' });
   add('mesa', 47, 23); add('planta_grande', 55, 15); add('lampara', 40, 15);
+  add('standing', 52, 22); add('sillon_gamer', 44, 24); add('globo', 50, 27); add('impresora', 53, 25); add('cactus', 40, 20);
   add('estanteria', 40, 27); add('servidor', 54, 27); add('servidor', 55, 27); add('bonsai', 42, 27);
   // zona de ocio
   add('arcade', 1, 31); add('arcade', 2, 31); add('arcade', 3, 31);
@@ -90,12 +106,14 @@ Wd.build = (cfg) => {
   add('cafetera', 19, 31); add('dispensador', 20, 31); add('maquina_snacks', 22, 31); add('rocola', 24, 31);
   add('estanteria', SECRET.shelfX, SECRET.shelfY, { secret: true });
   add('pecera', 32, 31); add('planta', 36, 31); add('planta', 1, 38);
+  add('futbolito', 4, 36); add('nevera', 25, 31); add('microondas', 21, 32);
   add('puff', 29, 34, { color: '#e85b9c' }); add('puff', 31, 35, { color: '#e6f03b' }); add('sofa', 28, 37, { color: '#5c3f2a' });
   add('cuadro_pared', 15, 30, { color: '#5c1630' });
   // terraza
   add('tumbona', 40, 32); add('tumbona', 42, 32); add('tumbona', 44, 32);
   add('parrilla', 52, 31); add('planta_grande', 38, 31); add('planta', 55, 31);
   add('mesa', 41, 36); add('puff', 40, 37, { color: '#f08a24' }); add('puff', 43, 37, { color: '#f08a24' });
+  add('flotador', 49, 35); add('flotador', 52, 34); add('palmera_neon', 46, 31);
   for (let x = 38; x <= 55; x++) add('baranda', x, 38);
   // garage VIP
   const CAR_SLOTS = [[3, 43], [10, 43], [23, 43], [31, 43], [40, 43], [4, 48], [12, 48], [32, 48]];
@@ -104,6 +122,7 @@ Wd.build = (cfg) => {
   add('barra', 48, 43); add('champan', 52, 42); add('champan', 49, 42);
   add('sofa_vip', 20, 50); add('sofa_vip', 24, 50); add('mesa', 22, 48); add('champan', 23, 47);
   add('dinero', 36, 53); add('dinero', 37, 53); add('dinero', 38, 53); add('dinero', 44, 52);
+  add('billar', 50, 49); add('piano', 51, 52);
   add('estatua_oro', 45, 48); add('trofeo', 47, 48);
   add('planta_grande', 1, 52); add('planta_grande', 55, 52); add('planta_grande', 15, 42); add('planta_grande', 22, 42);
   add('bola_disco', 23, 45);
@@ -131,13 +150,13 @@ Wd.build = (cfg) => {
   // fila bajo la pizarra (bandeja), el panel tras recepción y la piscina
   for (let x = 44; x <= 53; x++) blocked[15][x] = 1;
   const POOL = { x0: 48, y0: 34, x1: 54, y1: 36 };
-  for (let y = POOL.y0; y <= POOL.y1; y++) for (let x = POOL.x0; x <= POOL.x1; x++) blocked[y][x] = 1;
+  // la piscina se puede usar: sus celdas quedan libres (se nada)
   // autos: cuerpo de 4×2 en el centro de cada tarima
   cars.forEach(c => { for (let y = c.y + 1; y <= c.y + 2; y++) for (let x = c.x + 1; x <= c.x + 4; x++) blocked[y][x] = 1; });
 
   /* ── puntos de interacción ── */
   const inter = [];
-  OFF_X.forEach((X, p) => inter.push({ id: 'desk' + p, kind: 'desk', pos: p, x: (X + 6.5) * T, y: 5.6 * T, r: 30 }));
+  OFF_X.forEach((X, p) => inter.push({ id: 'desk' + p, kind: 'desk', pos: p, x: (desks[p].x + 1.5) * T, y: (desks[p].y + 1.6) * T, r: 30 }));
   inter.push({ id: 'board', kind: 'board', x: 49 * T, y: 16.8 * T, r: 90, rx: 90, ry: 26 });
   inter.push({ id: 'gong', kind: 'gong', x: 38 * T, y: 18.8 * T, r: 24 });
   inter.push({ id: 'clocks', kind: 'clocks', x: 33.5 * T, y: 16.5 * T, r: 40 });
@@ -155,6 +174,7 @@ Wd.build = (cfg) => {
   inter.push({ id: 'dj', kind: 'dj', x: 43 * T, y: 58.8 * T, r: 34 });
   inter.push({ id: 'clubbar', kind: 'bar', x: 12 * T, y: 58.8 * T, r: 40 });
   inter.push({ id: 'jukebox', kind: 'jukebox', x: 24.5 * T, y: 32.8 * T, r: 18 });
+  S.filter(s => s.key === 'loteria').forEach((s, i) => inter.push({ id: 'lot' + i, kind: 'lottery', x: (s.x + .5) * T, y: (s.y + 1.7) * T, r: 16 }));
 
   // asientos para "reunión de emergencia"
   const seats = [[6, 19, 'down'], [8, 19, 'down'], [10, 19, 'down'], [4, 21, 'right'], [12, 21, 'left'], [6, 23, 'up'], [8, 23, 'up'], [10, 23, 'up']]
@@ -165,7 +185,7 @@ Wd.build = (cfg) => {
   const officeSpawn = p => ({ x: (OFF_X[p] + 6.5) * T, y: 7 * T });
 
   const dancers = POLES.map(([x, y], i) => ({ x: (x + .5) * T, y: (y + 1) * T - 2, i }));
-  return { grid, room, blocked, staticBlocked: blocked.map(r => Uint8Array.from(r)), statics: S, inter, seats, npcPath, spawn, officeSpawn, cars, POOL, dancers };
+  return { grid, room, blocked, staticBlocked: blocked.map(r => Uint8Array.from(r)), statics: S, inter, seats, npcPath, spawn, officeSpawn, cars, POOL, dancers, desks };
 };
 const shade = A.shade;
 function rugFor(t) { return ({ nogal: '#7a2f3a', madera: '#2c4a6e', alfombra: '#8a6a2c', concreto: '#2f5a44', marmol: '#3a2f5a', neon: '#5a1f6e', ruedda: '#3a3d10', verde: '#6e4a2c' })[t] || '#7a2f3a'; }

@@ -505,6 +505,90 @@ def('estatua_oro', { name: 'Estatua de oro', fw: 2, w: 32, h: 34, shop: true, dr
   k.rr(2, 11, 28, 8, '#f2c230', 2).rr(9, 6, 13, 6, '#e0ab22', 2).r(11, 7, 4, 4, '#fff1a0').r(16, 7, 4, 4, '#fff1a0').ell(8, 19, 3, 3, '#8e6a12').ell(24, 19, 3, 3, '#8e6a12').r(3, 12, 26, 1, '#fff1a0');
 }});
 
+/* ── más muebles ── */
+def('flores', { name: 'Flores', w: 16, h: 18, shop: true, draw(k) {
+  k.r(4, 11, 8, 6, '#e8e4dc').r(4, 11, 8, 1, '#fff'); k.r(7, 5, 1, 6, '#2f8a4e').r(9, 6, 1, 5, '#2f8a4e').r(5, 7, 1, 4, '#2f8a4e');
+  [[7, 3, '#ff3d8b'], [10, 4, '#e6f03b'], [4, 5, '#a855f7'], [8, 6, '#f08a24']].forEach(([x, y, c]) => k.r(x - 1, y - 1, 3, 3, c).p(x, y, '#fff6c8'));
+}});
+def('cactus', { name: 'Cactus', w: 16, h: 20, shop: true, draw(k) {
+  k.r(4, 14, 8, 5, '#c86b3c').r(4, 14, 8, 1, '#e08552'); k.rr(6, 3, 4, 11, '#3fa45e', 1).r(3, 7, 3, 2, '#3fa45e').r(3, 5, 2, 3, '#3fa45e').r(10, 8, 3, 2, '#3fa45e').r(11, 5, 2, 4, '#3fa45e');
+  [[7, 5], [8, 9], [7, 12], [4, 6], [12, 6]].forEach(([x, y]) => k.p(x, y, '#c8f0c8')); k.r(7, 2, 2, 1, '#ff3d8b');
+}});
+def('palmera_neon', { name: 'Palmera neón', w: 24, h: 36, shop: true, glow: '#22d3ee', draw(k) {
+  k.r(8, 30, 8, 5, '#111215'); k.r(11, 12, 2, 18, '#e85b9c');
+  [[-8, -2], [8, -2], [-6, -6], [6, -6], [0, -9]].forEach(([dx, dy]) => { for (let s = 0; s < 6; s++) k.r(12 + Math.round(dx * s / 6) - 1, 12 + Math.round(dy * s / 6), 2, 1, '#22d3ee'); });
+}});
+def('sillon_gamer', { name: 'Silla gamer', w: 16, h: 24, block: false, shop: true, draw(k) {
+  k.rr(3, 0, 10, 14, '#16171b', 2).r(5, 2, 6, 10, '#d7262e').r(7, 2, 2, 10, '#16171b').r(2, 13, 12, 5, '#16171b').r(3, 14, 10, 2, '#d7262e').r(7, 18, 2, 3, '#5b6573').r(3, 21, 10, 1, '#5b6573');
+}});
+def('banca', { name: 'Banca', fw: 2, w: 32, h: 18, block: false, shop: true, draw(k) {
+  k.r(1, 4, 30, 3, WOODL).r(1, 8, 30, 3, WOODL).r(1, 7, 30, 1, WOODD).r(3, 11, 2, 6, '#2a2d33').r(27, 11, 2, 6, '#2a2d33');
+}});
+def('standing', { name: 'Escritorio de pie', fw: 2, w: 32, h: 30, shop: true, draw(k) {
+  k.r(1, 10, 30, 5, '#e8e4dc').r(1, 10, 30, 1, '#fff').r(4, 15, 2, 14, '#5b6573').r(26, 15, 2, 14, '#5b6573').r(2, 28, 28, 2, '#2a2d33');
+  k.r(10, 1, 12, 9, '#1a1c21').r(11, 2, 10, 6, '#2b4c7e').r(12, 4, 6, 1, '#e6f03b');
+}});
+def('archivador', { name: 'Archivador', w: 16, h: 26, shop: true, draw(k) {
+  k.r(1, 1, 14, 24, '#9aa0a6').r(1, 1, 14, 1, '#c9ccd2'); [3, 11, 19].forEach(y => k.r(2, y, 12, 6, '#8f959b').r(6, y + 2, 4, 1, '#2a2d33'));
+}});
+def('impresora', { name: 'Impresora', w: 16, h: 16, shop: true, draw(k) {
+  k.r(1, 6, 14, 8, '#e8e4dc').r(1, 6, 14, 1, '#fff').r(3, 2, 10, 5, '#f4f4f2').r(3, 11, 10, 2, '#2a2d33').p(12, 8, '#3ddc84');
+}});
+def('globo', { name: 'Globo terráqueo', w: 16, h: 22, shop: true, draw(k) {
+  k.ell(8, 8, 6, 6, '#2c5bd6').r(5, 5, 3, 3, '#3fa45e').r(9, 9, 3, 2, '#3fa45e').r(10, 4, 2, 2, '#3fa45e').r(7, 15, 2, 4, '#c99a1e').r(4, 19, 8, 2, '#5e3c27');
+}});
+def('billar', { name: 'Mesa de billar', fw: 4, fh: 2, w: 64, h: 36, shop: true, draw(k) {
+  k.rr(1, 2, 62, 28, '#5e3c27', 3).r(5, 6, 54, 20, '#1f7a4a').r(5, 6, 54, 1, '#2f9a5e');
+  [[5, 6], [31, 5], [57, 6], [5, 24], [31, 25], [57, 24]].forEach(([x, y]) => k.r(x, y, 3, 2, '#0b0b0d'));
+  [[20, 14, '#f4f4f2'], [40, 12, '#e6f03b'], [43, 15, '#d7262e'], [42, 18, '#2c5bd6'], [46, 14, '#111215']].forEach(([x, y, c]) => k.r(x, y, 2, 2, c));
+  k.r(8, 20, 24, 1, '#c9a96e').r(4, 30, 3, 5, '#3a2a1f').r(57, 30, 3, 5, '#3a2a1f');
+}});
+def('futbolito', { name: 'Futbolito', fw: 3, w: 48, h: 28, shop: true, draw(k) {
+  k.r(2, 4, 44, 18, '#5e3c27').r(5, 6, 38, 14, '#2f8a4e').r(24, 6, 1, 14, '#f4f4f2');
+  for (let i = 0; i < 6; i++) { const x = 9 + i * 6; k.r(x, 2, 1, 22, '#c9ccd2'); k.r(x - 1, 9 + (i % 2) * 4, 3, 3, i < 3 ? '#d7262e' : '#2c5bd6'); }
+  k.r(4, 22, 3, 5, '#3a2a1f').r(41, 22, 3, 5, '#3a2a1f');
+}});
+def('piano', { name: 'Piano', fw: 3, fh: 2, w: 48, h: 34, shop: true, draw(k) {
+  k.rr(2, 2, 44, 22, '#111215', 6).r(4, 4, 30, 2, '#2a2d33').r(6, 20, 36, 6, '#f4f4f2');
+  for (let x = 7; x < 42; x += 3) k.r(x, 20, 1, 6, '#9aa0a6'); for (let x = 8; x < 41; x += 6) k.r(x, 20, 2, 3, '#111215');
+  k.r(16, 28, 16, 4, '#2a2d33');
+}});
+def('bici', { name: 'Bici estática', w: 16, h: 24, shop: true, draw(k) {
+  k.r(3, 20, 11, 2, '#2a2d33').r(6, 8, 2, 12, '#d7262e').r(4, 6, 6, 2, '#16171b').r(10, 4, 2, 10, '#d7262e').r(9, 3, 5, 2, '#16171b').ell(9, 17, 3, 3, '#5b6573');
+}});
+def('nevera', { name: 'Nevera', w: 16, h: 32, shop: true, draw(k) {
+  k.rr(1, 1, 14, 30, '#e8e4dc', 2).r(1, 12, 14, 1, '#b8b2a6').r(12, 4, 1, 6, '#9aa0a6').r(12, 15, 1, 10, '#9aa0a6').r(3, 4, 3, 3, '#e6f03b').r(4, 17, 2, 2, '#ff3d8b');
+}});
+def('microondas', { name: 'Microondas', w: 16, h: 14, shop: true, draw(k) {
+  k.r(1, 3, 14, 10, '#2a2d33').r(2, 4, 9, 8, '#111215').r(3, 5, 6, 5, '#3a3f48').r(12, 5, 2, 1, '#3ddc84').r(12, 8, 2, 3, '#9aa0a6');
+}});
+def('flotador', { name: 'Flotador', w: 16, h: 12, block: false, flat: true, shop: true, draw(k) {
+  k.ell(8, 6, 7, 5, '#ff3d8b').ell(8, 6, 3, 2, 'rgba(0,0,0,0)'); k.g.clearRect(6, 5, 5, 3); [[2, 4], [12, 7], [7, 1], [8, 10]].forEach(([x, y]) => k.r(x, y, 2, 2, '#ffffff'));
+}});
+def('reloj_pie', { name: 'Reloj de pie', w: 16, h: 36, shop: true, draw(k) {
+  k.rr(2, 1, 12, 34, '#5e3c27', 2).ell(8, 8, 4, 4, '#fbf7ea').p(8, 6, '#16171b').p(9, 8, '#16171b').r(5, 15, 6, 15, '#3a2a1f').r(7, 17, 2, 9, '#c99a1e').ell(8, 26, 2, 2, '#f2c230');
+}});
+def('poster', { name: 'Póster Ruedda', w: 16, h: 24, shop: true, draw(k) {
+  k.r(1, 1, 14, 20, '#16171b').r(2, 2, 12, 18, '#e6f03b'); for (let y = 0; y < 4; y++) for (let x = 0; x < 3; x++) if ((x + y) % 2 === 0) k.r(4 + x * 3, 5 + y * 3, 3, 3, '#16171b');
+  k.r(7, 21, 2, 3, '#5b6573');
+}});
+def('extintor', { name: 'Extintor', w: 16, h: 18, shop: true, draw(k) { k.rr(5, 4, 6, 13, '#d7262e', 2).r(6, 2, 4, 2, '#16171b').r(10, 2, 3, 1, '#16171b').r(6, 9, 4, 3, '#f4f4f2'); }});
+def('telescopio', { name: 'Telescopio', w: 16, h: 26, shop: true, draw(k) {
+  k.r(7, 13, 2, 11, '#5b6573').r(3, 23, 10, 1, '#5b6573').r(4, 20, 1, 3, '#5b6573').r(11, 20, 1, 3, '#5b6573');
+  for (let i = 0; i < 9; i++) k.r(3 + i, 13 - i, 3, 3, i < 2 ? '#c99a1e' : '#e8e4dc'); k.r(12, 2, 3, 3, '#9fd3ff');
+}});
+
+/* ── Kenney (CC0, kenney.nl: Roguelike Indoors + Tiny Town) → /office/kenney.png ── */
+A.KENNEY = {"k_maceta": [0, 0, 1, 1, "Maceta tropical", 1, 0], "k_maceta2": [17, 0, 1, 1, "Maceta azul", 1, 0], "k_arbusto": [34, 0, 1, 1, "Arbusto", 1, 0], "k_brote": [51, 0, 1, 1, "Brote", 0, 0], "k_hongos": [68, 0, 1, 1, "Hongos", 0, 0], "k_arbol": [85, 0, 1, 1, "Arbolito", 1, 0], "k_arbol_otono": [102, 0, 1, 1, "Arbolito de otoño", 1, 0], "k_arbol_alto": [119, 0, 1, 2, "Árbol alto", 1, 0], "k_arbol_alto_otono": [136, 0, 1, 2, "Árbol de otoño", 1, 0], "k_tapete": [153, 0, 2, 1, "Tapete naranja", 0, 1], "k_tapete_verde": [186, 0, 3, 1, "Tapete verde", 0, 1], "k_cuadro_oro": [235, 0, 1, 1, "Cuadro dorado", 1, 0], "k_retrato": [252, 0, 1, 1, "Retrato", 1, 0], "k_espejo": [269, 0, 1, 1, "Espejo", 1, 0], "k_jarron": [286, 0, 1, 1, "Jarrón dorado", 1, 0], "k_jarron_plata": [303, 0, 1, 1, "Jarrón plateado", 1, 0], "k_candelabro": [320, 0, 1, 1, "Candelabro", 1, 0], "k_escudo": [337, 0, 1, 1, "Escudo", 1, 0], "k_barra_bebidas": [354, 0, 2, 1, "Barra de bebidas", 1, 0], "k_estufa": [387, 0, 1, 1, "Cocina", 1, 0], "k_fregadero": [404, 0, 1, 1, "Fregadero", 1, 0], "k_vitrina": [421, 0, 1, 1, "Vitrina", 1, 0], "k_mesa_larga": [438, 0, 3, 1, "Mesa larga", 1, 0], "k_mesa_oval": [0, 33, 2, 1, "Mesa ovalada", 1, 0], "k_mesa_redonda": [33, 33, 1, 1, "Mesa redonda", 1, 0], "k_mesita": [50, 33, 1, 1, "Mesita de noche", 1, 0], "k_taburete": [67, 33, 1, 1, "Taburete", 0, 0], "k_silla_madera": [84, 33, 1, 1, "Silla de madera", 0, 0], "k_parlante": [101, 33, 1, 1, "Bocina", 1, 0], "k_barril": [118, 33, 1, 1, "Barril de agua", 1, 0], "k_letrero": [135, 33, 1, 1, "Letrero", 1, 0], "k_colmena": [152, 33, 1, 1, "Colmena", 1, 0]};
+A.loadKenney = () => new Promise(res => {
+  if (A._kimg) return res(A._kimg);
+  const im = new Image(); im.onload = () => { A._kimg = im; res(im); }; im.onerror = () => res(null); im.src = '/office/kenney.png?v=1';
+});
+Object.entries(A.KENNEY).forEach(([key, [x, y, fw, fh, name, block, flat]]) => {
+  def(key, { name, fw, fh, w: fw * 16, h: fh * 16, block: !!block, flat: !!flat, shop: true, kenney: true,
+    draw(k) { if (A._kimg) k.g.drawImage(A._kimg, x, y, fw * 16, fh * 16, 0, 0, fw * 16, fh * 16); } });
+});
+
 /* ── fijos (no están en la tienda) ── */
 def('mesa_juntas', { fw: 7, fh: 3, w: 112, h: 52, draw(k) {
   k.rr(2, 6, 108, 38, '#3a2a1f', 4).rr(4, 7, 104, 34, '#5c3f2a', 4).r(8, 9, 96, 1, '#7a5638');
@@ -602,6 +686,13 @@ def('cabina', { fw: 3, fh: 2, w: 48, h: 56, draw(k, o) {
     k.r(23, 6, 2, 50, '#5c0a1e');
   }
   k.r(18, 8, 12, 5, '#16171b'); const t = A.pixelText(open ? 'VIP' : 'OCUP', open ? '#e6f03b' : '#ff3d8b', 1); k.g.drawImage(t, 24 - Math.floor(t.width / 2), 8);
+}});
+def('loteria', { w: 16, h: 32, glow: '#e6f03b', draw(k) {
+  k.rr(1, 4, 14, 27, '#b8232a', 2).r(1, 4, 14, 1, '#ff5a5f').rr(2, 0, 12, 6, '#f2c230', 2).r(4, 1, 8, 3, '#16171b');
+  const t = A.pixelText('777', '#e6f03b', 1); k.g.drawImage(t, 8 - Math.floor(t.width / 2), 1);
+  k.r(3, 9, 10, 8, '#fbf7ea'); k.r(3, 9, 10, 1, '#c9ccd2'); k.r(4, 11, 2, 4, '#d7262e').r(7, 11, 2, 4, '#2c5bd6').r(10, 11, 2, 4, '#3ddc84');
+  k.r(13, 8, 1, 7, '#c9ccd2').ell(14, 7, 1, 1, '#d7262e');
+  k.r(3, 20, 10, 3, '#16171b').r(5, 21, 6, 1, '#f2c230').r(3, 25, 10, 4, '#8e1230');
 }});
 /* ── club privado ── */
 def('escenario', { fw: 17, fh: 4, w: 272, h: 68, flat: true, draw(k) {

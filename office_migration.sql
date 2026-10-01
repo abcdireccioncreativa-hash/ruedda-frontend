@@ -96,6 +96,18 @@ create table if not exists public.office_events (
 );
 create index if not exists office_events_kind_idx on public.office_events(kind, actor, created_at desc);
 
+-- Notas escritas en la pizarra (se pueden mover)
+create table if not exists public.office_board_notes (
+  id         bigserial primary key,
+  board      text not null default 'main',
+  body       text not null check (length(body) between 1 and 300),
+  x          integer not null default 100,
+  y          integer not null default 100,
+  color      text not null default '#fff27a',
+  author     uuid references auth.users(id) on delete set null,
+  updated_at timestamptz not null default now()
+);
+
 -- Chat global de la oficina (con historial)
 create table if not exists public.office_chat (
   id         bigserial primary key,
@@ -148,6 +160,56 @@ insert into public.office_catalog (item, name, price, category, sort) values
   ('lampara','Lámpara',30,'deco',40), ('alfombra','Alfombra',40,'deco',41), ('cuadro','Cuadro',50,'deco',42),
   ('neon','Neón Ruedda',100,'deco',43), ('trofeo','Trofeo',120,'deco',44), ('estatua_oro','Estatua de oro',500,'deco',45)
 on conflict (item) do nothing;
+insert into public.office_catalog (item, name, price, category, sort) values
+  ('flores','Flores',25,'plantas',4), ('cactus','Cactus',20,'plantas',5), ('palmera_neon','Palmera neón',90,'plantas',6),
+  ('sillon_gamer','Silla gamer',70,'muebles',16), ('banca','Banca',45,'muebles',17), ('standing','Escritorio de pie',75,'muebles',18), ('archivador','Archivador',40,'muebles',19),
+  ('impresora','Impresora',45,'tech',23), ('globo','Globo terráqueo',35,'tech',24),
+  ('billar','Mesa de billar',220,'ocio',35), ('futbolito','Futbolito',160,'ocio',36), ('piano','Piano',260,'ocio',37), ('bici','Bici estática',90,'ocio',38),
+  ('nevera','Nevera',80,'cocina',50), ('microondas','Microondas',40,'cocina',51), ('flotador','Flotador',15,'piscina',60),
+  ('reloj_pie','Reloj de pie',110,'deco',46), ('poster','Póster Ruedda',30,'deco',47), ('extintor','Extintor',10,'deco',48), ('telescopio','Telescopio',95,'deco',49)
+on conflict (item) do nothing;
+-- muebles y plantas de Kenney (CC0)
+insert into public.office_catalog (item, name, price, category, sort) values
+  ('k_maceta','Maceta tropical',45,'plantas',100),
+  ('k_maceta2','Maceta azul',45,'plantas',101),
+  ('k_arbusto','Arbusto',60,'plantas',102),
+  ('k_brote','Brote',25,'plantas',103),
+  ('k_hongos','Hongos',30,'plantas',104),
+  ('k_arbol','Arbolito',95,'plantas',105),
+  ('k_arbol_otono','Arbolito de otoño',95,'plantas',106),
+  ('k_arbol_alto','Árbol alto',160,'plantas',107),
+  ('k_arbol_alto_otono','Árbol de otoño',160,'plantas',108),
+  ('k_tapete','Tapete naranja',90,'deco',109),
+  ('k_tapete_verde','Tapete verde',120,'deco',110),
+  ('k_cuadro_oro','Cuadro dorado',110,'deco',111),
+  ('k_retrato','Retrato',90,'deco',112),
+  ('k_espejo','Espejo',80,'deco',113),
+  ('k_jarron','Jarrón dorado',140,'deco',114),
+  ('k_jarron_plata','Jarrón plateado',120,'deco',115),
+  ('k_candelabro','Candelabro',85,'deco',116),
+  ('k_escudo','Escudo',70,'deco',117),
+  ('k_barra_bebidas','Barra de bebidas',220,'cocina',118),
+  ('k_estufa','Cocina',150,'cocina',119),
+  ('k_fregadero','Fregadero',110,'cocina',120),
+  ('k_vitrina','Vitrina',130,'muebles',121),
+  ('k_mesa_larga','Mesa larga',160,'muebles',122),
+  ('k_mesa_oval','Mesa ovalada',120,'muebles',123),
+  ('k_mesa_redonda','Mesa redonda',75,'muebles',124),
+  ('k_mesita','Mesita de noche',65,'muebles',125),
+  ('k_taburete','Taburete',40,'muebles',126),
+  ('k_silla_madera','Silla de madera',45,'muebles',127),
+  ('k_parlante','Bocina',120,'tech',128),
+  ('k_barril','Barril de agua',50,'deco',129),
+  ('k_letrero','Letrero',35,'deco',130),
+  ('k_colmena','Colmena',55,'deco',131)
+on conflict (item) do nothing;
+-- precios más altos (una sola vez; después los maneja el admin desde la tienda)
+do $$ begin
+  if not coalesce((select (data->>'prices_v2')::boolean from public.office_config where id = 1), false) then
+    update public.office_catalog set price = (round(price * 2.5 / 5.0) * 5)::int where item not like 'k\_%';
+    update public.office_config set data = data || '{"prices_v2": true}'::jsonb where id = 1;
+  end if;
+end $$;
 
 -- ════════════ FUNCIONES DE ACCESO ════════════
 create or replace function public.office_is_superadmin() returns boolean
@@ -299,12 +361,30 @@ begin
   return jsonb_build_object('ok', true, 'decor', to_jsonb(d), 'coins', bal);
 end $$;
 
+-- Máquina de lotería: gratis, 25 tiradas al día. 1 de cada 4 gana monedas y puntos; 1 % premio mayor.
+create or replace function public.office_lottery() returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); used int; r float8; win boolean := false; jack boolean := false; c int := 0; p int := 0;
+begin
+  if not public.office_is_member() then raise exception 'no autorizado'; end if;
+  select count(*) into used from public.office_events where kind = 'lottery' and actor = uid and created_at >= date_trunc('day', now());
+  if used >= 25 then return jsonb_build_object('ok', false, 'reason', 'limite', 'left', 0); end if;
+  r := random();
+  if r < 0.01 then win := true; jack := true; c := 1000; p := 100;
+  elsif r < 0.25 then win := true; c := 40 + floor(random() * 161)::int; p := 5 + floor(random() * 16)::int;
+  end if;
+  insert into public.office_events(kind, actor, payload) values ('lottery', uid, jsonb_build_object('win', win, 'jackpot', jack, 'coins', c, 'points', p));
+  if win then update public.office_members set coins = coins + c, points = points + p where user_id = uid; end if;
+  return jsonb_build_object('ok', true, 'win', win, 'jackpot', jack, 'coins', c, 'points', p, 'left', 24 - used);
+end $$;
+
 -- Borrar la pizarra
 create or replace function public.office_clear_board(p_board text) returns void
 language plpgsql security definer set search_path = public as $$
 begin
   if not public.office_is_member() then raise exception 'no autorizado'; end if;
   delete from public.office_strokes where board = coalesce(p_board, 'main');
+  delete from public.office_board_notes where board = coalesce(p_board, 'main');
   insert into public.office_events(kind, actor, payload) values ('board_clear', auth.uid(), '{}'::jsonb);
 end $$;
 
@@ -385,6 +465,48 @@ begin
   where id = 1;
 end $$;
 
+-- Mover MI escritorio dentro de mi oficina (posición relativa guardada en offices[].desk)
+create or replace function public.office_set_my_desk(px int, py int) returns void
+language plpgsql security definer set search_path = public as $$
+declare s text; p int; x0 int;
+begin
+  if not public.office_is_member() then raise exception 'no autorizado'; end if;
+  select slot into s from public.office_members where user_id = auth.uid();
+  select (o->>'pos')::int into p from public.office_config c, jsonb_array_elements(c.data->'offices') o where c.id = 1 and o->>'slot' = s limit 1;
+  if p is null then raise exception 'no tienes oficina asignada'; end if;
+  x0 := (array[1, 15, 29, 43])[p + 1];
+  if px < x0 or px > x0 + 10 or py < 2 or py > 8 then raise exception 'el escritorio debe quedar dentro de tu oficina'; end if;
+  update public.office_config set
+    data = jsonb_set(data, '{offices}', (
+      select jsonb_agg(case when o->>'slot' = s then o || jsonb_build_object('desk', jsonb_build_array(px - x0, py)) else o end order by ord)
+      from jsonb_array_elements(data->'offices') with ordinality t(o, ord))),
+    updated_at = now(), updated_by = auth.uid()
+  where id = 1;
+end $$;
+
+-- "Soltar" los muebles base de MI oficina: pasan a ser decoración normal (se mueven y se quitan)
+create or replace function public.office_unpack_base() returns void
+language plpgsql security definer set search_path = public as $$
+declare s text; p int; x0 int; bare boolean;
+begin
+  if not public.office_is_member() then raise exception 'no autorizado'; end if;
+  select slot into s from public.office_members where user_id = auth.uid();
+  select (o->>'pos')::int, coalesce((o->>'bare')::boolean, false) into p, bare
+    from public.office_config c, jsonb_array_elements(c.data->'offices') o where c.id = 1 and o->>'slot' = s limit 1;
+  if p is null then raise exception 'no tienes oficina asignada'; end if;
+  if bare then return; end if;
+  x0 := (array[1, 15, 29, 43])[p + 1];
+  insert into public.office_decor(item, x, y, placed_by) values
+    ('estanteria', x0, 1, auth.uid()), ('planta_grande', x0 + 12, 1, auth.uid()), ('alfombra', x0 + 4, 5, auth.uid()),
+    ('mesa', x0 + 9, 6, auth.uid()), ('sofa', x0 + 9, 8, auth.uid()), ('planta', x0, 8, auth.uid()), ('lampara', x0 + 12, 8, auth.uid());
+  update public.office_config set
+    data = jsonb_set(data, '{offices}', (
+      select jsonb_agg(case when o->>'slot' = s then o || jsonb_build_object('bare', true) else o end order by ord)
+      from jsonb_array_elements(data->'offices') with ordinality t(o, ord))),
+    updated_at = now(), updated_by = auth.uid()
+  where id = 1;
+end $$;
+
 -- Decorar MI oficina gratis (cualquier artículo activo de la tienda)
 create or replace function public.office_place_own(p_item text, p_x int, p_y int) returns jsonb
 language plpgsql security definer set search_path = public as $$
@@ -435,10 +557,11 @@ alter table public.office_positions enable row level security;
 alter table public.office_strokes   enable row level security;
 alter table public.office_events    enable row level security;
 alter table public.office_chat      enable row level security;
+alter table public.office_board_notes enable row level security;
 alter table public.office_accounts  enable row level security;   -- sin políticas: solo service role y RPCs
 
 do $$ declare t text; begin
-  foreach t in array array['office_members','office_config','office_catalog','office_decor','office_notes','office_positions','office_strokes','office_events','office_chat','office_accounts'] loop
+  foreach t in array array['office_members','office_config','office_catalog','office_decor','office_notes','office_positions','office_strokes','office_events','office_chat','office_accounts','office_board_notes'] loop
     execute format('revoke all on public.%I from anon', t);
     if t = 'office_accounts' then execute 'revoke all on public.office_accounts from authenticated'; end if;
   end loop;
@@ -503,6 +626,11 @@ create policy office_events_sel on public.office_events for select to authentica
 create policy office_events_ins on public.office_events for insert to authenticated
   with check (actor = auth.uid() and public.office_is_member() and kind not like 'award:%' and kind <> 'boost');
 
+drop policy if exists office_bnotes_sel on public.office_board_notes;
+drop policy if exists office_bnotes_all on public.office_board_notes;
+create policy office_bnotes_sel on public.office_board_notes for select to authenticated using (public.office_is_member());
+create policy office_bnotes_all on public.office_board_notes for all to authenticated using (public.office_is_member()) with check (public.office_is_member());
+
 drop policy if exists office_chat_sel on public.office_chat;
 drop policy if exists office_chat_ins on public.office_chat;
 drop policy if exists office_chat_del on public.office_chat;
@@ -516,7 +644,7 @@ do $$ declare f text; begin
                            'office_buy(text,integer,integer)','office_clear_board(text)','office_grant(uuid,integer)',
                            'office_find_users(text)','office_upsert_member(uuid,text,text,text,boolean)',
                            'office_in_my_office(integer,integer)','office_in_other_office(integer,integer)','office_update_my_office(text,text,boolean)','office_place_own(text,integer,integer)',
-                           'office_accounts_list()','office_account_upsert(text,text,text,text,boolean,boolean)','office_account_delete(text)'] loop
+                           'office_accounts_list()','office_lottery()','office_set_my_desk(integer,integer)','office_unpack_base()','office_account_upsert(text,text,text,text,boolean,boolean)','office_account_delete(text)'] loop
     execute 'revoke all on function public.' || f || ' from public, anon';
     execute 'grant execute on function public.' || f || ' to authenticated';
   end loop;

@@ -301,13 +301,14 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       const o = offs.find(z => z.pos === p); if (!o) return;
       const m = RO.memberBySlot(o.slot); if (!m) return;
       const notes = RO.S.notes.filter(n => n.to_user === m.user_id && !n.read_at);
+      const dk = this.w.desks[p];
       notes.slice(0, 6).forEach((n, i) => {
-        const r = this.add.rectangle((X + 5) * T + 4 + i * 6, 4 * T + 9 + (i % 2), 5, 5, Phaser.Display.Color.HexStringToColor(n.color || A.YELLOW).color).setDepth(5 * T + 2).setStrokeStyle(1, 0x111215);
+        const r = this.add.rectangle(dk.x * T + 4 + i * 6, dk.y * T + 9 + (i % 2), 5, 5, Phaser.Display.Color.HexStringToColor(n.color || A.YELLOW).color).setDepth((dk.y + 1) * T + 2).setStrokeStyle(1, 0x111215);
         r.angle = (i % 3 - 1) * 8;
         this.postits.push(r);
       });
       if (m.user_id === RO.S.me.user_id && notes.length) {
-        const b = this.add.text((X + 6.5) * T, 3 * T - 2, '!', { fontFamily: 'Silkscreen, monospace', fontSize: '12px', color: '#16171b', backgroundColor: '#e6f03b', padding: { x: 3, y: 0 } }).setOrigin(0.5).setDepth(9e4).setResolution(4);
+        const b = this.add.text((dk.x + 1.5) * T, (dk.y - 1) * T - 2, '!', { fontFamily: 'Silkscreen, monospace', fontSize: '12px', color: '#16171b', backgroundColor: '#e6f03b', padding: { x: 3, y: 0 } }).setOrigin(0.5).setDepth(9e4).setResolution(4);
         this.tweens.add({ targets: b, y: b.y - 4, duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
         this.postits.push(b);
       }
@@ -453,6 +454,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     const me = this.me, busy = (RO.uiBusy && RO.uiBusy()) || !!this.woo;
     let vx = 0, vy = 0;
     {
+      if (!busy && this.stick && (this.stick.x || this.stick.y)) { vx = this.stick.x; vy = this.stick.y; }
       if (!busy) {
         if (keys.has('arrowleft') || keys.has('a')) vx -= 1;
         if (keys.has('arrowright') || keys.has('d')) vx += 1;
@@ -471,7 +473,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     const moving = !!(vx || vy);
     if (moving) {
       const n = Math.hypot(vx, vy); vx /= n; vy /= n;
-      const sp = (keys.has('shift') ? 128 : 80) * (this.coffeeUntil > time ? 1.4 : 1) * dt / 1000;
+      const sp = (keys.has('shift') || this.stick && this.stick.run ? 128 : 80) * (this.coffeeUntil > time ? 1.4 : 1) * (me.swim ? 0.6 : 1) * dt / 1000;
       const nx = me.x + vx * sp, ny = me.y + vy * sp;
       if (!this.hits(nx, me.y)) me.x = nx; else if (this.path) { /* esquina */ }
       if (!this.hits(me.x, ny)) me.y = ny;
@@ -480,6 +482,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     }
     this.setFrame(me, moving, time);
     me.spr.setDepth(me.sit ? me.sit.depth : me.y);
+    this.applySwim(me);
 
     // red: posición
     if (moving && time - this.lastSend > 100) { this.sendPos(1); this.lastSend = time; }
@@ -499,6 +502,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       else if (d > 0.3) { const step = Math.max(90, d * 6) * dt / 1000; const k = Math.min(1, step / d); p.x += dx * k; p.y += dy * k; }
       p.spr.setPosition(p.x, p.y).setDepth(p.sit && p.z ? p.z : p.y);
       this.setFrame(p, !p.sit && (d > 0.6 || p.moving), time);
+      this.applySwim(p);
     });
 
     this.updateNpc(time, dt);
@@ -531,7 +535,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     });
     if (this.npc) { const d = Math.hypot(me.x - this.npc.x, me.y - this.npc.y); if (d < 26) consider({ id: 'npc', kind: 'npc' }, d - 6); }
     if (!me.sit) (this.seats || []).forEach(st => {
-      const d = Math.hypot(me.x - st.x, me.y - (st.y + 10)); if (d > 20) return;
+      const d = Math.min(Math.hypot(me.x - st.x, me.y - (st.y + 10)), Math.hypot(me.x - st.x, me.y - st.y) + 2); if (d > 24) return;
       for (const p of this.players.values()) if (p !== me && p.sit && Math.hypot(p.x - st.x, p.y - st.y) < 4) return;   // ocupado
       consider({ id: 'seat:' + st.id, kind: 'seat', seat: st, label: st.label }, d + 2);
     });
@@ -544,18 +548,51 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   }
   interact() { if (this.hint) RO.emit('interact', this.hint); }
 
+  /* ════════════ PISCINA ════════════ */
+  inPool(x, y) { const P = this.w.POOL, tx = Math.floor(x / T), ty = Math.floor(y / T); return tx >= P.x0 && tx <= P.x1 && ty >= P.y0 && ty <= P.y1; }
+  applySwim(p) {
+    const sw = !p.sit && this.inPool(p.x, p.y);
+    if (sw !== !!p.swim) {
+      p.swim = sw;
+      if (sw) {
+        p.spr.setCrop(0, 0, 16, 14);
+        this.splash(p.x, p.y);
+        p.ripple = this.add.ellipse(p.x, p.y + 4, 20, 7, 0xffffff, 0.35).setDepth(p.y - 1);
+        this.tweens.add({ targets: p.ripple, scaleX: 1.25, alpha: 0.12, duration: 700, yoyo: true, repeat: -1 });
+        if (p.isMe) { RO.sfx.splash(); RO.emit('swim', true); }
+      } else {
+        p.spr.setCrop(); if (p.ripple) { p.ripple.destroy(); p.ripple = null; }
+        if (p.isMe) RO.emit('swim', false);
+      }
+    }
+    if (sw) { p.spr.y = p.y + 6; if (p.ripple) p.ripple.setPosition(p.x, p.y + 4).setDepth(p.y + 7); }
+  }
+  splash(x, y) {
+    for (let i = 0; i < 12; i++) {
+      const d = this.add.rectangle(x, y, 2, 2, i % 2 ? 0x9fd3ff : 0xffffff).setDepth(9e4);
+      const a = Math.random() * Math.PI, r = 10 + Math.random() * 14;
+      this.tweens.add({ targets: d, x: x + Math.cos(a) * r * (Math.random() < .5 ? -1 : 1), y: y - Math.sin(a) * r, alpha: 0, duration: 500 + Math.random() * 300, onComplete: () => d.destroy() });
+    }
+  }
+
   /* ════════════ ASIENTOS (sofás, sillas, escritorio) ════════════ */
   buildSeats() {
     const out = [], SOFA = { sofa: 1, sofa_vip: 1, sofa_lobby: 1 };
     const juntas = {}; this.w.seats.forEach(s => { juntas[Math.floor(s.x / T) + ',' + Math.floor(s.y / T)] = s.dir; });
-    const addFrom = (key, x, y, src) => {
+    const one = (src, x, y, ox, oy, dir, depth, label) => out.push({ id: src + ':' + x + ',' + y + ':' + ox, x: (x + ox) * T, y: (y + oy) * T, dir, depth, label });
+    const addFrom = (key, x, y, src, opts) => {
+      if (key === 'puff') return one(src, x, y, .5, .62, 'down', (y + 1) * T + 2, 'Sentarte en el puff');
+      if (key === 'sillon_gamer') return one(src, x, y, .5, .9, 'down', (y + 1) * T - 7, 'Sentarte en la silla gamer');
+      if (key === 'k_taburete' || key === 'k_silla_madera') return one(src, x, y, .5, .8, 'down', (y + 1) * T - 6, 'Sentarte');
+      if (key === 'banca') { [0.6, 1.4].forEach(ox => one(src, x, y, ox, .8, 'down', (y + 1) * T + 2, 'Sentarte en la banca')); return; }
+      if (key === 'tumbona') return one(src, x, y, .5, 1.6, 'down', (y + 2) * T + 2, 'Echarte en la tumbona');
       if (SOFA[key]) [0.95, 2.05].forEach((ox, i) => out.push({ id: src + ':' + x + ',' + y + ':' + i, x: (x + ox) * T, y: (y + 1) * T - 3, dir: 'down', depth: (y + 1) * T + 2, label: 'Sentarte en el sofá' }));
       else if (key === 'silla') {
         const dir = juntas[x + ',' + y] || 'down';
-        out.push({ id: src + ':' + x + ',' + y, x: (x + .5) * T, y: (y + 1) * T - 4, dir, depth: (y + 1) * T - 7, label: 'Sentarte', desk: y === 3 && Wd.OFF_X.some(x0 => x === x0 + 6) });
+        out.push({ id: src + ':' + x + ',' + y, x: (x + .5) * T, y: (y + 1) * T - 4, dir, depth: (y + 1) * T - 7, label: 'Sentarte', desk: opts && opts.desk != null ? opts.desk : null });
       }
     };
-    this.w.statics.forEach(s => { if (!(s.opts && s.opts.reserved)) addFrom(s.key, s.x, s.y, 's'); });
+    this.w.statics.forEach(s => { if (!(s.opts && s.opts.reserved)) addFrom(s.key, s.x, s.y, 's', s.opts); });
     (RO.S.decor || []).forEach(d => addFrom(d.item, d.x, d.y, 'd' + d.id));
     this.seats = out;
   }
@@ -576,7 +613,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   }
   deskSeat() {
     const r = Wd.officeRect(RO.S.me.slot, RO.S.config); if (!r) return null;
-    return (this.seats || []).find(s => s.desk && Math.floor(s.x / T) === r.x0 + 6);
+    return (this.seats || []).find(s => s.desk === r.pos);
   }
 
   /* ════════════ CLUB PRIVADO ════════════ */
@@ -855,6 +892,16 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   onPointer(p, down) {
     if (RO.uiBusy && RO.uiBusy()) return;
     const tx = Math.floor(p.worldX / T), ty = Math.floor(p.worldY / T);
+    if (this.edit && this.edit.mode === 'desk') {
+      const r = Wd.officeRect(RO.S.me.slot, RO.S.config); if (!r) return;
+      const cur = this.w.desks[r.pos];
+      let ok = tx >= r.x0 && tx <= r.x0 + 10 && ty >= 2 && ty <= 8;
+      for (let x = tx; ok && x < tx + 3; x++) { const own = (ty === cur.y && x >= cur.x && x < cur.x + 3); if (this.blocked[ty][x] !== 0 && !own) ok = false; }
+      if (!this.ghost) this.ghost = this.add.image(0, 0, this.itemTex('escritorio_pc', { lamp: A.YELLOW })).setOrigin(0, 1).setAlpha(.75).setDepth(9.5e5);
+      this.ghost.setPosition(tx * T, (ty + 1) * T).setTint(ok ? 0xffffff : 0xff4a4a);
+      if (down && p.leftButtonDown()) { if (ok) RO.emit('edit:desk', tx, ty); else RO.sfx.err(); }
+      return;
+    }
     if (this.edit) {
       const it = A.ITEMS[this.edit.item];
       if (this.edit.mode === 'place' && it) {
@@ -963,6 +1010,8 @@ G.stand = () => S() && S().stand();
 G.sitDesk = () => { const s = S(); if (!s) return false; const st = s.deskSeat(); if (!st) return false; s.sit(st); return true; };
 G.isSitting = () => !!(S() && S().me.sit);
 G.petCat = i => S() && S().petCat(i);
+G.setTalking = (uid, on) => { const s = S(); const p = s && s.players.get(uid); if (p && p._talk !== on) { p._talk = on; p.tag.classList.toggle('talk', on); } };
+G.setStick = (x, y, run) => { const s = S(); if (s) s.stick = { x, y, run }; };
 G.wooStart = ms => S() ? S().wooStart(ms) : false;
 G.wooEnd = () => S() && S().wooEnd();
 G.wooActive = () => !!(S() && S().woo);
