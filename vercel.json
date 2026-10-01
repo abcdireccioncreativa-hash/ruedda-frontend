@@ -66,6 +66,14 @@
       "dest": "/control.html"
     },
     {
+      "src": "^/api/office-login$",
+      "dest": "/api/admin-user?office=login"
+    },
+    {
+      "src": "^/api/office-stats$",
+      "dest": "/api/admin-user?office=stats"
+    },
+    {
       "src": "^/office/?$",
       "headers": {
         "Cache-Control": "no-cache",
