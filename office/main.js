@@ -130,6 +130,18 @@ function afterEnter() {
     UI.renderTop();
   }).catch(() => {}), 30000);
   if (S.config.motd) setTimeout(() => UI.toast(esc(S.config.motd)), 400);
+  // aviso de versión nueva (sin recargar a mano)
+  const myV = (document.querySelector('script[src*="/office/main.js"]') || {}).src || '';
+  const cur = (myV.match(/v=(\d+)/) || [])[1];
+  let warned = false;
+  setInterval(async () => {
+    if (warned || !cur) return;
+    try {
+      const html = await (await fetch('/office?chk=' + Date.now(), { cache: 'no-store' })).text();
+      const v = (html.match(/office\/main\.js\?v=(\d+)/) || [])[1];
+      if (v && v !== cur) { warned = true; UI.toast('✨ Hay una versión nueva de la oficina', 'note', [{ t: 'Actualizar', y: 1, f: () => { RO.G.save(); location.reload(); } }], 600000); }
+    } catch (e) {}
+  }, 120000);
   addEventListener('beforeunload', () => RO.G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) RO.G.save(); });
 }
@@ -139,7 +151,7 @@ function track() {
   const p = RO.G.mePos() || {};
   RO.Net.track({ uid: S.me.user_id, status: S.status, room: p.room || null, x: p.x, y: p.y, dir: p.dir, at: Date.now() });
 }
-RO.on('room', (id, name) => { UI.setRoom(name); track(); UI.renderPeople(); if (id === 'club') RO.music.start(); else RO.music.stop(); });
+RO.on('room', (id, name) => { UI.setRoom(name); track(); UI.renderPeople(); if (id === 'club' || (id === 'ocio' && UI.jukebox)) RO.music.start(); else if (!RO.G.wooActive()) RO.music.stop(); });
 RO.on('club:found', () => UI.banner('Club privado', 'Ruedda Ecosystem · solo para el equipo', 'pink', 4200));
 RO.on('status', () => { track(); RO.G.refreshTags(); UI.renderPeople(); });
 RO.on('vip:found', () => {
@@ -196,6 +208,8 @@ const NET = {
       case 'secret': return RO.G.openSecret(true);
       case 'car': return RO.G.carFx(m.i);
       case 'invite': return UI.onInvite(m);
+      case 'woo': return RO.G.wooRemote(m.u, m.on);
+      case 'jbox': { const p = RO.G.mePos(); if (p && p.room === 'ocio' && !RO.muted) { UI.jukebox = !!m.on; if (m.on) RO.music.start(); else RO.music.stop(); } return; }
       case 'money': return RO.G.moneyRain();
       case 'drop': return RO.G.drop();
       case 'bs': return UI.WB.onSeg(m);

@@ -580,6 +580,29 @@ def('bola_disco', { fw: 1, w: 16, h: 16, block: false, draw(k) {
   for (let y = 4; y < 15; y += 2) for (let x = 3; x < 14; x += 2) if (((x + y) / 2) % 2) k.p(x, y, '#ffffff');
 }});
 
+def('rocola', { w: 16, h: 30, draw(k) {
+  k.rr(1, 2, 14, 27, '#7a2f3a', 4).rr(3, 4, 10, 8, '#f2c230', 3).r(4, 6, 8, 4, '#2a0d24').r(5, 7, 6, 1, '#e85b9c').r(5, 9, 6, 1, '#22d3ee');
+  k.r(3, 14, 10, 6, '#16171b'); for (let i = 0; i < 4; i++) k.r(4 + i * 2, 15, 1, 4, ['#e6f03b', '#e85b9c', '#22d3ee', '#3ddc84'][i]);
+  k.r(3, 22, 10, 5, '#5c1630').r(5, 23, 6, 1, '#f2c230');
+}});
+def('cabina', { fw: 3, fh: 2, w: 48, h: 56, draw(k, o) {
+  const open = o && o.open;
+  k.r(0, 4, 48, 52, '#2a0d1c').r(0, 0, 48, 6, '#c99a1e').r(0, 0, 48, 1, '#fff1a0').r(0, 5, 48, 1, '#8e6a12');
+  k.r(0, 6, 3, 50, '#c99a1e').r(45, 6, 3, 50, '#c99a1e');
+  if (open) {
+    k.r(3, 6, 42, 50, '#120610');
+    k.ell(24, 30, 9, 6, '#3a0d24').r(18, 36, 12, 6, '#5c1630');                      // cama redonda
+    for (let y = 0; y < 3; y++) k.p(23 + y, 14 + y, '#ff3d8b');                       // lamparita corazón
+    k.r(3, 6, 8, 50, '#8e1230').r(37, 6, 8, 50, '#8e1230');                         // cortinas recogidas
+    for (let x = 4; x < 11; x += 3) k.r(x, 6, 1, 50, '#b3123e');
+    for (let x = 38; x < 45; x += 3) k.r(x, 6, 1, 50, '#b3123e');
+  } else {
+    k.r(3, 6, 42, 50, '#8e1230');
+    for (let x = 4; x < 45; x += 4) k.r(x, 6, 2, 50, '#b3123e');
+    k.r(23, 6, 2, 50, '#5c0a1e');
+  }
+  k.r(18, 8, 12, 5, '#16171b'); const t = A.pixelText(open ? 'VIP' : 'OCUP', open ? '#e6f03b' : '#ff3d8b', 1); k.g.drawImage(t, 24 - Math.floor(t.width / 2), 8);
+}});
 /* ── club privado ── */
 def('escenario', { fw: 17, fh: 4, w: 272, h: 68, flat: true, draw(k) {
   k.rr(0, 4, 272, 60, '#07060a', 6).rr(2, 4, 268, 56, '#140b1c', 6);
@@ -621,6 +644,31 @@ A.DANCERS = [
   { skin: '#c98d63', hair: 'coleta', hairColor: '#d9b25a', outfit: 'bikini', top: '#f2c230', bottom: '#f2c230', shoes: '#f2c230', acc: 'ninguno', beard: 'no' },
   { skin: '#f6d3b3', hair: 'largo', hairColor: '#c2412d', outfit: 'bikini', top: '#a855f7', bottom: '#a855f7', shoes: '#111111', acc: 'lentes_sol', beard: 'no' }
 ];
+
+/* ════════════ GATOS (16×12, 4 cuadros: parado, paso A, paso B, echado) ════════════ */
+A.CATS = [
+  { name: 'Turbo', fur: '#f08a24', dark: '#b8611a', light: '#ffc27a', eye: '#3ddc84' },
+  { name: 'Diésel', fur: '#2a2d33', dark: '#16171b', light: '#5b6573', eye: '#e6f03b' },
+  { name: 'Nitro', fur: '#e8e4dc', dark: '#a9adb3', light: '#ffffff', eye: '#4f8cff' }
+];
+A.catSheet = c => {
+  const k = mk(16 * 4, 12);
+  const body = (ox, legA, legB, sleep) => {
+    if (sleep) {
+      k.ell(ox + 8, 8, 6, 3, c.fur).r(ox + 3, 7, 10, 1, c.light).ell(ox + 4, 7, 3, 3, c.fur).r(ox + 2, 4, 2, 2, c.fur).r(ox + 5, 4, 2, 2, c.fur)
+       .r(ox + 3, 7, 1, 1, c.dark).r(ox + 5, 7, 1, 1, c.dark).r(ox + 11, 9, 4, 1, c.dark);
+      return;
+    }
+    k.r(ox + 5, 5, 8, 4, c.fur).r(ox + 5, 5, 8, 1, c.light).r(ox + 6, 8, 6, 1, c.dark);           // cuerpo
+    k.r(ox + 1, 3, 5, 4, c.fur).r(ox + 1, 2, 1, 1, c.fur).r(ox + 4, 2, 1, 1, c.fur);              // cabeza y orejas
+    k.p(ox + 2, 4, c.eye).p(ox + 4, 4, c.eye).p(ox + 3, 5, '#ff9ec7');
+    k.r(ox + 13, 3, 1, 3, c.fur).p(ox + 14, 2, c.fur);                                           // cola
+    k.r(ox + 5, 9, 1, 2 + legA, c.dark).r(ox + 7, 9, 1, 2 - legA, c.dark).r(ox + 10, 9, 1, 2 + legB, c.dark).r(ox + 12, 9, 1, 2 - legB, c.dark);
+  };
+  body(0, 0, 0); body(16, 1, -1); body(32, -1, 1); body(48, 0, 0, true);
+  outline(k, '#111215');
+  return k.c;
+};
 
 A.drawItem = (key, opts) => {
   const it = I[key]; if (!it) return null;

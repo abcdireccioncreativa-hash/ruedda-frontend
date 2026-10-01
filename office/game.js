@@ -72,6 +72,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
 
     this.makeNpc();
     this.makeDancers();
+    this.makeCats();
     if (RO.S.config.vip_open !== false && RO.S.config.vip_enabled !== false) this.openVip();
 
     // mouse: clic para caminar / modo edición
@@ -158,6 +159,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       img.setDepth(it.flat ? -6e5 + s.y : (s.y + it.fh) * T - (s.key === 'silla' ? 8 : 0));
       if (s.key === 'bola_disco') img.setDepth(9e4);
     }
+    if (s.key === 'cabina') { this.cabina = img; img._open = this.itemTex('cabina', { open: true }); img._closed = key; img.setTexture(img._open); img._x0 = img.x; }
     if (s.opts && s.opts.secret) { this.secretShelf = img; if (this.secretOpen) img.x += (Wd.SECRET.slideTo - Wd.SECRET.shelfX) * T; }
     if (it.glow) this.glowFor(img, it.glow);
     this.statics.push(img);
@@ -448,7 +450,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   /* ════════════ BUCLE ════════════ */
   update(time, dt) {
     dt = Math.min(dt, 50);
-    const me = this.me, busy = RO.uiBusy && RO.uiBusy();
+    const me = this.me, busy = (RO.uiBusy && RO.uiBusy()) || !!this.woo;
     let vx = 0, vy = 0;
     {
       if (!busy) {
@@ -501,6 +503,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
 
     this.updateNpc(time, dt);
     this.updateDancers(time);
+    this.updateCats(time, dt);
     this.updateHint();
   }
   sendPos(m) {
@@ -533,6 +536,8 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       consider({ id: 'seat:' + st.id, kind: 'seat', seat: st, label: st.label }, d + 2);
     });
     if (me.sit) consider({ id: 'stand', kind: 'stand' }, 0);
+    (this.cats || []).forEach(k => { const d = Math.hypot(me.x - k.x, me.y - k.y); if (d < 18) consider({ id: 'cat' + k.i, kind: 'cat', idx: k.i, name: k.c.name }, d + 3); });
+    if (this.woo) best = null;
     this.players.forEach(p => { if (p.isMe) return; const d = Math.hypot(me.x - p.x, me.y - p.y); if (d < 26) consider({ id: 'p:' + p.uid, kind: 'player', uid: p.uid }, d - 4); });
     const id = best ? best.id : null;
     if (id !== this.hintId) { this.hintId = id; this.hint = best; RO.emit('hint', best); }
@@ -641,22 +646,123 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       const spr = this.add.sprite(d.x, d.y, key, '0_0').setOrigin(0.5, 22 / 24);
       return { spr, x: d.x, y: d.y, ph: i * 2.1, dir: 'down' };
     });
-    // pareja al fondo del club, en el sillón VIP
-    const cy = 58 * T - 3, dep = 58 * T + 2;
-    const mk = (av, x, dir) => { const spr = this.add.sprite(x, cy, this.avTex(av), DIR_ROW[dir] + '_4').setOrigin(0.5, 22 / 24).setDepth(dep); return { spr, x, dir }; };
-    this.couple = [mk(A.DANCERS[1], 16.1 * T, 'right'), mk(A.DANCERS[0], 16.9 * T, 'left')];
-    this.time.addEvent({ delay: 3200, loop: true, callback: () => this.kiss() });
-  }
-  kiss() {
-    const c = this.couple; if (!c) return;
-    this.tweens.add({ targets: c[0].spr, x: c[0].x + 2, duration: 260, yoyo: true, hold: 900 });
-    this.tweens.add({ targets: c[1].spr, x: c[1].x - 2, duration: 260, yoyo: true, hold: 900 });
-    this.time.delayedCall(300, () => {
-      for (let i = 0; i < 3; i++) {
-        const h = this.add.image(16.5 * T + (i - 1) * 3, 58 * T - 26, this.tex('heart', () => { const k = A.mk(7, 6); [[1,0,2],[4,0,2],[0,1,7],[0,2,7],[1,3,5],[2,4,3],[3,5,1]].forEach(([x, y, w]) => k.r(x, y, w, 1, '#ff3d8b')); k.p(1, 1, '#ffb3d4'); return k.c; })).setDepth(9.5e4).setScale(0.6);
-        this.tweens.add({ targets: h, y: h.y - 18 - i * 4, x: h.x + (i - 1) * 4, alpha: 0, scale: 1.1, duration: 1400, delay: i * 180, onComplete: () => h.destroy() });
-      }
+    // parejas besándose: dos en sillones VIP del club y una de pie en la barra del garage
+    const EXTRA = { skin: '#9a6440', hair: 'rizado', hairColor: '#1b1410', outfit: 'bikini', top: '#22d3ee', bottom: '#22d3ee', shoes: '#ffffff', acc: 'cadena', beard: 'no' };
+    const SPOTS = [
+      { a: A.DANCERS[1], b: A.DANCERS[0], x: 16.5 * T, y: 58 * T - 3, depth: 58 * T + 2, sit: true },
+      { a: EXTRA, b: A.DANCERS[2], x: 37.5 * T, y: 67 * T - 3, depth: 67 * T + 2, sit: true },
+      { a: A.DANCERS[2], b: EXTRA, x: 47.5 * T, y: 45.8 * T, depth: 45.8 * T, sit: false }
+    ];
+    this.couples = SPOTS.map((sp, i) => {
+      const fr = d => DIR_ROW[d] + (sp.sit ? '_4' : '_0');
+      const L = this.add.sprite(sp.x - 0.45 * T, sp.y, this.avTex(sp.a), fr('right')).setOrigin(0.5, 22 / 24).setDepth(sp.depth);
+      const R = this.add.sprite(sp.x + 0.45 * T, sp.y, this.avTex(sp.b), fr('left')).setOrigin(0.5, 22 / 24).setDepth(sp.depth);
+      return { L, R, x: sp.x, y: sp.y, lx: L.x, rx: R.x, d: i * 1100 };
     });
+    this.couples.forEach(c => this.time.addEvent({ delay: 3300, startAt: c.d, loop: true, callback: () => this.kiss(c) }));
+  }
+  heartTex() { return this.tex('heart', () => { const k = A.mk(7, 6); [[1,0,2],[4,0,2],[0,1,7],[0,2,7],[1,3,5],[2,4,3],[3,5,1]].forEach(([x, y, w]) => k.r(x, y, w, 1, '#ff3d8b')); k.p(1, 1, '#ffb3d4'); return k.c; }); }
+  hearts(x, y, n, spread) {
+    for (let i = 0; i < (n || 3); i++) {
+      const h = this.add.image(x + (Math.random() - .5) * (spread || 6), y, this.heartTex()).setDepth(9.5e4).setScale(0.5 + Math.random() * .3);
+      this.tweens.add({ targets: h, y: h.y - 16 - Math.random() * 14, x: h.x + (Math.random() - .5) * 14, alpha: 0, scale: 1.2, duration: 1300 + Math.random() * 500, delay: i * 150, onComplete: () => h.destroy() });
+    }
+  }
+  kiss(c) {
+    this.tweens.add({ targets: c.L, x: c.lx + 2, duration: 260, yoyo: true, hold: 900 });
+    this.tweens.add({ targets: c.R, x: c.rx - 2, duration: 260, yoyo: true, hold: 900 });
+    this.time.delayedCall(300, () => this.hearts(c.x, c.y - 24, 3));
+  }
+
+  /* ════════════ GATOS ════════════ */
+  makeCats() {
+    const ROOMS = ['lobby', 'pasillo', 'ocio', 'creativa', 'off0', 'off1', 'off2', 'off3', 'juntas'];
+    this.catSpots = [];
+    for (let y = 0; y < Wd.H; y++) for (let x = 0; x < Wd.W; x++) if (ROOMS.includes(this.w.room[y][x]) && this.w.blocked[y][x] === 0) this.catSpots.push([x, y]);
+    const starts = [[24, 20], [15, 35], [30, 12]];
+    this.cats = A.CATS.map((c, i) => {
+      const key = this.tex('cat_' + i, () => A.catSheet(c)), t = this.textures.get(key);
+      if (!t.has('0')) for (let f = 0; f < 4; f++) t.add(String(f), 0, f * 16, 0, 16, 12);
+      const [sx, sy] = starts[i];
+      const spr = this.add.sprite((sx + .5) * T, (sy + .9) * T, key, '0').setOrigin(0.5, 1);
+      return { c, i, spr, x: spr.x, y: spr.y, path: null, wait: this.time.now + 1500 * i, sleep: false };
+    });
+    // uno dormido para siempre en el sofá de recepción
+    const key = this.tex('cat_0', () => A.catSheet(A.CATS[0]));
+    this.sofaCat = this.add.sprite(19.6 * T, 28 * T - 2, key, '3').setOrigin(0.5, 1).setDepth(28 * T + 3);
+    this.tweens.add({ targets: this.sofaCat, scaleY: 0.94, duration: 1400, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+  }
+  updateCats(time, dt) {
+    (this.cats || []).forEach(k => {
+      if (k.held > time) { k.spr.setFrame('0'); return; }
+      if (k.wait > time) { k.spr.setFrame(k.sleep ? '3' : '0'); k.spr.setDepth(k.y); return; }
+      if (!k.path || !k.path.length) {
+        k.sleep = false;
+        if (Math.random() < 0.25) { k.sleep = true; k.wait = time + 9000 + Math.random() * 12000; k.path = null; return; }
+        const [tx, ty] = this.catSpots[Math.floor(Math.random() * this.catSpots.length)];
+        k.path = Wd.path(this.blocked, Math.floor(k.x / T), Math.floor((k.y - 2) / T), tx, ty) || [];
+        if (k.path.length > 40) k.path = k.path.slice(0, 40);
+        if (!k.path.length) k.wait = time + 2000;
+        return;
+      }
+      const [tx, ty] = k.path[0], gx = (tx + .5) * T, gy = (ty + .9) * T, dx = gx - k.x, dy = gy - k.y, d = Math.hypot(dx, dy);
+      if (d < 1.2) { k.path.shift(); if (!k.path.length) k.wait = time + 2500 + Math.random() * 5000; return; }
+      const sp = Math.min(d, 30 * dt / 1000); k.x += dx / d * sp; k.y += dy / d * sp;
+      if (Math.abs(dx) > 0.3) k.spr.setFlipX(dx > 0);
+      k.spr.setPosition(k.x, k.y).setDepth(k.y).setFrame(String(1 + Math.floor(time / 160) % 2));
+    });
+  }
+  petCat(i) {
+    const k = this.cats && this.cats[i]; if (!k) return;
+    k.held = this.time.now + 3500; k.sleep = false;
+    this.hearts(k.x, k.y - 12, 4, 8);
+    RO.sfx.purr && RO.sfx.purr();
+  }
+
+  /* ════════════ CABINA PRIVADA (Valentina) ════════════ */
+  wooStart(dur) {
+    const cab = this.cabina; if (!cab || this.woo) return false;
+    const me = this.me, n = this.npc, cam = this.cameras.main;
+    this.woo = { until: this.time.now + dur };
+    if (me.sit) this.stand();
+    cam.fadeOut(350, 0, 0, 0);
+    this.time.delayedCall(380, () => {
+      me.x = cab.x + 24; me.y = 63.9 * T; me.dir = 'up'; me.spr.setPosition(me.x, me.y);
+      if (n) { n.x = cab.x + 14; n.y = 63.9 * T; n.path = null; n.wait = this.time.now + dur + 4000; n.spr.setPosition(n.x, n.y); }
+      this.announceRoom(); this.sendPos(0);
+      cam.fadeIn(350, 0, 0, 0);
+      this.time.delayedCall(700, () => {
+        me.spr.setVisible(false); me.tag.style.visibility = 'hidden';
+        if (n) { n.spr.setVisible(false); n.tag.style.visibility = 'hidden'; }
+        this.cabinShake(true);
+        RO.Net.send({ t: 'woo', u: RO.S.me.user_id, on: 1 });
+      });
+    });
+    this.woo.timer = this.time.delayedCall(dur + 1100, () => this.wooEnd());
+    return true;
+  }
+  cabinShake(on) {
+    const cab = this.cabina; if (!cab) return;
+    if (this._shake) { this._shake.stop(); this._shake = null; }
+    if (this._hearts) { this._hearts.remove(); this._hearts = null; }
+    cab.x = cab._x0;
+    if (!on) { cab.setTexture(cab._open); return; }
+    cab.setTexture(cab._closed);
+    this._shake = this.tweens.add({ targets: cab, x: cab._x0 + 1, duration: 110, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    this._hearts = this.time.addEvent({ delay: 380, loop: true, callback: () => this.hearts(cab.x + 24, cab.y - 52, 2, 26) });
+  }
+  wooEnd() {
+    if (!this.woo) return;
+    if (this.woo.timer) this.woo.timer.remove();
+    this.woo = null;
+    const me = this.me, n = this.npc, cab = this.cabina;
+    this.cabinShake(false);
+    RO.Net.send({ t: 'woo', u: RO.S.me.user_id, on: 0 });
+    me.spr.setVisible(true); me.tag.style.visibility = ''; me.x = cab.x + 30; me.y = 63.9 * T; me.dir = 'down'; me.spr.setPosition(me.x, me.y);
+    if (n) { n.spr.setVisible(true); n.tag.style.visibility = ''; n.x = cab.x + 16; n.dir = 'down'; n.spr.setPosition(n.x, n.y); n.wait = this.time.now + 5000; }
+    this.hearts(cab.x + 24, cab.y - 40, 10, 30);
+    this.sendPos(0);
+    RO.emit('woo:end');
   }
   updateDancers(time) {
     if (!this.dancers) return;
@@ -856,6 +962,11 @@ G.sit = st => S() && S().sit(st);
 G.stand = () => S() && S().stand();
 G.sitDesk = () => { const s = S(); if (!s) return false; const st = s.deskSeat(); if (!st) return false; s.sit(st); return true; };
 G.isSitting = () => !!(S() && S().me.sit);
+G.petCat = i => S() && S().petCat(i);
+G.wooStart = ms => S() ? S().wooStart(ms) : false;
+G.wooEnd = () => S() && S().wooEnd();
+G.wooActive = () => !!(S() && S().woo);
+G.wooRemote = (uid, on) => { const s = S(); if (!s) return; s.cabinShake(!!on); const p = s.players.get(uid); if (p) { p.spr.setVisible(!on); p.tag.style.visibility = on ? 'hidden' : ''; } if (s.npc) { s.npc.spr.setVisible(!on); s.npc.tag.style.visibility = on ? 'hidden' : ''; } };
 G.inOtherOffice = (x, y) => S() ? S().inOtherOffice(x, y) : true;
 G.zoom = d => S() && S().zoomStep(d);
 G.zoomLevel = () => S() ? S().cameras.main.zoom : 3;

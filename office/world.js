@@ -87,7 +87,7 @@ Wd.build = (cfg) => {
   add('arcade', 1, 31); add('arcade', 2, 31); add('arcade', 3, 31);
   add('pingpong', 6, 33);
   add('tv', 13, 31); add('mesa', 13, 33); add('sofa', 12, 36, { color: '#3b4a5e' });
-  add('cafetera', 19, 31); add('dispensador', 20, 31); add('maquina_snacks', 22, 31);
+  add('cafetera', 19, 31); add('dispensador', 20, 31); add('maquina_snacks', 22, 31); add('rocola', 24, 31);
   add('estanteria', SECRET.shelfX, SECRET.shelfY, { secret: true });
   add('pecera', 32, 31); add('planta', 36, 31); add('planta', 1, 38);
   add('puff', 29, 34, { color: '#e85b9c' }); add('puff', 31, 35, { color: '#e6f03b' }); add('sofa', 28, 37, { color: '#5c3f2a' });
@@ -115,8 +115,9 @@ Wd.build = (cfg) => {
   add('dj', 41, 57); add('parlante', 39, 57); add('parlante', 46, 57); add('parlante', 18, 57); add('parlante', 38, 57);
   add('barra', 9, 57); add('champan', 10, 56); add('champan', 13, 56);
   add('sofa_vip', 15, 57, { reserved: true });   // reservado: la pareja del fondo
+  add('cabina', 44, 61);                           // cabina privada (Valentina)
   add('sofa_vip', 10, 66); add('sofa_vip', 14, 66); add('mesa', 12, 64); add('champan', 12, 63);
-  add('sofa_vip', 36, 66); add('sofa_vip', 40, 66); add('mesa', 39, 64); add('champan', 40, 63);
+  add('sofa_vip', 36, 66, { reserved: true }); add('sofa_vip', 40, 66); add('mesa', 39, 64); add('champan', 40, 63);
   add('dinero', 19, 62); add('dinero', 37, 62);
   add('planta_grande', 8, 68); add('planta_grande', 48, 68); add('planta_grande', 48, 60);
   add('bola_grande', 28, 64);
@@ -153,6 +154,7 @@ Wd.build = (cfg) => {
   inter.push({ id: 'stage', kind: 'stage', x: 28.5 * T, y: 63.2 * T, r: 120, rx: 140, ry: 22 });
   inter.push({ id: 'dj', kind: 'dj', x: 43 * T, y: 58.8 * T, r: 34 });
   inter.push({ id: 'clubbar', kind: 'bar', x: 12 * T, y: 58.8 * T, r: 40 });
+  inter.push({ id: 'jukebox', kind: 'jukebox', x: 24.5 * T, y: 32.8 * T, r: 18 });
 
   // asientos para "reunión de emergencia"
   const seats = [[6, 19, 'down'], [8, 19, 'down'], [10, 19, 'down'], [4, 21, 'right'], [12, 21, 'left'], [6, 23, 'up'], [8, 23, 'up'], [10, 23, 'up']]

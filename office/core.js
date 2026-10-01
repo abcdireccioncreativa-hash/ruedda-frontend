@@ -474,6 +474,7 @@ RO.sfx = {
   engine: () => { tone(55, 1.4, 'sawtooth', 0.08, 0, 140); tone(80, 1.2, 'square', 0.03, 0.2, 220); },
   hi5:    () => { tone(1200, 0.05, 'square', 0.05); tone(300, 0.12, 'triangle', 0.05, 0.02); },
   err:    () => tone(160, 0.18, 'square', 0.04),
+  purr:   () => { for (let i = 0; i < 6; i++) tone(48 + (i % 2) * 6, 0.18, 'sawtooth', 0.03, i * 0.2); },
   cash:   () => { for (let i = 0; i < 8; i++) tone(1400 + Math.random() * 900, 0.05, 'square', 0.025, i * 0.06); },
   drop:   () => { tone(880, 0.6, 'sawtooth', 0.04, 0, 110); }
 };

@@ -259,6 +259,7 @@ UI.askNotify = () => { try { if ('Notification' in window && Notification.permis
 const HINTS = {
   desk: h => { const o = officeAt(h.pos), m = o && RO.memberBySlot(o.slot); if (!m) return 'Oficina libre'; return m.user_id === RO.S.me.user_id ? 'Mi escritorio' : 'Dejar un post-it a ' + esc(m.display_name); },
   seat: h => esc(h.label || 'Sentarte'), stand: () => 'Levantarte (o camina)',
+  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
   board: () => 'Abrir la pizarra general', gong: () => 'Tocar la campana de ventas', clocks: () => 'Ver los relojes',
   tv: () => 'Ver Ruedda en vivo', secret: () => 'Examinar la estantería', coffee: () => 'Servirte un café', snacks: () => 'Comprar un snack',
   arcade: () => 'Jugar arcade', pingpong: () => 'Jugar ping-pong', grill: () => 'Prender la parrilla', aquarium: () => 'Mirar la pecera',
@@ -303,6 +304,12 @@ RO.on('interact', h => {
       if (!RO.music.timer) { RO.music.start(); UI.toast('🎧 DJ Ruedda en vivo'); }
       else { RO.G.drop(); RO.sfx.drop(); RO.Net.send({ t: 'drop', u: S.me.user_id }); }
       RO.G.bubbleMe('🔊'); return;
+    case 'cat': RO.G.petCat(h.idx); RO.G.bubbleMe('🐈'); return;
+    case 'jukebox':
+      if (RO.muted) return UI.toast('Activa el sonido (🔊 arriba) para escuchar la rocola');
+      UI.jukebox = !UI.jukebox;
+      if (UI.jukebox) { RO.music.start(); UI.toast('🎵 Rocola encendida en la zona de ocio'); } else RO.music.stop();
+      RO.Net.send({ t: 'jbox', u: S.me.user_id, on: UI.jukebox ? 1 : 0 }); return;
     case 'seat': RO.G.sit(h.seat); return;
     case 'stand': RO.G.stand(); return;
     case 'npc': return UI.valentina();
@@ -365,6 +372,21 @@ UI.personCard = uid => {
   });
 };
 
+/* ════════════ POMODORO ════════════ */
+UI.pomodoro = mins => {
+  clearInterval(UI._pomo); const end = Date.now() + mins * 60000;
+  RO.S.status = 'enfocado'; RO.emit('status', 'enfocado'); RO.$$('#sd-status button').forEach(x => x.classList.toggle('on', x.dataset.s === 'enfocado'));
+  let chip = $('#pomo'); if (!chip) { chip = document.createElement('button'); chip.id = 'pomo'; chip.className = 'pill mono'; chip.title = 'Clic para cancelar'; $('.tb-right').prepend(chip); }
+  chip.onclick = () => { clearInterval(UI._pomo); chip.remove(); UI.toast('Pomodoro cancelado'); };
+  const tick = () => {
+    const ms = end - Date.now();
+    if (ms <= 0) { clearInterval(UI._pomo); chip.remove(); RO.sfx.note(); UI.notify('Ruedda Office', '¡Pomodoro listo! Toca descanso de 5 minutos.'); UI.toast('⏱️ ¡Listo! 5 minutos de descanso. Hay café en la zona de ocio.', 'note', [{ t: 'Otro pomodoro', y: 1, f: () => UI.pomodoro(25) }]); RO.S.status = 'disponible'; RO.emit('status', 'disponible'); RO.$$('#sd-status button').forEach(x => x.classList.toggle('on', x.dataset.s === 'disponible')); return; }
+    chip.innerHTML = '⏱️ <b>' + Math.floor(ms / 60000) + ':' + String(Math.floor(ms / 1000) % 60).padStart(2, '0') + '</b>';
+  };
+  tick(); UI._pomo = setInterval(tick, 1000);
+  UI.toast('⏱️ Pomodoro de ' + mins + ' minutos: modo foco activado');
+};
+
 /* ════════════ VALENTINA ════════════ */
 const V_SEDUCE = [
   'Cariño, yo no salgo con nadie que tenga publicaciones en revisión.',
@@ -400,8 +422,24 @@ UI.valentina = () => {
     if (a === 'cafe') { RO.G.coffee(); RO.G.npcLine('Aquí tienes, negro y fuerte. Como los números que quiero ver hoy.'); RO.G.bubbleMe('☕'); RO.sfx.coin(); RO.Net.award('coffee').catch(() => {}); }
     if (a === 'stats') UI.rueddaStats();
     if (a === 'seducir') { RO.G.npcLine(pick(V_SEDUCE)); RO.G.bubbleMe('😏'); }
-    if (a === 'amor') UI.fadeLove();
+    if (a === 'amor') UI.cabina();
   });
+};
+// cabina privada: cortina cerrada, la cabina se mueve y salen corazones (~30 s). Nada explícito.
+UI.cabina = () => {
+  const DUR = 30000;
+  if (!RO.G.wooStart(DUR)) return;
+  if (!RO.muted) RO.music.start();
+  RO.G.npcLine('Sígueme, cariño. Treinta segundos y vuelves a vender.');
+  const bar = document.createElement('div'); bar.id = 'woo-bar'; bar.className = 'glass';
+  bar.style.cssText = 'position:absolute;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;display:flex;gap:12px;align-items:center;padding:10px 12px 10px 16px;font-size:13px';
+  bar.innerHTML = '<span>🔒 En la cabina privada · <b id="woo-t" style="color:#ff7ab8">0:30</b></span><button class="btn sm" id="woo-x">Salir (Esc)</button>';
+  $('#app').appendChild(bar);
+  const t0 = Date.now(), iv = setInterval(() => { const s = Math.max(0, Math.ceil((DUR + 1100 - (Date.now() - t0)) / 1000)); const el = $('#woo-t'); if (el) el.textContent = '0:' + String(Math.min(30, s)).padStart(2, '0'); }, 250);
+  const done = () => { clearInterval(iv); bar.remove(); off(); offK(); };
+  const off = RO.on('woo:end', () => { done(); RO.G.npcLine(pick(V_AFTER)); RO.G.bubbleMe('😳'); RO.sfx.note(); });
+  const offK = RO.on('key', k => { if (k === 'escape') RO.G.wooEnd(); });
+  bar.querySelector('#woo-x').onclick = () => RO.G.wooEnd();
 };
 UI.fadeLove = () => {
   const ov = document.createElement('div');
@@ -443,6 +481,7 @@ UI.deskMenu = () => {
     body: opt('sit', '🪑 Sentarme a trabajar', 'Tu estado pasa a "Ocupado" y te quedas en tu silla', true) +
       opt('ruedda', '🚗 Abrir Ruedda', 'www.ruedda.app en otra pestaña · te quedas sentado') +
       (sup ? opt('control', '🛠️ Abrir Ruedda Control', 'www.ruedda.app/control en otra pestaña · te quedas sentado') : '') +
+      opt('pomo', '⏱️ Pomodoro 25 min', 'Te sientas, modo foco y te aviso cuando toca descanso') +
       opt('notes', '📌 Mis notas', un ? un + ' sin leer' : 'Post-its que te dejaron')
   });
   mo.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
@@ -450,6 +489,7 @@ UI.deskMenu = () => {
     if (a === 'notes') return UI.notesInbox();
     const sat = RO.G.sitDesk();
     if (sat) { UI._deskBusy = true; RO.S.status = 'ocupado'; RO.emit('status', 'ocupado'); RO.$$('#sd-status button').forEach(x => x.classList.toggle('on', x.dataset.s === 'ocupado')); }
+    if (a === 'pomo') UI.pomodoro(25);
     if (a === 'ruedda') window.open('https://www.ruedda.app/', '_blank', 'noopener');
     if (a === 'control') window.open('https://www.ruedda.app/control', '_blank', 'noopener');
   });
