@@ -275,6 +275,7 @@ const NET = {
       case 'invite': return UI.onInvite(m);
       case 'woo': return RO.G.wooRemote(m.u, m.on, m.x, m.y);
       case 'k3': return RO.G.k3fx(m.i);
+      case 'scoot': return RO.G.onScoot(m);
       case 'kjoin': case 'kstate': case 'kleave': case 'kgo': case 'kp': case 'kfin': case 'krec': case 'kride': return RO.Kart.onMsg(m);
       case 'k3inv': return UI.onK3Invite(m);
       case 'k3ok': return UI.onK3Answer(m, true);

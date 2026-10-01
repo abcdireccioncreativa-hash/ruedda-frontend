@@ -174,6 +174,7 @@ Kt.beginDriving = (pos, model) => {
   Kt.car = { x: pos.x, y: pos.y, a: pos.a || 0, v: 0, lap: 0, half: false, prev: null, t0: 0, lapT0: 0, best: null, done: false, nitroT: 0, nitroCd: 0 };
   Kt.st = Kt.stats(); Kt.model = model || Kt.st.model;
   if (s.me.sit) s.stand();
+  if (s.me.scoot != null) s.scootOff();
   s.me.spr.setVisible(false);
   if (Kt.spr) Kt.spr.destroy();
   Kt.spr = s.add.image(Kt.car.x, Kt.car.y, kartTex(s, Kt.model, colorOf(me()))).setDepth(Kt.car.y).setRotation(Kt.car.a);
@@ -312,7 +313,7 @@ Kt.loadTop = () => RO.Net.topLaps().then(Kt.setTop).catch(() => {});
 Kt.drawBoard = () => {
   const s = RO.G.scene; if (!s) return;
   if (Kt.boardObjs) Kt.boardObjs.forEach(o => o.destroy());
-  const x = 10 * T, y = 80 * T, w = 130, h = 74, o = [];
+  const x = 18 * T, y = 128.5 * T, w = 130, h = 74, o = [];
   o.push(s.add.rectangle(x, y, w, h, 0x0b0b0d, 0.92).setOrigin(0).setStrokeStyle(2, 0xe6f03b).setDepth(-4e5));
   const tx = (t, yy, size, color) => s.add.text(x + w / 2, y + yy, t, { fontFamily: 'Silkscreen, monospace', fontSize: size + 'px', color }).setOrigin(0.5, 0).setResolution(4).setDepth(-4e5 + 1);
   o.push(tx('RÉCORD DE VUELTA', 5, 8, '#e6f03b'));

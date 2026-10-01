@@ -2,11 +2,11 @@
 /* ════════════════════════════════════════════════════════════════
    RUEDDA OFFICE — el mundo: plano, salas, muebles fijos, puntos de
    interacción y el render del piso/muros en un único canvas.
-   Coordenadas en tiles de 16 px. Mapa 57 × 92 (club bajo el garage; kartódromo al fondo).
+   Coordenadas en tiles de 16 px. Mapa 57 × 157 (club bajo el garage; kartódromo grande al fondo).
    ════════════════════════════════════════════════════════════════ */
 (function(){
 const RO = window.RO, A = RO.Art, T = A.T;
-const W = 57, H = 92;
+const W = 57, H = 157;
 const CLUB = { x0: 8, y0: 56, x1: 48, y1: 68, door: [27, 29] };
 const OFF_X = [1, 15, 29, 43];          // x inicial de cada oficina privada (13 de ancho)
 const GARAGE_WALL = [39, 41];           // filas del muro alto del garage
@@ -14,14 +14,26 @@ const SECRET = { x: 18, w: 2, shelfX: 18, shelfY: 38, slideTo: 20 };
 
 // kartódromo: línea central cerrada (en tiles) y medio ancho de la pista
 const KART = {
-  room: { x0: 1, y0: 72, x1: 55, y1: 90 },
-  // chicana en S, curva rápida, horquilla interior, enlazadas y vuelta por la izquierda
-  pts: [[8, 77.5], [20, 77.5], [25, 80.2], [30, 77.5], [42, 77.5], [47, 78], [52, 80.5], [52, 84.5], [48, 87.5], [43, 86], [40, 82.5], [36, 82.5], [33, 86], [28, 87.5], [22, 84.5], [17, 87.5], [9, 87.5], [5, 85], [5, 80.5]],
-  hw: 1.7, start: [14, 77.5], laps: 5,
+  room: { x0: 1, y0: 72, x1: 55, y1: 154 },
+  // puntos de control: la línea real sale de una curva Catmull-Rom (todo suave, sin ángulos)
+  // recta de largada · curva rápida · bolsillo con horquilla · eses · curva amplia · recta trasera · S por la izquierda
+  ctrl: [[8, 77.5], [24, 77.5], [38, 77.5], [46, 80.5], [50.5, 90], [50, 102], [44.5, 111.5], [37.5, 108], [35, 99], [29, 91.5], [22, 97], [20.5, 110], [24, 122], [31, 127.5], [40, 126], [47, 128.5], [51, 137], [48.5, 146.5], [38, 149.5], [24, 148], [14, 149.5], [7.5, 142], [5.5, 127], [9, 112], [5.5, 99], [5.5, 87]],
+  hw: 2, start: [14, 77.5], laps: 5,
   parked: [[22, 74.6], [24.4, 74.6], [26.8, 74.6], [29.2, 74.6], [31.6, 74.6]]
 };
 (function prep() {
-  const P = KART.pts.map(([x, y]) => [x * T, y * T]); let L = 0; const cum = [0];
+  // Catmull-Rom centrípeta cerrada (10 muestras por tramo)
+  const C = KART.ctrl, n = C.length, pts = [];
+  const cr = (p0, p1, p2, p3, t) => {
+    const tj = (ti, a, b) => ti + Math.pow(Math.max(1e-6, Math.hypot(b[0] - a[0], b[1] - a[1])), 0.5);
+    const t0 = 0, t1 = tj(t0, p0, p1), t2 = tj(t1, p1, p2), t3 = tj(t2, p2, p3), tt = t1 + (t2 - t1) * t;
+    const L = (a, b, ta, tb) => [((tb - tt) / (tb - ta)) * a[0] + ((tt - ta) / (tb - ta)) * b[0], ((tb - tt) / (tb - ta)) * a[1] + ((tt - ta) / (tb - ta)) * b[1]];
+    const A1 = L(p0, p1, t0, t1), A2 = L(p1, p2, t1, t2), A3 = L(p2, p3, t2, t3), B1 = L(A1, A2, t0, t2), B2 = L(A2, A3, t1, t3);
+    return L(B1, B2, t1, t2);
+  };
+  for (let i = 0; i < n; i++) for (let k = 0; k < 10; k++) pts.push(cr(C[(i - 1 + n) % n], C[i], C[(i + 1) % n], C[(i + 2) % n], k / 10));
+  KART.pts = pts;
+  const P = pts.map(([x, y]) => [x * T, y * T]); let L = 0; const cum = [0];
   for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; L += Math.hypot(b[0] - a[0], b[1] - a[1]); cum.push(L); }
   KART.P = P; KART.cum = cum; KART.L = L; KART.HW = KART.hw * T;
   // punto más cercano sobre la línea central: distancia y "s" (distancia recorrida desde el primer punto)
@@ -119,7 +131,9 @@ Wd.build = (cfg) => {
   [['k_arbol_alto', 55, 33], ['k_arbusto', 39, 35], ['k_arbusto', 47, 33], ['k_barril', 54, 31], ['k_letrero', 45, 37], ['k_colmena', 38, 36], ['k_arbol', 44, 35]].forEach(([k, x, y]) => add(k, x, y));
   [['k_arbol_alto', 2, 44], ['k_arbol_alto', 54, 44], ['k_jarron_plata', 47, 44], ['k_escudo', 46, 46], ['loteria', 18, 47]].forEach(([k, x, y]) => add(k, x, y));
   // kartódromo: decoración alrededor (no estorba a los karts, que tienen su propia física)
-  [[2, 73], [3, 73], [53, 74], [54, 74], [1, 89], [55, 89], [55, 82], [55, 86], [30, 90], [46, 90], [1, 83], [37, 79], [44, 81]].forEach(([x, y]) => add('llantas', x, y));
+  [[2, 73], [3, 73], [53, 74], [54, 74], [2, 82], [54, 90], [54, 104], [54, 137], [50, 152], [30, 152], [12, 152], [2, 100], [2, 128], [2, 142], [29, 100], [42, 95], [42, 118], [26, 140], [36, 140]].forEach(([x, y]) => add('llantas', x, y));
+  [[20, 132], [33, 132], [14, 138], [40, 138]].forEach(([x, y]) => add('k_arbol_alto', x, y));
+  add('trofeo_copa', 27, 137); add('bandera', 25, 137); add('bandera', 29, 137);
   add('semaforo', 15, 73); add('bandera', 13, 73); add('letrero_racing', 26, 72); add('surtidor', 20, 73); add('herramientas', 19, 73);
   add('banca', 34, 73); add('banca', 36, 73); add('banca', 38, 73); add('banca', 40, 73); add('cono', 42, 74); add('cono', 43, 74);
   add('tienda_karts', 46, 72);

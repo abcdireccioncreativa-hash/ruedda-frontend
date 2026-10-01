@@ -270,7 +270,7 @@ UI.askNotify = () => { try { if ('Notification' in window && Notification.permis
 const HINTS = {
   desk: h => { const o = officeAt(h.pos), m = o && RO.memberBySlot(o.slot); if (!m) return 'Oficina libre'; return m.user_id === RO.S.me.user_id ? 'Mi escritorio' : 'Dejar un post-it a ' + esc(m.display_name); },
   seat: h => esc(h.label || 'Sentarte'), stand: () => 'Levantarte (o camina)',
-  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', kartride: h => 'Subirte al ' + esc(h.name) + ' 🏎️', kartexit: () => 'Bajarte del kart', kartshop: () => 'Kart Shop: karts y piezas 🏎️', pits: () => (RO.Kart.state === 'lobby' ? 'En la parrilla de largada' : 'Pits: correr en el kartódromo 🏁'), console: h => 'Jugar ' + esc(h.name) + ' 🎮', kiss3: () => 'Beso de 3 💋', lottery: () => 'Jugar a la lotería 🎰', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
+  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', scoot: () => 'Subirte al monopatín 🛴', scootoff: () => 'Bajarte del monopatín', kartride: h => 'Subirte al ' + esc(h.name) + ' 🏎️', kartexit: () => 'Bajarte del kart', kartshop: () => 'Kart Shop: karts y piezas 🏎️', pits: () => (RO.Kart.state === 'lobby' ? 'En la parrilla de largada' : 'Pits: correr en el kartódromo 🏁'), console: h => 'Jugar ' + esc(h.name) + ' 🎮', kiss3: () => 'Beso de 3 💋', lottery: () => 'Jugar a la lotería 🎰', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
   board: () => 'Abrir la pizarra general', gong: () => 'Tocar la campana de ventas', clocks: () => 'Ver los relojes',
   tv: () => 'Ver Ruedda en vivo', secret: () => 'Examinar la estantería', coffee: () => 'Servirte un café', snacks: () => 'Comprar un snack',
   arcade: () => 'Jugar arcade', pingpong: () => 'Jugar ping-pong', grill: () => 'Prender la parrilla', aquarium: () => 'Mirar la pecera',
@@ -322,6 +322,8 @@ RO.on('interact', h => {
       else { RO.G.drop(); RO.sfx.drop(); RO.Net.send({ t: 'drop', u: S.me.user_id }); }
       RO.G.bubbleMe('🔊'); return;
     case 'cat': RO.G.petCat(h.idx); RO.G.bubbleMe('🐈'); return;
+    case 'scoot': RO.G.scootOn(h.idx); return;
+    case 'scootoff': RO.G.scootOff(); return;
     case 'pits': if (RO.Kart.state === 'idle' || RO.Kart.state === 'free') RO.Kart.join(); return;
     case 'kartride': return RO.Kart.ride(h.idx);
     case 'kartexit': return RO.Kart.unride();
@@ -1103,9 +1105,9 @@ UI.help = () => UI.modal({
 
 /* ════════════ MINIMAPA ════════════ */
 UI.minimap = () => {
-  const cv = $('#minimap'), g = cv.getContext('2d'), Wd = RO.World, s = 2;
+  const cv = $('#minimap'), g = cv.getContext('2d'), Wd = RO.World, s = Math.min(cv.width / Wd.W, cv.height / Wd.H);
   let base = null, baseKey = '';
-  const COL = { pasillo: '#2b2e35', juntas: '#323a4a', lobby: '#1e1f24', creativa: '#7a6448', ocio: '#8f949b', terraza: '#6f5d46', garage: '#1a1022' };
+  const COL = { pasillo: '#2b2e35', juntas: '#323a4a', lobby: '#1e1f24', creativa: '#7a6448', ocio: '#8f949b', terraza: '#6f5d46', garage: '#1a1022', club: '#2a0d24', pista: '#2f6b2f' };
   const paint = () => {
     const sc = RO.G.scene; if (!sc || !sc.w) return;
     const key = (sc.vipSeen ? 1 : 0) + ':' + (sc.clubSeen ? 1 : 0) + ':' + (sc.secretOpen ? 1 : 0) + ':' + JSON.stringify(RO.S.config.offices);
@@ -1119,6 +1121,7 @@ UI.minimap = () => {
         else b.fillStyle = '#16171a';
         b.fillRect(x * s, y * s, s, s);
       }
+      { const K = RO.World.KART; b.strokeStyle = '#3a3d42'; b.lineWidth = Math.max(1.5, K.hw * 2 * s); b.lineJoin = 'round'; b.beginPath(); K.pts.forEach(([x, y], i) => i ? b.lineTo(x * s, y * s) : b.moveTo(x * s, y * s)); b.closePath(); b.stroke(); }
       if (!sc.vipSeen) { b.fillStyle = '#5b5e66'; b.font = '9px JetBrains Mono, monospace'; b.fillText('???', 48, 110); }
       else if (!sc.clubSeen) { b.fillStyle = '#5b5e66'; b.font = '9px JetBrains Mono, monospace'; b.fillText('???', 48, 125); }
     }

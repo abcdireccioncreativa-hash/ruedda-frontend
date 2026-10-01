@@ -73,6 +73,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     this.makeNpc();
     this.makeDancers();
     this.makeCats();
+    this.makeScooters();
     if (RO.S.config.vip_open !== false && RO.S.config.vip_enabled !== false) this.openVip();
 
     // mouse: clic para caminar / modo edición
@@ -476,16 +477,17 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     const moving = !!(vx || vy);
     if (moving) {
       const n = Math.hypot(vx, vy); vx /= n; vy /= n;
-      const sp = (keys.has('shift') || this.stick && this.stick.run ? 128 : 80) * (this.coffeeUntil > time ? 1.4 : 1) * (me.swim ? 0.6 : 1) * dt / 1000;
+      const sp = (keys.has('shift') || this.stick && this.stick.run ? 128 : 80) * (this.coffeeUntil > time ? 1.4 : 1) * (me.swim ? 0.6 : 1) * (me.scoot != null ? 1.9 : 1) * dt / 1000;
       const nx = me.x + vx * sp, ny = me.y + vy * sp;
       if (!this.hits(nx, me.y)) me.x = nx; else if (this.path) { /* esquina */ }
       if (!this.hits(me.x, ny)) me.y = ny;
       if (Math.abs(vx) > Math.abs(vy) + .01) me.dir = vx < 0 ? 'left' : 'right'; else me.dir = vy < 0 ? 'up' : 'down';
       me.spr.setPosition(me.x, me.y);
     }
-    this.setFrame(me, moving, time);
+    this.setFrame(me, me.scoot != null ? false : moving, time);
     me.spr.setDepth(me.sit ? me.sit.depth : me.y);
     this.applySwim(me);
+    this.applyScoot(me, moving);
 
     // red: posición
     if (moving && time - this.lastSend > 100) { this.sendPos(1); this.lastSend = time; }
@@ -504,8 +506,9 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       if (d > 220) { p.x = p.tx; p.y = p.ty; }
       else if (d > 0.3) { const step = Math.max(90, d * 6) * dt / 1000; const k = Math.min(1, step / d); p.x += dx * k; p.y += dy * k; }
       p.spr.setPosition(p.x, p.y).setDepth(p.sit && p.z ? p.z : p.y);
-      this.setFrame(p, !p.sit && (d > 0.6 || p.moving), time);
+      this.setFrame(p, !p.sit && p.scoot == null && (d > 0.6 || p.moving), time);
       this.applySwim(p);
+      this.applyScoot(p, d > 0.6);
     });
 
     this.updateNpc(time, dt);
@@ -515,7 +518,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   }
   sendPos(m) {
     const me = this.me;
-    RO.Net.send({ t: 'pos', u: RO.S.me.user_id, x: Math.round(me.x * 10) / 10, y: Math.round(me.y * 10) / 10, d: me.dir, m, r: me.room, s: me.sit ? 1 : 0, z: me.sit ? me.sit.depth : 0 });
+    RO.Net.send({ t: 'pos', u: RO.S.me.user_id, x: Math.round(me.x * 10) / 10, y: Math.round(me.y * 10) / 10, d: me.dir, m, r: me.room, s: me.sit ? 1 : 0, z: me.sit ? me.sit.depth : 0, sc: me.scoot != null ? me.scoot : -1 });
   }
   savePos() { const me = this.me; RO.Net.savePos({ x: me.x, y: me.y, dir: me.dir, room: me.room }).catch(() => {}); }
   announceRoom(initial) {
@@ -545,6 +548,8 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     if (me.sit) consider({ id: 'stand', kind: 'stand' }, 0);
     (this.cats || []).forEach(k => { const d = Math.hypot(me.x - k.x, me.y - k.y); if (d < 18) consider({ id: 'cat' + k.i, kind: 'cat', idx: k.i, name: k.c.name }, d + 3); });
     this.decorSpr.forEach(spr => { const d = spr._d, it = A.ITEMS[d.item]; if (!it || !it.play) return; const dm = A.dims(d.item, d.rot || 0), cx = (d.x + dm.fw / 2) * T, cy = (d.y + dm.fh) * T + 6, dd = Math.hypot(me.x - cx, me.y - cy); if (dd < 26) consider({ id: 'con' + d.id, kind: 'console', name: it.name }, dd + 1); });
+    if (me.scoot != null) consider({ id: 'scootoff', kind: 'scootoff' }, 1);
+    else (this.scooters || []).forEach(k => { if (k.by) return; const d = Math.hypot(me.x - k.x, me.y - k.y); if (d < 18) consider({ id: 'scoot' + k.i, kind: 'scoot', idx: k.i }, d); });
     if (RO.Kart && RO.Kart.state === 'idle') { const pk = RO.Kart.nearParked(me.x, me.y); if (pk) consider({ id: 'kride' + pk.i, kind: 'kartride', idx: pk.i, name: RO.Kart.MODELS[pk.model].name }, 2); }
     if (RO.Kart && RO.Kart.state === 'free') consider({ id: 'kexit', kind: 'kartexit' }, 0);
     (this.couples || []).forEach((c, i) => { const d = Math.hypot(me.x - c.x, me.y - (c.y + 14)); if (d < 30) consider({ id: 'k3' + i, kind: 'kiss3', idx: i }, d + 4); });
@@ -554,6 +559,59 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     if (id !== this.hintId) { this.hintId = id; this.hint = best; RO.emit('hint', best); }
   }
   interact() { if (this.hint) RO.emit('interact', this.hint); }
+
+  /* ════════════ MONOPATINES ELÉCTRICOS (3) ════════════ */
+  scootTex() {
+    return this.tex('scooter', () => {
+      const k = A.mk(18, 16);
+      k.r(2, 12, 13, 2, '#16171b').r(2, 11, 13, 1, '#5b6573');                   // tabla
+      k.ell(3, 14, 2, 2, '#111215').ell(15, 14, 2, 2, '#111215').p(3, 14, '#9aa0a6').p(15, 14, '#9aa0a6');
+      k.r(14, 2, 2, 10, '#22d3ee').r(11, 1, 7, 2, '#16171b').r(10, 1, 1, 2, '#e6f03b').p(17, 1, '#e6f03b');   // poste y manubrio
+      k.r(5, 12, 6, 1, '#22d3ee');
+      A.outline(k, '#0b0b0d'); return k.c;
+    });
+  }
+  makeScooters() {
+    const SPOTS = [[26.5, 19.5], [30.5, 12.6], [16.5, 35.5]];
+    this.scooters = SPOTS.map(([x, y], i) => ({ i, x: x * T, y: y * T, by: null, spr: this.add.image(x * T, y * T, this.scootTex()).setOrigin(0.5, 1).setDepth(y * T) }));
+  }
+  scootOn(i) {
+    const k = this.scooters && this.scooters[i], me = this.me; if (!k || k.by || me.scoot != null) return;
+    if (me.sit) this.stand();
+    k.by = RO.S.me.user_id; k.spr.setVisible(false); me.scoot = i;
+    RO.Net.send({ t: 'scoot', u: RO.S.me.user_id, i, on: 1 }); RO.sfx.blip(); this.scootSound(true);
+    this.sendPos(0);
+  }
+  scootOff() {
+    const me = this.me, i = me.scoot; if (i == null) return;
+    const k = this.scooters[i]; me.scoot = null;
+    if (me.scootSpr) { me.scootSpr.destroy(); me.scootSpr = null; }
+    me.spr.setY(me.y);
+    k.by = null; k.x = me.x + 10; k.y = me.y; k.spr.setPosition(k.x, k.y).setDepth(k.y).setVisible(true);
+    RO.Net.send({ t: 'scoot', u: RO.S.me.user_id, i, on: 0, x: Math.round(k.x), y: Math.round(k.y) }); this.scootSound(false);
+    this.sendPos(0);
+  }
+  applyScoot(p, moving) {
+    if (p.scoot == null) { if (p.scootSpr) { p.scootSpr.destroy(); p.scootSpr = null; } return; }
+    if (!p.scootSpr) p.scootSpr = this.add.image(p.x, p.y, this.scootTex()).setOrigin(0.5, 1);
+    const flip = p.dir === 'left';
+    p.scootSpr.setPosition(p.x, p.y + 2).setFlipX(flip).setDepth(p.y + 0.5);
+    p.spr.setY(p.y - 3);
+    if (p.isMe) this.scootSound(true, moving);
+  }
+  scootSound(on, moving) {
+    try {
+      if (!on || RO.muted) { if (this._sc) { this._sc.g.gain.value = 0; this._sc.o.stop(); this._sc = null; } return; }
+      if (!this._sc) { const ac = this._scAc = this._scAc || new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = 220; g.gain.value = 0; o.connect(g).connect(ac.destination); o.start(); this._sc = { o, g, ac }; }
+      const { o, g, ac } = this._sc; o.frequency.setTargetAtTime(moving ? 520 : 180, ac.currentTime, 0.12); g.gain.setTargetAtTime(moving ? 0.018 : 0.004, ac.currentTime, 0.1);
+    } catch (e) {}
+  }
+  onScoot(m) {
+    const k = this.scooters && this.scooters[m.i]; if (!k) return;
+    if (m.on) { k.by = m.u; k.spr.setVisible(false); }
+    else { k.by = null; if (m.x != null) { k.x = m.x; k.y = m.y; } k.spr.setPosition(k.x, k.y).setDepth(k.y).setVisible(true); }
+    const p = this.players.get(m.u); if (p) p.scoot = m.on ? m.i : null;
+  }
 
   /* ════════════ PISCINA ════════════ */
   inPool(x, y) { const P = this.w.POOL, tx = Math.floor(x / T), ty = Math.floor(y / T); return tx >= P.x0 && tx <= P.x1 && ty >= P.y0 && ty <= P.y1; }
@@ -605,6 +663,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   }
   sit(st) {
     const me = this.me; if (!st) return;
+    if (me.scoot != null) this.scootOff();
     me.sit = st; me.x = st.x; me.y = st.y; me.dir = st.dir; this.path = null; this.hideMarker();
     me.spr.setPosition(me.x, me.y).setDepth(st.depth);
     this.sendPos(0); RO.emit('sit', st);
@@ -1044,6 +1103,9 @@ G.rotateGhost = () => { const s = S(); if (!s || !s.edit || s.edit.mode !== 'pla
 G.kiss3 = (i, side) => S() && S().kiss3(i, side);
 G.k3fx = i => S() && S().k3fx(i);
 G.key = k => keys.has(k);
+G.scootOn = i => S() && S().scootOn(i);
+G.scootOff = () => S() && S().scootOff();
+G.onScoot = m => S() && S().onScoot(m);
 G.setStick = (x, y, run) => { const s = S(); if (s) s.stick = { x, y, run }; };
 G.wooStart = ms => S() ? S().wooStart(ms) : false;
 G.wooEnd = () => S() && S().wooEnd();
@@ -1069,7 +1131,7 @@ G.onPos = m => {
   let p = s.players.get(m.u);
   if (!p) { if (!RO.member(m.u)) return; p = s.addPlayer(m.u, m.x, m.y, false); }
   p.tx = m.x; p.ty = m.y; p.dir = m.d || p.dir; p.moving = !!m.m; p.room = m.r;
-  p.sit = !!m.s; p.z = m.z || 0;
+  p.sit = !!m.s; p.z = m.z || 0; p.scoot = m.sc != null && m.sc >= 0 ? m.sc : null;
 };
 G.onPresence = list => {
   const s = S(); if (!s) return;
