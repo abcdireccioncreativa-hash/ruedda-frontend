@@ -578,6 +578,85 @@ def('telescopio', { name: 'Telescopio', w: 16, h: 26, shop: true, draw(k) {
   for (let i = 0; i < 9; i++) k.r(3 + i, 13 - i, 3, 3, i < 2 ? '#c99a1e' : '#e8e4dc'); k.r(12, 2, 3, 3, '#9fd3ff');
 }});
 
+/* ── carros y carreras ── */
+const CHK = (k, x, y, w, h, s, a, b) => { for (let yy = 0; yy < h; yy += s) for (let xx = 0; xx < w; xx += s) k.r(x + xx, y + yy, Math.min(s, w - xx), Math.min(s, h - yy), ((xx + yy) / s) % 2 ? a : b); };
+def('llantas', { name: 'Pila de llantas', w: 16, h: 24, shop: true, draw(k) {
+  [16, 10, 4].forEach((y, i) => { k.rr(1, y, 14, 7, '#16171b', 2).r(3, y + 2, 10, 3, '#2a2d33').r(5, y + 3, 6, 1, i === 1 ? '#e6f03b' : '#3a3f48'); });
+}});
+def('cono', { name: 'Cono', w: 16, h: 16, block: true, shop: true, draw(k) {
+  k.r(2, 13, 12, 2, '#d75a1e'); for (let i = 0; i < 10; i++) k.r(8 - Math.ceil(i / 2.2), 3 + i, Math.ceil(i / 2.2) * 2 + 1, 1, i === 4 || i === 5 ? '#f4f4f2' : '#f08a24');
+}});
+def('bandera', { name: 'Bandera a cuadros', w: 16, h: 32, shop: true, draw(k) {
+  k.r(2, 2, 1, 29, '#9aa0a6').r(1, 30, 4, 2, '#2a2d33'); CHK(k, 3, 3, 12, 9, 3, '#16171b', '#f4f4f2'); k.r(3, 3, 12, 1, '#f4f4f2');
+}});
+def('semaforo', { name: 'Semáforo de largada', w: 16, h: 36, shop: true, draw(k) {
+  k.r(7, 14, 2, 20, '#5b6573').r(4, 33, 8, 2, '#2a2d33').rr(2, 1, 12, 14, '#16171b', 2);
+  for (let i = 0; i < 3; i++) k.ell(8, 4 + i * 4, 1, 1, i === 2 ? '#3ddc84' : '#ff2d3d');
+}});
+def('surtidor', { name: 'Surtidor de gasolina', w: 16, h: 30, shop: true, draw(k) {
+  k.rr(2, 3, 11, 25, '#d7262e', 2).r(2, 3, 11, 2, '#ff5a5f').r(4, 6, 7, 5, '#0e1726').r(5, 7, 5, 1, '#3ddc84').r(5, 9, 3, 1, '#3ddc84').r(4, 13, 7, 3, '#f4f4f2').r(13, 10, 2, 10, '#16171b').r(13, 19, 3, 2, '#2a2d33').r(1, 28, 13, 2, '#3a3f48');
+}});
+def('kart', { name: 'Kart', fw: 2, w: 32, h: 20, shop: true, draw(k) {
+  k.ell(6, 15, 4, 4, '#111215').ell(26, 15, 4, 4, '#111215').ell(6, 15, 1, 1, '#9aa0a6').ell(26, 15, 1, 1, '#9aa0a6');
+  k.rr(3, 9, 26, 6, '#e6f03b', 2).r(10, 6, 9, 4, '#16171b').r(12, 2, 5, 5, '#d7262e').r(13, 3, 3, 2, '#9fd3ff').r(22, 7, 2, 3, '#2a2d33').r(1, 11, 3, 2, '#16171b').r(29, 10, 2, 3, '#d7262e');
+}});
+def('moto', { name: 'Moto deportiva', fw: 2, w: 32, h: 22, shop: true, draw(k) {
+  k.ell(6, 16, 5, 5, '#111215').ell(26, 16, 5, 5, '#111215').ell(6, 16, 2, 2, '#5b6573').ell(26, 16, 2, 2, '#5b6573');
+  k.r(8, 11, 16, 4, '#2c5bd6').rr(10, 6, 14, 6, '#2c5bd6', 2).r(12, 5, 7, 3, '#16171b').r(22, 4, 4, 4, '#9fd3ff').r(24, 8, 3, 5, '#16171b').r(4, 12, 6, 2, '#5b6573').r(13, 9, 9, 1, '#f4f4f2');
+}});
+def('casco', { name: 'Casco en vitrina', w: 16, h: 28, shop: true, draw(k) {
+  k.r(2, 18, 12, 9, '#16171b').r(2, 18, 12, 1, '#3a3f48').r(2, 2, 12, 16, 'rgba(159,211,255,.25)').r(2, 2, 12, 1, '#c8e8ff').r(2, 2, 1, 16, '#c8e8ff');
+  k.rr(4, 7, 9, 9, '#d7262e', 3).r(6, 10, 7, 3, '#16171b').r(7, 10, 4, 1, '#5b6573').r(4, 8, 6, 1, '#f4f4f2');
+}});
+def('motor_v8', { name: 'Motor V8', fw: 2, w: 32, h: 22, shop: true, draw(k) {
+  k.r(2, 16, 28, 5, '#2a2d33').rr(4, 6, 24, 11, '#5b6573', 2).r(6, 3, 8, 5, '#d7262e').r(18, 3, 8, 5, '#d7262e');
+  for (let i = 0; i < 4; i++) k.r(7 + i * 2, 4, 1, 3, '#16171b').r(19 + i * 2, 4, 1, 3, '#16171b');
+  k.r(13, 1, 6, 4, '#c9ccd2').r(5, 10, 22, 1, '#9aa0a6').r(9, 13, 14, 2, '#c99a1e');
+}});
+def('simulador', { name: 'Simulador de carreras', fw: 2, fh: 2, w: 32, h: 34, shop: true, draw(k) {
+  k.r(2, 30, 28, 3, '#2a2d33').r(3, 1, 26, 12, '#111215').r(4, 2, 24, 10, '#163a5c').r(4, 9, 24, 3, '#3a3f48').r(14, 6, 4, 3, '#e6f03b').r(9, 7, 3, 1, '#f4f4f2').r(20, 7, 3, 1, '#f4f4f2');
+  k.r(14, 13, 4, 6, '#2a2d33').ell(16, 17, 4, 3, '#16171b').ell(16, 17, 2, 1, '#d7262e');
+  k.rr(9, 20, 14, 11, '#d7262e', 2).r(11, 22, 10, 7, '#16171b').r(15, 22, 2, 7, '#d7262e');
+}});
+def('herramientas', { name: 'Caja de herramientas', w: 16, h: 14, shop: true, draw(k) {
+  k.r(1, 5, 14, 8, '#d7262e').r(1, 5, 14, 1, '#ff5a5f').r(1, 9, 14, 1, '#8e1230').r(5, 2, 6, 3, '#2a2d33').r(6, 3, 4, 1, '#d7262e').r(7, 7, 2, 1, '#c9ccd2');
+}});
+def('gato', { name: 'Gato hidráulico', w: 16, h: 12, block: false, shop: true, draw(k) {
+  k.r(1, 7, 12, 3, '#d7262e').r(1, 7, 12, 1, '#ff5a5f').ell(2, 10, 1, 1, '#111215').ell(11, 10, 1, 1, '#111215').r(9, 2, 2, 6, '#9aa0a6').r(8, 2, 5, 1, '#5b6573').r(12, 4, 3, 1, '#16171b');
+}});
+def('barril_aceite', { name: 'Barril de aceite', w: 16, h: 22, shop: true, draw(k) {
+  k.rr(2, 2, 12, 19, '#1f4a8a', 2).r(2, 6, 12, 1, '#16336a').r(2, 15, 12, 1, '#16336a').r(5, 9, 6, 4, '#e6f03b').r(6, 10, 4, 2, '#16171b').ell(8, 2, 5, 1, '#2c5bd6');
+}});
+def('trofeo_copa', { name: 'Copa de campeón', w: 16, h: 32, shop: true, draw(k) {
+  k.r(3, 26, 10, 5, '#16171b').r(3, 26, 10, 1, '#3a3f48').r(6, 22, 4, 4, '#c99a1e').r(7, 17, 2, 5, '#e0ab22').rr(2, 3, 12, 14, '#f2c230', 3).r(3, 4, 4, 10, '#fff1a0').r(0, 5, 2, 7, '#f2c230').r(14, 5, 2, 7, '#f2c230').r(5, 28, 6, 1, '#e6f03b');
+}});
+def('letrero_racing', { name: 'Letrero Ruedda Motorsport', fw: 3, w: 48, h: 28, shop: true, glow: '#e6f03b', draw(k) {
+  k.r(6, 20, 2, 7, '#2a2d33').r(40, 20, 2, 7, '#2a2d33').r(0, 1, 48, 20, '#111215').r(1, 2, 46, 18, '#16171b'); CHK(k, 1, 2, 46, 3, 3, '#16171b', '#f4f4f2');
+  const t1 = A.pixelText('RUEDDA', '#e6f03b', 1), t2 = A.pixelText('MOTORSPORT', '#f4f4f2', 1); k.g.drawImage(t1, 24 - Math.floor(t1.width / 2), 7); k.g.drawImage(t2, 24 - Math.floor(t2.width / 2), 14);
+}});
+def('auto_mini', { name: 'Auto de colección', fw: 4, fh: 2, w: 68, h: 36, shop: true, noOutline: true, draw(k) { k.g.drawImage(A.car('#e6f03b', 'super'), 0, 0); }});
+/* ── pisos (planos, se pueden rotar) ── */
+def('piso_meta', { name: 'Línea de meta (piso)', fw: 4, w: 64, h: 16, block: false, flat: true, shop: true, draw(k) { CHK(k, 0, 0, 64, 16, 4, '#16171b', '#f4f4f2'); }});
+def('piso_cuadros', { name: 'Piso a cuadros', fw: 3, fh: 3, w: 48, h: 48, block: false, flat: true, shop: true, draw(k) { CHK(k, 0, 0, 48, 48, 8, '#16171b', '#e8e4dc'); k.r(0, 0, 48, 1, 'rgba(255,255,255,.15)'); }});
+def('piso_ruedda', { name: 'Tapete Ruedda', fw: 3, fh: 2, w: 48, h: 32, block: false, flat: true, shop: true, draw(k) {
+  k.r(0, 0, 48, 32, '#16171b').r(2, 2, 44, 28, '#e6f03b').r(4, 4, 40, 24, '#16171b'); CHK(k, 16, 8, 16, 16, 4, '#e6f03b', '#16171b');
+}});
+def('piso_persa', { name: 'Alfombra persa', fw: 3, fh: 2, w: 48, h: 32, block: false, flat: true, shop: true, draw(k) {
+  k.r(0, 0, 48, 32, '#5c1630').r(2, 2, 44, 28, '#8e1230').r(5, 5, 38, 22, '#2a3d8f').r(8, 8, 32, 16, '#8e1230').ell(24, 16, 8, 5, '#c99a1e').ell(24, 16, 4, 2, '#2a3d8f');
+  for (let x = 4; x < 46; x += 4) k.p(x, 3, '#f2c230').p(x, 28, '#f2c230');
+}});
+def('piso_redondo', { name: 'Tapete redondo', fw: 2, fh: 2, w: 32, h: 32, block: false, flat: true, shop: true, draw(k) { k.ell(16, 16, 15, 15, '#3fa45e').ell(16, 16, 12, 12, '#f4f4f2').ell(16, 16, 9, 9, '#3fa45e').ell(16, 16, 5, 5, '#e6f03b'); }});
+def('piso_pista', { name: 'Tramo de pista', fw: 4, fh: 2, w: 64, h: 32, block: false, flat: true, shop: true, draw(k) {
+  k.r(0, 0, 64, 32, '#2a2d33'); for (let x = 0; x < 64; x += 8) { k.r(x, 0, 4, 3, '#d7262e').r(x + 4, 0, 4, 3, '#f4f4f2').r(x, 29, 4, 3, '#f4f4f2').r(x + 4, 29, 4, 3, '#d7262e'); }
+  for (let x = 2; x < 64; x += 12) k.r(x, 15, 7, 2, '#e6f03b');
+}});
+def('piso_flechas', { name: 'Flechas de pista', fw: 2, w: 32, h: 16, block: false, flat: true, shop: true, draw(k) {
+  k.r(0, 0, 32, 16, '#2a2d33'); [3, 13, 23].forEach(x => { for (let i = 0; i < 5; i++) k.r(x + i, 3 + i, 2, 1, '#e6f03b').r(x + i, 12 - i, 2, 1, '#e6f03b'); });
+}});
+def('piso_madera', { name: 'Parqué', fw: 3, fh: 3, w: 48, h: 48, block: false, flat: true, shop: true, draw(k) {
+  for (let y = 0; y < 48; y += 8) for (let x = 0; x < 48; x += 8) { const v = ((x + y) / 8) % 2; if (v) for (let i = 0; i < 8; i += 2) k.r(x, y + i, 8, 2, i % 4 ? '#a8734e' : '#8a5a3c'); else for (let i = 0; i < 8; i += 2) k.r(x + i, y, 2, 8, i % 4 ? '#a8734e' : '#8a5a3c'); }
+}});
+
 /* ── Kenney (CC0, kenney.nl: Roguelike Indoors + Tiny Town) → /office/kenney.png ── */
 A.KENNEY = {"k_maceta": [0, 0, 1, 1, "Maceta tropical", 1, 0], "k_maceta2": [17, 0, 1, 1, "Maceta azul", 1, 0], "k_arbusto": [34, 0, 1, 1, "Arbusto", 1, 0], "k_brote": [51, 0, 1, 1, "Brote", 0, 0], "k_hongos": [68, 0, 1, 1, "Hongos", 0, 0], "k_arbol": [85, 0, 1, 1, "Arbolito", 1, 0], "k_arbol_otono": [102, 0, 1, 1, "Arbolito de otoño", 1, 0], "k_arbol_alto": [119, 0, 1, 2, "Árbol alto", 1, 0], "k_arbol_alto_otono": [136, 0, 1, 2, "Árbol de otoño", 1, 0], "k_tapete": [153, 0, 2, 1, "Tapete naranja", 0, 1], "k_tapete_verde": [186, 0, 3, 1, "Tapete verde", 0, 1], "k_cuadro_oro": [235, 0, 1, 1, "Cuadro dorado", 1, 0], "k_retrato": [252, 0, 1, 1, "Retrato", 1, 0], "k_espejo": [269, 0, 1, 1, "Espejo", 1, 0], "k_jarron": [286, 0, 1, 1, "Jarrón dorado", 1, 0], "k_jarron_plata": [303, 0, 1, 1, "Jarrón plateado", 1, 0], "k_candelabro": [320, 0, 1, 1, "Candelabro", 1, 0], "k_escudo": [337, 0, 1, 1, "Escudo", 1, 0], "k_barra_bebidas": [354, 0, 2, 1, "Barra de bebidas", 1, 0], "k_estufa": [387, 0, 1, 1, "Cocina", 1, 0], "k_fregadero": [404, 0, 1, 1, "Fregadero", 1, 0], "k_vitrina": [421, 0, 1, 1, "Vitrina", 1, 0], "k_mesa_larga": [438, 0, 3, 1, "Mesa larga", 1, 0], "k_mesa_oval": [0, 33, 2, 1, "Mesa ovalada", 1, 0], "k_mesa_redonda": [33, 33, 1, 1, "Mesa redonda", 1, 0], "k_mesita": [50, 33, 1, 1, "Mesita de noche", 1, 0], "k_taburete": [67, 33, 1, 1, "Taburete", 0, 0], "k_silla_madera": [84, 33, 1, 1, "Silla de madera", 0, 0], "k_parlante": [101, 33, 1, 1, "Bocina", 1, 0], "k_barril": [118, 33, 1, 1, "Barril de agua", 1, 0], "k_letrero": [135, 33, 1, 1, "Letrero", 1, 0], "k_colmena": [152, 33, 1, 1, "Colmena", 1, 0]};
 A.loadKenney = () => new Promise(res => {
@@ -765,8 +844,17 @@ A.drawItem = (key, opts) => {
   const it = I[key]; if (!it) return null;
   const k = mk(it.w, it.h); it.draw(k, opts || {});
   if (!it.flat && !it.noOutline) outline(k, '#111215');
-  return k.c;
+  const rot = ((opts && opts.rot) || 0) % 4;
+  if (!rot) return k.c;
+  if (it.flat) {   // lo plano gira de verdad (90°)
+    const odd = rot % 2 === 1, c = document.createElement('canvas'); c.width = odd ? it.h : it.w; c.height = odd ? it.w : it.h;
+    const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.translate(c.width / 2, c.height / 2); g.rotate(rot * Math.PI / 2); g.drawImage(k.c, -it.w / 2, -it.h / 2); return c;
+  }
+  if (rot % 2 === 0) return k.c;   // lo de pie se voltea (en vista 3/4 no hay espalda que mostrar)
+  const c = document.createElement('canvas'); c.width = it.w; c.height = it.h; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; g.translate(it.w, 0); g.scale(-1, 1); g.drawImage(k.c, 0, 0); return c;
 };
+// medidas efectivas según la rotación
+A.dims = (key, rot) => { const it = I[key]; if (!it) return null; const sw = it.flat && ((rot || 0) % 2 === 1); return sw ? { fw: it.fh, fh: it.fw, w: it.h, h: it.w } : { fw: it.fw, fh: it.fh, w: it.w, h: it.h }; };
 
 /* ════════════ AUTOS (vista superior, 64×32 mirando a la derecha) ════════════ */
 A.car = (color, type) => {

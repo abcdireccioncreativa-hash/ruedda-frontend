@@ -321,12 +321,13 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     this.decorSpr.forEach((spr, id) => { if (!want.has(id)) { spr.destroy(); spr._glow && spr._glow.destroy(); this.decorSpr.delete(id); } });
     want.forEach((d, id) => {
       const it = A.ITEMS[d.item]; if (!it) return;
+      const rot = (d.rot || 0) % 4, dm = A.dims(d.item, rot);
       const old = this.decorSpr.get(id);
-      if (old && old._x === d.x && old._y === d.y) return;
+      if (old && old._x === d.x && old._y === d.y && old._r === rot) return;
       if (old) { old.destroy(); old._glow && old._glow.destroy(); }
-      const img = this.add.image(d.x * T + (it.fw * T - it.w) / 2, (d.y + it.fh) * T, this.itemTex(d.item, {})).setOrigin(0, 1);
-      img.setDepth(it.flat ? -6e5 + d.y : (d.y + it.fh) * T);
-      img._x = d.x; img._y = d.y; img._d = d;
+      const img = this.add.image(d.x * T + (dm.fw * T - dm.w) / 2, (d.y + dm.fh) * T, this.itemTex(d.item, rot ? { rot } : {})).setOrigin(0, 1);
+      img.setDepth(it.flat ? -6e5 + d.y : (d.y + dm.fh) * T);
+      img._x = d.x; img._y = d.y; img._r = rot; img._d = d;
       if (it.glow) img._glow = this.glowFor(img, it.glow);
       this.decorSpr.set(id, img);
     });
@@ -336,13 +337,14 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   recalcBlocked() {
     const b = this.baseBlocked.map(r => Uint8Array.from(r));
     (RO.S.decor || []).forEach(d => {
-      const it = A.ITEMS[d.item]; if (!it || !it.block) return;
+      const it0 = A.ITEMS[d.item]; if (!it0 || !it0.block) return; const it = A.dims(d.item, d.rot || 0);
       for (let y = d.y; y < d.y + it.fh; y++) for (let x = d.x; x < d.x + it.fw; x++) if (b[y] && b[y][x] !== undefined) b[y][x] = 1;
     });
     this.blocked = b;
   }
-  canPlace(item, x, y) {
-    const it = A.ITEMS[item]; if (!it) return false;
+  canPlace(item, x, y, rot) {
+    const it0 = A.ITEMS[item]; if (!it0) return false;
+    const it = Object.assign({}, it0, A.dims(item, rot != null ? rot : (this.edit && this.edit.rot) || 0));
     const own = this.edit && this.edit.own ? Wd.officeRect(RO.S.me.slot, RO.S.config) : null;
     if (this.edit && this.edit.own && !own) return false;
     for (let yy = y; yy < y + it.fh; yy++) for (let xx = x; xx < x + it.fw; xx++) {
@@ -541,6 +543,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     });
     if (me.sit) consider({ id: 'stand', kind: 'stand' }, 0);
     (this.cats || []).forEach(k => { const d = Math.hypot(me.x - k.x, me.y - k.y); if (d < 18) consider({ id: 'cat' + k.i, kind: 'cat', idx: k.i, name: k.c.name }, d + 3); });
+    (this.couples || []).forEach((c, i) => { const d = Math.hypot(me.x - c.x, me.y - (c.y + 14)); if (d < 30) consider({ id: 'k3' + i, kind: 'kiss3', idx: i }, d + 4); });
     if (this.woo) best = null;
     this.players.forEach(p => { if (p.isMe) return; const d = Math.hypot(me.x - p.x, me.y - p.y); if (d < 26) consider({ id: 'p:' + p.uid, kind: 'player', uid: p.uid }, d - 4); });
     const id = best ? best.id : null;
@@ -709,6 +712,23 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     this.tweens.add({ targets: c.L, x: c.lx + 2, duration: 260, yoyo: true, hold: 900 });
     this.tweens.add({ targets: c.R, x: c.rx - 2, duration: 260, yoyo: true, hold: 900 });
     this.time.delayedCall(300, () => this.hearts(c.x, c.y - 24, 3));
+  }
+
+  // beso de 3: te pones con una pareja, se inclinan los tres y llueven corazones
+  kiss3(i, side) {
+    const c = this.couples && this.couples[i]; if (!c) return;
+    const me = this.me; if (me.sit) this.stand();
+    me.x = c.x + (side || 1) * 22; me.y = c.y + 12; me.dir = side < 0 ? 'right' : 'left';
+    me.spr.setPosition(me.x, me.y); this.announceRoom(); this.sendPos(0);
+    this.k3fx(i);
+    RO.Net.send({ t: 'k3', u: RO.S.me.user_id, i });
+  }
+  k3fx(i) {
+    const c = this.couples && this.couples[i]; if (!c) return;
+    this.tweens.add({ targets: c.L, x: c.lx + 3, duration: 240, yoyo: true, hold: 1400 });
+    this.tweens.add({ targets: c.R, x: c.rx - 3, duration: 240, yoyo: true, hold: 1400 });
+    for (let k = 0; k < 5; k++) this.time.delayedCall(k * 260, () => this.hearts(c.x, c.y - 26, 4, 34));
+    RO.sfx.note();
   }
 
   /* ════════════ GATOS ════════════ */
@@ -905,16 +925,20 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     if (this.edit) {
       const it = A.ITEMS[this.edit.item];
       if (this.edit.mode === 'place' && it) {
-        const ok = this.canPlace(this.edit.item, tx, ty);
-        if (!this.ghost) this.ghost = this.add.image(0, 0, this.itemTex(this.edit.item, {})).setOrigin(0, 1).setAlpha(.7).setDepth(9.5e5);
-        this.ghost.setPosition(tx * T + (it.fw * T - it.w) / 2, (ty + it.fh) * T).setTint(ok ? 0xffffff : 0xff4a4a);
-        if (down && p.leftButtonDown()) { if (ok) RO.emit('edit:place', this.edit.item, tx, ty); else RO.sfx.err(); }
+        const rot = this.edit.rot || 0, dm = A.dims(this.edit.item, rot);
+        const ok = this.canPlace(this.edit.item, tx, ty, rot);
+        const gk = this.itemTex(this.edit.item, rot ? { rot } : {});
+        if (!this.ghost) this.ghost = this.add.image(0, 0, gk).setOrigin(0, 1).setAlpha(.7).setDepth(9.5e5);
+        if (this.ghost.texture.key !== gk) this.ghost.setTexture(gk);
+        this.ghost.setPosition(tx * T + (dm.fw * T - dm.w) / 2, (ty + dm.fh) * T).setTint(ok ? 0xffffff : 0xff4a4a);
+        this._lastTile = [tx, ty];
+        if (down && p.leftButtonDown()) { if (ok) RO.emit('edit:place', this.edit.item, tx, ty, rot); else RO.sfx.err(); }
         if (down && p.rightButtonDown()) RO.emit('edit:cancel');
         return;
       }
       if (this.edit.mode === 'move') {
         let hit = null;
-        this.decorSpr.forEach(spr => { const d = spr._d, it2 = A.ITEMS[d.item]; if (tx >= d.x && tx < d.x + it2.fw && ty >= d.y - (it2.h > it2.fh * T ? 1 : 0) && ty < d.y + it2.fh) hit = d; });
+        this.decorSpr.forEach(spr => { const d = spr._d, it2 = A.dims(d.item, d.rot || 0); if (it2 && tx >= d.x && tx < d.x + it2.fw && ty >= d.y - (it2.h > it2.fh * T ? 1 : 0) && ty < d.y + it2.fh) hit = d; });
         this.decorSpr.forEach(spr => spr.clearTint());
         if (hit) this.decorSpr.get(String(hit.id)).setTint(0xe6f03b);
         if (down && hit && p.leftButtonDown()) RO.emit('edit:pick', hit);
@@ -1011,6 +1035,9 @@ G.sitDesk = () => { const s = S(); if (!s) return false; const st = s.deskSeat()
 G.isSitting = () => !!(S() && S().me.sit);
 G.petCat = i => S() && S().petCat(i);
 G.setTalking = (uid, on) => { const s = S(); const p = s && s.players.get(uid); if (p && p._talk !== on) { p._talk = on; p.tag.classList.toggle('talk', on); } };
+G.rotateGhost = () => { const s = S(); if (!s || !s.edit || s.edit.mode !== 'place') return false; s.edit.rot = ((s.edit.rot || 0) + 1) % 4; if (s.ghost) { s.ghost.destroy(); s.ghost = null; } const t = s._lastTile; if (t) s.onPointer({ worldX: (t[0] + .5) * T, worldY: (t[1] + .5) * T, leftButtonDown: () => false, rightButtonDown: () => false }, false); return true; };
+G.kiss3 = (i, side) => S() && S().kiss3(i, side);
+G.k3fx = i => S() && S().k3fx(i);
 G.setStick = (x, y, run) => { const s = S(); if (s) s.stick = { x, y, run }; };
 G.wooStart = ms => S() ? S().wooStart(ms) : false;
 G.wooEnd = () => S() && S().wooEnd();

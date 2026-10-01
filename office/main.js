@@ -274,6 +274,10 @@ const NET = {
       case 'car': return RO.G.carFx(m.i);
       case 'invite': return UI.onInvite(m);
       case 'woo': return RO.G.wooRemote(m.u, m.on);
+      case 'k3': return RO.G.k3fx(m.i);
+      case 'k3inv': return UI.onK3Invite(m);
+      case 'k3ok': return UI.onK3Answer(m, true);
+      case 'k3no': return UI.onK3Answer(m, false);
       case 'jbox': { const p = RO.G.mePos(); if (p && p.room === 'ocio' && !RO.muted) { UI.jukebox = !!m.on; if (m.on) RO.music.start(); else RO.music.stop(); } return; }
       case 'money': return RO.G.moneyRain();
       case 'drop': return RO.G.drop();

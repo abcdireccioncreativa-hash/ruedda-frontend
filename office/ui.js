@@ -270,12 +270,12 @@ UI.askNotify = () => { try { if ('Notification' in window && Notification.permis
 const HINTS = {
   desk: h => { const o = officeAt(h.pos), m = o && RO.memberBySlot(o.slot); if (!m) return 'Oficina libre'; return m.user_id === RO.S.me.user_id ? 'Mi escritorio' : 'Dejar un post-it a ' + esc(m.display_name); },
   seat: h => esc(h.label || 'Sentarte'), stand: () => 'Levantarte (o camina)',
-  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', lottery: () => 'Jugar a la lotería 🎰', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
+  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', kiss3: () => 'Beso de 3 💋', lottery: () => 'Jugar a la lotería 🎰', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
   board: () => 'Abrir la pizarra general', gong: () => 'Tocar la campana de ventas', clocks: () => 'Ver los relojes',
   tv: () => 'Ver Ruedda en vivo', secret: () => 'Examinar la estantería', coffee: () => 'Servirte un café', snacks: () => 'Comprar un snack',
   arcade: () => 'Jugar arcade', pingpong: () => 'Jugar ping-pong', grill: () => 'Prender la parrilla', aquarium: () => 'Mirar la pecera',
   car: h => 'Encender ' + esc(h.car.name), bar: () => 'Pedir en la barra',
-  stage: () => 'Tirar billetes 💸', dj: () => (RO.music && RO.music.timer ? 'Soltar el drop 🔊' : 'Poner la música 🎧'), npc: () => 'Hablar con ' + esc(RO.S.config.npc.name || 'Valentina'),
+  stage: () => 'Tirar billetes 💸 (−25 monedas)', dj: () => (RO.music && RO.music.timer ? 'Soltar el drop 🔊' : 'Poner la música 🎧'), npc: () => 'Hablar con ' + esc(RO.S.config.npc.name || 'Valentina'),
   player: h => `Hablar con ${esc(RO.nameOf(h.uid))}</span><span class="sep"></span><kbd class="k2">H</kbd><span>Chocar los cinco`
 };
 function officeAt(pos) { return (RO.S.config.offices || []).find(o => o.pos === pos); }
@@ -309,7 +309,13 @@ RO.on('interact', h => {
     case 'aquarium': UI.toast('Los peces se llaman Subasta, Market y Concesionario.'); return;
     case 'bar': RO.G.bubbleMe('🥂'); RO.Net.send({ t: 'emote', u: S.me.user_id, e: '🥂' }); UI.toast(esc(S.config.npc.name || 'Valentina') + ': aquí el champán se sirve cuando se cierra un trato.', 'vip'); return;
     case 'car': RO.G.carFx(h.idx); RO.Net.send({ t: 'car', u: S.me.user_id, i: h.idx }); UI.toast('<b>' + esc(h.car.name) + '</b> · exhibición privada', 'vip'); return;
-    case 'stage': RO.G.moneyRain(); RO.sfx.cash(); RO.G.bubbleMe('💸'); RO.Net.send({ t: 'money', u: S.me.user_id }); return;
+    case 'stage':
+      RO.Net.tip(25).then(r => {
+        if (!r || !r.ok) { RO.sfx.err(); return UI.toast('No te alcanzan las monedas para tirar billetes (25)', 'err'); }
+        RO.S.me.coins = r.coins; UI.renderTop();
+        RO.G.moneyRain(); RO.sfx.cash(); RO.G.bubbleMe('💸 −' + r.amount); RO.Net.send({ t: 'money', u: S.me.user_id });
+      }).catch(err); return;
+    case 'kiss3': RO.G.kiss3(h.idx, 1); RO.G.bubbleMe('💋'); return;
     case 'dj':
       if (RO.muted) return UI.toast('Activa el sonido (🔊 arriba) para escuchar al DJ');
       if (!RO.music.timer) { RO.music.start(); UI.toast('🎧 DJ Ruedda en vivo'); }
@@ -333,12 +339,14 @@ RO.on('interact', h => {
 const EMOTES = { '1': '👍', '2': '😂', '3': '🔥', '4': '☕', '5': '🚗', '6': '💸', '7': '🙌', '8': '👀' };
 RO.on('key', (k, e) => {
   if (k === 'escape') { if (WB.open) return WB.hide(); if (RO.G.scene && RO.G.scene.edit) return RO.emit('edit:cancel'); return UI.close(); }
+  if (k === 'r' && RO.G.scene && RO.G.scene.edit && RO.G.scene.edit.mode === 'place' && !RO.uiBusy()) { RO.G.rotateGhost(); return; }
   if (RO.uiBusy()) return;
   if (k === 'e' || k === ' ') { e.preventDefault(); RO.G.interact(); }
   else if (k === 'enter') { e.preventDefault(); const box = $('#chat'); box.classList.remove('min'); chatUnread = 0; UI.renderChatBadge(); $('#ch-input').focus(); }
   else if (k === 'h') { const h = RO.G.scene && RO.G.scene.hint; if (h && h.kind === 'player') UI.hi5(h.uid); }
   else if (EMOTES[k]) { RO.G.bubbleMe(EMOTES[k]); RO.Net.send({ t: 'emote', u: RO.S.me.user_id, e: EMOTES[k] }); }
   else if (k === 'n') UI.notesInbox();
+  else if (k === 'r' && RO.G.scene && RO.G.scene.edit) RO.G.rotateGhost();
 
 });
 
@@ -371,7 +379,7 @@ UI.personCard = uid => {
     body: `<div class="pc"><span data-av></span><div><div class="meta">${p || isMe ? '<span style="color:var(--green)">● en línea</span> · ' + esc(roomLabel(isMe ? (RO.G.mePos() || {}).room : p.room)) : 'Desconectado'}<br>${o ? 'Oficina: ' + esc(roomLabel('off' + o.pos)) : 'Sin oficina'}</div>
       <dl class="kv"><dt>Productividad</dt><dd>${m.points || 0} pts</dd><dt>Monedas</dt><dd>${m.coins || 0}</dd>${p && p.status ? `<dt>Estado</dt><dd>${esc(p.status)}</dd>` : ''}</dl></div></div>`,
     foot: isMe ? `<button class="btn" data-a="avatar">Editar avatar</button>` :
-      `${o ? `<button class="btn" data-a="office">Ir a su oficina</button>` : ''}<button class="btn" data-a="note">Dejar nota</button>${p ? `<button class="btn" data-a="invite">Invitar a mi oficina</button><button class="btn y" data-a="go">Ir hacia ${esc(m.display_name)}</button>` : ''}`
+      `${o ? `<button class="btn" data-a="office">Ir a su oficina</button>` : ''}<button class="btn" data-a="note">Dejar nota</button>${p ? `<button class="btn" data-a="k3">💋 Beso de 3</button><button class="btn" data-a="invite">Invitar a mi oficina</button><button class="btn y" data-a="go">Ir hacia ${esc(m.display_name)}</button>` : ''}`
   });
   mo.querySelector('[data-av]').appendChild(A.avatarFull(A.normAvatar(m.avatar, uid), 5));
   mo.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
@@ -381,6 +389,7 @@ UI.personCard = uid => {
     if (a === 'note') UI.composeNote(uid);
     if (a === 'avatar') UI.avatarEditor(uid);
     if (a === 'invite') UI.summon(uid);
+    if (a === 'k3') { RO.Net.send({ t: 'k3inv', u: RO.S.me.user_id, to: uid }); UI.toast('💋 Invitación enviada a ' + esc(m.display_name)); }
   });
 };
 
@@ -846,29 +855,31 @@ UI.startEdit = e => {
   RO.G.setEdit(e);
   const bar = $('#edit-bar');
   bar.innerHTML = e.mode === 'desk' ? `<span>Moviendo tu <b>escritorio</b> — clic dentro de tu oficina</span><button data-x>Cancelar (Esc)</button>` : e.mode === 'place'
-    ? `<span>${e.moveId ? 'Moviendo' : e.buy ? 'Comprando' : 'Colocando'}: <b>${esc(e.name || A.ITEMS[e.item].name || e.item)}</b>${e.buy ? ` · ${e.price} monedas` : ''} — clic en el piso para ponerlo</span><button data-x>Cancelar (Esc)</button>`
+    ? `<span>${e.moveId ? 'Moviendo' : e.buy ? 'Comprando' : 'Colocando'}: <b>${esc(e.name || A.ITEMS[e.item].name || e.item)}</b>${e.buy ? ` · ${e.price} monedas` : ''} — clic en el piso para ponerlo</span><button data-rot>Rotar (R)</button><button data-x>Cancelar (Esc)</button>`
     : `<span>Clic sobre una decoración para moverla o quitarla</span><button data-x>Listo</button>`;
   bar.classList.remove('hidden');
   bar.querySelector('[data-x]').onclick = () => RO.emit('edit:cancel');
+  const rb = bar.querySelector('[data-rot]'); if (rb) rb.onclick = () => RO.G.rotateGhost();
 };
 UI.endEdit = () => { const s = RO.G.scene; if (s && s.edit && s.edit.moveId && s.edit.restore) { RO.S.decor.push(s.edit.restore); RO.G.syncDecor(); } RO.G.setEdit(null); $('#edit-bar').classList.add('hidden'); };
 RO.on('edit:cancel', () => UI.endEdit());
-RO.on('edit:place', async (item, x, y) => {
-  const e = RO.G.scene.edit; if (!e) return;
+RO.on('edit:place', async (item, x, y, rot) => {
+  const e = RO.G.scene.edit; if (!e) return; rot = rot || 0;
   try {
     if (e.moveId) {
-      await RO.Net.moveDecor(e.moveId, x, y);
-      const d = Object.assign({}, e.restore, { x, y }); e.restore = null; RO.S.decor = RO.S.decor.filter(z => z.id !== d.id).concat([d]);
+      await RO.Net.moveDecor(e.moveId, x, y); if ((e.restore.rot || 0) !== rot) await RO.Net.setDecorRot(e.moveId, rot).catch(() => {});
+      const d = Object.assign({}, e.restore, { x, y, rot }); e.restore = null; RO.S.decor = RO.S.decor.filter(z => z.id !== d.id).concat([d]);
     } else if (e.buy) {
       const mine = Wd().officeRect(RO.S.me.slot, RO.S.config), inMine = mine && x >= mine.x0 && x <= mine.x1 && y >= mine.y0 && y <= mine.y1;
       const r = inMine ? await RO.Net.placeOwn(item, x, y) : await RO.Net.buy(item, x, y);
       if (!r || !r.ok) { UI.toast(r && r.reason === 'saldo' ? 'No te alcanzan las monedas (en tu oficina es gratis)' : 'No se pudo colocar', 'err'); return UI.endEdit(); }
+      if (rot) { r.decor.rot = rot; RO.Net.setDecorRot(r.decor.id, rot).catch(() => {}); }
       if (!RO.S.decor.find(z => z.id === r.decor.id)) RO.S.decor.push(r.decor);
       if (r.coins != null) RO.S.me.coins = r.coins; UI.renderTop(); RO.sfx.coin();
       if (inMine) UI.toast('Puesto en tu oficina · gratis');
       RO.Net.send({ t: 'emote', u: RO.S.me.user_id, e: '🛍️' });
     } else {
-      const d = await RO.Net.placeFree(item, x, y); if (d && !RO.S.decor.find(z => z.id === d.id)) RO.S.decor.push(d);
+      const d = await RO.Net.placeFree(item, x, y); if (d && rot) { d.rot = rot; RO.Net.setDecorRot(d.id, rot).catch(() => {}); } if (d && !RO.S.decor.find(z => z.id === d.id)) RO.S.decor.push(d);
     }
     RO.G.syncDecor(); RO.sfx.blip();
   } catch (x) { err(x); }
@@ -879,11 +890,12 @@ RO.on('edit:pick', d => {
   const mine = d.placed_by === RO.S.me.user_id || inMine;
   if (!mine && !RO.isAdmin()) return UI.toast('Solo quien lo puso, el dueño de la oficina o un admin lo pueden mover', 'err');
   const it = A.ITEMS[d.item];
-  const mo = UI.modal({ title: esc(it.name || d.item), sub: 'Puesto por ' + esc(RO.nameOf(d.placed_by)), body: '<p class="muted">¿Qué quieres hacer?</p>', foot: `<button class="btn red" data-a="del">Quitar</button><button class="btn y" data-a="mv">Mover</button>` });
+  const mo = UI.modal({ title: esc(it.name || d.item), sub: 'Puesto por ' + esc(RO.nameOf(d.placed_by)), body: '<p class="muted">¿Qué quieres hacer?</p>', foot: `<button class="btn red" data-a="del">Quitar</button><button class="btn" data-a="rot">Rotar ↻</button><button class="btn y" data-a="mv">Mover</button>` });
+  mo.querySelector('[data-a="rot"]').onclick = async () => { const rot = ((d.rot || 0) + 1) % 4; try { await RO.Net.setDecorRot(d.id, rot); d.rot = rot; const o = RO.S.decor.find(z => z.id === d.id); if (o) o.rot = rot; RO.G.syncDecor(); RO.sfx.blip(); } catch (e) { err(e); } };
   mo.querySelector('[data-a="mv"]').onclick = () => {
     UI.close();
     RO.S.decor = RO.S.decor.filter(z => z.id !== d.id); RO.G.syncDecor();
-    UI.startEdit({ mode: 'place', item: d.item, moveId: d.id, restore: d, name: it.name });
+    UI.startEdit({ mode: 'place', item: d.item, moveId: d.id, restore: d, name: it.name, rot: d.rot || 0 });
     RO.G.scene.edit.restore = d;
   };
   mo.querySelector('[data-a="del"]').onclick = async () => {
@@ -941,6 +953,19 @@ UI.summon = (onlyUid) => {
   if (!o) return UI.toast('No tienes oficina asignada', 'err');
   RO.Net.send({ t: 'invite', u: RO.S.me.user_id, pos: o.pos, to: onlyUid || null });
   UI.toast(onlyUid ? 'Invitación enviada a ' + esc(RO.nameOf(onlyUid)) : 'Invitaste al equipo a tu oficina');
+};
+UI.onK3Invite = m => {
+  if (m.to !== RO.S.me.user_id) return;
+  RO.sfx.note();
+  UI.toast(`💋 <b>${esc(RO.nameOf(m.u))}</b> te invita a un beso de 3 en el club`, 'vip', [
+    { t: 'Aceptar', y: 1, f: () => { RO.Net.send({ t: 'k3ok', u: RO.S.me.user_id, to: m.u }); RO.G.kiss3(0, 1); RO.G.bubbleMe('💋'); } },
+    { t: 'No, gracias', f: () => RO.Net.send({ t: 'k3no', u: RO.S.me.user_id, to: m.u }) }
+  ], 20000);
+};
+UI.onK3Answer = (m, ok) => {
+  if (m.to !== RO.S.me.user_id) return;
+  if (ok) { UI.toast('💋 ' + esc(RO.nameOf(m.u)) + ' aceptó'); RO.G.kiss3(0, -1); RO.G.bubbleMe('💋'); }
+  else UI.toast(esc(RO.nameOf(m.u)) + ' dijo que no, gracias');
 };
 UI.onInvite = m => {
   if (m.to && m.to !== RO.S.me.user_id) return;

@@ -56,6 +56,8 @@ create table if not exists public.office_decor (
   created_at timestamptz not null default now()
 );
 
+alter table public.office_decor add column if not exists rot integer not null default 0;
+
 create table if not exists public.office_notes (
   id         bigserial primary key,
   to_user    uuid not null references auth.users(id) on delete cascade,
@@ -168,6 +170,19 @@ insert into public.office_catalog (item, name, price, category, sort) values
   ('nevera','Nevera',80,'cocina',50), ('microondas','Microondas',40,'cocina',51), ('flotador','Flotador',15,'piscina',60),
   ('reloj_pie','Reloj de pie',110,'deco',46), ('poster','Póster Ruedda',30,'deco',47), ('extintor','Extintor',10,'deco',48), ('telescopio','Telescopio',95,'deco',49)
 on conflict (item) do nothing;
+-- carros, carreras y pisos
+insert into public.office_catalog (item, name, price, category, sort) values
+  ('llantas','Pila de llantas',120,'carreras',200), ('cono','Cono',35,'carreras',201), ('bandera','Bandera a cuadros',90,'carreras',202),
+  ('semaforo','Semáforo de largada',260,'carreras',203), ('surtidor','Surtidor de gasolina',340,'carreras',204), ('kart','Kart',650,'carreras',205),
+  ('moto','Moto deportiva',900,'carreras',206), ('casco','Casco en vitrina',220,'carreras',207), ('motor_v8','Motor V8',780,'carreras',208),
+  ('simulador','Simulador de carreras',1200,'carreras',209), ('herramientas','Caja de herramientas',180,'carreras',210), ('gato','Gato hidráulico',140,'carreras',211),
+  ('barril_aceite','Barril de aceite',90,'carreras',212), ('trofeo_copa','Copa de campeón',480,'carreras',213), ('letrero_racing','Letrero Ruedda Motorsport',520,'carreras',214),
+  ('auto_mini','Auto de colección',2500,'carreras',215),
+  ('piso_meta','Línea de meta (piso)',160,'pisos',300), ('piso_cuadros','Piso a cuadros',220,'pisos',301), ('piso_ruedda','Tapete Ruedda',260,'pisos',302),
+  ('piso_persa','Alfombra persa',300,'pisos',303), ('piso_redondo','Tapete redondo',180,'pisos',304), ('piso_pista','Tramo de pista',240,'pisos',305),
+  ('piso_flechas','Flechas de pista',120,'pisos',306), ('piso_madera','Parqué',200,'pisos',307)
+on conflict (item) do nothing;
+
 -- muebles y plantas de Kenney (CC0)
 insert into public.office_catalog (item, name, price, category, sort) values
   ('k_maceta','Maceta tropical',45,'plantas',100),
@@ -376,6 +391,18 @@ begin
   insert into public.office_events(kind, actor, payload) values ('lottery', uid, jsonb_build_object('win', win, 'jackpot', jack, 'coins', c, 'points', p));
   if win then update public.office_members set coins = coins + c, points = points + p where user_id = uid; end if;
   return jsonb_build_object('ok', true, 'win', win, 'jackpot', jack, 'coins', c, 'points', p, 'left', 24 - used);
+end $$;
+
+-- Tirar billetes en el club: cuesta monedas (las descuenta el servidor)
+create or replace function public.office_tip(p_amount int) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); amt int := greatest(5, least(500, coalesce(p_amount, 25))); bal int;
+begin
+  if not public.office_is_member() then raise exception 'no autorizado'; end if;
+  update public.office_members set coins = coins - amt where user_id = uid and coins >= amt returning coins into bal;
+  if bal is null then return jsonb_build_object('ok', false, 'reason', 'saldo'); end if;
+  insert into public.office_events(kind, actor, payload) values ('tip', uid, jsonb_build_object('amount', amt));
+  return jsonb_build_object('ok', true, 'coins', bal, 'amount', amt);
 end $$;
 
 -- Borrar la pizarra
@@ -644,7 +671,7 @@ do $$ declare f text; begin
                            'office_buy(text,integer,integer)','office_clear_board(text)','office_grant(uuid,integer)',
                            'office_find_users(text)','office_upsert_member(uuid,text,text,text,boolean)',
                            'office_in_my_office(integer,integer)','office_in_other_office(integer,integer)','office_update_my_office(text,text,boolean)','office_place_own(text,integer,integer)',
-                           'office_accounts_list()','office_lottery()','office_set_my_desk(integer,integer)','office_unpack_base()','office_account_upsert(text,text,text,text,boolean,boolean)','office_account_delete(text)'] loop
+                           'office_accounts_list()','office_lottery()','office_tip(integer)','office_set_my_desk(integer,integer)','office_unpack_base()','office_account_upsert(text,text,text,text,boolean,boolean)','office_account_delete(text)'] loop
     execute 'revoke all on function public.' || f || ' from public, anon';
     execute 'grant execute on function public.' || f || ' to authenticated';
   end loop;
