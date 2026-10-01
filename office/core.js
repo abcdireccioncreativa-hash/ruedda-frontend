@@ -126,8 +126,18 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 let sb = null;
 const client = () => sb || (sb = supabase.createClient(SB_URL, SB_KEY, {
   auth: { persistSession: true, autoRefreshToken: true, storageKey: 'ruedda-office-auth' },
-  realtime: { params: { eventsPerSecond: 40 } }
+  // worker: el latido del WebSocket corre en un Web Worker (las pestañas en segundo plano no se desconectan)
+  realtime: { params: { eventsPerSecond: 40 }, heartbeatIntervalMs: 15000, worker: true, reconnectAfterMs: n => [500, 1000, 2000, 4000][n - 1] || 6000 }
 }));
+// reintenta escrituras ante cortes de red (no ante errores de permisos/validación)
+async function retry(fn, tries = 4) {
+  let last;
+  for (let i = 0; i < tries; i++) {
+    try { return await fn(); }
+    catch (e) { last = e; const net = !e.code || /fetch|network|timeout|Failed|Load failed/i.test(e.message || ''); if (!net || i === tries - 1) throw e; await new Promise(r => setTimeout(r, 600 * Math.pow(2, i))); }
+  }
+  throw last;
+}
 const isMissing = e => !!e && (['42P01', 'PGRST205', '42883', 'PGRST202'].includes(e.code) || /does not exist|schema cache|could not find the function/i.test(e.message || ''));
 const chk = r => { if (r.error) throw r.error; return r.data; };
 
@@ -169,6 +179,7 @@ const Real = {
   // (solo legible por miembros) — y se envía por ambos. Así dos personas nunca quedan en "salas" distintas
   // aunque a una le falle el privado; los mensajes llevan id y se descartan duplicados.
   async connect(me, channelKey, H) {
+    this._args = [me, channelKey, H];
     const s = client(); const session = await this.session();
     try { await s.realtime.setAuth(session.access_token); } catch (e) {}
     this.chs = []; this.H = H;
@@ -214,6 +225,26 @@ const Real = {
     db.subscribe();
     this.db = db;
   },
+  isLive() { return (this.chs || []).some(c => c._ok); },
+  // rehace los canales desde cero (lo llama el vigilante de conexión)
+  async reconnect() {
+    const s = client();
+    (this.chs || []).forEach(ch => { try { s.removeChannel(ch); } catch (e) {} });
+    if (this.db) { try { s.removeChannel(this.db); } catch (e) {} }
+    this.chs = []; this.db = null;
+    try { const { data } = await s.auth.refreshSession(); if (data && data.session) await s.realtime.setAuth(data.session.access_token); } catch (e) {}
+    if (this._args) await this.connect(...this._args);
+  },
+  // respaldo HTTP cuando el WebSocket está caído
+  async poll(sinceChat) {
+    const s = client();
+    const [pos, chat, notes] = await Promise.all([
+      s.from('office_positions').select('*').gte('updated_at', new Date(Date.now() - 25000).toISOString()),
+      s.from('office_chat').select('*').gt('id', sinceChat || 0).order('id').limit(100),
+      s.from('office_notes').select('*').order('created_at', { ascending: false }).limit(200)
+    ]);
+    return { positions: pos.data || [], chat: chat.data || [], notes: notes.data || [] };
+  },
   send(msg) { msg.id = msg.id || RO.uid() + RO.uid(); (this.chs || []).forEach(ch => { if (ch._ok) ch.send({ type: 'broadcast', event: 'm', payload: msg }).catch(() => {}); }); },
   track(state) { this._track = state; (this.chs || []).forEach(ch => { if (ch._ok) ch.track(state).catch(() => {}); }); },
   async loadMember(uid) { const r = await client().from('office_members').select('*').eq('user_id', uid).maybeSingle(); return r.data || null; },
@@ -229,14 +260,14 @@ const Real = {
   async placeFree(item, x, y) { return chk(await client().from('office_decor').insert({ item, x, y, placed_by: RO.S.me.user_id }).select().single()); },
   async moveDecor(id, x, y) { chk(await client().from('office_decor').update({ x, y }).eq('id', id)); },
   async removeDecor(id) { chk(await client().from('office_decor').delete().eq('id', id)); },
-  async sendNote(to, body, color) { return chk(await client().from('office_notes').insert({ to_user: to, from_user: RO.S.me.user_id, body, color }).select().single()); },
+  async sendNote(to, body, color) { return retry(async () => chk(await client().from('office_notes').insert({ to_user: to, from_user: RO.S.me.user_id, body, color }).select().single())); },
   async readNote(id) { chk(await client().from('office_notes').update({ read_at: new Date().toISOString() }).eq('id', id)); },
   async deleteNote(id) { chk(await client().from('office_notes').delete().eq('id', id)); },
   async savePos(p) { await client().from('office_positions').upsert(Object.assign({ user_id: RO.S.me.user_id, updated_at: new Date().toISOString() }, p)); },
   async loadStrokes(board) { return chk(await client().from('office_strokes').select('id,color,size,pts,author').eq('board', board).order('id').limit(5000)); },
   async addStroke(board, st) { await client().from('office_strokes').insert({ board, color: st.color, size: st.size, pts: st.pts, author: RO.S.me.user_id }); },
   clearBoard: board => Real.rpc('office_clear_board', { p_board: board }),
-  async sendChat(body) { chk(await client().from('office_chat').insert({ author: RO.S.me.user_id, body })); },
+  async sendChat(body) { await retry(async () => chk(await client().from('office_chat').insert({ author: RO.S.me.user_id, body }))); },
   async deleteChat(id) { chk(await client().from('office_chat').delete().eq('id', id)); },
   async logEvent(kind, payload) { await client().from('office_events').insert({ kind, actor: RO.S.me.user_id, payload: payload || {} }); },
   async saveConfig(data) { chk(await client().from('office_config').update({ data, updated_at: new Date().toISOString(), updated_by: RO.S.me.user_id }).eq('id', 1)); },
@@ -340,6 +371,9 @@ const Demo = {
   },
   send(msg) { this.bc && this.bc.postMessage({ k: 'm', msg }); },
   async loadMember(uid) { return this._db().members.find(m => m.user_id === uid) || null; },
+  isLive() { return true; },
+  async reconnect() {},
+  async poll() { return { positions: [], chat: [], notes: [] }; },
   async loadMembers() { return this._db().members; },
   track(st) { this._track = st; this.bc && this.bc.postMessage({ k: 'p', st }); this._sync(); },
   async saveAvatar(target, av) { const m = this._mut(d => { const m = d.members.find(x => x.user_id === target); m.avatar = av; return Object.assign({}, m); }); this._db_ev('office_members', 'UPDATE', m); },

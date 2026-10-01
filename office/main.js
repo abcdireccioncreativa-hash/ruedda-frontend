@@ -119,6 +119,7 @@ function afterEnter() {
   setTimeout(() => UI.pendingNotesNotice(), 900);
   RO.Net.award('checkin').then(r => { if (r && r.ok) setTimeout(() => UI.toast('☀️ Check-in del día: +' + r.amount + ' pts'), 2200); }).catch(() => {});
   RO.Net.send({ t: 'hello', u: S.me.user_id });
+  watchdog();
   RO.Net.logEvent('visit', {}).catch(() => {});   // visible en Ruedda Control → Ruedda Office
   track();
   setInterval(track, 20000);
@@ -144,6 +145,66 @@ function afterEnter() {
   }, 120000);
   addEventListener('beforeunload', () => RO.G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) RO.G.save(); });
+}
+
+/* ════════════ VIGILANTE DE CONEXIÓN ════════════
+   · WebSocket caído > 8 s → rehace canales (con espera creciente) y activa el respaldo HTTP.
+   · Respaldo HTTP: cada 3 s guarda mi posición y lee posiciones, chat y notas de la base.
+   · Al volver: resincroniza todo lo que pudo perderse y apaga el respaldo. */
+const CONN = { live: false, lastOk: Date.now(), tries: 0, nextTry: 0, polling: null, lastChat: 0, busy: false };
+function setLive(label, cls) { const el = $('#tb-live'); if (!el) return; el.className = 'live ' + cls; el.querySelector('span').textContent = label; }
+async function resync() {
+  try {
+    const d = await RO.Net.loadAll();
+    S.members = d.members || S.members; S.decor = d.decor || S.decor; S.events = d.events || S.events;
+    const before = new Set(S.notes.map(n => n.id)); S.notes = d.notes || S.notes;
+    S.notes.forEach(n => { if (!before.has(n.id) && n.to_user === S.me.user_id && !n.read_at) UI.onNoteIn(n); });
+    (d.chat || []).forEach(c => { if (!S.chat.find(x => x.id === c.id)) { S.chat.push(c); UI.chatAdd(c, true); } });
+    const mine = S.members.find(m => m.user_id === S.me.user_id); if (mine) Object.assign(S.me, mine);
+    if (d.config) S.config = RO.mergeConfig(d.config);
+    RO.G.rebuild(); RO.G.syncDecor(); UI.renderTop(); UI.renderPeople(); UI.renderFeed();
+  } catch (e) {}
+}
+function startPolling() {
+  if (CONN.polling) return;
+  CONN.lastChat = S.chat.reduce((m, c) => Math.max(m, +c.id || 0), 0);
+  CONN.polling = setInterval(async () => {
+    RO.G.save();
+    try {
+      const r = await RO.Net.poll(CONN.lastChat);
+      const list = r.positions.filter(p => p.user_id !== S.me.user_id).map(p => ({ uid: p.user_id, x: p.x, y: p.y, dir: p.dir, room: p.room, status: 'disponible', at: Date.parse(p.updated_at) }));
+      if (!RO.Net.isLive()) {
+        NET.onPresence(list.concat([{ uid: S.me.user_id }]));
+        list.forEach(p => RO.G.onPos({ u: p.uid, x: p.x, y: p.y, d: p.dir, m: 0, r: p.room }));
+      }
+      r.chat.forEach(c => { CONN.lastChat = Math.max(CONN.lastChat, +c.id || 0); if (!S.chat.find(x => x.id === c.id)) { S.chat.push(c); UI.chatAdd(c); } });
+      const known = new Set(S.notes.map(n => n.id));
+      r.notes.forEach(n => { if (!known.has(n.id)) { S.notes.unshift(n); if (n.to_user === S.me.user_id && !n.read_at) UI.onNoteIn(n); } });
+      RO.G.drawPostits(); UI.renderTop();
+    } catch (e) {}
+  }, 3000);
+}
+function stopPolling() { if (CONN.polling) { clearInterval(CONN.polling); CONN.polling = null; } }
+function watchdog() {
+  if (RO.DEMO) return;
+  setInterval(async () => {
+    const live = RO.Net.isLive();
+    if (live) {
+      if (CONN.polling || CONN.tries) { CONN.tries = 0; stopPolling(); setLive('en vivo', 'on'); await resync(); RO.Net.send({ t: 'hello', u: S.me.user_id }); track(); }
+      CONN.lastOk = Date.now(); return;
+    }
+    if (!navigator.onLine) { setLive('sin internet', 'off'); startPolling(); return; }
+    if (Date.now() - CONN.lastOk < 8000) return;
+    startPolling(); setLive('respaldo', 'off');
+    if (CONN.busy || Date.now() < CONN.nextTry) return;
+    CONN.busy = true; CONN.tries++;
+    try { await RO.Net.reconnect(); } catch (e) {}
+    CONN.busy = false;
+    CONN.nextTry = Date.now() + Math.min(30000, 2000 * Math.pow(2, CONN.tries));
+  }, 2000);
+  addEventListener('online', () => { CONN.nextTry = 0; CONN.lastOk = 0; });
+  addEventListener('offline', () => setLive('sin internet', 'off'));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && !RO.Net.isLive()) { CONN.nextTry = 0; CONN.lastOk = 0; } });
 }
 
 /* ── presencia ── */
@@ -178,6 +239,7 @@ function ensureMember(uid) {
 }
 const NET = {
   onStatus(s, chans) {
+    CONN.live = s === 'online'; if (CONN.live) CONN.lastOk = Date.now();
     const el = $('#tb-live'); if (el) { el.className = 'live ' + (s === 'online' ? 'on' : 'off'); el.title = s === 'online' ? 'Tiempo real conectado · ' + (chans || []).join(' + ') : 'Reconectando…'; el.querySelector('span').textContent = s === 'online' ? 'en vivo' : 'reconectando'; }
   },
   onPresence(list) {

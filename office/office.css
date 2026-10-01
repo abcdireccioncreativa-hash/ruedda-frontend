@@ -117,6 +117,7 @@ canvas.pixlogo{display:block;image-rendering:pixelated}
 .live i{width:6px;height:6px;border-radius:50%;background:var(--orange)}
 .live.on i{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s steps(1) infinite}
 .live.on{color:var(--ink2)}
+.live.off i{background:var(--orange);animation:blink 1s steps(1) infinite}
 .tb-clocks{flex:1;display:flex;justify-content:center;gap:6px}
 .clk{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;text-transform:none}
 .clk svg{width:18px;height:18px}
