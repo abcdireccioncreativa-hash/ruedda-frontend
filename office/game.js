@@ -453,7 +453,8 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   /* ════════════ BUCLE ════════════ */
   update(time, dt) {
     dt = Math.min(dt, 50);
-    const me = this.me, busy = (RO.uiBusy && RO.uiBusy()) || !!this.woo;
+    const driving = RO.Kart ? RO.Kart.tick(this, time, dt) : false;   // en carrera: el kart manda
+    const me = this.me, busy = (RO.uiBusy && RO.uiBusy()) || !!this.woo || driving;
     let vx = 0, vy = 0;
     {
       if (!busy && this.stick && (this.stick.x || this.stick.y)) { vx = this.stick.x; vy = this.stick.y; }
@@ -543,6 +544,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     });
     if (me.sit) consider({ id: 'stand', kind: 'stand' }, 0);
     (this.cats || []).forEach(k => { const d = Math.hypot(me.x - k.x, me.y - k.y); if (d < 18) consider({ id: 'cat' + k.i, kind: 'cat', idx: k.i, name: k.c.name }, d + 3); });
+    this.decorSpr.forEach(spr => { const d = spr._d, it = A.ITEMS[d.item]; if (!it || !it.play) return; const dm = A.dims(d.item, d.rot || 0), cx = (d.x + dm.fw / 2) * T, cy = (d.y + dm.fh) * T + 6, dd = Math.hypot(me.x - cx, me.y - cy); if (dd < 26) consider({ id: 'con' + d.id, kind: 'console', name: it.name }, dd + 1); });
     (this.couples || []).forEach((c, i) => { const d = Math.hypot(me.x - c.x, me.y - (c.y + 14)); if (d < 30) consider({ id: 'k3' + i, kind: 'kiss3', idx: i }, d + 4); });
     if (this.woo) best = null;
     this.players.forEach(p => { if (p.isMe) return; const d = Math.hypot(me.x - p.x, me.y - p.y); if (d < 26) consider({ id: 'p:' + p.uid, kind: 'player', uid: p.uid }, d - 4); });
@@ -777,47 +779,48 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   }
 
   /* ════════════ CABINA PRIVADA (Valentina) ════════════ */
+  // cabina privada portátil: aparece donde estés, Valentina llega, cortina, se mueve con corazones (~30 s)
   wooStart(dur) {
-    const cab = this.cabina; if (!cab || this.woo) return false;
+    if (this.woo) return false;
     const me = this.me, n = this.npc, cam = this.cameras.main;
-    this.woo = { until: this.time.now + dur };
     if (me.sit) this.stand();
-    cam.fadeOut(350, 0, 0, 0);
-    this.time.delayedCall(380, () => {
-      me.x = cab.x + 24; me.y = 63.9 * T; me.dir = 'up'; me.spr.setPosition(me.x, me.y);
-      if (n) { n.x = cab.x + 14; n.y = 63.9 * T; n.path = null; n.wait = this.time.now + dur + 4000; n.spr.setPosition(n.x, n.y); }
-      this.announceRoom(); this.sendPos(0);
-      cam.fadeIn(350, 0, 0, 0);
-      this.time.delayedCall(700, () => {
-        me.spr.setVisible(false); me.tag.style.visibility = 'hidden';
-        if (n) { n.spr.setVisible(false); n.tag.style.visibility = 'hidden'; }
-        this.cabinShake(true);
-        RO.Net.send({ t: 'woo', u: RO.S.me.user_id, on: 1 });
-      });
+    this.woo = { until: this.time.now + dur, x: Math.round(me.x), y: Math.round(me.y) };
+    cam.flash(250, 255, 61, 139);
+    if (n) { n.x = me.x - 14; n.y = me.y; n.path = null; n.wait = this.time.now + dur + 4000; n.dir = 'right'; n.spr.setPosition(n.x, n.y); }
+    me.dir = 'left';
+    this.time.delayedCall(600, () => {
+      if (!this.woo) return;
+      me.spr.setVisible(false); me.tag.style.visibility = 'hidden';
+      if (n) { n.spr.setVisible(false); n.tag.style.visibility = 'hidden'; }
+      this.booth(true, this.woo.x, this.woo.y);
+      RO.Net.send({ t: 'woo', u: RO.S.me.user_id, on: 1, x: this.woo.x, y: this.woo.y });
     });
-    this.woo.timer = this.time.delayedCall(dur + 1100, () => this.wooEnd());
+    this.woo.timer = this.time.delayedCall(dur + 600, () => this.wooEnd());
     return true;
   }
-  cabinShake(on) {
-    const cab = this.cabina; if (!cab) return;
+  // la cabina (fija del club o portátil) cerrada, sacudiéndose y con corazones
+  booth(on, x, y) {
     if (this._shake) { this._shake.stop(); this._shake = null; }
     if (this._hearts) { this._hearts.remove(); this._hearts = null; }
-    cab.x = cab._x0;
-    if (!on) { cab.setTexture(cab._open); return; }
-    cab.setTexture(cab._closed);
-    this._shake = this.tweens.add({ targets: cab, x: cab._x0 + 1, duration: 110, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
-    this._hearts = this.time.addEvent({ delay: 380, loop: true, callback: () => this.hearts(cab.x + 24, cab.y - 52, 2, 26) });
+    if (this._booth) { this._booth.destroy(); this._booth = null; }
+    if (!on) return;
+    const b = this._booth = this.add.image(x - 24, y + 10, this.itemTex('cabina', {})).setOrigin(0, 1).setDepth(y + 12);
+    b.setScale(0.2, 0.2); this.tweens.add({ targets: b, scaleX: 1, scaleY: 1, duration: 260, ease: 'Back.easeOut' });
+    RO.sfx.door();
+    this._shake = this.tweens.add({ targets: b, x: b.x + 1, duration: 110, yoyo: true, repeat: -1, ease: 'Sine.easeInOut', delay: 300 });
+    this._hearts = this.time.addEvent({ delay: 380, loop: true, callback: () => this.hearts(x, y - 44, 2, 26) });
   }
+  cabinShake(on, x, y) { this.booth(on, x, y); }
   wooEnd() {
     if (!this.woo) return;
     if (this.woo.timer) this.woo.timer.remove();
-    this.woo = null;
-    const me = this.me, n = this.npc, cab = this.cabina;
-    this.cabinShake(false);
+    const { x, y } = this.woo; this.woo = null;
+    const me = this.me, n = this.npc;
+    this.booth(false);
     RO.Net.send({ t: 'woo', u: RO.S.me.user_id, on: 0 });
-    me.spr.setVisible(true); me.tag.style.visibility = ''; me.x = cab.x + 30; me.y = 63.9 * T; me.dir = 'down'; me.spr.setPosition(me.x, me.y);
-    if (n) { n.spr.setVisible(true); n.tag.style.visibility = ''; n.x = cab.x + 16; n.dir = 'down'; n.spr.setPosition(n.x, n.y); n.wait = this.time.now + 5000; }
-    this.hearts(cab.x + 24, cab.y - 40, 10, 30);
+    me.spr.setVisible(true); me.tag.style.visibility = ''; me.x = x + 8; me.y = y; me.dir = 'down'; me.spr.setPosition(me.x, me.y);
+    if (n) { n.spr.setVisible(true); n.tag.style.visibility = ''; n.x = x - 10; n.y = y; n.dir = 'down'; n.spr.setPosition(n.x, n.y); n.wait = this.time.now + 5000; }
+    this.hearts(x, y - 30, 10, 30);
     this.sendPos(0);
     RO.emit('woo:end');
   }
@@ -1038,11 +1041,12 @@ G.setTalking = (uid, on) => { const s = S(); const p = s && s.players.get(uid); 
 G.rotateGhost = () => { const s = S(); if (!s || !s.edit || s.edit.mode !== 'place') return false; s.edit.rot = ((s.edit.rot || 0) + 1) % 4; if (s.ghost) { s.ghost.destroy(); s.ghost = null; } const t = s._lastTile; if (t) s.onPointer({ worldX: (t[0] + .5) * T, worldY: (t[1] + .5) * T, leftButtonDown: () => false, rightButtonDown: () => false }, false); return true; };
 G.kiss3 = (i, side) => S() && S().kiss3(i, side);
 G.k3fx = i => S() && S().k3fx(i);
+G.key = k => keys.has(k);
 G.setStick = (x, y, run) => { const s = S(); if (s) s.stick = { x, y, run }; };
 G.wooStart = ms => S() ? S().wooStart(ms) : false;
 G.wooEnd = () => S() && S().wooEnd();
 G.wooActive = () => !!(S() && S().woo);
-G.wooRemote = (uid, on) => { const s = S(); if (!s) return; s.cabinShake(!!on); const p = s.players.get(uid); if (p) { p.spr.setVisible(!on); p.tag.style.visibility = on ? 'hidden' : ''; } if (s.npc) { s.npc.spr.setVisible(!on); s.npc.tag.style.visibility = on ? 'hidden' : ''; } };
+G.wooRemote = (uid, on, x, y) => { const s = S(); if (!s) return; const p = s.players.get(uid); s.booth(!!on, x != null ? x : p ? p.x : 0, y != null ? y : p ? p.y : 0); if (p) { p.spr.setVisible(!on); p.tag.style.visibility = on ? 'hidden' : ''; } if (s.npc) { s.npc.spr.setVisible(!on); s.npc.tag.style.visibility = on ? 'hidden' : ''; } };
 G.inOtherOffice = (x, y) => S() ? S().inOtherOffice(x, y) : true;
 G.zoom = d => S() && S().zoomStep(d);
 G.zoomLevel = () => S() ? S().cameras.main.zoom : 3;

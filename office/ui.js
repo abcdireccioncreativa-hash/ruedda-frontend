@@ -270,7 +270,7 @@ UI.askNotify = () => { try { if ('Notification' in window && Notification.permis
 const HINTS = {
   desk: h => { const o = officeAt(h.pos), m = o && RO.memberBySlot(o.slot); if (!m) return 'Oficina libre'; return m.user_id === RO.S.me.user_id ? 'Mi escritorio' : 'Dejar un post-it a ' + esc(m.display_name); },
   seat: h => esc(h.label || 'Sentarte'), stand: () => 'Levantarte (o camina)',
-  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', kiss3: () => 'Beso de 3 💋', lottery: () => 'Jugar a la lotería 🎰', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
+  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', pits: () => (RO.Kart.state === 'lobby' ? 'En la parrilla de largada' : 'Pits: correr en el kartódromo 🏁'), console: h => 'Jugar ' + esc(h.name) + ' 🎮', kiss3: () => 'Beso de 3 💋', lottery: () => 'Jugar a la lotería 🎰', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
   board: () => 'Abrir la pizarra general', gong: () => 'Tocar la campana de ventas', clocks: () => 'Ver los relojes',
   tv: () => 'Ver Ruedda en vivo', secret: () => 'Examinar la estantería', coffee: () => 'Servirte un café', snacks: () => 'Comprar un snack',
   arcade: () => 'Jugar arcade', pingpong: () => 'Jugar ping-pong', grill: () => 'Prender la parrilla', aquarium: () => 'Mirar la pecera',
@@ -322,6 +322,8 @@ RO.on('interact', h => {
       else { RO.G.drop(); RO.sfx.drop(); RO.Net.send({ t: 'drop', u: S.me.user_id }); }
       RO.G.bubbleMe('🔊'); return;
     case 'cat': RO.G.petCat(h.idx); RO.G.bubbleMe('🐈'); return;
+    case 'pits': if (RO.Kart.state === 'idle') RO.Kart.join(); return;
+    case 'console': return UI.consoleGames(h.name);
     case 'lottery': return UI.lottery();
     case 'jukebox':
       if (RO.muted) return UI.toast('Activa el sonido (🔊 arriba) para escuchar la rocola');
@@ -338,6 +340,7 @@ RO.on('interact', h => {
 /* ════════════ TECLADO ════════════ */
 const EMOTES = { '1': '👍', '2': '😂', '3': '🔥', '4': '☕', '5': '🚗', '6': '💸', '7': '🙌', '8': '👀' };
 RO.on('key', (k, e) => {
+  if (k === 'escape' && RO.Kart && ['race', 'countdown', 'lobby'].includes(RO.Kart.state)) { UI.confirm('Salir de la carrera', 'Si sales ahora quedas fuera de esta carrera.', 'Salir').then(ok => { if (ok) RO.Kart.leave(); }); return; }
   if (k === 'escape') { if (WB.open) return WB.hide(); if (RO.G.scene && RO.G.scene.edit) return RO.emit('edit:cancel'); return UI.close(); }
   if (k === 'r' && RO.G.scene && RO.G.scene.edit && RO.G.scene.edit.mode === 'place' && !RO.uiBusy()) { RO.G.rotateGhost(); return; }
   if (RO.uiBusy()) return;
@@ -425,6 +428,60 @@ UI.lottery = () => {
   };
 };
 
+/* ════════════ CONSOLAS: Snake y Pong ════════════ */
+UI.consoleGames = name => {
+  const mo = UI.modal({ title: '🎮 ' + esc(name || 'Consola'), sub: 'Flechas / WASD para jugar · en celular toca los botones', wide: true,
+    body: `<div class="tabs" style="margin:-18px -20px 14px;padding:0 20px"><button data-g="snake" class="on">Snake</button><button data-g="pong">Pong vs CPU</button></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px"><canvas id="cg" width="320" height="200" style="width:min(640px,100%);aspect-ratio:320/200;image-rendering:pixelated;background:#0b0c0e;border:2px solid var(--line2);border-radius:10px"></canvas>
+      <div class="mono" id="cg-s" style="text-transform:none">puntos: 0</div>
+      <div class="cg-pad"><button data-d="up">▲</button><div><button data-d="left">◀</button><button data-d="down">▼</button><button data-d="right">▶</button></div></div></div>` });
+  const cv = mo.querySelector('#cg'), g = cv.getContext('2d'), sc = mo.querySelector('#cg-s');
+  let game = null, raf = 0;
+  const stop = () => { cancelAnimationFrame(raf); if (game) clearInterval(game.iv); };
+  const keyMap = { arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down', arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right' };
+  const kd = e => { if (!cv.isConnected) { removeEventListener('keydown', kd); removeEventListener('keyup', ku); stop(); return; } const d = keyMap[e.key.toLowerCase()]; if (d) { e.preventDefault(); game && game.input(d, true); } };
+  const ku = e => { const d = keyMap[e.key.toLowerCase()]; if (d && game) game.input(d, false); };
+  addEventListener('keydown', kd); addEventListener('keyup', ku);
+  mo.querySelectorAll('.cg-pad button').forEach(b => { b.onpointerdown = () => game && game.input(b.dataset.d, true); b.onpointerup = () => game && game.input(b.dataset.d, false); });
+  const over = pts => { sc.innerHTML = `<b style="color:var(--y)">fin del juego · ${pts} puntos</b> — presiona una flecha para jugar otra vez`; if (pts >= 5) RO.Net.award('console').catch(() => {}); RO.sfx.err(); };
+  const snake = () => {
+    stop(); const C = 10, Wc = 32, Hc = 20; let s = [[8, 10], [7, 10], [6, 10]], d = 'right', food = [20, 10], pts = 0, alive = true;
+    const place = () => { do { food = [Math.floor(Math.random() * Wc), Math.floor(Math.random() * Hc)]; } while (s.some(p => p[0] === food[0] && p[1] === food[1])); };
+    game = { input(nd, down) { if (!down) return; if (!alive) return snake(); const op = { up: 'down', down: 'up', left: 'right', right: 'left' }; if (op[nd] !== d) d = nd; } };
+    const draw = () => { g.fillStyle = '#0b0c0e'; g.fillRect(0, 0, 320, 200); g.fillStyle = '#ff3d8b'; g.fillRect(food[0] * C + 1, food[1] * C + 1, C - 2, C - 2); s.forEach((p, i) => { g.fillStyle = i ? '#c9d12c' : '#e6f03b'; g.fillRect(p[0] * C + 1, p[1] * C + 1, C - 2, C - 2); }); };
+    game.iv = setInterval(() => {
+      if (!cv.isConnected) return stop(); if (!alive) return;
+      const h = s[0].slice(); if (d === 'up') h[1]--; if (d === 'down') h[1]++; if (d === 'left') h[0]--; if (d === 'right') h[0]++;
+      if (h[0] < 0 || h[1] < 0 || h[0] >= Wc || h[1] >= Hc || s.some(p => p[0] === h[0] && p[1] === h[1])) { alive = false; draw(); return over(pts); }
+      s.unshift(h); if (h[0] === food[0] && h[1] === food[1]) { pts++; sc.textContent = 'puntos: ' + pts; RO.sfx.blip(); place(); } else s.pop();
+      draw();
+    }, 110);
+    sc.textContent = 'puntos: 0'; draw();
+  };
+  const pong = () => {
+    stop(); let py = 80, cy = 80, bx = 160, by = 100, vx = 3, vy = 2, up = false, dn = false, pts = 0, cpu = 0, alive = true;
+    game = { input(nd, down) { if (!alive && down) return pong(); if (nd === 'up') up = down; if (nd === 'down') dn = down; } };
+    const loop = () => {
+      if (!cv.isConnected) return stop();
+      if (up) py -= 4; if (dn) py += 4; py = Math.max(0, Math.min(160, py));
+      cy += Math.max(-2.6, Math.min(2.6, by - 20 - cy)); cy = Math.max(0, Math.min(160, cy));
+      bx += vx; by += vy; if (by < 4 || by > 196) vy *= -1;
+      if (bx < 14 && bx > 4 && by > py && by < py + 40) { vx = Math.abs(vx) * 1.06; vy += (by - py - 20) * 0.06; RO.sfx.blip(); }
+      if (bx > 306 && bx < 316 && by > cy && by < cy + 40) { vx = -Math.abs(vx) * 1.04; RO.sfx.blip(); }
+      if (bx < 0) { cpu++; bx = 160; by = 100; vx = 3; vy = 2; }
+      if (bx > 320) { pts++; bx = 160; by = 100; vx = -3; vy = -2; RO.sfx.coin(); }
+      g.fillStyle = '#0b0c0e'; g.fillRect(0, 0, 320, 200); g.fillStyle = '#2a2d33'; for (let y = 0; y < 200; y += 12) g.fillRect(159, y, 2, 6);
+      g.fillStyle = '#e6f03b'; g.fillRect(6, py, 6, 40); g.fillStyle = '#ff3d8b'; g.fillRect(308, cy, 6, 40); g.fillStyle = '#fff'; g.fillRect(bx - 3, by - 3, 6, 6);
+      sc.textContent = `tú ${pts} · CPU ${cpu}`;
+      if (cpu >= 5 || pts >= 5) { alive = false; return over(pts * 3); }
+      raf = requestAnimationFrame(loop);
+    };
+    loop();
+  };
+  mo.querySelectorAll('[data-g]').forEach(b => b.onclick = () => { mo.querySelectorAll('[data-g]').forEach(x => x.classList.toggle('on', x === b)); b.dataset.g === 'snake' ? snake() : pong(); });
+  snake();
+};
+
 /* ════════════ POMODORO ════════════ */
 UI.pomodoro = mins => {
   clearInterval(UI._pomo); const end = Date.now() + mins * 60000;
@@ -483,7 +540,7 @@ UI.cabina = () => {
   const DUR = 30000;
   if (!RO.G.wooStart(DUR)) return;
   if (!RO.muted) RO.music.start();
-  RO.G.npcLine('Sígueme, cariño. Treinta segundos y vuelves a vender.');
+  RO.G.npcLine('¿Aquí mismo? Ay, qué atrevido. Treinta segundos y vuelves a vender.');
   const bar = document.createElement('div'); bar.id = 'woo-bar'; bar.className = 'glass';
   bar.style.cssText = 'position:absolute;left:50%;bottom:28px;transform:translateX(-50%);z-index:8;display:flex;gap:12px;align-items:center;padding:10px 12px 10px 16px;font-size:13px';
   bar.innerHTML = '<span>🔒 En la cabina privada · <b id="woo-t" style="color:#ff7ab8">0:30</b></span><button class="btn sm" id="woo-x">Salir (Esc)</button>';
@@ -1042,7 +1099,7 @@ UI.help = () => UI.modal({
 
 /* ════════════ MINIMAPA ════════════ */
 UI.minimap = () => {
-  const cv = $('#minimap'), g = cv.getContext('2d'), Wd = RO.World, s = 3;
+  const cv = $('#minimap'), g = cv.getContext('2d'), Wd = RO.World, s = 2;
   let base = null, baseKey = '';
   const COL = { pasillo: '#2b2e35', juntas: '#323a4a', lobby: '#1e1f24', creativa: '#7a6448', ocio: '#8f949b', terraza: '#6f5d46', garage: '#1a1022' };
   const paint = () => {
@@ -1058,8 +1115,8 @@ UI.minimap = () => {
         else b.fillStyle = '#16171a';
         b.fillRect(x * s, y * s, s, s);
       }
-      if (!sc.vipSeen) { b.fillStyle = '#5b5e66'; b.font = '9px JetBrains Mono, monospace'; b.fillText('???', 74, 165); }
-      else if (!sc.clubSeen) { b.fillStyle = '#5b5e66'; b.font = '9px JetBrains Mono, monospace'; b.fillText('???', 74, 190); }
+      if (!sc.vipSeen) { b.fillStyle = '#5b5e66'; b.font = '9px JetBrains Mono, monospace'; b.fillText('???', 48, 110); }
+      else if (!sc.clubSeen) { b.fillStyle = '#5b5e66'; b.font = '9px JetBrains Mono, monospace'; b.fillText('???', 48, 125); }
     }
     g.drawImage(base, 0, 0);
     sc.players.forEach(p => {
@@ -1153,6 +1210,7 @@ UI.initHud = () => {
     else if (a === 'voice') { Promise.resolve(RO.Voice.toggle()).then(on => { $('#tb-voice').classList.toggle('on', !!on); if (on) UI.toast('🎙️ Voz activada: te escuchan los que estén cerca de ti (y tú a ellos)'); }); }
     else if (a === 'garage') RO.G.goVip('garage');
     else if (a === 'club') RO.G.goVip('club');
+    else if (a === 'kart') RO.G.teleport(11.5 * 16, 74.2 * 16, 'down');
     else if (a === 'logout') RO.emit('logout');
     else if (a === 'emergency') UI.emergency();
     else if (a === 'boost') UI.boost();

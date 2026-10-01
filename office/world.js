@@ -2,20 +2,43 @@
 /* ════════════════════════════════════════════════════════════════
    RUEDDA OFFICE — el mundo: plano, salas, muebles fijos, puntos de
    interacción y el render del piso/muros en un único canvas.
-   Coordenadas en tiles de 16 px. Mapa 57 × 70 (el club privado está al fondo, bajo el garage).
+   Coordenadas en tiles de 16 px. Mapa 57 × 92 (club bajo el garage; kartódromo al fondo).
    ════════════════════════════════════════════════════════════════ */
 (function(){
 const RO = window.RO, A = RO.Art, T = A.T;
-const W = 57, H = 70;
+const W = 57, H = 92;
 const CLUB = { x0: 8, y0: 56, x1: 48, y1: 68, door: [27, 29] };
 const OFF_X = [1, 15, 29, 43];          // x inicial de cada oficina privada (13 de ancho)
 const GARAGE_WALL = [39, 41];           // filas del muro alto del garage
 const SECRET = { x: 18, w: 2, shelfX: 18, shelfY: 38, slideTo: 20 };
 
-const Wd = RO.World = { W, H, T, OFF_X, SECRET, CLUB };
+// kartódromo: línea central cerrada (en tiles) y medio ancho de la pista
+const KART = {
+  room: { x0: 1, y0: 72, x1: 55, y1: 90 },
+  pts: [[8, 77], [30, 77], [35, 80.5], [40, 77], [50, 77], [52.5, 80], [52.5, 85], [50, 88], [34, 88], [28, 84.5], [22, 88], [8, 88], [4.5, 85], [4.5, 80]],
+  hw: 1.7, start: [14, 77], laps: 5
+};
+(function prep() {
+  const P = KART.pts.map(([x, y]) => [x * T, y * T]); let L = 0; const cum = [0];
+  for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; L += Math.hypot(b[0] - a[0], b[1] - a[1]); cum.push(L); }
+  KART.P = P; KART.cum = cum; KART.L = L; KART.HW = KART.hw * T;
+  // punto más cercano sobre la línea central: distancia y "s" (distancia recorrida desde el primer punto)
+  KART.near = (x, y) => {
+    let best = { d: 1e9 };
+    for (let i = 0; i < P.length; i++) {
+      const a = P[i], b = P[(i + 1) % P.length], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy;
+      const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / l2)), px = a[0] + dx * t, py = a[1] + dy * t, d = Math.hypot(x - px, y - py);
+      if (d < best.d) best = { d, px, py, s: cum[i] + Math.sqrt(l2) * t, ang: Math.atan2(dy, dx) };
+    }
+    return best;
+  };
+  KART.s0 = KART.near(KART.start[0] * T, KART.start[1] * T).s;
+})();
+const Wd = RO.World = { W, H, T, OFF_X, SECRET, CLUB, KART };
 
 const ROOM_STYLE = {
   pasillo:  { floor: 'carpet', a: '#25272d', b: '#2b2e35', wall: '#1d1f24' },
+  pista:    { floor: 'grass',  a: '#3f8f3f', b: '#378537', wall: '#1d1f24' },
   juntas:   { floor: 'carpet', a: '#2e3442', b: '#29303d', wall: '#1f232b' },
   lobby:    { floor: 'stone',  a: '#121316', b: '#191a1e', wall: '#16171a' },
   creativa: { floor: 'wood',   a: '#c8a57a', b: '#b8956a', wall: '#2f3a3a' },
@@ -41,6 +64,7 @@ Wd.build = (cfg) => {
   carve(38, 31, 55, 38, 'terraza'); carve(37, 33, 37, 35, 'terraza'); carve(47, 30, 48, 30, 'terraza');
   carve(1, 42, 55, 53, 'garage');
   carve(CLUB.x0, CLUB.y0, CLUB.x1, CLUB.y1, 'club'); carve(CLUB.door[0], 54, CLUB.door[1], 55, 'club');
+  carve(KART.room.x0, KART.room.y0, KART.room.x1, KART.room.y1, 'pista'); carve(10, 69, 12, 71, 'pista');
 
   /* ── muebles fijos ── */
   const S = [];   // {key, x, y, opts, depthBias}
@@ -92,6 +116,10 @@ Wd.build = (cfg) => {
   [['k_barra_bebidas', 26, 36], ['k_estufa', 28, 33], ['k_fregadero', 29, 33], ['k_vitrina', 34, 36], ['k_arbol_alto_otono', 36, 37], ['k_maceta', 11, 31], ['k_hongos', 17, 38], ['loteria', 9, 31]].forEach(([k, x, y]) => add(k, x, y));
   [['k_arbol_alto', 55, 33], ['k_arbusto', 39, 35], ['k_arbusto', 47, 33], ['k_barril', 54, 31], ['k_letrero', 45, 37], ['k_colmena', 38, 36], ['k_arbol', 44, 35]].forEach(([k, x, y]) => add(k, x, y));
   [['k_arbol_alto', 2, 44], ['k_arbol_alto', 54, 44], ['k_jarron_plata', 47, 44], ['k_escudo', 46, 46], ['loteria', 18, 47]].forEach(([k, x, y]) => add(k, x, y));
+  // kartódromo: decoración alrededor (no estorba a los karts, que tienen su propia física)
+  [[2, 73], [3, 73], [53, 73], [54, 73], [1, 89], [55, 89], [26, 79], [27, 79], [37, 84], [55, 82]].forEach(([x, y]) => add('llantas', x, y));
+  add('semaforo', 15, 73); add('bandera', 13, 73); add('letrero_racing', 30, 72); add('surtidor', 20, 73); add('herramientas', 21, 73); add('kart', 23, 73); add('kart', 25, 73);
+  add('banca', 34, 73); add('banca', 36, 73); add('banca', 38, 73); add('banca', 40, 73); add('trofeo_copa', 45, 73); add('cono', 47, 73); add('cono', 48, 73);
   [['k_tapete_verde', 21, 66], ['k_maceta', 8, 60], ['k_arbol_alto', 48, 64], ['loteria', 47, 58]].forEach(([k, x, y]) => add(k, x, y));
   // sala creativa
   add('pizarra', 44, 14);
@@ -174,6 +202,7 @@ Wd.build = (cfg) => {
   inter.push({ id: 'dj', kind: 'dj', x: 43 * T, y: 58.8 * T, r: 34 });
   inter.push({ id: 'clubbar', kind: 'bar', x: 12 * T, y: 58.8 * T, r: 40 });
   inter.push({ id: 'jukebox', kind: 'jukebox', x: 24.5 * T, y: 32.8 * T, r: 18 });
+  inter.push({ id: 'pits', kind: 'pits', x: 11.5 * T, y: 73.5 * T, r: 34 });
   S.filter(s => s.key === 'loteria').forEach((s, i) => inter.push({ id: 'lot' + i, kind: 'lottery', x: (s.x + .5) * T, y: (s.y + 1.7) * T, r: 16 }));
 
   // asientos para "reunión de emergencia"
@@ -285,6 +314,21 @@ Wd.renderBase = (w, cfg, logoBits, secretOpen) => {
   const sg = A.pixelText('CLUB', '#e85b9c', 2);
   g.drawImage(sg, Math.round((CLUB.door[0] + 1.5) * T - sg.width / 2), 52 * T + 4);
   k.r((CLUB.door[0]) * T, 53 * T + 10, 3 * T, 1, 'rgba(232,91,156,.7)');
+  // kartódromo: asfalto, pianos, línea de meta
+  {
+    const K = KART, P = K.P;
+    const path = () => { g.beginPath(); P.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); };
+    g.save(); g.lineJoin = 'round'; g.lineCap = 'round';
+    g.strokeStyle = '#d7262e'; g.lineWidth = K.HW * 2 + 8; path(); g.stroke();
+    g.setLineDash([10, 10]); g.strokeStyle = '#f4f4f2'; path(); g.stroke(); g.setLineDash([]);
+    g.strokeStyle = '#2b2d31'; g.lineWidth = K.HW * 2; path(); g.stroke();
+    g.strokeStyle = 'rgba(255,255,255,.035)'; g.lineWidth = K.HW * 2 - 10; path(); g.stroke();
+    g.setLineDash([12, 14]); g.strokeStyle = 'rgba(230,240,59,.55)'; g.lineWidth = 2; path(); g.stroke(); g.setLineDash([]);
+    g.restore();
+    const sx = K.start[0] * T, sy = K.start[1] * T;
+    for (let yy = -K.HW; yy < K.HW; yy += 4) for (let xx = 0; xx < 8; xx += 4) { g.fillStyle = (Math.round((xx + yy) / 4) % 2) ? '#16171b' : '#f4f4f2'; g.fillRect(sx + xx, sy + yy, 4, 4); }
+    for (let i = 0; i < 8; i++) { const gx = sx - 22 - (i >> 1) * 22, gy = sy + (i % 2 ? 10 : -14); g.strokeStyle = 'rgba(255,255,255,.5)'; g.strokeRect(gx, gy, 14, 6); }
+  }
   // garage: líneas de estacionamiento amarillas y reflejos
   for (let x = 2; x < 55; x += 4) { k.r(x * T, 53 * T + 2, 1, 12, 'rgba(230,240,59,.35)'); }
   k.r(1 * T, 47 * T, 55 * T, 1, 'rgba(124,58,237,.18)');

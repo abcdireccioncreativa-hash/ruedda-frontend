@@ -110,6 +110,15 @@ create table if not exists public.office_board_notes (
   updated_at timestamptz not null default now()
 );
 
+-- Vueltas del kartódromo (récord global)
+create table if not exists public.office_laps (
+  id         bigserial primary key,
+  actor      uuid references auth.users(id) on delete cascade,
+  ms         integer not null check (ms between 6000 and 600000),
+  created_at timestamptz not null default now()
+);
+create index if not exists office_laps_ms_idx on public.office_laps(ms);
+
 -- Chat global de la oficina (con historial)
 create table if not exists public.office_chat (
   id         bigserial primary key,
@@ -178,6 +187,7 @@ insert into public.office_catalog (item, name, price, category, sort) values
   ('simulador','Simulador de carreras',1200,'carreras',209), ('herramientas','Caja de herramientas',180,'carreras',210), ('gato','Gato hidráulico',140,'carreras',211),
   ('barril_aceite','Barril de aceite',90,'carreras',212), ('trofeo_copa','Copa de campeón',480,'carreras',213), ('letrero_racing','Letrero Ruedda Motorsport',520,'carreras',214),
   ('auto_mini','Auto de colección',2500,'carreras',215),
+  ('consola','Consola + TV',450,'videojuegos',220), ('consola_retro','Consola retro',350,'videojuegos',221), ('arcade_carreras','Arcade de carreras',600,'videojuegos',222),
   ('piso_meta','Línea de meta (piso)',160,'pisos',300), ('piso_cuadros','Piso a cuadros',220,'pisos',301), ('piso_ruedda','Tapete Ruedda',260,'pisos',302),
   ('piso_persa','Alfombra persa',300,'pisos',303), ('piso_redondo','Tapete redondo',180,'pisos',304), ('piso_pista','Tramo de pista',240,'pisos',305),
   ('piso_flechas','Flechas de pista',120,'pisos',306), ('piso_madera','Parqué',200,'pisos',307)
@@ -319,7 +329,8 @@ declare
 begin
   if not public.office_is_member() then raise exception 'no autorizado'; end if;
   select a, c into amt, cap from (values
-    ('checkin',10,1), ('highfive',2,10), ('deal',5,10), ('note',1,10), ('whiteboard',1,5), ('coffee',1,3), ('arcade',1,3)
+    ('checkin',10,1), ('highfive',2,10), ('deal',5,10), ('note',1,10), ('whiteboard',1,5), ('coffee',1,3), ('arcade',1,3),
+    ('race',15,10), ('race_win',60,5), ('console',2,10)
   ) t(k,a,c) where k = kind;
   if amt is null then raise exception 'premio desconocido'; end if;
   select count(*) into used from public.office_events
@@ -404,6 +415,30 @@ begin
   insert into public.office_events(kind, actor, payload) values ('tip', uid, jsonb_build_object('amount', amt));
   return jsonb_build_object('ok', true, 'coins', bal, 'amount', amt);
 end $$;
+
+-- Guardar una vuelta del kartódromo y devolver el top 5 (con nombres)
+create or replace function public.office_record_lap(p_ms int) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); prev int; top jsonb;
+begin
+  if not public.office_is_member() then raise exception 'no autorizado'; end if;
+  if p_ms < 6000 or p_ms > 600000 then raise exception 'vuelta inválida'; end if;
+  select min(ms) into prev from public.office_laps;
+  insert into public.office_laps(actor, ms) values (uid, p_ms);
+  select coalesce(jsonb_agg(x order by (x->>'ms')::int), '[]'::jsonb) into top from (
+    select jsonb_build_object('ms', min(l.ms), 'actor', l.actor, 'name', coalesce(m.display_name, 'Piloto')) x
+      from public.office_laps l left join public.office_members m on m.user_id = l.actor
+     group by l.actor, m.display_name order by min(l.ms) limit 5) t;
+  return jsonb_build_object('ok', true, 'record', prev is null or p_ms < prev, 'top', top);
+end $$;
+create or replace function public.office_top_laps() returns jsonb
+language sql stable security definer set search_path = public as $$
+  select coalesce(jsonb_agg(x order by (x->>'ms')::int), '[]'::jsonb) from (
+    select jsonb_build_object('ms', min(l.ms), 'actor', l.actor, 'name', coalesce(m.display_name, 'Piloto')) x
+      from public.office_laps l left join public.office_members m on m.user_id = l.actor
+     where public.office_is_member()
+     group by l.actor, m.display_name order by min(l.ms) limit 5) t;
+$$;
 
 -- Borrar la pizarra
 create or replace function public.office_clear_board(p_board text) returns void
@@ -585,10 +620,11 @@ alter table public.office_strokes   enable row level security;
 alter table public.office_events    enable row level security;
 alter table public.office_chat      enable row level security;
 alter table public.office_board_notes enable row level security;
+alter table public.office_laps enable row level security;
 alter table public.office_accounts  enable row level security;   -- sin políticas: solo service role y RPCs
 
 do $$ declare t text; begin
-  foreach t in array array['office_members','office_config','office_catalog','office_decor','office_notes','office_positions','office_strokes','office_events','office_chat','office_accounts','office_board_notes'] loop
+  foreach t in array array['office_members','office_config','office_catalog','office_decor','office_notes','office_positions','office_strokes','office_events','office_chat','office_accounts','office_board_notes','office_laps'] loop
     execute format('revoke all on public.%I from anon', t);
     if t = 'office_accounts' then execute 'revoke all on public.office_accounts from authenticated'; end if;
   end loop;
@@ -653,6 +689,9 @@ create policy office_events_sel on public.office_events for select to authentica
 create policy office_events_ins on public.office_events for insert to authenticated
   with check (actor = auth.uid() and public.office_is_member() and kind not like 'award:%' and kind <> 'boost');
 
+drop policy if exists office_laps_sel on public.office_laps;
+create policy office_laps_sel on public.office_laps for select to authenticated using (public.office_is_member());
+
 drop policy if exists office_bnotes_sel on public.office_board_notes;
 drop policy if exists office_bnotes_all on public.office_board_notes;
 create policy office_bnotes_sel on public.office_board_notes for select to authenticated using (public.office_is_member());
@@ -671,7 +710,7 @@ do $$ declare f text; begin
                            'office_buy(text,integer,integer)','office_clear_board(text)','office_grant(uuid,integer)',
                            'office_find_users(text)','office_upsert_member(uuid,text,text,text,boolean)',
                            'office_in_my_office(integer,integer)','office_in_other_office(integer,integer)','office_update_my_office(text,text,boolean)','office_place_own(text,integer,integer)',
-                           'office_accounts_list()','office_lottery()','office_tip(integer)','office_set_my_desk(integer,integer)','office_unpack_base()','office_account_upsert(text,text,text,text,boolean,boolean)','office_account_delete(text)'] loop
+                           'office_accounts_list()','office_lottery()','office_tip(integer)','office_record_lap(integer)','office_top_laps()','office_set_my_desk(integer,integer)','office_unpack_base()','office_account_upsert(text,text,text,text,boolean,boolean)','office_account_delete(text)'] loop
     execute 'revoke all on function public.' || f || ' from public, anon';
     execute 'grant execute on function public.' || f || ' to authenticated';
   end loop;

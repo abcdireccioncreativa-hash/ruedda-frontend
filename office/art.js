@@ -369,6 +369,8 @@ A.floorTile = (kind, a, b, variant = 0) => {
     k.r(0, 0, T, T, a);
     let x = Math.floor(r() * 16), y = 0; while (y < 16) { k.p(x, y, b); x += r() < .5 ? -1 : 1; x = (x + 16) % 16; y++; }
     k.r(0, 15, T, 1, shade(a, -.06)).r(15, 0, 1, T, shade(a, -.06));
+  } else if (kind === 'grass') {
+    k.r(0, 0, T, T, (variant % 2) ? a : b); for (let i = 0; i < 7; i++) k.p(Math.floor(r() * 16), Math.floor(r() * 16), shade(a, .16));
   } else if (kind === 'stone') { // recepción: piedra oscura pulida
     k.r(0, 0, T, T, a).r(1, 1, 14, 14, b).r(1, 1, 14, 1, shade(b, .08)).r(1, 1, 1, 14, shade(b, .05));
     if (r() < .5) k.p(3 + Math.floor(r() * 10), 3 + Math.floor(r() * 10), shade(b, .12));
@@ -635,6 +637,21 @@ def('letrero_racing', { name: 'Letrero Ruedda Motorsport', fw: 3, w: 48, h: 28, 
   const t1 = A.pixelText('RUEDDA', '#e6f03b', 1), t2 = A.pixelText('MOTORSPORT', '#f4f4f2', 1); k.g.drawImage(t1, 24 - Math.floor(t1.width / 2), 7); k.g.drawImage(t2, 24 - Math.floor(t2.width / 2), 14);
 }});
 def('auto_mini', { name: 'Auto de colección', fw: 4, fh: 2, w: 68, h: 36, shop: true, noOutline: true, draw(k) { k.g.drawImage(A.car('#e6f03b', 'super'), 0, 0); }});
+/* ── consolas (se usan con E) ── */
+def('consola', { name: 'Consola + TV', fw: 2, w: 32, h: 30, shop: true, play: true, draw(k) {
+  k.r(0, 1, 32, 17, '#0b0b0d').r(2, 3, 28, 13, '#163a5c').r(4, 5, 10, 4, '#3ddc84').r(16, 9, 9, 4, '#e85b9c').r(6, 12, 4, 2, '#e6f03b');
+  k.r(4, 19, 24, 10, '#5e3c27').r(4, 19, 24, 1, '#8a5a3c').r(8, 21, 10, 4, '#16171b').r(9, 22, 1, 1, '#22d3ee').r(20, 22, 6, 3, '#f4f4f2').r(21, 23, 1, 1, '#2c5bd6').r(24, 23, 1, 1, '#d7262e');
+}});
+def('consola_retro', { name: 'Consola retro', fw: 2, w: 32, h: 30, shop: true, play: true, draw(k) {
+  k.rr(2, 0, 28, 20, '#c9ccd2', 3).rr(5, 3, 22, 14, '#16171b', 4).r(7, 5, 18, 10, '#3fa45e').r(9, 7, 4, 4, '#e6f03b').r(16, 10, 6, 2, '#16171b');
+  k.r(6, 21, 20, 8, '#9aa0a6').r(8, 23, 16, 3, '#5b6573').r(9, 24, 3, 1, '#d7262e').r(20, 24, 2, 1, '#2c5bd6');
+}});
+def('arcade_carreras', { name: 'Arcade de carreras', fw: 2, w: 32, h: 36, shop: true, play: true, draw(k) {
+  k.r(2, 4, 28, 31, '#16171b').r(2, 4, 28, 2, '#e6f03b').r(5, 8, 22, 12, '#0e1726').r(7, 15, 18, 3, '#2a2d33').r(14, 10, 4, 6, '#d7262e').r(6, 0, 20, 5, '#d7262e');
+  const t = A.pixelText('RACE', '#f4f4f2', 1); k.g.drawImage(t, 16 - Math.floor(t.width / 2), 0);
+  k.ell(16, 24, 5, 3, '#2a2d33').ell(16, 24, 3, 1, '#9aa0a6').r(5, 29, 22, 5, '#2a2d33');
+}});
+
 /* ── pisos (planos, se pueden rotar) ── */
 def('piso_meta', { name: 'Línea de meta (piso)', fw: 4, w: 64, h: 16, block: false, flat: true, shop: true, draw(k) { CHK(k, 0, 0, 64, 16, 4, '#16171b', '#f4f4f2'); }});
 def('piso_cuadros', { name: 'Piso a cuadros', fw: 3, fh: 3, w: 48, h: 48, block: false, flat: true, shop: true, draw(k) { CHK(k, 0, 0, 48, 48, 8, '#16171b', '#e8e4dc'); k.r(0, 0, 48, 1, 'rgba(255,255,255,.15)'); }});
