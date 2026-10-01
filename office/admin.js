@@ -34,9 +34,8 @@ Admin.equipo = box => {
       <td><div class="row" style="gap:4px;flex-wrap:nowrap"><span class="mono" style="min-width:34px">${m.coins || 0}</span><button class="btn sm" data-g="50">+50</button><button class="btn sm" data-g="-50">−50</button></div></td>
       <td><div class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm" data-a="av">Avatar</button><button class="btn sm y" data-a="save">Guardar</button>${m.user_id !== RO.S.me.user_id ? '<button class="btn sm red" data-a="del">Quitar</button>' : ''}</div></td></tr>`).join('')}
     </tbody></table>
-    <label class="lbl" style="margin-top:22px">agregar persona (cuenta de Ruedda)</label>
-    <div class="row"><input class="in" id="ad-q" placeholder="Busca por @usuario, nombre o correo…"></div>
-    <div id="ad-res" style="margin-top:8px"></div>`;
+    <label class="lbl" style="margin-top:24px">usuarios autorizados (login solo con usuario)</label>
+    <div id="ad-acc" class="muted">Cargando…</div>`;
   box.querySelectorAll('tr[data-u]').forEach(tr => {
     const uid = tr.dataset.u, m = RO.member(uid);
     tr.querySelector('[data-h]').appendChild(UI.headCanvas(m, 2));
@@ -57,15 +56,29 @@ Admin.equipo = box => {
       try { await RO.Net.grant(uid, +b.dataset.g); m.coins = Math.max(0, (m.coins || 0) + +b.dataset.g); Admin.equipo(box); } catch (e) { UI.err(e); }
     });
   });
-  const q = box.querySelector('#ad-q'), res = box.querySelector('#ad-res'); let t = 0;
-  q.oninput = () => { clearTimeout(t); t = setTimeout(async () => {
-    const v = q.value.trim(); if (v.length < 2) { res.innerHTML = ''; return; }
-    try {
-      const rows = await RO.Net.findUsers(v) || [];
-      res.innerHTML = rows.length ? `<table class="tbl"><tbody>${rows.map(u => `<tr><td><b>${esc(u.nombre || '—')}</b> <span class="muted">@${esc(u.username || '—')}</span></td><td class="muted">${esc(u.email || '')}</td><td>${RO.member(u.id) ? '<span class="muted">ya es miembro</span>' : `<button class="btn sm y" data-add="${esc(u.id)}" data-n="${esc(u.nombre || u.username || '')}">Agregar</button>`}</td></tr>`).join('')}</tbody></table>` : '<div class="muted">Sin resultados.</div>';
-      res.querySelectorAll('[data-add]').forEach(b => b.onclick = () => addForm(res, b.dataset.add, b.dataset.n));
-    } catch (e) { UI.err(e); }
-  }, 300); };
+  Admin.accounts(box.querySelector('#ad-acc'));
+};
+Admin.accounts = async el => {
+  let list = [];
+  try { list = await RO.Net.listAccounts() || []; } catch (e) { el.innerHTML = '<span style="color:var(--red)">' + esc(e.message) + '</span>'; return; }
+  const row = a => `<tr data-a="${esc(a.username)}"><td class="mono" style="color:var(--y)">${esc(a.username)}</td>
+      <td><input class="in" data-f="name" value="${esc(a.display_name)}"></td><td><input class="in" data-f="cargo" value="${esc(a.cargo)}"></td>
+      <td><select class="sel" data-f="slot">${officeOpts(a.slot)}</select></td><td><input type="checkbox" data-f="admin" ${a.is_admin ? 'checked' : ''}></td>
+      <td><input type="checkbox" data-f="active" ${a.active !== false ? 'checked' : ''}></td>
+      <td><div class="row" style="gap:4px;flex-wrap:nowrap"><button class="btn sm y" data-s>Guardar</button><button class="btn sm red" data-d>Quitar</button></div></td></tr>`;
+  el.innerHTML = `<p style="font-size:12.5px;margin-bottom:8px">Quien escriba uno de estos usuarios entra a la oficina. Nombre, cargo y oficina se aplican la primera vez que entra; después se editan arriba.</p>
+    <table class="tbl"><thead><tr><th>Usuario</th><th>Nombre</th><th>Cargo</th><th>Oficina</th><th>Admin</th><th>Activo</th><th></th></tr></thead><tbody>${list.map(row).join('')}
+    <tr><td><input class="in" id="na-u" placeholder="usuario nuevo"></td><td><input class="in" id="na-n" placeholder="nombre"></td><td><input class="in" id="na-c" placeholder="cargo"></td><td><select class="sel" id="na-s">${officeOpts('')}</select></td><td><input type="checkbox" id="na-a"></td><td></td><td><button class="btn sm y" id="na-go">Autorizar</button></td></tr></tbody></table>`;
+  el.querySelectorAll('tr[data-a]').forEach(tr => {
+    const g = f => tr.querySelector(`[data-f="${f}"]`), u = tr.dataset.a;
+    tr.querySelector('[data-s]').onclick = async () => { try { await RO.Net.upsertAccount(u, g('name').value.trim(), g('slot').value, g('cargo').value.trim(), g('admin').checked, g('active').checked); UI.toast('Guardado'); } catch (e) { UI.err(e); } };
+    tr.querySelector('[data-d]').onclick = async () => { try { await RO.Net.deleteAccount(u); UI.toast('Quitado: ' + esc(u)); Admin.accounts(el); } catch (e) { UI.err(e); } };
+  });
+  el.querySelector('#na-go').onclick = async () => {
+    const u = el.querySelector('#na-u').value.trim().replace(/^@+/, '').toLowerCase();
+    if (!/^[a-z0-9._-]{2,40}$/.test(u)) return UI.toast('Usuario inválido: letras, números, punto o guion', 'err');
+    try { await RO.Net.upsertAccount(u, el.querySelector('#na-n').value.trim(), el.querySelector('#na-s').value, el.querySelector('#na-c').value.trim(), el.querySelector('#na-a').checked, true); UI.toast('Autorizado: ' + esc(u)); Admin.accounts(el); } catch (e) { UI.err(e); }
+  };
 };
 function addForm(res, uid, name) {
   res.innerHTML = `<div class="glass" style="padding:14px;margin-top:6px"><div class="row"><div><label class="lbl">nombre</label><input class="in" id="nf-n" value="${esc(name)}"></div><div><label class="lbl">cargo en la empresa</label><input class="in" id="nf-c" placeholder="Ej: Director comercial"></div><div><label class="lbl">oficina</label><select class="sel" id="nf-s">${officeOpts('')}</select></div></div>

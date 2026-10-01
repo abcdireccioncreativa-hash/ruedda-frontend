@@ -29,8 +29,8 @@ function showLogin(msg) {
 $('#login-form').addEventListener('submit', async e => {
   e.preventDefault();
   const b = $('#lg-btn'); b.disabled = true; b.querySelector('span').textContent = 'Verificando…'; $('#lg-err').textContent = '';
-  try { await RO.Net.signIn($('#lg-email').value.trim(), $('#lg-pass').value); enter(); }
-  catch (x) { $('#lg-err').textContent = /invalid/i.test(x.message || '') ? 'Correo o contraseña incorrectos.' : (x.message || 'No se pudo entrar.'); }
+  try { await RO.Net.signIn($('#lg-email').value.trim()); enter(); }
+  catch (x) { $('#lg-err').textContent = x.message || 'No se pudo entrar.'; }
   b.disabled = false; b.querySelector('span').textContent = 'Entrar';
 });
 
@@ -109,7 +109,7 @@ async function enter() {
   } catch (e) {
     console.error('[office]', e);
     if (e.code === 'MISSING') loaderError('<b>La oficina todavía no está instalada.</b><br>Falta correr <code>office_migration.sql</code> en el SQL Editor de Supabase (una sola vez).', true);
-    else if (e.code === 'NO_ROLE') loaderError('<b>Esta cuenta no tiene rol en la empresa.</b><br>Pídele a un admin de Ruedda Office que te asigne un cargo y una oficina.', false);
+    else if (e.code === 'NO_ROLE') loaderError('<b>Este usuario ya no está autorizado.</b><br>Pídele a un admin que lo active en Equipo.', false);
     else loaderError('<b>No se pudo conectar.</b><br>' + esc(e.message || e), true);
   }
 }
@@ -146,7 +146,7 @@ RO.on('vip:found', () => {
   RO.sfx.engine();
 });
 RO.on('logout', async () => {
-  const ok = await UI.confirm('Salir de la oficina', 'Se cierra tu sesión de Ruedda en este navegador.', 'Salir');
+  const ok = await UI.confirm('Salir de la oficina', 'Para volver solo escribes tu usuario.', 'Salir');
   if (!ok) return;
   RO.G.save(); await RO.Net.signOut(); location.reload();
 });

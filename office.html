@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 <link rel="preload" href="/assets/ruedda-wordmark-negro.png" as="image">
-<link rel="stylesheet" href="/office/office.css?v=10">
+<link rel="stylesheet" href="/office/office.css?v=11">
 </head>
 <body>
 
@@ -46,19 +46,18 @@
     <form class="lg-form" id="login-form" autocomplete="on">
       <div class="mono dim lg-idx">01 — acceso</div>
       <h1>Entrar a la oficina</h1>
-      <p class="dim">Personal con cargo en la empresa. Usa tu cuenta de Ruedda.</p>
-      <label class="fld"><span class="mono">correo</span><input id="lg-email" type="email" name="email" autocomplete="username" required spellcheck="false"></label>
-      <label class="fld"><span class="mono">contraseña</span><input id="lg-pass" type="password" name="password" autocomplete="current-password" required></label>
+      <p class="dim">Solo usuarios autorizados por Ruedda.</p>
+      <label class="fld"><span class="mono">usuario</span><input id="lg-email" type="text" name="username" autocomplete="username" autocapitalize="none" required spellcheck="false" placeholder="tu usuario"></label>
       <div class="lg-err mono" id="lg-err" role="alert"></div>
       <button class="btn-y" id="lg-btn" type="submit"><span>Entrar</span><b>→</b></button>
-      <div class="mono dim lg-demo hidden" id="lg-demo">modo demo · usa yo · ruben · ivan · felipe</div>
+      <div class="mono dim lg-demo hidden" id="lg-demo">modo demo · usa rueddaco · ruben · ivan · felipe</div>
     </form>
   </main>
   <footer class="lg-foot mono">
     <span><i class="dot"></i> servidores en línea</span>
     <span class="dim">10.4806° N · 66.9036° W</span>
     <span class="sp"></span>
-    <span class="dim">© Ruedda · sesión compartida con ruedda.app</span>
+    <span class="dim">© Ruedda · acceso solo para el equipo</span>
   </footer>
 </section>
 
@@ -148,12 +147,12 @@
 <div id="flash"></div>
 
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
-<script src="/office/core.js?v=10"></script>
-<script src="/office/art.js?v=10"></script>
-<script src="/office/world.js?v=10"></script>
-<script src="/office/game.js?v=10"></script>
-<script src="/office/ui.js?v=10"></script>
-<script src="/office/admin.js?v=10"></script>
-<script src="/office/main.js?v=10"></script>
+<script src="/office/core.js?v=11"></script>
+<script src="/office/art.js?v=11"></script>
+<script src="/office/world.js?v=11"></script>
+<script src="/office/game.js?v=11"></script>
+<script src="/office/ui.js?v=11"></script>
+<script src="/office/admin.js?v=11"></script>
+<script src="/office/main.js?v=11"></script>
 </body>
 </html>

@@ -1,7 +1,8 @@
 'use strict';
 /* ════════════════════════════════════════════════════════════════
    RUEDDA OFFICE — núcleo: estado, bus de eventos, red y datos.
-   · Misma sesión que la app y /control (storageKey 'ruedda-auth').
+   · Login solo con usuario autorizado (/api/office-login); sesión propia de la oficina
+     (storageKey 'ruedda-office-auth'), separada de la de ruedda.app.
    · Todo pasa por RLS (office_is_member / office_is_admin) y RPCs.
    · Movimiento, presencia, chat y pizarra viajan por el canal privado
      'office:main' (Realtime Authorization).
@@ -124,7 +125,7 @@ const SB_URL = 'https://ltodsegzbbdcaublkgtp.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0b2RzZWd6YmJkY2F1YmxrZ3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjIwOTgsImV4cCI6MjA5NTI5ODA5OH0.WXbnE5_XfNwwVUtDGSWa6Voetcflcl7m2vDOpEofs_w';
 let sb = null;
 const client = () => sb || (sb = supabase.createClient(SB_URL, SB_KEY, {
-  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'ruedda-auth' },
+  auth: { persistSession: true, autoRefreshToken: true, storageKey: 'ruedda-office-auth' },
   realtime: { params: { eventsPerSecond: 40 } }
 }));
 const isMissing = e => !!e && (['42P01', 'PGRST205', '42883', 'PGRST202'].includes(e.code) || /does not exist|schema cache|could not find the function/i.test(e.message || ''));
@@ -132,7 +133,13 @@ const chk = r => { if (r.error) throw r.error; return r.data; };
 
 const Real = {
   async session() { const { data: { session } } = await client().auth.getSession(); return session; },
-  async signIn(email, password) { const { error } = await client().auth.signInWithPassword({ email, password }); if (error) throw error; },
+  async signIn(username) {
+    const r = await fetch('/api/office-login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'No se pudo entrar');
+    const { error } = await client().auth.setSession({ access_token: j.access_token, refresh_token: j.refresh_token });
+    if (error) throw error;
+  },
   async signOut() { await client().auth.signOut().catch(() => {}); },
   async join() {
     const { data, error } = await client().rpc('office_join');
@@ -239,9 +246,17 @@ const Real = {
   upsertMember: (target, slot, name, cargo, admin) => Real.rpc('office_upsert_member', { target, p_slot: slot, p_name: name, p_cargo: cargo, p_admin: admin }),
   async removeMember(uid) { chk(await client().from('office_members').delete().eq('user_id', uid)); },
   findUsers: q => Real.rpc('office_find_users', { q }),
+  listAccounts: () => Real.rpc('office_accounts_list'),
+  upsertAccount: (u, name, slot, cargo, admin, active) => Real.rpc('office_account_upsert', { p_username: u, p_name: name, p_slot: slot, p_cargo: cargo, p_admin: admin, p_active: active }),
+  deleteAccount: u => Real.rpc('office_account_delete', { p_username: u }),
   grant: (target, amount) => Real.rpc('office_grant', { target, amount }),
   // mismos números que el tablero de Ruedda Control (lo que la cuenta pueda ver por RLS; lo demás queda en "—")
   async rueddaStats() {
+    try {
+      const sess = await this.session();
+      const r = await fetch('/api/office-stats', { headers: { Authorization: 'Bearer ' + (sess && sess.access_token || '') } });
+      if (r.ok) return await r.json();
+    } catch (e) {}
     const s = client(), DAY = 864e5, now = Date.now(), sod = new Date(); sod.setHours(0, 0, 0, 0);
     const cnt = async (t, f) => { try { let q = s.from(t).select('*', { count: 'exact', head: true }); if (f) q = f(q); const r = await q; return r.error ? null : (r.count || 0); } catch (e) { return null; } };
     const rows = async (q) => { try { const r = await q; return r.error ? null : (r.data || []); } catch (e) { return null; } };
@@ -292,9 +307,9 @@ const Demo = {
   _db_ev(t, type, nw, old) { this.bc && this.bc.postMessage({ k: 'db', t, type, nw, old }); this.H && this.H.onDb(t, type, nw, old); },
   async session() { const u = sessionStorage.getItem('ro_demo_uid'); return u ? { user: { id: u, email: u + '@demo' } } : null; },
   async signIn(email) {
-    const n = String(email || '').toLowerCase().split('@')[0].replace(/[^a-z]/g, '');
+    let n = String(email || '').toLowerCase().split('@')[0].replace(/[^a-z]/g, ''); if (n === 'rueddaco') n = 'yo';
     const p = DEMO_PEOPLE.find(x => x.user_id === 'u-' + n) || DEMO_PEOPLE.find(x => x.display_name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '') === n);
-    if (!p) throw new Error('En demo usa: yo, ruben, ivan o felipe');
+    if (!p) throw new Error('Usuario no autorizado');
     sessionStorage.setItem('ro_demo_uid', p.user_id);
   },
   async signOut() { sessionStorage.removeItem('ro_demo_uid'); },
@@ -376,6 +391,9 @@ const Demo = {
     ch.forEach(m => this._db_ev('office_members', 'UPDATE', m));
   },
   async removeMember(uid) { this._mut(d => { d.members = d.members.filter(m => m.user_id !== uid); }); this._db_ev('office_members', 'DELETE', null, { user_id: uid }); },
+  async listAccounts() { const d = this._db(); return d.accounts || (d.accounts = [{ username: 'rueddaco', display_name: 'Ruedda', slot: 'yo', cargo: 'Dirección', is_admin: true, active: true }, { username: 'ruben', display_name: 'Rubén', slot: 'ruben', cargo: 'Socio', is_admin: false, active: true }, { username: 'ivan', display_name: 'Iván', slot: 'ivan', cargo: 'Socio', is_admin: false, active: true }, { username: 'felipe', display_name: 'Felipe', slot: 'felipe', cargo: 'Socio', is_admin: false, active: true }]); },
+  async upsertAccount(u, name, slot, cargo, admin, active) { const list = await this.listAccounts(); this._mut(d => { d.accounts = list.filter(a => a.username !== u).concat([{ username: u, display_name: name || u, slot: slot || null, cargo: cargo || 'Equipo Ruedda', is_admin: !!admin, active: active !== false }]); }); },
+  async deleteAccount(u) { const list = await this.listAccounts(); this._mut(d => { d.accounts = list.filter(a => a.username !== u); }); },
   async findUsers(q) { q = String(q || '').replace(/^@/, '').toLowerCase(); return [{ id: 'u-enrique', nombre: 'Enrique', username: 'enrique', email: 'enrique@demo', role: 'particular' }, { id: 'u-maria', nombre: 'María', username: 'maria', email: 'maria@demo', role: 'particular' }].concat(DEMO_PEOPLE.map(p => ({ id: p.user_id, nombre: p.display_name, username: p.slot, email: p.slot + '@demo' }))).filter(u => (u.username + u.nombre).toLowerCase().includes(q)); },
   async grant(target, amount) { const m = this._mut(d => { const m = d.members.find(x => x.user_id === target); m.coins = Math.max(0, m.coins + amount); return Object.assign({}, m); }); this._db_ev('office_members', 'UPDATE', m); },
   async liveStats() { return { listings: 1284, auctions: 37, users: 9120 }; },

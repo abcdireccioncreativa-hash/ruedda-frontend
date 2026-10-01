@@ -105,6 +105,24 @@ create table if not exists public.office_chat (
 );
 create index if not exists office_chat_created_idx on public.office_chat(created_at desc);
 
+-- Usuarios autorizados (login solo con usuario). Solo los lee el servidor (/api/office-login) y los admins por RPC.
+create table if not exists public.office_accounts (
+  username     text primary key check (username ~ '^[a-z0-9._-]{2,40}$'),
+  display_name text not null,
+  slot         text,
+  cargo        text not null default 'Equipo Ruedda',
+  is_admin     boolean not null default false,
+  active       boolean not null default true,
+  user_id      uuid references auth.users(id) on delete set null,
+  created_at   timestamptz not null default now()
+);
+insert into public.office_accounts (username, display_name, slot, cargo, is_admin) values
+  ('rueddaco', 'Ruedda',  'yo',     'Dirección', true),
+  ('ruben',    'Rubén',   'ruben',  'Socio',     false),
+  ('ivan',     'Iván',    'ivan',   'Socio',     false),
+  ('felipe',   'Felipe',  'felipe', 'Socio',     false)
+on conflict (username) do nothing;
+
 -- ════════════ DATOS INICIALES ════════════
 -- Oficinas por defecto: tú (el superadmin que entre primero) + @ruben, @ivan, @felipe.
 -- "username" enlaza la oficina con la cuenta de Ruedda: al entrar, quien tenga ese
@@ -377,6 +395,34 @@ begin
   return jsonb_build_object('ok', true, 'decor', to_jsonb(d));
 end $$;
 
+-- Admin: usuarios autorizados
+create or replace function public.office_accounts_list() returns setof public.office_accounts
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if not public.office_is_admin() then raise exception 'no autorizado'; end if;
+  return query select * from public.office_accounts order by created_at;
+end $$;
+create or replace function public.office_account_upsert(p_username text, p_name text, p_slot text, p_cargo text, p_admin boolean, p_active boolean) returns void
+language plpgsql security definer set search_path = public as $$
+declare u text := lower(trim(leading '@' from trim(coalesce(p_username, ''))));
+begin
+  if not public.office_is_admin() then raise exception 'no autorizado'; end if;
+  if u !~ '^[a-z0-9._-]{2,40}$' then raise exception 'usuario inválido (letras, números, punto, guion)'; end if;
+  insert into public.office_accounts(username, display_name, slot, cargo, is_admin, active)
+  values (u, coalesce(nullif(trim(p_name), ''), u), nullif(p_slot, ''), coalesce(nullif(trim(p_cargo), ''), 'Equipo Ruedda'), coalesce(p_admin, false), coalesce(p_active, true))
+  on conflict (username) do update set display_name = excluded.display_name, slot = excluded.slot, cargo = excluded.cargo, is_admin = excluded.is_admin, active = excluded.active;
+end $$;
+create or replace function public.office_account_delete(p_username text) returns void
+language plpgsql security definer set search_path = public as $$
+declare uid uuid;
+begin
+  if not public.office_is_admin() then raise exception 'no autorizado'; end if;
+  select user_id into uid from public.office_accounts where username = p_username;
+  if uid = auth.uid() then raise exception 'no puedes quitarte a ti mismo'; end if;
+  delete from public.office_accounts where username = p_username;
+  if uid is not null then delete from public.office_members where user_id = uid; end if;
+end $$;
+
 -- ════════════ RLS ════════════
 alter table public.office_members   enable row level security;
 alter table public.office_config    enable row level security;
@@ -387,10 +433,12 @@ alter table public.office_positions enable row level security;
 alter table public.office_strokes   enable row level security;
 alter table public.office_events    enable row level security;
 alter table public.office_chat      enable row level security;
+alter table public.office_accounts  enable row level security;   -- sin políticas: solo service role y RPCs
 
 do $$ declare t text; begin
-  foreach t in array array['office_members','office_config','office_catalog','office_decor','office_notes','office_positions','office_strokes','office_events','office_chat'] loop
+  foreach t in array array['office_members','office_config','office_catalog','office_decor','office_notes','office_positions','office_strokes','office_events','office_chat','office_accounts'] loop
     execute format('revoke all on public.%I from anon', t);
+    if t = 'office_accounts' then execute 'revoke all on public.office_accounts from authenticated'; end if;
   end loop;
 end $$;
 
@@ -465,7 +513,8 @@ do $$ declare f text; begin
   foreach f in array array['office_join()','office_save_avatar(uuid,jsonb)','office_award(text)','office_boost(uuid[])',
                            'office_buy(text,integer,integer)','office_clear_board(text)','office_grant(uuid,integer)',
                            'office_find_users(text)','office_upsert_member(uuid,text,text,text,boolean)',
-                           'office_in_my_office(integer,integer)','office_in_other_office(integer,integer)','office_update_my_office(text,text,boolean)','office_place_own(text,integer,integer)'] loop
+                           'office_in_my_office(integer,integer)','office_in_other_office(integer,integer)','office_update_my_office(text,text,boolean)','office_place_own(text,integer,integer)',
+                           'office_accounts_list()','office_account_upsert(text,text,text,text,boolean,boolean)','office_account_delete(text)'] loop
     execute 'revoke all on function public.' || f || ' from public, anon';
     execute 'grant execute on function public.' || f || ' to authenticated';
   end loop;
