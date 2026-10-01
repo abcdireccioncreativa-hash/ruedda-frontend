@@ -48,17 +48,19 @@ Wd.build = (cfg) => {
   const offices = (cfg.offices || []).slice().sort((a, b) => a.pos - b.pos);
   OFF_X.forEach((X, p) => {
     const o = offices.find(z => z.pos === p) || {}, th = RO.THEMES[o.theme] || RO.THEMES.madera;
-    add('estanteria', X, 1);
-    add('planta_grande', X + 12, 1);
     add('silla', X + 6, 3, { color: '#16171b' });
     add('escritorio_pc', X + 5, 4, { lamp: A.YELLOW });
-    add('alfombra', X + 4, 5, { color: rugFor(o.theme) });
-    add('mesa', X + 9, 6);
-    add('sofa', X + 9, 8, { color: sofaFor(o.theme) });
-    add('planta', X, 8);
-    add('lampara', X + 12, 8);
-    add('cuadro_pared', X + 8, 0, { color: ['#163a5c', '#5c1630', '#1f4a2e', '#4a3a16'][p] });
     add('placa', X + 9, 10);
+    if (!o.bare) {   // muebles base (el dueño los puede quitar desde "Mi oficina")
+      add('estanteria', X, 1);
+      add('planta_grande', X + 12, 1);
+      add('alfombra', X + 4, 5, { color: rugFor(o.theme) });
+      add('mesa', X + 9, 6);
+      add('sofa', X + 9, 8, { color: sofaFor(o.theme) });
+      add('planta', X, 8);
+      add('lampara', X + 12, 8);
+      add('cuadro_pared', X + 8, 0, { color: ['#163a5c', '#5c1630', '#1f4a2e', '#4a3a16'][p] });
+    }
   });
   // pasillo
   add('dispensador', 2, 11); add('planta', 13, 11); add('planta', 27, 11); add('planta', 41, 11); add('planta', 55, 11);
@@ -167,6 +169,11 @@ function rugFor(t) { return ({ nogal: '#7a2f3a', madera: '#2c4a6e', alfombra: '#
 function sofaFor(t) { return ({ nogal: '#2a2d33', madera: '#6e4a2c', alfombra: '#5b6573', concreto: '#e6f03b', marmol: '#2c5bd6', neon: '#e85b9c', ruedda: '#e6f03b', verde: '#c9a96e' })[t] || '#4a5568'; }
 
 /* ── sala / tema por celda ── */
+// rectángulo (en tiles) de la oficina de un slot
+Wd.officeRect = (slot, cfg) => {
+  const o = (cfg.offices || []).find(z => z.slot === slot); if (!o || o.pos == null || o.pos < 0 || o.pos > 3) return null;
+  const x0 = OFF_X[o.pos]; return { x0, y0: 1, x1: x0 + 12, y1: 9, pos: o.pos };
+};
 Wd.styleOf = (id, cfg) => {
   if (!id) return null;
   if (id.startsWith('off')) {
@@ -180,6 +187,7 @@ Wd.roomName = (id, cfg) => {
   if (id.startsWith('off')) {
     const p = +id.slice(3), o = (cfg.offices || []).find(z => z.pos === p);
     if (!o) return 'Oficina';
+    if (o.title) return o.title;
     const m = RO.memberBySlot(o.slot);
     return 'Oficina de ' + (m ? m.display_name : o.name);
   }

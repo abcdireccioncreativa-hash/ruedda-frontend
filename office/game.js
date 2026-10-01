@@ -72,6 +72,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
 
     this.makeNpc();
     this.makeDancers();
+    if (RO.S.config.vip_open) this.openSecret(true, true);
 
     // mouse: clic para caminar / modo edición
     this.input.on('pointerdown', p => this.onPointer(p, true));
@@ -171,7 +172,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     Wd.OFF_X.forEach((X, p) => {
       const o = offs.find(z => z.pos === p); if (!o) return;
       const m = RO.memberBySlot(o.slot);
-      const name = (m ? m.display_name : o.name || 'Libre').normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 7);
+      const name = (o.title || (m ? m.display_name : o.name || 'Libre')).normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 7);
       const key = this.tex('sign_' + A.hash(name), () => A.pixelText(name, A.YELLOW, 1));
       const img = this.add.image((X + 10) * T, 10 * T + 8.5, key).setOrigin(0.5).setDepth(-4e5);
       this.statics.push(img);
@@ -335,14 +336,25 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   }
   canPlace(item, x, y) {
     const it = A.ITEMS[item]; if (!it) return false;
+    const own = this.edit && this.edit.own ? Wd.officeRect(RO.S.me.slot, RO.S.config) : null;
+    if (this.edit && this.edit.own && !own) return false;
     for (let yy = y; yy < y + it.fh; yy++) for (let xx = x; xx < x + it.fw; xx++) {
       if (!this.blocked[yy] || this.blocked[yy][xx] !== 0) return false;
-      if (this.w.room[yy][xx] === 'garage' && !RO.isAdmin()) return false;
+      if (own && (xx < own.x0 || xx > own.x1 || yy < own.y0 || yy > own.y1)) return false;
+      if (!RO.isAdmin() && this.inOtherOffice(xx, yy)) return false;
       if (yy >= 10 && yy <= 14 && this.w.room[yy][xx] && (this.w.grid[yy - 1][xx] === 1 && this.w.grid[yy + 1] && this.w.grid[yy + 1][xx] === 1)) return false; // puertas
     }
     // no tapar a nadie
     for (const p of this.players.values()) { const tx = Math.floor(p.x / T), ty = Math.floor(p.y / T); if (tx >= x && tx < x + it.fw && ty >= y && ty < y + it.fh) return false; }
     return true;
+  }
+
+  // celdas de oficinas ajenas (las áreas comunes son de todos)
+  inOtherOffice(x, y) {
+    if (y < 1 || y > 9) return false;
+    const p = Wd.OFF_X.findIndex(x0 => x >= x0 && x <= x0 + 12); if (p < 0) return false;
+    const mine = Wd.officeRect(RO.S.me.slot, RO.S.config);
+    return !(mine && mine.pos === p);
   }
 
   /* ════════════ PASADIZO SECRETO ════════════ */
@@ -352,11 +364,10 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     for (let x = S.shelfX; x < S.shelfX + 2; x++) this.w.blocked[S.shelfY][x] = open ? 0 : 1;
     for (let x = S.slideTo; x < S.slideTo + 2; x++) this.w.blocked[S.shelfY][x] = open ? 1 : 0;
   }
-  openSecret(remote) {
+  openSecret(remote, quiet) {
     if (this.secretOpen || RO.S.config.vip_enabled === false) return;
     this.secretOpen = true;
-    RO.sfx.door();
-    this.cameras.main.shake(700, 0.004);
+    if (!quiet) { RO.sfx.door(); this.cameras.main.shake(700, 0.004); }
     const shelf = this.secretShelf;
     if (shelf) this.tweens.add({ targets: shelf, x: Wd.SECRET.slideTo * T + (shelf.x - Wd.SECRET.shelfX * T), duration: 1400, ease: 'Sine.easeInOut' });
     this.applySecret(true);
@@ -365,7 +376,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       this.drawBase();
       this.fx.push(this.add.image(Wd.SECRET.x * T, 39 * T, this.itemTex('escaleras')).setOrigin(0).setDisplaySize(32, 48).setDepth(-5.9e5));
     });
-    if (!remote) { RO.Net.send({ t: 'secret', u: RO.S.me.user_id }); RO.emit('toast', 'Algo se movió detrás de la estantería…', 'vip'); }
+    if (!remote && !quiet) { RO.Net.send({ t: 'secret', u: RO.S.me.user_id }); RO.emit('toast', 'Algo se movió detrás de la estantería…', 'vip'); }
   }
   revealGarage() {
     if (this.vipSeen) return; this.vipSeen = true;
@@ -752,7 +763,7 @@ G.setEdit = e => S() && S().setEdit(e);
 G.bubbleMe = text => { const s = S(); if (s) s.bubble(s.me, text); };
 G.bubbleOf = (uid, text) => { const s = S(); const p = s && s.players.get(uid); if (p) s.bubble(p, text); };
 G.npcSay = () => S() && S().npcSay(false);
-G.openSecret = remote => S() && S().openSecret(remote);
+G.openSecret = (remote, quiet) => S() && S().openSecret(remote, quiet);
 G.coffee = () => { const s = S(); if (s) s.coffeeUntil = s.time.now + 45000; };
 G.updateBoardMini = c => S() && S().updateBoardMini(c);
 G.me = () => S() && S().me;
@@ -769,6 +780,7 @@ G.goToSpot = (x, y) => { const s = S(); if (!s) return; s.walkTo(x, y) || s.tele
 G.teleport = (x, y, dir) => S() && S().teleport(x, y, dir);
 G.seats = () => S() ? S().w.seats : [];
 G.save = () => S() && S().savePos();
+G.inOtherOffice = (x, y) => S() ? S().inOtherOffice(x, y) : true;
 G.zoom = d => S() && S().zoomStep(d);
 G.zoomLevel = () => S() ? S().cameras.main.zoom : 3;
 G.layout = () => S() && S().applyBounds();

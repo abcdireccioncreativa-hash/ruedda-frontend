@@ -216,6 +216,8 @@ const Real = {
   async logEvent(kind, payload) { await client().from('office_events').insert({ kind, actor: RO.S.me.user_id, payload: payload || {} }); },
   async saveConfig(data) { chk(await client().from('office_config').update({ data, updated_at: new Date().toISOString(), updated_by: RO.S.me.user_id }).eq('id', 1)); },
   async saveCatalog(row) { chk(await client().from('office_catalog').upsert(row)); },
+  updateMyOffice: (title, theme, bare) => Real.rpc('office_update_my_office', { p_title: title, p_theme: theme, p_bare: bare }),
+  placeOwn: (item, x, y) => Real.rpc('office_place_own', { p_item: item, p_x: x, p_y: y }),
   upsertMember: (target, slot, name, cargo, admin) => Real.rpc('office_upsert_member', { target, p_slot: slot, p_name: name, p_cargo: cargo, p_admin: admin }),
   async removeMember(uid) { chk(await client().from('office_members').delete().eq('user_id', uid)); },
   findUsers: q => Real.rpc('office_find_users', { q }),
@@ -321,6 +323,11 @@ const Demo = {
   async logEvent(kind, payload) { const e = this._mut(d => { const e = { id: d.seq++, kind, actor: RO.S.me.user_id, payload: payload || {}, created_at: new Date().toISOString() }; d.events.push(e); d.events = d.events.slice(-80); return e; }); this._db_ev('office_events', 'INSERT', e); },
   async saveConfig(data) { this._mut(d => { d.config = data; }); this._db_ev('office_config', 'UPDATE', { id: 1, data }); },
   async saveCatalog(row) { const r = this._mut(d => { const i = d.catalog.findIndex(c => c.item === row.item); if (i >= 0) d.catalog[i] = Object.assign(d.catalog[i], row); else d.catalog.push(row); return Object.assign({}, i >= 0 ? d.catalog[i] : row); }); this._db_ev('office_catalog', 'UPDATE', r); },
+  async updateMyOffice(title, theme, bare) {
+    const data = this._mut(d => { const c = RO.mergeConfig(d.config); c.offices = c.offices.map(o => o.slot === RO.S.me.slot ? Object.assign({}, o, { title: String(title || '').slice(0, 24), theme, bare: !!bare }) : o); d.config = c; return c; });
+    this._db_ev('office_config', 'UPDATE', { id: 1, data });
+  },
+  async placeOwn(item, x, y) { const dec = this._mut(d => { const o = { id: d.seq++, item, x, y, placed_by: RO.S.me.user_id }; d.decor.push(o); return o; }); this._db_ev('office_decor', 'INSERT', dec); return { ok: true, decor: dec }; },
   async upsertMember(target, slot, name, cargo, admin) {
     const ch = this._mut(d => {
       const out = [];

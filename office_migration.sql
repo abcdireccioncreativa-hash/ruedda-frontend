@@ -267,6 +267,11 @@ begin
   if not public.office_is_member() then raise exception 'no autorizado'; end if;
   select * into c from public.office_catalog where item = p_item and active;
   if not found then raise exception 'artículo no disponible'; end if;
+  if public.office_in_other_office(p_x, p_y) and not public.office_is_admin() then raise exception 'no puedes decorar la oficina de otra persona'; end if;
+  if public.office_in_my_office(p_x, p_y) then   -- en tu oficina es gratis
+    insert into public.office_decor(item, x, y, placed_by) values (p_item, p_x, p_y, uid) returning * into d;
+    return jsonb_build_object('ok', true, 'decor', to_jsonb(d), 'coins', (select coins from public.office_members where user_id = uid), 'free', true);
+  end if;
   update public.office_members set coins = coins - c.price where user_id = uid and coins >= c.price returning coins into bal;
   if bal is null then return jsonb_build_object('ok', false, 'reason', 'saldo'); end if;
   insert into public.office_decor(item, x, y, placed_by) values (p_item, p_x, p_y, uid) returning * into d;
@@ -318,6 +323,60 @@ begin
     set slot = excluded.slot, display_name = excluded.display_name, cargo = excluded.cargo, is_admin = excluded.is_admin;
 end $$;
 
+-- ════════════ CADA QUIEN EDITA SU OFICINA ════════════
+-- ¿La celda (x, y) está dentro de la oficina asignada a quien llama? (4 oficinas de 13×9 en x = 1, 15, 29, 43)
+create or replace function public.office_in_my_office(px int, py int) returns boolean
+language plpgsql stable security definer set search_path = public as $$
+declare s text; p int; x0 int;
+begin
+  select slot into s from public.office_members where user_id = auth.uid();
+  if s is null then return false; end if;
+  select (o->>'pos')::int into p from public.office_config c, jsonb_array_elements(c.data->'offices') o where c.id = 1 and o->>'slot' = s limit 1;
+  if p is null or p < 0 or p > 3 then return false; end if;
+  x0 := (array[1, 15, 29, 43])[p + 1];
+  return px between x0 and x0 + 12 and py between 1 and 9;
+end $$;
+
+-- ¿La celda cae dentro de la oficina de OTRA persona? (las áreas comunes son de todos)
+create or replace function public.office_in_other_office(px int, py int) returns boolean
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if py < 1 or py > 9 then return false; end if;
+  if not ((px between 1 and 13) or (px between 15 and 27) or (px between 29 and 41) or (px between 43 and 55)) then return false; end if;
+  return not public.office_in_my_office(px, py);
+end $$;
+
+-- Nombre, piso y muebles base de MI oficina (sin tocar el resto de la configuración)
+create or replace function public.office_update_my_office(p_title text, p_theme text, p_bare boolean) returns void
+language plpgsql security definer set search_path = public as $$
+declare s text;
+begin
+  if not public.office_is_member() then raise exception 'no autorizado'; end if;
+  select slot into s from public.office_members where user_id = auth.uid();
+  if s is null then raise exception 'no tienes oficina asignada'; end if;
+  if p_theme not in ('nogal','madera','alfombra','concreto','marmol','neon','ruedda','verde') then raise exception 'piso inválido'; end if;
+  update public.office_config set
+    data = jsonb_set(data, '{offices}', (
+      select jsonb_agg(case when o->>'slot' = s
+                            then o || jsonb_build_object('title', left(coalesce(trim(p_title), ''), 24), 'theme', p_theme, 'bare', coalesce(p_bare, false))
+                            else o end order by ord)
+      from jsonb_array_elements(data->'offices') with ordinality t(o, ord))),
+    updated_at = now(), updated_by = auth.uid()
+  where id = 1;
+end $$;
+
+-- Decorar MI oficina gratis (cualquier artículo activo de la tienda)
+create or replace function public.office_place_own(p_item text, p_x int, p_y int) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare d public.office_decor;
+begin
+  if not public.office_is_member() then raise exception 'no autorizado'; end if;
+  if not public.office_in_my_office(p_x, p_y) then raise exception 'solo puedes decorar gratis dentro de tu oficina'; end if;
+  if not exists(select 1 from public.office_catalog where item = p_item and active) then raise exception 'artículo no disponible'; end if;
+  insert into public.office_decor(item, x, y, placed_by) values (p_item, p_x, p_y, auth.uid()) returning * into d;
+  return jsonb_build_object('ok', true, 'decor', to_jsonb(d));
+end $$;
+
 -- ════════════ RLS ════════════
 alter table public.office_members   enable row level security;
 alter table public.office_config    enable row level security;
@@ -357,10 +416,10 @@ drop policy if exists office_decor_del on public.office_decor;
 create policy office_decor_sel on public.office_decor for select to authenticated using (public.office_is_member());
 create policy office_decor_ins on public.office_decor for insert to authenticated with check (public.office_is_admin());
 create policy office_decor_upd on public.office_decor for update to authenticated
-  using (public.office_is_admin() or (placed_by = auth.uid() and public.office_is_member()))
-  with check (public.office_is_admin() or (placed_by = auth.uid() and public.office_is_member()));
+  using (public.office_is_admin() or (public.office_is_member() and (placed_by = auth.uid() or public.office_in_my_office(x, y))))
+  with check (public.office_is_admin() or (public.office_is_member() and (placed_by = auth.uid() or public.office_in_my_office(x, y)) and not public.office_in_other_office(x, y)));
 create policy office_decor_del on public.office_decor for delete to authenticated
-  using (public.office_is_admin() or (placed_by = auth.uid() and public.office_is_member()));
+  using (public.office_is_admin() or (public.office_is_member() and (placed_by = auth.uid() or public.office_in_my_office(x, y))));
 
 drop policy if exists office_notes_sel on public.office_notes;
 drop policy if exists office_notes_ins on public.office_notes;
@@ -405,7 +464,8 @@ create policy office_chat_del on public.office_chat for delete to authenticated 
 do $$ declare f text; begin
   foreach f in array array['office_join()','office_save_avatar(uuid,jsonb)','office_award(text)','office_boost(uuid[])',
                            'office_buy(text,integer,integer)','office_clear_board(text)','office_grant(uuid,integer)',
-                           'office_find_users(text)','office_upsert_member(uuid,text,text,text,boolean)'] loop
+                           'office_find_users(text)','office_upsert_member(uuid,text,text,text,boolean)',
+                           'office_in_my_office(integer,integer)','office_in_other_office(integer,integer)','office_update_my_office(text,text,boolean)','office_place_own(text,integer,integer)'] loop
     execute 'revoke all on function public.' || f || ' from public, anon';
     execute 'grant execute on function public.' || f || ' to authenticated';
   end loop;

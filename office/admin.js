@@ -161,6 +161,7 @@ Admin.mundo = box => {
         <label class="lbl">autos del garage (nombre | #color | super·gt·luxe·suv, máx. 8)</label>
         <textarea class="ta" id="mw-cars" style="min-height:120px">${esc((c.cars || []).map(k => k.name + ' | ' + k.color + ' | ' + k.type).join('\n'))}</textarea>
         <label style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="mw-vip" ${c.vip_enabled !== false ? 'checked' : ''}> Pasadizo secreto al garage habilitado</label>
+        <label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="mw-vipopen" ${c.vip_open ? 'checked' : ''}> Garage y club siempre abiertos (sin buscar la estantería)</label>
       </div>
     </div>
     <div class="row" style="margin-top:16px;justify-content:flex-end"><button class="btn y" id="mw-save" style="flex:none">Guardar mundo</button></div>`;
@@ -182,7 +183,8 @@ Admin.mundo = box => {
       motd: box.querySelector('#mw-motd').value.trim(),
       boost_cooldown_min: Math.max(1, +box.querySelector('#mw-cd').value || 10),
       boost_points: Math.max(0, Math.min(500, +box.querySelector('#mw-bp').value || 15)),
-      vip_enabled: box.querySelector('#mw-vip').checked
+      vip_enabled: box.querySelector('#mw-vip').checked,
+      vip_open: box.querySelector('#mw-vipopen').checked
     });
     saveConfig(next, 'Mundo actualizado');
   };

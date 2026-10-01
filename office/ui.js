@@ -610,14 +610,14 @@ UI.shop = () => {
   const me = RO.S.me, items = RO.S.catalog.filter(c => c.active && A.ITEMS[c.item]);
   const cats = Array.from(new Set(items.map(i => i.category)));
   const mo = UI.modal({
-    title: 'Tienda de decoración', sub: `Tienes <b style="color:var(--y)">${me.coins}</b> monedas · se ganan con acciones del equipo, notas, la pizarra y el check-in diario`, wide: true,
+    title: 'Tienda de decoración', sub: `Tienes <b style="color:var(--y)">${me.coins}</b> monedas · <b>gratis dentro de tu oficina</b>, con monedas en las áreas comunes · las oficinas de otros no se tocan`, wide: true,
     body: cats.map(c => `<label class="lbl">${esc(c)}</label><div class="shop">${items.filter(i => i.category === c).map(i => `<button class="si ${me.coins < i.price ? 'na' : ''}" data-i="${esc(i.item)}"><span data-cv="${esc(i.item)}"></span><b>${esc(i.name)}</b><span class="pr"><i class="coin"></i>${i.price}</span></button>`).join('')}</div>`).join('') || '<div class="empty">La tienda está vacía.</div>',
     foot: `<button class="btn" id="sh-move">Mover / quitar mi decoración</button>`
   });
   mo.querySelectorAll('[data-cv]').forEach(s => s.appendChild(A.drawItem(s.dataset.cv)));
   mo.querySelectorAll('[data-i]').forEach(b => b.onclick = () => {
     const c = items.find(i => i.item === b.dataset.i);
-    if (me.coins < c.price) { RO.sfx.err(); return UI.toast('Te faltan ' + (c.price - me.coins) + ' monedas', 'err'); }
+    if (me.coins < c.price && !Wd().officeRect(me.slot, RO.S.config)) { RO.sfx.err(); return UI.toast('Te faltan ' + (c.price - me.coins) + ' monedas', 'err'); }
     UI.close(); UI.startEdit({ mode: 'place', item: c.item, buy: true, price: c.price, name: c.name });
   });
   mo.querySelector('#sh-move').onclick = () => { UI.close(); UI.startEdit({ mode: 'move' }); };
@@ -642,10 +642,12 @@ RO.on('edit:place', async (item, x, y) => {
       await RO.Net.moveDecor(e.moveId, x, y);
       const d = Object.assign({}, e.restore, { x, y }); e.restore = null; RO.S.decor = RO.S.decor.filter(z => z.id !== d.id).concat([d]);
     } else if (e.buy) {
-      const r = await RO.Net.buy(item, x, y);
-      if (!r || !r.ok) { UI.toast(r && r.reason === 'saldo' ? 'No te alcanzan las monedas' : 'No se pudo comprar', 'err'); return UI.endEdit(); }
+      const mine = Wd().officeRect(RO.S.me.slot, RO.S.config), inMine = mine && x >= mine.x0 && x <= mine.x1 && y >= mine.y0 && y <= mine.y1;
+      const r = inMine ? await RO.Net.placeOwn(item, x, y) : await RO.Net.buy(item, x, y);
+      if (!r || !r.ok) { UI.toast(r && r.reason === 'saldo' ? 'No te alcanzan las monedas (en tu oficina es gratis)' : 'No se pudo colocar', 'err'); return UI.endEdit(); }
       if (!RO.S.decor.find(z => z.id === r.decor.id)) RO.S.decor.push(r.decor);
-      RO.S.me.coins = r.coins; UI.renderTop(); RO.sfx.coin();
+      if (r.coins != null) RO.S.me.coins = r.coins; UI.renderTop(); RO.sfx.coin();
+      if (inMine) UI.toast('Puesto en tu oficina · gratis');
       RO.Net.send({ t: 'emote', u: RO.S.me.user_id, e: '🛍️' });
     } else {
       const d = await RO.Net.placeFree(item, x, y); if (d && !RO.S.decor.find(z => z.id === d.id)) RO.S.decor.push(d);
@@ -655,8 +657,9 @@ RO.on('edit:place', async (item, x, y) => {
   UI.endEdit();
 });
 RO.on('edit:pick', d => {
-  const mine = d.placed_by === RO.S.me.user_id;
-  if (!mine && !RO.isAdmin()) return UI.toast('Solo quien lo puso (o un admin) lo puede mover', 'err');
+  const r = Wd().officeRect(RO.S.me.slot, RO.S.config), inMine = r && d.x >= r.x0 && d.x <= r.x1 && d.y >= r.y0 && d.y <= r.y1;
+  const mine = d.placed_by === RO.S.me.user_id || inMine;
+  if (!mine && !RO.isAdmin()) return UI.toast('Solo quien lo puso, el dueño de la oficina o un admin lo pueden mover', 'err');
   const it = A.ITEMS[d.item];
   const mo = UI.modal({ title: esc(it.name || d.item), sub: 'Puesto por ' + esc(RO.nameOf(d.placed_by)), body: '<p class="muted">¿Qué quieres hacer?</p>', foot: `<button class="btn red" data-a="del">Quitar</button><button class="btn y" data-a="mv">Mover</button>` });
   mo.querySelector('[data-a="mv"]').onclick = () => {
@@ -826,6 +829,34 @@ UI.minimap = () => {
   cv.onclick = e => { const r = cv.getBoundingClientRect(); const x = Math.floor((e.clientX - r.left) / r.width * cv.width / s), y = Math.floor((e.clientY - r.top) / r.height * cv.height / s); const sc = RO.G.scene; if (!sc || (y >= 39 && !sc.vipSeen) || (y >= 54 && !sc.clubSeen)) return; RO.G.goToSpot(x, y); };
 };
 
+/* ════════════ MI OFICINA (cada quien edita la suya) ════════════ */
+const Wd = () => RO.World;
+UI.myOffice = () => {
+  const me = RO.S.me, o = (RO.S.config.offices || []).find(z => z.slot === me.slot);
+  if (!o) return UI.toast('Todavía no tienes oficina asignada. Pídesela a un admin.', 'err');
+  let theme = o.theme || 'madera', bare = !!o.bare;
+  const mo = UI.modal({
+    title: 'Mi oficina', sub: 'Solo tú (y los admins) pueden cambiarla. Decorarla es gratis.',
+    body: `<label class="lbl">nombre en la puerta</label><input class="in" id="mo-t" maxlength="24" value="${esc(o.title || '')}" placeholder="Oficina de ${esc(me.display_name)}">
+      <label class="lbl">piso y paredes</label><div class="chips" id="mo-th">${Object.entries(RO.THEMES).map(([k, t]) => `<button data-v="${k}" class="${theme === k ? 'on' : ''}"><i style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${t.a};margin-right:6px;vertical-align:-1px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)"></i>${esc(t.name)}</button>`).join('')}</div>
+      <label class="lbl">muebles base</label><div class="chips" id="mo-b"><button data-v="0" class="${bare ? '' : 'on'}">Completa (sofá, estantería, plantas…)</button><button data-v="1" class="${bare ? 'on' : ''}">Mínima (solo escritorio)</button></div>
+      <p class="muted" style="margin-top:14px;font-size:12.5px;line-height:1.5">Con "Decorar" eliges cualquier artículo de la tienda y lo pones gratis dentro de tu oficina. También puedes decorar las áreas comunes (con monedas), pero no las oficinas de otros.</p>`,
+    foot: `<button class="btn" id="mo-mv">Mover / quitar</button><button class="btn" id="mo-dec">Decorar</button><span class="sp"></span><button class="btn y" id="mo-save">Guardar</button>`
+  });
+  mo.querySelector('#mo-th').onclick = e => { const b = e.target.closest('button'); if (!b) return; theme = b.dataset.v; mo.querySelectorAll('#mo-th button').forEach(x => x.classList.toggle('on', x === b)); };
+  mo.querySelector('#mo-b').onclick = e => { const b = e.target.closest('button'); if (!b) return; bare = b.dataset.v === '1'; mo.querySelectorAll('#mo-b button').forEach(x => x.classList.toggle('on', x === b)); };
+  mo.querySelector('#mo-save').onclick = async () => {
+    const title = mo.querySelector('#mo-t').value.trim();
+    try {
+      await RO.Net.updateMyOffice(title, theme, bare);
+      Object.assign(o, { title, theme, bare }); RO.G.rebuild(); UI.close(); UI.toast('Oficina actualizada'); RO.sfx.coin();
+      const p = RO.G.mePos(); if (p) UI.setRoom(RO.World.roomName(p.room, RO.S.config));
+    } catch (e) { err(e); }
+  };
+  mo.querySelector('#mo-dec').onclick = () => { UI.close(); UI.shop(); };
+  mo.querySelector('#mo-mv').onclick = () => { UI.close(); UI.startEdit({ mode: 'move' }); };
+};
+
 /* panel lateral: se puede esconder para ver más mapa */
 UI.togglePanel = force => {
   const side = $('#side'), hide = force != null ? force : !side.classList.contains('collapsed');
@@ -850,6 +881,7 @@ UI.initHud = () => {
     else if (a === 'zin') RO.G.zoom(1);
     else if (a === 'zout') RO.G.zoom(-1);
     else if (a === 'panel') UI.togglePanel();
+    else if (a === 'myoffice') UI.myOffice();
     else if (a === 'logout') RO.emit('logout');
     else if (a === 'emergency') UI.emergency();
     else if (a === 'boost') UI.boost();
