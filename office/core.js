@@ -307,7 +307,7 @@ const Demo = {
   _db_ev(t, type, nw, old) { this.bc && this.bc.postMessage({ k: 'db', t, type, nw, old }); this.H && this.H.onDb(t, type, nw, old); },
   async session() { const u = sessionStorage.getItem('ro_demo_uid'); return u ? { user: { id: u, email: u + '@demo' } } : null; },
   async signIn(email) {
-    let n = String(email || '').toLowerCase().split('@')[0].replace(/[^a-z]/g, ''); if (n === 'jesus') n = 'yo'; else if (n === 'rueddaco') n = 'ivan';
+    let n = String(email || '').toLowerCase().split('@')[0].replace(/[^a-z]/g, ''); if (n === 'clubdemonopolio') n = 'yo';
     const p = DEMO_PEOPLE.find(x => x.user_id === 'u-' + n) || DEMO_PEOPLE.find(x => x.display_name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '') === n);
     if (!p) throw new Error('Usuario no autorizado');
     sessionStorage.setItem('ro_demo_uid', p.user_id);
@@ -391,7 +391,7 @@ const Demo = {
     ch.forEach(m => this._db_ev('office_members', 'UPDATE', m));
   },
   async removeMember(uid) { this._mut(d => { d.members = d.members.filter(m => m.user_id !== uid); }); this._db_ev('office_members', 'DELETE', null, { user_id: uid }); },
-  async listAccounts() { const d = this._db(); return d.accounts || (d.accounts = [{ username: 'jesus', display_name: 'Jesús', slot: 'yo', cargo: 'Dirección', is_admin: true, active: true }, { username: 'ruben', display_name: 'Rubén', slot: 'ruben', cargo: 'Socio', is_admin: false, active: true }, { username: 'rueddaco', display_name: 'Iván', slot: 'ivan', cargo: 'Socio', is_admin: false, active: true }, { username: 'felipe', display_name: 'Felipe', slot: 'felipe', cargo: 'Socio', is_admin: false, active: true }]); },
+  async listAccounts() { const d = this._db(); return d.accounts || (d.accounts = [{ username: 'clubdemonopolio', display_name: 'Jesús', slot: 'yo', cargo: 'Dirección', is_admin: true, active: true }, { username: 'ruben', display_name: 'Rubén', slot: 'ruben', cargo: 'Socio', is_admin: false, active: true }, { username: 'ivan', display_name: 'Iván', slot: 'ivan', cargo: 'Socio', is_admin: false, active: true }, { username: 'felipe', display_name: 'Felipe', slot: 'felipe', cargo: 'Socio', is_admin: false, active: true }]); },
   async upsertAccount(u, name, slot, cargo, admin, active) { const list = await this.listAccounts(); this._mut(d => { d.accounts = list.filter(a => a.username !== u).concat([{ username: u, display_name: name || u, slot: slot || null, cargo: cargo || 'Equipo Ruedda', is_admin: !!admin, active: active !== false }]); }); },
   async deleteAccount(u) { const list = await this.listAccounts(); this._mut(d => { d.accounts = list.filter(a => a.username !== u); }); },
   async findUsers(q) { q = String(q || '').replace(/^@/, '').toLowerCase(); return [{ id: 'u-enrique', nombre: 'Enrique', username: 'enrique', email: 'enrique@demo', role: 'particular' }, { id: 'u-maria', nombre: 'María', username: 'maria', email: 'maria@demo', role: 'particular' }].concat(DEMO_PEOPLE.map(p => ({ id: p.user_id, nombre: p.display_name, username: p.slot, email: p.slot + '@demo' }))).filter(u => (u.username + u.nombre).toLowerCase().includes(q)); },

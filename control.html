@@ -415,7 +415,8 @@ const VIEWS=[
   {h:'Ajustes'},
   {id:'apariencia',t:'Apariencia',i:'car',s:'Banners, Encuentra, intro, logos e insignias'},
   {id:'actualizacion',t:'Actualización de la app',i:'upd',s:'Aviso para que actualicen la app de iPhone, con sus novedades'},
-  {id:'configuracion',t:'Configuración',i:'pay',s:'Datos de pago e historia de Ruedda'}
+  {id:'configuracion',t:'Configuración',i:'pay',s:'Datos de pago e historia de Ruedda'},
+  {id:'office',t:'Ruedda Office',i:'users',s:'Oficina virtual del equipo: usuarios autorizados, quién está, visitas y actividad'}
 ];
 function buildNav(){
   $('#nav').innerHTML=VIEWS.map(v=>v.h?`<div class="nav-h">${v.h}</div>`:`<a href="#/${v.id}" data-v="${v.id}">${ico(v.i)}<span>${v.t}</span>${v.b?`<span class="badge zero" data-b="${v.b}">0</span>`:''}</a>`).join('')
@@ -1283,6 +1284,66 @@ async function badgeUp(level){ const f=await pickFile('image/png,image/svg+xml')
   }catch(e){ toast('error: '+e.message,true); } }
 
 /* ── CONFIGURACIÓN: datos de pago + historia ── */
+/* ════════════ RUEDDA OFFICE (ruedda.app/office) ════════════ */
+const OFF_ROOMS={pasillo:'Pasillo',juntas:'Sala de juntas',lobby:'Recepción',creativa:'Sala creativa',ocio:'Zona de ocio',terraza:'Terraza',garage:'El Garage',club:'Club privado'};
+let OFF={};
+RENDER.office=async(tok,_,soft)=>{
+  const V=$('#view'); if(!soft) V.innerHTML='<div class="card"><div style="padding:18px"><div class="skel" style="height:40px"></div></div></div>';
+  const d7=new Date(Date.now()-7*DAY).toISOString();
+  const [acc,mem,pos,ev,chat,cfg]=await Promise.all([
+    sb.rpc('office_accounts_list'),
+    sb.from('office_members').select('user_id,slot,display_name,cargo,is_admin,points,coins,created_at'),
+    sb.from('office_positions').select('user_id,room,updated_at'),
+    sb.from('office_events').select('id,kind,actor,payload,created_at').order('created_at',{ascending:false}).limit(300),
+    sb.from('office_chat').select('id,author,body,created_at').gte('created_at',d7).order('created_at',{ascending:false}).limit(300),
+    sb.from('office_config').select('data').eq('id',1).maybeSingle()
+  ]);
+  if(stale(tok)) return;
+  if(acc.error){ V.innerHTML=`<div class="notice">Ruedda Office todavía no está instalada o falta actualizarla: corre en Supabase el SQL <code>office_migration.sql</code> (se puede repetir sin problema).<br><span class="muted">${esc(acc.error.message)}</span></div>`; return; }
+  const A=acc.data||[], M=mem.data||[], P=pos.data||[], E=ev.data||[], C=chat.data||[], CF=(cfg.data&&cfg.data.data)||{};
+  const offices=CF.offices||[{slot:'yo',name:'Dirección',pos:0},{slot:'ruben',name:'Rubén',pos:1},{slot:'ivan',name:'Iván',pos:2},{slot:'felipe',name:'Felipe',pos:3}];
+  const mOf=uid=>M.find(m=>m.user_id===uid), nm=uid=>{const m=mOf(uid);return m?m.display_name:'—';};
+  const accOf=uid=>A.find(a=>a.user_id===uid);
+  const posOf=uid=>P.find(p=>p.user_id===uid);
+  const online=uid=>{const p=posOf(uid);return p&&Date.now()-new Date(p.updated_at).getTime()<45000;};
+  const roomName=r=>{ if(!r) return '—'; if(/^off\d$/.test(r)){const o=offices.find(z=>z.pos===+r.slice(3)); const m=o&&M.find(x=>x.slot===o.slot); return o?(o.title||'Oficina de '+(m?m.display_name:o.name)):'Oficina';} return (CF.rooms&&CF.rooms[r])||OFF_ROOMS[r]||r; };
+  const visits=E.filter(e=>e.kind==='visit'), sod=startOfDay().getTime();
+  const vCount={}, vLast={}; visits.forEach(v=>{vCount[v.actor]=(vCount[v.actor]||0)+1; if(!vLast[v.actor]) vLast[v.actor]=v.created_at;});
+  OFF={offices};
+  const slotOpts=sel=>`<option value="">— sin oficina —</option>`+offices.slice().sort((a,b)=>a.pos-b.pos).map(o=>`<option value="${esc(o.slot)}" ${o.slot===sel?'selected':''}>${esc(o.title||o.name||o.slot)}</option>`).join('');
+  const K=(l,v,d)=>`<div class="card kpi"><div class="l">${l}</div><div class="v num">${v}</div><div class="d">${d}</div></div>`;
+  const onl=M.filter(m=>online(m.user_id));
+  const EV={emergency:'convocó una reunión de emergencia',boost:'aceleró el proyecto',deal:'tocó la campana de ventas',buy:'compró decoración',board_clear:'borró la pizarra',vip:'abrió el pasadizo del garage','award:checkin':'hizo check-in','award:highfive':'chocó los cinco','award:note':'dejó un post-it','award:whiteboard':'dibujó en la pizarra','award:coffee':'pidió café','award:arcade':'jugó arcade'};
+  const evTxt=e=>{let t=EV[e.kind]||e.kind; const p=e.payload||{}; if(e.kind==='deal'&&p.text) t+=': '+esc(p.text); if(e.kind==='buy'&&p.name) t+=': '+esc(p.name); if(e.kind==='boost'&&p.points) t+=' (+'+p.points+' pts)'; return t;};
+  const acts=[...E.filter(e=>e.kind!=='visit').map(e=>({t:e.created_at,u:e.actor,h:evTxt(e)})),...C.map(c=>({t:c.created_at,u:c.author,h:'escribió en el chat: <span class="muted">“'+esc(String(c.body).slice(0,120))+'”</span>'}))].sort((a,b)=>new Date(b.t)-new Date(a.t)).slice(0,60);
+  V.innerHTML=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px"><a class="btn btn-primary" href="https://www.ruedda.app/office" target="_blank" rel="noopener">Abrir Ruedda Office</a></div>
+    <div class="grid g4">${K('Usuarios autorizados',n(A.filter(a=>a.active!==false).length),`${n(A.length)} en total`)+K('En la oficina ahora',n(onl.length),onl.map(m=>esc(m.display_name)).join(', ')||'nadie conectado')+K('Visitas hoy',n(visits.filter(v=>new Date(v.created_at).getTime()>=sod).length),`${n(visits.length)} registradas`)+K('Mensajes de chat · 7 días',n(C.length),C[0]?'último '+ago(C[0].created_at):'sin mensajes')}</div>
+    <div style="margin-top:14px">${card('Usuarios autorizados','Entran escribiendo solo su usuario en ruedda.app/office. Nombre, cargo y oficina se aplican la primera vez que entran.',`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Usuario</th><th>Nombre</th><th>Cargo</th><th>Oficina</th><th>Admin</th><th>Activo</th><th>Visitas</th><th>Última visita</th><th class="r"></th></tr></thead><tbody>
+      ${A.map(a=>`<tr data-u="${esc(a.username)}"><td><b class="num">${esc(a.username)}</b>${a.user_id&&online(a.user_id)?' <span class="pill g">en línea</span>':''}</td>
+        <td><input class="input" style="height:34px" data-f="name" value="${esc(a.display_name)}"></td><td><input class="input" style="height:34px" data-f="cargo" value="${esc(a.cargo)}"></td>
+        <td><select class="input" style="height:34px" data-f="slot">${slotOpts(a.slot)}</select></td>
+        <td><input type="checkbox" data-f="admin" ${a.is_admin?'checked':''}></td><td><input type="checkbox" data-f="active" ${a.active!==false?'checked':''}></td>
+        <td class="num">${n(vCount[a.user_id]||0)}</td><td class="muted">${a.user_id&&vLast[a.user_id]?ago(vLast[a.user_id]):'nunca'}</td>
+        <td class="r" style="white-space:nowrap"><button class="btn btn-soft" onclick="offAccSave(this)">Guardar</button> <button class="btn btn-red" onclick="offAccDel(this)">Quitar</button></td></tr>`).join('')}
+      <tr><td><input class="input" style="height:34px" id="oa-u" placeholder="usuario nuevo"></td><td><input class="input" style="height:34px" id="oa-n" placeholder="nombre"></td><td><input class="input" style="height:34px" id="oa-c" placeholder="cargo"></td><td><select class="input" style="height:34px" id="oa-s">${slotOpts('')}</select></td><td><input type="checkbox" id="oa-a"></td><td></td><td></td><td></td><td class="r"><button class="btn btn-primary" onclick="offAccAdd(this)">Autorizar</button></td></tr>
+      </tbody></table></div>`)}</div>
+    <div class="grid g2" style="margin-top:14px">
+      ${card('Quién está y dónde','Sala actual y última vez que se le vio',`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Persona</th><th>Estado</th><th>Sala</th><th>Visto</th><th class="r">Puntos</th></tr></thead><tbody>${M.map(m=>{const p=posOf(m.user_id),on=online(m.user_id),a=accOf(m.user_id);return `<tr><td><b>${esc(m.display_name)}</b><div class="muted" style="font-size:12px">${esc(m.cargo||'')}${a?' · '+esc(a.username):''}</div></td><td>${on?'<span class="pill g">en línea</span>':'<span class="pill">fuera</span>'}</td><td>${esc(roomName(p&&p.room))}</td><td class="muted">${p?ago(p.updated_at):'—'}</td><td class="r num">${n(m.points||0)}</td></tr>`;}).join('')||'<tr><td colspan="5" class="muted">Nadie ha entrado todavía.</td></tr>'}</tbody></table></div>`)}
+      ${card('Visitas','Cada vez que alguien entra a la oficina',visits.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Quién</th><th>Cuándo</th><th></th></tr></thead><tbody>${visits.slice(0,40).map(v=>`<tr><td><b>${esc(nm(v.actor))}</b></td><td>${fdate(v.created_at)}</td><td class="muted">${ago(v.created_at)}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin visitas registradas','Aparecen aquí desde que alguien entra a la oficina.'))}
+    </div>
+    <div style="margin-top:14px">${card('Qué hacen','Chat, campana de ventas, reuniones, pizarra, compras y más (los post-its son privados y no se muestran)',acts.length?`<div class="feed">${acts.map(x=>`<div class="fe" style="padding:8px 0;border-bottom:1px solid var(--line)"><b>${esc(nm(x.u))}</b> ${x.h} <span class="muted" style="font-size:12px">· ${ago(x.t)}</span></div>`).join('')}</div>`:empty('Sin actividad todavía',''))}</div>`;
+};
+function offRow(btn){const tr=btn.closest('tr'),g=f=>tr.querySelector(`[data-f="${f}"]`);return {u:tr.dataset.u,name:g('name').value.trim(),cargo:g('cargo').value.trim(),slot:g('slot').value,admin:g('admin').checked,active:g('active').checked};}
+async function offAccSave(btn){ const r=offRow(btn); btn.disabled=true;
+  const{error}=await sb.rpc('office_account_upsert',{p_username:r.u,p_name:r.name,p_slot:r.slot,p_cargo:r.cargo,p_admin:r.admin,p_active:r.active});
+  btn.disabled=false; if(error) return toast('error: '+error.message,true); toast('usuario '+r.u+' guardado'); }
+async function offAccDel(btn){ const r=offRow(btn); if(!confirm('¿Quitar el acceso de '+r.u+' a Ruedda Office?')) return; btn.disabled=true;
+  const{error}=await sb.rpc('office_account_delete',{p_username:r.u}); if(error){btn.disabled=false;return toast('error: '+error.message,true);} toast('acceso quitado'); RENDER.office(VIEW_TOKEN,[],true); }
+async function offAccAdd(btn){ const u=$('#oa-u').value.trim().replace(/^@+/,'').toLowerCase();
+  if(!/^[a-z0-9._-]{2,40}$/.test(u)) return toast('usuario inválido: letras, números, punto o guion',true); btn.disabled=true;
+  const{error}=await sb.rpc('office_account_upsert',{p_username:u,p_name:$('#oa-n').value.trim(),p_slot:$('#oa-s').value,p_cargo:$('#oa-c').value.trim(),p_admin:$('#oa-a').checked,p_active:true});
+  btn.disabled=false; if(error) return toast('error: '+error.message,true); toast('autorizado: '+u); RENDER.office(VIEW_TOKEN,[],true); }
+
 RENDER.configuracion=async(tok)=>{
   const [{data:pd},{data:hi}]=await Promise.all([sb.from('app_settings').select('value').eq('key','payment_data').maybeSingle(),sb.from('historia_app').select('id,content').limit(1)]);
   if(stale(tok)) return;

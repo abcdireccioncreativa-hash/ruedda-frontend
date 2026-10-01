@@ -119,6 +119,7 @@ function afterEnter() {
   setTimeout(() => UI.pendingNotesNotice(), 900);
   RO.Net.award('checkin').then(r => { if (r && r.ok) setTimeout(() => UI.toast('☀️ Check-in del día: +' + r.amount + ' pts'), 2200); }).catch(() => {});
   RO.Net.send({ t: 'hello', u: S.me.user_id });
+  RO.Net.logEvent('visit', {}).catch(() => {});   // visible en Ruedda Control → Ruedda Office
   track();
   setInterval(track, 20000);
   // red de seguridad: refresca la lista de miembros cada 30 s
