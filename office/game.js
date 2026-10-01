@@ -20,7 +20,7 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 addEventListener('blur', () => keys.clear());
 
-const ZL = [1, 1.5, 2, 3, 4];
+const ZL = [2, 3, 4, 5];
 const DIR_ROW = { down: 0, left: 1, right: 2, up: 3 };
 const WALK = [1, 2, 3, 0];
 const tf = {};
@@ -72,7 +72,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
 
     this.makeNpc();
     this.makeDancers();
-    if (RO.S.config.vip_open) this.openSecret(true, true);
+    if (RO.S.config.vip_open !== false && RO.S.config.vip_enabled !== false) this.openVip();
 
     // mouse: clic para caminar / modo edición
     this.input.on('pointerdown', p => this.onPointer(p, true));
@@ -88,15 +88,15 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   }
 
   zoomPref() {
-    let z = 0; try { z = +localStorage.getItem('ro_zoom2') || 0; } catch (e) {}
+    let z = 0; try { z = +localStorage.getItem('ro_zoom') || 0; } catch (e) {}
     if (!ZL.includes(z)) z = innerWidth < 1300 ? 2 : 3;
     return z;
   }
   zoomStep(d) {
-    const cam = this.cameras.main, i = ZL.indexOf(cam.zoom), n = ZL[RO.clamp((i < 0 ? 3 : i) + d, 0, ZL.length - 1)];
+    const cam = this.cameras.main, i = ZL.indexOf(cam.zoom), n = ZL[RO.clamp((i < 0 ? 1 : i) + d, 0, ZL.length - 1)];
     if (n === cam.zoom) return;
     cam.setZoom(n); this.applyBounds();
-    try { localStorage.setItem('ro_zoom2', n); } catch (e) {}
+    try { localStorage.setItem('ro_zoom', n); } catch (e) {}
     RO.emit('zoom', n);
   }
   // la cámara puede correrse lo suficiente para que el HUD (barra de arriba y panel derecho) no tape el mapa
@@ -104,8 +104,10 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     const cam = this.cameras.main, z = cam.zoom;
     const side = document.getElementById('side');
     const sideW = side && !side.classList.contains('collapsed') ? side.offsetWidth + 24 : 12;
+    const chat = document.getElementById('chat');
+    const bottom = chat ? chat.offsetHeight + 24 : 12;   // el borde de abajo queda visible por encima del chat
     const top = 76, pad = 12;
-    cam.setBounds(-pad / z, -top / z, Wd.W * T + (pad + sideW) / z, Wd.H * T + (top + pad) / z);
+    cam.setBounds(-pad / z, -top / z, Wd.W * T + (pad + sideW) / z, Wd.H * T + (top + bottom) / z);
     cam.setFollowOffset(-(sideW - pad) / 2 / z, (top - pad) / 2 / z);
   }
   officeOf(slot) { const o = (RO.S.config.offices || []).find(z => z.slot === slot); return o ? o.pos : null; }
@@ -528,6 +530,13 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   interact() { if (this.hint) RO.emit('interact', this.hint); }
 
   /* ════════════ CLUB PRIVADO ════════════ */
+  // garage y club abiertos y visibles desde el inicio
+  openVip() {
+    this.openSecret(true, true);
+    this.vipSeen = true; this.clubSeen = true;
+    if (this.fog) { this.fog.destroy(); this.fog = null; }
+    if (this.fogClub) { this.fogClub.destroy(); this.fogClub = null; }
+  }
   revealClub() {
     if (this.clubSeen) return; this.clubSeen = true;
     if (this.fogClub) this.tweens.add({ targets: this.fogClub, alpha: 0, duration: 900, onComplete: () => { this.fogClub.destroy(); this.fogClub = null; } });
@@ -784,6 +793,13 @@ G.inOtherOffice = (x, y) => S() ? S().inOtherOffice(x, y) : true;
 G.zoom = d => S() && S().zoomStep(d);
 G.zoomLevel = () => S() ? S().cameras.main.zoom : 3;
 G.layout = () => S() && S().applyBounds();
+G.goVip = where => {
+  const s = S(); if (!s) return;
+  if (RO.S.config.vip_enabled === false) return RO.emit('toast', 'El garage está deshabilitado por un admin');
+  s.openVip();
+  const [x, y] = where === 'club' ? [28, 64] : [28, 46];
+  s.teleport((x + .5) * T, (y + .7) * T, 'down');
+};
 G.moneyRain = () => S() && S().moneyRain();
 G.drop = () => { const s = S(); if (!s) return; if (RO.music) RO.music.boost(); s.beat(true); s.cameras.main.shake(300, 0.002); };
 

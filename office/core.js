@@ -81,7 +81,8 @@ RO.DEFAULT_CONFIG = {
   motd: 'Centro virtual de oficinas de Ruedda Ecosystem.',
   boost_cooldown_min: 10,
   boost_points: 15,
-  vip_enabled: true
+  vip_enabled: true,
+  vip_open: true
 };
 
 RO.THEMES = {

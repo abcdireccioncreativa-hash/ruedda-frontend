@@ -211,7 +211,7 @@ let chatUnread = 0;
 UI.initChat = () => {
   const log = $('#ch-log'), form = $('#ch-form'), input = $('#ch-input'), box = $('#chat');
   try { if (localStorage.getItem('ro_chat_min') === '1') box.classList.add('min'); } catch (e) {}
-  $('.ch-h').onclick = e => { box.classList.toggle('min'); chatUnread = 0; UI.renderChatBadge(); try { localStorage.setItem('ro_chat_min', box.classList.contains('min') ? '1' : '0'); } catch (x) {} if (!box.classList.contains('min')) log.scrollTop = log.scrollHeight; };
+  $('.ch-h').onclick = e => { box.classList.toggle('min'); setTimeout(() => RO.G.layout(), 30); chatUnread = 0; UI.renderChatBadge(); try { localStorage.setItem('ro_chat_min', box.classList.contains('min') ? '1' : '0'); } catch (x) {} if (!box.classList.contains('min')) log.scrollTop = log.scrollHeight; };
   form.onsubmit = async e => {
     e.preventDefault(); const t = input.value.trim(); if (!t) { input.blur(); return; }
     input.value = '';
@@ -317,8 +317,7 @@ RO.on('key', (k, e) => {
   else if (k === 'h') { const h = RO.G.scene && RO.G.scene.hint; if (h && h.kind === 'player') UI.hi5(h.uid); }
   else if (EMOTES[k]) { RO.G.bubbleMe(EMOTES[k]); RO.Net.send({ t: 'emote', u: RO.S.me.user_id, e: EMOTES[k] }); }
   else if (k === 'n') UI.notesInbox();
-  else if (k === '-' || k === '_') RO.G.zoom(-1);
-  else if (k === '+' || k === '=') RO.G.zoom(1);
+
 });
 
 /* chocar los cinco: los dos tienen que presionar H en 4 s */
@@ -791,7 +790,7 @@ UI.help = () => UI.modal({
     <div><kbd class="k2">Enter</kbd></div><div>Escribir en el chat global</div>
     <div><kbd class="k2">1</kbd>–<kbd class="k2">8</kbd></div><div>Emotes 👍 😂 🔥 ☕ 🚗 💸 🙌 👀</div>
     <div><kbd class="k2">N</kbd></div><div>Mis notas</div>
-    <div><kbd class="k2">Rueda</kbd><kbd class="k2">−</kbd><kbd class="k2">+</kbd></div><div>Zoom (5 niveles; aleja para ver más mapa)</div>
+    <div><kbd class="k2">Rueda</kbd></div><div>Zoom</div>
     <div><kbd class="k2">Esc</kbd></div><div>Cerrar</div>
   </div><p class="muted" style="margin-top:16px;line-height:1.5;font-size:12.5px">Dicen que detrás de alguna estantería de la zona de ocio hay algo… exagerado.</p>`,
   foot: `<button class="btn" id="hp-n">Activar notificaciones</button>`
@@ -882,6 +881,8 @@ UI.initHud = () => {
     else if (a === 'zout') RO.G.zoom(-1);
     else if (a === 'panel') UI.togglePanel();
     else if (a === 'myoffice') UI.myOffice();
+    else if (a === 'garage') RO.G.goVip('garage');
+    else if (a === 'club') RO.G.goVip('club');
     else if (a === 'logout') RO.emit('logout');
     else if (a === 'emergency') UI.emergency();
     else if (a === 'boost') UI.boost();
@@ -890,8 +891,7 @@ UI.initHud = () => {
   });
   UI.initStatus(); UI.initChat(); UI.minimap();
   try { if (localStorage.getItem('ro_panel') === '0') UI.togglePanel(true); } catch (e) {}
-  const zl = () => { const el = $('#zoom-l'); if (el) el.textContent = RO.G.zoomLevel() + '×'; };
-  RO.on('zoom', zl); zl();
+
   UI.renderTop(); UI.renderPeople(); UI.renderFeed(); renderClocks();
   setInterval(() => { UI.renderPeople(); UI.renderFeed(); }, 20000);
 };

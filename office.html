@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 <link rel="preload" href="/assets/ruedda-wordmark-negro.png" as="image">
-<link rel="stylesheet" href="/office/office.css?v=5">
+<link rel="stylesheet" href="/office/office.css?v=7">
 </head>
 <body>
 
@@ -121,6 +121,7 @@
         <button class="act red" data-act="emergency"><b>Reunión de emergencia</b><span>Todos a la sala de juntas</span></button>
         <button class="act y" data-act="boost"><b>Acelerar proyecto</b><span id="boost-sub">Puntos para todo el equipo</span></button>
         <button class="act" data-act="summon"><b>Convocar a mi oficina</b><span>Invita al equipo a tu oficina</span></button>
+        <div class="row" style="gap:6px"><button class="act" data-act="garage" style="flex:1"><b style="color:#ff9ec7">El Garage</b><span>Autos y Valentina</span></button><button class="act" data-act="club" style="flex:1"><b style="color:#ff9ec7">El Club</b><span>Pole dance</span></button></div>
       </div>
     </div>
     <div class="sd-sec grow">
@@ -137,7 +138,6 @@
 
   <div id="hint" class="hidden"></div>
   <div id="edit-bar" class="glass hidden"></div>
-  <div id="zoom" class="glass"><button data-act="zin" title="Acercar (+)">+</button><span id="zoom-l" class="mono">3×</span><button data-act="zout" title="Alejar (−)">−</button></div>
   <canvas id="minimap" class="glass" width="171" height="210" title="Clic para ir"></canvas>
   <div id="banner"></div>
 </section>
@@ -147,12 +147,12 @@
 <div id="flash"></div>
 
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
-<script src="/office/core.js?v=5"></script>
-<script src="/office/art.js?v=5"></script>
-<script src="/office/world.js?v=5"></script>
-<script src="/office/game.js?v=5"></script>
-<script src="/office/ui.js?v=5"></script>
-<script src="/office/admin.js?v=5"></script>
-<script src="/office/main.js?v=5"></script>
+<script src="/office/core.js?v=7"></script>
+<script src="/office/art.js?v=7"></script>
+<script src="/office/world.js?v=7"></script>
+<script src="/office/game.js?v=7"></script>
+<script src="/office/ui.js?v=7"></script>
+<script src="/office/admin.js?v=7"></script>
+<script src="/office/main.js?v=7"></script>
 </body>
 </html>

@@ -96,11 +96,17 @@ function drawChar(av, dir, step) {
   const skin = av.skin, skinD = shade(skin, -.18), hairC = av.hairColor, hairD = shade(hairC, -.25), hairL = shade(hairC, .18);
   const top = av.top, topD = shade(top, -.22), topL = shade(top, .15), bot = av.bottom, botD = shade(bot, -.25), shoe = av.shoes;
   const dress = av.outfit === 'vestido';
+  const bikini = av.outfit === 'bikini';
   const bob = step ? 1 : 0;       // el cuerpo baja 1 px al dar el paso
   const oy = bob;
 
   /* piernas */
-  if (dir === 'down' || dir === 'up') {
+  if (bikini) {
+    const L = step === 1 ? -1 : 0, R = step === 2 ? -1 : 0;
+    if (dir === 'down' || dir === 'up') { k.r(5, 18, 3, 4 + L, skin).r(8, 18, 3, 4 + R, skinD).r(5, 22 + L, 3, 1, shoe).r(8, 22 + R, 3, 1, shoe); }
+    else if (step === 0) { k.r(6, 18, 4, 4, skin).r(5, 22, 5, 1, shoe); }
+    else { const f = step === 1; k.r(f ? 4 : 5, 18, 3, 4, skin).r(f ? 9 : 8, 18, 3, 4, skinD).r(f ? 3 : 4, 22, 4, 1, shoe).r(f ? 9 : 8, 22, 3, 1, shoe); }
+  } else if (dir === 'down' || dir === 'up') {
     const L = step === 1 ? -1 : 0, R = step === 2 ? -1 : 0;
     if (dress) {
       k.r(6, 19 + L, 2, 3, skin).r(8, 19 + R, 2, 3, skinD);
@@ -124,7 +130,16 @@ function drawChar(av, dir, step) {
   }
 
   /* torso */
-  if (dir === 'down' || dir === 'up') {
+  if (bikini) {
+    const side = !(dir === 'down' || dir === 'up');
+    const x0 = side ? 5 : 4, w = side ? 6 : 8;
+    k.r(x0, 11 + oy, w, 7, skin).r(x0 + w - 1, 11 + oy, 1, 7, skinD);
+    if (dir === 'down') k.r(5, 12 + oy, 2, 2, top).r(9, 12 + oy, 2, 2, top).r(7, 12 + oy, 2, 1, top);
+    else k.r(x0, 12 + oy, w, 1, top).r(side ? 5 : 6, 13 + oy, side ? 3 : 4, 1, top);
+    k.r(x0, 17 + oy, w, 2, av.bottom || top).p(x0 + 1, 17 + oy, shade(av.bottom || top, .3));
+    if (side) { k.r(7, 12 + oy, 2, 4, skinD).r(7, 16 + oy, 2, 1, skin); }
+    else { const aL = step === 1 ? 1 : step === 2 ? -1 : 0; k.r(3, 12 + oy, 1, 5, skin).r(12, 12 + oy, 1, 5, skinD).r(3, 17 + oy + aL, 1, 1, skin).r(12, 17 + oy - aL, 1, 1, skinD); }
+  } else if (dir === 'down' || dir === 'up') {
     if (dress) {
       k.r(4, 11 + oy, 8, 6, top).r(4, 17 + oy, 8, 1, topD).r(3, 18 + oy, 10, 2, top).r(3, 19 + oy, 10, 1, topD);
       k.r(11, 11 + oy, 1, 6, topD);
@@ -594,9 +609,9 @@ def('bola_grande', { fw: 1, w: 24, h: 24, block: false, draw(k) {
 }});
 // bailarinas del club (pixel art de juego, vestidas)
 A.DANCERS = [
-  { skin: '#eab68f', hair: 'largo', hairColor: '#1b1410', outfit: 'vestido', top: '#e85b9c', bottom: '#e85b9c', shoes: '#111111', acc: 'cadena', beard: 'no' },
-  { skin: '#c98d63', hair: 'coleta', hairColor: '#d9b25a', outfit: 'vestido', top: '#c9ccd2', bottom: '#c9ccd2', shoes: '#e6f03b', acc: 'ninguno', beard: 'no' },
-  { skin: '#f6d3b3', hair: 'largo', hairColor: '#c2412d', outfit: 'vestido', top: '#7c3aed', bottom: '#7c3aed', shoes: '#111111', acc: 'lentes_sol', beard: 'no' }
+  { skin: '#eab68f', hair: 'largo', hairColor: '#1b1410', outfit: 'bikini', top: '#ff3d8b', bottom: '#ff3d8b', shoes: '#ff3d8b', acc: 'cadena', beard: 'no' },
+  { skin: '#c98d63', hair: 'coleta', hairColor: '#d9b25a', outfit: 'bikini', top: '#f2c230', bottom: '#f2c230', shoes: '#f2c230', acc: 'ninguno', beard: 'no' },
+  { skin: '#f6d3b3', hair: 'largo', hairColor: '#c2412d', outfit: 'bikini', top: '#a855f7', bottom: '#a855f7', shoes: '#111111', acc: 'lentes_sol', beard: 'no' }
 ];
 
 A.drawItem = (key, opts) => {
