@@ -609,8 +609,14 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
 }
 
 /* ════════════ API PARA LA UI ════════════ */
-G.start = () => new Promise(res => {
-  const once = RO.on('game:ready', () => { once(); res(); });
+G.start = () => new Promise((res, rej) => {
+  const fail = e => { cleanup(); rej(e instanceof Error ? e : new Error(String(e && e.message || e))); };
+  const onErr = ev => fail(ev.error || ev.message || 'error del motor gráfico');
+  const onRej = ev => fail(ev.reason || 'error del motor gráfico');
+  const t = setTimeout(() => fail(new Error('el motor gráfico no respondió')), 25000);
+  const cleanup = () => { clearTimeout(t); once(); removeEventListener('error', onErr); removeEventListener('unhandledrejection', onRej); };
+  const once = RO.on('game:ready', () => { cleanup(); res(); });
+  addEventListener('error', onErr); addEventListener('unhandledrejection', onRej);
   G.game = new Phaser.Game({
     type: /[?&]canvas\b/.test(location.search) ? Phaser.CANVAS : Phaser.AUTO, parent: 'phaser', backgroundColor: '#07080a',
     pixelArt: true, roundPixels: true, antialias: false,

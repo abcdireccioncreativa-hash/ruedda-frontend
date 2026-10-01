@@ -92,7 +92,12 @@ async function enter() {
       else S.members.push(S.me);
     });
     await step(0.72, 'conectando a servidores realtime', 'abriendo canal privado office:main', () => RO.Net.connect(S.me, RO.channelKey, NET));
-    await step(0.9, 'generando mundo', 'generando mundo pixel · ' + S.members.length + ' miembros', async () => { UI.WB.load(); await RO.G.start(); });
+    await step(0.9, 'generando mundo', 'generando mundo pixel · ' + S.members.length + ' miembros', async () => {
+      UI.WB.load();
+      // el contenedor debe tener tamaño real antes de crear el canvas (WebGL falla con 0×0); la intro lo tapa
+      $('#app').classList.remove('hidden');
+      await RO.G.start();
+    });
     progress(1, 'bienvenido, ' + (S.me.display_name || '').toLowerCase());
     log('presencia: ' + Math.max(1, S.online.size) + ' en línea', 'ok');
     await new Promise(r => setTimeout(r, 650));
