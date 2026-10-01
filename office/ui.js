@@ -257,7 +257,8 @@ UI.askNotify = () => { try { if ('Notification' in window && Notification.permis
 
 /* ════════════ HINT DE INTERACCIÓN ════════════ */
 const HINTS = {
-  desk: h => { const o = officeAt(h.pos), m = o && RO.memberBySlot(o.slot); if (!m) return 'Oficina libre'; return m.user_id === RO.S.me.user_id ? 'Ver mis notas' : 'Dejar un post-it a ' + esc(m.display_name); },
+  desk: h => { const o = officeAt(h.pos), m = o && RO.memberBySlot(o.slot); if (!m) return 'Oficina libre'; return m.user_id === RO.S.me.user_id ? 'Mi escritorio' : 'Dejar un post-it a ' + esc(m.display_name); },
+  seat: h => esc(h.label || 'Sentarte'), stand: () => 'Levantarte (o camina)',
   board: () => 'Abrir la pizarra general', gong: () => 'Tocar la campana de ventas', clocks: () => 'Ver los relojes',
   tv: () => 'Ver Ruedda en vivo', secret: () => 'Examinar la estantería', coffee: () => 'Servirte un café', snacks: () => 'Comprar un snack',
   arcade: () => 'Jugar arcade', pingpong: () => 'Jugar ping-pong', grill: () => 'Prender la parrilla', aquarium: () => 'Mirar la pecera',
@@ -280,7 +281,7 @@ RO.on('interact', h => {
     case 'desk': {
       const o = officeAt(h.pos), m = o && RO.memberBySlot(o.slot);
       if (!m) return UI.toast('Esta oficina está libre. Un admin la puede asignar.');
-      if (m.user_id === S.me.user_id) return UI.notesInbox();
+      if (m.user_id === S.me.user_id) return UI.deskMenu();
       return UI.composeNote(m.user_id);
     }
     case 'board': return WB.show();
@@ -302,6 +303,8 @@ RO.on('interact', h => {
       if (!RO.music.timer) { RO.music.start(); UI.toast('🎧 DJ Ruedda en vivo'); }
       else { RO.G.drop(); RO.sfx.drop(); RO.Net.send({ t: 'drop', u: S.me.user_id }); }
       RO.G.bubbleMe('🔊'); return;
+    case 'seat': RO.G.sit(h.seat); return;
+    case 'stand': RO.G.stand(); return;
     case 'npc': return RO.G.npcSay();
     case 'player': return UI.personCard(h.uid);
   }
@@ -361,6 +364,29 @@ UI.personCard = uid => {
     if (a === 'invite') UI.summon(uid);
   });
 };
+
+/* ════════════ MI ESCRITORIO ════════════ */
+UI.deskMenu = () => {
+  const un = RO.S.notes.filter(n => n.to_user === RO.S.me.user_id && !n.read_at).length;
+  const sup = RO.isAdmin();
+  const opt = (a, t, d, y) => `<button class="act ${y ? 'y' : ''}" data-a="${a}" style="width:100%;margin-bottom:8px"><b>${t}</b><span>${d}</span></button>`;
+  const mo = UI.modal({
+    title: 'Mi escritorio', sub: 'Siéntate y trabaja: tu avatar se queda en la silla mientras tanto.',
+    body: opt('sit', '🪑 Sentarme a trabajar', 'Tu estado pasa a "Ocupado" y te quedas en tu silla', true) +
+      opt('ruedda', '🚗 Abrir Ruedda', 'www.ruedda.app en otra pestaña · te quedas sentado') +
+      (sup ? opt('control', '🛠️ Abrir Ruedda Control', 'www.ruedda.app/control en otra pestaña · te quedas sentado') : '') +
+      opt('notes', '📌 Mis notas', un ? un + ' sin leer' : 'Post-its que te dejaron')
+  });
+  mo.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+    const a = b.dataset.a; UI.close();
+    if (a === 'notes') return UI.notesInbox();
+    const sat = RO.G.sitDesk();
+    if (sat) { UI._deskBusy = true; RO.S.status = 'ocupado'; RO.emit('status', 'ocupado'); RO.$$('#sd-status button').forEach(x => x.classList.toggle('on', x.dataset.s === 'ocupado')); }
+    if (a === 'ruedda') window.open('https://www.ruedda.app/', '_blank', 'noopener');
+    if (a === 'control') window.open('https://www.ruedda.app/control', '_blank', 'noopener');
+  });
+};
+RO.on('stand', () => { if (UI._deskBusy && RO.S.status === 'ocupado') { UI._deskBusy = false; RO.S.status = 'disponible'; RO.emit('status', 'disponible'); RO.$$('#sd-status button').forEach(x => x.classList.toggle('on', x.dataset.s === 'disponible')); } });
 
 /* ════════════ NOTAS (post-its) ════════════ */
 const NOTE_COLORS = ['#e6f03b', '#ffb3d4', '#9fd3ff', '#a8f0c0', '#ffd08a'];

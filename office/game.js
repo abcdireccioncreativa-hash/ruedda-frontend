@@ -131,6 +131,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     this.drawGarage();
     this.drawPostits();
     this.syncDecor();
+    this.buildSeats();
     if (!this.fog && !this.vipSeen) {
       this.fog = this.add.rectangle(0, 39 * T, Wd.W * T, (Wd.H - 39) * T, 0x07080a).setOrigin(0).setDepth(9e5);
     }
@@ -327,6 +328,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       this.decorSpr.set(id, img);
     });
     this.recalcBlocked();
+    if (this.w && this.w.seats) this.buildSeats();
   }
   recalcBlocked() {
     const b = this.baseBlocked.map(r => Uint8Array.from(r));
@@ -391,7 +393,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     const key = 'av_' + A.hash(JSON.stringify(av));
     if (!this.textures.exists(key)) {
       const t = this.textures.addCanvas(key, A.avatarSheet(av));
-      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) t.add(r + '_' + c, 0, c * 16, r * 24, 16, 24);
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 5; c++) t.add(r + '_' + c, 0, c * 16, r * 24, 16, 24);
     }
     return key;
   }
@@ -439,7 +441,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   free(x, y) { return x > 0 && y > 0 && !this.hits(x, y); }
   setFrame(p, moving, time) {
     const row = DIR_ROW[p.dir] ?? 0;
-    const col = moving ? WALK[Math.floor(time / 120) % 4] : 0;
+    const col = p.sit ? 4 : moving ? WALK[Math.floor(time / 120) % 4] : 0;
     const f = row + '_' + col; if (p._f !== f) { p.spr.setFrame(f); p._f = f; }
   }
 
@@ -455,7 +457,9 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
         if (keys.has('arrowup') || keys.has('w')) vy -= 1;
         if (keys.has('arrowdown') || keys.has('s')) vy += 1;
       }
-      if (vx || vy) { this.path = null; this.pathDone = null; this.hideMarker(); }
+      if (me.sit) {
+        if (vx || vy || (this.path && this.path.length)) { const keep = this.path; this.stand(); this.path = keep; vx = vy = 0; }
+      } else if (vx || vy) { this.path = null; this.pathDone = null; this.hideMarker(); }
       else if (this.path && this.path.length) {
         const [tx, ty] = this.path[0], gx = (tx + .5) * T, gy = (ty + .75) * T, dx = gx - me.x, dy = gy - me.y, d = Math.hypot(dx, dy);
         if (d < 2.5) { this.path.shift(); if (!this.path.length) { const f = this.pathDone; this.pathDone = null; this.hideMarker(); f && f(); } }
@@ -473,7 +477,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       me.spr.setPosition(me.x, me.y);
     }
     this.setFrame(me, moving, time);
-    me.spr.setDepth(me.y);
+    me.spr.setDepth(me.sit ? me.sit.depth : me.y);
 
     // red: posición
     if (moving && time - this.lastSend > 100) { this.sendPos(1); this.lastSend = time; }
@@ -491,8 +495,8 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       const dx = p.tx - p.x, dy = p.ty - p.y, d = Math.hypot(dx, dy);
       if (d > 220) { p.x = p.tx; p.y = p.ty; }
       else if (d > 0.3) { const step = Math.max(90, d * 6) * dt / 1000; const k = Math.min(1, step / d); p.x += dx * k; p.y += dy * k; }
-      p.spr.setPosition(p.x, p.y).setDepth(p.y);
-      this.setFrame(p, d > 0.6 || p.moving, time);
+      p.spr.setPosition(p.x, p.y).setDepth(p.sit && p.z ? p.z : p.y);
+      this.setFrame(p, !p.sit && (d > 0.6 || p.moving), time);
     });
 
     this.updateNpc(time, dt);
@@ -501,7 +505,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   }
   sendPos(m) {
     const me = this.me;
-    RO.Net.send({ t: 'pos', u: RO.S.me.user_id, x: Math.round(me.x * 10) / 10, y: Math.round(me.y * 10) / 10, d: me.dir, m, r: me.room });
+    RO.Net.send({ t: 'pos', u: RO.S.me.user_id, x: Math.round(me.x * 10) / 10, y: Math.round(me.y * 10) / 10, d: me.dir, m, r: me.room, s: me.sit ? 1 : 0, z: me.sit ? me.sit.depth : 0 });
   }
   savePos() { const me = this.me; RO.Net.savePos({ x: me.x, y: me.y, dir: me.dir, room: me.room }).catch(() => {}); }
   announceRoom(initial) {
@@ -522,12 +526,53 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       if (o.rx) { const e = (dx * dx) / (o.rx * o.rx) + (dy * dy) / (o.ry * o.ry); if (e <= 1) consider(o, e * 20); return; }
       const d = Math.hypot(dx, dy); if (d <= o.r) consider(o, d);
     });
-    if (this.npc) { const d = Math.hypot(me.x - this.npc.x, me.y - this.npc.y); if (d < 26 && !this.fog) consider({ id: 'npc', kind: 'npc' }, d - 6); }
+    if (this.npc) { const d = Math.hypot(me.x - this.npc.x, me.y - this.npc.y); if (d < 26) consider({ id: 'npc', kind: 'npc' }, d - 6); }
+    if (!me.sit) (this.seats || []).forEach(st => {
+      const d = Math.hypot(me.x - st.x, me.y - (st.y + 10)); if (d > 20) return;
+      for (const p of this.players.values()) if (p !== me && p.sit && Math.hypot(p.x - st.x, p.y - st.y) < 4) return;   // ocupado
+      consider({ id: 'seat:' + st.id, kind: 'seat', seat: st, label: st.label }, d + 2);
+    });
+    if (me.sit) consider({ id: 'stand', kind: 'stand' }, 0);
     this.players.forEach(p => { if (p.isMe) return; const d = Math.hypot(me.x - p.x, me.y - p.y); if (d < 26) consider({ id: 'p:' + p.uid, kind: 'player', uid: p.uid }, d - 4); });
     const id = best ? best.id : null;
     if (id !== this.hintId) { this.hintId = id; this.hint = best; RO.emit('hint', best); }
   }
   interact() { if (this.hint) RO.emit('interact', this.hint); }
+
+  /* ════════════ ASIENTOS (sofás, sillas, escritorio) ════════════ */
+  buildSeats() {
+    const out = [], SOFA = { sofa: 1, sofa_vip: 1, sofa_lobby: 1 };
+    const juntas = {}; this.w.seats.forEach(s => { juntas[Math.floor(s.x / T) + ',' + Math.floor(s.y / T)] = s.dir; });
+    const addFrom = (key, x, y, src) => {
+      if (SOFA[key]) [0.95, 2.05].forEach((ox, i) => out.push({ id: src + ':' + x + ',' + y + ':' + i, x: (x + ox) * T, y: (y + 1) * T - 3, dir: 'down', depth: (y + 1) * T + 2, label: 'Sentarte en el sofá' }));
+      else if (key === 'silla') {
+        const dir = juntas[x + ',' + y] || 'down';
+        out.push({ id: src + ':' + x + ',' + y, x: (x + .5) * T, y: (y + 1) * T - 4, dir, depth: (y + 1) * T - 7, label: 'Sentarte', desk: y === 3 && Wd.OFF_X.some(x0 => x === x0 + 6) });
+      }
+    };
+    this.w.statics.forEach(s => { if (!(s.opts && s.opts.reserved)) addFrom(s.key, s.x, s.y, 's'); });
+    (RO.S.decor || []).forEach(d => addFrom(d.item, d.x, d.y, 'd' + d.id));
+    this.seats = out;
+  }
+  sit(st) {
+    const me = this.me; if (!st) return;
+    me.sit = st; me.x = st.x; me.y = st.y; me.dir = st.dir; this.path = null; this.hideMarker();
+    me.spr.setPosition(me.x, me.y).setDepth(st.depth);
+    this.sendPos(0); RO.emit('sit', st);
+  }
+  stand() {
+    const me = this.me, st = me.sit; if (!st) return;
+    me.sit = null;
+    const cands = [[0, 14], [0, -14], [-16, 6], [16, 6], [0, 26], [-16, 20], [16, 20]];
+    let ok = null; for (const [dx, dy] of cands) if (this.free(st.x + dx, st.y + dy)) { ok = [st.x + dx, st.y + dy]; break; }
+    if (!ok) { const p = Wd.path(this.blocked, Math.floor(st.x / T), Math.floor(st.y / T) + 1, Math.floor(st.x / T), Math.floor(st.y / T) + 1); ok = p && p.length ? [(p[p.length - 1][0] + .5) * T, (p[p.length - 1][1] + .7) * T] : [st.x, st.y + 16]; }
+    me.x = ok[0]; me.y = ok[1]; me.spr.setPosition(me.x, me.y);
+    this.sendPos(0); RO.emit('stand');
+  }
+  deskSeat() {
+    const r = Wd.officeRect(RO.S.me.slot, RO.S.config); if (!r) return null;
+    return (this.seats || []).find(s => s.desk && Math.floor(s.x / T) === r.x0 + 6);
+  }
 
   /* ════════════ CLUB PRIVADO ════════════ */
   // garage y club abiertos y visibles desde el inicio
@@ -596,6 +641,22 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       const spr = this.add.sprite(d.x, d.y, key, '0_0').setOrigin(0.5, 22 / 24);
       return { spr, x: d.x, y: d.y, ph: i * 2.1, dir: 'down' };
     });
+    // pareja al fondo del club, en el sillón VIP
+    const cy = 58 * T - 3, dep = 58 * T + 2;
+    const mk = (av, x, dir) => { const spr = this.add.sprite(x, cy, this.avTex(av), DIR_ROW[dir] + '_4').setOrigin(0.5, 22 / 24).setDepth(dep); return { spr, x, dir }; };
+    this.couple = [mk(A.DANCERS[1], 16.1 * T, 'right'), mk(A.DANCERS[0], 16.9 * T, 'left')];
+    this.time.addEvent({ delay: 3200, loop: true, callback: () => this.kiss() });
+  }
+  kiss() {
+    const c = this.couple; if (!c) return;
+    this.tweens.add({ targets: c[0].spr, x: c[0].x + 2, duration: 260, yoyo: true, hold: 900 });
+    this.tweens.add({ targets: c[1].spr, x: c[1].x - 2, duration: 260, yoyo: true, hold: 900 });
+    this.time.delayedCall(300, () => {
+      for (let i = 0; i < 3; i++) {
+        const h = this.add.image(16.5 * T + (i - 1) * 3, 58 * T - 26, this.tex('heart', () => { const k = A.mk(7, 6); [[1,0,2],[4,0,2],[0,1,7],[0,2,7],[1,3,5],[2,4,3],[3,5,1]].forEach(([x, y, w]) => k.r(x, y, w, 1, '#ff3d8b')); k.p(1, 1, '#ffb3d4'); return k.c; })).setDepth(9.5e4).setScale(0.6);
+        this.tweens.add({ targets: h, y: h.y - 18 - i * 4, x: h.x + (i - 1) * 4, alpha: 0, scale: 1.1, duration: 1400, delay: i * 180, onComplete: () => h.destroy() });
+      }
+    });
   }
   updateDancers(time) {
     if (!this.dancers) return;
@@ -624,7 +685,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   makeNpc() {
     const key = this.tex('npc_sheet', () => A.npcSheet());
     const t = this.textures.get(key);
-    if (!t.has('0_0')) for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) t.add(r + '_' + c, 0, c * 16, r * 24, 16, 24);
+    if (!t.has('0_0')) for (let r = 0; r < 4; r++) for (let c = 0; c < 5; c++) t.add(r + '_' + c, 0, c * 16, r * 24, 16, 24);
     const [sx, sy] = this.w.npcPath[0];
     const spr = this.add.sprite((sx + .5) * T, (sy + .75) * T, key, '0_0').setOrigin(0.5, 22 / 24);
     const el = document.createElement('div'); el.className = 'w-ent npc';
@@ -658,7 +719,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     n.spr.setPosition(n.x, n.y).setDepth(n.y);
     this.setFrame(n, moving, time);
     // frase espontánea si alguien anda cerca
-    if (!this.fog && time > n.nextAmbient && Math.hypot(this.me.x - n.x, this.me.y - n.y) < 70) {
+    if (time > n.nextAmbient && Math.hypot(this.me.x - n.x, this.me.y - n.y) < 70) {
       n.nextAmbient = time + 30000 + Math.random() * 25000; this.npcSay(true);
     }
   }
@@ -680,7 +741,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       el.style.transform = `translate3d(${Math.round((x - wv.x) * z)}px,${Math.round((y - wv.y) * z)}px,0)`;
     };
     this.players.forEach(p => place(p.tag, p.x, p.y - 24, !p.isMe && ((this.fog && p.y > 39 * T) || (this.fogClub && p.y > 54 * T))));
-    if (this.npc) place(this.npc.tag, this.npc.x, this.npc.y - 24, !!this.fog);
+    if (this.npc) place(this.npc.tag, this.npc.x, this.npc.y - 24, false);
     if (this.marker) { /* el marcador es de Phaser */ }
   }
 
@@ -789,6 +850,10 @@ G.goToSpot = (x, y) => { const s = S(); if (!s) return; s.walkTo(x, y) || s.tele
 G.teleport = (x, y, dir) => S() && S().teleport(x, y, dir);
 G.seats = () => S() ? S().w.seats : [];
 G.save = () => S() && S().savePos();
+G.sit = st => S() && S().sit(st);
+G.stand = () => S() && S().stand();
+G.sitDesk = () => { const s = S(); if (!s) return false; const st = s.deskSeat(); if (!st) return false; s.sit(st); return true; };
+G.isSitting = () => !!(S() && S().me.sit);
 G.inOtherOffice = (x, y) => S() ? S().inOtherOffice(x, y) : true;
 G.zoom = d => S() && S().zoomStep(d);
 G.zoomLevel = () => S() ? S().cameras.main.zoom : 3;
@@ -809,6 +874,7 @@ G.onPos = m => {
   let p = s.players.get(m.u);
   if (!p) { if (!RO.member(m.u)) return; p = s.addPlayer(m.u, m.x, m.y, false); }
   p.tx = m.x; p.ty = m.y; p.dir = m.d || p.dir; p.moving = !!m.m; p.room = m.r;
+  p.sit = !!m.s; p.z = m.z || 0;
 };
 G.onPresence = list => {
   const s = S(); if (!s) return;

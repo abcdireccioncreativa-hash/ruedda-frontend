@@ -91,7 +91,7 @@ A.DIRS = DIRS;
 const FW = 16, FH = 24;
 
 // dibuja un cuadro (16×24) del personaje: dir ∈ down|left|up, step ∈ 0|1|2 (0 parado, 1/2 pasos)
-function drawChar(av, dir, step) {
+function drawChar(av, dir, step, sit) {
   const k = mk(FW, FH);
   const skin = av.skin, skinD = shade(skin, -.18), hairC = av.hairColor, hairD = shade(hairC, -.25), hairL = shade(hairC, .18);
   const top = av.top, topD = shade(top, -.22), topL = shade(top, .15), bot = av.bottom, botD = shade(bot, -.25), shoe = av.shoes;
@@ -101,7 +101,12 @@ function drawChar(av, dir, step) {
   const oy = bob;
 
   /* piernas */
-  if (bikini) {
+  if (sit) {
+    const leg = (dress || bikini) ? skin : bot, legD = (dress || bikini) ? skinD : botD;
+    if (dir === 'down') { k.r(5, 18, 3, 3, leg).r(8, 18, 3, 3, legD).r(5, 21, 3, 1, shoe).r(8, 21, 3, 1, shoe); }
+    else if (dir === 'up') { k.r(5, 18, 6, 1, leg); }
+    else { k.r(3, 18, 7, 2, leg).r(3, 20, 2, 2, legD).r(2, 21, 3, 1, shoe); }
+  } else if (bikini) {
     const L = step === 1 ? -1 : 0, R = step === 2 ? -1 : 0;
     if (dir === 'down' || dir === 'up') { k.r(5, 18, 3, 4 + L, skin).r(8, 18, 3, 4 + R, skinD).r(5, 22 + L, 3, 1, shoe).r(8, 22 + R, 3, 1, shoe); }
     else if (step === 0) { k.r(6, 18, 4, 4, skin).r(5, 22, 5, 1, shoe); }
@@ -249,9 +254,9 @@ function drawChar(av, dir, step) {
   return k;
 }
 
-// hoja 64×96: filas down, left, right, up · columnas: parado, paso A, parado, paso B
+// hoja 80×96: filas down, left, right, up · columnas: parado, paso A, parado, paso B, sentado
 A.avatarSheet = av => {
-  const k = mk(FW * 4, FH * 4);
+  const k = mk(FW * 5, FH * 4);
   const frames = [0, 1, 0, 2];
   DIRS.forEach((dir, row) => {
     frames.forEach((st, col) => {
@@ -262,6 +267,9 @@ A.avatarSheet = av => {
       if (dir === 'right') { k.g.save(); k.g.translate(col * FW + FW, row * FH); k.g.scale(-1, 1); k.g.drawImage(src, 0, 0); k.g.restore(); }
       else k.g.drawImage(src, col * FW, row * FH);
     });
+    const sit = drawChar(av, dir === 'right' ? 'left' : dir, 0, true).c;
+    if (dir === 'right') { k.g.save(); k.g.translate(4 * FW + FW, row * FH); k.g.scale(-1, 1); k.g.drawImage(sit, 0, 0); k.g.restore(); }
+    else k.g.drawImage(sit, 4 * FW, row * FH);
   });
   return k.c;
 };

@@ -114,6 +114,7 @@ Wd.build = (cfg) => {
   POLES.forEach(([x, y]) => add('tubo', x, y));
   add('dj', 41, 57); add('parlante', 39, 57); add('parlante', 46, 57); add('parlante', 18, 57); add('parlante', 38, 57);
   add('barra', 9, 57); add('champan', 10, 56); add('champan', 13, 56);
+  add('sofa_vip', 15, 57, { reserved: true });   // reservado: la pareja del fondo
   add('sofa_vip', 10, 66); add('sofa_vip', 14, 66); add('mesa', 12, 64); add('champan', 12, 63);
   add('sofa_vip', 36, 66); add('sofa_vip', 40, 66); add('mesa', 39, 64); add('champan', 40, 63);
   add('dinero', 19, 62); add('dinero', 37, 62);
@@ -157,7 +158,7 @@ Wd.build = (cfg) => {
   const seats = [[6, 19, 'down'], [8, 19, 'down'], [10, 19, 'down'], [4, 21, 'right'], [12, 21, 'left'], [6, 23, 'up'], [8, 23, 'up'], [10, 23, 'up']]
     .map(([x, y, d]) => ({ x: (x + .5) * T, y: (y + .8) * T, dir: d }));
   // ruta de Valentina
-  const npcPath = [[19, 45], [27, 46], [38, 47], [46, 46], [42, 52], [33, 52], [24, 47], [17, 52], [9, 46], [18, 44]];
+  const npcPath = [[25, 19], [10, 12], [7, 7], [10, 12], [21, 12], [21, 7], [24, 12], [35, 12], [35, 7], [38, 12], [49, 12], [49, 7], [46, 12], [47, 20], [33, 21], [28, 26], [22, 18]];
   const spawn = { x: 25 * T, y: 21 * T };
   const officeSpawn = p => ({ x: (OFF_X[p] + 6.5) * T, y: 7 * T });
 
