@@ -157,43 +157,60 @@ const Real = {
     return { members: r[0].data, config: (r[1].data && r[1].data.data) || {}, channelKey: r[1].data && r[1].data.channel_key,
              catalog: r[2].data, decor: r[3].data, notes: r[4].data, events: r[5].data, positions: r[6].data, chat: (r[7].data || []).reverse() };
   },
+  // Tiempo real con Supabase Realtime (WebSocket): Broadcast para movimiento/eventos y Presence para quién está.
+  // Se usan DOS canales a la vez — el privado 'office:main' (Realtime Authorization) y uno con llave secreta
+  // (solo legible por miembros) — y se envía por ambos. Así dos personas nunca quedan en "salas" distintas
+  // aunque a una le falle el privado; los mensajes llevan id y se descartan duplicados.
   async connect(me, channelKey, H) {
     const s = client(); const session = await this.session();
     try { await s.realtime.setAuth(session.access_token); } catch (e) {}
-    const open = (name, priv) => new Promise((res, rej) => {
+    this.chs = []; this.H = H;
+    const pres = {}, seen = new Set(), seenQ = [];
+    const emitPresence = () => { const map = new Map(); Object.values(pres).forEach(l => l.forEach(st => { if (st && st.uid) { const o = map.get(st.uid); if (!o || (st.at || 0) >= (o.at || 0)) map.set(st.uid, st); } })); H.onPresence(Array.from(map.values())); };
+    const onMsg = payload => {
+      if (!payload) return;
+      if (payload.id) { if (seen.has(payload.id)) return; seen.add(payload.id); seenQ.push(payload.id); if (seenQ.length > 600) seen.delete(seenQ.shift()); }
+      H.onMsg(payload);
+    };
+    const status = () => { const n = this.chs.filter(c => c._ok).length; H.onStatus && H.onStatus(n ? 'online' : 'reconnecting', this.chs.filter(c => c._ok).map(c => c._label)); };
+    const open = (name, priv, label) => new Promise((res, rej) => {
       const ch = s.channel(name, { config: { private: priv, broadcast: { self: false, ack: false }, presence: { key: me.user_id } } });
-      ch.on('broadcast', { event: 'm' }, ({ payload }) => H.onMsg(payload));
+      ch._label = label;
+      ch.on('broadcast', { event: 'm' }, ({ payload }) => onMsg(payload));
       ch.on('presence', { event: 'sync' }, () => {
         const st = ch.presenceState(), out = [];
         Object.keys(st).forEach(k => { const a = st[k]; if (a && a.length) out.push(a[a.length - 1]); });
-        H.onPresence(out);
+        pres[name] = out; emitPresence();
       });
       let done = false;
-      const t = setTimeout(() => { if (!done) { done = true; s.removeChannel(ch); rej(new Error('timeout')); } }, 10000);
-      ch.subscribe((status, err) => {
-        if (status === 'SUBSCRIBED') {
+      const t = setTimeout(() => { if (!done) { done = true; s.removeChannel(ch); rej(new Error('timeout')); } }, 9000);
+      ch.subscribe((st, err) => {
+        if (st === 'SUBSCRIBED') {
+          ch._ok = true;
           if (this._track) ch.track(this._track).catch(() => {});
           if (!done) { done = true; clearTimeout(t); res(ch); }
-          H.onStatus && H.onStatus('online');
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
-          if (!done) { done = true; clearTimeout(t); s.removeChannel(ch); rej(err || new Error(status)); }
-          else H.onStatus && H.onStatus('reconnecting');
+          status();
+        } else if (st === 'CHANNEL_ERROR' || st === 'TIMED_OUT' || st === 'CLOSED') {
+          ch._ok = false; pres[name] = [];
+          if (!done) { done = true; clearTimeout(t); s.removeChannel(ch); rej(err || new Error(st)); }
+          else { emitPresence(); status(); }
         }
       });
     });
-    try { this.ch = await open('office:main', true); }
-    catch (e) {
-      console.warn('[office] canal privado no disponible, usando canal con llave:', e && e.message);
-      this.ch = await open('office-' + channelKey, false);
-    }
+    const results = await Promise.allSettled([open('office:main', true, 'privado'), open('office-' + channelKey, false, 'llave')]);
+    results.forEach((r, i) => { if (r.status === 'fulfilled') this.chs.push(r.value); else console.warn('[office] canal', i ? 'con llave' : 'privado', 'no disponible:', r.reason && r.reason.message); });
+    if (!this.chs.length) throw new Error('no se pudo abrir el tiempo real');
+    status();
     const db = s.channel('office-db-' + me.user_id);
     ['office_members', 'office_config', 'office_catalog', 'office_decor', 'office_notes', 'office_events', 'office_chat'].forEach(t =>
       db.on('postgres_changes', { event: '*', schema: 'public', table: t }, p => H.onDb(t, p.eventType, p.new, p.old)));
     db.subscribe();
     this.db = db;
   },
-  send(msg) { if (this.ch) this.ch.send({ type: 'broadcast', event: 'm', payload: msg }).catch(() => {}); },
-  track(state) { this._track = state; if (this.ch) this.ch.track(state).catch(() => {}); },
+  send(msg) { msg.id = msg.id || RO.uid() + RO.uid(); (this.chs || []).forEach(ch => { if (ch._ok) ch.send({ type: 'broadcast', event: 'm', payload: msg }).catch(() => {}); }); },
+  track(state) { this._track = state; (this.chs || []).forEach(ch => { if (ch._ok) ch.track(state).catch(() => {}); }); },
+  async loadMember(uid) { const r = await client().from('office_members').select('*').eq('user_id', uid).maybeSingle(); return r.data || null; },
+  async loadMembers() { return chk(await client().from('office_members').select('*')); },
   async rpc(fn, args) {
     const { data, error } = await client().rpc(fn, args || {});
     if (error) throw error; return data;
@@ -223,6 +240,23 @@ const Real = {
   async removeMember(uid) { chk(await client().from('office_members').delete().eq('user_id', uid)); },
   findUsers: q => Real.rpc('office_find_users', { q }),
   grant: (target, amount) => Real.rpc('office_grant', { target, amount }),
+  // mismos números que el tablero de Ruedda Control (lo que la cuenta pueda ver por RLS; lo demás queda en "—")
+  async rueddaStats() {
+    const s = client(), DAY = 864e5, now = Date.now(), sod = new Date(); sod.setHours(0, 0, 0, 0);
+    const cnt = async (t, f) => { try { let q = s.from(t).select('*', { count: 'exact', head: true }); if (f) q = f(q); const r = await q; return r.error ? null : (r.count || 0); } catch (e) { return null; } };
+    const rows = async (q) => { try { const r = await q; return r.error ? null : (r.data || []); } catch (e) { return null; } };
+    const [uTot, uKyc, uDealer, uNew, lAct, lSold, aLive, bids, mod, kyc, pay] = await Promise.all([
+      cnt('users'), cnt('users', q => q.eq('kyc_verified', true)), cnt('users', q => q.in('role', ['consesionario', 'concesionario'])),
+      rows(s.from('users').select('created_at').gte('created_at', new Date(now - 7 * DAY).toISOString()).limit(5000)),
+      cnt('listings', q => q.eq('estado', 'activa').not('vendido', 'is', true)), cnt('listings', q => q.eq('vendido', true)),
+      cnt('auctions', q => q.eq('estado', 'activa').gt('end_time', new Date().toISOString())),
+      rows(s.from('bids').select('amount,created_at').gte('created_at', sod.toISOString()).limit(10000)),
+      cnt('listings', q => q.in('estado', ['revision', 'pendiente_pago'])), cnt('kyc_submissions', q => q.eq('estado', 'pendiente')), cnt('payment_refs', q => q.eq('status', 'pendiente'))
+    ]);
+    return { users: uTot, kyc: uKyc, dealers: uDealer, new7: uNew ? uNew.length : null, newToday: uNew ? uNew.filter(r => new Date(r.created_at) >= sod).length : null,
+             listings: lAct, sold: lSold, auctions: aLive, bidsToday: bids ? bids.length : null, volToday: bids ? bids.reduce((a, b) => a + (+b.amount || 0), 0) : null,
+             pendMod: mod, pendKyc: kyc, pendPay: pay };
+  },
   async liveStats() {
     const s = client(), out = {};
     try { const r = await s.from('listings').select('id', { count: 'exact', head: true }); if (!r.error) out.listings = r.count; } catch (e) {}
@@ -281,7 +315,7 @@ const Demo = {
     setInterval(() => { if (this._track) this.bc.postMessage({ k: 'p', st: this._track }); this._sync(); }, 1500);
     addEventListener('beforeunload', () => this.bc.postMessage({ k: 'bye', uid: me.user_id }));
     await new Promise(r => setTimeout(r, 250));
-    H.onStatus && H.onStatus('online');
+    H.onStatus && H.onStatus('online', ['demo']);
   },
   _sync() {
     const now = Date.now(), out = [];
@@ -290,6 +324,8 @@ const Demo = {
     this.H && this.H.onPresence(out);
   },
   send(msg) { this.bc && this.bc.postMessage({ k: 'm', msg }); },
+  async loadMember(uid) { return this._db().members.find(m => m.user_id === uid) || null; },
+  async loadMembers() { return this._db().members; },
   track(st) { this._track = st; this.bc && this.bc.postMessage({ k: 'p', st }); this._sync(); },
   async saveAvatar(target, av) { const m = this._mut(d => { const m = d.members.find(x => x.user_id === target); m.avatar = av; return Object.assign({}, m); }); this._db_ev('office_members', 'UPDATE', m); },
   async award(kind) {
@@ -342,7 +378,8 @@ const Demo = {
   async removeMember(uid) { this._mut(d => { d.members = d.members.filter(m => m.user_id !== uid); }); this._db_ev('office_members', 'DELETE', null, { user_id: uid }); },
   async findUsers(q) { q = String(q || '').replace(/^@/, '').toLowerCase(); return [{ id: 'u-enrique', nombre: 'Enrique', username: 'enrique', email: 'enrique@demo', role: 'particular' }, { id: 'u-maria', nombre: 'María', username: 'maria', email: 'maria@demo', role: 'particular' }].concat(DEMO_PEOPLE.map(p => ({ id: p.user_id, nombre: p.display_name, username: p.slot, email: p.slot + '@demo' }))).filter(u => (u.username + u.nombre).toLowerCase().includes(q)); },
   async grant(target, amount) { const m = this._mut(d => { const m = d.members.find(x => x.user_id === target); m.coins = Math.max(0, m.coins + amount); return Object.assign({}, m); }); this._db_ev('office_members', 'UPDATE', m); },
-  async liveStats() { return { listings: 1284, auctions: 37, users: 9120 }; }
+  async liveStats() { return { listings: 1284, auctions: 37, users: 9120 }; },
+  async rueddaStats() { return { users: 9120, kyc: 3110, dealers: 214, new7: 182, newToday: 23, listings: 1284, sold: 402, auctions: 37, bidsToday: 96, volToday: 184500, pendMod: 4, pendKyc: 7, pendPay: 2 }; }
 };
 
 RO.Net = RO.DEMO ? Demo : Real;

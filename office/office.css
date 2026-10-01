@@ -113,6 +113,10 @@ canvas.pixlogo{display:block;image-rendering:pixelated}
 .tb-brand>div{display:flex;flex-direction:column;line-height:1.15;min-width:0}
 .tb-brand b{font-family:var(--pix);font-size:11px;letter-spacing:.2em;color:var(--y)}
 .tb-brand span{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-brand>.live,.live{display:flex;flex-direction:row;align-items:center;gap:6px;padding:4px 9px;border:1px solid var(--line);border-radius:999px;font-family:var(--mono);font-size:10px;color:var(--mute);white-space:nowrap}
+.live i{width:6px;height:6px;border-radius:50%;background:var(--orange)}
+.live.on i{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2s steps(1) infinite}
+.live.on{color:var(--ink2)}
 .tb-clocks{flex:1;display:flex;justify-content:center;gap:6px}
 .clk{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;text-transform:none}
 .clk svg{width:18px;height:18px}

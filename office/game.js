@@ -833,6 +833,8 @@ G.setEdit = e => S() && S().setEdit(e);
 G.bubbleMe = text => { const s = S(); if (s) s.bubble(s.me, text); };
 G.bubbleOf = (uid, text) => { const s = S(); const p = s && s.players.get(uid); if (p) s.bubble(p, text); };
 G.npcSay = () => S() && S().npcSay(false);
+G.npcLine = text => { const s = S(); if (!s || !s.npc) return; s.bubble({ bub: s.npc.tag.querySelector('.w-bub') }, text, 7000); s.npc.talkUntil = s.time.now + 6000; RO.sfx.talk(); };
+G.npcHold = ms => { const s = S(); if (s && s.npc) s.npc.talkUntil = s.time.now + (ms || 8000); };
 G.openSecret = (remote, quiet) => S() && S().openSecret(remote, quiet);
 G.coffee = () => { const s = S(); if (s) s.coffeeUntil = s.time.now + 45000; };
 G.updateBoardMini = c => S() && S().updateBoardMini(c);

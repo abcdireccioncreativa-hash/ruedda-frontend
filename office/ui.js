@@ -305,7 +305,7 @@ RO.on('interact', h => {
       RO.G.bubbleMe('🔊'); return;
     case 'seat': RO.G.sit(h.seat); return;
     case 'stand': RO.G.stand(); return;
-    case 'npc': return RO.G.npcSay();
+    case 'npc': return UI.valentina();
     case 'player': return UI.personCard(h.uid);
   }
 });
@@ -363,6 +363,74 @@ UI.personCard = uid => {
     if (a === 'avatar') UI.avatarEditor(uid);
     if (a === 'invite') UI.summon(uid);
   });
+};
+
+/* ════════════ VALENTINA ════════════ */
+const V_SEDUCE = [
+  'Cariño, yo no salgo con nadie que tenga publicaciones en revisión.',
+  'Qué lindo intento. Ahora cierra tres tratos y hablamos.',
+  'Me encantas… cuando el KPI está en verde.',
+  'Tienes la confianza de un Lambo y el presupuesto de un Corolla 2004.',
+  'Mmm… ¿eso fue un piropo o un pitch de ventas? Porque los dos estuvieron flojos.',
+  'Te doy una cita: lunes, 8 a.m., sala de juntas. Trae números.',
+  'Guárdate el encanto para los clientes, que esos sí pagan.',
+  'Ay no, me sonrojé. Mentira. Vuelve a trabajar.'
+];
+const V_AFTER = [
+  'Esto no sale en el reporte trimestral.',
+  'Ni una palabra en el chat global, ¿entendido?',
+  'Bien. Ahora a vender, campeón.',
+  'Eso fue… productivo. +0 pts.',
+  'Y aquí no pasó nada. Ve por tu café.'
+];
+const pick = a => a[Math.floor(Math.random() * a.length)];
+UI.valentina = () => {
+  const name = esc(RO.S.config.npc.name || 'Valentina');
+  RO.G.npcSay(); RO.G.npcHold && RO.G.npcHold(15000);
+  const opt = (a, t, d) => `<button class="act" data-a="${a}" style="width:100%;margin-bottom:8px"><b>${t}</b><span>${d}</span></button>`;
+  const mo = UI.modal({
+    title: name, sub: 'Asistente ejecutiva de Ruedda Ecosystem',
+    body: opt('cafe', '☕ Pedir café', 'Te lo trae ya: +40% de velocidad por 45 s') +
+      opt('stats', '📊 Stats de Ruedda', 'Los números de hoy, igual que en Ruedda Control') +
+      opt('seducir', '😏 Seducir', 'Bajo tu propio riesgo') +
+      opt('amor', '❤️ Hacer el amor', 'Discreción absoluta')
+  });
+  mo.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+    const a = b.dataset.a; UI.close();
+    if (a === 'cafe') { RO.G.coffee(); RO.G.npcLine('Aquí tienes, negro y fuerte. Como los números que quiero ver hoy.'); RO.G.bubbleMe('☕'); RO.sfx.coin(); RO.Net.award('coffee').catch(() => {}); }
+    if (a === 'stats') UI.rueddaStats();
+    if (a === 'seducir') { RO.G.npcLine(pick(V_SEDUCE)); RO.G.bubbleMe('😏'); }
+    if (a === 'amor') UI.fadeLove();
+  });
+};
+UI.fadeLove = () => {
+  const ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:45;background:#000;opacity:0;transition:opacity .8s;display:grid;place-items:center;pointer-events:all';
+  ov.innerHTML = '<div style="font-family:var(--pix);color:#ff3d8b;font-size:28px;letter-spacing:.1em;text-align:center">❤ ❤ ❤<div style="font-size:12px;color:#7d8088;margin-top:14px;letter-spacing:.3em">· · · unos minutos después · · ·</div></div>';
+  document.body.appendChild(ov);
+  if (!RO.muted) { RO.music.start(); }
+  requestAnimationFrame(() => ov.style.opacity = '1');
+  setTimeout(() => {
+    ov.style.opacity = '0';
+    const me = RO.G.mePos(); if (!me || me.room !== 'club') RO.music.stop();
+    setTimeout(() => { ov.remove(); RO.G.npcLine(pick(V_AFTER)); RO.G.bubbleMe('😳'); }, 800);
+  }, 3600);
+};
+UI.rueddaStats = async () => {
+  const f = v => v == null ? '—' : new Intl.NumberFormat('es-VE').format(Math.round(v));
+  const mo = UI.modal({ title: '📊 Ruedda hoy', sub: 'Mismos indicadores que Ruedda Control', wide: true, body: '<div class="muted">Valentina está sacando los números…</div>' });
+  const s = await RO.Net.rueddaStats().catch(() => ({}));
+  const box = mo.querySelector('.mo-b'); if (!box) return;
+  const K = (l, v, d) => `<div><b>${v}</b><span>${l}${d ? ' · ' + d : ''}</span></div>`;
+  box.innerHTML = `<div class="stat" style="grid-template-columns:repeat(4,1fr)">
+      ${K('usuarios', f(s.users), f(s.newToday) + ' nuevos hoy')}${K('nuevos · 7 días', f(s.new7))}${K('identidad verificada', f(s.kyc))}${K('concesionarios', f(s.dealers))}
+      ${K('market · activas', f(s.listings), f(s.sold) + ' vendidos')}${K('subastas en vivo', f(s.auctions))}${K('pujas hoy', f(s.bidsToday))}${K('volumen ofertado hoy', s.volToday == null ? '—' : '$' + f(s.volToday))}
+    </div>
+    <label class="lbl" style="margin-top:18px">pendientes</label>
+    <div class="stat">${K('moderación', f(s.pendMod))}${K('KYC', f(s.pendKyc))}${K('pagos', f(s.pendPay))}</div>
+    <p class="muted" style="margin-top:12px;font-size:12px">"—" = esa cifra solo la ve una cuenta superadmin.</p>`;
+  const top = s.listings != null ? `Hoy hay ${f(s.listings)} carros activos y ${f(s.bidsToday)} pujas. ${s.bidsToday > 50 ? 'Nada mal.' : 'Hay que mover eso.'}` : 'Los números están, pero tu cuenta no los ve todos.';
+  RO.G.npcLine(top);
 };
 
 /* ════════════ MI ESCRITORIO ════════════ */

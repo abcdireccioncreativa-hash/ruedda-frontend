@@ -121,6 +121,13 @@ function afterEnter() {
   RO.Net.send({ t: 'hello', u: S.me.user_id });
   track();
   setInterval(track, 20000);
+  // red de seguridad: refresca la lista de miembros cada 30 s
+  setInterval(() => RO.Net.loadMembers().then(ms => {
+    if (!ms) return; let changed = false;
+    ms.forEach(m => { const cur = RO.member(m.user_id); if (!cur) { S.members.push(m); changed = true; } else if (cur.slot !== m.slot || cur.display_name !== m.display_name || JSON.stringify(cur.avatar) !== JSON.stringify(m.avatar)) { Object.assign(cur, m); changed = true; RO.G.refreshPlayer(m.user_id); } else Object.assign(cur, m); });
+    if (changed) { RO.G.rebuild(); UI.renderPeople(); NET.onPresence(lastPresence); }
+    UI.renderTop();
+  }).catch(() => {}), 30000);
   if (S.config.motd) setTimeout(() => UI.toast(esc(S.config.motd)), 400);
   addEventListener('beforeunload', () => RO.G.save());
   document.addEventListener('visibilitychange', () => { if (document.hidden) RO.G.save(); });
@@ -145,10 +152,24 @@ RO.on('logout', async () => {
 });
 
 /* ════════════ RED → ESTADO ════════════ */
-let prevOnline = null;
+let prevOnline = null, lastPresence = [];
+const fetching = new Set();
+// alguien que entró por primera vez después de mí: lo traigo de la base y lo agrego al vuelo
+function ensureMember(uid) {
+  if (!uid || RO.member(uid) || fetching.has(uid)) return;
+  fetching.add(uid);
+  RO.Net.loadMember(uid).then(m => {
+    fetching.delete(uid);
+    if (m && !RO.member(uid)) { S.members.push(m); if (RO.G.scene) { RO.G.rebuild(); UI.renderPeople(); } NET.onPresence(lastPresence); }
+  }).catch(() => fetching.delete(uid));
+}
 const NET = {
-  onStatus(s) { if (s === 'reconnecting') UI.toast('Reconectando con el servidor…', 'err'); },
+  onStatus(s, chans) {
+    const el = $('#tb-live'); if (el) { el.className = 'live ' + (s === 'online' ? 'on' : 'off'); el.title = s === 'online' ? 'Tiempo real conectado · ' + (chans || []).join(' + ') : 'Reconectando…'; el.querySelector('span').textContent = s === 'online' ? 'en vivo' : 'reconectando'; }
+  },
   onPresence(list) {
+    lastPresence = list;
+    list.forEach(st => { if (st && st.uid && st.uid !== S.me.user_id) ensureMember(st.uid); });
     const me = S.me.user_id, map = new Map();
     list.forEach(st => { if (st && st.uid && st.uid !== me && RO.member(st.uid)) map.set(st.uid, st); });
     if (prevOnline) {
@@ -160,7 +181,8 @@ const NET = {
     if (RO.G.scene) UI.renderPeople();
   },
   onMsg(m) {
-    if (!m || !m.u || m.u === S.me.user_id || !RO.member(m.u)) return;
+    if (!m || !m.u || m.u === S.me.user_id) return;
+    if (!RO.member(m.u)) { ensureMember(m.u); return; }
     switch (m.t) {
       case 'pos': return RO.G.onPos(m);
       case 'hello': { const s = RO.G.scene; if (s) s.sendPos(0); return; }
