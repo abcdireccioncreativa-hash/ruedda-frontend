@@ -545,6 +545,8 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     if (me.sit) consider({ id: 'stand', kind: 'stand' }, 0);
     (this.cats || []).forEach(k => { const d = Math.hypot(me.x - k.x, me.y - k.y); if (d < 18) consider({ id: 'cat' + k.i, kind: 'cat', idx: k.i, name: k.c.name }, d + 3); });
     this.decorSpr.forEach(spr => { const d = spr._d, it = A.ITEMS[d.item]; if (!it || !it.play) return; const dm = A.dims(d.item, d.rot || 0), cx = (d.x + dm.fw / 2) * T, cy = (d.y + dm.fh) * T + 6, dd = Math.hypot(me.x - cx, me.y - cy); if (dd < 26) consider({ id: 'con' + d.id, kind: 'console', name: it.name }, dd + 1); });
+    if (RO.Kart && RO.Kart.state === 'idle') { const pk = RO.Kart.nearParked(me.x, me.y); if (pk) consider({ id: 'kride' + pk.i, kind: 'kartride', idx: pk.i, name: RO.Kart.MODELS[pk.model].name }, 2); }
+    if (RO.Kart && RO.Kart.state === 'free') consider({ id: 'kexit', kind: 'kartexit' }, 0);
     (this.couples || []).forEach((c, i) => { const d = Math.hypot(me.x - c.x, me.y - (c.y + 14)); if (d < 30) consider({ id: 'k3' + i, kind: 'kiss3', idx: i }, d + 4); });
     if (this.woo) best = null;
     this.players.forEach(p => { if (p.isMe) return; const d = Math.hypot(me.x - p.x, me.y - p.y); if (d < 26) consider({ id: 'p:' + p.uid, kind: 'player', uid: p.uid }, d - 4); });

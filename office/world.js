@@ -15,8 +15,10 @@ const SECRET = { x: 18, w: 2, shelfX: 18, shelfY: 38, slideTo: 20 };
 // kartódromo: línea central cerrada (en tiles) y medio ancho de la pista
 const KART = {
   room: { x0: 1, y0: 72, x1: 55, y1: 90 },
-  pts: [[8, 77], [30, 77], [35, 80.5], [40, 77], [50, 77], [52.5, 80], [52.5, 85], [50, 88], [34, 88], [28, 84.5], [22, 88], [8, 88], [4.5, 85], [4.5, 80]],
-  hw: 1.7, start: [14, 77], laps: 5
+  // chicana en S, curva rápida, horquilla interior, enlazadas y vuelta por la izquierda
+  pts: [[8, 77.5], [20, 77.5], [25, 80.2], [30, 77.5], [42, 77.5], [47, 78], [52, 80.5], [52, 84.5], [48, 87.5], [43, 86], [40, 82.5], [36, 82.5], [33, 86], [28, 87.5], [22, 84.5], [17, 87.5], [9, 87.5], [5, 85], [5, 80.5]],
+  hw: 1.7, start: [14, 77.5], laps: 5,
+  parked: [[22, 74.6], [24.4, 74.6], [26.8, 74.6], [29.2, 74.6], [31.6, 74.6]]
 };
 (function prep() {
   const P = KART.pts.map(([x, y]) => [x * T, y * T]); let L = 0; const cum = [0];
@@ -117,9 +119,10 @@ Wd.build = (cfg) => {
   [['k_arbol_alto', 55, 33], ['k_arbusto', 39, 35], ['k_arbusto', 47, 33], ['k_barril', 54, 31], ['k_letrero', 45, 37], ['k_colmena', 38, 36], ['k_arbol', 44, 35]].forEach(([k, x, y]) => add(k, x, y));
   [['k_arbol_alto', 2, 44], ['k_arbol_alto', 54, 44], ['k_jarron_plata', 47, 44], ['k_escudo', 46, 46], ['loteria', 18, 47]].forEach(([k, x, y]) => add(k, x, y));
   // kartódromo: decoración alrededor (no estorba a los karts, que tienen su propia física)
-  [[2, 73], [3, 73], [53, 73], [54, 73], [1, 89], [55, 89], [26, 79], [27, 79], [37, 84], [55, 82]].forEach(([x, y]) => add('llantas', x, y));
-  add('semaforo', 15, 73); add('bandera', 13, 73); add('letrero_racing', 30, 72); add('surtidor', 20, 73); add('herramientas', 21, 73); add('kart', 23, 73); add('kart', 25, 73);
-  add('banca', 34, 73); add('banca', 36, 73); add('banca', 38, 73); add('banca', 40, 73); add('trofeo_copa', 45, 73); add('cono', 47, 73); add('cono', 48, 73);
+  [[2, 73], [3, 73], [53, 74], [54, 74], [1, 89], [55, 89], [55, 82], [55, 86], [30, 90], [46, 90], [1, 83], [37, 79], [44, 81]].forEach(([x, y]) => add('llantas', x, y));
+  add('semaforo', 15, 73); add('bandera', 13, 73); add('letrero_racing', 26, 72); add('surtidor', 20, 73); add('herramientas', 19, 73);
+  add('banca', 34, 73); add('banca', 36, 73); add('banca', 38, 73); add('banca', 40, 73); add('cono', 42, 74); add('cono', 43, 74);
+  add('tienda_karts', 46, 72);
   [['k_tapete_verde', 21, 66], ['k_maceta', 8, 60], ['k_arbol_alto', 48, 64], ['loteria', 47, 58]].forEach(([k, x, y]) => add(k, x, y));
   // sala creativa
   add('pizarra', 44, 14);
@@ -203,6 +206,7 @@ Wd.build = (cfg) => {
   inter.push({ id: 'clubbar', kind: 'bar', x: 12 * T, y: 58.8 * T, r: 40 });
   inter.push({ id: 'jukebox', kind: 'jukebox', x: 24.5 * T, y: 32.8 * T, r: 18 });
   inter.push({ id: 'pits', kind: 'pits', x: 11.5 * T, y: 73.5 * T, r: 34 });
+  inter.push({ id: 'kartshop', kind: 'kartshop', x: 49 * T, y: 74.6 * T, r: 36 });
   S.filter(s => s.key === 'loteria').forEach((s, i) => inter.push({ id: 'lot' + i, kind: 'lottery', x: (s.x + .5) * T, y: (s.y + 1.7) * T, r: 16 }));
 
   // asientos para "reunión de emergencia"

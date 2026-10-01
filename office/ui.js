@@ -270,7 +270,7 @@ UI.askNotify = () => { try { if ('Notification' in window && Notification.permis
 const HINTS = {
   desk: h => { const o = officeAt(h.pos), m = o && RO.memberBySlot(o.slot); if (!m) return 'Oficina libre'; return m.user_id === RO.S.me.user_id ? 'Mi escritorio' : 'Dejar un post-it a ' + esc(m.display_name); },
   seat: h => esc(h.label || 'Sentarte'), stand: () => 'Levantarte (o camina)',
-  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', pits: () => (RO.Kart.state === 'lobby' ? 'En la parrilla de largada' : 'Pits: correr en el kartódromo 🏁'), console: h => 'Jugar ' + esc(h.name) + ' 🎮', kiss3: () => 'Beso de 3 💋', lottery: () => 'Jugar a la lotería 🎰', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
+  cat: h => 'Acariciar a ' + esc(h.name) + ' 🐈', kartride: h => 'Subirte al ' + esc(h.name) + ' 🏎️', kartexit: () => 'Bajarte del kart', kartshop: () => 'Kart Shop: karts y piezas 🏎️', pits: () => (RO.Kart.state === 'lobby' ? 'En la parrilla de largada' : 'Pits: correr en el kartódromo 🏁'), console: h => 'Jugar ' + esc(h.name) + ' 🎮', kiss3: () => 'Beso de 3 💋', lottery: () => 'Jugar a la lotería 🎰', jukebox: () => (UI.jukebox ? 'Apagar la rocola' : 'Poner la rocola 🎵'),
   board: () => 'Abrir la pizarra general', gong: () => 'Tocar la campana de ventas', clocks: () => 'Ver los relojes',
   tv: () => 'Ver Ruedda en vivo', secret: () => 'Examinar la estantería', coffee: () => 'Servirte un café', snacks: () => 'Comprar un snack',
   arcade: () => 'Jugar arcade', pingpong: () => 'Jugar ping-pong', grill: () => 'Prender la parrilla', aquarium: () => 'Mirar la pecera',
@@ -322,7 +322,10 @@ RO.on('interact', h => {
       else { RO.G.drop(); RO.sfx.drop(); RO.Net.send({ t: 'drop', u: S.me.user_id }); }
       RO.G.bubbleMe('🔊'); return;
     case 'cat': RO.G.petCat(h.idx); RO.G.bubbleMe('🐈'); return;
-    case 'pits': if (RO.Kart.state === 'idle') RO.Kart.join(); return;
+    case 'pits': if (RO.Kart.state === 'idle' || RO.Kart.state === 'free') RO.Kart.join(); return;
+    case 'kartride': return RO.Kart.ride(h.idx);
+    case 'kartexit': return RO.Kart.unride();
+    case 'kartshop': return RO.Kart.shop();
     case 'console': return UI.consoleGames(h.name);
     case 'lottery': return UI.lottery();
     case 'jukebox':
@@ -340,6 +343,7 @@ RO.on('interact', h => {
 /* ════════════ TECLADO ════════════ */
 const EMOTES = { '1': '👍', '2': '😂', '3': '🔥', '4': '☕', '5': '🚗', '6': '💸', '7': '🙌', '8': '👀' };
 RO.on('key', (k, e) => {
+  if (k === 'escape' && RO.Kart && RO.Kart.state === 'free') { RO.Kart.unride(); return; }
   if (k === 'escape' && RO.Kart && ['race', 'countdown', 'lobby'].includes(RO.Kart.state)) { UI.confirm('Salir de la carrera', 'Si sales ahora quedas fuera de esta carrera.', 'Salir').then(ok => { if (ok) RO.Kart.leave(); }); return; }
   if (k === 'escape') { if (WB.open) return WB.hide(); if (RO.G.scene && RO.G.scene.edit) return RO.emit('edit:cancel'); return UI.close(); }
   if (k === 'r' && RO.G.scene && RO.G.scene.edit && RO.G.scene.edit.mode === 'place' && !RO.uiBusy()) { RO.G.rotateGhost(); return; }

@@ -652,6 +652,18 @@ def('arcade_carreras', { name: 'Arcade de carreras', fw: 2, w: 32, h: 36, shop: 
   k.ell(16, 24, 5, 3, '#2a2d33').ell(16, 24, 3, 1, '#9aa0a6').r(5, 29, 22, 5, '#2a2d33');
 }});
 
+def('tienda_karts', { fw: 6, fh: 2, w: 96, h: 52, draw(k) {
+  k.r(2, 18, 92, 33, '#1a1c21').r(2, 18, 92, 2, '#3a3f48');
+  for (let x = 0; x < 96; x += 8) k.r(x, 10, 8, 9, (x / 8) % 2 ? '#f4f4f2' : '#d7262e');           // toldo
+  k.r(0, 18, 96, 1, '#8e1230');
+  k.r(14, 0, 68, 11, '#111215').r(15, 1, 66, 9, '#16171b');
+  const t = A.pixelText('KART SHOP', '#e6f03b', 1); k.g.drawImage(t, 48 - Math.floor(t.width / 2), 3);
+  k.r(8, 23, 36, 18, '#0e1726').r(9, 24, 34, 1, '#1e3550');                                       // vitrina con kart dorado
+  k.rr(14, 31, 24, 7, '#f2c230', 2).r(16, 30, 4, 2, '#111215').r(32, 30, 4, 2, '#111215').r(16, 38, 4, 2, '#111215').r(32, 38, 4, 2, '#111215').ell(24, 33, 2, 2, '#fff1a0');
+  k.r(52, 23, 36, 18, '#0e1726'); [56, 64, 72, 80].forEach((x, i) => k.r(x, 27, 6, 10, ['#d7262e', '#2c5bd6', '#3ddc84', '#f08a24'][i]).r(x + 1, 28, 4, 2, '#f4f4f2'));
+  k.r(2, 43, 92, 8, '#5e3c27').r(2, 43, 92, 1, '#8a5a3c').r(40, 45, 16, 4, '#f2c230');
+}});
+
 /* ── pisos (planos, se pueden rotar) ── */
 def('piso_meta', { name: 'Línea de meta (piso)', fw: 4, w: 64, h: 16, block: false, flat: true, shop: true, draw(k) { CHK(k, 0, 0, 64, 16, 4, '#16171b', '#f4f4f2'); }});
 def('piso_cuadros', { name: 'Piso a cuadros', fw: 3, fh: 3, w: 48, h: 48, block: false, flat: true, shop: true, draw(k) { CHK(k, 0, 0, 48, 48, 8, '#16171b', '#e8e4dc'); k.r(0, 0, 48, 1, 'rgba(255,255,255,.15)'); }});

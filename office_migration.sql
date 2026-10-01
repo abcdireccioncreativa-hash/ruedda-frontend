@@ -119,6 +119,34 @@ create table if not exists public.office_laps (
 );
 create index if not exists office_laps_ms_idx on public.office_laps(ms);
 
+-- Tienda de karts: karts y piezas (caros) y el garage de cada piloto
+create table if not exists public.office_kart_items (
+  item  text primary key,
+  name  text not null,
+  kind  text not null check (kind in ('kart','part')),
+  price integer not null check (price >= 0),
+  stats jsonb not null default '{}'::jsonb,
+  sort  integer not null default 0
+);
+create table if not exists public.office_garage (
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  item       text not null references public.office_kart_items(item) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, item)
+);
+insert into public.office_kart_items (item, name, kind, price, stats, sort) values
+  ('kart_rayo',    'Rayo GT',        'kart', 3000,  '{"speed":0.05,"grip":0.05,"model":"rayo"}', 1),
+  ('kart_diablo',  'Diablo R',       'kart', 6000,  '{"speed":0.10,"grip":0.08,"model":"diablo"}', 2),
+  ('kart_phantom', 'Phantom X',      'kart', 12000, '{"speed":0.15,"grip":0.12,"model":"phantom"}', 3),
+  ('kart_gold',    'Ruedda Gold',    'kart', 25000, '{"speed":0.20,"grip":0.15,"model":"gold"}', 4),
+  ('motor_s1',     'Motor Stage 1',  'part', 2000,  '{"speed":0.04}', 10),
+  ('motor_s2',     'Motor Stage 2',  'part', 5000,  '{"speed":0.08}', 11),
+  ('llantas_slick','Llantas slick',  'part', 2500,  '{"grip":0.15}', 12),
+  ('aleron',       'Alerón de carbono','part', 1800, '{"grip":0.10}', 13),
+  ('frenos',       'Frenos de carbono','part', 1500, '{"brake":0.30}', 14),
+  ('nitro',        'Nitro',          'part', 4000,  '{"nitro":true}', 15)
+on conflict (item) do nothing;
+
 -- Chat global de la oficina (con historial)
 create table if not exists public.office_chat (
   id         bigserial primary key,
@@ -440,6 +468,22 @@ language sql stable security definer set search_path = public as $$
      group by l.actor, m.display_name order by min(l.ms) limit 5) t;
 $$;
 
+-- Comprar un kart o una pieza (descuenta monedas de forma atómica)
+create or replace function public.office_buy_kart_item(p_item text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare uid uuid := auth.uid(); it public.office_kart_items; bal int;
+begin
+  if not public.office_is_member() then raise exception 'no autorizado'; end if;
+  select * into it from public.office_kart_items where item = p_item;
+  if not found then raise exception 'no existe'; end if;
+  if exists(select 1 from public.office_garage where user_id = uid and item = p_item) then return jsonb_build_object('ok', false, 'reason', 'ya'); end if;
+  update public.office_members set coins = coins - it.price where user_id = uid and coins >= it.price returning coins into bal;
+  if bal is null then return jsonb_build_object('ok', false, 'reason', 'saldo'); end if;
+  insert into public.office_garage(user_id, item) values (uid, p_item);
+  insert into public.office_events(kind, actor, payload) values ('kartbuy', uid, jsonb_build_object('item', p_item, 'name', it.name, 'price', it.price));
+  return jsonb_build_object('ok', true, 'coins', bal);
+end $$;
+
 -- Borrar la pizarra
 create or replace function public.office_clear_board(p_board text) returns void
 language plpgsql security definer set search_path = public as $$
@@ -621,10 +665,12 @@ alter table public.office_events    enable row level security;
 alter table public.office_chat      enable row level security;
 alter table public.office_board_notes enable row level security;
 alter table public.office_laps enable row level security;
+alter table public.office_kart_items enable row level security;
+alter table public.office_garage enable row level security;
 alter table public.office_accounts  enable row level security;   -- sin políticas: solo service role y RPCs
 
 do $$ declare t text; begin
-  foreach t in array array['office_members','office_config','office_catalog','office_decor','office_notes','office_positions','office_strokes','office_events','office_chat','office_accounts','office_board_notes','office_laps'] loop
+  foreach t in array array['office_members','office_config','office_catalog','office_decor','office_notes','office_positions','office_strokes','office_events','office_chat','office_accounts','office_board_notes','office_laps','office_kart_items','office_garage'] loop
     execute format('revoke all on public.%I from anon', t);
     if t = 'office_accounts' then execute 'revoke all on public.office_accounts from authenticated'; end if;
   end loop;
@@ -689,6 +735,12 @@ create policy office_events_sel on public.office_events for select to authentica
 create policy office_events_ins on public.office_events for insert to authenticated
   with check (actor = auth.uid() and public.office_is_member() and kind not like 'award:%' and kind <> 'boost');
 
+drop policy if exists office_kitems_sel on public.office_kart_items;
+drop policy if exists office_kitems_adm on public.office_kart_items;
+create policy office_kitems_sel on public.office_kart_items for select to authenticated using (public.office_is_member());
+create policy office_kitems_adm on public.office_kart_items for all to authenticated using (public.office_is_admin()) with check (public.office_is_admin());
+drop policy if exists office_garage_sel on public.office_garage;
+create policy office_garage_sel on public.office_garage for select to authenticated using (public.office_is_member());
 drop policy if exists office_laps_sel on public.office_laps;
 create policy office_laps_sel on public.office_laps for select to authenticated using (public.office_is_member());
 
@@ -710,7 +762,7 @@ do $$ declare f text; begin
                            'office_buy(text,integer,integer)','office_clear_board(text)','office_grant(uuid,integer)',
                            'office_find_users(text)','office_upsert_member(uuid,text,text,text,boolean)',
                            'office_in_my_office(integer,integer)','office_in_other_office(integer,integer)','office_update_my_office(text,text,boolean)','office_place_own(text,integer,integer)',
-                           'office_accounts_list()','office_lottery()','office_tip(integer)','office_record_lap(integer)','office_top_laps()','office_set_my_desk(integer,integer)','office_unpack_base()','office_account_upsert(text,text,text,text,boolean,boolean)','office_account_delete(text)'] loop
+                           'office_accounts_list()','office_lottery()','office_tip(integer)','office_record_lap(integer)','office_top_laps()','office_buy_kart_item(text)','office_set_my_desk(integer,integer)','office_unpack_base()','office_account_upsert(text,text,text,text,boolean,boolean)','office_account_delete(text)'] loop
     execute 'revoke all on function public.' || f || ' from public, anon';
     execute 'grant execute on function public.' || f || ' to authenticated';
   end loop;

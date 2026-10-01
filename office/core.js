@@ -279,6 +279,11 @@ const Real = {
   lottery: () => Real.rpc('office_lottery'),
   tip: amount => Real.rpc('office_tip', { p_amount: amount }),
   recordLap: ms => Real.rpc('office_record_lap', { p_ms: ms }),
+  async kartShop() {
+    const s = client(), [it, g] = await Promise.all([s.from('office_kart_items').select('*').order('sort'), s.from('office_garage').select('item').eq('user_id', RO.S.me.user_id)]);
+    return { items: it.data || [], garage: (g.data || []).map(r => r.item) };
+  },
+  buyKartItem: item => Real.rpc('office_buy_kart_item', { p_item: item }),
   topLaps: () => Real.rpc('office_top_laps'),
   async setDecorRot(id, rot) { chk(await client().from('office_decor').update({ rot }).eq('id', id)); },
   setMyDesk: (x, y) => Real.rpc('office_set_my_desk', { px: x, py: y }),
@@ -425,6 +430,19 @@ const Demo = {
   async logEvent(kind, payload) { const e = this._mut(d => { const e = { id: d.seq++, kind, actor: RO.S.me.user_id, payload: payload || {}, created_at: new Date().toISOString() }; d.events.push(e); d.events = d.events.slice(-80); return e; }); this._db_ev('office_events', 'INSERT', e); },
   async saveConfig(data) { this._mut(d => { d.config = data; }); this._db_ev('office_config', 'UPDATE', { id: 1, data }); },
   async saveCatalog(row) { const r = this._mut(d => { const i = d.catalog.findIndex(c => c.item === row.item); if (i >= 0) d.catalog[i] = Object.assign(d.catalog[i], row); else d.catalog.push(row); return Object.assign({}, i >= 0 ? d.catalog[i] : row); }); this._db_ev('office_catalog', 'UPDATE', r); },
+  async kartShop() {
+    const items = [['kart_rayo', 'Rayo GT', 'kart', 3000, { speed: .05, grip: .05, model: 'rayo' }], ['kart_diablo', 'Diablo R', 'kart', 6000, { speed: .1, grip: .08, model: 'diablo' }], ['kart_phantom', 'Phantom X', 'kart', 12000, { speed: .15, grip: .12, model: 'phantom' }], ['kart_gold', 'Ruedda Gold', 'kart', 25000, { speed: .2, grip: .15, model: 'gold' }],
+      ['motor_s1', 'Motor Stage 1', 'part', 2000, { speed: .04 }], ['motor_s2', 'Motor Stage 2', 'part', 5000, { speed: .08 }], ['llantas_slick', 'Llantas slick', 'part', 2500, { grip: .15 }], ['aleron', 'Alerón de carbono', 'part', 1800, { grip: .1 }], ['frenos', 'Frenos de carbono', 'part', 1500, { brake: .3 }], ['nitro', 'Nitro', 'part', 4000, { nitro: true }]]
+      .map(([item, name, kind, price, stats], i) => ({ item, name, kind, price, stats, sort: i }));
+    return { items, garage: (this._db().garage || {})[RO.S.me.user_id] || [] };
+  },
+  async buyKartItem(item) {
+    const { items } = await this.kartShop(), it = items.find(i => i.item === item), me = this._db().members.find(m => m.user_id === RO.S.me.user_id);
+    if (((this._db().garage || {})[RO.S.me.user_id] || []).includes(item)) return { ok: false, reason: 'ya' };
+    if (me.coins < it.price) return { ok: false, reason: 'saldo' };
+    const m = this._mut(d => { d.garage = d.garage || {}; (d.garage[RO.S.me.user_id] = d.garage[RO.S.me.user_id] || []).push(item); const m = d.members.find(x => x.user_id === RO.S.me.user_id); m.coins -= it.price; return Object.assign({}, m); });
+    this._db_ev('office_members', 'UPDATE', m); return { ok: true, coins: m.coins };
+  },
   async recordLap(ms) {
     const r = this._mut(d => { d.laps = d.laps || []; const prev = d.laps.length ? Math.min(...d.laps.map(l => l.ms)) : null; d.laps.push({ ms, actor: RO.S.me.user_id }); return prev; });
     return { ok: true, record: r == null || ms < r, top: await this.topLaps() };
