@@ -75,11 +75,11 @@
     },
     {
       "src": "^/office/?$",
-      "headers": {
-        "Cache-Control": "no-cache",
-        "X-Robots-Tag": "noindex, nofollow"
-      },
-      "dest": "/office.html"
+      "dest": "https://ruedda-office.vercel.app/office"
+    },
+    {
+      "src": "^/office/(.*)$",
+      "dest": "https://ruedda-office.vercel.app/office/$1"
     },
     {
       "src": "^/repuestos$",
