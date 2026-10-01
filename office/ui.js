@@ -261,7 +261,8 @@ const HINTS = {
   board: () => 'Abrir la pizarra general', gong: () => 'Tocar la campana de ventas', clocks: () => 'Ver los relojes',
   tv: () => 'Ver Ruedda en vivo', secret: () => 'Examinar la estantería', coffee: () => 'Servirte un café', snacks: () => 'Comprar un snack',
   arcade: () => 'Jugar arcade', pingpong: () => 'Jugar ping-pong', grill: () => 'Prender la parrilla', aquarium: () => 'Mirar la pecera',
-  car: h => 'Encender ' + esc(h.car.name), bar: () => 'Pedir en la barra', npc: () => 'Hablar con ' + esc(RO.S.config.npc.name || 'Valentina'),
+  car: h => 'Encender ' + esc(h.car.name), bar: () => 'Pedir en la barra',
+  stage: () => 'Tirar billetes 💸', dj: () => (RO.music && RO.music.timer ? 'Soltar el drop 🔊' : 'Poner la música 🎧'), npc: () => 'Hablar con ' + esc(RO.S.config.npc.name || 'Valentina'),
   player: h => `Hablar con ${esc(RO.nameOf(h.uid))}</span><span class="sep"></span><kbd class="k2">H</kbd><span>Chocar los cinco`
 };
 function officeAt(pos) { return (RO.S.config.offices || []).find(o => o.pos === pos); }
@@ -295,6 +296,12 @@ RO.on('interact', h => {
     case 'aquarium': UI.toast('Los peces se llaman Subasta, Market y Concesionario.'); return;
     case 'bar': RO.G.bubbleMe('🥂'); RO.Net.send({ t: 'emote', u: S.me.user_id, e: '🥂' }); UI.toast(esc(S.config.npc.name || 'Valentina') + ': aquí el champán se sirve cuando se cierra un trato.', 'vip'); return;
     case 'car': RO.G.carFx(h.idx); RO.Net.send({ t: 'car', u: S.me.user_id, i: h.idx }); UI.toast('<b>' + esc(h.car.name) + '</b> · exhibición privada', 'vip'); return;
+    case 'stage': RO.G.moneyRain(); RO.sfx.cash(); RO.G.bubbleMe('💸'); RO.Net.send({ t: 'money', u: S.me.user_id }); return;
+    case 'dj':
+      if (RO.muted) return UI.toast('Activa el sonido (🔊 arriba) para escuchar al DJ');
+      if (!RO.music.timer) { RO.music.start(); UI.toast('🎧 DJ Ruedda en vivo'); }
+      else { RO.G.drop(); RO.sfx.drop(); RO.Net.send({ t: 'drop', u: S.me.user_id }); }
+      RO.G.bubbleMe('🔊'); return;
     case 'npc': return RO.G.npcSay();
     case 'player': return UI.personCard(h.uid);
   }
@@ -310,6 +317,8 @@ RO.on('key', (k, e) => {
   else if (k === 'h') { const h = RO.G.scene && RO.G.scene.hint; if (h && h.kind === 'player') UI.hi5(h.uid); }
   else if (EMOTES[k]) { RO.G.bubbleMe(EMOTES[k]); RO.Net.send({ t: 'emote', u: RO.S.me.user_id, e: EMOTES[k] }); }
   else if (k === 'n') UI.notesInbox();
+  else if (k === '-' || k === '_') RO.G.zoom(-1);
+  else if (k === '+' || k === '=') RO.G.zoom(1);
 });
 
 /* chocar los cinco: los dos tienen que presionar H en 4 s */
@@ -779,7 +788,7 @@ UI.help = () => UI.modal({
     <div><kbd class="k2">Enter</kbd></div><div>Escribir en el chat global</div>
     <div><kbd class="k2">1</kbd>–<kbd class="k2">8</kbd></div><div>Emotes 👍 😂 🔥 ☕ 🚗 💸 🙌 👀</div>
     <div><kbd class="k2">N</kbd></div><div>Mis notas</div>
-    <div><kbd class="k2">Rueda</kbd></div><div>Zoom</div>
+    <div><kbd class="k2">Rueda</kbd><kbd class="k2">−</kbd><kbd class="k2">+</kbd></div><div>Zoom (5 niveles; aleja para ver más mapa)</div>
     <div><kbd class="k2">Esc</kbd></div><div>Cerrar</div>
   </div><p class="muted" style="margin-top:16px;line-height:1.5;font-size:12.5px">Dicen que detrás de alguna estantería de la zona de ocio hay algo… exagerado.</p>`,
   foot: `<button class="btn" id="hp-n">Activar notificaciones</button>`
@@ -792,28 +801,38 @@ UI.minimap = () => {
   const COL = { pasillo: '#2b2e35', juntas: '#323a4a', lobby: '#1e1f24', creativa: '#7a6448', ocio: '#8f949b', terraza: '#6f5d46', garage: '#1a1022' };
   const paint = () => {
     const sc = RO.G.scene; if (!sc || !sc.w) return;
-    const key = (sc.vipSeen ? 1 : 0) + ':' + (sc.secretOpen ? 1 : 0) + ':' + JSON.stringify(RO.S.config.offices);
+    const key = (sc.vipSeen ? 1 : 0) + ':' + (sc.clubSeen ? 1 : 0) + ':' + (sc.secretOpen ? 1 : 0) + ':' + JSON.stringify(RO.S.config.offices);
     if (key !== baseKey) {
       baseKey = key; base = document.createElement('canvas'); base.width = cv.width; base.height = cv.height;
       const b = base.getContext('2d'); b.fillStyle = '#0a0b0d'; b.fillRect(0, 0, cv.width, cv.height);
       for (let y = 0; y < Wd.H; y++) for (let x = 0; x < Wd.W; x++) {
         const r = sc.w.room[y][x];
-        if (y >= 39 && !sc.vipSeen) continue;
+        if ((y >= 39 && !sc.vipSeen) || (y >= 54 && !sc.clubSeen)) continue;
         if (sc.w.grid[y][x] === 0) { const st = r && r.startsWith('off') ? RO.World.styleOf(r, RO.S.config) : null; b.fillStyle = st ? st.a : (COL[r] || '#2b2e35'); }
         else b.fillStyle = '#16171a';
         b.fillRect(x * s, y * s, s, s);
       }
-      if (!sc.vipSeen) { b.fillStyle = '#5b5e66'; b.font = '9px JetBrains Mono, monospace'; b.fillText('???', 74, 145); }
+      if (!sc.vipSeen) { b.fillStyle = '#5b5e66'; b.font = '9px JetBrains Mono, monospace'; b.fillText('???', 74, 165); }
+      else if (!sc.clubSeen) { b.fillStyle = '#5b5e66'; b.font = '9px JetBrains Mono, monospace'; b.fillText('???', 74, 190); }
     }
     g.drawImage(base, 0, 0);
     sc.players.forEach(p => {
-      if (!p.isMe && p.y > 39 * 16 && !sc.vipSeen) return;
+      if (!p.isMe && ((p.y > 39 * 16 && !sc.vipSeen) || (p.y > 54 * 16 && !sc.clubSeen))) return;
       g.fillStyle = p.isMe ? '#e6f03b' : '#ffffff'; g.fillRect(Math.round(p.x / 16 * s) - 2, Math.round(p.y / 16 * s) - 2, 4, 4);
     });
     if (sc.npc && sc.vipSeen) { g.fillStyle = '#e85b9c'; g.fillRect(Math.round(sc.npc.x / 16 * s) - 1, Math.round(sc.npc.y / 16 * s) - 1, 3, 3); }
   };
   setInterval(paint, 250);
-  cv.onclick = e => { const r = cv.getBoundingClientRect(); const x = Math.floor((e.clientX - r.left) / r.width * cv.width / s), y = Math.floor((e.clientY - r.top) / r.height * cv.height / s); if (y >= 39 && !(RO.G.scene && RO.G.scene.vipSeen)) return; RO.G.goToSpot(x, y); };
+  cv.onclick = e => { const r = cv.getBoundingClientRect(); const x = Math.floor((e.clientX - r.left) / r.width * cv.width / s), y = Math.floor((e.clientY - r.top) / r.height * cv.height / s); const sc = RO.G.scene; if (!sc || (y >= 39 && !sc.vipSeen) || (y >= 54 && !sc.clubSeen)) return; RO.G.goToSpot(x, y); };
+};
+
+/* panel lateral: se puede esconder para ver más mapa */
+UI.togglePanel = force => {
+  const side = $('#side'), hide = force != null ? force : !side.classList.contains('collapsed');
+  side.classList.toggle('collapsed', hide);
+  document.body.classList.toggle('panel-off', hide);
+  try { localStorage.setItem('ro_panel', hide ? '0' : '1'); } catch (e) {}
+  setTimeout(() => RO.G.layout(), 260);
 };
 
 /* ════════════ BOTONES DEL HUD ════════════ */
@@ -828,6 +847,9 @@ UI.initHud = () => {
     else if (a === 'admin') RO.Admin.open();
     else if (a === 'sound') { RO.setMuted(!RO.muted); UI.renderTop(); if (!RO.muted) RO.sfx.blip(); }
     else if (a === 'help') UI.help();
+    else if (a === 'zin') RO.G.zoom(1);
+    else if (a === 'zout') RO.G.zoom(-1);
+    else if (a === 'panel') UI.togglePanel();
     else if (a === 'logout') RO.emit('logout');
     else if (a === 'emergency') UI.emergency();
     else if (a === 'boost') UI.boost();
@@ -835,6 +857,9 @@ UI.initHud = () => {
     b.blur();
   });
   UI.initStatus(); UI.initChat(); UI.minimap();
+  try { if (localStorage.getItem('ro_panel') === '0') UI.togglePanel(true); } catch (e) {}
+  const zl = () => { const el = $('#zoom-l'); if (el) el.textContent = RO.G.zoomLevel() + '×'; };
+  RO.on('zoom', zl); zl();
   UI.renderTop(); UI.renderPeople(); UI.renderFeed(); renderClocks();
   setInterval(() => { UI.renderPeople(); UI.renderFeed(); }, 20000);
 };

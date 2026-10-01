@@ -131,7 +131,8 @@ function track() {
   const p = RO.G.mePos() || {};
   RO.Net.track({ uid: S.me.user_id, status: S.status, room: p.room || null, x: p.x, y: p.y, dir: p.dir, at: Date.now() });
 }
-RO.on('room', (id, name) => { UI.setRoom(name); track(); UI.renderPeople(); });
+RO.on('room', (id, name) => { UI.setRoom(name); track(); UI.renderPeople(); if (id === 'club') RO.music.start(); else RO.music.stop(); });
+RO.on('club:found', () => UI.banner('Club privado', 'Ruedda Ecosystem · solo para el equipo', 'pink', 4200));
 RO.on('status', () => { track(); RO.G.refreshTags(); UI.renderPeople(); });
 RO.on('vip:found', () => {
   UI.banner('El Garage', 'Bienvenido al lado exagerado de Ruedda', 'pink', 4200);
@@ -172,6 +173,8 @@ const NET = {
       case 'secret': return RO.G.openSecret(true);
       case 'car': return RO.G.carFx(m.i);
       case 'invite': return UI.onInvite(m);
+      case 'money': return RO.G.moneyRain();
+      case 'drop': return RO.G.drop();
       case 'bs': return UI.WB.onSeg(m);
       case 'be': return UI.WB.onEnd(m);
       case 'bc': return UI.WB.onClear(m);

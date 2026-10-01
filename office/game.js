@@ -20,6 +20,7 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
 addEventListener('blur', () => keys.clear());
 
+const ZL = [1, 1.5, 2, 3, 4];
 const DIR_ROW = { down: 0, left: 1, right: 2, up: 3 };
 const WALK = [1, 2, 3, 0];
 const tf = {};
@@ -57,23 +58,25 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     const me = RO.S.me;
     let pos = (RO.S.positions || []).find(p => p.user_id === me.user_id);
     const ofs = this.officeOf(me.slot);
-    if (!pos || !this.free(pos.x, pos.y) || (pos.room === 'garage')) pos = ofs != null ? this.w.officeSpawn(ofs) : this.w.spawn;
+    if (!pos || !this.free(pos.x, pos.y) || pos.room === 'garage' || pos.room === 'club') pos = ofs != null ? this.w.officeSpawn(ofs) : this.w.spawn;
     this.me = this.addPlayer(me.user_id, pos.x, pos.y, true);
     if (pos.dir) this.me.dir = pos.dir;
 
     const cam = this.cameras.main;
-    cam.setBounds(0, 0, Wd.W * T, Wd.H * T);
     cam.setZoom(this.zoomPref());
+    this.applyBounds();
+    this.scale.on('resize', () => this.applyBounds());
     cam.startFollow(this.me.spr, true, 0.14, 0.14);
     cam.setRoundPixels(true);
     cam.fadeIn(600, 7, 8, 10);
 
     this.makeNpc();
+    this.makeDancers();
 
     // mouse: clic para caminar / modo edición
     this.input.on('pointerdown', p => this.onPointer(p, true));
     this.input.on('pointermove', p => this.onPointer(p, false));
-    this.input.on('wheel', (p, o, dx, dy) => { const z = RO.clamp(cam.zoom + (dy > 0 ? -1 : 1), 2, 5); cam.setZoom(z); try { localStorage.setItem('ro_zoom', z); } catch (e) {} });
+    this.input.on('wheel', (p, o, dx, dy) => this.zoomStep(dy > 0 ? -1 : 1));
 
     this.game.events.on('postrender', () => this.layoutOverlay());
     this.time.addEvent({ delay: 1000, loop: true, callback: () => this.tickClocks() });
@@ -83,7 +86,27 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     this.announceRoom(true);
   }
 
-  zoomPref() { let z = 3; try { z = +localStorage.getItem('ro_zoom') || 3; } catch (e) {} if (innerWidth < 1300 && !localStorage.getItem('ro_zoom')) z = 2; return RO.clamp(z, 2, 5); }
+  zoomPref() {
+    let z = 0; try { z = +localStorage.getItem('ro_zoom2') || 0; } catch (e) {}
+    if (!ZL.includes(z)) z = innerWidth < 1300 ? 2 : 3;
+    return z;
+  }
+  zoomStep(d) {
+    const cam = this.cameras.main, i = ZL.indexOf(cam.zoom), n = ZL[RO.clamp((i < 0 ? 3 : i) + d, 0, ZL.length - 1)];
+    if (n === cam.zoom) return;
+    cam.setZoom(n); this.applyBounds();
+    try { localStorage.setItem('ro_zoom2', n); } catch (e) {}
+    RO.emit('zoom', n);
+  }
+  // la cámara puede correrse lo suficiente para que el HUD (barra de arriba y panel derecho) no tape el mapa
+  applyBounds() {
+    const cam = this.cameras.main, z = cam.zoom;
+    const side = document.getElementById('side');
+    const sideW = side && !side.classList.contains('collapsed') ? side.offsetWidth + 24 : 12;
+    const top = 76, pad = 12;
+    cam.setBounds(-pad / z, -top / z, Wd.W * T + (pad + sideW) / z, Wd.H * T + (top + pad) / z);
+    cam.setFollowOffset(-(sideW - pad) / 2 / z, (top - pad) / 2 / z);
+  }
   officeOf(slot) { const o = (RO.S.config.offices || []).find(z => z.slot === slot); return o ? o.pos : null; }
 
   /* ════════════ MUNDO ════════════ */
@@ -106,8 +129,12 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     this.drawPostits();
     this.syncDecor();
     if (!this.fog && !this.vipSeen) {
-      this.fog = this.add.rectangle(0, 39 * T, Wd.W * T, 17 * T, 0x07080a).setOrigin(0).setDepth(9e5);
+      this.fog = this.add.rectangle(0, 39 * T, Wd.W * T, (Wd.H - 39) * T, 0x07080a).setOrigin(0).setDepth(9e5);
     }
+    if (!this.fogClub && !this.clubSeen) {
+      this.fogClub = this.add.rectangle(0, 54 * T, Wd.W * T, (Wd.H - 54) * T, 0x07080a).setOrigin(0).setDepth(9e5 - 1);
+    }
+    this.drawClub();
   }
   drawBase() {
     const c = Wd.renderBase(this.w, RO.S.config, RO.logoBits, this.secretOpen);
@@ -456,6 +483,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     });
 
     this.updateNpc(time, dt);
+    this.updateDancers(time);
     this.updateHint();
   }
   sendPos(m) {
@@ -466,7 +494,8 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
   announceRoom(initial) {
     const me = this.me; if (!me) return;
     const tx = Math.floor(me.x / T), ty = Math.floor(me.y / T); me.room = this.w.room[ty] && this.w.room[ty][tx];
-    if (me.room === 'garage') this.revealGarage();
+    if (me.room === 'garage' || me.room === 'club') this.revealGarage();
+    if (me.room === 'club') this.revealClub();
     RO.emit('room', me.room, Wd.roomName(me.room, RO.S.config), initial);
   }
 
@@ -486,6 +515,90 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     if (id !== this.hintId) { this.hintId = id; this.hint = best; RO.emit('hint', best); }
   }
   interact() { if (this.hint) RO.emit('interact', this.hint); }
+
+  /* ════════════ CLUB PRIVADO ════════════ */
+  revealClub() {
+    if (this.clubSeen) return; this.clubSeen = true;
+    if (this.fogClub) this.tweens.add({ targets: this.fogClub, alpha: 0, duration: 900, onComplete: () => { this.fogClub.destroy(); this.fogClub = null; } });
+    RO.emit('club:found');
+  }
+  drawClub() {
+    const C = Wd.CLUB, add = o => { this.fx.push(o); return o; };
+    // piso LED frente al escenario
+    this.led = [];
+    const LEDC = [0xe85b9c, 0x7c3aed, 0x22d3ee, 0xe6f03b, 0x3ddc84];
+    for (let y = 62; y <= 65; y++) for (let x = 18; x <= 38; x++) {
+      const r = add(this.add.rectangle(x * T + 1, y * T + 1, T - 2, T - 2, LEDC[(x + y) % 5], 0.16).setOrigin(0).setDepth(-5.8e5).setBlendMode(Phaser.BlendModes.ADD));
+      this.led.push(r);
+    }
+    // focos sobre cada tubo
+    this.spots = this.w.dancers.map((d, i) => {
+      const c = [0xe85b9c, 0xa855f7, 0x22d3ee][i % 3];
+      const cone = add(this.add.triangle(d.x, 56 * T - 8, 0, 0, -22, 70, 22, 70, c, 0.13).setOrigin(0.5, 0).setDepth(9e4).setBlendMode(Phaser.BlendModes.ADD));
+      const pool = add(this.add.ellipse(d.x, d.y + 2, 46, 18, c, 0.32).setDepth(-5.7e5).setBlendMode(Phaser.BlendModes.ADD));
+      this.tweens.add({ targets: [cone, pool], alpha: { from: 0.55, to: 1 }, duration: 480, yoyo: true, repeat: -1, delay: i * 160 });
+      return { cone, pool };
+    });
+    // láseres desde la cabina del DJ
+    const LZ = [0xff2d6f, 0x22d3ee, 0x3ddc84, 0xa855f7];
+    for (let i = 0; i < 6; i++) {
+      const l = add(this.add.rectangle(42.5 * T, 57.4 * T, 1, 230, LZ[i % 4], 0.5).setOrigin(0.5, 0).setDepth(9.1e4).setBlendMode(Phaser.BlendModes.ADD));
+      l.angle = 30 + i * 20;
+      this.tweens.add({ targets: l, angle: { from: 25 + i * 18, to: 120 + i * 14 }, duration: 1800 + i * 260, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
+    }
+    // reflejos de la bola disco
+    for (let i = 0; i < 14; i++) {
+      const d = add(this.add.rectangle(Phaser.Math.Between(C.x0 + 1, C.x1 - 1) * T, Phaser.Math.Between(C.y0 + 2, C.y1) * T, 2, 2, 0xffffff, 0.7).setDepth(9.2e4).setBlendMode(Phaser.BlendModes.ADD));
+      const hop = () => this.tweens.add({ targets: d, x: Phaser.Math.Between(C.x0 + 1, C.x1 - 1) * T, y: Phaser.Math.Between(C.y0 + 2, C.y1) * T, duration: Phaser.Math.Between(1600, 3200), onComplete: hop });
+      hop();
+    }
+    // neón en el muro del fondo del club
+    const sign = add(this.add.image(28.5 * T, 55 * T + 1, this.tex('clubsign', () => A.pixelText('RUEDDA · CLUB', '#ff7ab8', 1))).setOrigin(0.5, 0).setDepth(-4e5 + 6));
+    const sg = add(this.add.ellipse(28.5 * T, 55 * T + 4, 120, 18, 0xe85b9c, 0.25).setDepth(-4e5 + 5).setBlendMode(Phaser.BlendModes.ADD));
+    this.tweens.add({ targets: sg, alpha: { from: 0.15, to: 0.4 }, duration: 900, yoyo: true, repeat: -1 });
+    void sign;
+    // destello (strobe) para el "drop"
+    this.strobe = add(this.add.rectangle(C.x0 * T, 54 * T, (C.x1 - C.x0 + 1) * T, (C.y1 - 54 + 1) * T, 0xffffff, 0).setOrigin(0).setDepth(9.3e4).setBlendMode(Phaser.BlendModes.ADD));
+    // el piso LED cambia aunque no suene la música
+    if (this.ledTimer) this.ledTimer.remove();
+    this.ledTimer = this.time.addEvent({ delay: 484, loop: true, callback: () => { if (!RO.music || !RO.music.timer) this.beat(false); } });
+    if (!this._beatHook) this._beatHook = RO.on('beat', (st, drop) => this.beat(drop));
+  }
+  beat(drop) {
+    if (!this.led) return;
+    const LEDC = [0xe85b9c, 0x7c3aed, 0x22d3ee, 0xe6f03b, 0x3ddc84];
+    this.led.forEach(r => { if (!r.scene) return; r.fillColor = LEDC[Math.floor(Math.random() * 5)]; r.fillAlpha = Math.random() < (drop ? 0.8 : 0.55) ? (drop ? 0.4 : 0.22) : 0.05; });
+    if (drop && this.strobe && this.strobe.scene) { this.strobe.fillAlpha = 0.22; this.tweens.add({ targets: this.strobe, fillAlpha: 0, duration: 140 }); }
+  }
+  makeDancers() {
+    this.dancers = this.w.dancers.map((d, i) => {
+      const key = this.avTex(A.DANCERS[i % A.DANCERS.length]);
+      const spr = this.add.sprite(d.x, d.y, key, '0_0').setOrigin(0.5, 22 / 24);
+      return { spr, x: d.x, y: d.y, ph: i * 2.1, dir: 'down' };
+    });
+  }
+  updateDancers(time) {
+    if (!this.dancers) return;
+    const t = time / 1000, fast = RO.music && RO.music.drop > 0 ? 1.8 : 1;
+    this.dancers.forEach(d => {
+      const a = t * 1.7 * fast + d.ph, orbit = Math.sin(a), front = Math.cos(a) > 0;
+      const climb = Math.max(0, Math.sin(t * 0.45 + d.ph)) * 10;
+      d.spr.setPosition(d.x + orbit * 6, d.y - climb + (front ? 1 : -1));
+      d.dir = Math.abs(orbit) < 0.35 ? (front ? 'down' : 'up') : orbit > 0 ? 'left' : 'right';
+      d.spr.setDepth(d.y + (front ? 4 : -4));
+      this.setFrame(d, true, time * (0.7 + 0.3 * fast));
+    });
+  }
+  moneyRain() {
+    const C = Wd.CLUB;
+    for (let k = 0; k < 46; k++) {
+      const x = Phaser.Math.Between(20, 36) * T + Math.random() * T, y0 = 54 * T + Math.random() * 20;
+      const b = this.add.rectangle(x, y0, 4, 2, 0x3fa45e).setDepth(9.4e4).setStrokeStyle(0.5, 0x7fdb95);
+      this.tweens.add({ targets: b, y: Phaser.Math.Between(58, 61) * T + Math.random() * T, angle: Phaser.Math.Between(-360, 360), duration: 1100 + Math.random() * 900, delay: Math.random() * 600, ease: 'Sine.easeIn',
+        onComplete: () => this.tweens.add({ targets: b, alpha: 0, duration: 900, delay: 1600, onComplete: () => b.destroy() }) });
+    }
+    void C;
+  }
 
   /* ════════════ VALENTINA (NPC) ════════════ */
   makeNpc() {
@@ -546,7 +659,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
       if (el.style.display === 'none') el.style.display = '';
       el.style.transform = `translate3d(${Math.round((x - wv.x) * z)}px,${Math.round((y - wv.y) * z)}px,0)`;
     };
-    this.players.forEach(p => place(p.tag, p.x, p.y - 24, this.fog && p.y > 39 * T && !p.isMe));
+    this.players.forEach(p => place(p.tag, p.x, p.y - 24, !p.isMe && ((this.fog && p.y > 39 * T) || (this.fogClub && p.y > 54 * T))));
     if (this.npc) place(this.npc.tag, this.npc.x, this.npc.y - 24, !!this.fog);
     if (this.marker) { /* el marcador es de Phaser */ }
   }
@@ -656,6 +769,11 @@ G.goToSpot = (x, y) => { const s = S(); if (!s) return; s.walkTo(x, y) || s.tele
 G.teleport = (x, y, dir) => S() && S().teleport(x, y, dir);
 G.seats = () => S() ? S().w.seats : [];
 G.save = () => S() && S().savePos();
+G.zoom = d => S() && S().zoomStep(d);
+G.zoomLevel = () => S() ? S().cameras.main.zoom : 3;
+G.layout = () => S() && S().applyBounds();
+G.moneyRain = () => S() && S().moneyRain();
+G.drop = () => { const s = S(); if (!s) return; if (RO.music) RO.music.boost(); s.beat(true); s.cameras.main.shake(300, 0.002); };
 
 // red → escena
 G.onPos = m => {

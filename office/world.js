@@ -2,16 +2,17 @@
 /* ════════════════════════════════════════════════════════════════
    RUEDDA OFFICE — el mundo: plano, salas, muebles fijos, puntos de
    interacción y el render del piso/muros en un único canvas.
-   Coordenadas en tiles de 16 px. Mapa 57 × 55.
+   Coordenadas en tiles de 16 px. Mapa 57 × 70 (el club privado está al fondo, bajo el garage).
    ════════════════════════════════════════════════════════════════ */
 (function(){
 const RO = window.RO, A = RO.Art, T = A.T;
-const W = 57, H = 55;
+const W = 57, H = 70;
+const CLUB = { x0: 8, y0: 56, x1: 48, y1: 68, door: [27, 29] };
 const OFF_X = [1, 15, 29, 43];          // x inicial de cada oficina privada (13 de ancho)
 const GARAGE_WALL = [39, 41];           // filas del muro alto del garage
 const SECRET = { x: 18, w: 2, shelfX: 18, shelfY: 38, slideTo: 20 };
 
-const Wd = RO.World = { W, H, T, OFF_X, SECRET };
+const Wd = RO.World = { W, H, T, OFF_X, SECRET, CLUB };
 
 const ROOM_STYLE = {
   pasillo:  { floor: 'carpet', a: '#25272d', b: '#2b2e35', wall: '#1d1f24' },
@@ -20,7 +21,8 @@ const ROOM_STYLE = {
   creativa: { floor: 'wood',   a: '#c8a57a', b: '#b8956a', wall: '#2f3a3a' },
   ocio:     { floor: 'tile',   a: '#cfd3d8', b: '#c3c8ce', wall: '#3a3546' },
   terraza:  { floor: 'deck',   a: '#9c8466', b: '#86704f', wall: '#3a3f48' },
-  garage:   { floor: 'epoxy',  a: '#0d0e11', b: '#0d0e11', wall: '#0a0a0d' }
+  garage:   { floor: 'epoxy',  a: '#0d0e11', b: '#0d0e11', wall: '#0a0a0d' },
+  club:     { floor: 'tile',   a: '#0e0912', b: '#120b17', wall: '#0b0710' }
 };
 
 /* ── construcción del plano ── */
@@ -38,6 +40,7 @@ Wd.build = (cfg) => {
   carve(1, 31, 36, 38, 'ocio');     carve(26, 30, 29, 30, 'ocio'); carve(7, 30, 8, 30, 'ocio');
   carve(38, 31, 55, 38, 'terraza'); carve(37, 33, 37, 35, 'terraza'); carve(47, 30, 48, 30, 'terraza');
   carve(1, 42, 55, 53, 'garage');
+  carve(CLUB.x0, CLUB.y0, CLUB.x1, CLUB.y1, 'club'); carve(CLUB.door[0], 54, CLUB.door[1], 55, 'club');
 
   /* ── muebles fijos ── */
   const S = [];   // {key, x, y, opts, depthBias}
@@ -98,11 +101,22 @@ Wd.build = (cfg) => {
   cars.forEach(c => add('tarima', c.x, c.y, { color: c.car.color === '#16171b' ? '#9aa0a6' : c.car.color }));
   add('barra', 48, 43); add('champan', 52, 42); add('champan', 49, 42);
   add('sofa_vip', 20, 50); add('sofa_vip', 24, 50); add('mesa', 22, 48); add('champan', 23, 47);
-  add('dinero', 27, 52); add('dinero', 28, 52); add('dinero', 29, 52); add('dinero', 44, 52);
+  add('dinero', 36, 53); add('dinero', 37, 53); add('dinero', 38, 53); add('dinero', 44, 52);
   add('estatua_oro', 45, 48); add('trofeo', 47, 48);
   add('planta_grande', 1, 52); add('planta_grande', 55, 52); add('planta_grande', 15, 42); add('planta_grande', 22, 42);
   add('bola_disco', 23, 45);
   add('letrero_vip', 4, 40);
+  // club privado (al fondo)
+  add('escenario', 20, 58);
+  const POLES = [[23, 59], [28, 59], [33, 59]];
+  POLES.forEach(([x, y]) => add('tubo', x, y));
+  add('dj', 41, 57); add('parlante', 39, 57); add('parlante', 46, 57); add('parlante', 18, 57); add('parlante', 38, 57);
+  add('barra', 9, 57); add('champan', 10, 56); add('champan', 13, 56);
+  add('sofa_vip', 10, 66); add('sofa_vip', 14, 66); add('mesa', 12, 64); add('champan', 12, 63);
+  add('sofa_vip', 36, 66); add('sofa_vip', 40, 66); add('mesa', 39, 64); add('champan', 40, 63);
+  add('dinero', 19, 62); add('dinero', 37, 62);
+  add('planta_grande', 8, 68); add('planta_grande', 48, 68); add('planta_grande', 48, 60);
+  add('bola_grande', 28, 64);
 
   /* ── bloqueo estático ── */
   const blocked = grid.map(r => Uint8Array.from(r));
@@ -133,6 +147,9 @@ Wd.build = (cfg) => {
   inter.push({ id: 'aquarium', kind: 'aquarium', x: 33 * T, y: 32.8 * T, r: 22 });
   cars.forEach(c => inter.push({ id: 'car' + c.i, kind: 'car', car: c.car, idx: c.i, x: (c.x + 3) * T, y: (c.y + 3.6) * T, r: 34 }));
   inter.push({ id: 'bar', kind: 'bar', x: 51 * T, y: 44.8 * T, r: 40 });
+  inter.push({ id: 'stage', kind: 'stage', x: 28.5 * T, y: 63.2 * T, r: 120, rx: 140, ry: 22 });
+  inter.push({ id: 'dj', kind: 'dj', x: 43 * T, y: 58.8 * T, r: 34 });
+  inter.push({ id: 'clubbar', kind: 'bar', x: 12 * T, y: 58.8 * T, r: 40 });
 
   // asientos para "reunión de emergencia"
   const seats = [[6, 19, 'down'], [8, 19, 'down'], [10, 19, 'down'], [4, 21, 'right'], [12, 21, 'left'], [6, 23, 'up'], [8, 23, 'up'], [10, 23, 'up']]
@@ -142,7 +159,8 @@ Wd.build = (cfg) => {
   const spawn = { x: 25 * T, y: 21 * T };
   const officeSpawn = p => ({ x: (OFF_X[p] + 6.5) * T, y: 7 * T });
 
-  return { grid, room, blocked, staticBlocked: blocked.map(r => Uint8Array.from(r)), statics: S, inter, seats, npcPath, spawn, officeSpawn, cars, POOL };
+  const dancers = POLES.map(([x, y], i) => ({ x: (x + .5) * T, y: (y + 1) * T - 2, i }));
+  return { grid, room, blocked, staticBlocked: blocked.map(r => Uint8Array.from(r)), statics: S, inter, seats, npcPath, spawn, officeSpawn, cars, POOL, dancers };
 };
 const shade = A.shade;
 function rugFor(t) { return ({ nogal: '#7a2f3a', madera: '#2c4a6e', alfombra: '#8a6a2c', concreto: '#2f5a44', marmol: '#3a2f5a', neon: '#5a1f6e', ruedda: '#3a3d10', verde: '#6e4a2c' })[t] || '#7a2f3a'; }
@@ -231,6 +249,11 @@ Wd.renderBase = (w, cfg, logoBits, secretOpen) => {
   k.r(P.x0 * T + 3, P.y0 * T + 3, (P.x1 - P.x0 + 1) * T - 6, (P.y1 - P.y0 + 1) * T - 6, '#1e8fd0');
   k.r(P.x0 * T + 3, P.y0 * T + 3, (P.x1 - P.x0 + 1) * T - 6, 3, '#1670a8');
   for (let i = 0; i < 9; i++) k.r(P.x0 * T + 10 + i * 12, P.y0 * T + 12 + (i % 3) * 10, 6, 1, '#7fd0ff');
+  // club: tiras de neón en el muro y letrero en el piso del garage apuntando a la puerta
+  for (let x = CLUB.x0; x <= CLUB.x1; x++) if (x < CLUB.door[0] || x > CLUB.door[1]) { k.r(x * T, 55 * T + 10, T, 1, '#e85b9c').r(x * T, 55 * T + 12, T, 1, 'rgba(124,58,237,.8)'); }
+  const sg = A.pixelText('CLUB', '#e85b9c', 2);
+  g.drawImage(sg, Math.round((CLUB.door[0] + 1.5) * T - sg.width / 2), 52 * T + 4);
+  k.r((CLUB.door[0]) * T, 53 * T + 10, 3 * T, 1, 'rgba(232,91,156,.7)');
   // garage: líneas de estacionamiento amarillas y reflejos
   for (let x = 2; x < 55; x += 4) { k.r(x * T, 53 * T + 2, 1, 12, 'rgba(230,240,59,.35)'); }
   k.r(1 * T, 47 * T, 55 * T, 1, 'rgba(124,58,237,.18)');

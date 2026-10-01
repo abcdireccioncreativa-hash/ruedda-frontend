@@ -44,7 +44,7 @@ RO.DEFAULT_CONFIG = {
   ],
   rooms: {
     pasillo: 'Pasillo', juntas: 'Sala de juntas', lobby: 'Recepción', creativa: 'Sala creativa',
-    ocio: 'Zona de ocio', terraza: 'Terraza', garage: 'El Garage'
+    ocio: 'Zona de ocio', terraza: 'Terraza', garage: 'El Garage', club: 'Club privado'
   },
   npc: {
     name: 'Valentina',
@@ -65,7 +65,8 @@ RO.DEFAULT_CONFIG = {
       'Las llaves de este garage se ganan, no se piden.',
       'Menos memes en el grupo, más publicaciones en el market.',
       'El dinero nunca duerme. Pero tú sí deberías, se te nota.',
-      '¿Viste ese 700? Eso es lo que pasa cuando nadie se rinde.'
+      '¿Viste ese 700? Eso es lo que pasa cuando nadie se rinde.',
+      'El club de abajo abre cuando cierras el mes. Tú sabrás.'
     ]
   },
   cars: [
@@ -342,7 +343,7 @@ RO.isMissing = isMissing;
 /* ════════════ SONIDO (sintetizado, sin archivos) ════════════ */
 let AC = null;
 RO.muted = (() => { try { return localStorage.getItem('ro_mute') === '1'; } catch (e) { return false; } })();
-RO.setMuted = v => { RO.muted = v; try { localStorage.setItem('ro_mute', v ? '1' : '0'); } catch (e) {} };
+RO.setMuted = v => { RO.muted = v; try { localStorage.setItem('ro_mute', v ? '1' : '0'); } catch (e) {} if (v && RO.music) RO.music.stop(); else if (!v && RO.music && RO.music.want) RO.music.start(); };
 function tone(freq, dur, type, vol, when, slideTo) {
   if (RO.muted) return;
   try {
@@ -356,6 +357,47 @@ function tone(freq, dur, type, vol, when, slideTo) {
     o.connect(g).connect(AC.destination); o.start(t); o.stop(t + dur + 0.02);
   } catch (e) {}
 }
+/* ── música del club: house sintetizado a 124 bpm, programado con anticipación ── */
+let NOISE = null;
+function noiseBuf() { if (NOISE) return NOISE; const n = AC.sampleRate, b = AC.createBuffer(1, n, n), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return NOISE = b; }
+RO.music = {
+  want: false, timer: null, step: 0, next: 0, master: null, drop: 0,
+  start() {
+    this.want = true; if (RO.muted || this.timer) return;
+    try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { return; }
+    this.master = AC.createGain(); this.master.gain.value = 0.0001; this.master.connect(AC.destination);
+    this.master.gain.exponentialRampToValueAtTime(0.22, AC.currentTime + 1.2);
+    this.next = AC.currentTime + 0.05; this.step = 0;
+    this.timer = setInterval(() => this.tick(), 25);
+  },
+  stop(keepWant) {
+    if (!keepWant) this.want = false;
+    if (!this.timer) return; clearInterval(this.timer); this.timer = null;
+    const m = this.master; if (m) { try { m.gain.cancelScheduledValues(AC.currentTime); m.gain.setValueAtTime(m.gain.value, AC.currentTime); m.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + 0.6); setTimeout(() => m.disconnect(), 800); } catch (e) {} }
+  },
+  boost() { this.drop = 32; },
+  tick() {
+    const spb = 60 / 124 / 4; // semicorchea
+    while (this.next < AC.currentTime + 0.12) { this.play(this.step, this.next); this.next += spb; this.step = (this.step + 1) % 64; }
+  },
+  play(st, t) {
+    const out = this.master; if (!out) return;
+    const env = (node, v, a, d) => { const g = AC.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); node.connect(g).connect(out); return g; };
+    const drop = this.drop > 0; if (drop) this.drop--;
+    if (st % 4 === 0) { const o = AC.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.14); env(o, 1, 0.003, 0.22); o.start(t); o.stop(t + 0.3); }
+    if (st % 4 === 2 || drop) { const n = AC.createBufferSource(); n.buffer = noiseBuf(); const f = AC.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 7000; n.connect(f); env(f, drop ? 0.2 : 0.12, 0.002, 0.05); n.start(t); n.stop(t + 0.08); }
+    if (st % 8 === 4) { const n = AC.createBufferSource(); n.buffer = noiseBuf(); const f = AC.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; n.connect(f); env(f, 0.35, 0.002, 0.12); n.start(t); n.stop(t + 0.16); }
+    if (st % 2 === 0) {
+      const roots = [55, 55, 43.65, 49], r = roots[Math.floor(st / 16) % 4] * (st % 8 === 6 ? 2 : 1);
+      const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(r, t);
+      const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(drop ? 1400 : 420, t); f.Q.value = 6; o.connect(f);
+      env(f, 0.28, 0.005, 0.16); o.start(t); o.stop(t + 0.22);
+    }
+    if (st % 16 === 0 || (drop && st % 4 === 0)) { [220, 277.18, 329.63].forEach((fq, i) => { const o = AC.createOscillator(); o.type = 'square'; o.frequency.setValueAtTime(fq * (Math.floor(st / 16) % 4 === 2 ? 0.8909 : 1), t); env(o, 0.025, 0.01, 0.35); o.start(t); o.stop(t + 0.4); }); }
+    if (st % 4 === 0) RO.emit('beat', st, drop);
+  }
+};
+
 RO.sfx = {
   blip:   () => tone(880, 0.06, 'square', 0.03),
   open:   () => { tone(520, 0.07, 'square', 0.03); tone(780, 0.08, 'square', 0.03, 0.06); },
@@ -368,6 +410,8 @@ RO.sfx = {
   talk:   () => { for (let i = 0; i < 5; i++) tone(500 + Math.random() * 300, 0.05, 'square', 0.025, i * 0.07); },
   engine: () => { tone(55, 1.4, 'sawtooth', 0.08, 0, 140); tone(80, 1.2, 'square', 0.03, 0.2, 220); },
   hi5:    () => { tone(1200, 0.05, 'square', 0.05); tone(300, 0.12, 'triangle', 0.05, 0.02); },
-  err:    () => tone(160, 0.18, 'square', 0.04)
+  err:    () => tone(160, 0.18, 'square', 0.04),
+  cash:   () => { for (let i = 0; i < 8; i++) tone(1400 + Math.random() * 900, 0.05, 'square', 0.025, i * 0.06); },
+  drop:   () => { tone(880, 0.6, 'sawtooth', 0.04, 0, 110); }
 };
 })();

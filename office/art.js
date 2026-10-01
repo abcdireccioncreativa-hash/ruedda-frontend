@@ -557,6 +557,48 @@ def('bola_disco', { fw: 1, w: 16, h: 16, block: false, draw(k) {
   for (let y = 4; y < 15; y += 2) for (let x = 3; x < 14; x += 2) if (((x + y) / 2) % 2) k.p(x, y, '#ffffff');
 }});
 
+/* ── club privado ── */
+def('escenario', { fw: 17, fh: 4, w: 272, h: 68, flat: true, draw(k) {
+  k.rr(0, 4, 272, 60, '#07060a', 6).rr(2, 4, 268, 56, '#140b1c', 6);
+  for (let x = 6; x < 266; x += 12) for (let y = 8; y < 56; y += 12) k.r(x, y, 10, 10, (x / 12 + y / 12) % 2 ? '#1c1027' : '#170c20');
+  k.r(4, 58, 264, 2, '#e85b9c').r(4, 60, 264, 4, '#2a0d24');
+  for (let x = 8; x < 266; x += 8) k.r(x, 61, 3, 2, x % 16 ? '#ffd6e8' : '#7c3aed');
+  k.r(0, 64, 272, 3, '#050407');
+}});
+def('tubo', { w: 16, h: 60, block: false, draw(k) {
+  k.ell(8, 55, 6, 3, '#9aa0a6').ell(8, 54, 5, 2, '#e8ecf2');
+  k.r(7, 2, 3, 52, '#c9ccd2').r(7, 2, 1, 52, '#ffffff').r(9, 2, 1, 52, '#7d828a');
+  k.r(5, 0, 7, 3, '#5b6573').r(5, 0, 7, 1, '#c9ccd2');
+}});
+def('dj', { fw: 4, w: 64, h: 34, draw(k) {
+  k.r(0, 12, 64, 21, '#0c0c10').r(0, 12, 64, 2, '#22d3ee').r(2, 16, 60, 1, '#1c2b33');
+  for (let x = 4; x < 60; x += 6) k.r(x, 22, 4, 6, ['#e85b9c', '#7c3aed', '#22d3ee', '#e6f03b'][(x / 6) % 4 | 0]);
+  k.r(2, 6, 60, 7, '#1d1f24').r(2, 6, 60, 1, '#3a3f48');
+  k.ell(14, 9, 7, 3, '#0b0b0d').ell(14, 9, 2, 1, '#e85b9c').ell(50, 9, 7, 3, '#0b0b0d').ell(50, 9, 2, 1, '#22d3ee');
+  k.r(26, 7, 12, 5, '#2a2d33'); for (let i = 0; i < 4; i++) k.r(27 + i * 3, 8, 1, 3, '#e6f03b');
+  k.r(28, 0, 10, 7, '#16171b').r(29, 1, 8, 5, '#7c3aed').r(30, 2, 5, 1, '#c7a6ff');
+}});
+def('parlante', { w: 16, h: 40, draw(k) {
+  k.r(1, 2, 14, 37, '#111215').r(1, 2, 14, 1, '#2a2d33');
+  k.ell(8, 12, 5, 5, '#2a2d33').ell(8, 12, 3, 3, '#0b0b0d').ell(8, 12, 1, 1, '#5b6573');
+  k.ell(8, 28, 6, 6, '#2a2d33').ell(8, 28, 4, 4, '#0b0b0d').ell(8, 28, 1, 1, '#5b6573');
+  k.r(3, 36, 10, 1, '#e85b9c');
+}});
+def('cuerda', { fw: 3, w: 48, h: 22, block: true, draw(k) {
+  [4, 42].forEach(x => k.r(x, 6, 3, 14, '#c99a1e').r(x - 1, 19, 5, 2, '#8e6a12').ell(x + 1, 5, 2, 2, '#f2c230'));
+  for (let i = 0; i <= 36; i++) { const x = 6 + i, y = 7 + Math.round(Math.sin(i / 36 * Math.PI) * 5); k.r(x, y, 1, 2, '#8e1230'); }
+}});
+def('bola_grande', { fw: 1, w: 24, h: 24, block: false, draw(k) {
+  k.vline(12, 0, 4, '#9aa0a6').ell(12, 13, 9, 9, '#c9ccd2');
+  for (let y = 5; y < 22; y += 2) for (let x = 4; x < 21; x += 2) if (((x + y) / 2) % 2) k.p(x, y, '#ffffff'); else if (((x * y) % 7) === 0) k.p(x, y, '#e85b9c');
+}});
+// bailarinas del club (pixel art de juego, vestidas)
+A.DANCERS = [
+  { skin: '#eab68f', hair: 'largo', hairColor: '#1b1410', outfit: 'vestido', top: '#e85b9c', bottom: '#e85b9c', shoes: '#111111', acc: 'cadena', beard: 'no' },
+  { skin: '#c98d63', hair: 'coleta', hairColor: '#d9b25a', outfit: 'vestido', top: '#c9ccd2', bottom: '#c9ccd2', shoes: '#e6f03b', acc: 'ninguno', beard: 'no' },
+  { skin: '#f6d3b3', hair: 'largo', hairColor: '#c2412d', outfit: 'vestido', top: '#7c3aed', bottom: '#7c3aed', shoes: '#111111', acc: 'lentes_sol', beard: 'no' }
+];
+
 A.drawItem = (key, opts) => {
   const it = I[key]; if (!it) return null;
   const k = mk(it.w, it.h); it.draw(k, opts || {});
