@@ -11,6 +11,10 @@
             "exclude": true
           },
           {
+            "/": "/office*",
+            "exclude": true
+          },
+          {
             "/": "/api/*",
             "exclude": true
           },

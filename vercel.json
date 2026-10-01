@@ -66,6 +66,14 @@
       "dest": "/control.html"
     },
     {
+      "src": "^/office/?$",
+      "headers": {
+        "Cache-Control": "no-cache",
+        "X-Robots-Tag": "noindex, nofollow"
+      },
+      "dest": "/office.html"
+    },
+    {
       "src": "^/repuestos$",
       "status": 308,
       "headers": {
