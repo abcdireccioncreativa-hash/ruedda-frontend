@@ -172,7 +172,7 @@ function defineScene() { return class OfficeScene extends Phaser.Scene {
     Wd.OFF_X.forEach((X, p) => {
       const o = offs.find(z => z.pos === p); if (!o) return;
       const m = RO.memberBySlot(o.slot);
-      const name = (o.title || (m ? m.display_name : o.name || 'Libre')).normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 7);
+      const name = (o.title || (m ? m.display_name : o.name || 'Libre')).normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 12);
       const key = this.tex('sign_' + A.hash(name), () => A.pixelText(name, A.YELLOW, 1));
       const img = this.add.image((X + 10) * T, 10 * T + 8.5, key).setOrigin(0.5).setDepth(-4e5);
       this.statics.push(img);
