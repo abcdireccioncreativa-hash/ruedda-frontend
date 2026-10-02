@@ -150,7 +150,17 @@
 
   var enabled = null;
   function scan() { if (enabled !== true) return; IDS.forEach(function (id) { var el = document.getElementById(id); if (el && el.tagName === 'TEXTAREA') mount(el); }); }
+  // cajas de descripción más grandes (siempre, con o sin IA)
+  function bigger() {
+    if (document.getElementById('rd-desc-css')) return;
+    var st = document.createElement('style');
+    st.id = 'rd-desc-css';
+    st.textContent = '#desc-textarea,#edit-desc,#af-descripcion,#garage-form-descripcion{min-height:200px!important;height:auto;resize:vertical!important;line-height:1.6!important}' +
+      '@media (max-width:720px){#desc-textarea,#edit-desc,#af-descripcion,#garage-form-descripcion{min-height:180px!important}}';
+    document.head.appendChild(st);
+  }
   function start() {
+    bigger();
     fetch('/api/ai-describe').then(function (r) { return r.json(); }).then(function (j) { enabled = !!(j && j.enabled); scan(); }).catch(function () { enabled = false; });
     // formularios que se crean después (editar publicación, etc.)
     var pending = false;

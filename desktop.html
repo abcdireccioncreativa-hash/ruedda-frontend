@@ -116,8 +116,8 @@ try{
    ANTES del primer paint para que no haya flash de tema incorrecto. Solo se
    queda en oscuro si el usuario lo eligió explícitamente antes. */
 (function(){
-  var light = true;
-  try{ light = localStorage.getItem('ruedda_theme') !== 'dark'; }catch(e){}
+  var light = false;
+  try{ light = localStorage.getItem('ruedda_theme') === 'light'; }catch(e){} /* [pedido] escritorio arranca en negro; claro solo si el usuario lo eligió */
   if(light) document.documentElement.setAttribute('data-theme','light');
 
   // [V141] color de marca — mismo patrón sincrónico que el tema, antes del
@@ -2170,7 +2170,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
 <script src="/rd-map.js?v=1" data-desktop="1" defer></script>
 <script src="/desktop-popups.js?v=20260930j" defer></script>
-<script src="/rd-ai.js?v=1" defer></script><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
+<script src="/rd-ai.js?v=2" defer></script><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 </head>
 <body>
 
