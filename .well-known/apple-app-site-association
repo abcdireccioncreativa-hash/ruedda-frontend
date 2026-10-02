@@ -15,6 +15,10 @@
             "exclude": true
           },
           {
+            "/": "/hub*",
+            "exclude": true
+          },
+          {
             "/": "/api/*",
             "exclude": true
           },

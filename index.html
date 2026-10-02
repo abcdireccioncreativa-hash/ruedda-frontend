@@ -3193,6 +3193,7 @@ function rdRegion(r){
 <nav class="navbar">
   <div class="logo" onclick="goHome()">
     <img data-rdimg="logo" alt="ruedda" style="height:28px;width:auto;display:block">
+    <sup class="logo-tm" aria-hidden="true" style="font-size:11px;line-height:1;font-weight:500;margin:-3px 0 0 2px;align-self:flex-start;color:var(--white);opacity:.6;font-family:var(--font)">™</sup>
   </div>
   <div class="nav-right">
     <button class="nav-icon" onclick="openSearch()">
@@ -23949,7 +23950,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
     function isNativeApp(){
       try{
         if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) return true;
-        if(window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.bridge) return true;
+        if(!/(Instagram|FBAN|FBAV|FB_IAB|musical_ly|BytedanceWebview|Snapchat|Pinterest|LinkedInApp|Twitter|Line\/)/.test(ua)&&window.webkit&&window.webkit.messageHandlers&&window.webkit.messageHandlers.bridge) return true;
       }catch(e){}
       return false;
     }
@@ -23980,7 +23981,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
       });
     }
     function schedule(){ setTimeout(show,1500); }
-    if(document.readyState==='complete') schedule(); else window.addEventListener('load',schedule);
+    if(document.readyState!=='loading') schedule(); else document.addEventListener('DOMContentLoaded',schedule);
   }catch(e){}
 })();
 </script>

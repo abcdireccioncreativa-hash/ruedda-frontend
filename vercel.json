@@ -82,6 +82,14 @@
       "dest": "https://ruedda-office.vercel.app/office/$1"
     },
     {
+      "src": "^/hub/?$",
+      "dest": "https://ruedda-hub.vercel.app/hub/"
+    },
+    {
+      "src": "^/hub/(.*)$",
+      "dest": "https://ruedda-hub.vercel.app/hub/$1"
+    },
+    {
       "src": "^/repuestos$",
       "status": 308,
       "headers": {

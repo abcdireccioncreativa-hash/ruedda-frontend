@@ -2097,8 +2097,8 @@ html:not([data-theme="light"]) #login-progress-bar{background:#e6f03b!important}
 .rd-footer .rf-why h3{font-size:22px;font-weight:800;letter-spacing:-.4px;margin:0 0 8px}
 .rd-footer .rf-why p{margin:0;font-size:14px;line-height:1.6;color:var(--muted)}
 .rd-footer .rf-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
-.rd-footer .rf-stat b{display:inline-block;font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1.1;text-decoration:underline;text-decoration-color:#e6f03b;text-decoration-thickness:2px;text-underline-offset:9px;text-decoration-skip-ink:none}
-html[data-theme="light"] .rd-footer .rf-stat b{text-decoration:none;box-shadow:inset 0 -6px 0 rgba(230,240,59,.9)}
+.rd-footer .rf-stat b{display:inline-block;font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1.1;text-decoration:underline;text-decoration-color:rgba(255,255,255,.22);text-decoration-thickness:2px;text-underline-offset:9px;text-decoration-skip-ink:none}
+html[data-theme="light"] .rd-footer .rf-stat b{text-decoration-color:rgba(0,0,0,.18)}
 .rd-footer .rf-stat span{display:block;margin-top:10px;font-size:13px;color:var(--muted)}
 .rd-footer .rf-main{display:grid;grid-template-columns:1.4fr repeat(4,1fr) 1.3fr;gap:32px;padding:44px 0 36px;border-top:1px solid var(--border)}
 .rd-footer .rf-brand img{height:26px;width:auto;display:block}
@@ -2302,7 +2302,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <span onclick="enterApp();selectSection('consesionarios')">concesionarios</span>
       <span onclick="enterApp();showView('como-funciona')">cómo funciona</span>
       <span onclick="window.rdPartnersPopup&&rdPartnersPopup()">partners</span>
-      <span onclick="window.rdShowQR&&rdShowQR()">la app</span>
+      <span onclick="location.href='/hub'">hub</span>
     </div>
     <div class="landing-nav-right">
       <div class="theme-switch" role="group" aria-label="tema">
