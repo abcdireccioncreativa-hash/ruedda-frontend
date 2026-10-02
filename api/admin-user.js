@@ -22,6 +22,8 @@ const { createClient } = require('@supabase/supabase-js');
 module.exports = async (req, res) => {
   // Ruedda Office: /api/office-login y /api/office-stats llegan aquí (límite de 12 funciones en Vercel)
   if (req.query && req.query.office) return require('../lib/office-api.js')(req, res);
+  // "Mejorar con IA": /api/ai-describe llega aquí (mismo límite de 12 funciones)
+  if (req.query && req.query.ai === 'describe') return require('../lib/ai-describe.js')(req, res);
 
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'method not allowed' });

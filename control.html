@@ -1345,11 +1345,12 @@ async function offAccAdd(btn){ const u=$('#oa-u').value.trim().replace(/^@+/,'')
   btn.disabled=false; if(error) return toast('error: '+error.message,true); toast('autorizado: '+u); RENDER.office(VIEW_TOKEN,[],true); }
 
 RENDER.configuracion=async(tok)=>{
-  const [{data:pd},{data:hi}]=await Promise.all([sb.from('app_settings').select('value').eq('key','payment_data').maybeSingle(),sb.from('historia_app').select('id,content').limit(1)]);
+  const [{data:pd},{data:hi},{data:ai}]=await Promise.all([sb.from('app_settings').select('value').eq('key','payment_data').maybeSingle(),sb.from('historia_app').select('id,content').limit(1),sb.from('app_settings').select('value').eq('key','ai_powered_by').maybeSingle()]);
   if(stale(tok)) return;
   let P={banco:'Banesco',telefono:'04123921048',cedula:'28187688',cuenta:''}; try{ if(pd&&pd.value) P=Object.assign(P,JSON.parse(pd.value)); }catch(e){}
   window._histId=hi&&hi[0]&&hi[0].id;
   $('#view').innerHTML=card('Datos de Pago Móvil','Lo que ven los usuarios en el checkout para pagar publicaciones',`<div class="form"><label class="field"><span>Banco</span><input class="input" id="pd-b" value="${esc(P.banco)}"></label><label class="field"><span>Teléfono</span><input class="input num" id="pd-t" value="${esc(P.telefono)}"></label><label class="field"><span>Cédula / RIF</span><input class="input num" id="pd-c" value="${esc(P.cedula)}"></label><label class="field"><span>Número de cuenta (opcional)</span><input class="input num" id="pd-a" value="${esc(P.cuenta||'')}"></label></div><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="pdSave(this)">Guardar datos de pago</button></div>`)
+    +card('Mejorar con IA','Subtítulo bajo el botón "Mejorar con IA" en las descripciones (app, web móvil y escritorio)',`<div class="form"><label class="field full"><span>powered by</span><input class="input" id="ai-by" maxlength="40" placeholder="Google Gemini" value="${esc(ai&&ai.value||'Google Gemini')}"></label></div><div class="notice" style="margin-top:12px">Se muestra como: <b>powered by ${esc(ai&&ai.value||'Google Gemini')}</b></div><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="aiBySave(this)">Guardar</button></div>`)
     +card('Historia de Ruedda','Texto de la sección "nuestra historia" en la app',`<textarea class="input" id="hi-c" rows="10">${esc(hi&&hi[0]&&hi[0].content||'')}</textarea><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="hiSave(this)">Guardar historia</button></div>`);
 };
 async function pdSave(btn){
@@ -1357,6 +1358,10 @@ async function pdSave(btn){
   if(!P.banco||!P.telefono||!P.cedula) return toast('banco, teléfono y cédula son obligatorios',true);
   if(!confirm('¿Cambiar los datos de pago que ven todos los usuarios?')) return; btn.disabled=true;
   try{ await setSetting('payment_data',JSON.stringify(P)); toast('datos de pago guardados'); }catch(e){ toast('error: '+e.message,true); } btn.disabled=false;
+}
+async function aiBySave(btn){
+  const v=$('#ai-by').value.trim(); if(!v) return toast('escribe el nombre de la IA',true); btn.disabled=true;
+  try{ await setSetting('ai_powered_by',v); toast('subtítulo de IA guardado'); RENDER.configuracion(++VIEW_TOKEN); }catch(e){ toast('error: '+e.message,true); } btn.disabled=false;
 }
 async function hiSave(btn){
   const c=$('#hi-c').value.trim(); if(!c) return toast('el texto no puede quedar vacío',true); btn.disabled=true;

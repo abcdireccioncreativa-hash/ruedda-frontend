@@ -74,6 +74,10 @@
       "dest": "/api/admin-user?office=stats"
     },
     {
+      "src": "^/api/ai-describe$",
+      "dest": "/api/admin-user?ai=describe"
+    },
+    {
       "src": "^/office/?$",
       "dest": "https://ruedda-office.vercel.app/office"
     },
