@@ -1,6 +1,6 @@
 /* rd-mark.js · resaltador amarillo animado (mismo efecto que "precios inflados" en ruedda.app/hub).
    MÓDULO OPCIONAL: para quitarlo basta borrar la línea <script src="/rd-mark.js…"> en index.html.
-   Para resaltar otro título, agrega su selector a SELECTORS. Se dibuja una sola vez, al entrar en pantalla. */
+   Para resaltar otro título, agrega su selector a SELECTORS. Se dibuja cada vez que vuelve a entrar en pantalla. */
 (function () {
   var SELECTORS = ['#pd-head .hd-title'];
   if (!('IntersectionObserver' in window)) return;
@@ -12,7 +12,14 @@
   document.head.appendChild(st);
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (e) {
-      if (e.isIntersecting && e.intersectionRatio >= 0.9) { e.target.classList.add('on'); io.unobserve(e.target); }
+      var el = e.target;
+      if (e.isIntersecting && e.intersectionRatio >= 0.9) {
+        el.style.transition = ''; el.classList.add('on');
+      } else if (!e.isIntersecting && el.classList.contains('on')) {
+        // fuera de pantalla (abrió una publicación, cambió de sección o bajó de largo): se borra al instante
+        // para volver a dibujarse cuando regrese al market
+        el.style.transition = 'none'; el.classList.remove('on'); void el.offsetWidth;
+      }
     });
   }, { threshold: [0, 0.9] });
   function scan() {
