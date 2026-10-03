@@ -399,7 +399,7 @@ const VIEWS=[
   {h:'Comercial'},
   {id:'solicitudes',t:'Solicitudes',i:'msg',s:'Vitrinas de concesionarios, buscan carro y publicar por ellos',b:'sol'},
   {id:'documentos',t:'Documentos',i:'kyc',s:'Papeles para el sello "auditado por Ruedda"'},
-  {id:'patrocinantes',t:'Patrocinantes',i:'offer',s:'Marcas y aliados por sección'},
+  {id:'patrocinantes',t:'Patrocinantes y banners',i:'offer',s:'Banner grande del market, banners de la app y aliados'},
   {id:'fotografos',t:'Fotógrafos',i:'user',s:'Directorio de fotógrafos'},
   {id:'codigos',t:'Códigos',i:'key',s:'Códigos de publicación gratis'},
   {h:'Contenido'},
@@ -1116,15 +1116,46 @@ RENDER.sugerencias=async(tok)=>{
 
 /* ── PATROCINANTES ── */
 const PAT_CATS=['market','promo grande','mini banner detalle','chocados','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
+/* [patrocinantes] los banners de la app arriba, con nombre claro, dónde salen, su formato y edición */
+const PAT_META={
+  'market':['Banner superior del market','Carrusel angosto arriba del market (app y web).','3/1'],
+  'promo grande':['Banner grande del market','El grande, de lado a lado, a mitad del market en la app. 16:9 · hasta 5 fotos · rota cada 3 s.','16/9'],
+  'mini banner detalle':['Mini banner en publicaciones','Dentro de cada publicación, entre especificaciones y comparativa de precios. Hasta 5 fotos.','3/1'],
+  'chocados':['Banner de chocados','Arriba de la pestaña chocados en subastas.','3/1']
+};
+const PAT_BANNERS=['promo grande','market','mini banner detalle','chocados'];
+const patTitle=c=>(PAT_META[c]&&PAT_META[c][0])||c;
+const patRatio=c=>(PAT_META[c]&&PAT_META[c][2])||'3/1';
 RENDER.patrocinantes=async(tok)=>{
   const{data}=await sb.from('patrocinantes').select('*').order('categoria').order('created_at',{ascending:false}); if(stale(tok)) return;
   const by={}; (data||[]).forEach(p=>(by[p.categoria]=by[p.categoria]||[]).push(p));
-  $('#view').innerHTML=`<div class="items">${PAT_CATS.map((c,ci)=>`<div class="card" style="padding:16px 16px 14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-weight:600;text-transform:capitalize">${esc(c)}</div><span class="muted" style="font-size:12px">${(by[c]||[]).length}</span></div>
-    ${(by[c]||[]).map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)"><img class="thumb" src="${esc(tImg(p.imagen_url,160))}" onerror="this.style.visibility='hidden'" style="width:44px;height:44px"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">${esc(p.nombre||'—')}</div><div class="muted" style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.link||'sin link')}</div></div><button class="btn btn-soft" style="height:28px;padding:0 10px" onclick="delRow('patrocinantes','${p.id}','patrocinantes')">Quitar</button></div>`).join('')}
-    <div style="border-top:1px solid var(--line);padding-top:10px;margin-top:4px;display:grid;gap:8px"><div id="pat-img-${ci}">${imgSlot('',`patPick(${ci})`,'3/1')}</div><input class="input" id="pat-n-${ci}" placeholder="Nombre"><input class="input" id="pat-l-${ci}" placeholder="Link (opcional)"><button class="btn btn-primary" onclick="patAdd(${ci},this)">Agregar</button></div></div>`).join('')}</div>`;
+  window._patRows={}; (data||[]).forEach(p=>window._patRows[p.id]=p);
+  const cardFor=c=>{ const ci=PAT_CATS.indexOf(c); const meta=PAT_META[c];
+    return `<div class="card" style="padding:16px 16px 14px"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:${meta?6:10}px"><div style="font-weight:600;${meta?'':'text-transform:capitalize'}">${esc(patTitle(c))}</div><span class="muted" style="font-size:12px">${(by[c]||[]).length}</span></div>
+    ${meta?`<div class="muted" style="font-size:12px;line-height:1.5;margin-bottom:10px">${esc(meta[1])}</div>`:''}
+    ${(by[c]||[]).map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)"><img class="thumb" src="${esc(tImg(p.imagen_url,240))}" onerror="this.style.visibility='hidden'" style="width:${patRatio(c)==='16/9'?'64px':'72px'};height:${patRatio(c)==='16/9'?'36px':'24px'};object-fit:cover;border-radius:6px"><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">${esc(p.nombre||'sin nombre')}</div><div class="muted" style="font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.link||'sin link')}</div></div><button class="btn btn-soft" style="height:28px;padding:0 10px" onclick="patEdit('${p.id}')">Editar</button><button class="btn btn-soft" style="height:28px;padding:0 10px" onclick="delRow('patrocinantes','${p.id}','patrocinantes')">Quitar</button></div>`).join('')}
+    <div style="border-top:1px solid var(--line);padding-top:10px;margin-top:4px;display:grid;gap:8px"><div id="pat-img-${ci}">${imgSlot('',`patPick(${ci})`,patRatio(c))}</div><input class="input" id="pat-n-${ci}" placeholder="Nombre"><input class="input" id="pat-l-${ci}" placeholder="Link (opcional)"><button class="btn btn-primary" onclick="patAdd(${ci},this)">Agregar</button></div></div>`; };
+  const rest=PAT_CATS.filter(c=>!PAT_BANNERS.includes(c));
+  $('#view').innerHTML=`<div style="font-weight:700;font-size:15px;margin:2px 0 10px">Banners de la app</div><div class="items">${PAT_BANNERS.map(cardFor).join('')}</div>
+    <div style="font-weight:700;font-size:15px;margin:22px 0 10px">Aliados por sección</div><div class="items">${rest.map(cardFor).join('')}</div>`;
 };
+window._patEditFile=null;
+function patEdit(id){
+  const p=(window._patRows||{})[id]; if(!p) return; window._patEditFile=null;
+  modal({title:'Editar banner',sub:esc(patTitle(p.categoria)),body:`<div class="form"><div class="full" id="pe-img">${imgSlot(p.imagen_url?tImg(p.imagen_url,800):'',"patEditPick('"+id+"')",patRatio(p.categoria))}</div><div class="muted full" style="font-size:12px">Toca la imagen para cambiarla.</div><label class="field full"><span>Nombre</span><input class="input" id="pe-n" value="${esc(p.nombre||'')}"></label><label class="field full"><span>Link (opcional)</span><input class="input" id="pe-l" value="${esc(p.link||'')}" placeholder="https://…"></label></div>`,
+    foot:`<button class="btn btn-primary" onclick="patEditSave('${id}',this)">Guardar cambios</button>`});
+}
+async function patEditPick(id){ const p=(window._patRows||{})[id]; const f=await pickFile(); if(!f) return; window._patEditFile=f; $('#pe-img').innerHTML=imgSlot(URL.createObjectURL(f),"patEditPick('"+id+"')",patRatio(p&&p.categoria)); }
+async function patEditSave(id,btn){
+  const p=(window._patRows||{})[id]; if(!p) return; const n=$('#pe-n').value.trim(); if(!n) return toast('nombre requerido',true); btn.disabled=true;
+  try{ const upd={nombre:n,link:$('#pe-l').value.trim()||null};
+    if(window._patEditFile) upd.imagen_url=await upload('assets',window._patEditFile,'patrocinante-'+p.categoria.replace(/\s+/g,'_'));
+    const{error}=await sb.from('patrocinantes').update(upd).eq('id',id); if(error) throw error;
+    window._patEditFile=null; closeModal(); toast('banner actualizado'); RENDER.patrocinantes(++VIEW_TOKEN);
+  }catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
 window._patFiles={};
-async function patPick(ci){ const f=await pickFile(); if(!f) return; window._patFiles[ci]=f; $('#pat-img-'+ci).innerHTML=imgSlot(URL.createObjectURL(f),`patPick(${ci})`,'3/1'); }
+async function patPick(ci){ const f=await pickFile(); if(!f) return; window._patFiles[ci]=f; $('#pat-img-'+ci).innerHTML=imgSlot(URL.createObjectURL(f),`patPick(${ci})`,patRatio(PAT_CATS[ci])); }
 async function patAdd(ci,btn){
   const n=$('#pat-n-'+ci).value.trim(); if(!n) return toast('nombre requerido',true); btn.disabled=true;
   try{ let img=null; if(window._patFiles[ci]) img=await upload('assets',window._patFiles[ci],'patrocinante-'+PAT_CATS[ci].replace(/\s+/g,'_'));
