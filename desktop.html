@@ -2170,7 +2170,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
 <script src="/rd-map.js?v=1" data-desktop="1" defer></script>
 <script src="/desktop-popups.js?v=20260930j" defer></script>
-<script src="/rd-ai.js?v=2" defer></script><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
+<script src="/rd-ai.js?v=2" defer></script>
+<script src="/rd-search-ad.js?v=1" defer></script><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 </head>
 <body>
 
@@ -4930,7 +4931,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     </div>
     <div class="search-cat-label" style="margin-bottom:8px">marcas populares</div>
     <div id="search-pop-marcas" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:22px"></div>
-    <div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
+    <div class="rd-search-ad" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
       <div style="width:38px;height:38px;border-radius:10px;background:var(--w8);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="1.6" style="width:18px;height:18px"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </div>
@@ -10316,7 +10317,7 @@ function resetSearchResults(){
     </div>
     <div class="search-cat-label" style="margin-bottom:8px">marcas populares</div>
     <div id="search-pop-marcas" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:22px"></div>
-    <div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
+    <div class="rd-search-ad" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
       <div style="width:38px;height:38px;border-radius:10px;background:var(--w8);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="1.6" style="width:18px;height:18px"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </div>

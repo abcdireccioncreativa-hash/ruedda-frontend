@@ -1115,15 +1115,16 @@ RENDER.sugerencias=async(tok)=>{
 };
 
 /* ── PATROCINANTES ── */
-const PAT_CATS=['market','promo grande','mini banner detalle','chocados','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
+const PAT_CATS=['market','promo grande','mini banner detalle','chocados','busqueda','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
 /* [patrocinantes] los banners de la app arriba, con nombre claro, dónde salen, su formato y edición */
 const PAT_META={
   'market':['Banner superior del market','Carrusel angosto arriba del market (app y web).','3/1'],
   'promo grande':['Banner grande del market','El grande, de lado a lado, a mitad del market en la app. 16:9 · hasta 5 fotos · rota cada 3 s.','16/9'],
   'mini banner detalle':['Mini banner en publicaciones','Dentro de cada publicación, entre especificaciones y comparativa de precios. Hasta 5 fotos.','3/1'],
-  'chocados':['Banner de chocados','Arriba de la pestaña chocados en subastas.','3/1']
+  'chocados':['Banner de chocados','Arriba de la pestaña chocados en subastas.','3/1'],
+  'busqueda':['Banner de la búsqueda (lupa)','Dentro de la búsqueda, debajo de marcas populares (app y web). Imagen 3:1 con link. Sin banner cargado se ve la tarjeta "tu taller de confianza".','3/1']
 };
-const PAT_BANNERS=['promo grande','market','mini banner detalle','chocados'];
+const PAT_BANNERS=['promo grande','market','mini banner detalle','chocados','busqueda'];
 const patTitle=c=>(PAT_META[c]&&PAT_META[c][0])||c;
 const patRatio=c=>(PAT_META[c]&&PAT_META[c][2])||'3/1';
 RENDER.patrocinantes=async(tok)=>{

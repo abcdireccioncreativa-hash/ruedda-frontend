@@ -2510,6 +2510,7 @@ function rdRegion(r){
 <script src="/rd-map.js?v=1" defer></script>
 <script src="/desktop-popups.js?v=20260930j" data-mode="mobile" defer></script>
 <script src="/rd-ai.js?v=2" defer></script>
+<script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
 <script src="/rd-mark.js?v=2" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
 <!-- chat nativo: solo en la app iOS que lo trae (__RD_NATIVE_CHAT); se carga al final, después de todas las funciones de mensajes -->
@@ -5856,9 +5857,9 @@ function rdRegion(r){
     <div class="sb-budget-title">Buscar por precio</div>
     <div class="sb-budget-row">
       <span class="sb-budget-sub">Tengo:</span>
-      <span class="sb-budget-amt" id="sb-budget-amt">$550.000+</span>
+      <span class="sb-budget-amt" id="sb-budget-amt">$12.000</span>
     </div>
-    <input type="range" min="0" max="1000" step="1" value="1000" id="sb-budget-range" class="sb-budget-range" oninput="_onSearchBudget(this.value)" aria-label="presupuesto máximo">
+    <input type="range" min="0" max="1000" step="1" value="279" style="--sb-p:27.9%" id="sb-budget-range" class="sb-budget-range" oninput="_onSearchBudget(this.value)" aria-label="presupuesto máximo">
     <div class="sb-budget-scale"><span>$100</span><span>$550.000+</span></div>
   </div>
   <div id="search-results">
@@ -5874,7 +5875,7 @@ function rdRegion(r){
     <div class="search-cat-label" style="margin-bottom:8px">marcas populares</div>
     <div id="search-pop-marcas" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:22px"></div>
     <!-- [mock] banner patrocinante — placeholder estático, sin llamadas ni imágenes nuevas -->
-    <div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
+    <div class="rd-search-ad" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
       <div style="width:38px;height:38px;border-radius:10px;background:var(--w8);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="1.6" style="width:18px;height:18px"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </div>
@@ -11720,7 +11721,7 @@ function resetSearchResults(){
     </div>
     <div class="search-cat-label" style="margin-bottom:8px">marcas populares</div>
     <div id="search-pop-marcas" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:22px"></div>
-    <div style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
+    <div class="rd-search-ad" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
       <div style="width:38px;height:38px;border-radius:10px;background:var(--w8);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="1.6" style="width:18px;height:18px"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </div>
@@ -11786,7 +11787,10 @@ function _searchDealerHtml(d){
 function goToVitrinaFromSearch(id){ showView('home');selectSection('consesionarios');setTimeout(()=>openVitrina(id),0); }
 // presupuesto de la búsqueda: el slider va de 0 a 1000 en curva cúbica
 // ($100 a $550.000). En el tope no filtra (null).
-let _searchBudget=null;
+// [pedido] arranca en $12.000 (posición 279 de la curva).
+const _SB_START=279;
+let _searchBudget=12000;
+let _sbTouched=false; // la lista solo-presupuesto aparece cuando el usuario mueve el slider
 function _budgetFromSlider(v){
   v=Math.max(0,Math.min(1000,Number(v)||0));
   if(v>=1000) return null;
@@ -11796,6 +11800,7 @@ function _budgetFromSlider(v){
 }
 function _fmtBudget(n){ return '$'+String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
 function _onSearchBudget(v){
+  _sbTouched=true;
   _searchBudget=_budgetFromSlider(v);
   const r=document.getElementById('sb-budget-range');
   if(r) r.style.setProperty('--sb-p',(v/10)+'%');
@@ -11804,11 +11809,12 @@ function _onSearchBudget(v){
   doSearch(document.getElementById('search-input').value);
 }
 function _resetSearchBudget(){
-  _searchBudget=null;
+  _sbTouched=false;
+  _searchBudget=_budgetFromSlider(_SB_START);
   const r=document.getElementById('sb-budget-range');
-  if(r){ r.value=1000; r.style.setProperty('--sb-p','100%'); }
+  if(r){ r.value=_SB_START; r.style.setProperty('--sb-p',(_SB_START/10)+'%'); }
   const amt=document.getElementById('sb-budget-amt');
-  if(amt) amt.textContent='$550.000+';
+  if(amt) amt.textContent=_fmtBudget(_searchBudget);
 }
 function _withinBudget(a,isAuction){
   if(_searchBudget==null) return true;
@@ -11817,7 +11823,7 @@ function _withinBudget(a,isAuction){
 }
 function doSearch(q){
   const query=(q||'').trim();
-  if(!query&&_searchBudget==null){resetSearchResults();return;}
+  if(!query&&(_searchBudget==null||!_sbTouched)){resetSearchResults();return;}
   if(!query){ _renderBudgetOnly(); return; }
   const ql=query.toLowerCase();
   const el=document.getElementById('search-results');
