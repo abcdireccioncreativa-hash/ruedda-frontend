@@ -24,6 +24,8 @@ module.exports = async (req, res) => {
   if (req.query && req.query.office) return require('../lib/office-api.js')(req, res);
   // "Mejorar con IA": /api/ai-describe llega aquí (mismo límite de 12 funciones)
   if (req.query && req.query.ai === 'describe') return require('../lib/ai-describe.js')(req, res);
+  // Postulaciones de RueddaCarreras desde ruedda.app/hub
+  if (req.query && req.query.postulacion) return require('../lib/postulacion.js')(req, res);
 
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'method not allowed' });

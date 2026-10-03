@@ -409,6 +409,7 @@ const VIEWS=[
   {id:'mensajes',t:'Mensajes Ruedda',i:'msg',s:'Anuncios oficiales a todos los usuarios'},
   {id:'chatglobal',t:'Chat global',i:'msg',s:'Conduciendo el mercado · modera los mensajes de la comunidad'},
   {id:'sugerencias',t:'Sugerencias',i:'flag',s:'Buzón de sugerencias y reportes de bugs'},
+  {id:'postulaciones',t:'Postulaciones',i:'msg',s:'RueddaCarreras · equipo y certificación (desde ruedda.app/hub)'},
   {h:'Precios'},
   {id:'criterio',t:'Criterio Ruedda',i:'bid',s:'Precio justo manual por publicación'},
   {id:'comparativa',t:'Comparativa',i:'act',s:'Histórico de precios por modelo'},
@@ -1113,6 +1114,28 @@ RENDER.sugerencias=async(tok)=>{
   const um=await usersMap((data||[]).map(s=>s.user_id)); if(stale(tok)) return;
   V.innerHTML=(data||[]).length?`<div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Tipo</th><th>Mensaje</th><th>Usuario</th><th>Fecha</th><th></th></tr></thead><tbody>${data.map(s=>{const bug=/^\s*\[BUG\]/i.test(s.content||'');return `<tr><td>${bug?'<span class="pill r">bug</span>':'<span class="pill b">sugerencia</span>'}</td><td style="white-space:pre-wrap;max-width:560px">${esc((s.content||'').replace(/^\s*\[BUG\]\s*/i,''))}</td><td class="muted">${esc(s.user_id?uname(um[s.user_id]):'anónimo')}</td><td class="muted">${ago(s.created_at)}</td><td class="r">${delBtn(`delRow('sugerencias','${s.id}','sugerencias')`)}</td></tr>`;}).join('')}</tbody></table></div>`:`<div class="card">${empty('Buzón vacío','Las sugerencias y reportes de bugs de los usuarios llegan aquí.')}</div>`;
 };
+
+/* ── POSTULACIONES (RueddaCarreras desde ruedda.app/hub) ── */
+const POS_EST=[['nueva','Nueva','b'],['en revision','En revisión','o'],['contactada','Contactada','g'],['descartada','Descartada','r']];
+let POS_F='activas';
+RENDER.postulaciones=async(tok)=>{
+  const{data,error}=await sb.from('postulaciones').select('*').order('created_at',{ascending:false}).limit(300); if(stale(tok)) return;
+  const V=$('#view');
+  if(error){ V.innerHTML=`<div class="card">${empty(/postulaciones/.test(error.message)?'Falta crear la tabla':'No se pudo cargar',/postulaciones/.test(error.message)?'Corre el SQL Ruedda_Postulaciones_SQL_2026-10-03.sql en Supabase → SQL Editor.':error.message)}</div>`; return; }
+  const all=data||[]; const nuevas=all.filter(p=>p.estado==='nueva').length;
+  const rows=all.filter(p=>POS_F==='todas'?true:POS_F==='activas'?!['descartada'].includes(p.estado):p.tipo===POS_F);
+  const wa=n=>'https://wa.me/'+String(n||'').replace(/[^0-9]/g,'').replace(/^0/,'58');
+  window._posRows={}; all.forEach(p=>window._posRows[p.id]=p);
+  V.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">${[['activas','Activas'],['equipo','Equipo'],['certificacion','Certificación'],['todas','Todas']].map(([k,t])=>`<button class="btn ${POS_F===k?'btn-primary':'btn-soft'}" style="height:32px" onclick="POS_F='${k}';RENDER.postulaciones(++VIEW_TOKEN)">${t}</button>`).join('')}<span class="muted" style="font-size:12.5px;margin-left:6px">${all.length} en total · ${nuevas} nueva${nuevas===1?'':'s'}</span></div>`+
+  (rows.length?`<div class="items">${rows.map(p=>{const e=POS_EST.find(x=>x[0]===p.estado)||POS_EST[0];return `<div class="card" style="padding:16px">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="min-width:0"><div style="font-weight:700;font-size:15px">${esc(p.nombre)}</div><div class="muted" style="font-size:12.5px;margin-top:2px">${p.tipo==='certificacion'?'Certificación':'Equipo'}${p.area?' · '+esc(p.area):''} · ${ago(p.created_at)}${p.idioma==='en'?' · EN':''}</div></div><span class="pill ${e[2]}">${e[1]}</span></div>
+    ${p.mensaje?`<div style="white-space:pre-wrap;font-size:13.5px;line-height:1.55;margin-top:10px">${esc(p.mensaje)}</div>`:''}
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px"><a class="btn btn-soft" style="height:30px" href="mailto:${esc(p.correo)}?subject=${encodeURIComponent('RueddaCarreras · '+(p.area||'postulación'))}">${esc(p.correo)}</a>${p.whatsapp?`<a class="btn btn-soft" style="height:30px" target="_blank" rel="noopener" href="${wa(p.whatsapp)}">WhatsApp ${esc(p.whatsapp)}</a>`:''}${p.enlace?`<a class="btn btn-soft" style="height:30px" target="_blank" rel="noopener" href="${esc(p.enlace)}">Portafolio</a>`:''}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px;border-top:1px solid var(--line);padding-top:10px"><select class="input" style="height:32px;max-width:170px" onchange="posSet('${p.id}',this.value)">${POS_EST.map(([k,t])=>`<option value="${k}" ${p.estado===k?'selected':''}>${t}</option>`).join('')}</select><input class="input" style="height:32px;flex:1;min-width:160px" placeholder="Notas internas" value="${esc(p.notas||'')}" onchange="posNota('${p.id}',this.value)">${delBtn(`delRow('postulaciones','${p.id}','postulaciones')`)}</div>
+  </div>`;}).join('')}</div>`:`<div class="card">${empty('Sin postulaciones','Las postulaciones de RueddaCarreras (ruedda.app/hub) llegan aquí.')}</div>`);
+};
+async function posSet(id,estado){ const{error}=await sb.from('postulaciones').update({estado}).eq('id',id); if(error) return toast('error: '+error.message,true); toast('estado actualizado'); RENDER.postulaciones(++VIEW_TOKEN); }
+async function posNota(id,notas){ const{error}=await sb.from('postulaciones').update({notas:notas.trim()||null}).eq('id',id); if(error) return toast('error: '+error.message,true); toast('nota guardada'); }
 
 /* ── PATROCINANTES ── */
 const PAT_CATS=['market','promo grande','mini banner detalle','chocados','busqueda','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
