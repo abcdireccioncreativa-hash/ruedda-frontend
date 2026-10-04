@@ -277,7 +277,7 @@ main{min-width:0}
 </div>
 <div id="lightbox" onclick="this.classList.remove('on')"><img alt=""></div>
 <div id="toast"></div>
-<div id="ntf" class="hide"><div class="ntf-h"><span>avisos pendientes</span><span><button onclick="ntfSound()" id="ntf-snd">sonido: sí</button><button onclick="ntfClear()">limpiar</button></span></div><div class="ntf-list" id="ntf-list"></div></div>
+<div id="ntf" class="hide"><div class="ntf-h"><span>avisos pendientes</span><span><button onclick="ntfSound()" id="ntf-snd">sonido: sí</button><button onclick="ntfVoice()" id="ntf-voz">voz: sí</button><button onclick="ntfClear()">limpiar</button></span></div><div class="ntf-list" id="ntf-list"></div></div>
 
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
 <script>
@@ -508,10 +508,11 @@ async function refreshBadges(){
    Los avisos sobreviven a recargar la página (localStorage, solo en este navegador). */
 const NTF_KEY='ctrl_ntf_v1', NTF_SND='ctrl_ntf_sound';
 const NTF_MAP={
-  mod:['Publicación por revisar','moderacion','mod'], kyc:['Verificación KYC pendiente','kyc','kyc'],
+  mod:['Moderación en espera','moderacion','mod'], kyc:['Verificación KYC pendiente','kyc','kyc'],
   pay:['Pago por confirmar','pagos','pay'], acc:['Solicitud de acceso a subasta','accesos','key'],
   rep:['Nuevo reporte de usuario','reportes','flag'], sol:['Nueva solicitud','solicitudes','offer'],
-  pos:['Nueva postulación','postulaciones','users'], bid:['Nueva puja','subastas','gavel']
+  pos:['Nueva postulación','postulaciones','users'], bid:['Nueva puja','subastas','gavel'],
+  usr:['Usuario nuevo','usuarios','users']
 };
 let NTF=[], NTF_BASE=null, _ntfCtx=null;
 try{ NTF=JSON.parse(localStorage.getItem(NTF_KEY)||'[]'); }catch(e){ NTF=[]; }
@@ -532,12 +533,67 @@ function ntfChime(soft){
     });
   }catch(e){}
 }
-function ntfAdd(k,n,detail){
+/* ── sonidos de interfaz (estilo HUD): clic de tecla, blip al cambiar de sección, voz para usuarios nuevos ── */
+const NTF_VOZ='ctrl_ntf_voice';
+const ntfVoiceOn=()=>{ try{ return localStorage.getItem(NTF_VOZ)!=='0'; }catch(e){ return true; } };
+function _ac(){ try{ if(!_ntfCtx) _ntfCtx=new (window.AudioContext||window.webkitAudioContext)(); if(_ntfCtx.state==='suspended') _ntfCtx.resume(); return _ntfCtx; }catch(e){ return null; } }
+// clic de teclado: ráfaga de ruido muy corta y filtrada
+function uiTick(){
+  if(!ntfSoundOn()) return; const c=_ac(); if(!c) return;
+  const t=c.currentTime, len=Math.floor(c.sampleRate*.018), b=c.createBuffer(1,len,c.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3);
+  const src=c.createBufferSource(), f=c.createBiquadFilter(), g=c.createGain();
+  f.type='bandpass'; f.frequency.value=3200; f.Q.value=.9; g.gain.value=.22;
+  src.buffer=b; src.connect(f); f.connect(g); g.connect(c.destination); src.start(t);
+}
+// blip de navegación: subida rápida y limpia
+function uiBlip(){
+  if(!ntfSoundOn()) return; const c=_ac(); if(!c) return;
+  const t=c.currentTime, o=c.createOscillator(), g=c.createGain();
+  o.type='sine'; o.frequency.setValueAtTime(620,t); o.frequency.exponentialRampToValueAtTime(1240,t+.09);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.05,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+.16);
+  o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+.18);
+}
+// "encendido" tipo JARVIS: barrido grave→agudo con brillo, antes de la voz
+function uiPowerUp(){
+  if(!ntfSoundOn()) return; const c=_ac(); if(!c) return;
+  const t=c.currentTime;
+  [[220,880,0,.5,'sawtooth',.035],[440,1760,.04,.46,'sine',.07]].forEach(([f0,f1,d,dur,type,pk])=>{
+    const o=c.createOscillator(), g=c.createGain(), lp=c.createBiquadFilter();
+    o.type=type; o.frequency.setValueAtTime(f0,t+d); o.frequency.exponentialRampToValueAtTime(f1,t+d+dur);
+    lp.type='lowpass'; lp.frequency.setValueAtTime(900,t+d); lp.frequency.exponentialRampToValueAtTime(6000,t+d+dur);
+    g.gain.setValueAtTime(.0001,t+d); g.gain.exponentialRampToValueAtTime(pk,t+d+.08); g.gain.exponentialRampToValueAtTime(.0001,t+d+dur+.12);
+    o.connect(lp); lp.connect(g); g.connect(c.destination); o.start(t+d); o.stop(t+d+dur+.15);
+  });
+}
+// voz del sistema en español (elige la mejor disponible: Google/Paulina/Mónica…)
+function uiSay(text){
+  if(!ntfSoundOn()||!ntfVoiceOn()||!('speechSynthesis' in window)) return;
+  try{
+    const vs=speechSynthesis.getVoices().filter(v=>/^es/i.test(v.lang));
+    const pick=vs.find(v=>/google/i.test(v.name)&&/es-(US|MX|419)/i.test(v.lang))||vs.find(v=>/paulina|mónica|monica|sabina|helena/i.test(v.name))||vs.find(v=>/es-(MX|US|419)/i.test(v.lang))||vs[0];
+    const u=new SpeechSynthesisUtterance(text); if(pick){ u.voice=pick; u.lang=pick.lang; } else u.lang='es-MX';
+    u.rate=1.02; u.pitch=.92; u.volume=.95;
+    speechSynthesis.cancel(); setTimeout(()=>speechSynthesis.speak(u),420);
+  }catch(e){}
+}
+if('speechSynthesis' in window){ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }catch(e){} }
+document.addEventListener('pointerdown',e=>{ if(e.target.closest('button,a,select,.nav a,[onclick],input[type=checkbox],label')) uiTick(); },{passive:true});
+window.addEventListener('hashchange',()=>uiBlip());
+async function ntfNewUsers(n){
+  let who='';
+  try{ const{data}=await sb.from('users').select('nombre,username').order('created_at',{ascending:false}).limit(1); const u=(data||[])[0]; if(u) who=u.username?'@'+u.username:(u.nombre||''); }catch(e){}
+  ntfAdd('usr',n,who,true);
+  uiPowerUp();
+  uiSay(n>1?`${n} usuarios nuevos registrados en Ruedda`:`Nuevo usuario registrado${who?': '+who.replace(/^@/,''):''}`);
+}
+
+function ntfAdd(k,n,detail,quiet){
   const m=NTF_MAP[k]; if(!m) return;
   const ex=NTF.find(x=>x.k===k);
   if(ex){ ex.n+=n; ex.t=Date.now(); if(detail) ex.d=detail; NTF=[ex].concat(NTF.filter(x=>x!==ex)); }
   else NTF.unshift({k,n,t:Date.now(),d:detail||''});
-  _ntfSave(); ntfPaint(true); ntfChime(k==='bid');
+  _ntfSave(); ntfPaint(true); if(!quiet) ntfChime(k==='bid');
   const bell=$('#ntf-bell'); if(bell){ bell.classList.remove('ring'); void bell.offsetWidth; bell.classList.add('ring'); }
   $('#ntf').classList.remove('hide');
 }
@@ -549,18 +605,21 @@ function ntfPaint(){
   if(c){ c.textContent=total>99?'99+':total; c.classList.toggle('zero',!total); }
   document.title=(total?'('+total+') ':'')+'Ruedda Control';
   $('#ntf-snd').textContent='sonido: '+(ntfSoundOn()?'sí':'no');
+  $('#ntf-voz').textContent='voz: '+(ntfVoiceOn()?'sí':'no');
   if(!NTF.length) $('#ntf').classList.add('hide');
 }
 function ntfGo(i){ const x=NTF[i]; if(!x) return; NTF.splice(i,1); _ntfSave(); ntfPaint(); location.hash='#/'+NTF_MAP[x.k][1]; }
 function ntfDel(i){ NTF.splice(i,1); _ntfSave(); ntfPaint(); }
 function ntfClear(){ NTF=[]; _ntfSave(); ntfPaint(); }
 function ntfToggle(){ const p=$('#ntf'); if(!NTF.length){ toast('sin avisos pendientes'); return; } p.classList.toggle('hide'); }
+function ntfVoice(){ try{ localStorage.setItem(NTF_VOZ,ntfVoiceOn()?'0':'1'); }catch(e){} ntfPaint(); if(ntfVoiceOn()){ uiPowerUp(); uiSay('Voz activada'); } }
 function ntfSound(){ try{ localStorage.setItem(NTF_SND,ntfSoundOn()?'0':'1'); }catch(e){} ntfPaint(); if(ntfSoundOn()) ntfChime(); }
 // compara la cuenta de pendientes con la anterior; la primera vez solo toma la línea base
 async function ntfCheck(b){
   let pos=0; if(!window._posMissing){ const r=await cnt('postulaciones',q=>q.eq('estado','nueva')); if(r&&r.error) window._posMissing=true; else pos=r; }
-  const now={mod:b.mod||0,kyc:b.kyc||0,pay:b.pay||0,acc:b.acc||0,rep:b.rep||0,sol:b.sol||0,pos:pos||0};
-  if(NTF_BASE) Object.keys(now).forEach(k=>{ if(now[k]>NTF_BASE[k]) ntfAdd(k,now[k]-NTF_BASE[k]); });
+  const ur=await cnt('users'); const usr=typeof ur==='number'?ur:(NTF_BASE?NTF_BASE.usr:0);
+  const now={mod:b.mod||0,kyc:b.kyc||0,pay:b.pay||0,acc:b.acc||0,rep:b.rep||0,sol:b.sol||0,pos:pos||0,usr};
+  if(NTF_BASE) Object.keys(now).forEach(k=>{ if(now[k]>NTF_BASE[k]){ if(k==='usr') ntfNewUsers(now[k]-NTF_BASE[k]); else if(k==='mod'){ ntfAdd('mod',now[k]-NTF_BASE[k],'',true); uiPowerUp(); uiSay('Moderación en espera'); } else ntfAdd(k,now[k]-NTF_BASE[k]); } });
   NTF_BASE=now;
 }
 setInterval(()=>{ if(NTF.length) ntfPaint(); },60000); // refresca los "hace X min"
