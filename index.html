@@ -2382,6 +2382,77 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
 }
 #rd-intro-market svg{width:14px;height:14px;flex-shrink:0}
 
+/* ── [2026-10-04] continuar → acciones finales ──────────────────
+   Dos pliegues (grid 0fr↔1fr) que se cruzan a la vez: "continuar" se
+   recoge mientras el bloque final se despliega, así el título sube
+   deslizando en vez de saltar. Los hijos del final entran escalonados. */
+.rd-cta-fold{display:grid;grid-template-rows:1fr;transition:grid-template-rows .6s cubic-bezier(.32,.72,0,1)}
+.rd-cta-fold>div{min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:9px}
+#rd-intro-cta{gap:0!important}
+#rd-intro-final{grid-template-rows:0fr}
+#rd-intro.rd-final #rd-intro-final{grid-template-rows:1fr}
+#rd-intro.rd-final #rd-intro-next-wrap{grid-template-rows:0fr}
+#rd-intro-next{
+  border:none;background:#fff;color:#000;font-weight:800;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  transition:transform .16s cubic-bezier(.32,.72,0,1),opacity .35s ease!important;
+}
+#rd-intro-next svg{width:16px;height:16px;flex-shrink:0;transition:transform .25s cubic-bezier(.32,.72,0,1)}
+#rd-intro-next:active svg{transform:translateX(3px)}
+#rd-intro.rd-final #rd-intro-next{opacity:0}
+#rd-intro-final>div>*{opacity:0;transform:translateY(12px);transition:opacity .45s ease,transform .55s cubic-bezier(.22,1,.36,1)}
+#rd-intro.rd-final #rd-intro-final>div>*{opacity:1;transform:none}
+#rd-intro.rd-final #rd-intro-final>div>*:nth-child(1){transition-delay:.12s}
+#rd-intro.rd-final #rd-intro-final>div>*:nth-child(2){transition-delay:.19s}
+#rd-intro.rd-final #rd-intro-final>div>*:nth-child(3){transition-delay:.27s}
+#rd-intro.rd-final #rd-intro-final>div>*:nth-child(4){transition-delay:.33s}
+#rd-intro-or{display:flex;align-items:center;gap:12px;margin:5px 2px 1px}
+#rd-intro-or i{flex:1;height:1px;background:rgba(255,255,255,.14)}
+#rd-intro-or span{font-size:12.5px;color:rgba(255,255,255,.5);white-space:nowrap}
+#rd-intro-cta #rd-intro-login{
+  all:unset;cursor:pointer;color:#fff;font-weight:700;font-size:12.5px;
+  text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px;
+}
+#rd-intro-social{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#rd-intro-cta .rd-soc{
+  height:48px;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  font-size:14px;font-weight:600;letter-spacing:-.1px;
+}
+#rd-intro-cta .rd-soc svg{width:17px;height:17px;flex-shrink:0}
+/* Apple: variante blanca oficial (manzana negra), igual que en la hoja de acceso */
+#rd-intro-cta .rd-soc-apple{background:#fff;color:#000;border:none}
+#rd-intro-cta .rd-soc-google{
+  background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);
+  backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
+}
+/* ── assets flotantes (últimas 2 fotos): chips de vidrio sobre la foto,
+   solo CSS. Entran escalonados y flotan en loop lento; cero imágenes. ── */
+#rd-intro-float{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.rd-fl{
+  position:absolute;left:var(--x);top:var(--y);
+  display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
+  padding:10px 14px 10px 11px;border-radius:999px;
+  font-size:12.5px;font-weight:600;letter-spacing:-.1px;color:#fff;
+  background:rgba(12,12,12,.34);border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);
+  box-shadow:0 18px 40px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.18);
+  opacity:0;transform:translateY(14px) scale(.96) rotate(var(--r,0deg));
+  transition:opacity .6s ease,transform .8s cubic-bezier(.22,1,.36,1);
+  transition-delay:var(--d,0s);
+}
+.rd-fl.rd-fl-in{opacity:1;transform:translateY(0) scale(1) rotate(var(--r,0deg))}
+.rd-fl.rd-fl-out{opacity:0;transform:translateY(-8px) scale(.98) rotate(var(--r,0deg));transition-delay:0s;transition-duration:.3s}
+.rd-fl>b{display:block;animation:rdBob var(--t,5.5s) ease-in-out infinite;animation-delay:var(--d,0s)}
+.rd-fl>b{display:flex;align-items:center;gap:8px;font-weight:inherit}
+.rd-fl svg{width:16px;height:16px;flex-shrink:0}
+.rd-fl .rd-fl-ic{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.14)}
+.rd-fl .rd-fl-ic.rd-lime{background:#e6f03b;color:#000}
+.rd-fl .rd-fl-ic.rd-blue{background:#1d9bf0;color:#fff}
+@keyframes rdBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+/* la animación de flote vive en un hijo (<b>) para no pelear con la de entrada */
+@media(prefers-reduced-motion:reduce){.rd-fl>b{animation:none}}
+@media(max-height:680px){#rd-intro-cta .rd-soc{height:44px}.rd-fl{font-size:11.5px;padding:8px 12px 8px 9px}}
+
 /* [V127] "un momento" — al terminar el tour naturalmente (última foto, sin
    tocar ningún CTA) esto se muestra un instante en vez de cortar en seco a
    la app ya cargada detrás. Mismo lenguaje visual que #boot-splash-text. */
@@ -2549,17 +2620,38 @@ function rdRegion(r){
     <div id="rd-intro-rule"><i></i></div>
     <span id="rd-intro-tot">06</span>
   </div>
-  <div id="rd-intro-touch"></div>
+  <div id="rd-intro-touch"><div id="rd-intro-float" aria-hidden="true"></div></div>
   <div id="rd-intro-copy">
     <div id="rd-intro-icon" class="rd-anim"></div>
     <h1 id="rd-intro-title" class="rd-anim"></h1>
     <p id="rd-intro-sub" class="rd-anim"></p>
   </div>
+  <!-- [2026-10-04] un solo "continuar" (háptico) hasta la última foto; ahí se
+       transforma en crear cuenta / entrar al market + "o, iniciar sesión" con
+       Apple y Google (los mismos _appleSignIn/_googleSignIn de la hoja de acceso). -->
   <div id="rd-intro-cta">
-    <button id="rd-intro-register" type="button">crear cuenta</button>
-    <button id="rd-intro-market" type="button">explorar el market
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
-    </button>
+    <div class="rd-cta-fold" id="rd-intro-next-wrap"><div>
+      <button id="rd-intro-next" type="button"><span>continuar</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div></div>
+    <div class="rd-cta-fold" id="rd-intro-final"><div>
+      <button id="rd-intro-register" type="button">crear cuenta</button>
+      <button id="rd-intro-market" type="button">entrar al market
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>
+      </button>
+      <div id="rd-intro-or"><i></i><span>o, <button id="rd-intro-login" type="button">iniciar sesión</button></span><i></i></div>
+      <div id="rd-intro-social">
+        <button type="button" class="rd-soc rd-soc-apple" onclick="_appleSignIn()" aria-label="continuar con Apple">
+          <svg viewBox="0 0 170 170"><path fill="currentColor" d="M150.37 130.25c-2.45 5.66-5.35 10.87-8.71 15.66-4.58 6.53-8.33 11.05-11.22 13.56-4.48 4.12-9.28 6.23-14.42 6.35-3.69 0-8.14-1.05-13.32-3.18-5.197-2.12-9.973-3.17-14.34-3.17-4.58 0-9.492 1.05-14.746 3.17-5.262 2.13-9.501 3.24-12.742 3.35-4.929.21-9.842-1.96-14.746-6.52-3.13-2.73-7.045-7.41-11.735-14.04-5.032-7.08-9.169-15.29-12.41-24.65-3.473-10.11-5.211-19.9-5.211-29.378 0-10.857 2.346-20.221 7.045-28.068 3.693-6.303 8.606-11.275 14.755-14.925 6.149-3.65 12.792-5.51 19.946-5.629 3.915 0 9.049 1.211 15.429 3.591 6.361 2.388 10.447 3.599 12.238 3.599 1.339 0 5.877-1.416 13.57-4.239 7.275-2.618 13.42-3.702 18.445-3.275 13.63 1.1 23.87 6.473 30.68 16.153-12.19 7.386-18.22 17.731-18.1 31.002.11 10.337 3.86 18.939 11.23 25.769 3.34 3.17 7.07 5.62 11.21 7.36-.9 2.61-1.85 5.11-2.86 7.51zM119.11 7.24c0 8.102-2.96 15.667-8.86 22.669-7.12 8.324-15.732 13.134-25.071 12.375a25.222 25.222 0 0 1-.188-3.07c0-7.778 3.386-16.102 9.399-22.899 3.002-3.44 6.821-6.301 11.45-8.578 4.62-2.245 8.99-3.484 13.1-3.702.12 1.086.17 2.171.17 3.205z"/></svg>
+          <span>Apple</span>
+        </button>
+        <button type="button" class="rd-soc rd-soc-google" onclick="_googleSignIn()" aria-label="continuar con Google">
+          <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          <span>Google</span>
+        </button>
+      </div>
+    </div></div>
   </div>
   <div id="rd-intro-loader"><span>un momento</span></div>
   <!-- [V131] pantalla negra + isotipo — tapa TODO hasta que la 1ra y 2da foto
@@ -2751,6 +2843,7 @@ function rdRegion(r){
   var titleEl = document.getElementById('rd-intro-title');
   var subEl   = document.getElementById('rd-intro-sub');
   var touch   = document.getElementById('rd-intro-touch');
+  var floatEl = document.getElementById('rd-intro-float');
   var slides = [], cur = -1, timer = null, dead = false;
 
   function pad(n){ return (n < 10 ? '0' : '') + n; }
@@ -2813,10 +2906,8 @@ function rdRegion(r){
     numEl.textContent = pad(idx + 1);
     var from = (idx / SLIDES.length) * 100;
     var to   = ((idx + 1) / SLIDES.length) * 100;
-    ruleEl.style.transition = 'none';
-    ruleEl.style.width = from + '%';
-    void ruleEl.offsetWidth; // reflow: sin esto el reset se colapsa y no anima
-    ruleEl.style.transition = 'width ' + CFG.slideMs + 'ms linear';
+    void from; // [2026-10-04] sin avance cronometrado: la regla solo se desliza a su nuevo tramo
+    ruleEl.style.transition = 'width .6s cubic-bezier(.32,.72,0,1)';
     ruleEl.style.width = to + '%';
   }
 
@@ -2836,19 +2927,60 @@ function rdRegion(r){
   // iOS Safari/PWA no tiene esa API — ahí solo vibra dentro de la app nativa.
   function _hapticTick(){ window._rdHapticNow('LIGHT'); } // un toque elegante por foto
 
-  function go(i){
+  /* [2026-10-04] chips de vidrio flotantes en las últimas 2 fotos */
+  var _FL_IC = {
+    cafe:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 8.9h13.1v5.9a4.3 4.3 0 0 1-4.3 4.3H7.9a4.3 4.3 0 0 1-4.3-4.3z"/><path d="M16.7 10.4h1.5a2.4 2.4 0 0 1 0 4.9h-1.5"/></svg>',
+    pin:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-5.6-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/></svg>',
+    llave: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 20 3M16.5 6.5l2.5 2.5M14 9l2 2"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="3.2" y="3.2" width="8" height="8" rx="1.6"/><rect x="12.8" y="3.2" width="8" height="8" rx="1.6" opacity=".35"/><rect x="12.8" y="12.8" width="8" height="8" rx="1.6"/><rect x="3.2" y="12.8" width="8" height="8" rx="1.6" opacity=".35"/></svg>',
+    reloj: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.8" r="7.4"/><path d="M12 10.2v3.6l2.3 1.5M9.7 2.9h4.6"/></svg>',
+    tienda:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.9 9.4 4.6 4.7a1 1 0 0 1 .95-.7h12.9a1 1 0 0 1 .95.7l1.7 4.7M4.4 9.4V19a1 1 0 0 0 1 1h13.2a1 1 0 0 0 1-1V9.4M4.4 9.4h15.2"/></svg>',
+    ok:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 12.5l3.5 3.5 7.5-8"/></svg>'
+  };
+  var FLOATS = {};
+  FLOATS[SLIDES.length - 2] = [
+    {ic:'cafe',  t:'un café y buena conversa', x:'9%',  y:'14%', r:'-3deg', d:.15, s:5.8},
+    {ic:'pin',   t:'visítanos en persona',     x:'38%', y:'38%', r:'2deg',  d:.32, s:6.4},
+    {ic:'llave', t:'revisa el vehículo',       x:'14%', y:'62%', r:'-1.5deg', d:.48, s:5.2}
+  ];
+  FLOATS[SLIDES.length - 1] = [
+    {ic:'check', t:'market',               x:'10%', y:'12%', r:'-3deg', d:.15, s:5.6, c:'rd-lime'},
+    {ic:'reloj', t:'subastas en vivo',     x:'44%', y:'30%', r:'2.5deg', d:.28, s:6.2},
+    {ic:'tienda',t:'concesionarios',       x:'8%',  y:'50%', r:'-1deg', d:.41, s:5.4},
+    {ic:'ok',    t:'cuenta verificada',    x:'40%', y:'68%', r:'1.5deg', d:.54, s:6.8, c:'rd-blue'}
+  ];
+  function paintFloats(i){
+    if(!floatEl) return;
+    var old = floatEl.querySelectorAll('.rd-fl');
+    old.forEach(function(n){ n.classList.remove('rd-fl-in'); n.classList.add('rd-fl-out'); setTimeout(function(){ if(n.parentNode) n.parentNode.removeChild(n); }, 320); });
+    var list = FLOATS[i];
+    if(!list) return;
+    list.forEach(function(f){
+      var n = document.createElement('div');
+      n.className = 'rd-fl';
+      n.style.setProperty('--x', f.x); n.style.setProperty('--y', f.y); n.style.setProperty('--r', f.r);
+      n.style.setProperty('--d', f.d + 's'); n.style.setProperty('--t', f.s + 's');
+      n.innerHTML = '<b><span class="rd-fl-ic' + (f.c ? ' ' + f.c : '') + '">' + _FL_IC[f.ic] + '</span>' + esc(f.t) + '</b>';
+      floatEl.appendChild(n);
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ n.classList.add('rd-fl-in'); }); });
+    });
+  }
+
+  function go(i, haptic){
     if(dead) return;
     // [V127] última foto -> termina el tour y entra a la app (antes daba la
     // vuelta a la primera foto en loop infinito, ver abajo). Swipe hacia atrás
     // desde la primera sí puede dar la vuelta a la última, eso queda igual.
-    if(i >= SLIDES.length){ finishIntro(); return; }
+    // [2026-10-04] ya no termina sola: en la última foto quedan las acciones finales
+    if(i >= SLIDES.length) i = SLIDES.length - 1;
     // [fix] retroceder antes de la 1ra ya NO da la vuelta a la última — se
     // queda quieto en la primera (antes: swipe/tap izquierda repetido caía
     // en la última foto y "se devolvía", confuso).
     if(i < 0) i = 0;
     if(i === cur) return;
-    _hapticTick();
+    if(haptic) window._rdHapticNow(haptic); else _hapticTick();
     cur = i;
+    root.classList.toggle('rd-final', i === SLIDES.length - 1);
     var s = SLIDES[i];
 
     slides.forEach(function(d,k){ d.classList.toggle('rd-cur', k === i); });
@@ -2861,9 +2993,7 @@ function rdRegion(r){
     subEl.textContent = s.sub;
     cascade();
     paintProgress(i);
-
-    clearTimeout(timer);
-    timer = setTimeout(function(){ go(cur + 1); }, CFG.slideMs);
+    paintFloats(i);
   }
 
   /* ── fin natural del tour (última foto) ──────────────────────
@@ -2920,7 +3050,11 @@ function rdRegion(r){
   window._rdIntroDismiss = function(){ try{ dismiss(); }catch(e){} };
 
   document.getElementById('rd-intro-skip').addEventListener('click', function(){
-    try{ window.open('https://www.instagram.com/ruedda.app','_blank','noopener'); }catch(e){}
+    // [2026-10-04] conoce más → Ruedda Hub (en la app abre en la hoja interna de abrirLink)
+    window._rdHapticNow('LIGHT');
+    var HUB = 'https://www.ruedda.app/hub/';
+    try{ if(typeof abrirLink === 'function'){ abrirLink(HUB); return; } }catch(e){}
+    try{ window.open(HUB,'_blank','noopener'); }catch(e){}
   });
 
   document.getElementById('rd-intro-market').addEventListener('click', function(){
@@ -2938,6 +3072,19 @@ function rdRegion(r){
     setTimeout(function(){
       try{ if(kids && typeof window._playCascade === 'function') window._playCascade(kids); }catch(e){}
     }, 240);
+  });
+
+  // [2026-10-04] continuar: avanza una foto con un toque háptico firme
+  document.getElementById('rd-intro-next').addEventListener('click', function(){ go(cur + 1, 'MEDIUM'); });
+  // "o, iniciar sesión": misma hoja de acceso, encima del intro (igual que crear cuenta)
+  document.getElementById('rd-intro-login').addEventListener('click', function(){
+    window._rdHapticNow('LIGHT');
+    try{ window._homeSectionOverride = 'market'; if(typeof showView === 'function') showView('home'); }catch(e){}
+    var sh = document.getElementById('auth-sheet'); if(sh) sh.style.zIndex = '100010';
+    try{
+      if(typeof showMobileAuth === 'function') showMobileAuth('login');
+      else if(typeof showLandingAuth === 'function') showLandingAuth('login');
+    }catch(e){}
   });
 
   document.getElementById('rd-intro-register').addEventListener('click', function(){
