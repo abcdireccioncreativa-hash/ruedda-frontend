@@ -195,6 +195,32 @@ main{min-width:0}
 #lightbox{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;padding:30px;cursor:zoom-out}
 #lightbox.on{display:flex}
 #lightbox img{max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+/* ── [2026-10-04] avisos: suenan al llegar algo nuevo y quedan pendientes a la derecha ── */
+.ntf-bell{position:relative;width:34px;height:34px;border-radius:999px;border:none;background:var(--hover);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.ntf-bell:hover{background:#e8e8ed}.ntf-bell svg{width:16px;height:16px}
+.ntf-bell b{position:absolute;top:-3px;right:-3px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#ff3b30;color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 0 2px var(--panel)}
+.ntf-bell b.zero{display:none}
+.ntf-bell.ring svg{animation:ntfRing .9s cubic-bezier(.36,.07,.19,.97)}
+@keyframes ntfRing{0%,100%{transform:rotate(0)}15%{transform:rotate(14deg)}30%{transform:rotate(-12deg)}45%{transform:rotate(9deg)}60%{transform:rotate(-6deg)}75%{transform:rotate(3deg)}}
+#ntf{position:fixed;top:76px;right:18px;z-index:250;width:330px;max-height:calc(100vh - 100px);display:flex;flex-direction:column;gap:8px;pointer-events:none}
+#ntf .ntf-h{pointer-events:auto;display:flex;align-items:center;justify-content:space-between;padding:0 4px;font-size:11.5px;font-weight:600;color:var(--mute)}
+#ntf .ntf-h button{border:none;background:none;color:var(--mute);font:inherit;cursor:pointer;padding:2px 4px}
+#ntf .ntf-h button:hover{color:var(--ink)}
+#ntf .ntf-list{display:flex;flex-direction:column;gap:8px;overflow-y:auto;padding:2px}
+.ntf-i{pointer-events:auto;display:flex;gap:11px;align-items:flex-start;padding:12px 12px 12px 13px;border-radius:16px;background:rgba(255,255,255,.92);border:1px solid var(--line);box-shadow:0 12px 32px rgba(0,0,0,.12),0 1px 3px rgba(0,0,0,.06);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);cursor:pointer;animation:ntfIn .45s cubic-bezier(.22,1,.36,1)}
+.ntf-i:hover{border-color:var(--line2)}
+.ntf-i .ic{width:30px;height:30px;border-radius:9px;background:var(--blue-bg);color:var(--blue);display:grid;place-items:center;flex-shrink:0}
+.ntf-i .ic svg{width:15px;height:15px}
+.ntf-i .tx{flex:1;min-width:0}
+.ntf-i .tx b{display:block;font-size:13.5px;font-weight:600;color:var(--ink)}
+.ntf-i .tx span{display:block;font-size:12px;color:var(--mute);margin-top:2px}
+.ntf-i .tx b .n{display:inline-block;font-size:10.5px;font-weight:700;line-height:16px;color:#fff;background:#ff3b30;border-radius:999px;padding:0 6px;margin:0 0 0 6px;vertical-align:1px}
+.ntf-i .x{border:none;background:none;color:var(--mute2);cursor:pointer;padding:2px;margin:-2px -2px 0 0;line-height:0}
+.ntf-i .x:hover{color:var(--ink)}
+.ntf-i.out{opacity:0;transform:translateX(16px);transition:all .25s ease}
+@keyframes ntfIn{from{opacity:0;transform:translateX(24px) scale(.98)}to{opacity:1;transform:none}}
+#ntf.hide .ntf-list,#ntf.hide .ntf-h{display:none}
+@media(max-width:700px){#ntf{left:12px;right:12px;width:auto;top:70px}}
 #toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;font-weight:500;opacity:0;transition:all .25s cubic-bezier(.22,1,.36,1);z-index:300;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.2)}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 #toast.err{background:var(--red)}
@@ -244,13 +270,14 @@ main{min-width:0}
     <div class="topbar" id="topbar">
       <button class="menu-btn" onclick="document.body.classList.toggle('nav-open')" aria-label="menú"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <div><h2 id="page-t">Control</h2><div class="sub" id="page-s"></div></div>
-      <div class="right"><span class="live"><i></i><span id="upd">en vivo</span></span><button class="btn btn-soft" onclick="refresh(true)" title="actualizar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg></button></div>
+      <div class="right"><span class="live"><i></i><span id="upd">en vivo</span></span><button class="ntf-bell" id="ntf-bell" onclick="ntfToggle()" title="avisos" aria-label="avisos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><b class="zero" id="ntf-count">0</b></button><button class="btn btn-soft" onclick="refresh(true)" title="actualizar"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg></button></div>
     </div>
     <div class="content" id="view"></div>
   </main>
 </div>
 <div id="lightbox" onclick="this.classList.remove('on')"><img alt=""></div>
 <div id="toast"></div>
+<div id="ntf" class="hide"><div class="ntf-h"><span>avisos pendientes</span><span><button onclick="ntfSound()" id="ntf-snd">sonido: sí</button><button onclick="ntfClear()">limpiar</button></span></div><div class="ntf-list" id="ntf-list"></div></div>
 
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
 <script>
@@ -442,6 +469,7 @@ window.addEventListener('scroll',()=>$('#topbar').classList.toggle('scrolled',sc
 /* ════════════ EN VIVO ════════════ */
 let lastUpd=Date.now(), liveCh=null;
 function startLive(){
+  ntfPaint();
   refreshBadges();
   setInterval(()=>{ if(document.visibilityState==='visible') refresh(false); },30000);
   setInterval(()=>{ const s=Math.round((Date.now()-lastUpd)/1000); $('#upd').textContent=s<5?'en vivo':'actualizado hace '+(s<60?s+' s':Math.round(s/60)+' min'); },5000);
@@ -449,7 +477,7 @@ function startLive(){
   try{
     liveCh=sb.channel('control-bids').on('postgres_changes',{event:'INSERT',schema:'public',table:'bids'},()=>{
       if(CUR==='control'||CUR==='subastas'||CUR==='actividad') refresh(false);
-      toast('nueva puja recibida');
+      toast('nueva puja recibida'); ntfAdd('bid',1);
     }).subscribe();
   }catch(e){}
 }
@@ -469,8 +497,73 @@ async function refreshBadges(){
   const v=x=>typeof x==='number'?x:0;
   BADGES={mod:v(mod1)+v(mod2),kyc:v(kyc),pay:v(pay),acc:v(acc),rep:v(rep),sol:v(sol),repMissing:!!(rep&&rep.error)};
   document.querySelectorAll('[data-b]').forEach(b=>{ const k=b.dataset.b; b.textContent=BADGES[k]; b.classList.toggle('zero',!BADGES[k]); });
+  ntfCheck(BADGES).catch(()=>{});
   return BADGES;
 }
+
+/* ════════════ AVISOS ════════════
+   Cada vez que se refrescan los pendientes (cada 30 s, al volver a la pestaña o en vivo) se
+   compara con la cuenta anterior: si algo subió, suena un tono suave y queda un aviso a la
+   derecha hasta que lo atiendas (clic = ir a la sección) o lo cierres. Las pujas llegan en vivo.
+   Los avisos sobreviven a recargar la página (localStorage, solo en este navegador). */
+const NTF_KEY='ctrl_ntf_v1', NTF_SND='ctrl_ntf_sound';
+const NTF_MAP={
+  mod:['Publicación por revisar','moderacion','mod'], kyc:['Verificación KYC pendiente','kyc','kyc'],
+  pay:['Pago por confirmar','pagos','pay'], acc:['Solicitud de acceso a subasta','accesos','key'],
+  rep:['Nuevo reporte de usuario','reportes','flag'], sol:['Nueva solicitud','solicitudes','offer'],
+  pos:['Nueva postulación','postulaciones','users'], bid:['Nueva puja','subastas','gavel']
+};
+let NTF=[], NTF_BASE=null, _ntfCtx=null;
+try{ NTF=JSON.parse(localStorage.getItem(NTF_KEY)||'[]'); }catch(e){ NTF=[]; }
+const ntfSoundOn=()=>{ try{ return localStorage.getItem(NTF_SND)!=='0'; }catch(e){ return true; } };
+function _ntfSave(){ try{ localStorage.setItem(NTF_KEY,JSON.stringify(NTF.slice(0,30))); }catch(e){} }
+// el navegador solo deja sonar audio después de una interacción: se desbloquea con el primer clic
+document.addEventListener('pointerdown',()=>{ try{ if(!_ntfCtx) _ntfCtx=new (window.AudioContext||window.webkitAudioContext)(); if(_ntfCtx.state==='suspended') _ntfCtx.resume(); }catch(e){} },{passive:true});
+function ntfChime(soft){
+  if(!ntfSoundOn()) return;
+  try{
+    if(!_ntfCtx) _ntfCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const c=_ntfCtx, t=c.currentTime;
+    (soft?[[988,0]]:[[880,0],[1318.5,.12]]).forEach(([f,d])=>{
+      const o=c.createOscillator(), g=c.createGain();
+      o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(c.destination);
+      g.gain.setValueAtTime(.0001,t+d); g.gain.exponentialRampToValueAtTime(soft?.08:.16,t+d+.02); g.gain.exponentialRampToValueAtTime(.0001,t+d+.55);
+      o.start(t+d); o.stop(t+d+.6);
+    });
+  }catch(e){}
+}
+function ntfAdd(k,n,detail){
+  const m=NTF_MAP[k]; if(!m) return;
+  const ex=NTF.find(x=>x.k===k);
+  if(ex){ ex.n+=n; ex.t=Date.now(); if(detail) ex.d=detail; NTF=[ex].concat(NTF.filter(x=>x!==ex)); }
+  else NTF.unshift({k,n,t:Date.now(),d:detail||''});
+  _ntfSave(); ntfPaint(true); ntfChime(k==='bid');
+  const bell=$('#ntf-bell'); if(bell){ bell.classList.remove('ring'); void bell.offsetWidth; bell.classList.add('ring'); }
+  $('#ntf').classList.remove('hide');
+}
+function ntfAgo(t){ const s=Math.round((Date.now()-t)/1000); return s<60?'ahora':s<3600?'hace '+Math.round(s/60)+' min':s<86400?'hace '+Math.round(s/3600)+' h':'hace '+Math.round(s/86400)+' d'; }
+function ntfPaint(){
+  const L=$('#ntf-list'); if(!L) return;
+  L.innerHTML=NTF.map((x,i)=>{ const m=NTF_MAP[x.k]; return `<div class="ntf-i" onclick="ntfGo(${i})"><div class="ic">${ico(m[2])}</div><div class="tx"><b>${esc(m[0])}${x.n>1?`<span class="n">${x.n}</span>`:''}</b><span>${x.d?esc(x.d)+' · ':''}${ntfAgo(x.t)}</span></div><button class="x" onclick="event.stopPropagation();ntfDel(${i})" aria-label="cerrar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`; }).join('');
+  const total=NTF.reduce((a,x)=>a+x.n,0), c=$('#ntf-count');
+  if(c){ c.textContent=total>99?'99+':total; c.classList.toggle('zero',!total); }
+  document.title=(total?'('+total+') ':'')+'Ruedda Control';
+  $('#ntf-snd').textContent='sonido: '+(ntfSoundOn()?'sí':'no');
+  if(!NTF.length) $('#ntf').classList.add('hide');
+}
+function ntfGo(i){ const x=NTF[i]; if(!x) return; NTF.splice(i,1); _ntfSave(); ntfPaint(); location.hash='#/'+NTF_MAP[x.k][1]; }
+function ntfDel(i){ NTF.splice(i,1); _ntfSave(); ntfPaint(); }
+function ntfClear(){ NTF=[]; _ntfSave(); ntfPaint(); }
+function ntfToggle(){ const p=$('#ntf'); if(!NTF.length){ toast('sin avisos pendientes'); return; } p.classList.toggle('hide'); }
+function ntfSound(){ try{ localStorage.setItem(NTF_SND,ntfSoundOn()?'0':'1'); }catch(e){} ntfPaint(); if(ntfSoundOn()) ntfChime(); }
+// compara la cuenta de pendientes con la anterior; la primera vez solo toma la línea base
+async function ntfCheck(b){
+  let pos=0; if(!window._posMissing){ const r=await cnt('postulaciones',q=>q.eq('estado','nueva')); if(r&&r.error) window._posMissing=true; else pos=r; }
+  const now={mod:b.mod||0,kyc:b.kyc||0,pay:b.pay||0,acc:b.acc||0,rep:b.rep||0,sol:b.sol||0,pos:pos||0};
+  if(NTF_BASE) Object.keys(now).forEach(k=>{ if(now[k]>NTF_BASE[k]) ntfAdd(k,now[k]-NTF_BASE[k]); });
+  NTF_BASE=now;
+}
+setInterval(()=>{ if(NTF.length) ntfPaint(); },60000); // refresca los "hace X min"
 
 /* ════════════ VISTAS ════════════ */
 const RENDER={};
