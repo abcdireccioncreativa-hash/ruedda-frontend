@@ -845,7 +845,7 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 .badge-timer.urgent{color:#ff5050}
 .badge-timer.days{color:var(--white)}
 .badge-bids{position:absolute;bottom:10px;right:10px;background:var(--badge);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:9px;padding:6px 12px;font-size:13px;font-weight:700}
-/* [2026-10-04] destacado → pestaña amarilla "joya": nace del borde inferior de la foto, lado derecho
+/* [2026-10-04] destacado → pestaña amarilla "featured": nace del borde inferior de la foto, lado derecho
    (mismo lenguaje que la pestaña "noticia"). Amarillo literal: no cambia con el tema. */
 .rd-joya{position:absolute;right:12px;bottom:0;z-index:3;padding:4px 9px 3px;border-radius:7px 7px 0 0;
   background:#e6f03b;color:#0a0a0a;font-size:10.5px;font-weight:800;line-height:1.15;letter-spacing:-.1px;
@@ -6040,7 +6040,7 @@ function renderCards(filter){
             ?`<img class="rd-lq" src="${_tImg(a.photoUrls[0],{width:40,quality:40})}" alt="" aria-hidden="true" decoding="async"><img decoding="async" src="${_tImg(a.photoUrls[0],{width:320})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="_rdShow(this);const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.opacity='0';setTimeout(()=>p.style.display='none',300)}" onerror="this.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`
             :`<div class="car-placeholder" style="background:linear-gradient(${grads[_gidx(a.id)]})">${carPlaceholder(a.id)}</div>`}
           <div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>
-          ${a.destacado?'<div class="rd-joya">joya</div>':''}
+          ${a.destacado?'<div class="rd-joya">featured</div>':''}
           ${isUrgent(a.endTime)?'<div class="badge-ending">terminando</div>':''}
           <div class="badge-timer ${isUrgent(a.endTime)?'urgent':''}" id="timer-card-${a.id}">--:--:--</div>
           <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
@@ -6127,7 +6127,7 @@ function renderCards(filter){
         ${a.sinReserva?'<div class="badge-sinreserva verde">sin reserva</div>':''}
         ${a.chocado?`<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>`:''}
         ${a.recienActivada?'<div class="badge-sinreserva" style="background:rgba(8,68,26,.85);border-color:rgba(8,68,26,.4);color:#fff">recién publicado</div>':''}
-        ${a.destacado?'<div class="rd-joya">joya</div>':''}
+        ${a.destacado?'<div class="rd-joya">featured</div>':''}
         ${urgent?'<div class="badge-ending">terminando</div>':''}
         <div class="badge-timer ${urgent?'urgent':days>=1?'days':''}" id="timer-card-${a.id}">--:--:--</div>
         <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
@@ -6763,7 +6763,7 @@ function _filterListadoGrid(q){
       <div class="listado-card-img" style="background:linear-gradient(${grads2[_gidx(l.id)%grads2.length]})">
         ${img}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:${badgeColor}">${badge}</span></div>
-        ${l.destacado?'<div class="rd-joya">joya</div>':''}
+        ${l.destacado?'<div class="rd-joya">featured</div>':''}
         <button onclick="event.stopPropagation();toggleWatchlistMarket('${l.id}',this)" style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.35);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--w15);border-radius:8px;padding:5px 7px;cursor:pointer;line-height:0;transition:background .15s">
           <svg fill="${isFav?'#08441A':'none'}" viewBox="0 0 24 24" stroke="${isFav?'#08441A':'var(--w80)'}" stroke-width="2" style="width:13px;height:13px"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
         </button>
@@ -6988,7 +6988,7 @@ function _mktAppendCards(list,startIdx){
     el.innerHTML=`
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img class="rd-lq" src="${_tImg(l.photoUrls[0],{width:40,quality:40})}" alt="" aria-hidden="true" decoding="async"><img decoding="async" src="${_tImg(l.photoUrls[0],{width:320})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="${idx<3?'eager':'lazy'}" onload="_rdShow(this);const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
-        ${l.destacado?'<div class="rd-joya">joya</div>':''}
+        ${l.destacado?'<div class="rd-joya">featured</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
       </div>
       <div class="market-card-body">
@@ -10365,7 +10365,7 @@ function _searchCardHtml(a,kind){
     return `<div class="auction-card" onclick="closeSearch();openDetail('${a.id}')">
       <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">${img}
         ${a.chocado?'<div class="badge-sinreserva" style="background:rgba(255,80,80,.75);border-color:rgba(255,80,80,.4)">chocado</div>':''}
-        ${a.destacado?'<div class="rd-joya">joya</div>':''}
+        ${a.destacado?'<div class="rd-joya">featured</div>':''}
         <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
       </div>
       <div class="card-body">
@@ -13468,7 +13468,7 @@ function renderMarketFiltered(){
     el.innerHTML=`
       <div class="market-card-img" style="background:linear-gradient(${grads[_gidx(l.id)]});overflow:hidden;position:relative">${l.photoUrls&&l.photoUrls[0]?`<img class="rd-lq" src="${_tImg(l.photoUrls[0],{width:40,quality:40})}" alt="" aria-hidden="true" decoding="async"><img decoding="async" src="${_tImg(l.photoUrls[0],{width:320})}" style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .35s ease" loading="lazy" onload="_rdShow(this);const p=this.parentElement.querySelector('.card-loading-pill');if(p){p.style.transition='opacity .3s ease';p.style.opacity='0';setTimeout(()=>p.style.display='none',300);}" onerror="this.style.opacity='1';this.style.display='none';const p=this.parentElement.querySelector('.card-loading-pill');if(p)p.style.display='none'"><div class="card-loading-pill"><div class="card-loading-ring"></div></div>`:carPlaceholder(l.id,'small')}
         <div style="position:absolute;top:8px;left:8px;display:flex;gap:5px;align-items:center">${(l.precioAnterior&&l.precioAnterior>l.price)?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,170,60,.35);color:rgba(255,180,70,.95)"><svg viewBox="0 0 24 24" fill="rgba(255,180,70,.95)" style="width:9px;height:9px;flex-shrink:0"><path d="M12 2c.5 3.5-1.5 5-2.5 6.5C8.2 10.4 8 12 9 13.6c-1.8-.4-3-1.9-3-4.1C4 11 3 13 3 15.3 3 19 6.6 22 12 22s9-3 9-6.7c0-4.6-3.6-6.6-5-9.8-.7 1.7-2 2.4-2.6 2.3C14.5 5.6 13.5 3.7 12 2z"/></svg>En oferta</span>`:''}<span style="font-size:9px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:100px;background:rgba(0,0,0,0.35);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--w12);color:${(l.condicion==='nuevo'||l.condicion==='0km')?'rgba(100,220,255,.95)':'rgba(255,255,255,.85)'}">${(l.condicion==='nuevo'||l.condicion==='0km')?'nuevo':'usado'}</span></div>
-        ${l.destacado?'<div class="rd-joya">joya</div>':''}
+        ${l.destacado?'<div class="rd-joya">featured</div>':''}
         ${l.vendido?'<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span style="font-size:12px;font-weight:800;letter-spacing:.5px;padding:6px 16px;border-radius:100px;background:rgba(0,0,0,.7);border:1px solid var(--w25);color:var(--white);text-transform:uppercase">vendido</span></div>':''}
       </div>
       <div class="market-card-body">
