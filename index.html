@@ -340,6 +340,11 @@ function _rdWaveFlag(el, opts){
 <style>
 @font-face {
   font-family: 'OpenSauceOne';
+  src: url('/assets/fonts/opensauceone-300.906e8fb6.woff2') format('woff2');
+  font-weight: 300; font-display: swap;
+}
+@font-face {
+  font-family: 'OpenSauceOne';
   src: url('/assets/fonts/opensauceone-400.d20e72bf.woff2') format('woff2');
   font-weight: 400; font-display: swap;
 }
@@ -2277,7 +2282,7 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
 #rd-intro-touch{position:relative;z-index:2;flex:1;min-height:0}
 
 /* ── copy ── */
-#rd-intro-copy{position:relative;z-index:2;padding:0 22px 24px}
+#rd-intro-copy{position:relative;z-index:2;padding:0 22px 40px}
 /* [V127] microsubtítulo (eyebrow) removido entre ícono y título — ver nota
    en el markup de #rd-intro-copy y en go() (ya no se pinta). */
 
@@ -2406,14 +2411,18 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
 #rd-intro.rd-final #rd-intro-final>div>*:nth-child(2){transition-delay:.19s}
 #rd-intro.rd-final #rd-intro-final>div>*:nth-child(3){transition-delay:.27s}
 #rd-intro.rd-final #rd-intro-final>div>*:nth-child(4){transition-delay:.33s}
-#rd-intro-or{display:flex;align-items:center;gap:12px;margin:5px 2px 1px}
+#rd-intro.rd-final #rd-intro-final>div>*:nth-child(5){transition-delay:.4s}
+#rd-intro-or{display:flex;align-items:center;gap:12px;margin:17px 2px 3px}
 #rd-intro-or i{flex:1;height:1px;background:rgba(255,255,255,.14)}
 #rd-intro-or span{font-size:12.5px;color:rgba(255,255,255,.5);white-space:nowrap}
 #rd-intro-cta #rd-intro-login{
-  all:unset;cursor:pointer;color:#fff;font-weight:700;font-size:12.5px;
-  text-decoration:underline;text-decoration-color:rgba(255,255,255,.35);text-underline-offset:3px;
+  all:unset;cursor:pointer;color:#e6f03b;font-weight:700;font-size:12.5px;padding:6px 2px;margin:-6px -2px;
 }
 #rd-intro-social{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#rd-intro-legal{
+  margin:6px auto 0;max-width:290px;text-align:center;
+  font-size:10.5px;font-weight:300;line-height:1.5;letter-spacing:.1px;color:rgba(255,255,255,.34);
+}
 #rd-intro-cta .rd-soc{
   height:48px;display:inline-flex;align-items:center;justify-content:center;gap:9px;
   font-size:14px;font-weight:600;letter-spacing:-.1px;
@@ -2431,19 +2440,21 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
 .rd-fl{
   position:absolute;left:var(--x);top:var(--y);
   display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
-  padding:10px 14px 10px 11px;border-radius:999px;
   font-size:12.5px;font-weight:600;letter-spacing:-.1px;color:#fff;
-  background:rgba(12,12,12,.34);border:1px solid rgba(255,255,255,.18);
-  backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);
-  box-shadow:0 18px 40px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.18);
   opacity:0;transform:translateY(14px) scale(.96) rotate(var(--r,0deg));
   transition:opacity .6s ease,transform .8s cubic-bezier(.22,1,.36,1);
   transition-delay:var(--d,0s);
 }
 .rd-fl.rd-fl-in{opacity:1;transform:translateY(0) scale(1) rotate(var(--r,0deg))}
 .rd-fl.rd-fl-out{opacity:0;transform:translateY(-8px) scale(.98) rotate(var(--r,0deg));transition-delay:0s;transition-duration:.3s}
-.rd-fl>b{display:block;animation:rdBob var(--t,5.5s) ease-in-out infinite;animation-delay:var(--d,0s)}
-.rd-fl>b{display:flex;align-items:center;gap:8px;font-weight:inherit}
+.rd-fl>b{
+  display:flex;align-items:center;gap:8px;font-weight:inherit;
+  padding:10px 14px 10px 11px;border-radius:999px;
+  background:rgba(12,12,12,.34);border:1px solid rgba(255,255,255,.18);
+  backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);
+  box-shadow:0 18px 40px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.18);
+  animation:rdBob var(--t,5.5s) ease-in-out infinite;animation-delay:var(--d,0s);will-change:transform;
+}
 .rd-fl svg{width:16px;height:16px;flex-shrink:0}
 .rd-fl .rd-fl-ic{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.14)}
 .rd-fl .rd-fl-ic.rd-lime{background:#e6f03b;color:#000}
@@ -2451,7 +2462,7 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
 @keyframes rdBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
 /* la animación de flote vive en un hijo (<b>) para no pelear con la de entrada */
 @media(prefers-reduced-motion:reduce){.rd-fl>b{animation:none}}
-@media(max-height:680px){#rd-intro-cta .rd-soc{height:44px}.rd-fl{font-size:11.5px;padding:8px 12px 8px 9px}}
+@media(max-height:680px){#rd-intro-cta .rd-soc{height:44px}.rd-fl{font-size:11.5px}.rd-fl>b{padding:8px 12px 8px 9px}#rd-intro-or{margin-top:12px}}
 
 /* [V127] "un momento" — al terminar el tour naturalmente (última foto, sin
    tocar ningún CTA) esto se muestra un instante en vez de cortar en seco a
@@ -2484,7 +2495,7 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
   #rd-intro-title{font-size:26px;letter-spacing:-1.1px}
   #rd-intro-sub{font-size:13px}
   #rd-intro-cta button{height:48px}
-  #rd-intro-copy{padding-bottom:18px}
+  #rd-intro-copy{padding-bottom:34px}
   #rd-intro-icon{width:24px;height:24px;margin-bottom:11px}
 }
 
@@ -2651,6 +2662,7 @@ function rdRegion(r){
           <span>Google</span>
         </button>
       </div>
+      <p id="rd-intro-legal">al continuar aceptas los términos de uso y la política de privacidad de Ruedda.</p>
     </div></div>
   </div>
   <div id="rd-intro-loader"><span>un momento</span></div>
