@@ -83,13 +83,18 @@ module.exports = async function handler(req, res) {
 
     // 4. Notificar al usuario
     if (ref.user_id) {
-      await supabaseAdmin.from('notifications').insert({
-        user_id: ref.user_id,
-        tipo: action === 'confirmar' ? 'ganador' : 'system',
-        titulo: notifTitulo,
-        body: notifBody,
-        icon: action === 'confirmar' ? 'lime' : ''
-      }).catch(() => {});
+      // [fix 2026-10-04] el builder de supabase-js no tiene .catch(): esto lanzaba un TypeError después de
+      // procesar el pago (Control mostraba "error" y la notificación nunca se enviaba)
+      try {
+        const { error: notifErr } = await supabaseAdmin.from('notifications').insert({
+          user_id: ref.user_id,
+          tipo: action === 'confirmar' ? 'ganador' : 'system',
+          titulo: notifTitulo,
+          body: notifBody,
+          icon: action === 'confirmar' ? 'lime' : ''
+        });
+        if (notifErr) console.error('[ruedda verify-payment] notif:', notifErr.message);
+      } catch (e) { console.error('[ruedda verify-payment] notif:', e.message); }
     }
 
     return res.status(200).json({ ok: true, status: newStatus });

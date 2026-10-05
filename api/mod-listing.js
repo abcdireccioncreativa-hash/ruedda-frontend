@@ -1236,15 +1236,20 @@ module.exports = async function handler(req, res) {
     // 4. Notificar al usuario (best-effort)
     if (item.user_id) {
       const label = [item.year, item.marca, item.modelo].filter(Boolean).join(' ');
-      await supabaseAdmin.from('notifications').insert({
-        user_id: item.user_id,
-        tipo: action === 'aprobar' ? 'ganador' : 'system',
-        titulo: action === 'aprobar' ? '¡Publicación aprobada!' : 'Publicación rechazada',
-        body: action === 'aprobar'
-          ? `Tu ${label} ya está activa en Ruedda.`
-          : 'Tu publicación no cumplió los estándares de Ruedda. Contáctanos por soporte.',
-        icon: action === 'aprobar' ? 'lime' : ''
-      }).catch(() => {});
+      // [fix 2026-10-04] el builder de supabase-js no tiene .catch(): llamar .insert(...).catch()
+      // lanzaba un TypeError DESPUÉS de aprobar, y Control mostraba "error" aunque sí se aprobaba.
+      try {
+        const { error: notifErr } = await supabaseAdmin.from('notifications').insert({
+          user_id: item.user_id,
+          tipo: action === 'aprobar' ? 'ganador' : 'system',
+          titulo: action === 'aprobar' ? '¡Publicación aprobada!' : 'Publicación rechazada',
+          body: action === 'aprobar'
+            ? `Tu ${label} ya está activa en Ruedda.`
+            : 'Tu publicación no cumplió los estándares de Ruedda. Contáctanos por soporte.',
+          icon: action === 'aprobar' ? 'lime' : ''
+        });
+        if (notifErr) console.error('[ruedda mod-listing] notif:', notifErr.message);
+      } catch (e) { console.error('[ruedda mod-listing] notif:', e.message); }
 
       // 5. Correo al dueño (best-effort, no bloquea la respuesta)
       supabaseAdmin
