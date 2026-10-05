@@ -1212,6 +1212,12 @@ body.admin-mode .rr-bot{display:none}
 .rx-build h2 span.on{opacity:1;transform:none}
 .rx-build h2 span:last-child.on{color:#fff;text-shadow:0 0 40px rgba(255,255,255,.18)}
 @media (prefers-reduced-motion:reduce){.rx-build h2 span{opacity:1;transform:none}.rx-build-v{display:none}}
+/* modo adelanto: el inicio termina en "estamos construyendo algo increíble." (nada debajo, sin footer).
+   Se activa/desactiva con TEASER en el script del inicio. */
+body.rx-teaser #v-home > #rxBuild ~ *{display:none!important}
+body.rx-teaser:has(#v-home.on) #dfoot{display:none!important}
+body.rx-teaser #v-home{padding-bottom:0!important}
+@media (min-width:1100px){body.rx-teaser #v-home.on{grid-template-areas:"rxhero rxhero" "rxbuild rxbuild"!important}}
 @media (min-width:1100px){
   #v-home > .rx-build{grid-area:rxbuild;border-radius:22px;height:620px;min-height:0}
   .rx-build-in{padding:0 56px}
@@ -6178,6 +6184,9 @@ $('#dSearchForm').addEventListener('submit', function(e){
   }
   // [2026-10-04] sección "estamos construyendo algo increíble": mismo video del hero, carga al acercarse;
   // las palabras se encienden según cuánto de la sección ya recorrió la pantalla
+  // TEASER = true: el inicio solo muestra la portada y esta sección. Para el lanzamiento: false
+  var TEASER = true;
+  if (TEASER) document.body.classList.add('rx-teaser');
   var bs = document.getElementById('rxBuild'), bv = document.getElementById('rxBuildV');
   if (bs) {
     var bdesk = window.matchMedia('(min-width:1100px)').matches;
@@ -6189,6 +6198,8 @@ $('#dSearchForm').addEventListener('submit', function(e){
       var r = bs.getBoundingClientRect(), vh = window.innerHeight || 800;
       // 0 cuando el borde de arriba entra por abajo; 1 cuando el centro de la sección pasa el centro de la pantalla
       var prog = Math.max(0, Math.min(1, (vh - r.top) / (vh * 0.5 + r.height * 0.5)));
+      // al tocar el final de la página (modo adelanto) la frase queda completa
+      if (window.scrollY >= document.documentElement.scrollHeight - vh - 4 && window.scrollY > 0) prog = 1;
       words.forEach(function(w, k){ w.classList.toggle('on', prog > (k + 0.6) / (words.length + 0.4)); });
     };
     if (reduce) words.forEach(function(w){ w.classList.add('on'); });
