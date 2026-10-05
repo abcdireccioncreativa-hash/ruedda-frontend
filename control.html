@@ -593,7 +593,7 @@ function uiBlip(){
   if(!ntfSoundOn()) return; const c=_ac(); if(!c) return;
   const t=c.currentTime, o=c.createOscillator(), g=c.createGain();
   o.type='sine'; o.frequency.setValueAtTime(700,t); o.frequency.exponentialRampToValueAtTime(1300,t+.07);
-  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.06,t+.004); g.gain.exponentialRampToValueAtTime(.0001,t+.16);
+  g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.07,t+.001); g.gain.exponentialRampToValueAtTime(.0001,t+.16);
   o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+.18);
 }
 // "encendido" tipo JARVIS: barrido grave→agudo con brillo, antes de la voz
@@ -620,11 +620,15 @@ function uiSay(text){
   }catch(e){}
 }
 if('speechSynthesis' in window){ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }catch(e){} }
-document.addEventListener('pointerdown',e=>{ const nav=e.target.closest('#nav a'); if(nav){ if(!nav.classList.contains('on')) uiBlip(); return; } if(e.target.closest('button,a,select,[onclick],input[type=checkbox],label')) uiTick(); },{passive:true});
+window.addEventListener('pointerdown',e=>{ const t=e.target; if(!t||!t.closest) return; const nav=t.closest('#nav a'); if(nav){ if(!nav.classList.contains('on')) uiBlip(); return; } if(t.closest('button,a,select,[onclick],input[type=checkbox],label')) uiTick(); },{capture:true,passive:true});
 // el motor de audio se crea al cargar (queda en pausa) y se enciende con el primer gesto, en captura:
 // así el primer sonido de la sesión también sale al instante
 try{ if(!_ntfCtx) _ntfCtx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'}); }catch(e){}
-['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{ try{ if(_ntfCtx&&_ntfCtx.state!=='running'){ _ntfCtx.resume().catch(()=>{}); const b=_ntfCtx.createBuffer(1,1,_ntfCtx.sampleRate), sN=_ntfCtx.createBufferSource(); sN.buffer=b; sN.connect(_ntfCtx.destination); sN.start(); } }catch(e){} },{capture:true,passive:true}));
+let _keepAlive=null;
+function audioKeepAlive(){ // macOS apaga la salida de audio tras unos segundos de silencio y tarda en volver a encenderla
+  try{ if(_keepAlive||!_ntfCtx) return; const o=_ntfCtx.createOscillator(), g=_ntfCtx.createGain(); o.frequency.value=40; g.gain.value=1e-5; o.connect(g); g.connect(_ntfCtx.destination); o.start(); _keepAlive=o; }catch(e){}
+}
+['pointerdown','keydown','touchstart'].forEach(ev=>document.addEventListener(ev,()=>{ try{ audioKeepAlive(); if(_ntfCtx&&_ntfCtx.state!=='running'){ _ntfCtx.resume().catch(()=>{}); const b=_ntfCtx.createBuffer(1,1,_ntfCtx.sampleRate), sN=_ntfCtx.createBufferSource(); sN.buffer=b; sN.connect(_ntfCtx.destination); sN.start(); } }catch(e){} },{capture:true,passive:true}));
 // el audio se reactiva al volver a la pestaña (algunos navegadores lo suspenden)
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&_ntfCtx&&_ntfCtx.state==='suspended') _ntfCtx.resume().catch(()=>{}); });
 // voz grabada (ElevenLabs, Valeria): clips cortos en /assets/sfx, decodificados una vez y tocados por Web Audio.
