@@ -430,6 +430,7 @@ async function boot(){
   if(error||!me||me.role!=='superadmin'){
     showLogin('Esta cuenta no tiene acceso al panel.'); await sb.auth.signOut().catch(()=>{}); return;
   }
+  if(window.SOCIO){ location.hash=''; location.reload(); return; } // [fix] nunca heredar el panel de socio
   ME=me; $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
   $('#me-name').textContent=me.nombre||'Ruedda'; $('#me-mail').textContent=me.email||session.user.email||'';
   buildNav(); route(); startLive();
@@ -442,7 +443,7 @@ $('#login-form').addEventListener('submit',async e=>{
   if(error){ $('#lg-err').textContent=/invalid/i.test(error.message)?'Correo o contraseña incorrectos.':error.message; return; }
   boot();
 });
-async function logout(){ await sb.auth.signOut().catch(()=>{}); location.hash=''; showLogin(); }
+async function logout(){ await sb.auth.signOut().catch(()=>{}); location.hash=''; location.reload(); }
 
 /* ════════════ NAVEGACIÓN ════════════ */
 let VIEWS=[
@@ -472,7 +473,7 @@ let VIEWS=[
   {id:'eventos',t:'Eventos',i:'home',s:'Car meets y eventos'},
   {id:'mensajes',t:'Mensajes Ruedda',i:'msg',s:'Anuncios oficiales a todos los usuarios'},
   {id:'chatglobal',t:'Chat global',i:'msg',s:'Conduciendo el mercado · modera los mensajes de la comunidad'},
-  {id:'sugerencias',t:'Sugerencias',i:'flag',s:'Buzón de sugerencias y reportes de bugs'},
+  {id:'sugerencias',t:'Sugerencias',i:'flag',s:'Buzón de sugerencias y reportes de bugs',b:'sug'},
   {id:'postulaciones',t:'Postulaciones',i:'msg',s:'RueddaCarreras · equipo y certificación (desde ruedda.app/hub)'},
   {h:'Precios'},
   {id:'criterio',t:'Criterio Ruedda',i:'bid',s:'Precio justo manual por publicación'},
@@ -525,19 +526,23 @@ function startLive(){
 }
 function refresh(manual){ lastUpd=Date.now(); if(manual) memoClear(); refreshBadges(); if(window.SOCIO&&!manual) return; if(CUR) RENDER[CUR](VIEW_TOKEN,[],true); if(manual) toast('actualizado'); }
 let BADGES={};
+const SUG_SEEN='ctrl_sug_seen';
+const sugSeenISO=()=>{ try{ return localStorage.getItem(SUG_SEEN)||new Date(Date.now()-7*DAY).toISOString(); }catch(e){ return new Date(Date.now()-7*DAY).toISOString(); } };
+const sugMarkSeen=()=>{ try{ localStorage.setItem(SUG_SEEN,new Date().toISOString()); }catch(e){} };
 async function refreshBadges(){
-  const [mod1,mod2,kyc,pay,acc,rep,sol]=await Promise.all([
+  const [mod1,mod2,kyc,pay,acc,rep,sol,sug]=await Promise.all([
     cnt('listings',q=>q.in('estado',['revision','pendiente_pago'])),
     cnt('auctions',q=>q.in('estado',['revision','pendiente_pago'])),
     cnt('kyc_submissions',q=>q.eq('estado','pendiente')),
     cnt('payment_refs',q=>q.eq('status','pendiente')),
     cnt('auction_access_requests',q=>q.eq('estado','pendiente')),
     window._repMissing?Promise.resolve({error:true}):cnt('user_reports',q=>q.eq('estado','pendiente')),
-    cnt('partner_leads',q=>q.eq('estado','pendiente'))
+    cnt('partner_leads',q=>q.eq('estado','pendiente')),
+    cnt('sugerencias',q=>q.gt('created_at',sugSeenISO()))
   ]);
   if(rep&&rep.error) window._repMissing=true; // tabla aún no creada: no se vuelve a consultar hasta recargar
   const v=x=>typeof x==='number'?x:0;
-  BADGES={mod:v(mod1)+v(mod2),kyc:v(kyc),pay:v(pay),acc:v(acc),rep:v(rep),sol:v(sol),repMissing:!!(rep&&rep.error)};
+  BADGES={mod:v(mod1)+v(mod2),kyc:v(kyc),pay:v(pay),acc:v(acc),rep:v(rep),sol:v(sol),sug:v(sug),repMissing:!!(rep&&rep.error)};
   document.querySelectorAll('[data-b]').forEach(b=>{ const k=b.dataset.b; b.textContent=BADGES[k]; b.classList.toggle('zero',!BADGES[k]); });
   ntfCheck(BADGES).catch(()=>{});
   return BADGES;
@@ -553,7 +558,7 @@ const NTF_MAP={
   mod:['Moderación en espera','moderacion','mod'], kyc:['Verificación KYC pendiente','kyc','kyc'],
   pay:['Pago por confirmar','pagos','pay'], acc:['Solicitud de acceso a subasta','accesos','key'],
   rep:['Nuevo reporte de usuario','reportes','flag'], sol:['Nueva solicitud','solicitudes','offer'],
-  pos:['Nueva postulación','postulaciones','users'], bid:['Nueva puja','subastas','gavel'],
+  pos:['Nueva postulación','postulaciones','users'], bid:['Nueva puja','subastas','gavel'], sug:['Nueva sugerencia','sugerencias','flag'],
   usr:['Usuario nuevo','usuarios','users']
 };
 let NTF=[], NTF_BASE=null, _ntfCtx=null;
@@ -690,7 +695,7 @@ function ntfSound(){ try{ localStorage.setItem(NTF_SND,ntfSoundOn()?'0':'1'); }c
 async function ntfCheck(b){
   let pos=0; if(!window._posMissing){ const r=await cnt('postulaciones',q=>q.eq('estado','nueva')); if(r&&r.error) window._posMissing=true; else pos=r; }
   const ur=await cnt('users'); const usr=typeof ur==='number'?ur:(NTF_BASE?NTF_BASE.usr:0);
-  const now={mod:b.mod||0,kyc:b.kyc||0,pay:b.pay||0,acc:b.acc||0,rep:b.rep||0,sol:b.sol||0,pos:pos||0,usr};
+  const now={mod:b.mod||0,kyc:b.kyc||0,pay:b.pay||0,acc:b.acc||0,rep:b.rep||0,sol:b.sol||0,sug:b.sug||0,pos:pos||0,usr};
   if(NTF_BASE) Object.keys(now).forEach(k=>{ if(now[k]>NTF_BASE[k]){ if(k==='usr') ntfNewUsers(now[k]-NTF_BASE[k]); else if(k==='mod'||k==='kyc'){ ntfAdd(k,now[k]-NTF_BASE[k],'',true); uiPowerUp(); uiVoz(k); } else ntfAdd(k,now[k]-NTF_BASE[k]); } });
   NTF_BASE=now;
 }
@@ -1356,6 +1361,7 @@ async function updSave(active,btn){
 
 /* ── SUGERENCIAS ── */
 RENDER.sugerencias=async(tok)=>{
+  sugMarkSeen(); if(BADGES.sug){ BADGES.sug=0; document.querySelectorAll('[data-b="sug"]').forEach(b=>{ b.textContent=0; b.classList.add('zero'); }); }
   const{data,error}=await sb.from('sugerencias').select('*').order('created_at',{ascending:false}).limit(200); if(stale(tok)) return;
   const V=$('#view'); if(error){ V.innerHTML=`<div class="card">${empty('No se pudo cargar',error.message)}</div>`; return; }
   const um=await usersMap((data||[]).map(s=>s.user_id)); if(stale(tok)) return;
@@ -1785,7 +1791,7 @@ refreshBadges=async function(){
   const head={count:'exact',head:true};
   const [pos,sug,rep,rti,rpr]=await Promise.all([
     rq(sb.from('postulaciones').select('*',head).eq('estado','nueva')),
-    rq(sb.from('sugerencias').select('*',head)),
+    rq(sb.from('sugerencias').select('*',head).gt('created_at',sugSeenISO())),
     rq(sb.from('user_reports').select('*',head).eq('estado','pendiente')),
     rq(SR().from('stores').select('*',head).eq('status','pending')),
     rq(SR().from('products').select('*',head).eq('status','pending_review'))
