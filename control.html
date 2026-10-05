@@ -471,9 +471,9 @@ let lastUpd=Date.now(), liveCh=null;
 function startLive(){
   ntfPaint();
   refreshBadges();
-  setInterval(()=>{ if(document.visibilityState==='visible') refresh(false); },30000);
+  setInterval(()=>{ if(document.visibilityState==='visible') refresh(false); else refreshBadges(); },10000); // en segundo plano igual revisa pendientes (avisos y voz siguen sonando)
   setInterval(()=>{ const s=Math.round((Date.now()-lastUpd)/1000); $('#upd').textContent=s<5?'en vivo':'actualizado hace '+(s<60?s+' s':Math.round(s/60)+' min'); },5000);
-  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-lastUpd>15000) refresh(false); });
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&Date.now()-lastUpd>5000) refresh(false); });
   try{
     liveCh=sb.channel('control-bids').on('postgres_changes',{event:'INSERT',schema:'public',table:'bids'},()=>{
       if(CUR==='control'||CUR==='subastas'||CUR==='actividad') refresh(false);
@@ -580,12 +580,26 @@ function uiSay(text){
 if('speechSynthesis' in window){ try{ speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices(); }catch(e){} }
 document.addEventListener('pointerdown',e=>{ if(e.target.closest('button,a,select,.nav a,[onclick],input[type=checkbox],label')) uiTick(); },{passive:true});
 window.addEventListener('hashchange',()=>uiBlip());
+// voz grabada (ElevenLabs, Valeria): clips cortos en /assets/sfx, decodificados una vez y tocados por Web Audio.
+// Si un clip no carga, cae a la voz del sistema con el mismo texto.
+const VOZ_CLIPS={usr:['usuario-nuevo','Usuario nuevo'],mod:['moderacion-en-espera','Moderación en espera'],kyc:['verificacion-kyc','Verificación KYC']};
+const _vozBuf={};
+function vozPreload(){ const c=_ac(); if(!c) return; Object.values(VOZ_CLIPS).forEach(([f])=>{ if(_vozBuf[f]) return; _vozBuf[f]=fetch('/assets/sfx/'+f+'.mp3').then(r=>r.arrayBuffer()).then(b=>new Promise((ok,ko)=>c.decodeAudioData(b,ok,ko))).catch(()=>null); }); }
+document.addEventListener('pointerdown',vozPreload,{passive:true,once:true});
+async function uiVoz(k){
+  if(!ntfSoundOn()||!ntfVoiceOn()) return; const v=VOZ_CLIPS[k]; if(!v) return;
+  const c=_ac(); if(!c){ uiSay(v[1]); return; }
+  if(!_vozBuf[v[0]]) vozPreload();
+  const buf=await _vozBuf[v[0]]; if(!buf){ uiSay(v[1]); return; }
+  const src=c.createBufferSource(), g=c.createGain(); g.gain.value=.95;
+  src.buffer=buf; src.connect(g); g.connect(c.destination); src.start(c.currentTime+.42); // entra justo después del "encendido"
+}
+
 async function ntfNewUsers(n){
   let who='';
   try{ const{data}=await sb.from('users').select('nombre,username').order('created_at',{ascending:false}).limit(1); const u=(data||[])[0]; if(u) who=u.username?'@'+u.username:(u.nombre||''); }catch(e){}
   ntfAdd('usr',n,who,true);
-  uiPowerUp();
-  uiSay(n>1?`${n} usuarios nuevos registrados en Ruedda`:`Nuevo usuario registrado${who?': '+who.replace(/^@/,''):''}`);
+  uiPowerUp(); uiVoz('usr');
 }
 
 function ntfAdd(k,n,detail,quiet){
@@ -614,18 +628,19 @@ function ntfClear(){ NTF=[]; _ntfSave(); ntfPaint(); }
 function ntfToggle(){ const p=$('#ntf'); if(!NTF.length){ ntfDemoHint(); return; } p.classList.toggle('hide'); }
 // demo sin tocar la base: simula un usuario nuevo y una moderación en espera
 function ntfDemo(){
-  ntfAdd('usr',1,'@usuario.demo',true); uiPowerUp(); uiSay('Nuevo usuario registrado: usuario demo');
-  setTimeout(()=>{ ntfAdd('mod',1,'demo',true); uiPowerUp(); uiSay('Moderación en espera'); },3600);
+  ntfAdd('usr',1,'@usuario.demo',true); uiPowerUp(); uiVoz('usr');
+  setTimeout(()=>{ ntfAdd('mod',1,'demo',true); uiPowerUp(); uiVoz('mod'); },2600);
+  setTimeout(()=>{ ntfAdd('kyc',1,'demo',true); uiPowerUp(); uiVoz('kyc'); },5200);
 }
 function ntfDemoHint(){ $('#ntf').classList.remove('hide'); $('#ntf-list').innerHTML='<div class="ntf-i" onclick="ntfDemo()"><div class="ic">'+ico('users')+'</div><div class="tx"><b>Sin avisos pendientes</b><span>toca aquí para probar el sonido y la voz</span></div></div>'; }
-function ntfVoice(){ try{ localStorage.setItem(NTF_VOZ,ntfVoiceOn()?'0':'1'); }catch(e){} ntfPaint(); if(ntfVoiceOn()){ uiPowerUp(); uiSay('Voz activada'); } }
+function ntfVoice(){ try{ localStorage.setItem(NTF_VOZ,ntfVoiceOn()?'0':'1'); }catch(e){} ntfPaint(); if(ntfVoiceOn()){ uiPowerUp(); uiVoz('usr'); } }
 function ntfSound(){ try{ localStorage.setItem(NTF_SND,ntfSoundOn()?'0':'1'); }catch(e){} ntfPaint(); if(ntfSoundOn()) ntfChime(); }
 // compara la cuenta de pendientes con la anterior; la primera vez solo toma la línea base
 async function ntfCheck(b){
   let pos=0; if(!window._posMissing){ const r=await cnt('postulaciones',q=>q.eq('estado','nueva')); if(r&&r.error) window._posMissing=true; else pos=r; }
   const ur=await cnt('users'); const usr=typeof ur==='number'?ur:(NTF_BASE?NTF_BASE.usr:0);
   const now={mod:b.mod||0,kyc:b.kyc||0,pay:b.pay||0,acc:b.acc||0,rep:b.rep||0,sol:b.sol||0,pos:pos||0,usr};
-  if(NTF_BASE) Object.keys(now).forEach(k=>{ if(now[k]>NTF_BASE[k]){ if(k==='usr') ntfNewUsers(now[k]-NTF_BASE[k]); else if(k==='mod'){ ntfAdd('mod',now[k]-NTF_BASE[k],'',true); uiPowerUp(); uiSay('Moderación en espera'); } else ntfAdd(k,now[k]-NTF_BASE[k]); } });
+  if(NTF_BASE) Object.keys(now).forEach(k=>{ if(now[k]>NTF_BASE[k]){ if(k==='usr') ntfNewUsers(now[k]-NTF_BASE[k]); else if(k==='mod'||k==='kyc'){ ntfAdd(k,now[k]-NTF_BASE[k],'',true); uiPowerUp(); uiVoz(k); } else ntfAdd(k,now[k]-NTF_BASE[k]); } });
   NTF_BASE=now;
 }
 setInterval(()=>{ if(NTF.length) ntfPaint(); },60000); // refresca los "hace X min"
