@@ -425,9 +425,10 @@ async function boot(){
   if(!session) return showLogin();
   const{data:me,error}=await sb.from('users').select('id,nombre,username,role').eq('id',session.user.id).maybeSingle();
   if(me) me.email=session.user.email;
-  if(!error&&me&&me.role!=='superadmin'){
+  if(!error&&(!me||me.role!=='superadmin')){
     // [socios] cuentas autorizadas en public.control_socios entran a su propio panel
-    try{ const r=await sb.rpc('is_control_socio'); if(r.data===true){ const s2=await sb.from('control_socios').select('nombre').eq('user_id',me.id).maybeSingle(); if(s2.data&&s2.data.nombre) me.nombre=s2.data.nombre; return startSocio(me); } }catch(e){}
+    // (la cuenta de auditoría no tiene perfil en users: así no cuenta como usuario de la app)
+    try{ const r=await sb.rpc('is_control_socio'); if(r.data===true){ const p2=me||{id:session.user.id,email:session.user.email,role:'socio'}; const s2=await sb.from('control_socios').select('nombre').eq('user_id',p2.id).maybeSingle(); if(s2.data&&s2.data.nombre) p2.nombre=s2.data.nombre; return startSocio(p2); } }catch(e){}
   }
   if(error||!me||me.role!=='superadmin'){
     showLogin('Esta cuenta no tiene acceso al panel.'); await sb.auth.signOut().catch(()=>{}); return;
