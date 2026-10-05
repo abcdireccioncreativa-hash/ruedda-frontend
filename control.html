@@ -240,21 +240,18 @@ main{min-width:0}
 .socio-soon-ic{width:52px;height:52px;border-radius:16px;margin:0 auto 14px;display:grid;place-items:center;background:var(--blue-bg);color:var(--blue)}
 .socio-soon h3{font-size:20px;letter-spacing:-.02em;margin:0 0 8px}.socio-soon p{color:var(--mute);line-height:1.55;margin:0 0 14px}
 .socio-soon ul{text-align:left;display:inline-block;margin:0;padding-left:18px;color:var(--ink2);line-height:1.8;font-size:13.5px}
-#socio-office{position:fixed;right:22px;bottom:22px;z-index:240;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;border-radius:999px;text-decoration:none;color:#fff;background:linear-gradient(135deg,rgba(18,18,20,.92),rgba(40,40,46,.92));backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);box-shadow:0 14px 34px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12);transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s;animation:soIn .9s cubic-bezier(.22,1,.36,1) .4s both}
-#socio-office:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 20px 44px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.14)}
-#socio-office .so-orb{position:relative;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e6f03b,#9fb51a);box-shadow:0 0 0 3px rgba(230,240,59,.18)}
-#socio-office .so-orb i{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(230,240,59,.55);animation:soPulse 2.6s ease-out infinite}
-#socio-office .so-orb i:nth-child(2){animation-delay:.85s}#socio-office .so-orb i:nth-child(3){animation-delay:1.7s}
-#socio-office:not(.live) .so-orb i{animation-duration:4s;border-color:rgba(230,240,59,.3)}
-#socio-office .so-t{display:flex;flex-direction:column;line-height:1.2}
-#socio-office .so-t b{font-size:13.5px;font-weight:700;letter-spacing:-.01em}
-#socio-office .so-t small{font-size:11.5px;color:rgba(255,255,255,.62)}
-#socio-office .so-go{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.1);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+#socio-office{position:fixed;right:0;top:50%;z-index:240;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 10px 12px;border-radius:14px 0 0 14px;text-decoration:none;color:#fff;background:linear-gradient(180deg,#1d1d1f,#0a0a0a);box-shadow:-8px 10px 26px rgba(0,0,0,.22),inset 1px 1px 0 rgba(255,255,255,.1);transform:translate(0,-50%);transition:padding .3s cubic-bezier(.22,1,.36,1),box-shadow .3s;animation:soIn .7s cubic-bezier(.22,1,.36,1) .3s both}
+#socio-office:hover{padding-right:16px;box-shadow:-12px 14px 32px rgba(0,0,0,.3),inset 1px 1px 0 rgba(255,255,255,.12)}
+#socio-office .so-t{writing-mode:vertical-rl;transform:rotate(180deg);font-size:13px;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+#socio-office .so-go{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#e6f03b;color:#000;transition:transform .3s cubic-bezier(.22,1,.36,1)}
 #socio-office:hover .so-go{transform:translateX(3px)}
-@keyframes soPulse{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.1);opacity:0}}
-@keyframes soIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
-body.is-socio .content{padding-bottom:96px}
-@media(max-width:700px){#socio-office{right:12px;bottom:12px}#socio-office .so-t small{display:none}.socio-hi{font-size:27px}}
+@keyframes soIn{from{opacity:0;transform:translate(14px,-50%)}to{opacity:1;transform:translate(0,-50%)}}
+@media(max-width:700px){.socio-hi{font-size:27px}}
+/* [2026-10-05] entrada suave de cada sección (solo al cambiar de sección, no en los refrescos) */
+#view.vin{animation:vin .34s cubic-bezier(.22,1,.36,1) both}
+@keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#nav a{transition:background .18s ease,color .18s ease}
+@media(prefers-reduced-motion:reduce){#view.vin{animation:none}}
 #toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;font-weight:500;opacity:0;transition:all .25s cubic-bezier(.22,1,.36,1);z-index:300;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.2)}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 #toast.err{background:var(--red)}
@@ -502,6 +499,10 @@ function route(){
   $('#page-t').textContent=v.t; $('#page-s').textContent=v.s||''; document.title=v.t+' · Ruedda Control';
   window.scrollTo(0,0);
   const tok=++VIEW_TOKEN;
+  const VV=$('#view'); VV.classList.remove('vin'); void VV.offsetWidth; VV.classList.add('vin');
+  // [socios] secciones que no pintan esqueleto propio: feedback inmediato al tocar el menú
+  if(window.SOCIO&&['shub','rtiendas','rprod','rped','rmec','rmar','postulaciones','sugerencias','criterio','comparativa'].includes(v.id))
+    VV.innerHTML='<div class="card"><div style="padding:18px;display:grid;gap:12px"><div class="skel" style="height:22px;width:40%"></div><div class="skel" style="height:44px"></div><div class="skel" style="height:44px"></div><div class="skel" style="height:44px"></div></div></div>';
   RENDER[v.id](tok,rest);
 }
 const stale=tok=>tok!==VIEW_TOKEN;
@@ -1872,7 +1873,7 @@ RENDER.rres=async(tok)=>{
   const K=k.data||{}, L=live.data||{};
   V.innerHTML=`<div class="grid g4">${kpiCard('GMV',usd(K.gmv),'total vendido en pedidos','pay')}${kpiCard('Cobrado',usd(K.cobrado),'pagados, en camino o entregados','pay')}${kpiCard('Comisión Ruedda',usd(K.comision),'según la comisión configurada','offer')}${kpiCard('Pedidos',n(K.ordenes),`ticket promedio ${usd(K.ticket)}`,'car')}</div>
   <div class="grid g4" style="margin-top:14px">${kpiCard('Productos publicados',n(K.productos),`${n(K.sin_stock||0)} sin stock`,'offer')}${kpiCard('Tiendas activas',n(K.tiendas),`${n(K.pend_tiendas||0)} por aprobar`,'car')}${kpiCard('Unidades vendidas',n(K.unidades),`${n(K.favoritos||0)} favoritos guardados`,'act')}${kpiCard('Por atender',n((K.pend_productos||0)+(K.pend_tiendas||0)+(K.pend_marcas||0)+(K.pend_servicios||0)+(K.pend_import||0)),`${n(K.pend_productos||0)} productos · ${n(K.pend_marcas||0)} marcas · ${n(K.pend_import||0)} importaciones`,'flag')}</div>
-  <div class="grid g2" style="margin-top:14px">${card('Lo más buscado','últimos 7 días',listBars((top.data||[]).map(x=>({q:x.query||x.q||x.term||'',c:x.count||x.n||x.total||0})),'q','c'))}${card('Búsquedas sin resultado','30 días · demanda que nadie está cubriendo',listBars((miss.data||[]).slice(0,10).map(x=>({q:x.query||x.q||x.term||'',c:x.count||x.n||x.total||0})),'q','c'))}</div>
+  <div class="grid g2" style="margin-top:14px">${card('Lo más buscado','últimos 7 días',listBars((Array.isArray(top.data)?top.data:[]).map(x=>({q:x.query||x.q||x.term||'',c:x.count||x.n||x.total||0})),'q','c'))}${card('Búsquedas sin resultado','30 días · demanda que nadie está cubriendo',listBars((Array.isArray(miss.data)?miss.data:[]).slice(0,10).map(x=>({q:x.query||x.q||x.term||'',c:x.count||x.n||x.total||0})),'q','c'))}</div>
   ${L&&Object.keys(L).length?card('En vivo ahora','',`<div class="grid g4" style="gap:10px">${Object.entries(L).filter(([,v])=>typeof v!=='object').slice(0,8).map(([a,b])=>`<div class="mini"><span>${esc(a.replace(/_/g,' '))}</span><b>${esc(String(b))}</b></div>`).join('')}</div>`):''}
   <div style="display:flex;gap:8px;justify-content:flex-end"><a class="btn btn-soft" href="https://www.ruedda.app/repuestos" target="_blank" rel="noopener">Abrir Ruedda Repuestos ↗</a></div>`;
 };
@@ -1935,8 +1936,8 @@ RENDER.rmar=async(tok)=>{
   if(ub.error){ V.innerHTML=repErr(ub.error); return; }
   const pend=(ub.data||[]).filter(b=>b.status==='pending');
   V.innerHTML=card('Marcas por aprobar',`${pend.length} pendientes · las proponen las tiendas al publicar`,pend.length?`<div class="tbl-wrap"><table class="tbl"><tbody>${pend.map(b=>`<tr><td style="font-weight:600">${esc(b.name)}</td><td class="muted">${esc([b.kind,b.category].filter(Boolean).join(' · '))}</td><td class="muted">${ago(b.created_at)}</td><td class="r" style="white-space:nowrap"><button class="btn btn-green" style="height:30px" onclick="rAct(SR().rpc('admin_resolve_unlisted_brand',{p_id:'${b.id}',p_approve:true}),'marca aprobada','rmar')">Aprobar</button> <button class="btn btn-red" style="height:30px" onclick="rAct(SR().rpc('admin_resolve_unlisted_brand',{p_id:'${b.id}',p_approve:false}),'marca rechazada','rmar')">Rechazar</button></td></tr>`).join('')}</tbody></table></div>`:empty('Nada pendiente'))
-  +`<div class="grid g2">${card('Pedidos de importación','piezas que alguien pidió traer',(imp.data||[]).length?`<div class="tbl-wrap"><table class="tbl"><tbody>${(imp.data||[]).slice(0,20).map(r=>`<tr><td><div class="n" style="font-weight:600">${esc(r.part_query||'—')}</div><div class="m muted" style="font-size:11.5px">${esc(r.notes||'')}</div></td><td>${rpill(r.status==='pending'?'pending':r.status==='quoted'?'approved':'closed')}</td><td class="muted">${ago(r.created_at)}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin pedidos de importación'))}
-  ${card('Búsquedas sin resultado','30 días',listBars((miss.data||[]).slice(0,12).map(x=>({q:x.query||x.q||x.term||'',c:x.count||x.n||x.total||0})),'q','c'))}</div>`;
+  +`<div class="grid g2">${card('Pedidos de importación','piezas que alguien pidió traer',(Array.isArray(imp.data)?imp.data:[]).length?`<div class="tbl-wrap"><table class="tbl"><tbody>${(Array.isArray(imp.data)?imp.data:[]).slice(0,20).map(r=>`<tr><td><div class="n" style="font-weight:600">${esc(r.part_query||'—')}</div><div class="m muted" style="font-size:11.5px">${esc(r.notes||'')}</div></td><td>${rpill(r.status==='pending'?'pending':r.status==='quoted'?'approved':'closed')}</td><td class="muted">${ago(r.created_at)}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin pedidos de importación'))}
+  ${card('Búsquedas sin resultado','30 días',listBars((Array.isArray(miss.data)?miss.data:[]).slice(0,12).map(x=>({q:x.query||x.q||x.term||'',c:x.count||x.n||x.total||0})),'q','c'))}</div>`;
 };
 
 /* ── FLOTAIQ · ACADEMY · MI WEB (se conectan en las próximas fases) ── */
@@ -1948,11 +1949,9 @@ RENDER.sweb=()=>{ $('#view').innerHTML=socioSoon('Tu web · rubencarrillob2b.com
 /* ── botón de Ruedda Office (esquina, animado, con presencia en vivo) ── */
 function socioOfficeBtn(){
   if(document.getElementById('socio-office')) return;
-  const a=document.createElement('a'); a.id='socio-office'; a.href='/office'; a.target='_blank'; a.rel='noopener';
-  a.innerHTML=`<span class="so-orb"><i></i><i></i><i></i></span><span class="so-t"><b>Ruedda Office</b><small id="so-online">entrar a la oficina</small></span><span class="so-go"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>`;
+  const a=document.createElement('a'); a.id='socio-office'; a.href='/office'; a.target='_blank'; a.rel='noopener'; a.setAttribute('aria-label','ir a oficina');
+  a.innerHTML='<span class="so-t">ir a oficina</span><span class="so-go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
   document.body.appendChild(a);
-  const upd=async()=>{ try{ const r=await sb.from('office_positions').select('user_id,updated_at').gte('updated_at',new Date(Date.now()-45000).toISOString()); if(!r.error){ const c=(r.data||[]).length; $('#so-online').textContent=c?`${c} ${c===1?'persona':'personas'} en la oficina`:'entrar a la oficina'; a.classList.toggle('live',c>0); } }catch(e){} };
-  upd(); setInterval(upd,30000);
 }
 
 </script>
