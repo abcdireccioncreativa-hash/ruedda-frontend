@@ -2178,6 +2178,22 @@ body.on-landing .landing-footer{display:none}
 html[data-theme="light"] .pj-tooltip{background:#fff;color:#5c5c58;border-color:rgba(0,0,0,.12);box-shadow:0 12px 30px rgba(0,0,0,.12)}
 html[data-theme="light"] .pj-tooltip b{color:#15160e}
 html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color:#7c7e70}
+
+/* [2026-10-04] trending hoy + banner grande (patrocinantes 'promo grande') en la misma hilera */
+.promo-banner-slider{position:relative;overflow:hidden;border-radius:14px;background:var(--card2);aspect-ratio:16/9}
+.promo-banner-slide{position:absolute;inset:0;overflow:hidden;cursor:pointer;opacity:0;pointer-events:none;transition:opacity .7s cubic-bezier(.4,0,.2,1)}
+.promo-banner-slide.active{opacity:1;pointer-events:auto}
+.promo-banner-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.22,1,.36,1)}
+.promo-banner-slider:hover .promo-banner-slide.active img{transform:scale(1.02)}
+.promo-banner-dots{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:6px;z-index:2;pointer-events:none}
+.promo-banner-dots i{width:6px;height:6px;border-radius:99px;background:rgba(255,255,255,.45);transition:all .3s}
+.promo-banner-dots i.on{width:18px;background:#fff}
+.rd-trend-row.has-promo{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"head head" "grid promo";column-gap:16px}
+.rd-trend-row.has-promo>.trending-head{grid-area:head}
+.rd-trend-row.has-promo>.trending-shell{grid-area:grid}
+.rd-trend-row.has-promo>#promo-banner-wrap{grid-area:promo;padding-top:12px;display:block}
+.rd-trend-row.has-promo .trending-panel{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:12px;height:auto;aspect-ratio:16/9}
+.rd-trend-row.has-promo .trending-cell{border-radius:12px!important}
 </style>
 <link rel="prefetch" href="store.html" as="document">
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
@@ -2721,7 +2737,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       </div>
     </div>
 
-    <!-- TRENDING HOY -->
+    <!-- [2026-10-04] desktop: trending hoy (cuadrícula 2x2) + banner grande "promo grande" en la misma fila.
+         Sin banner cargado, trending vuelve a su fila completa de 4. -->
+    <div class="rd-trend-row" id="rd-trend-row">
     <div class="trending-head rdv" style="animation-delay:.1s">
       <div class="trending-title">trending hoy <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-9"/><path d="M16 6h5v5"/></svg></div>
       <span class="trending-link" onclick="showView('home');selectSection('subastas')">ir a subastas</span>
@@ -2730,6 +2748,8 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       <div class="trending-scroll" id="trending-scroll">
         <div class="trending-panel" id="trending-panel-1"></div>
       </div>
+    </div>
+    <div id="promo-banner-wrap" style="display:none"><div class="promo-banner-slider" id="promo-banner-slider"></div></div>
     </div>
 
     <!-- [hot deals] llama retro animada + slider horizontal, debajo de trending hoy -->
@@ -5787,7 +5807,7 @@ function showView(name,param){
       window._lastHomeRefetch=Date.now();
       _rdSnapRestore(); // [pwa-perf] pinta el último feed guardado al instante; la red lo reemplaza
       setTimeout(()=>{
-        const _loaders=[_loadAuctions,_loadMarket,_loadChocados,_loadRueddaTeamConfig,_loadMarketSponsors,_loadChocadosSponsors,_loadMiniBanner,_loadRentals,_loadPaymentData];
+        const _loaders=[_loadAuctions,_loadMarket,_loadChocados,_loadRueddaTeamConfig,_loadMarketSponsors,_loadChocadosSponsors,_loadPromoBanner,_loadMiniBanner,_loadRentals,_loadPaymentData];
         const _staggered=_loaders.map((fn,i)=>new Promise(resolve=>{
           setTimeout(()=>{ Promise.resolve(fn()).finally(resolve); }, i*30);
         }));
@@ -7093,6 +7113,49 @@ let MARKET_SPONSORS=[];
 let _sponsorIdx=0;
 let _lastSponsorHash=null;
 let _sponsorsLoaded=false; // [RDV] distingue "aún cargando" (skeleton) de "vacío confirmado" (colapso animado)
+// [2026-10-04] banner grande (patrocinantes 'promo grande', el mismo de la app) al lado de trending hoy
+let PROMO_BANNER=[];
+let _promoBannerIdx=0;
+let _lastPromoBannerHash=null;
+async function _loadPromoBanner(){
+  if(!_supa) return;
+  try{
+    const{data,error}=await _supa.from('patrocinantes').select('*').eq('categoria','promo grande').order('created_at',{ascending:false}).limit(5);
+    if(error){console.error('[ruedda] _loadPromoBanner:',String(error?.message||error));renderPromoBanner();return;}
+    const hash=(data||[]).map(s=>s.id+'_'+(s.imagen_url||'')).join(',');
+    if(hash===_lastPromoBannerHash&&document.getElementById('promo-banner-slider')?.children.length>0)return;
+    _lastPromoBannerHash=hash;
+    PROMO_BANNER=data||[];
+    renderPromoBanner();
+  }catch(e){console.error('[ruedda] _loadPromoBanner catch:',String(e?.message||e));}
+}
+function renderPromoBanner(){
+  const track=document.getElementById('promo-banner-slider');
+  const wrap=document.getElementById('promo-banner-wrap');
+  const row=document.getElementById('rd-trend-row');
+  if(!track) return;
+  clearInterval(timers.promoBanner);
+  const list=PROMO_BANNER.filter(s=>s.imagen_url);
+  if(row) row.classList.toggle('has-promo',list.length>0);
+  if(!list.length){ if(wrap) wrap.style.display='none'; track.innerHTML=''; return; }
+  if(wrap) wrap.style.display='';
+  _promoBannerIdx=0;
+  track.innerHTML=list.map((s,i)=>`
+    <div class="promo-banner-slide${i===0?' active':''}" ${s.link?`onclick="abrirLink('${_esc(s.link)}','_blank','noopener')"`:''}>
+      <img src="${_tImg(s.imagen_url,{width:1400,quality:85})}" alt="${_esc(s.nombre||'')}" style="opacity:0;transition:opacity .5s ease" onload="_rdShow(this)">
+    </div>`).join('')+(list.length>1?`<div class="promo-banner-dots">${list.map((_,i)=>`<i${i===0?' class="on"':''}></i>`).join('')}</div>`:'');
+  if(list.length<2) return; // una sola foto: fija
+  track.onmouseenter=()=>clearInterval(timers.promoBanner);
+  track.onmouseleave=()=>{ clearInterval(timers.promoBanner); timers.promoBanner=setInterval(_advancePromoBanner,3500); };
+  timers.promoBanner=setInterval(_advancePromoBanner,3500);
+}
+function _goToPromoBanner(i){
+  const slides=document.querySelectorAll('#promo-banner-slider .promo-banner-slide'); if(!slides.length) return;
+  _promoBannerIdx=((i%slides.length)+slides.length)%slides.length;
+  slides.forEach((el,idx)=>el.classList.toggle('active',idx===_promoBannerIdx));
+  document.querySelectorAll('#promo-banner-slider .promo-banner-dots i').forEach((d,idx)=>d.classList.toggle('on',idx===_promoBannerIdx));
+}
+function _advancePromoBanner(){ _goToPromoBanner(_promoBannerIdx+1); }
 async function _loadMarketSponsors(){
   if(!_supa) return;
   try{
@@ -17184,7 +17247,7 @@ window._rueddaBootPromise = (async function _rueddaInit(){
   // [carga por intención] al abrir solo se pide lo que usa el market. Chocados,
   // concesionarios y fotógrafos se piden al abrir el menú de secciones, al entrar
   // a esas secciones/vistas, o solos unos segundos después (red de seguridad).
-  const _contentBoot=Promise.allSettled([_pAuctions,_pMarket,_loadMarketSponsors(),_loadRentals(),renderEncuentra()]);
+  const _contentBoot=Promise.allSettled([_pAuctions,_pMarket,_loadMarketSponsors(),_loadPromoBanner(),_loadRentals(),renderEncuentra()]);
   window._rueddaFirstScreenReady.then(()=>setTimeout(()=>{ try{ _rdPrefetchSections(); }catch(e){} },5000));
   const _authBoot=(async()=>{
     const{data:{session}}=await _supa.auth.getSession();
