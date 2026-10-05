@@ -66,8 +66,17 @@ module.exports = async function handler(req, res) {
         continue;
       }
 
+      // [fix 2026-10-04] el builder de supabase-js no tiene .catch(): .insert(...).catch() lanzaba un
+      // TypeError que cortaba el ciclo después de la primera subasta y las notificaciones nunca salían.
+      const notify = async (row) => {
+        try {
+          const { error: nErr } = await supabaseAdmin.from('notifications').insert(row);
+          if (nErr) console.error('[ruedda auction-close] notif:', nErr.message);
+        } catch (e) { console.error('[ruedda auction-close] notif:', e.message); }
+      };
+
       // Notificar al vendedor
-      await supabaseAdmin.from('notifications').insert({
+      await notify({
         user_id: auction.user_id,
         tipo: 'sold',
         titulo: nuevoEstado === 'cerrada' ? '¡Subasta cerrada con ganador!' : 'Subasta finalizada sin ganador',
@@ -75,17 +84,17 @@ module.exports = async function handler(req, res) {
           ? `Tu ${label} fue vendida por $${(auction.current_bid || 0).toLocaleString()}.`
           : `Tu ${label} terminó sin cumplir el precio de reserva.`,
         icon: nuevoEstado === 'cerrada' ? 'lime' : ''
-      }).catch(() => {});
+      });
 
       // Notificar al ganador si existe
       if (tieneGanador && nuevoEstado === 'cerrada') {
-        await supabaseAdmin.from('notifications').insert({
+        await notify({
           user_id: auction.winner_id,
           tipo: 'ganador',
           titulo: '¡Ganaste la subasta!',
           body: `Ganaste el ${label} por $${(auction.current_bid || 0).toLocaleString()}. El vendedor se pondrá en contacto pronto.`,
           icon: 'lime'
-        }).catch(() => {});
+        });
       }
 
       results.push({ id: auction.id, estado: nuevoEstado });
