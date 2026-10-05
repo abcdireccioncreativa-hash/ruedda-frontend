@@ -277,7 +277,7 @@ main{min-width:0}
 </div>
 <div id="lightbox" onclick="this.classList.remove('on')"><img alt=""></div>
 <div id="toast"></div>
-<div id="ntf" class="hide"><div class="ntf-h"><span>avisos pendientes</span><span><button onclick="ntfSound()" id="ntf-snd">sonido: sí</button><button onclick="ntfVoice()" id="ntf-voz">voz: sí</button><button onclick="ntfClear()">limpiar</button></span></div><div class="ntf-list" id="ntf-list"></div></div>
+<div id="ntf" class="hide"><div class="ntf-h"><span>avisos pendientes</span><span><button onclick="ntfSound()" id="ntf-snd">sonido: sí</button><button onclick="ntfVoice()" id="ntf-voz">voz: sí</button><button onclick="ntfDemo()">probar</button><button onclick="ntfClear()">limpiar</button></span></div><div class="ntf-list" id="ntf-list"></div></div>
 
 <script src="/vendor/supabase-js-2.116.0.min.js"></script>
 <script>
@@ -606,12 +606,18 @@ function ntfPaint(){
   document.title=(total?'('+total+') ':'')+'Ruedda Control';
   $('#ntf-snd').textContent='sonido: '+(ntfSoundOn()?'sí':'no');
   $('#ntf-voz').textContent='voz: '+(ntfVoiceOn()?'sí':'no');
-  if(!NTF.length) $('#ntf').classList.add('hide');
+  if(!NTF.length && !$('#ntf-list').querySelector('.ntf-i')) $('#ntf').classList.add('hide');
 }
 function ntfGo(i){ const x=NTF[i]; if(!x) return; NTF.splice(i,1); _ntfSave(); ntfPaint(); location.hash='#/'+NTF_MAP[x.k][1]; }
 function ntfDel(i){ NTF.splice(i,1); _ntfSave(); ntfPaint(); }
 function ntfClear(){ NTF=[]; _ntfSave(); ntfPaint(); }
-function ntfToggle(){ const p=$('#ntf'); if(!NTF.length){ toast('sin avisos pendientes'); return; } p.classList.toggle('hide'); }
+function ntfToggle(){ const p=$('#ntf'); if(!NTF.length){ ntfDemoHint(); return; } p.classList.toggle('hide'); }
+// demo sin tocar la base: simula un usuario nuevo y una moderación en espera
+function ntfDemo(){
+  ntfAdd('usr',1,'@usuario.demo',true); uiPowerUp(); uiSay('Nuevo usuario registrado: usuario demo');
+  setTimeout(()=>{ ntfAdd('mod',1,'demo',true); uiPowerUp(); uiSay('Moderación en espera'); },3600);
+}
+function ntfDemoHint(){ $('#ntf').classList.remove('hide'); $('#ntf-list').innerHTML='<div class="ntf-i" onclick="ntfDemo()"><div class="ic">'+ico('users')+'</div><div class="tx"><b>Sin avisos pendientes</b><span>toca aquí para probar el sonido y la voz</span></div></div>'; }
 function ntfVoice(){ try{ localStorage.setItem(NTF_VOZ,ntfVoiceOn()?'0':'1'); }catch(e){} ntfPaint(); if(ntfVoiceOn()){ uiPowerUp(); uiSay('Voz activada'); } }
 function ntfSound(){ try{ localStorage.setItem(NTF_SND,ntfSoundOn()?'0':'1'); }catch(e){} ntfPaint(); if(ntfSoundOn()) ntfChime(); }
 // compara la cuenta de pendientes con la anterior; la primera vez solo toma la línea base
