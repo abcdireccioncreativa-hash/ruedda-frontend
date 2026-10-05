@@ -522,7 +522,7 @@ function startLive(){
     }).subscribe();
   }catch(e){}
 }
-function refresh(manual){ lastUpd=Date.now(); refreshBadges(); if(CUR) RENDER[CUR](VIEW_TOKEN,[],true); if(manual) toast('actualizado'); }
+function refresh(manual){ lastUpd=Date.now(); if(manual) memoClear(); refreshBadges(); if(window.SOCIO&&!manual) return; if(CUR) RENDER[CUR](VIEW_TOKEN,[],true); if(manual) toast('actualizado'); }
 let BADGES={};
 async function refreshBadges(){
   const [mod1,mod2,kyc,pay,acc,rep,sol]=await Promise.all([
@@ -688,6 +688,17 @@ setInterval(()=>{ if(NTF.length) ntfPaint(); },60000); // refresca los "hace X m
 
 /* ════════════ VISTAS ════════════ */
 const RENDER={};
+/* [2026-10-05] caché ligera: las vistas se pintan al instante con lo último cargado.
+   memoQ(clave, ms, fn) devuelve la misma promesa mientras no expire; si la consulta
+   trae error, no se guarda. memoClear('prefijo') invalida tras una acción. */
+const _MEMO={};
+function memoQ(key,ttl,fn){
+  const e=_MEMO[key]; if(e&&Date.now()-e.t<ttl) return e.p;
+  const p=Promise.resolve().then(fn).then(r=>{ if(r&&r.error) delete _MEMO[key]; return r; },err=>{ delete _MEMO[key]; throw err; });
+  _MEMO[key]={t:Date.now(),p}; return p;
+}
+function memoClear(prefix){ Object.keys(_MEMO).forEach(k=>{ if(!prefix||k.startsWith(prefix)) delete _MEMO[k]; }); }
+
 /* ── SOCIOS (vista del superadmin): quién tiene panel de socio y qué ha hecho ── */
 RENDER.socios=async(tok)=>{
   const V=$('#view');
@@ -715,13 +726,13 @@ RENDER.control=async(tok,_,soft)=>{
   const nowIso=new Date().toISOString();
   const [uTot,uKyc,uDealer,uNew60,lAct,lSold,aLive,bids14,pubs30,aucs30,badges]=await Promise.all([
     cnt('users'), cnt('users',q=>q.eq('kyc_verified',true)), cnt('users',q=>q.in('role',['consesionario','concesionario'])),
-    sb.from('users').select('created_at').gte('created_at',new Date(now-60*DAY).toISOString()).limit(5000),
+    memoQ('c:users60',60000,()=>sb.from('users').select('created_at').gte('created_at',new Date(now-60*DAY).toISOString()).limit(5000)),
     cnt('listings',q=>q.eq('estado','activa').not('vendido','is',true)),
     cnt('listings',q=>q.eq('vendido',true)),
     sb.from('auctions').select('id,titulo,marca,modelo,year,current_bid,bid_count,end_time,precio_reserva,sin_reserva,es_chocado,auction_photos(url,orden)').eq('estado','activa').gt('end_time',nowIso).order('end_time',{ascending:true}).limit(50),
-    sb.from('bids').select('amount,created_at').gte('created_at',d14).limit(10000),
-    sb.from('listings').select('created_at').gte('created_at',d30).limit(5000),
-    sb.from('auctions').select('created_at').gte('created_at',d30).limit(5000),
+    memoQ('c:bids14',60000,()=>sb.from('bids').select('amount,created_at').gte('created_at',d14).limit(10000)),
+    memoQ('c:pubs30',60000,()=>sb.from('listings').select('created_at').gte('created_at',d30).limit(5000)),
+    memoQ('c:aucs30',60000,()=>sb.from('auctions').select('created_at').gte('created_at',d30).limit(5000)),
     refreshBadges()
   ]);
   if(stale(tok)) return;
@@ -1709,7 +1720,7 @@ const SOCIO_VIEWS=[
   {h:'Inicio'},
   {id:'socio',t:'Inicio',i:'home',s:'Tus verticales en tiempo real'},
   {h:'Ruedda App'},
-  {id:'sapp',t:'Números de Ruedda',i:'act',s:'Usuarios, market, subastas e ingresos'},
+  {id:'sapp',t:'Números de Ruedda',i:'act',s:'Usuarios, market y subastas'},
   {id:'criterio',t:'Criterio Ruedda',i:'bid',s:'Precio justo manual por publicación'},
   {id:'comparativa',t:'Comparativa',i:'act',s:'Histórico de precios por modelo'},
   {id:'reportes',t:'Reportes',i:'flag',s:'Usuarios reportados por la comunidad',b:'rep'},
@@ -1742,6 +1753,7 @@ async function startSocio(me){
   NTF_MAP.rep=['Nuevo reporte de usuario','reportes','flag']; NTF_MAP.pos=['Nueva postulación','postulaciones','users'];
   if(!location.hash||!SOCIO_VIEWS.some(v=>v.id&&('#/'+v.id)===location.hash.split('/').slice(0,2).join('/'))) location.hash='#/socio';
   buildNav(); route(); startLive(); socioOfficeBtn();
+  setTimeout(()=>{ socioStats().catch(()=>{}); rq('r:kpis',30000,()=>SR().rpc('admin_kpis')); rq('r:stores',20000,()=>SR().from('stores').select('id,name,slug,rif,whatsapp,status,verified,logo_url,created_at').order('created_at',{ascending:false}).limit(500)); rq('r:storenames',120000,()=>SR().from('stores').select('id,name')); rq('r:live',15000,()=>SR().rpc('live_stats')); rq('r:top',300000,()=>SR().rpc('top_searches',{p_days:7,p_limit:8})); rq('r:miss',300000,()=>SR().rpc('search_misses',{p_days:30})); rq('s:pos',20000,()=>sb.from('postulaciones').select('tipo,estado,created_at').order('created_at',{ascending:false}).limit(500)); },400);
 }
 
 // registro de lo que el socio edita (lo ve el superadmin en "Socios")
@@ -1781,7 +1793,8 @@ const pct=(a,b)=>{ if(a==null||b==null) return ''; if(!b) return a?'<span class=
 const kpiCard=(l,v,d,i)=>`<div class="card kpi"><div class="l">${i?ico(i,14):''}${l}</div><div class="v">${v==null?'—':v}</div><div class="d">${d||'&nbsp;'}</div></div>`;
 const serie=(arr,days)=>{ const base=startOfDay().getTime()-(days-1)*DAY, m={}; (arr||[]).forEach(x=>{ m[new Date(x.d+'T00:00:00').toDateString()]=x.n; }); const out=[]; for(let i=0;i<days;i++) out.push(m[new Date(base+i*DAY).toDateString()]||0); return out; };
 const listBars=(arr,kl,kn,fmt)=>arr&&arr.length?`<div class="sbars">${(()=>{const mx=Math.max(1,...arr.map(x=>x[kn]));return arr.map(x=>`<div class="sbar"><span class="sbar-l">${esc(String(x[kl]))}</span><span class="sbar-t"><i style="width:${Math.max(3,x[kn]/mx*100)}%"></i></span><span class="sbar-n">${fmt?fmt(x[kn]):n(x[kn])}</span></div>`).join('');})()}</div>`:empty('Sin datos todavía');
-async function socioStats(){ const r=await sb.rpc('socio_ruedda_stats'); if(r.error) throw r.error; return r.data||{}; }
+async function socioStats(){ const r=await memoQ('s:stats',60000,()=>sb.rpc('socio_ruedda_stats')); if(r.error) throw r.error; return r.data||{}; }
+const rq=(k,ttl,fn)=>memoQ(k,ttl,fn);
 const sqlHint=e=>`<div class="notice">Falta activar el acceso: corre en Supabase el archivo <code>Ruedda_Control_Socios_SQL_2026-10-05.sql</code>. ${e?`<span class="muted">(${esc(e.message||e)})</span>`:''}</div>`;
 
 /* ── INICIO ── */
@@ -1796,7 +1809,7 @@ RENDER.socio=async(tok)=>{
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-soft" onclick="socioExport()">${ico('pay',14)} Exportar resumen (CSV)</button></div>`;
   let s=null, k=null;
   try{ s=await socioStats(); }catch(e){ if(stale(tok)) return; V.insertAdjacentHTML('afterbegin',sqlHint(e)); }
-  try{ const r=await SR().rpc('admin_kpis'); if(!r.error) k=r.data; }catch(e){}
+  try{ const r=await rq('r:kpis',30000,()=>SR().rpc('admin_kpis')); if(!r.error) k=r.data; }catch(e){}
   if(stale(tok)) return; window._SOCIO_LAST={s,k};
   const u=s&&s.usuarios||{}, m=s&&s.market||{};
   $('#sk').innerHTML=kpiCard('Usuarios en Ruedda',n(u.total),`${n(u.d30||0)} en 30 días ${pct(u.d30,u.prev30)}`,'users')
@@ -1813,7 +1826,7 @@ RENDER.socio=async(tok)=>{
 function socioExport(){
   const L=window._SOCIO_LAST||{}, s=L.s||{}, k=L.k||{}; const rows=[['métrica','valor']];
   const add=(p,o)=>Object.entries(o||{}).forEach(([a,b])=>{ if(b!=null&&typeof b!=='object') rows.push([p+a,b]); });
-  add('usuarios.',s.usuarios); add('market.',s.market); add('subastas.',s.subastas); add('pujas.',s.pujas); add('ingresos.',s.ingresos); add('repuestos.',k);
+  add('usuarios.',s.usuarios); add('market.',s.market); add('subastas.',s.subastas); add('pujas.',s.pujas); add('repuestos.',k);
   const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'})); a.download='ruedda-resumen-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
 }
@@ -1822,22 +1835,22 @@ function socioExport(){
 RENDER.sapp=async(tok)=>{
   const V=$('#view'); V.innerHTML='<div class="grid g4">'+'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div></div>'.repeat(8)+'</div>';
   let s; try{ s=await socioStats(); }catch(e){ if(!stale(tok)) V.innerHTML=sqlHint(e); return; } if(stale(tok)) return;
-  const u=s.usuarios||{}, m=s.market||{}, a=s.subastas||{}, b=s.pujas||{}, ing=s.ingresos||{};
+  const u=s.usuarios||{}, m=s.market||{}, a=s.subastas||{}, b=s.pujas||{};
   const fun=[['Usuarios',u.total],['Verificados KYC',u.kyc],['Publican (activas)',m.activas],['Vendidos',m.vendidas]];
   const fmx=Math.max(1,...fun.map(x=>x[1]||0));
-  V.innerHTML=`<div class="grid g4">${kpiCard('Usuarios',n(u.total),`${n(u.d7||0)} esta semana · ${n(u.d30||0)} en 30 días ${pct(u.d30,u.prev30)}`,'users')}${kpiCard('Verificados KYC',n(u.kyc),u.total?Math.round((u.kyc||0)/u.total*100)+'% del total':'','kyc')}${kpiCard('Concesionarios',n(u.dealers),'cuentas de concesionario','car')}${kpiCard('Ingresos 30 días',usd(ing.monto_30d||0),`${n(ing.confirmados_30d||0)} pagos ${pct(ing.monto_30d,ing.monto_prev30)}`,'pay')}</div>
+  V.innerHTML=`<div class="grid g4">${kpiCard('Usuarios',n(u.total),`${n(u.d7||0)} esta semana · ${n(u.d30||0)} en 30 días ${pct(u.d30,u.prev30)}`,'users')}${kpiCard('Verificados KYC',n(u.kyc),u.total?Math.round((u.kyc||0)/u.total*100)+'% del total':'','kyc')}${kpiCard('Concesionarios',n(u.dealers),'cuentas de concesionario','car')}${kpiCard('En revisión',n(m.revision||0),'publicaciones esperando aprobación','flag')}</div>
   <div class="grid g4" style="margin-top:14px">${kpiCard('Market activo',n(m.activas),`precio promedio ${m.precio_prom?usd(m.precio_prom):'—'}`,'car')}${kpiCard('Vendidos',n(m.vendidas),'marcados como vendidos','offer')}${kpiCard('Subastas en vivo',n(a.en_vivo),`${n(a.cerradas||0)} cerradas · ${n(a.sin_ganador||0)} sin ganador`,'gavel')}${kpiCard('Pujas 30 días',n(b.d30),`puja más alta ${usd(b.monto_max||0)}`,'bid')}</div>
   <div class="grid g2" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Pujas · 30 días</h3></div><div class="card-b">${barChart(serie(s.serie_pujas,30),30)}</div></div>
   <div class="card"><div class="card-h"><h3>Embudo</h3><span class="muted" style="font-size:12px">de registro a venta</span></div><div class="card-b"><div class="sbars">${fun.map(([l,v])=>`<div class="sbar"><span class="sbar-l">${l}</span><span class="sbar-t"><i style="width:${Math.max(3,(v||0)/fmx*100)}%"></i></span><span class="sbar-n">${n(v||0)}</span></div>`).join('')}</div></div></div></div>
   <div class="grid g2" style="margin-top:14px">${card('Marcas más publicadas','market activo',listBars(s.marcas,'m','n'))}${card('Ciudades','de dónde son los usuarios',listBars(s.ciudades,'c','n'))}</div>
   ${card('Lo más visto','publicaciones activas con más vistas',listBars(s.mas_vistos,'t','v'))}
-  <div class="muted" style="font-size:11.5px;text-align:right">ingresos históricos ${usd(ing.monto_total||0)} · actualizado ${ago(s.generado)}</div>`;
+  <div class="muted" style="font-size:11.5px;text-align:right">actualizado ${ago(s.generado)}</div>`;
 };
 
 /* ── HUB ── */
 RENDER.shub=async(tok)=>{
   const V=$('#view');
-  const{data,error}=await sb.from('postulaciones').select('tipo,estado,created_at').order('created_at',{ascending:false}).limit(500); if(stale(tok)) return;
+  const{data,error}=await rq('s:pos',20000,()=>sb.from('postulaciones').select('tipo,estado,created_at').order('created_at',{ascending:false}).limit(500)); if(stale(tok)) return;
   const all=data||[]; const c=(f)=>all.filter(f).length; const d30=Date.now()-30*DAY;
   V.innerHTML=(error?sqlHint(error):'')+`<div class="grid g4">${kpiCard('Postulaciones',n(all.length),`${n(c(p=>+new Date(p.created_at)>d30))} en 30 días`,'msg')}${kpiCard('Nuevas',n(c(p=>p.estado==='nueva')),'sin revisar','flag')}${kpiCard('Equipo',n(c(p=>p.tipo!=='certificacion')),'quieren trabajar en Ruedda','users')}${kpiCard('Certificación',n(c(p=>p.tipo==='certificacion')),'talleres, fotógrafos y aliados','kyc')}</div>
   <div class="grid g2" style="margin-top:14px">${card('Postulaciones recientes','',`${all.slice(0,6).map(p=>`<div class="mini" style="margin-bottom:8px"><span>${esc(p.tipo==='certificacion'?'Certificación':'Equipo')} · ${ago(p.created_at)}</span><b>${esc(p.estado||'')}</b></div>`).join('')||empty('Sin postulaciones')}<a class="btn btn-primary" href="#/postulaciones" style="margin-top:6px">Ver y gestionar postulaciones</a>`)}
@@ -1850,11 +1863,11 @@ const RST={pending:['Pendiente','o'],approved:['Aprobada','g'],licensed:['Licenc
   created:['Creado',''],pending_payment:['Esperando pago','o'],whatsapp:['WhatsApp','b'],paid:['Pagado','g'],packing:['Empacando','b'],shipped:['Enviado','b'],fulfilled:['Entregado','g'],closed:['Cerrado',''],cancelled:['Cancelado','r']};
 const rpill=s=>{ const x=RST[s]||[s||'—','']; return `<span class="pill ${x[1]}">${esc(x[0])}</span>`; };
 const repErr=(e)=>`<div class="notice">No se pudo leer Repuestos${e?': '+esc(e.message||e):''}. Si es la primera vez, corre el SQL de socios (te da el rol de administrador de Repuestos).</div>`;
-async function rAct(promise,okMsg,again){ const r=await promise; if(r.error){ toast('error: '+r.error.message,true); return false; } toast(okMsg); socioLog('repuestos',okMsg); refreshBadges(); if(again) RENDER[again](++VIEW_TOKEN); return true; }
+async function rAct(promise,okMsg,again){ const r=await promise; if(r.error){ toast('error: '+r.error.message,true); return false; } memoClear('r:'); toast(okMsg); socioLog('repuestos',okMsg); refreshBadges(); if(again) RENDER[again](++VIEW_TOKEN); return true; }
 
 RENDER.rres=async(tok)=>{
   const V=$('#view'); V.innerHTML='<div class="grid g4">'+'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div></div>'.repeat(8)+'</div>';
-  const [k,live,top,miss]=await Promise.all([SR().rpc('admin_kpis'),SR().rpc('live_stats'),SR().rpc('top_searches',{p_days:7,p_limit:8}),SR().rpc('search_misses',{p_days:30})]);
+  const [k,live,top,miss]=await Promise.all([rq('r:kpis',30000,()=>SR().rpc('admin_kpis')),rq('r:live',15000,()=>SR().rpc('live_stats')),rq('r:top',300000,()=>SR().rpc('top_searches',{p_days:7,p_limit:8})),rq('r:miss',300000,()=>SR().rpc('search_misses',{p_days:30}))]);
   if(stale(tok)) return; if(k.error){ V.innerHTML=repErr(k.error); return; }
   const K=k.data||{}, L=live.data||{};
   V.innerHTML=`<div class="grid g4">${kpiCard('GMV',usd(K.gmv),'total vendido en pedidos','pay')}${kpiCard('Cobrado',usd(K.cobrado),'pagados, en camino o entregados','pay')}${kpiCard('Comisión Ruedda',usd(K.comision),'según la comisión configurada','offer')}${kpiCard('Pedidos',n(K.ordenes),`ticket promedio ${usd(K.ticket)}`,'car')}</div>
@@ -1867,7 +1880,7 @@ RENDER.rres=async(tok)=>{
 let RT_F='todas';
 RENDER.rtiendas=async(tok)=>{
   const V=$('#view');
-  const{data,error}=await SR().from('stores').select('id,name,slug,rif,whatsapp,status,verified,logo_url,created_at').order('created_at',{ascending:false}).limit(500); if(stale(tok)) return;
+  const{data,error}=await rq('r:stores',20000,()=>SR().from('stores').select('id,name,slug,rif,whatsapp,status,verified,logo_url,created_at').order('created_at',{ascending:false}).limit(500)); if(stale(tok)) return;
   if(error){ V.innerHTML=repErr(error); return; }
   const rows=(data||[]).filter(s=>RT_F==='todas'?true:s.status===RT_F);
   V.innerHTML=`<div class="toolbar"><div class="seg">${[['todas','Todas'],['pending','Por aprobar'],['approved','Aprobadas'],['licensed','Licenciadas'],['suspended','Suspendidas']].map(([k2,t])=>`<button class="${RT_F===k2?'on':''}" onclick="RT_F='${k2}';RENDER.rtiendas(++VIEW_TOKEN)">${t} <span class="muted">${k2==='todas'?(data||[]).length:(data||[]).filter(s=>s.status===k2).length}</span></button>`).join('')}</div></div>
@@ -1880,7 +1893,7 @@ RENDER.rprod=async(tok)=>{
   const V=$('#view');
   let q=SR().from('products').select('id,name,brand,model,part_number,price_usd,stock,status,images,store_id,reject_reason,created_at').order('created_at',{ascending:false}).limit(300);
   if(RP_F!=='todos') q=q.eq('status',RP_F);
-  const [{data,error},st]=await Promise.all([q,SR().from('stores').select('id,name')]); if(stale(tok)) return;
+  const [{data,error},st]=await Promise.all([rq('r:prod:'+RP_F,20000,()=>q),rq('r:storenames',120000,()=>SR().from('stores').select('id,name'))]); if(stale(tok)) return;
   if(error){ V.innerHTML=repErr(error); return; }
   const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name]));
   V.innerHTML=`<div class="toolbar"><div class="seg">${[['pending_review','Por revisar'],['published','Publicados'],['paused','Pausados'],['rejected','Rechazados'],['todos','Todos']].map(([k2,t])=>`<button class="${RP_F===k2?'on':''}" onclick="RP_F='${k2}';RENDER.rprod(++VIEW_TOKEN)">${t}</button>`).join('')}</div></div>
@@ -1892,7 +1905,7 @@ function rProdReject(id){ const m=prompt('Motivo del rechazo (lo ve la tienda):'
 let RO_F='activos';
 RENDER.rped=async(tok)=>{
   const V=$('#view');
-  const [{data,error},st]=await Promise.all([SR().from('orders').select('id,store_id,total_usd,status,channel,tracking_code,guest_city,created_at,invoices(code),order_items(qty)').order('created_at',{ascending:false}).limit(300),SR().from('stores').select('id,name')]); if(stale(tok)) return;
+  const [{data,error},st]=await Promise.all([rq('r:orders',20000,()=>SR().from('orders').select('id,store_id,total_usd,status,channel,tracking_code,guest_city,created_at,invoices(code),order_items(qty)').order('created_at',{ascending:false}).limit(300)),rq('r:storenames',120000,()=>SR().from('stores').select('id,name'))]); if(stale(tok)) return;
   if(error){ V.innerHTML=repErr(error); return; }
   const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name]));
   const act=['created','pending_payment','whatsapp','paid','packing','shipped'];
@@ -1908,7 +1921,7 @@ async function rExportOrders(){ const r=await SR().rpc('admin_export_orders'); i
 
 RENDER.rmec=async(tok)=>{
   const V=$('#view');
-  const{data,error}=await SR().from('mechanics').select('*').order('created_at',{ascending:false}).limit(300); if(stale(tok)) return;
+  const{data,error}=await rq('r:mec',30000,()=>SR().from('mechanics').select('*').order('created_at',{ascending:false}).limit(300)); if(stale(tok)) return;
   if(error){ V.innerHTML=repErr(error); return; }
   const stages=['borrador','verificacion','verificado','avalado','maestro','suspendido'];
   V.innerHTML=`<div class="grid g4" style="margin-bottom:14px">${stages.slice(0,4).map(s2=>kpiCard(s2.charAt(0).toUpperCase()+s2.slice(1),n((data||[]).filter(m=>(m.stage||'borrador')===s2).length),'mecánicos','users')).join('')}</div>
@@ -1918,7 +1931,7 @@ RENDER.rmec=async(tok)=>{
 
 RENDER.rmar=async(tok)=>{
   const V=$('#view');
-  const [ub,imp,miss]=await Promise.all([SR().from('unlisted_brands').select('id,name,kind,category,status,created_at').order('created_at',{ascending:false}).limit(200),SR().from('import_requests').select('id,part_query,notes,status,created_at').order('created_at',{ascending:false}).limit(100),SR().rpc('search_misses',{p_days:30})]); if(stale(tok)) return;
+  const [ub,imp,miss]=await Promise.all([rq('r:brands',30000,()=>SR().from('unlisted_brands').select('id,name,kind,category,status,created_at').order('created_at',{ascending:false}).limit(200)),rq('r:import',60000,()=>SR().from('import_requests').select('id,part_query,notes,status,created_at').order('created_at',{ascending:false}).limit(100)),rq('r:miss',300000,()=>SR().rpc('search_misses',{p_days:30}))]); if(stale(tok)) return;
   if(ub.error){ V.innerHTML=repErr(ub.error); return; }
   const pend=(ub.data||[]).filter(b=>b.status==='pending');
   V.innerHTML=card('Marcas por aprobar',`${pend.length} pendientes · las proponen las tiendas al publicar`,pend.length?`<div class="tbl-wrap"><table class="tbl"><tbody>${pend.map(b=>`<tr><td style="font-weight:600">${esc(b.name)}</td><td class="muted">${esc([b.kind,b.category].filter(Boolean).join(' · '))}</td><td class="muted">${ago(b.created_at)}</td><td class="r" style="white-space:nowrap"><button class="btn btn-green" style="height:30px" onclick="rAct(SR().rpc('admin_resolve_unlisted_brand',{p_id:'${b.id}',p_approve:true}),'marca aprobada','rmar')">Aprobar</button> <button class="btn btn-red" style="height:30px" onclick="rAct(SR().rpc('admin_resolve_unlisted_brand',{p_id:'${b.id}',p_approve:false}),'marca rechazada','rmar')">Rechazar</button></td></tr>`).join('')}</tbody></table></div>`:empty('Nada pendiente'))
