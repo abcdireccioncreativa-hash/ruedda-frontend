@@ -221,6 +221,40 @@ main{min-width:0}
 @keyframes ntfIn{from{opacity:0;transform:translateX(24px) scale(.98)}to{opacity:1;transform:none}}
 #ntf.hide .ntf-list,#ntf.hide .ntf-h{display:none}
 @media(max-width:700px){#ntf{left:12px;right:12px;width:auto;top:70px}}
+
+/* ── [2026-10-05] panel de socios ── */
+.socio-hero{display:flex;align-items:flex-end;justify-content:space-between;margin:2px 0 18px}
+.socio-hi{font-size:34px;font-weight:700;letter-spacing:-.035em;line-height:1.05;background:linear-gradient(90deg,var(--ink),#6e6e73);-webkit-background-clip:text;background-clip:text;color:transparent;animation:socioIn .8s cubic-bezier(.22,1,.36,1) both}
+.socio-sub{font-size:13.5px;margin-top:6px;animation:socioIn .8s cubic-bezier(.22,1,.36,1) .08s both}
+@keyframes socioIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.mini{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--panel);font-size:13px;color:var(--ink2);text-decoration:none}
+.mini b{color:var(--ink);font-weight:700}a.mini:hover{border-color:var(--line2)}
+.sbars{display:flex;flex-direction:column;gap:9px}
+.sbar{display:grid;grid-template-columns:minmax(0,1.1fr) 2fr auto;align-items:center;gap:10px;font-size:13px}
+.sbar-l{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:capitalize;color:var(--ink2)}
+.sbar-t{height:8px;border-radius:99px;background:var(--hover);overflow:hidden}
+.sbar-t i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue),#5ac8fa);animation:sbarIn .9s cubic-bezier(.22,1,.36,1) both}
+.sbar-n{font-weight:700;font-variant-numeric:tabular-nums}
+@keyframes sbarIn{from{width:0!important}}
+.socio-soon{max-width:560px;margin:30px auto;text-align:center;padding:34px 30px;border:1px solid var(--line);border-radius:22px;background:var(--panel)}
+.socio-soon-ic{width:52px;height:52px;border-radius:16px;margin:0 auto 14px;display:grid;place-items:center;background:var(--blue-bg);color:var(--blue)}
+.socio-soon h3{font-size:20px;letter-spacing:-.02em;margin:0 0 8px}.socio-soon p{color:var(--mute);line-height:1.55;margin:0 0 14px}
+.socio-soon ul{text-align:left;display:inline-block;margin:0;padding-left:18px;color:var(--ink2);line-height:1.8;font-size:13.5px}
+#socio-office{position:fixed;right:22px;bottom:22px;z-index:240;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;border-radius:999px;text-decoration:none;color:#fff;background:linear-gradient(135deg,rgba(18,18,20,.92),rgba(40,40,46,.92));backdrop-filter:blur(18px) saturate(180%);-webkit-backdrop-filter:blur(18px) saturate(180%);box-shadow:0 14px 34px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12);transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s;animation:soIn .9s cubic-bezier(.22,1,.36,1) .4s both}
+#socio-office:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 20px 44px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.14)}
+#socio-office .so-orb{position:relative;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e6f03b,#9fb51a);box-shadow:0 0 0 3px rgba(230,240,59,.18)}
+#socio-office .so-orb i{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(230,240,59,.55);animation:soPulse 2.6s ease-out infinite}
+#socio-office .so-orb i:nth-child(2){animation-delay:.85s}#socio-office .so-orb i:nth-child(3){animation-delay:1.7s}
+#socio-office:not(.live) .so-orb i{animation-duration:4s;border-color:rgba(230,240,59,.3)}
+#socio-office .so-t{display:flex;flex-direction:column;line-height:1.2}
+#socio-office .so-t b{font-size:13.5px;font-weight:700;letter-spacing:-.01em}
+#socio-office .so-t small{font-size:11.5px;color:rgba(255,255,255,.62)}
+#socio-office .so-go{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.1);transition:transform .35s cubic-bezier(.22,1,.36,1)}
+#socio-office:hover .so-go{transform:translateX(3px)}
+@keyframes soPulse{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.1);opacity:0}}
+@keyframes soIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+body.is-socio .content{padding-bottom:96px}
+@media(max-width:700px){#socio-office{right:12px;bottom:12px}#socio-office .so-t small{display:none}.socio-hi{font-size:27px}}
 #toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;font-weight:500;opacity:0;transition:all .25s cubic-bezier(.22,1,.36,1);z-index:300;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.2)}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 #toast.err{background:var(--red)}
@@ -339,6 +373,7 @@ const PUB_COLS='id,nombre,apellido,username,ciudad,role,avatar_url,activo,create
 // Si la función aún no existe en la base, se leen como antes.
 async function privMap(ids){
   ids=[...new Set((ids||[]).filter(Boolean))]; const m={}; if(!ids.length) return m;
+  if(window.SOCIO) return m; // [socios] nunca ven correo, cédula ni teléfono
   try{ const r=await sb.rpc('admin_users_private',{p_ids:ids}); if(!r.error){ (r.data||[]).forEach(x=>m[x.id]=x); return m; } }catch(e){}
   const{data}=await sb.from('users').select('id,email,cedula,cedula_tipo,telefono,celular').in('id',ids); (data||[]).forEach(x=>m[x.id]=x); return m;
 }
@@ -390,6 +425,10 @@ async function boot(){
   if(!session) return showLogin();
   const{data:me,error}=await sb.from('users').select('id,nombre,username,role').eq('id',session.user.id).maybeSingle();
   if(me) me.email=session.user.email;
+  if(!error&&me&&me.role!=='superadmin'){
+    // [socios] cuentas autorizadas en public.control_socios entran a su propio panel
+    try{ const r=await sb.rpc('is_control_socio'); if(r.data===true){ const s2=await sb.from('control_socios').select('nombre').eq('user_id',me.id).maybeSingle(); if(s2.data&&s2.data.nombre) me.nombre=s2.data.nombre; return startSocio(me); } }catch(e){}
+  }
   if(error||!me||me.role!=='superadmin'){
     showLogin('Esta cuenta no tiene acceso al panel.'); await sb.auth.signOut().catch(()=>{}); return;
   }
@@ -408,7 +447,7 @@ $('#login-form').addEventListener('submit',async e=>{
 async function logout(){ await sb.auth.signOut().catch(()=>{}); location.hash=''; showLogin(); }
 
 /* ════════════ NAVEGACIÓN ════════════ */
-const VIEWS=[
+let VIEWS=[
   {h:'General'},
   {id:'control',t:'Control',i:'home',s:'Resumen en tiempo real de Ruedda'},
   {id:'actividad',t:'Actividad',i:'act',s:'Todo lo que pasa en la plataforma'},
@@ -444,7 +483,8 @@ const VIEWS=[
   {id:'apariencia',t:'Apariencia',i:'car',s:'Banners, Encuentra, intro, logos e insignias'},
   {id:'actualizacion',t:'Actualización de la app',i:'upd',s:'Aviso para que actualicen la app de iPhone, con sus novedades'},
   {id:'configuracion',t:'Configuración',i:'pay',s:'Datos de pago e historia de Ruedda'},
-  {id:'office',t:'Ruedda Office',i:'users',s:'Oficina virtual del equipo: usuarios autorizados, quién está, visitas y actividad'}
+  {id:'office',t:'Ruedda Office',i:'users',s:'Oficina virtual del equipo: usuarios autorizados, quién está, visitas y actividad'},
+  {id:'socios',t:'Socios',i:'user',s:'Panel de socios (Rubén): accesos y todo lo que editan'}
 ];
 function buildNav(){
   $('#nav').innerHTML=VIEWS.map(v=>v.h?`<div class="nav-h">${v.h}</div>`:`<a href="#/${v.id}" data-v="${v.id}">${ico(v.i)}<span>${v.t}</span>${v.b?`<span class="badge zero" data-b="${v.b}">0</span>`:''}</a>`).join('')
@@ -647,6 +687,17 @@ setInterval(()=>{ if(NTF.length) ntfPaint(); },60000); // refresca los "hace X m
 
 /* ════════════ VISTAS ════════════ */
 const RENDER={};
+/* ── SOCIOS (vista del superadmin): quién tiene panel de socio y qué ha hecho ── */
+RENDER.socios=async(tok)=>{
+  const V=$('#view');
+  const [so,lg]=await Promise.all([sb.from('control_socios').select('user_id,nombre,activo,verticales,created_at'),sb.from('control_socio_log').select('id,user_id,accion,objeto,ref,created_at').order('created_at',{ascending:false}).limit(200)]); if(stale(tok)) return;
+  if(so.error){ V.innerHTML=`<div class="notice">Falta correr en Supabase <code>Ruedda_Control_Socios_SQL_2026-10-05.sql</code> para activar el panel de socios.</div>`; return; }
+  const nm=Object.fromEntries((so.data||[]).map(x=>[x.user_id,x.nombre]));
+  V.innerHTML=card('Socios con panel','entran en ruedda.app/control con su cuenta y ven solo su panel',`<div class="tbl-wrap"><table class="tbl"><tbody>${(so.data||[]).map(x=>`<tr><td style="font-weight:600">${esc(x.nombre)}</td><td class="muted">${esc((x.verticales||[]).join(' · '))}</td><td>${x.activo?'<span class="pill g">activo</span>':'<span class="pill r">pausado</span>'}</td><td class="r"><button class="btn btn-soft" style="height:30px" onclick="socioToggle('${x.user_id}',${!x.activo})">${x.activo?'Pausar acceso':'Reactivar'}</button></td></tr>`).join('')||`<tr><td>${empty('Sin socios')}</td></tr>`}</tbody></table></div>`)
+   +card('Actividad de socios','todo lo que editan queda registrado aquí',(lg.data||[]).length?`<div class="tbl-wrap"><table class="tbl"><tbody>${lg.data.map(r=>`<tr><td style="font-weight:600">${esc(nm[r.user_id]||'socio')}</td><td>${esc(r.accion)}</td><td class="muted">${esc(r.objeto||'')}${r.ref?' · '+esc(String(r.ref).slice(0,24)):''}</td><td class="muted">${ago(r.created_at)}</td></tr>`).join('')}</tbody></table></div>`:empty('Todavía no hay actividad'));
+};
+async function socioToggle(uid,activo){ const{error}=await sb.from('control_socios').update({activo}).eq('user_id',uid); if(error) return toast('error: '+error.message,true); toast(activo?'acceso reactivado':'acceso pausado'); RENDER.socios(++VIEW_TOKEN); }
+
 
 /* ── CONTROL ── */
 RENDER.control=async(tok,_,soft)=>{
@@ -928,6 +979,7 @@ RENDER.usuarios=async(tok,_,soft)=>{
   $('#umore').innerHTML=count>data.length?`<button class="btn btn-soft" onclick="U_F.page++;RENDER.usuarios(++VIEW_TOKEN,[],true)">Mostrar más (${n(count-data.length)} restantes)</button>`:'';
 };
 async function openUser(id){
+  if(window.SOCIO){ toast('el detalle de usuarios es solo del administrador'); return; }
   closeModal();
   const ov=modal({wide:true,title:'Usuario',body:'<div class="skel" style="height:220px"></div>'});
   const [{data:u},L,A,B,R,F]=await Promise.all([
@@ -1455,7 +1507,9 @@ function critOpen(id){
 function critRecalc(price,keep){ const est=+$('#cr-est').value||0, d=est?((price-est)/est*100):0; $('#cr-d').textContent=(d>0?'+':'')+d.toFixed(1)+'%'; if(!keep){ window._critSel.cls=critCls(d); window._critPaint&&window._critPaint(); } }
 async function critSave(id,price,btn){
   const est=+$('#cr-est').value||0; if(!est) return toast('pon un precio estimado',true); const d=+((price-est)/est*100).toFixed(1); btn.disabled=true;
-  const{error}=await sb.from(CRIT_T).update({pme_usd:est,pme_delta:d,pme_classification:window._critSel.cls,pme_confianza:window._critSel.conf,pme_basado_en:'manual',pme_updated_at:new Date().toISOString()}).eq('id',id);
+  const{error}=window.SOCIO
+    ? await sb.rpc('socio_set_criterio',{p_tabla:CRIT_T,p_id:String(id),p_fields:{pme_usd:est,pme_delta:d,pme_classification:window._critSel.cls,pme_confianza:window._critSel.conf}}) // [socios] solo campos pme_*
+    : await sb.from(CRIT_T).update({pme_usd:est,pme_delta:d,pme_classification:window._critSel.cls,pme_confianza:window._critSel.conf,pme_basado_en:'manual',pme_updated_at:new Date().toISOString()}).eq('id',id);
   if(error){ toast('error: '+error.message,true); btn.disabled=false; return; } toast('criterio guardado'); closeModal(); RENDER.criterio(++VIEW_TOKEN);
 }
 
@@ -1639,6 +1693,254 @@ async function regenCode(id){
 }
 
 boot();
+</script>
+<script>
+/* ════════════════════════════════════════════════════════════════════
+   [2026-10-05] PANEL DE SOCIOS (Rubén) — misma URL /control, otra vista.
+   Se activa solo si la cuenta NO es superadmin pero está en public.control_socios
+   (is_control_socio()). El panel del superadmin no pasa por aquí.
+   Datos: socio_ruedda_stats() (solo cifras), secciones compartidas con RLS propia,
+   Ruedda Repuestos con su rol de admin (repuestos.members). Nada de datos personales.
+   ════════════════════════════════════════════════════════════════════ */
+window.SOCIO=null;
+const SR=()=>sb.schema('repuestos');
+const SOCIO_VIEWS=[
+  {h:'Inicio'},
+  {id:'socio',t:'Inicio',i:'home',s:'Tus verticales en tiempo real'},
+  {h:'Ruedda App'},
+  {id:'sapp',t:'Números de Ruedda',i:'act',s:'Usuarios, market, subastas e ingresos'},
+  {id:'criterio',t:'Criterio Ruedda',i:'bid',s:'Precio justo manual por publicación'},
+  {id:'comparativa',t:'Comparativa',i:'act',s:'Histórico de precios por modelo'},
+  {id:'reportes',t:'Reportes',i:'flag',s:'Usuarios reportados por la comunidad',b:'rep'},
+  {id:'sugerencias',t:'Sugerencias',i:'flag',s:'Buzón de sugerencias y reportes de bugs',b:'sug'},
+  {h:'Ruedda Hub'},
+  {id:'shub',t:'Hub',i:'home',s:'RueddaCarreras, postulaciones y la web del Hub'},
+  {id:'postulaciones',t:'Postulaciones',i:'msg',s:'RueddaCarreras · equipo y certificación',b:'pos'},
+  {h:'Ruedda Repuestos'},
+  {id:'rres',t:'Resumen',i:'pay',s:'Ventas, pedidos y pendientes de Repuestos'},
+  {id:'rtiendas',t:'Tiendas',i:'car',s:'Aprobar, verificar y suspender tiendas',b:'rti'},
+  {id:'rprod',t:'Productos',i:'offer',s:'Revisión y estado de los productos',b:'rpr'},
+  {id:'rped',t:'Pedidos',i:'pay',s:'Estado, seguimiento y exportación'},
+  {id:'rmec',t:'Mecánicos y RTA',i:'users',s:'Red de talleres avalados'},
+  {id:'rmar',t:'Marcas y búsquedas',i:'flag',s:'Marcas por aprobar, demanda y búsquedas sin resultado'},
+  {h:'Más'},
+  {id:'sflota',t:'FlotaIQ',i:'car',s:'Tu plataforma de flotas'},
+  {id:'sacad',t:'Ruedda Academy',i:'kyc',s:'Formación y certificación'},
+  {id:'sweb',t:'Mi web',i:'user',s:'rubencarrillob2b.com · fotos y textos'}
+];
+
+async function startSocio(me){
+  window.SOCIO=me; ME=me;
+  document.body.classList.add('is-socio');
+  $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  $('#me-name').textContent=me.nombre||'Socio'; $('#me-mail').textContent=me.email||'';
+  VIEWS=SOCIO_VIEWS;
+  Object.assign(NTF_MAP,{
+    sug:['Nueva sugerencia','sugerencias','flag'], rti:['Tienda por aprobar','rtiendas','car'], rpr:['Producto por revisar','rprod','offer']
+  });
+  NTF_MAP.rep=['Nuevo reporte de usuario','reportes','flag']; NTF_MAP.pos=['Nueva postulación','postulaciones','users'];
+  if(!location.hash||!SOCIO_VIEWS.some(v=>v.id&&('#/'+v.id)===location.hash.split('/').slice(0,2).join('/'))) location.hash='#/socio';
+  buildNav(); route(); startLive(); socioOfficeBtn();
+}
+
+// registro de lo que el socio edita (lo ve el superadmin en "Socios")
+function socioLog(accion,objeto,ref,detalle){
+  if(!window.SOCIO) return;
+  sb.from('control_socio_log').insert({accion,objeto,ref:ref==null?null:String(ref),detalle:detalle||null}).then(()=>{},()=>{});
+}
+(function wrapSocioWrites(){
+  const wrap=(name,acc,obj)=>{ const f=window[name]; if(typeof f!=='function') return; window[name]=async function(...a){ const r=await f.apply(this,a); socioLog(acc,obj,a[0],{args:a.slice(1).filter(x=>typeof x!=='object')}); return r; }; };
+  wrap('posSet','estado','postulaciones'); wrap('posNota','nota','postulaciones');
+  wrap('repSet','estado','user_reports'); wrap('cpSave','guardar','price_comparisons'); wrap('cpDel','borrar','price_comparisons');
+})();
+
+// pendientes del socio (campanita, contadores del menú y avisos con voz)
+const _superRefresh=refreshBadges;
+refreshBadges=async function(){
+  if(!window.SOCIO) return _superRefresh();
+  const rq=(p)=>p.then(r=>r&&!r.error?(r.count||0):0,()=>0);
+  const head={count:'exact',head:true};
+  const [pos,sug,rep,rti,rpr]=await Promise.all([
+    rq(sb.from('postulaciones').select('*',head).eq('estado','nueva')),
+    rq(sb.from('sugerencias').select('*',head)),
+    rq(sb.from('user_reports').select('*',head).eq('estado','pendiente')),
+    rq(SR().from('stores').select('*',head).eq('status','pending')),
+    rq(SR().from('products').select('*',head).eq('status','pending_review'))
+  ]);
+  BADGES={pos,sug,rep,rti,rpr};
+  document.querySelectorAll('[data-b]').forEach(b=>{ const k=b.dataset.b; b.textContent=BADGES[k]||0; b.classList.toggle('zero',!BADGES[k]); });
+  const now={pos,sug,rep,rti,rpr};
+  if(window._SOCIO_BASE) Object.keys(now).forEach(k=>{ if(now[k]>window._SOCIO_BASE[k]) ntfAdd(k,now[k]-window._SOCIO_BASE[k]); });
+  window._SOCIO_BASE=now;
+  return BADGES;
+};
+
+/* ── utilidades visuales ── */
+const pct=(a,b)=>{ if(a==null||b==null) return ''; if(!b) return a?'<span class="pill g">nuevo</span>':''; const d=Math.round((a-b)/b*100); return `<span class="pill ${d>=0?'g':'r'}">${d>=0?'▲':'▼'} ${Math.abs(d)}%</span>`; };
+const kpiCard=(l,v,d,i)=>`<div class="card kpi"><div class="l">${i?ico(i,14):''}${l}</div><div class="v">${v==null?'—':v}</div><div class="d">${d||'&nbsp;'}</div></div>`;
+const serie=(arr,days)=>{ const base=startOfDay().getTime()-(days-1)*DAY, m={}; (arr||[]).forEach(x=>{ m[new Date(x.d+'T00:00:00').toDateString()]=x.n; }); const out=[]; for(let i=0;i<days;i++) out.push(m[new Date(base+i*DAY).toDateString()]||0); return out; };
+const listBars=(arr,kl,kn,fmt)=>arr&&arr.length?`<div class="sbars">${(()=>{const mx=Math.max(1,...arr.map(x=>x[kn]));return arr.map(x=>`<div class="sbar"><span class="sbar-l">${esc(String(x[kl]))}</span><span class="sbar-t"><i style="width:${Math.max(3,x[kn]/mx*100)}%"></i></span><span class="sbar-n">${fmt?fmt(x[kn]):n(x[kn])}</span></div>`).join('');})()}</div>`:empty('Sin datos todavía');
+async function socioStats(){ const r=await sb.rpc('socio_ruedda_stats'); if(r.error) throw r.error; return r.data||{}; }
+const sqlHint=e=>`<div class="notice">Falta activar el acceso: corre en Supabase el archivo <code>Ruedda_Control_Socios_SQL_2026-10-05.sql</code>. ${e?`<span class="muted">(${esc(e.message||e)})</span>`:''}</div>`;
+
+/* ── INICIO ── */
+RENDER.socio=async(tok)=>{
+  const V=$('#view'); const h=new Date().getHours(); const nombre=(window.SOCIO&&window.SOCIO.nombre||'').split(' ')[0]||'Rubén';
+  V.innerHTML=`<div class="socio-hero"><div><div class="socio-hi">Hola de nuevo, ${esc(nombre)}.</div><div class="muted socio-sub">${h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'} · ${new Date().toLocaleDateString('es-VE',{weekday:'long',day:'numeric',month:'long'})} · esto es lo que pasa en tus verticales</div></div></div>
+    <div class="grid g4" id="sk">${kpiCard('Usuarios en Ruedda','<span class="skel">0000</span>')}${kpiCard('Publicaciones activas','<span class="skel">000</span>')}${kpiCard('Ventas Repuestos','<span class="skel">$0</span>')}${kpiCard('Por atender','<span class="skel">00</span>')}</div>
+    <div class="grid g21" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Registros en Ruedda · 30 días</h3><span class="muted" id="sk1s"></span></div><div class="card-b" id="sk1"><div class="skel" style="height:120px"></div></div></div>
+    <div class="card"><div class="card-h"><h3>Por atender</h3></div><div class="queue" id="skq"></div></div></div>
+    <div class="grid g2" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Publicaciones nuevas · 30 días</h3><span class="muted" id="sk2s"></span></div><div class="card-b" id="sk2"><div class="skel" style="height:120px"></div></div></div>
+    <div class="card"><div class="card-h"><h3>Ruedda Repuestos</h3><a href="#/rres" style="font-size:12px">ver todo</a></div><div class="card-b" id="sk3"><div class="skel" style="height:120px"></div></div></div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn btn-soft" onclick="socioExport()">${ico('pay',14)} Exportar resumen (CSV)</button></div>`;
+  let s=null, k=null;
+  try{ s=await socioStats(); }catch(e){ if(stale(tok)) return; V.insertAdjacentHTML('afterbegin',sqlHint(e)); }
+  try{ const r=await SR().rpc('admin_kpis'); if(!r.error) k=r.data; }catch(e){}
+  if(stale(tok)) return; window._SOCIO_LAST={s,k};
+  const u=s&&s.usuarios||{}, m=s&&s.market||{};
+  $('#sk').innerHTML=kpiCard('Usuarios en Ruedda',n(u.total),`${n(u.d30||0)} en 30 días ${pct(u.d30,u.prev30)}`,'users')
+    +kpiCard('Publicaciones activas',n(m.activas),`${n(m.d30||0)} nuevas en 30 días ${pct(m.d30,m.prev30)}`,'car')
+    +kpiCard('Ventas Repuestos',k?usd(k.cobrado):'—',k?`${n(k.ordenes)} pedidos · ticket ${usd(k.ticket)}`:'activa tu rol de admin','pay')
+    +kpiCard('Por atender',n((s&&s.postulaciones_nuevas||0)+(s&&s.reportes_pendientes||0)+(k?(k.pend_tiendas||0)+(k.pend_productos||0):0)),'postulaciones, reportes y Repuestos','flag');
+  const a1=serie(s&&s.serie_usuarios,30); $('#sk1').innerHTML=barChart(a1,30); $('#sk1s').textContent=n(a1.reduce((x,y)=>x+y,0))+' nuevos';
+  const a2=serie(s&&s.serie_publicaciones,30); $('#sk2').innerHTML=barChart(a2,30); $('#sk2s').textContent=n(a2.reduce((x,y)=>x+y,0))+' nuevas';
+  const Q=(href,i,t,s2,v)=>`<a href="#/${href}"><div class="qi">${ico(i)}</div><div><div style="font-weight:600">${t}</div><small>${s2}</small></div><div class="qn ${v?'':'zero'}">${v||0}</div></a>`;
+  $('#skq').innerHTML=Q('postulaciones','msg','Postulaciones','RueddaCarreras',s&&s.postulaciones_nuevas)+Q('reportes','flag','Reportes','usuarios reportados',s&&s.reportes_pendientes)
+    +Q('rtiendas','car','Tiendas','por aprobar en Repuestos',k&&k.pend_tiendas)+Q('rprod','offer','Productos','por revisar en Repuestos',k&&k.pend_productos)+Q('rmar','flag','Marcas','por aprobar en Repuestos',k&&k.pend_marcas);
+  $('#sk3').innerHTML=k?`<div class="grid g2" style="gap:10px">${[['GMV',usd(k.gmv)],['Cobrado',usd(k.cobrado)],['Comisión',usd(k.comision)],['Unidades',n(k.unidades)],['Productos publicados',n(k.productos)],['Tiendas activas',n(k.tiendas)]].map(([l,v])=>`<div class="mini"><span>${l}</span><b>${v}</b></div>`).join('')}</div>`:`<div class="muted" style="font-size:13px">Cuando corras el SQL de socios, aquí salen las ventas, pedidos y tiendas de Repuestos.</div>`;
+};
+function socioExport(){
+  const L=window._SOCIO_LAST||{}, s=L.s||{}, k=L.k||{}; const rows=[['métrica','valor']];
+  const add=(p,o)=>Object.entries(o||{}).forEach(([a,b])=>{ if(b!=null&&typeof b!=='object') rows.push([p+a,b]); });
+  add('usuarios.',s.usuarios); add('market.',s.market); add('subastas.',s.subastas); add('pujas.',s.pujas); add('ingresos.',s.ingresos); add('repuestos.',k);
+  const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'})); a.download='ruedda-resumen-'+new Date().toISOString().slice(0,10)+'.csv'; a.click();
+}
+
+/* ── RUEDDA APP: números ── */
+RENDER.sapp=async(tok)=>{
+  const V=$('#view'); V.innerHTML='<div class="grid g4">'+'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div></div>'.repeat(8)+'</div>';
+  let s; try{ s=await socioStats(); }catch(e){ if(!stale(tok)) V.innerHTML=sqlHint(e); return; } if(stale(tok)) return;
+  const u=s.usuarios||{}, m=s.market||{}, a=s.subastas||{}, b=s.pujas||{}, ing=s.ingresos||{};
+  const fun=[['Usuarios',u.total],['Verificados KYC',u.kyc],['Publican (activas)',m.activas],['Vendidos',m.vendidas]];
+  const fmx=Math.max(1,...fun.map(x=>x[1]||0));
+  V.innerHTML=`<div class="grid g4">${kpiCard('Usuarios',n(u.total),`${n(u.d7||0)} esta semana · ${n(u.d30||0)} en 30 días ${pct(u.d30,u.prev30)}`,'users')}${kpiCard('Verificados KYC',n(u.kyc),u.total?Math.round((u.kyc||0)/u.total*100)+'% del total':'','kyc')}${kpiCard('Concesionarios',n(u.dealers),'cuentas de concesionario','car')}${kpiCard('Ingresos 30 días',usd(ing.monto_30d||0),`${n(ing.confirmados_30d||0)} pagos ${pct(ing.monto_30d,ing.monto_prev30)}`,'pay')}</div>
+  <div class="grid g4" style="margin-top:14px">${kpiCard('Market activo',n(m.activas),`precio promedio ${m.precio_prom?usd(m.precio_prom):'—'}`,'car')}${kpiCard('Vendidos',n(m.vendidas),'marcados como vendidos','offer')}${kpiCard('Subastas en vivo',n(a.en_vivo),`${n(a.cerradas||0)} cerradas · ${n(a.sin_ganador||0)} sin ganador`,'gavel')}${kpiCard('Pujas 30 días',n(b.d30),`puja más alta ${usd(b.monto_max||0)}`,'bid')}</div>
+  <div class="grid g2" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Pujas · 30 días</h3></div><div class="card-b">${barChart(serie(s.serie_pujas,30),30)}</div></div>
+  <div class="card"><div class="card-h"><h3>Embudo</h3><span class="muted" style="font-size:12px">de registro a venta</span></div><div class="card-b"><div class="sbars">${fun.map(([l,v])=>`<div class="sbar"><span class="sbar-l">${l}</span><span class="sbar-t"><i style="width:${Math.max(3,(v||0)/fmx*100)}%"></i></span><span class="sbar-n">${n(v||0)}</span></div>`).join('')}</div></div></div></div>
+  <div class="grid g2" style="margin-top:14px">${card('Marcas más publicadas','market activo',listBars(s.marcas,'m','n'))}${card('Ciudades','de dónde son los usuarios',listBars(s.ciudades,'c','n'))}</div>
+  ${card('Lo más visto','publicaciones activas con más vistas',listBars(s.mas_vistos,'t','v'))}
+  <div class="muted" style="font-size:11.5px;text-align:right">ingresos históricos ${usd(ing.monto_total||0)} · actualizado ${ago(s.generado)}</div>`;
+};
+
+/* ── HUB ── */
+RENDER.shub=async(tok)=>{
+  const V=$('#view');
+  const{data,error}=await sb.from('postulaciones').select('tipo,estado,created_at').order('created_at',{ascending:false}).limit(500); if(stale(tok)) return;
+  const all=data||[]; const c=(f)=>all.filter(f).length; const d30=Date.now()-30*DAY;
+  V.innerHTML=(error?sqlHint(error):'')+`<div class="grid g4">${kpiCard('Postulaciones',n(all.length),`${n(c(p=>+new Date(p.created_at)>d30))} en 30 días`,'msg')}${kpiCard('Nuevas',n(c(p=>p.estado==='nueva')),'sin revisar','flag')}${kpiCard('Equipo',n(c(p=>p.tipo!=='certificacion')),'quieren trabajar en Ruedda','users')}${kpiCard('Certificación',n(c(p=>p.tipo==='certificacion')),'talleres, fotógrafos y aliados','kyc')}</div>
+  <div class="grid g2" style="margin-top:14px">${card('Postulaciones recientes','',`${all.slice(0,6).map(p=>`<div class="mini" style="margin-bottom:8px"><span>${esc(p.tipo==='certificacion'?'Certificación':'Equipo')} · ${ago(p.created_at)}</span><b>${esc(p.estado||'')}</b></div>`).join('')||empty('Sin postulaciones')}<a class="btn btn-primary" href="#/postulaciones" style="margin-top:6px">Ver y gestionar postulaciones</a>`)}
+  ${card('La web del Hub','ruedda.app/hub',`<div style="display:flex;flex-direction:column;gap:8px">${[['Ruedda Hub','https://www.ruedda.app/hub/'],['RueddaCarreras (formulario)','https://www.ruedda.app/hub/#carreras'],['Versión en inglés','https://www.ruedda.app/hub/en/']].map(([t,u])=>`<a class="mini" href="${u}" target="_blank" rel="noopener"><span>${t}</span><b>abrir ↗</b></a>`).join('')}</div>`)}</div>`;
+};
+
+/* ── REPUESTOS ── */
+const RST={pending:['Pendiente','o'],approved:['Aprobada','g'],licensed:['Licenciada','g'],suspended:['Suspendida','r'],rejected:['Rechazada','r'],
+  draft:['Borrador',''],pending_review:['Por revisar','o'],published:['Publicado','g'],paused:['Pausado',''],
+  created:['Creado',''],pending_payment:['Esperando pago','o'],whatsapp:['WhatsApp','b'],paid:['Pagado','g'],packing:['Empacando','b'],shipped:['Enviado','b'],fulfilled:['Entregado','g'],closed:['Cerrado',''],cancelled:['Cancelado','r']};
+const rpill=s=>{ const x=RST[s]||[s||'—','']; return `<span class="pill ${x[1]}">${esc(x[0])}</span>`; };
+const repErr=(e)=>`<div class="notice">No se pudo leer Repuestos${e?': '+esc(e.message||e):''}. Si es la primera vez, corre el SQL de socios (te da el rol de administrador de Repuestos).</div>`;
+async function rAct(promise,okMsg,again){ const r=await promise; if(r.error){ toast('error: '+r.error.message,true); return false; } toast(okMsg); socioLog('repuestos',okMsg); refreshBadges(); if(again) RENDER[again](++VIEW_TOKEN); return true; }
+
+RENDER.rres=async(tok)=>{
+  const V=$('#view'); V.innerHTML='<div class="grid g4">'+'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div></div>'.repeat(8)+'</div>';
+  const [k,live,top,miss]=await Promise.all([SR().rpc('admin_kpis'),SR().rpc('live_stats'),SR().rpc('top_searches',{p_days:7,p_limit:8}),SR().rpc('search_misses',{p_days:30})]);
+  if(stale(tok)) return; if(k.error){ V.innerHTML=repErr(k.error); return; }
+  const K=k.data||{}, L=live.data||{};
+  V.innerHTML=`<div class="grid g4">${kpiCard('GMV',usd(K.gmv),'total vendido en pedidos','pay')}${kpiCard('Cobrado',usd(K.cobrado),'pagados, en camino o entregados','pay')}${kpiCard('Comisión Ruedda',usd(K.comision),'según la comisión configurada','offer')}${kpiCard('Pedidos',n(K.ordenes),`ticket promedio ${usd(K.ticket)}`,'car')}</div>
+  <div class="grid g4" style="margin-top:14px">${kpiCard('Productos publicados',n(K.productos),`${n(K.sin_stock||0)} sin stock`,'offer')}${kpiCard('Tiendas activas',n(K.tiendas),`${n(K.pend_tiendas||0)} por aprobar`,'car')}${kpiCard('Unidades vendidas',n(K.unidades),`${n(K.favoritos||0)} favoritos guardados`,'act')}${kpiCard('Por atender',n((K.pend_productos||0)+(K.pend_tiendas||0)+(K.pend_marcas||0)+(K.pend_servicios||0)+(K.pend_import||0)),`${n(K.pend_productos||0)} productos · ${n(K.pend_marcas||0)} marcas · ${n(K.pend_import||0)} importaciones`,'flag')}</div>
+  <div class="grid g2" style="margin-top:14px">${card('Lo más buscado','últimos 7 días',listBars((top.data||[]).map(x=>({q:x.query||x.q||x.term||'',c:x.count||x.n||x.total||0})),'q','c'))}${card('Búsquedas sin resultado','30 días · demanda que nadie está cubriendo',listBars((miss.data||[]).slice(0,10).map(x=>({q:x.query||x.q||x.term||'',c:x.count||x.n||x.total||0})),'q','c'))}</div>
+  ${L&&Object.keys(L).length?card('En vivo ahora','',`<div class="grid g4" style="gap:10px">${Object.entries(L).filter(([,v])=>typeof v!=='object').slice(0,8).map(([a,b])=>`<div class="mini"><span>${esc(a.replace(/_/g,' '))}</span><b>${esc(String(b))}</b></div>`).join('')}</div>`):''}
+  <div style="display:flex;gap:8px;justify-content:flex-end"><a class="btn btn-soft" href="https://www.ruedda.app/repuestos" target="_blank" rel="noopener">Abrir Ruedda Repuestos ↗</a></div>`;
+};
+
+let RT_F='todas';
+RENDER.rtiendas=async(tok)=>{
+  const V=$('#view');
+  const{data,error}=await SR().from('stores').select('id,name,slug,rif,whatsapp,status,verified,logo_url,created_at').order('created_at',{ascending:false}).limit(500); if(stale(tok)) return;
+  if(error){ V.innerHTML=repErr(error); return; }
+  const rows=(data||[]).filter(s=>RT_F==='todas'?true:s.status===RT_F);
+  V.innerHTML=`<div class="toolbar"><div class="seg">${[['todas','Todas'],['pending','Por aprobar'],['approved','Aprobadas'],['licensed','Licenciadas'],['suspended','Suspendidas']].map(([k2,t])=>`<button class="${RT_F===k2?'on':''}" onclick="RT_F='${k2}';RENDER.rtiendas(++VIEW_TOKEN)">${t} <span class="muted">${k2==='todas'?(data||[]).length:(data||[]).filter(s=>s.status===k2).length}</span></button>`).join('')}</div></div>
+  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Tienda</th><th>RIF</th><th>Estado</th><th>Verificada</th><th>Alta</th><th class="r">Acciones</th></tr></thead><tbody>${rows.map(s=>`<tr><td><div class="who">${s.logo_url?`<img src="${esc(tImg(s.logo_url,80))}" style="width:30px;height:30px;border-radius:8px;object-fit:cover">`:`<div class="av">${initials(s.name)}</div>`}<div><div class="n">${esc(s.name||'—')}</div><div class="m">${s.slug?'/'+esc(s.slug):''}</div></div></div></td><td class="muted">${esc(s.rif||'—')}</td><td>${rpill(s.status)}</td><td>${s.verified?'<span class="pill g">sí</span>':'<span class="pill">no</span>'}</td><td class="muted">${ago(s.created_at)}</td>
+  <td class="r" style="white-space:nowrap">${s.status!=='approved'&&s.status!=='licensed'?`<button class="btn btn-green" style="height:30px" onclick="rAct(SR().rpc('admin_set_store_status',{p_id:'${s.id}',p_status:'approved'}),'tienda aprobada','rtiendas')">Aprobar</button> `:''}${s.status!=='suspended'?`<button class="btn btn-soft" style="height:30px" onclick="if(confirm('¿Suspender esta tienda?'))rAct(SR().rpc('admin_set_store_status',{p_id:'${s.id}',p_status:'suspended'}),'tienda suspendida','rtiendas')">Suspender</button> `:''}<button class="btn btn-soft" style="height:30px" onclick="rAct(SR().rpc('admin_set_store_verified',{p_id:'${s.id}',p_value:${!s.verified}}),'${s.verified?'verificación quitada':'tienda verificada'}','rtiendas')">${s.verified?'Quitar sello':'Verificar'}</button></td></tr>`).join('')||`<tr><td colspan="6">${empty('Sin tiendas en este filtro')}</td></tr>`}</tbody></table></div>`;
+};
+
+let RP_F='pending_review';
+RENDER.rprod=async(tok)=>{
+  const V=$('#view');
+  let q=SR().from('products').select('id,name,brand,model,part_number,price_usd,stock,status,images,store_id,reject_reason,created_at').order('created_at',{ascending:false}).limit(300);
+  if(RP_F!=='todos') q=q.eq('status',RP_F);
+  const [{data,error},st]=await Promise.all([q,SR().from('stores').select('id,name')]); if(stale(tok)) return;
+  if(error){ V.innerHTML=repErr(error); return; }
+  const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name]));
+  V.innerHTML=`<div class="toolbar"><div class="seg">${[['pending_review','Por revisar'],['published','Publicados'],['paused','Pausados'],['rejected','Rechazados'],['todos','Todos']].map(([k2,t])=>`<button class="${RP_F===k2?'on':''}" onclick="RP_F='${k2}';RENDER.rprod(++VIEW_TOKEN)">${t}</button>`).join('')}</div></div>
+  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Producto</th><th>Tienda</th><th>Precio</th><th>Stock</th><th>Estado</th><th class="r">Acciones</th></tr></thead><tbody>${(data||[]).map(p=>{const img=Array.isArray(p.images)&&p.images[0]?(p.images[0].url||p.images[0]):null;return `<tr><td><div class="who">${img?`<img src="${esc(tImg(String(img),80))}" style="width:34px;height:34px;border-radius:8px;object-fit:cover">`:`<div class="av">${initials(p.name)}</div>`}<div><div class="n">${esc(p.name||'—')}</div><div class="m">${esc([p.brand,p.model,p.part_number].filter(Boolean).join(' · '))}</div></div></div></td><td class="muted">${esc(sm[p.store_id]||'—')}</td><td>${usd(p.price_usd||0)}</td><td>${n(p.stock||0)}</td><td>${rpill(p.status)}${p.reject_reason?`<div class="m muted" style="font-size:11px;margin-top:3px">${esc(p.reject_reason)}</div>`:''}</td>
+  <td class="r" style="white-space:nowrap">${p.status!=='published'?`<button class="btn btn-green" style="height:30px" onclick="rAct(SR().rpc('admin_set_product_status',{p_id:'${p.id}',p_status:'published',p_motivo:null}),'producto publicado','rprod')">Publicar</button> `:''}${p.status==='published'?`<button class="btn btn-soft" style="height:30px" onclick="rAct(SR().rpc('admin_set_product_status',{p_id:'${p.id}',p_status:'paused',p_motivo:null}),'producto pausado','rprod')">Pausar</button> `:''}${p.status!=='rejected'?`<button class="btn btn-red" style="height:30px" onclick="rProdReject('${p.id}')">Rechazar</button>`:''}</td></tr>`;}).join('')||`<tr><td colspan="6">${empty('Nada en este filtro')}</td></tr>`}</tbody></table></div>`;
+};
+function rProdReject(id){ const m=prompt('Motivo del rechazo (lo ve la tienda):'); if(m===null) return; rAct(SR().rpc('admin_set_product_status',{p_id:id,p_status:'rejected',p_motivo:m||null}),'producto rechazado','rprod'); }
+
+let RO_F='activos';
+RENDER.rped=async(tok)=>{
+  const V=$('#view');
+  const [{data,error},st]=await Promise.all([SR().from('orders').select('id,store_id,total_usd,status,channel,tracking_code,guest_city,created_at,invoices(code),order_items(qty)').order('created_at',{ascending:false}).limit(300),SR().from('stores').select('id,name')]); if(stale(tok)) return;
+  if(error){ V.innerHTML=repErr(error); return; }
+  const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name]));
+  const act=['created','pending_payment','whatsapp','paid','packing','shipped'];
+  const rows=(data||[]).filter(o=>RO_F==='todos'?true:RO_F==='activos'?act.includes(o.status):o.status===RO_F);
+  const opts=['pending_payment','paid','packing','shipped','fulfilled','closed','cancelled'];
+  V.innerHTML=`<div class="toolbar"><div class="seg">${[['activos','Activos'],['fulfilled','Entregados'],['cancelled','Cancelados'],['todos','Todos']].map(([k2,t])=>`<button class="${RO_F===k2?'on':''}" onclick="RO_F='${k2}';RENDER.rped(++VIEW_TOKEN)">${t}</button>`).join('')}</div><button class="btn btn-soft" onclick="rExportOrders()">${ico('pay',14)} Exportar pedidos</button></div>
+  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Factura</th><th>Tienda</th><th>Total</th><th>Unid.</th><th>Canal</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>${rows.map(o=>`<tr><td style="font-weight:600">${esc((o.invoices&&(o.invoices[0]||o.invoices).code)||String(o.id).slice(0,8))}</td><td class="muted">${esc(sm[o.store_id]||'—')}</td><td>${usd(o.total_usd||0)}</td><td>${n((o.order_items||[]).reduce((a,b)=>a+(b.qty||0),0))}</td><td class="muted">${o.channel==='whatsapp'?'WhatsApp':'Pago en línea'}</td><td class="muted">${ago(o.created_at)}</td>
+  <td><select class="input" style="height:30px;max-width:150px" onchange="rOrderStatus('${o.id}',this.value)">${[o.status].concat(opts.filter(x=>x!==o.status)).map(x=>`<option value="${x}">${esc((RST[x]||[x])[0])}</option>`).join('')}</select>${o.tracking_code?`<div class="m muted" style="font-size:11px;margin-top:3px">guía ${esc(o.tracking_code)}</div>`:''}</td></tr>`).join('')||`<tr><td colspan="7">${empty('Sin pedidos en este filtro')}</td></tr>`}</tbody></table></div>`;
+};
+function rOrderStatus(id,st){ let tr=null; if(st==='shipped'){ tr=prompt('Número de guía (opcional):')||null; } rAct(SR().rpc('admin_set_order_status',{p_id:id,p_status:st,p_tracking:tr}),'pedido actualizado','rped'); }
+async function rExportOrders(){ const r=await SR().rpc('admin_export_orders'); if(r.error) return toast('error: '+r.error.message,true); const d=r.data; const rows=Array.isArray(d)?d:(d&&d.rows)||[]; if(typeof d==='string'){ dl(d); return; } if(!rows.length) return toast('no hay pedidos para exportar'); const cols=Object.keys(rows[0]); dl([cols.join(',')].concat(rows.map(x=>cols.map(c=>`"${String(x[c]==null?'':x[c]).replace(/"/g,'""')}"`).join(','))).join('\n'));
+  function dl(csv){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'})); a.download='repuestos-pedidos-'+new Date().toISOString().slice(0,10)+'.csv'; a.click(); } }
+
+RENDER.rmec=async(tok)=>{
+  const V=$('#view');
+  const{data,error}=await SR().from('mechanics').select('*').order('created_at',{ascending:false}).limit(300); if(stale(tok)) return;
+  if(error){ V.innerHTML=repErr(error); return; }
+  const stages=['borrador','verificacion','verificado','avalado','maestro','suspendido'];
+  V.innerHTML=`<div class="grid g4" style="margin-bottom:14px">${stages.slice(0,4).map(s2=>kpiCard(s2.charAt(0).toUpperCase()+s2.slice(1),n((data||[]).filter(m=>(m.stage||'borrador')===s2).length),'mecánicos','users')).join('')}</div>
+  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Mecánico</th><th>Especialidad</th><th>Zona</th><th>Calificación</th><th>Etapa RTA</th></tr></thead><tbody>${(data||[]).map(m=>`<tr><td><div class="who"><div class="av">${initials(m.name)}</div><div><div class="n">${esc(m.name||'—')}</div><div class="m">${m.verified?'verificado':''}${m.authorized?' · autorizado':''}</div></div></div></td><td class="muted">${esc(m.specialty||'—')}</td><td class="muted">${esc(m.zone||'—')}</td><td>${m.rating?Number(m.rating).toFixed(1)+' ★':'—'}</td>
+  <td><select class="input" style="height:30px;max-width:150px" onchange="rAct(SR().rpc('admin_set_mechanic_stage',{p_mechanic_id:'${m.id}',p_stage:this.value}),'etapa actualizada','rmec')">${[m.stage||'borrador'].concat(stages.filter(x=>x!==(m.stage||'borrador'))).map(x=>`<option value="${x}">${x}</option>`).join('')}</select></td></tr>`).join('')||`<tr><td colspan="5">${empty('Sin mecánicos registrados')}</td></tr>`}</tbody></table></div>`;
+};
+
+RENDER.rmar=async(tok)=>{
+  const V=$('#view');
+  const [ub,imp,miss]=await Promise.all([SR().from('unlisted_brands').select('id,name,kind,category,status,created_at').order('created_at',{ascending:false}).limit(200),SR().from('import_requests').select('id,part_query,notes,status,created_at').order('created_at',{ascending:false}).limit(100),SR().rpc('search_misses',{p_days:30})]); if(stale(tok)) return;
+  if(ub.error){ V.innerHTML=repErr(ub.error); return; }
+  const pend=(ub.data||[]).filter(b=>b.status==='pending');
+  V.innerHTML=card('Marcas por aprobar',`${pend.length} pendientes · las proponen las tiendas al publicar`,pend.length?`<div class="tbl-wrap"><table class="tbl"><tbody>${pend.map(b=>`<tr><td style="font-weight:600">${esc(b.name)}</td><td class="muted">${esc([b.kind,b.category].filter(Boolean).join(' · '))}</td><td class="muted">${ago(b.created_at)}</td><td class="r" style="white-space:nowrap"><button class="btn btn-green" style="height:30px" onclick="rAct(SR().rpc('admin_resolve_unlisted_brand',{p_id:'${b.id}',p_approve:true}),'marca aprobada','rmar')">Aprobar</button> <button class="btn btn-red" style="height:30px" onclick="rAct(SR().rpc('admin_resolve_unlisted_brand',{p_id:'${b.id}',p_approve:false}),'marca rechazada','rmar')">Rechazar</button></td></tr>`).join('')}</tbody></table></div>`:empty('Nada pendiente'))
+  +`<div class="grid g2">${card('Pedidos de importación','piezas que alguien pidió traer',(imp.data||[]).length?`<div class="tbl-wrap"><table class="tbl"><tbody>${(imp.data||[]).slice(0,20).map(r=>`<tr><td><div class="n" style="font-weight:600">${esc(r.part_query||'—')}</div><div class="m muted" style="font-size:11.5px">${esc(r.notes||'')}</div></td><td>${rpill(r.status==='pending'?'pending':r.status==='quoted'?'approved':'closed')}</td><td class="muted">${ago(r.created_at)}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin pedidos de importación'))}
+  ${card('Búsquedas sin resultado','30 días',listBars((miss.data||[]).slice(0,12).map(x=>({q:x.query||x.q||x.term||'',c:x.count||x.n||x.total||0})),'q','c'))}</div>`;
+};
+
+/* ── FLOTAIQ · ACADEMY · MI WEB (se conectan en las próximas fases) ── */
+const socioSoon=(t,txt,items)=>`<div class="socio-soon"><div class="socio-soon-ic">${ico('act',22)}</div><h3>${t}</h3><p>${txt}</p>${items?`<ul>${items.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}</div>`;
+RENDER.sflota=()=>{ $('#view').innerHTML=socioSoon('FlotaIQ se conecta en la próxima fase','FlotaIQ vive en su propio proyecto. Apenas tengamos la conexión de solo lectura, aquí verás tus flotas, vehículos, valoraciones y uso en tiempo real.',['Flotas y vehículos activos','Valoraciones generadas','Uso por cliente y por mes','Ingresos de la plataforma']); };
+RENDER.sacad=()=>{ $('#view').innerHTML=socioSoon('Ruedda Academy','Cuando la plataforma de Academy tenga su base de datos, aquí verás alumnos, cursos, inscripciones, avance y certificados emitidos.',['Alumnos e inscripciones','Cursos y avance','Certificados emitidos','Ingresos por curso']); };
+RENDER.sweb=()=>{ $('#view').innerHTML=socioSoon('Tu web · rubencarrillob2b.com','En la próxima fase podrás cambiar desde aquí las fotos de la galería y los textos de cada sección, y se verán en tu web al instante.',['Galería: subir, ordenar y quitar fotos (se suben en WebP)','Textos: bio, misión, pilares, proceso, FlotaIQ, alianza y contacto','Vista previa antes de publicar','Respaldo automático: si algo falla, la web muestra su contenido actual'])+`<div style="text-align:center;margin-top:14px"><a class="btn btn-soft" href="https://www.rubencarrillob2b.com" target="_blank" rel="noopener">Abrir mi web ↗</a></div>`; };
+
+/* ── botón de Ruedda Office (esquina, animado, con presencia en vivo) ── */
+function socioOfficeBtn(){
+  if(document.getElementById('socio-office')) return;
+  const a=document.createElement('a'); a.id='socio-office'; a.href='/office'; a.target='_blank'; a.rel='noopener';
+  a.innerHTML=`<span class="so-orb"><i></i><i></i><i></i></span><span class="so-t"><b>Ruedda Office</b><small id="so-online">entrar a la oficina</small></span><span class="so-go"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>`;
+  document.body.appendChild(a);
+  const upd=async()=>{ try{ const r=await sb.from('office_positions').select('user_id,updated_at').gte('updated_at',new Date(Date.now()-45000).toISOString()); if(!r.error){ const c=(r.data||[]).length; $('#so-online').textContent=c?`${c} ${c===1?'persona':'personas'} en la oficina`:'entrar a la oficina'; a.classList.toggle('live',c>0); } }catch(e){} };
+  upd(); setInterval(upd,30000);
+}
+
 </script>
 </body>
 </html>
