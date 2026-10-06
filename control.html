@@ -539,6 +539,22 @@ let VIEWS=[
   {id:'chatglobal',t:'Chat global',i:'msg',s:'Conduciendo el mercado · modera los mensajes de la comunidad'},
   {id:'sugerencias',t:'Sugerencias',i:'flag',s:'Buzón de sugerencias y reportes de bugs',b:'sug'},
   {id:'postulaciones',t:'Postulaciones',i:'msg',s:'RueddaCarreras · equipo y certificación (desde ruedda.app/hub)'},
+  {h:'Ruedda Hub'},
+  {id:'shub',t:'Hub',i:'home',s:'RueddaCarreras, postulaciones y la web del Hub'},
+  {h:'Ruedda Repuestos'},
+  {id:'rres',t:'Resumen',i:'pay',s:'Ventas, pedidos y pendientes de Repuestos'},
+  {id:'rtiendas',t:'Vendedores',i:'car',s:'Tiendas: crear, aprobar, verificar y contactar',b:'rti'},
+  {id:'rprod',t:'Publicaciones',i:'offer',s:'Crear, editar, publicar, pausar y rechazar repuestos',b:'rpr'},
+  {id:'rped',t:'Ventas',i:'pay',s:'Pedidos, estados, guías de envío y contacto'},
+  {id:'rpagos',t:'Pagos',i:'kyc',s:'Comprobantes de pago por verificar',b:'rpg'},
+  {id:'rofertas',t:'Ofertas',i:'offer',s:'Ofertas de compradores y contraofertas de tiendas'},
+  {id:'rresenas',t:'Reseñas',i:'flag',s:'Calificaciones de productos y tiendas'},
+  {id:'rmec',t:'Mecánicos certificados',i:'users',s:'Red RTA: verificación, especialidades y avales'},
+  {id:'rsol',t:'Solicitudes de servicio',i:'msg',s:'Clientes que piden mecánico: asignar y dar seguimiento',b:'rsl'},
+  {id:'rinsp',t:'Inspecciones',i:'kyc',s:'Peritajes pedidos desde las publicaciones de Ruedda',b:'rin'},
+  {id:'rherr',t:'Alquiler de herramientas',i:'key',s:'Herramientas que las tiendas alquilan por día'},
+  {id:'rmar',t:'Marcas y búsquedas',i:'flag',s:'Marcas por aprobar, importaciones y demanda sin cubrir'},
+  {id:'ravalta',t:'AVALTA',i:'kyc',s:'Certificación del historial del vehículo · próximamente'},
   {h:'Precios'},
   {id:'criterio',t:'Criterio Ruedda',i:'bid',s:'Precio justo manual por publicación'},
   {id:'comparativa',t:'Comparativa',i:'act',s:'Histórico de precios por modelo'},
@@ -598,6 +614,16 @@ let BADGES={};
 const SUG_SEEN='ctrl_sug_seen';
 const sugSeenISO=()=>{ try{ return localStorage.getItem(SUG_SEEN)||new Date(Date.now()-7*DAY).toISOString(); }catch(e){ return new Date(Date.now()-7*DAY).toISOString(); } };
 const sugMarkSeen=()=>{ try{ localStorage.setItem(SUG_SEEN,new Date().toISOString()); }catch(e){} };
+
+// contadores de Repuestos (mismo cálculo en los dos paneles)
+function repBadgeQ(q,head){
+  if(typeof SR!=='function') return [0,0,0,0,0].map(x=>Promise.resolve(x));
+  return [q(SR().from('stores').select('*',head).eq('status','pending')),
+    q(SR().from('products').select('*',head).eq('status','pending_review')),
+    q(SR().from('payment_confirmations').select('*',head).eq('status','pending')),
+    q(SR().from('solicitudes_rta').select('*',head).in('estado',['abierta','presupuestada']).is('asignado_mechanic_id',null)),
+    q(sb.from('partner_leads').select('*',head).ilike('motivo','peritaje%').eq('estado','pendiente'))];
+}
 async function refreshBadges(){
   const [mod1,mod2,kyc,pay,acc,rep,sol,sug]=await Promise.all([
     cnt('listings',q=>q.in('estado',['revision','pendiente_pago'])),
@@ -612,6 +638,7 @@ async function refreshBadges(){
   if(rep&&rep.error) window._repMissing=true; // tabla aún no creada: no se vuelve a consultar hasta recargar
   const v=x=>typeof x==='number'?x:0;
   BADGES={mod:v(mod1)+v(mod2),kyc:v(kyc),pay:v(pay),acc:v(acc),rep:v(rep),sol:v(sol),sug:v(sug),repMissing:!!(rep&&rep.error)};
+  try{ const q=(p)=>p.then(r=>r&&!r.error?(r.count||0):0,()=>0); const [rti,rpr,rpg,rsl,rin]=await Promise.all(repBadgeQ(q,{count:'exact',head:true})); Object.assign(BADGES,{rti,rpr,rpg,rsl,rin}); }catch(e){}
   document.querySelectorAll('[data-b]').forEach(b=>{ const k=b.dataset.b; b.textContent=BADGES[k]; b.classList.toggle('zero',!BADGES[k]); });
   ntfCheck(BADGES).catch(()=>{});
   return BADGES;
@@ -628,7 +655,9 @@ const NTF_MAP={
   pay:['Pago por confirmar','pagos','pay'], acc:['Solicitud de acceso a subasta','accesos','key'],
   rep:['Nuevo reporte de usuario','reportes','flag'], sol:['Nueva solicitud','solicitudes','offer'],
   pos:['Nueva postulación','postulaciones','users'], bid:['Nueva puja','subastas','gavel'], sug:['Nueva sugerencia','sugerencias','flag'],
-  usr:['Usuario nuevo','usuarios','users']
+  usr:['Usuario nuevo','usuarios','users'],
+  rti:['Tienda por aprobar','rtiendas','car'], rpr:['Publicación por revisar','rprod','offer'], rpg:['Pago de Repuestos por verificar','rpagos','kyc'],
+  rsl:['Solicitud de mecánico','rsol','msg'], rin:['Inspección solicitada','rinsp','kyc']
 };
 let NTF=[], NTF_BASE=null, _ntfCtx=null;
 try{ NTF=JSON.parse(localStorage.getItem(NTF_KEY)||'[]'); }catch(e){ NTF=[]; }
@@ -1815,11 +1844,19 @@ const SOCIO_VIEWS=[
   {id:'postulaciones',t:'Postulaciones',i:'msg',s:'RueddaCarreras · equipo y certificación',b:'pos'},
   {h:'Ruedda Repuestos'},
   {id:'rres',t:'Resumen',i:'pay',s:'Ventas, pedidos y pendientes de Repuestos'},
-  {id:'rtiendas',t:'Tiendas',i:'car',s:'Aprobar, verificar y suspender tiendas',b:'rti'},
-  {id:'rprod',t:'Productos',i:'offer',s:'Revisión y estado de los productos',b:'rpr'},
-  {id:'rped',t:'Pedidos',i:'pay',s:'Estado, seguimiento y exportación'},
-  {id:'rmec',t:'Mecánicos y RTA',i:'users',s:'Red de talleres avalados'},
-  {id:'rmar',t:'Marcas y búsquedas',i:'flag',s:'Marcas por aprobar, demanda y búsquedas sin resultado'},
+  {id:'rtiendas',t:'Vendedores',i:'car',s:'Tiendas: crear, aprobar, verificar y contactar',b:'rti'},
+  {id:'rprod',t:'Publicaciones',i:'offer',s:'Crear, editar, publicar, pausar y rechazar repuestos',b:'rpr'},
+  {id:'rped',t:'Ventas',i:'pay',s:'Pedidos, estados, guías de envío y contacto'},
+  {id:'rpagos',t:'Pagos',i:'kyc',s:'Comprobantes de pago por verificar',b:'rpg'},
+  {id:'rofertas',t:'Ofertas',i:'offer',s:'Ofertas de compradores y contraofertas de tiendas'},
+  {id:'rresenas',t:'Reseñas',i:'flag',s:'Calificaciones de productos y tiendas'},
+  {h:'Servicios'},
+  {id:'rmec',t:'Mecánicos certificados',i:'users',s:'Red RTA: verificación, especialidades y avales'},
+  {id:'rsol',t:'Solicitudes de servicio',i:'msg',s:'Clientes que piden mecánico: asignar y dar seguimiento',b:'rsl'},
+  {id:'rinsp',t:'Inspecciones',i:'kyc',s:'Peritajes pedidos desde las publicaciones de Ruedda',b:'rin'},
+  {id:'rherr',t:'Alquiler de herramientas',i:'key',s:'Herramientas que las tiendas alquilan por día'},
+  {id:'rmar',t:'Marcas y búsquedas',i:'flag',s:'Marcas por aprobar, importaciones y demanda sin cubrir'},
+  {id:'ravalta',t:'AVALTA',i:'kyc',s:'Certificación del historial del vehículo · próximamente'},
   {h:'Más'},
   {id:'sflota',t:'FlotaIQ',i:'car',s:'Tu plataforma de flotas'},
   {id:'sacad',t:'Ruedda Academy',i:'kyc',s:'Formación y certificación'},
@@ -1859,16 +1896,15 @@ refreshBadges=async function(){
   if(!window.SOCIO) return _superRefresh();
   const rq=(p)=>p.then(r=>r&&!r.error?(r.count||0):0,()=>0);
   const head={count:'exact',head:true};
-  const [pos,sug,rep,rti,rpr]=await Promise.all([
+  const [pos,sug,rep,rti,rpr,rpg,rsl,rin]=await Promise.all([
     rq(sb.from('postulaciones').select('*',head).eq('estado','nueva')),
     rq(sb.from('sugerencias').select('*',head).gt('created_at',sugSeenISO())),
     rq(sb.from('user_reports').select('*',head).eq('estado','pendiente')),
-    rq(SR().from('stores').select('*',head).eq('status','pending')),
-    rq(SR().from('products').select('*',head).eq('status','pending_review'))
+    ...repBadgeQ(rq,head)
   ]);
-  BADGES={pos,sug,rep,rti,rpr};
+  BADGES={pos,sug,rep,rti,rpr,rpg,rsl,rin};
   document.querySelectorAll('[data-b]').forEach(b=>{ const k=b.dataset.b; b.textContent=BADGES[k]||0; b.classList.toggle('zero',!BADGES[k]); });
-  const now={pos,sug,rep,rti,rpr};
+  const now={pos,sug,rep,rti,rpr,rpg,rsl,rin};
   if(window._SOCIO_BASE) Object.keys(now).forEach(k=>{ if(now[k]>window._SOCIO_BASE[k]) ntfAdd(k,now[k]-window._SOCIO_BASE[k]); });
   window._SOCIO_BASE=now;
   return BADGES;
@@ -1963,57 +1999,339 @@ RENDER.rres=async(tok)=>{
   <div style="display:flex;gap:8px;justify-content:flex-end"><a class="btn btn-soft" href="https://www.ruedda.app/repuestos" target="_blank" rel="noopener">Abrir Ruedda Repuestos ↗</a></div>`;
 };
 
+/* ════════════ RUEDDA REPUESTOS · marketplace completo (2026-10-05) ════════════
+   Vendedores, publicaciones, ventas, pagos, red de mecánicos certificados (RTA),
+   solicitudes de servicio e inspecciones. Mismo módulo para el superadmin y el socio.
+   Escrituras: RPC admin_* o tablas con RLS de administrador de Repuestos. */
+const R_ORIG={euro:'Europeo',americano:'Americano',asiatico:'Asiático',pesada:'Pesada'};
+const R_STAGE={borrador:['Borrador',''],verificacion:['En verificación','o'],verificado:['Verificado','b'],avalado:['Avalado RTA','g'],maestro:['Maestro','k'],suspendido:['Suspendido','r']};
+const R_SOL={abierta:['Abierta','o'],presupuestada:['Presupuestada','b'],aprobada:['Aprobada','b'],en_camino:['En camino','b'],en_sitio:['En sitio','b'],en_proceso:['En proceso','b'],cerrada:['Cerrada','g'],cancelada:['Cancelada','r']};
+const R_PAY={pending:['Por verificar','o'],verified:['Verificado','g'],rejected:['Rechazado','r']};
+const rPill=(map,k)=>{ const x=map[k]||[k||'—','']; return `<span class="pill ${x[1]}">${esc(x[0])}</span>`; };
+const rWa=t=>{ const d=String(t||'').replace(/[^0-9]/g,''); if(d.length<7) return ''; return 'https://wa.me/'+(d.startsWith('58')?d:d.replace(/^0/,'58')); };
+const rWaBtn=(t,label,msg)=>{ const u=rWa(t); return u?`<a class="btn btn-soft" style="height:30px" href="${u}${msg?'?text='+encodeURIComponent(msg):''}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${ico('msg',14)} ${esc(label||'WhatsApp')}</a>`:''; };
+const rImg=p=>{ const i=Array.isArray(p.images)&&p.images[0]; return i?String(i.url||i):null; };
+const rThumb=(src,name)=>src?`<img src="${esc(tImg(src,96))}" alt="" style="width:36px;height:36px;border-radius:9px;object-fit:cover;flex-shrink:0">`:`<div class="av">${initials(name)}</div>`;
+const rQ={tienda:'',prod:'',ped:'',mec:'',sol:'',pago:''};
+const rSearch=(key,view,ph)=>`<input class="input" placeholder="${ph}" value="${esc(rQ[key])}" oninput="clearTimeout(window._rqT);const v=this.value;window._rqT=setTimeout(()=>{rQ['${key}']=v;RENDER.${view}(++VIEW_TOKEN,[],true)},200)">`;
+const rMatch=(q,...f)=>{ q=(q||'').trim().toLowerCase(); if(!q) return true; return f.some(x=>String(x||'').toLowerCase().includes(q)); };
+const rSeg=(cur,opts,setter)=>`<div class="seg">${opts.map(([k,t,c])=>`<button class="${cur===k?'on':''}" onclick="${setter}='${k}';RENDER[CUR](++VIEW_TOKEN)">${t}${c!=null?` <span class="muted">${c}</span>`:''}</button>`).join('')}</div>`;
+const rShell=(id,toolbar)=>`<div class="toolbar">${toolbar}</div><div class="card tbl-wrap" id="${id}"><div style="padding:18px;display:grid;gap:12px"><div class="skel" style="height:22px;width:40%"></div><div class="skel" style="height:44px"></div><div class="skel" style="height:44px"></div></div></div>`;
+const rF=(label,html,full)=>`<label class="field${full?' full':''}"><span>${label}</span>${html}</label>`;
+const rIn=(id,val,ph,type)=>`<input class="input" id="${id}" type="${type||'text'}" value="${esc(val==null?'':String(val))}" placeholder="${esc(ph||'')}">`;
+const rV=id=>{ const e=document.getElementById(id); return e?e.value.trim():''; };
+const rStoreMap=()=>rq('r:storelist',60000,()=>SR().from('stores').select('id,name,status,whatsapp,owner_id').order('name'));
+const rStatsQ=()=>rq('r:stats',60000,()=>Promise.all([SR().from('products').select('store_id,status').limit(10000),SR().from('orders').select('store_id,total_usd,status').limit(10000)]));
+const R_SOLD=['paid','packing','shipped','fulfilled','closed'];
+
+/* ── VENDEDORES ── */
 let RT_F='todas';
-RENDER.rtiendas=async(tok)=>{
+RENDER.rtiendas=async(tok,_,soft)=>{
   const V=$('#view');
-  const{data,error}=await rq('r:stores',20000,()=>SR().from('stores').select('id,name,slug,rif,whatsapp,status,verified,logo_url,created_at').order('created_at',{ascending:false}).limit(500)); if(stale(tok)) return;
-  if(error){ V.innerHTML=repErr(error); return; }
-  const rows=(data||[]).filter(s=>RT_F==='todas'?true:s.status===RT_F);
-  V.innerHTML=`<div class="toolbar"><div class="seg">${[['todas','Todas'],['pending','Por aprobar'],['approved','Aprobadas'],['licensed','Licenciadas'],['suspended','Suspendidas']].map(([k2,t])=>`<button class="${RT_F===k2?'on':''}" onclick="RT_F='${k2}';RENDER.rtiendas(++VIEW_TOKEN)">${t} <span class="muted">${k2==='todas'?(data||[]).length:(data||[]).filter(s=>s.status===k2).length}</span></button>`).join('')}</div></div>
-  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Tienda</th><th>RIF</th><th>Estado</th><th>Verificada</th><th>Alta</th><th class="r">Acciones</th></tr></thead><tbody>${rows.map(s=>`<tr><td><div class="who">${s.logo_url?`<img src="${esc(tImg(s.logo_url,80))}" style="width:30px;height:30px;border-radius:8px;object-fit:cover">`:`<div class="av">${initials(s.name)}</div>`}<div><div class="n">${esc(s.name||'—')}</div><div class="m">${s.slug?'/'+esc(s.slug):''}</div></div></div></td><td class="muted">${esc(s.rif||'—')}</td><td>${rpill(s.status)}</td><td>${s.verified?'<span class="pill g">sí</span>':'<span class="pill">no</span>'}</td><td class="muted">${ago(s.created_at)}</td>
-  <td class="r" style="white-space:nowrap">${s.status!=='approved'&&s.status!=='licensed'?`<button class="btn btn-green" style="height:30px" onclick="rAct(SR().rpc('admin_set_store_status',{p_id:'${s.id}',p_status:'approved'}),'tienda aprobada','rtiendas')">Aprobar</button> `:''}${s.status!=='suspended'?`<button class="btn btn-soft" style="height:30px" onclick="if(confirm('¿Suspender esta tienda?'))rAct(SR().rpc('admin_set_store_status',{p_id:'${s.id}',p_status:'suspended'}),'tienda suspendida','rtiendas')">Suspender</button> `:''}<button class="btn btn-soft" style="height:30px" onclick="rAct(SR().rpc('admin_set_store_verified',{p_id:'${s.id}',p_value:${!s.verified}}),'${s.verified?'verificación quitada':'tienda verificada'}','rtiendas')">${s.verified?'Quitar sello':'Verificar'}</button></td></tr>`).join('')||`<tr><td colspan="6">${empty('Sin tiendas en este filtro')}</td></tr>`}</tbody></table></div>`;
+  if(!soft||!$('#rl-t')) V.innerHTML=rShell('rl-t',`<span id="rt-seg"></span>${rSearch('tienda','rtiendas','Buscar tienda, RIF o WhatsApp')}<span style="flex:1"></span><button class="btn btn-primary" onclick="rStoreNew()">${ico('user',14)} Nueva tienda</button>`);
+  const [{data,error},stats]=await Promise.all([rq('r:storesall',20000,()=>SR().from('stores').select('*').order('created_at',{ascending:false}).limit(1000)),rStatsQ()]); if(stale(tok)) return;
+  if(error){ $('#rl-t').innerHTML=repErr(error); return; }
+  const all=data||[]; const [pr,od]=stats||[{},{}];
+  const pc={}, sales={}; (pr.data||[]).forEach(p=>{ pc[p.store_id]=(pc[p.store_id]||0)+(p.status==='published'?1:0); });
+  (od.data||[]).forEach(o=>{ if(R_SOLD.includes(o.status)) sales[o.store_id]=(sales[o.store_id]||0)+(+o.total_usd||0); });
+  const cnt=k=>all.filter(s=>s.status===k).length;
+  $('#rt-seg').innerHTML=rSeg(RT_F,[['todas','Todas',all.length],['pending','Por aprobar',cnt('pending')],['approved','Aprobadas',cnt('approved')],['licensed','Licenciadas',cnt('licensed')],['suspended','Suspendidas',cnt('suspended')]],'RT_F');
+  const rows=all.filter(s=>(RT_F==='todas'||s.status===RT_F)&&rMatch(rQ.tienda,s.name,s.rif,s.whatsapp,s.slug));
+  $('#rl-t').innerHTML=`<table class="tbl"><thead><tr><th>Tienda</th><th>RIF</th><th class="r">Publicaciones</th><th class="r">Ventas</th><th>Estado</th><th>Alta</th><th class="r">Contacto</th></tr></thead><tbody>${rows.map(s=>`<tr class="click" onclick="rStore('${s.id}')"><td><div class="who">${rThumb(s.logo_url,s.name)}<div><div class="n">${esc(s.name||'—')} ${s.verified?'<span class="pill b" style="height:18px;padding:0 6px">✓</span>':''}</div><div class="u">${s.owner_id?'con dueño':'administrada por Ruedda'}</div></div></div></td><td class="muted">${esc(s.rif||'—')}</td><td class="r">${n(pc[s.id]||0)}</td><td class="r">${usd(sales[s.id]||0)}</td><td>${rpill(s.status)}</td><td class="muted">${ago(s.created_at)}</td><td class="r">${rWaBtn(s.whatsapp,'Escribir')}</td></tr>`).join('')||`<tr><td colspan="7">${empty(rQ.tienda?'Sin resultados':'Sin tiendas en este filtro')}</td></tr>`}</tbody></table>`;
 };
+function rStoreNew(){
+  const ov=modal({title:'Nueva tienda',sub:'Queda publicada al instante si la creas aprobada',body:`<div class="form">${rF('Nombre de la tienda',rIn('ns-name','','Ej. Autopartes La 5ta'),true)}${rF('WhatsApp',rIn('ns-wa','','0414 000 0000'))}${rF('RIF',rIn('ns-rif','','J-00000000-0'))}${rF('Correo del dueño (opcional)',rIn('ns-own','','si tiene cuenta en Ruedda'),true)}${rF('Estado',`<select class="input" id="ns-st"><option value="approved">Aprobada</option><option value="licensed">Licenciada</option><option value="pending">Por aprobar</option></select>`,true)}</div>`,
+    foot:`<button class="btn btn-soft" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" id="ns-go">Crear tienda</button>`});
+  ov.querySelector('#ns-go').onclick=async e=>{ const name=rV('ns-name'); if(!name) return toast('el nombre es obligatorio',true); e.target.disabled=true;
+    const ok=await rAct(SR().rpc('admin_create_store',{p_name:name,p_whatsapp:rV('ns-wa')||null,p_rif:rV('ns-rif')||null,p_owner_email:rV('ns-own')||null,p_status:rV('ns-st')}),'tienda creada','rtiendas');
+    e.target.disabled=false; if(ok) closeModal(); };
+  setTimeout(()=>$('#ns-name')&&$('#ns-name').focus(),60);
+}
+async function rStore(id){
+  const ov=modal({title:'Tienda',wide:true,body:'<div class="skel" style="height:220px"></div>'});
+  const [{data:s,error},stats,po]=await Promise.all([SR().from('stores').select('*').eq('id',id).maybeSingle(),rStatsQ(),SR().from('products').select('id,name,price_usd,stock,status,images').eq('store_id',id).order('created_at',{ascending:false}).limit(8)]);
+  if(!ov.isConnected) return; if(error||!s){ ov.querySelector('.modal-b').innerHTML=empty('No se encontró la tienda',error&&error.message); return; }
+  const [pr,od]=stats||[{},{}]; const pubs=(pr.data||[]).filter(p=>p.store_id===id); const ords=(od.data||[]).filter(o=>o.store_id===id);
+  const sold=ords.filter(o=>R_SOLD.includes(o.status));
+  ov.querySelector('.modal-h h3').textContent=s.name||'Tienda';
+  ov.querySelector('.modal-b').innerHTML=`<div class="grid g4" style="margin-bottom:16px">${kpiCard('Publicadas',n(pubs.filter(p=>p.status==='published').length),`${n(pubs.length)} en total`)}${kpiCard('Ventas',usd(sold.reduce((a,b)=>a+(+b.total_usd||0),0)),`${n(sold.length)} pedidos cobrados`)}${kpiCard('Pedidos activos',n(ords.filter(o=>['created','pending_payment','whatsapp','paid','packing','shipped'].includes(o.status)).length),'por despachar o en camino')}${kpiCard('Estado',(RST[s.status]||[s.status])[0],s.verified?'verificada':'sin verificar')}</div>
+  <div class="form">${rF('Nombre',rIn('st-name',s.name),true)}${rF('WhatsApp',rIn('st-wa',s.whatsapp))}${rF('RIF',rIn('st-rif',s.rif))}</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 18px">${s.status!=='approved'?`<button class="btn btn-green" onclick="rStoreSt('${id}','approved')">Aprobar</button>`:''}${s.status!=='licensed'?`<button class="btn btn-soft" onclick="rStoreSt('${id}','licensed')">Licenciar</button>`:''}${s.status!=='suspended'?`<button class="btn btn-red" onclick="if(confirm('¿Suspender esta tienda? Sus publicaciones dejan de verse.'))rStoreSt('${id}','suspended')">Suspender</button>`:''}${s.status==='pending'?`<button class="btn btn-red" onclick="rStoreSt('${id}','rejected')">Rechazar</button>`:''}
+  <button class="btn btn-soft" onclick="rAct(SR().rpc('admin_set_store_verified',{p_id:'${id}',p_value:${!s.verified}}),'${s.verified?'verificación quitada':'tienda verificada'}','rtiendas').then(ok=>ok&&rStore('${id}'))">${s.verified?'Quitar verificación':'Marcar verificada ✓'}</button>
+  ${rWaBtn(s.whatsapp,'Escribir por WhatsApp','Hola '+(s.name||'')+', te escribimos de Ruedda Repuestos.')}<button class="btn btn-soft" onclick="closeModal();rQ.prod=${JSON.stringify(s.name||'').replace(/"/g,'&quot;')};RP_F='todos';location.hash='#/rprod'">Ver sus publicaciones</button></div>
+  ${card('Publicaciones recientes','',(po.data||[]).length?`<div class="tbl-wrap"><table class="tbl"><tbody>${po.data.map(p=>`<tr class="click" onclick="rProd('${p.id}')"><td><div class="who">${rThumb(rImg(p),p.name)}<div class="n">${esc(p.name)}</div></div></td><td>${usd(p.price_usd)}</td><td class="muted">${n(p.stock)} en stock</td><td>${rpill(p.status)}</td></tr>`).join('')}</tbody></table></div>`:empty('Todavía no publica productos'))}`;
+  ov.querySelector('.modal-f')?.remove();
+  const f=document.createElement('div'); f.className='modal-f'; f.innerHTML=`<button class="btn btn-soft" onclick="closeModal()">Cerrar</button><button class="btn btn-primary" id="st-save">Guardar cambios</button>`; ov.querySelector('.modal').appendChild(f);
+  f.querySelector('#st-save').onclick=async e=>{ const name=rV('st-name'); if(!name) return toast('el nombre es obligatorio',true); e.target.disabled=true;
+    const ok=await rAct(SR().from('stores').update({name,whatsapp:rV('st-wa')||null,rif:rV('st-rif')||null,updated_at:new Date().toISOString()}).eq('id',id),'tienda actualizada','rtiendas'); e.target.disabled=false; if(ok) closeModal(); };
+}
+const rStoreSt=(id,st)=>rAct(SR().rpc('admin_set_store_status',{p_id:id,p_status:st}),'tienda: '+(RST[st]||[st])[0].toLowerCase(),'rtiendas').then(ok=>ok&&rStore(id));
 
+/* ── PUBLICACIONES ── */
 let RP_F='pending_review';
-RENDER.rprod=async(tok)=>{
+RENDER.rprod=async(tok,_,soft)=>{
   const V=$('#view');
-  let q=SR().from('products').select('id,name,brand,model,part_number,price_usd,stock,status,images,store_id,reject_reason,created_at').order('created_at',{ascending:false}).limit(300);
-  if(RP_F!=='todos') q=q.eq('status',RP_F);
-  const [{data,error},st]=await Promise.all([rq('r:prod:'+RP_F,20000,()=>q),rq('r:storenames',120000,()=>SR().from('stores').select('id,name'))]); if(stale(tok)) return;
-  if(error){ V.innerHTML=repErr(error); return; }
-  const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name]));
-  V.innerHTML=`<div class="toolbar"><div class="seg">${[['pending_review','Por revisar'],['published','Publicados'],['paused','Pausados'],['rejected','Rechazados'],['todos','Todos']].map(([k2,t])=>`<button class="${RP_F===k2?'on':''}" onclick="RP_F='${k2}';RENDER.rprod(++VIEW_TOKEN)">${t}</button>`).join('')}</div></div>
-  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Producto</th><th>Tienda</th><th>Precio</th><th>Stock</th><th>Estado</th><th class="r">Acciones</th></tr></thead><tbody>${(data||[]).map(p=>{const img=Array.isArray(p.images)&&p.images[0]?(p.images[0].url||p.images[0]):null;return `<tr><td><div class="who">${img?`<img src="${esc(tImg(String(img),80))}" style="width:34px;height:34px;border-radius:8px;object-fit:cover">`:`<div class="av">${initials(p.name)}</div>`}<div><div class="n">${esc(p.name||'—')}</div><div class="m">${esc([p.brand,p.model,p.part_number].filter(Boolean).join(' · '))}</div></div></div></td><td class="muted">${esc(sm[p.store_id]||'—')}</td><td>${usd(p.price_usd||0)}</td><td>${n(p.stock||0)}</td><td>${rpill(p.status)}${p.reject_reason?`<div class="m muted" style="font-size:11px;margin-top:3px">${esc(p.reject_reason)}</div>`:''}</td>
-  <td class="r" style="white-space:nowrap">${p.status!=='published'?`<button class="btn btn-green" style="height:30px" onclick="rAct(SR().rpc('admin_set_product_status',{p_id:'${p.id}',p_status:'published',p_motivo:null}),'producto publicado','rprod')">Publicar</button> `:''}${p.status==='published'?`<button class="btn btn-soft" style="height:30px" onclick="rAct(SR().rpc('admin_set_product_status',{p_id:'${p.id}',p_status:'paused',p_motivo:null}),'producto pausado','rprod')">Pausar</button> `:''}${p.status!=='rejected'?`<button class="btn btn-red" style="height:30px" onclick="rProdReject('${p.id}')">Rechazar</button>`:''}</td></tr>`;}).join('')||`<tr><td colspan="6">${empty('Nada en este filtro')}</td></tr>`}</tbody></table></div>`;
+  if(!soft||!$('#rl-p')) V.innerHTML=rShell('rl-p',`<span id="rp-seg"></span>${rSearch('prod','rprod','Buscar repuesto, marca, código o tienda')}<span style="flex:1"></span><button class="btn btn-primary" onclick="rProd(null)">${ico('offer',14)} Nueva publicación</button>`);
+  const [{data,error},st]=await Promise.all([rq('r:prods',20000,()=>SR().from('products').select('id,name,brand,model,part_number,medida,price_usd,stock,status,images,store_id,reject_reason,created_at').order('created_at',{ascending:false}).limit(2000)),rStoreMap()]); if(stale(tok)) return;
+  if(error){ $('#rl-p').innerHTML=repErr(error); return; }
+  const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name])); const all=data||[]; const c=k=>all.filter(p=>p.status===k).length;
+  $('#rp-seg').innerHTML=rSeg(RP_F,[['pending_review','Por revisar',c('pending_review')],['published','Publicadas',c('published')],['paused','Pausadas',c('paused')],['rejected','Rechazadas',c('rejected')],['sinstock','Sin stock',all.filter(p=>p.status==='published'&&!p.stock).length],['todos','Todas',all.length]],'RP_F');
+  const rows=all.filter(p=>(RP_F==='todos'||(RP_F==='sinstock'?p.status==='published'&&!p.stock:p.status===RP_F))&&rMatch(rQ.prod,p.name,p.brand,p.model,p.part_number,sm[p.store_id])).slice(0,400);
+  $('#rl-p').innerHTML=`<table class="tbl"><thead><tr><th>Publicación</th><th>Tienda</th><th class="r">Precio</th><th class="r">Stock</th><th>Estado</th><th class="r">Acciones</th></tr></thead><tbody>${rows.map(p=>`<tr class="click" onclick="rProd('${p.id}')"><td><div class="who">${rThumb(rImg(p),p.name)}<div><div class="n">${esc(p.name||'—')}</div><div class="u">${esc([p.brand,p.model,p.part_number].filter(Boolean).join(' · '))}</div></div></div></td><td class="muted">${esc(sm[p.store_id]||'—')}</td><td class="r">${usd(p.price_usd)}</td><td class="r" style="${p.stock?'':'color:var(--red);font-weight:600'}">${n(p.stock||0)}</td><td>${rpill(p.status)}${p.reject_reason&&p.status==='rejected'?`<div class="u" style="font-size:11px;margin-top:3px;max-width:180px">${esc(p.reject_reason)}</div>`:''}</td>
+  <td class="r" style="white-space:nowrap" onclick="event.stopPropagation()">${p.status!=='published'?`<button class="btn btn-green" style="height:30px" onclick="rProdSt('${p.id}','published')">Publicar</button> `:`<button class="btn btn-soft" style="height:30px" onclick="rProdSt('${p.id}','paused')">Pausar</button> `}${p.status!=='rejected'?`<button class="btn btn-red" style="height:30px" onclick="rProdReject('${p.id}')">Rechazar</button>`:''}</td></tr>`).join('')||`<tr><td colspan="6">${empty(rQ.prod?'Sin resultados':'Nada en este filtro')}</td></tr>`}</tbody></table>`;
 };
-function rProdReject(id){ const m=prompt('Motivo del rechazo (lo ve la tienda):'); if(m===null) return; rAct(SR().rpc('admin_set_product_status',{p_id:id,p_status:'rejected',p_motivo:m||null}),'producto rechazado','rprod'); }
+const rProdSt=(id,st)=>rAct(SR().rpc('admin_set_product_status',{p_id:id,p_status:st,p_motivo:null}),st==='published'?'publicación activa':'publicación pausada','rprod');
+function rProdReject(id){ const m=prompt('Motivo del rechazo (lo ve la tienda):'); if(m===null) return; rAct(SR().rpc('admin_set_product_status',{p_id:id,p_status:'rejected',p_motivo:m||null}),'publicación rechazada','rprod'); }
+async function rProd(id){
+  const ov=modal({title:id?'Editar publicación':'Nueva publicación',sub:id?'':'Se publica en ruedda.app/repuestos',wide:true,body:'<div class="skel" style="height:260px"></div>'});
+  const [pr,st,cats]=await Promise.all([id?SR().from('products').select('*').eq('id',id).maybeSingle():Promise.resolve({data:{}}),rStoreMap(),rq('r:cats',600000,()=>SR().from('part_categories').select('id,name').eq('active',true).order('sort'))]);
+  if(!ov.isConnected) return; const p=pr.data||{}; if(id&&!pr.data){ ov.querySelector('.modal-b').innerHTML=empty('No se encontró la publicación'); return; }
+  window._rpImgs=Array.isArray(p.images)?p.images.slice():[];
+  const stores=(st.data||[]).filter(s=>s.status!=='rejected');
+  ov.querySelector('.modal-b').innerHTML=`<div class="form">
+    ${rF('Tienda',`<select class="input" id="pp-store">${stores.map(s=>`<option value="${s.id}" ${s.id===p.store_id?'selected':''}>${esc(s.name)}${s.status&&s.status!=='approved'&&s.status!=='licensed'?' ('+String((RST[s.status]||[s.status])[0]).toLowerCase()+')':''}</option>`).join('')}</select>`,true)}
+    ${rF('Nombre del repuesto',rIn('pp-name',p.name,'Ej. Pastillas de freno delanteras'),true)}
+    ${rF('Marca del repuesto',rIn('pp-brand',p.brand,'Ej. Bosch'))}${rF('Categoría',`<select class="input" id="pp-cat"><option value="">—</option>${(cats.data||[]).map(c2=>`<option value="${c2.id}" ${c2.id===p.part_category_id?'selected':''}>${esc(c2.name)}</option>`).join('')}</select>`)}
+    ${rF('Vehículo / modelo',rIn('pp-model',p.model,'Ej. Toyota Corolla'))}${rF('Código / número de parte',rIn('pp-part',p.part_number,'Ej. 04465-02220'))}
+    ${rF('Medida',rIn('pp-med',p.medida,'opcional'))}${rF('Origen',`<select class="input" id="pp-orig"><option value="">—</option>${Object.entries(R_ORIG).map(([k,t])=>`<option value="${k}" ${(p.origins||[])[0]===k?'selected':''}>${t}</option>`).join('')}</select>`)}
+    ${rF('Año desde',rIn('pp-y1',p.year_from,'2010','number'))}${rF('Año hasta',rIn('pp-y2',p.year_to,'2020','number'))}
+    ${rF('Precio (USD)',rIn('pp-price',p.price_usd,'0.00','number'))}${rF('Stock',rIn('pp-stock',p.stock==null?1:p.stock,'1','number'))}
+    ${rF('Estado',`<select class="input" id="pp-st">${['published','pending_review','paused','draft'].map(k=>`<option value="${k}" ${(p.status||'published')===k?'selected':''}>${(RST[k]||[k])[0]}</option>`).join('')}</select>`)}
+    ${rF('Destacado',`<select class="input" id="pp-rec"><option value="0">No</option><option value="1" ${p.recommended?'selected':''}>Sí, recomendado</option></select>`)}
+    <div class="full"><span style="display:block;font-size:12px;font-weight:600;color:var(--mute);margin-bottom:6px">Fotos</span><div id="pp-imgs" style="display:flex;gap:8px;flex-wrap:wrap"></div></div></div>`;
+  rProdImgs();
+  const f=document.createElement('div'); f.className='modal-f'; f.innerHTML=`${id?`<button class="btn btn-red" style="margin-right:auto" id="pp-del">Eliminar</button>`:''}<button class="btn btn-soft" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" id="pp-save">${id?'Guardar cambios':'Publicar'}</button>`; ov.querySelector('.modal').appendChild(f);
+  if(id) f.querySelector('#pp-del').onclick=()=>{ if(confirm('¿Eliminar esta publicación? No se puede deshacer.')) rAct(SR().from('products').delete().eq('id',id),'publicación eliminada','rprod').then(ok=>ok&&closeModal()); };
+  f.querySelector('#pp-save').onclick=async e=>{
+    const row={store_id:rV('pp-store'),name:rV('pp-name'),brand:rV('pp-brand'),part_category_id:rV('pp-cat')||null,model:rV('pp-model')||null,part_number:rV('pp-part')||null,medida:rV('pp-med')||null,
+      origins:rV('pp-orig')?[rV('pp-orig')]:[],year_from:+rV('pp-y1')||null,year_to:+rV('pp-y2')||null,price_usd:+rV('pp-price'),stock:Math.max(0,parseInt(rV('pp-stock')||'0',10)||0),status:rV('pp-st'),recommended:rV('pp-rec')==='1',images:window._rpImgs||[]};
+    if(!row.store_id) return toast('elige una tienda',true); if(!row.name) return toast('falta el nombre',true); if(!row.brand) return toast('falta la marca del repuesto',true); if(!(row.price_usd>0)) return toast('el precio debe ser mayor a 0',true);
+    e.target.disabled=true;
+    const q=id?SR().from('products').update({...row,updated_at:new Date().toISOString()}).eq('id',id):SR().from('products').insert(row);
+    const ok=await rAct(q,id?'publicación actualizada':'publicación creada','rprod'); e.target.disabled=false; if(ok) closeModal();
+  };
+}
+function rProdImgs(){ const box=$('#pp-imgs'); if(!box) return; const im=window._rpImgs||[];
+  box.innerHTML=im.map((u,i)=>`<div style="position:relative"><img src="${esc(tImg(u,160))}" style="width:84px;height:84px;border-radius:12px;object-fit:cover;display:block"><button type="button" onclick="window._rpImgs.splice(${i},1);rProdImgs()" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:13px;line-height:22px">×</button></div>`).join('')
+   +`<button type="button" class="btn btn-soft" style="width:84px;height:84px;border-radius:12px;flex-direction:column;gap:4px;font-size:12px" onclick="rProdAddImg()">${ico('offer',16)}<span>Agregar</span></button>`; }
+async function rProdAddImg(){ const f=await pickFile(); if(!f) return; const store=rV('pp-store')||'admin'; toast('subiendo foto…');
+  try{ const url=await upload('rr-productos',f,store+'/p',{compress:1600,q:.86}); (window._rpImgs=window._rpImgs||[]).push(url); rProdImgs(); toast('foto lista'); }catch(e){ toast('no se pudo subir: '+(e.message||e),true); } }
 
+/* ── VENTAS (pedidos) ── */
 let RO_F='activos';
-RENDER.rped=async(tok)=>{
+const R_ORD_ACT=['created','pending_payment','whatsapp','paid','packing','shipped'];
+const R_FLOW=['pending_payment','paid','packing','shipped','fulfilled','closed'];
+RENDER.rped=async(tok,_,soft)=>{
   const V=$('#view');
-  const [{data,error},st]=await Promise.all([rq('r:orders',20000,()=>SR().from('orders').select('id,store_id,total_usd,status,channel,tracking_code,guest_city,created_at,invoices(code),order_items(qty)').order('created_at',{ascending:false}).limit(300)),rq('r:storenames',120000,()=>SR().from('stores').select('id,name'))]); if(stale(tok)) return;
-  if(error){ V.innerHTML=repErr(error); return; }
-  const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name]));
-  const act=['created','pending_payment','whatsapp','paid','packing','shipped'];
-  const rows=(data||[]).filter(o=>RO_F==='todos'?true:RO_F==='activos'?act.includes(o.status):o.status===RO_F);
-  const opts=['pending_payment','paid','packing','shipped','fulfilled','closed','cancelled'];
-  V.innerHTML=`<div class="toolbar"><div class="seg">${[['activos','Activos'],['fulfilled','Entregados'],['cancelled','Cancelados'],['todos','Todos']].map(([k2,t])=>`<button class="${RO_F===k2?'on':''}" onclick="RO_F='${k2}';RENDER.rped(++VIEW_TOKEN)">${t}</button>`).join('')}</div><button class="btn btn-soft" onclick="rExportOrders()">${ico('pay',14)} Exportar pedidos</button></div>
-  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Factura</th><th>Tienda</th><th>Total</th><th>Unid.</th><th>Canal</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>${rows.map(o=>`<tr><td style="font-weight:600">${esc((o.invoices&&(o.invoices[0]||o.invoices).code)||String(o.id).slice(0,8))}</td><td class="muted">${esc(sm[o.store_id]||'—')}</td><td>${usd(o.total_usd||0)}</td><td>${n((o.order_items||[]).reduce((a,b)=>a+(b.qty||0),0))}</td><td class="muted">${o.channel==='whatsapp'?'WhatsApp':'Pago en línea'}</td><td class="muted">${ago(o.created_at)}</td>
-  <td><select class="input" style="height:30px;max-width:150px" onchange="rOrderStatus('${o.id}',this.value)">${[o.status].concat(opts.filter(x=>x!==o.status)).map(x=>`<option value="${x}">${esc((RST[x]||[x])[0])}</option>`).join('')}</select>${o.tracking_code?`<div class="m muted" style="font-size:11px;margin-top:3px">guía ${esc(o.tracking_code)}</div>`:''}</td></tr>`).join('')||`<tr><td colspan="7">${empty('Sin pedidos en este filtro')}</td></tr>`}</tbody></table></div>`;
+  if(!soft||!$('#rl-o')) V.innerHTML=rShell('rl-o',`<span id="ro-seg"></span>${rSearch('ped','rped','Buscar factura, cliente, ciudad o tienda')}<span style="flex:1"></span><button class="btn btn-soft" onclick="rExportOrders()">${ico('pay',14)} Exportar</button>`);
+  const [{data,error},st]=await Promise.all([rq('r:orders',15000,()=>SR().from('orders').select('id,store_id,buyer_id,guest_name,guest_phone,guest_city,total_usd,status,channel,tracking_code,created_at,invoices(code),order_items(qty)').order('created_at',{ascending:false}).limit(1000)),rStoreMap()]); if(stale(tok)) return;
+  if(error){ $('#rl-o').innerHTML=repErr(error); return; }
+  const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name])); const all=data||[];
+  const code=o=>(o.invoices&&(o.invoices[0]||o.invoices).code)||String(o.id).slice(0,8).toUpperCase();
+  $('#ro-seg').innerHTML=rSeg(RO_F,[['activos','Activos',all.filter(o=>R_ORD_ACT.includes(o.status)).length],['pending_payment','Esperando pago',all.filter(o=>o.status==='pending_payment'||o.status==='created'||o.status==='whatsapp').length],['shipped','Enviados',all.filter(o=>o.status==='shipped').length],['fulfilled','Entregados',all.filter(o=>o.status==='fulfilled'||o.status==='closed').length],['cancelled','Cancelados',all.filter(o=>o.status==='cancelled').length],['todos','Todos',all.length]],'RO_F');
+  const inF=o=>RO_F==='todos'||(RO_F==='activos'?R_ORD_ACT.includes(o.status):RO_F==='pending_payment'?['pending_payment','created','whatsapp'].includes(o.status):RO_F==='fulfilled'?['fulfilled','closed'].includes(o.status):o.status===RO_F);
+  const rows=all.filter(o=>inF(o)&&rMatch(rQ.ped,code(o),o.guest_name,o.guest_city,o.guest_phone,sm[o.store_id],o.tracking_code)).slice(0,400);
+  $('#rl-o').innerHTML=`<table class="tbl"><thead><tr><th>Factura</th><th>Cliente</th><th>Tienda</th><th class="r">Total</th><th class="r">Unid.</th><th>Canal</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>${rows.map(o=>`<tr class="click" onclick="rOrder('${o.id}')"><td style="font-weight:600">${esc(code(o))}</td><td><div class="n" style="font-weight:500">${esc(o.guest_name||'Cliente Ruedda')}</div><div class="u">${esc(o.guest_city||'')}</div></td><td class="muted">${esc(sm[o.store_id]||'—')}</td><td class="r">${usd(o.total_usd||0)}</td><td class="r">${n((o.order_items||[]).reduce((a,b)=>a+(b.qty||0),0))}</td><td class="muted">${o.channel==='whatsapp'?'WhatsApp':'Pago en línea'}</td><td class="muted">${ago(o.created_at)}</td><td>${rpill(o.status)}${o.tracking_code?`<div class="u" style="font-size:11px;margin-top:3px">guía ${esc(o.tracking_code)}</div>`:''}</td></tr>`).join('')||`<tr><td colspan="8">${empty(rQ.ped?'Sin resultados':'Sin pedidos en este filtro')}</td></tr>`}</tbody></table>`;
 };
-function rOrderStatus(id,st){ let tr=null; if(st==='shipped'){ tr=prompt('Número de guía (opcional):')||null; } rAct(SR().rpc('admin_set_order_status',{p_id:id,p_status:st,p_tracking:tr}),'pedido actualizado','rped'); }
+async function rOrder(id){
+  const ov=modal({title:'Pedido',wide:true,body:'<div class="skel" style="height:260px"></div>'});
+  const [{data:o,error},st,pays]=await Promise.all([SR().from('orders').select('*,invoices(code),order_items(qty,unit_price_usd,name_snapshot,part_snapshot,product_id)').eq('id',id).maybeSingle(),rStoreMap(),SR().from('payment_confirmations').select('*').eq('order_id',id).order('created_at',{ascending:false})]);
+  if(!ov.isConnected) return; if(error||!o){ ov.querySelector('.modal-b').innerHTML=empty('No se encontró el pedido',error&&error.message); return; }
+  const s=(st.data||[]).find(x=>x.id===o.store_id)||{}; const code=(o.invoices&&(o.invoices[0]||o.invoices).code)||String(o.id).slice(0,8).toUpperCase();
+  ov.querySelector('.modal-h h3').textContent='Pedido '+code;
+  const idx=R_FLOW.indexOf(o.status==='created'||o.status==='whatsapp'?'pending_payment':o.status);
+  const step=R_FLOW.map((k,i)=>`<div style="flex:1;text-align:center"><div style="height:4px;border-radius:4px;background:${o.status==='cancelled'?'var(--red-bg)':i<=idx?'var(--ink)':'var(--line)'};margin-bottom:7px"></div><span style="font-size:11.5px;font-weight:${i===idx?700:500};color:${i<=idx?'var(--ink)':'var(--mute)'}">${esc((RST[k]||[k])[0])}</span></div>`).join('');
+  const next=o.status==='cancelled'||o.status==='closed'?null:R_FLOW[idx+1];
+  const items=o.order_items||[];
+  ov.querySelector('.modal-b').innerHTML=`<div style="display:flex;gap:6px;margin-bottom:18px">${step}</div>
+  <div class="grid g2" style="gap:14px;margin-bottom:6px">
+    ${card('Cliente','',`<dl class="kv"><dt>Nombre</dt><dd>${esc(o.guest_name||'Cliente Ruedda')}</dd><dt>Ciudad</dt><dd>${esc(o.guest_city||'—')}</dd>${o.guest_ci?`<dt>Cédula</dt><dd>${esc(o.guest_ci)}</dd>`:''}<dt>Teléfono</dt><dd>${esc(o.guest_phone||'—')}</dd></dl><div style="margin-top:12px">${rWaBtn(o.guest_phone,'Escribir al cliente','Hola '+(o.guest_name||'')+', te escribimos de Ruedda Repuestos por tu pedido '+code+'.')}</div>`)}
+    ${card('Tienda','',`<dl class="kv"><dt>Tienda</dt><dd>${esc(s.name||'—')}</dd><dt>Canal</dt><dd>${o.channel==='whatsapp'?'WhatsApp':'Pago en línea'}</dd><dt>Guía</dt><dd>${esc(o.tracking_code||'—')}</dd><dt>Fecha</dt><dd>${esc(new Date(o.created_at).toLocaleString('es-VE'))}</dd></dl><div style="margin-top:12px">${rWaBtn(s.whatsapp,'Escribir a la tienda','Hola, te escribimos de Ruedda Repuestos por el pedido '+code+'.')}</div>`)}
+  </div>
+  ${card('Productos',`${n(items.reduce((a,b)=>a+(b.qty||0),0))} unidades · total ${usd(o.total_usd)}`,`<div class="tbl-wrap"><table class="tbl"><tbody>${items.map(i=>`<tr><td><div class="n" style="font-weight:600">${esc(i.name_snapshot||'—')}</div><div class="u">${esc(i.part_snapshot||'')}</div></td><td class="r">${n(i.qty)} × ${usd(i.unit_price_usd)}</td><td class="r" style="font-weight:600">${usd((i.qty||0)*(+i.unit_price_usd||0))}</td></tr>`).join('')||`<tr><td>${empty('Sin productos')}</td></tr>`}</tbody></table></div>`)}
+  ${card('Pagos reportados','comprobantes que envió el cliente',(pays.data||[]).length?`<div class="tbl-wrap"><table class="tbl"><tbody>${pays.data.map(p=>`<tr><td style="font-weight:600">${esc(p.kind)}</td><td class="num">${esc(p.reference)}</td><td class="r">${p.amount_bs?'Bs '+nf.format(p.amount_bs):'—'}</td><td>${rPill(R_PAY,p.status)}</td><td class="r" style="white-space:nowrap">${p.status==='pending'?`<button class="btn btn-green" style="height:30px" onclick="rPayAct('${p.id}','verified','${id}')">Verificar</button> <button class="btn btn-red" style="height:30px" onclick="rPayAct('${p.id}','rejected','${id}')">Rechazar</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin comprobantes todavía'))}`;
+  const f=document.createElement('div'); f.className='modal-f'; f.innerHTML=`${o.status!=='cancelled'&&o.status!=='closed'?`<button class="btn btn-red" style="margin-right:auto" id="po-cancel">Cancelar pedido</button>`:''}<button class="btn btn-soft" onclick="closeModal()">Cerrar</button>${next?`<button class="btn btn-primary" id="po-next">Marcar: ${esc((RST[next]||[next])[0].toLowerCase())}</button>`:''}`;
+  ov.querySelector('.modal').appendChild(f);
+  if(f.querySelector('#po-cancel')) f.querySelector('#po-cancel').onclick=()=>{ if(confirm('¿Cancelar este pedido?')) rOrderStatus(id,'cancelled',true); };
+  if(next) f.querySelector('#po-next').onclick=()=>rOrderStatus(id,next,true);
+}
+function rOrderStatus(id,st,reopen){ let tr=null; if(st==='shipped'){ tr=prompt('Número de guía del envío (MRW, Zoom, Tealca…):'); if(tr===null) return; tr=tr||null; }
+  rAct(SR().rpc('admin_set_order_status',{p_id:id,p_status:st,p_tracking:tr}),'pedido: '+((RST[st]||[st])[0]).toLowerCase(),'rped').then(ok=>{ if(ok&&reopen) rOrder(id); }); }
+const rPayAct=(pid,st,oid)=>rAct(SR().rpc('set_payment_confirmation_status',{p_id:pid,p_status:st}),st==='verified'?'pago verificado':'pago rechazado',CUR).then(ok=>{ if(ok&&oid) rOrder(oid); });
+
+/* ── PAGOS (comprobantes de todos los pedidos) ── */
+let RPG_F='pending';
+RENDER.rpagos=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft||!$('#rl-g')) V.innerHTML=rShell('rl-g',`<span id="rg-seg"></span>${rSearch('pago','rpagos','Buscar referencia o método')}`);
+  const{data,error}=await rq('r:pays',15000,()=>SR().from('payment_confirmations').select('*,orders(total_usd,guest_name,store_id,invoices(code))').order('created_at',{ascending:false}).limit(500)); if(stale(tok)) return;
+  if(error){ $('#rl-g').innerHTML=/permission/i.test(error.message||'')?`<div class="notice">Los comprobantes se habilitan al correr <code>Ruedda_Repuestos_Admin_Completo_SQL_2026-10-05.sql</code> en Supabase.</div>`:repErr(error); return; }
+  const all=data||[]; const c=k=>all.filter(p=>p.status===k).length;
+  $('#rg-seg').innerHTML=rSeg(RPG_F,[['pending','Por verificar',c('pending')],['verified','Verificados',c('verified')],['rejected','Rechazados',c('rejected')],['todos','Todos',all.length]],'RPG_F');
+  const rows=all.filter(p=>(RPG_F==='todos'||p.status===RPG_F)&&rMatch(rQ.pago,p.reference,p.kind,p.orders&&p.orders.guest_name));
+  $('#rl-g').innerHTML=`<table class="tbl"><thead><tr><th>Pedido</th><th>Método</th><th>Referencia</th><th class="r">Monto</th><th>Reportado</th><th>Estado</th><th class="r">Acciones</th></tr></thead><tbody>${rows.map(p=>{ const o=p.orders||{}; const code=(o.invoices&&(o.invoices[0]||o.invoices).code)||String(p.order_id).slice(0,8).toUpperCase();
+    return `<tr class="click" onclick="rOrder('${p.order_id}')"><td><div class="n" style="font-weight:600">${esc(code)}</div><div class="u">${esc(o.guest_name||'')} · ${usd(o.total_usd)}</div></td><td>${esc(p.kind)}</td><td class="num">${esc(p.reference)}</td><td class="r">${p.amount_bs?'Bs '+nf.format(p.amount_bs):'—'}</td><td class="muted">${ago(p.created_at)}</td><td>${rPill(R_PAY,p.status)}</td><td class="r" style="white-space:nowrap" onclick="event.stopPropagation()">${p.status==='pending'?`<button class="btn btn-green" style="height:30px" onclick="rPayAct('${p.id}','verified')">Verificar</button> <button class="btn btn-red" style="height:30px" onclick="rPayAct('${p.id}','rejected')">Rechazar</button>`:''}</td></tr>`; }).join('')||`<tr><td colspan="7">${empty(RPG_F==='pending'?'No hay pagos por verificar':'Sin registros')}</td></tr>`}</tbody></table>`;
+};
+
+/* ── MECÁNICOS CERTIFICADOS (red RTA) ── */
+let RM_F='todos';
+RENDER.rmec=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft||!$('#rl-m')) V.innerHTML=`<div class="grid g4" id="rm-k" style="margin-bottom:14px">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">00</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>`+rShell('rl-m',`<span id="rm-seg"></span>${rSearch('mec','rmec','Buscar mecánico, zona o teléfono')}<span style="flex:1"></span><button class="btn btn-primary" onclick="rMec(null)">${ico('users',14)} Nuevo mecánico</button>`);
+  const [{data,error},sp]=await Promise.all([rq('r:mec',20000,()=>SR().from('mechanics').select('*').order('created_at',{ascending:false}).limit(1000)),rq('r:mecsp',60000,()=>SR().from('mechanic_specialties').select('mechanic_id,especialidad_id,estado'))]); if(stale(tok)) return;
+  if(error){ $('#rl-m').innerHTML=repErr(error); return; }
+  const all=data||[]; const stg=m=>m.stage||'borrador'; const c=k=>all.filter(m=>stg(m)===k).length;
+  const spc={}; (sp.data||[]).forEach(x=>{ (spc[x.mechanic_id]=spc[x.mechanic_id]||[]).push(x); });
+  $('#rm-k').innerHTML=kpiCard('En la red',n(all.length),`${n(c('borrador'))} en borrador`,'users')+kpiCard('En verificación',n(c('verificacion')),'revisar cédula, taller y referencias','flag')+kpiCard('Avalados RTA',n(c('avalado')+c('maestro')),`${n(c('maestro'))} maestros`,'kyc')+kpiCard('Suspendidos',n(c('suspendido')),'fuera de la red','x');
+  $('#rm-seg').innerHTML=rSeg(RM_F,[['todos','Todos',all.length],['verificacion','En verificación',c('verificacion')],['verificado','Verificados',c('verificado')],['avalado','Avalados',c('avalado')+c('maestro')],['suspendido','Suspendidos',c('suspendido')]],'RM_F');
+  const rows=all.filter(m=>(RM_F==='todos'||(RM_F==='avalado'?['avalado','maestro'].includes(stg(m)):stg(m)===RM_F))&&rMatch(rQ.mec,m.name,m.zone,m.phone,m.specialty,(m.zonas_cobertura||[]).join(' ')));
+  $('#rl-m').innerHTML=`<table class="tbl"><thead><tr><th>Mecánico</th><th>Tipo</th><th>Zona</th><th>Especialidades</th><th class="r">Calificación</th><th>Etapa</th><th class="r">Contacto</th></tr></thead><tbody>${rows.map(m=>{ const es=spc[m.id]||[]; return `<tr class="click" onclick="rMec('${m.id}')"><td><div class="who">${rThumb((m.fotos||[])[0],m.name)}<div><div class="n">${esc(m.name||'—')}</div><div class="u">${esc(m.rif||m.specialty||'')}</div></div></div></td><td class="muted">${m.tipo==='movil'?'Móvil':'Taller'}</td><td class="muted">${esc(m.zone||'—')}</td><td class="muted">${es.length?`${n(es.filter(x=>x.estado==='avalada').length)} avaladas · ${n(es.length)} declaradas`:'—'}</td><td class="r">${m.rating?Number(m.rating).toFixed(1)+' ★':'—'}</td><td>${rPill(R_STAGE,stg(m))}</td><td class="r">${rWaBtn(m.phone,'Escribir')}</td></tr>`; }).join('')||`<tr><td colspan="7">${empty(rQ.mec?'Sin resultados':'Sin mecánicos en este filtro')}</td></tr>`}</tbody></table>`;
+};
+async function rMec(id){
+  const ov=modal({title:id?'Mecánico':'Nuevo mecánico',sub:id?'':'Entra a la red en etapa de verificación',wide:true,body:'<div class="skel" style="height:240px"></div>'});
+  const [mr,esp,ms,av,refs,zs]=await Promise.all([id?SR().from('mechanics').select('*').eq('id',id).maybeSingle():Promise.resolve({data:{}}),rq('r:esp',600000,()=>SR().from('especialidades').select('id,nombre').order('sort')),id?SR().from('mechanic_specialties').select('*').eq('mechanic_id',id):Promise.resolve({data:[]}),id?SR().from('avales').select('*').eq('mechanic_id',id).order('firmado_en',{ascending:false}):Promise.resolve({data:[]}),id?SR().from('mechanic_references').select('*').eq('mechanic_id',id):Promise.resolve({data:[]}),rq('r:zonas',600000,()=>SR().from('zonas').select('id,nombre').eq('activa',true))]);
+  if(!ov.isConnected) return; const m=mr.data||{}; if(id&&!mr.data){ ov.querySelector('.modal-b').innerHTML=empty('No se encontró el mecánico'); return; }
+  const E=Object.fromEntries((esp.data||[]).map(e=>[e.id,e.nombre])); const stg=m.stage||'borrador'; const order=['borrador','verificacion','verificado','avalado','maestro'];
+  if(id) ov.querySelector('.modal-h h3').textContent=m.name||'Mecánico';
+  const pipeline=id?`<div style="display:flex;gap:6px;margin-bottom:16px">${order.map((k,i)=>`<button type="button" onclick="rMecStage('${id}','${k}')" style="flex:1;text-align:center;cursor:pointer"><div style="height:4px;border-radius:4px;background:${stg==='suspendido'?'var(--red-bg)':i<=order.indexOf(stg)?'var(--ink)':'var(--line)'};margin-bottom:7px"></div><span style="font-size:11.5px;font-weight:${k===stg?700:500};color:${i<=order.indexOf(stg)?'var(--ink)':'var(--mute)'}">${esc(R_STAGE[k][0])}</span></button>`).join('')}</div>`:'';
+  ov.querySelector('.modal-b').innerHTML=pipeline+`<div class="form">
+    ${rF('Nombre o taller',rIn('mm-name',m.name,'Ej. Taller Hermanos Pérez'),true)}
+    ${rF('Teléfono / WhatsApp',rIn('mm-tel',m.phone,'0414 000 0000'))}${rF('Tipo',`<select class="input" id="mm-tipo"><option value="taller">Taller</option><option value="movil" ${m.tipo==='movil'?'selected':''}>Móvil (a domicilio)</option></select>`)}
+    ${rF('Zona principal',`<input class="input" id="mm-zone" list="mm-zl" value="${esc(m.zone||'')}" placeholder="Ej. Chacao"><datalist id="mm-zl">${(zs.data||[]).map(z=>`<option value="${esc(z.nombre)}">`).join('')}</datalist>`)}${rF('RIF',rIn('mm-rif',m.rif,'J-00000000-0'))}
+    ${rF('Dirección',rIn('mm-dir',m.direccion,'Dirección del taller'),true)}
+    ${rF('Zonas de cobertura',rIn('mm-cob',(m.zonas_cobertura||[]).join(', '),'separadas por coma'),true)}</div>`
+  +(id?`<div class="grid g2" style="gap:14px;margin-top:6px">
+    ${card('Especialidades','declaradas y avaladas por el consejo técnico',`${(ms.data||[]).map(x=>`<div class="mini" style="margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="flex:1">${esc(E[x.especialidad_id]||x.especialidad_id)}${x.equipo_declarado?`<small class="muted" style="display:block;font-size:11px">${esc(x.equipo_declarado)}</small>`:''}</span>${x.estado==='avalada'?'<span class="pill g">Avalada</span>':`<button class="btn btn-green" style="height:28px" onclick="rMecAval('${id}','${x.especialidad_id}')">Avalar</button>`}</div>`).join('')||'<div class="muted" style="font-size:13px;margin-bottom:10px">Sin especialidades declaradas.</div>'}
+      <div style="display:flex;gap:6px;margin-top:6px"><select class="input" id="mm-esp" style="height:34px">${(esp.data||[]).map(e=>`<option value="${e.id}">${esc(e.nombre)}</option>`).join('')}</select><button class="btn btn-soft" style="height:34px;white-space:nowrap" onclick="rMecEsp('${id}')">Agregar</button></div>`)}
+    ${card('Avales y referencias','',`${(av.data||[]).map(a=>`<div class="mini" style="margin-bottom:8px"><span>${esc(E[a.especialidad_id]||a.especialidad_id)} · ${esc(a.instructor||'')}</span><b>${a.vence_en?'vence '+new Date(a.vence_en).toLocaleDateString('es-VE'):''}</b></div>`).join('')||'<div class="muted" style="font-size:13px">Sin avales todavía.</div>'}
+      ${(refs.data||[]).length?`<div style="margin-top:10px;font-size:12px;font-weight:600;color:var(--mute)">Referencias</div>${refs.data.map(r=>`<div class="mini" style="margin-top:6px"><span>${esc(r.nombre||'')} · ${esc(r.telefono||'')}</span><b>${esc(r.resultado||'pendiente')}</b></div>`).join('')}`:''}`)}
+  </div>`:'');
+  const f=document.createElement('div'); f.className='modal-f'; f.innerHTML=`${id&&stg!=='suspendido'?`<button class="btn btn-red" style="margin-right:auto" onclick="if(confirm('¿Suspender a este mecánico de la red?'))rMecStage('${id}','suspendido')">Suspender</button>`:''}${id?rWaBtn(m.phone,'WhatsApp','Hola '+(m.name||'')+', te escribimos de la red de mecánicos Ruedda.'):''}<button class="btn btn-soft" onclick="closeModal()">Cerrar</button><button class="btn btn-primary" id="mm-save">${id?'Guardar':'Agregar a la red'}</button>`; ov.querySelector('.modal').appendChild(f);
+  f.querySelector('#mm-save').onclick=async e=>{ const name=rV('mm-name'); if(!name) return toast('falta el nombre',true); e.target.disabled=true;
+    const ok=await rAct(SR().rpc('admin_upsert_mechanic_rta',{p_id:id||null,p_name:name,p_phone:rV('mm-tel')||null,p_zone:rV('mm-zone')||null,p_tipo:rV('mm-tipo'),p_rif:rV('mm-rif')||null,p_direccion:rV('mm-dir')||null,p_zonas_cobertura:rV('mm-cob')?rV('mm-cob').split(',').map(x=>x.trim()).filter(Boolean):[]}),id?'mecánico actualizado':'mecánico agregado a la red','rmec');
+    e.target.disabled=false; if(ok){ if(id) rMec(id); else closeModal(); } };
+}
+const rMecStage=(id,st)=>rAct(SR().rpc('admin_set_mechanic_stage',{p_mechanic_id:id,p_stage:st}),'etapa: '+R_STAGE[st][0].toLowerCase(),'rmec').then(ok=>ok&&rMec(id));
+function rMecEsp(id){ const e=rV('mm-esp'); if(!e) return; const eq=prompt('Equipo con el que cuenta para esta especialidad (opcional):'); if(eq===null) return; rAct(SR().rpc('admin_declare_specialty',{p_mechanic_id:id,p_especialidad_id:e,p_equipo:eq||null}),'especialidad agregada','rmec').then(ok=>ok&&rMec(id)); }
+function rMecAval(id,esp){ const ins=prompt('Instructor o consejo técnico que avala:'); if(ins===null) return; rAct(SR().rpc('admin_avalar_especialidad',{p_mechanic_id:id,p_especialidad_id:esp,p_instructor:ins||'Consejo técnico Ruedda',p_anio_sello:new Date().getFullYear()}),'especialidad avalada · sello '+new Date().getFullYear(),'rmec').then(ok=>ok&&rMec(id)); }
+
+/* ── SOLICITUDES DE SERVICIO (clientes que piden mecánico) ── */
+let RS_F='abiertas';
+RENDER.rsol=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft||!$('#rl-s')) V.innerHTML=rShell('rl-s',`<span id="rs-seg"></span>${rSearch('sol','rsol','Buscar síntoma, vehículo o zona')}`);
+  const [{data,error},mec]=await Promise.all([rq('r:sol',15000,()=>SR().from('solicitudes_rta').select('*').order('created_at',{ascending:false}).limit(500)),rq('r:mec',20000,()=>SR().from('mechanics').select('*').order('created_at',{ascending:false}).limit(1000))]); if(stale(tok)) return;
+  if(error){ $('#rl-s').innerHTML=/recursion/i.test(error.message||'')?`<div class="notice">Las solicitudes de servicio están bloqueadas por una política de la base de datos. Corre <code>Ruedda_Repuestos_Admin_Completo_SQL_2026-10-05.sql</code> en Supabase y vuelven a funcionar.</div>`:repErr(error); return; }
+  const mm=Object.fromEntries((mec.data||[]).map(m=>[m.id,m.name])); const all=data||[];
+  const open=['abierta','presupuestada','aprobada','en_camino','en_sitio','en_proceso'];
+  $('#rs-seg').innerHTML=rSeg(RS_F,[['abiertas','En curso',all.filter(s=>open.includes(s.estado)).length],['sinasignar','Sin mecánico',all.filter(s=>open.includes(s.estado)&&!s.asignado_mechanic_id).length],['cerrada','Cerradas',all.filter(s=>s.estado==='cerrada').length],['cancelada','Canceladas',all.filter(s=>s.estado==='cancelada').length],['todas','Todas',all.length]],'RS_F');
+  const inF=s=>RS_F==='todas'||(RS_F==='abiertas'?open.includes(s.estado):RS_F==='sinasignar'?open.includes(s.estado)&&!s.asignado_mechanic_id:s.estado===RS_F);
+  const rows=all.filter(s=>inF(s)&&rMatch(rQ.sol,s.sintoma,s.vehiculo_desc,s.zona,s.vehiculo_serial));
+  const urg={hoy:['Hoy','r'],esta_semana:['Esta semana','o'],cuando_se_pueda:['Sin apuro','']};
+  $('#rl-s').innerHTML=`<table class="tbl"><thead><tr><th>Síntoma</th><th>Vehículo</th><th>Zona</th><th>Urgencia</th><th>Mecánico</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>${rows.map(s=>`<tr class="click" onclick="rSol('${s.id}')"><td style="max-width:280px"><div class="n" style="font-weight:600;white-space:normal">${esc(s.sintoma||'—')}</div><div class="u">${esc(s.modalidad||'')}</div></td><td class="muted">${esc(s.vehiculo_desc||'—')}</td><td class="muted">${esc(s.zona||'—')}</td><td>${rPill(urg,s.urgencia)}</td><td>${s.asignado_mechanic_id?esc(mm[s.asignado_mechanic_id]||'asignado'):'<span class="pill o">Sin asignar</span>'}</td><td class="muted">${ago(s.created_at)}</td><td>${rPill(R_SOL,s.estado)}</td></tr>`).join('')||`<tr><td colspan="7">${empty('Sin solicitudes en este filtro','Llegan cuando un cliente pide un mecánico desde Ruedda Repuestos.')}</td></tr>`}</tbody></table>`;
+};
+async function rSol(id){
+  const ov=modal({title:'Solicitud de servicio',wide:true,body:'<div class="skel" style="height:240px"></div>'});
+  const [{data:s,error},mec,pres,trab,esp]=await Promise.all([SR().from('solicitudes_rta').select('*').eq('id',id).maybeSingle(),rq('r:mec',20000,()=>SR().from('mechanics').select('*').order('created_at',{ascending:false}).limit(1000)),SR().from('presupuestos_rta').select('*').eq('solicitud_id',id).order('created_at',{ascending:false}),SR().from('trabajos_rta').select('*').eq('solicitud_id',id).order('created_at',{ascending:false}),rq('r:esp',600000,()=>SR().from('especialidades').select('id,nombre').order('sort'))]);
+  if(!ov.isConnected) return; if(error||!s){ ov.querySelector('.modal-b').innerHTML=empty('No se encontró la solicitud',error&&error.message); return; }
+  const M=(mec.data||[]); const mm=Object.fromEntries(M.map(m=>[m.id,m])); const E=Object.fromEntries((esp.data||[]).map(e=>[e.id,e.nombre]));
+  const elig=M.filter(m=>['verificado','avalado','maestro'].includes(m.stage)); const pool=elig.length?elig:M;
+  const zona=(s.zona||'').toLowerCase(); const sorted=pool.slice().sort((a,b)=>((b.zone||'').toLowerCase().includes(zona)||(b.zonas_cobertura||[]).join(' ').toLowerCase().includes(zona)?1:0)-((a.zone||'').toLowerCase().includes(zona)||(a.zonas_cobertura||[]).join(' ').toLowerCase().includes(zona)?1:0));
+  const asg=s.asignado_mechanic_id&&mm[s.asignado_mechanic_id];
+  ov.querySelector('.modal-b').innerHTML=`<div class="grid g2" style="gap:14px">
+    ${card('El cliente reporta','',`<div style="font-size:15px;font-weight:600;line-height:1.4;margin-bottom:12px">${esc(s.sintoma||'—')}</div><dl class="kv"><dt>Vehículo</dt><dd>${esc(s.vehiculo_desc||'—')}</dd>${s.vehiculo_serial?`<dt>Serial / VIN</dt><dd class="num">${esc(s.vehiculo_serial)}</dd>`:''}<dt>Especialidad</dt><dd>${esc(E[s.especialidad_id]||'por diagnosticar')}</dd><dt>Atención</dt><dd>${esc(s.modalidad||'—')}</dd><dt>Urgencia</dt><dd>${esc((s.urgencia||'').replace(/_/g,' '))}</dd><dt>Zona</dt><dd>${esc(s.zona||'—')}</dd><dt>Teléfono</dt><dd>${esc(s.guest_phone||'cliente con cuenta')}</dd></dl>${s.guest_phone?`<div style="margin-top:12px">${rWaBtn(s.guest_phone,'Escribir al cliente','Hola, te escribimos de Ruedda por tu solicitud de mecánico.')}</div>`:''}`)}
+    ${card('Gestión','',`<label class="field"><span>Mecánico asignado</span><select class="input" id="rs-mec"><option value="">— sin asignar —</option>${sorted.map(m=>`<option value="${m.id}" ${m.id===s.asignado_mechanic_id?'selected':''}>${esc(m.name)} · ${esc(m.zone||'sin zona')} · ${esc((R_STAGE[m.stage]||[m.stage])[0])}</option>`).join('')}</select></label>
+      <label class="field"><span>Estado</span><select class="input" id="rs-est">${Object.entries(R_SOL).map(([k,v])=>`<option value="${k}" ${k===s.estado?'selected':''}>${v[0]}</option>`).join('')}</select></label>
+      <label class="field"><span>Nota interna</span><input class="input" id="rs-nota" value="${esc(s.notas_admin||'')}" placeholder="Seguimiento, acuerdos, próximo paso"></label>
+      ${asg?`<div style="display:flex;gap:8px;flex-wrap:wrap">${rWaBtn(asg.phone,'Escribir al mecánico','Hola '+(asg.name||'')+', tienes una solicitud de Ruedda: '+(s.sintoma||'')+' · '+(s.vehiculo_desc||'')+' · '+(s.zona||''))}</div>`:''}`)}
+  </div>
+  ${card('Presupuestos',`${(pres.data||[]).length} recibidos`,(pres.data||[]).length?`<div class="tbl-wrap"><table class="tbl"><tbody>${pres.data.map(p=>`<tr><td style="font-weight:600">${esc((mm[p.mechanic_id]||{}).name||'mecánico')}</td><td class="r">mano de obra ${usd(p.mano_obra_usd)}</td><td class="r" style="font-weight:600">total ${usd(p.total_usd)}</td><td>${p.aprobado?'<span class="pill g">Aprobado</span>':'<span class="pill">Enviado</span>'}</td><td class="muted">${ago(p.created_at)}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin presupuestos todavía'))}
+  ${(trab.data||[]).length?card('Trabajo','',`<div class="tbl-wrap"><table class="tbl"><tbody>${trab.data.map(t=>`<tr><td style="font-weight:600">${esc((mm[t.mechanic_id]||{}).name||'mecánico')}</td><td>${esc(t.estado)}</td><td class="r">${usd(t.monto_final_usd)}</td><td class="muted">${t.km_entrega?n(t.km_entrega)+' km':''}</td><td class="muted">${ago(t.created_at)}</td></tr>`).join('')}</tbody></table></div>`):''}`;
+  const f=document.createElement('div'); f.className='modal-f'; f.innerHTML=`<button class="btn btn-soft" onclick="closeModal()">Cerrar</button><button class="btn btn-primary" id="rs-save">Guardar</button>`; ov.querySelector('.modal').appendChild(f);
+  f.querySelector('#rs-save').onclick=async e=>{ e.target.disabled=true; const mec2=rV('rs-mec'), est=rV('rs-est'), nota=rV('rs-nota')||null; let ok=true;
+    if(mec2&&mec2!==s.asignado_mechanic_id) ok=await rAct(SR().rpc('admin_assign_solicitud',{p_id:id,p_mechanic:mec2,p_nota:nota}),'mecánico asignado (se le notifica)',null);
+    if(ok&&(est!==s.estado||(nota||'')!==(s.notas_admin||''))) ok=await rAct(SR().rpc('admin_set_solicitud_estado',{p_id:id,p_estado:est,p_nota:nota}),'solicitud actualizada',null);
+    e.target.disabled=false; if(ok){ closeModal(); RENDER.rsol(++VIEW_TOKEN); } };
+}
+
+/* ── INSPECCIONES (peritaje pedido desde la app) ── */
+let RI_F='pendiente';
+RENDER.rinsp=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft||!$('#rl-i')) V.innerHTML=rShell('rl-i','<span id="ri-seg"></span>');
+  const{data,error}=await rq('r:insp',15000,()=>sb.from('partner_leads').select('*').ilike('motivo','peritaje%').order('created_at',{ascending:false}).limit(500)); if(stale(tok)) return;
+  if(error){ $('#rl-i').innerHTML=`<div class="notice">No se pudieron leer las inspecciones${error.message?': '+esc(error.message):''}. Corre <code>Ruedda_Repuestos_Admin_Completo_SQL_2026-10-05.sql</code> para habilitarlas.</div>`; return; }
+  const all=data||[]; const pend=all.filter(r=>r.estado==='pendiente');
+  $('#ri-seg').innerHTML=rSeg(RI_F,[['pendiente','Por atender',pend.length],['contactado','Atendidas',all.length-pend.length],['todas','Todas',all.length]],'RI_F');
+  const rows=all.filter(r=>RI_F==='todas'||(RI_F==='pendiente'?r.estado==='pendiente':r.estado!=='pendiente'));
+  $('#rl-i').innerHTML=`<table class="tbl"><thead><tr><th>Vehículo a inspeccionar</th><th>Solicitante</th><th>Detalle</th><th>Fecha</th><th>Estado</th><th class="r">Acciones</th></tr></thead><tbody>${rows.map(r=>`<tr><td style="font-weight:600">${esc(r.marca_nombre||'—')}</td><td>${esc(r.representante||'—')}</td><td class="muted" style="max-width:300px">${esc((r.motivo||'').replace(/^peritaje\s*·?\s*/i,''))}</td><td class="muted">${ago(r.created_at)}</td><td>${r.estado==='pendiente'?'<span class="pill o">Por atender</span>':'<span class="pill g">Atendida</span>'}</td><td class="r" style="white-space:nowrap">${rWaBtn(r.telefono,'Escribir')} ${r.estado==='pendiente'?`<button class="btn btn-green" style="height:30px" onclick="rAct(sb.from('partner_leads').update({estado:'contactado'}).eq('id','${r.id}'),'inspección atendida','rinsp')">Marcar atendida</button>`:''}</td></tr>`).join('')||`<tr><td colspan="6">${empty('Sin inspecciones en este filtro','Llegan cuando alguien toca “Solicitar inspección” en una publicación de Ruedda.')}</td></tr>`}</tbody></table>`;
+};
+
+/* ── ALQUILER DE HERRAMIENTAS ── */
+RENDER.rherr=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(!soft||!$('#rl-h')) V.innerHTML=rShell('rl-h',`<span class="muted" style="font-size:13px">Herramientas que las tiendas alquilan por día, visibles en cada repuesto.</span><span style="flex:1"></span><button class="btn btn-primary" onclick="rTool(null)">${ico('offer',14)} Nueva herramienta</button>`);
+  const [{data,error},st]=await Promise.all([rq('r:tools',20000,()=>SR().from('tool_rentals').select('*').order('created_at',{ascending:false}).limit(500)),rStoreMap()]); if(stale(tok)) return;
+  if(error){ $('#rl-h').innerHTML=repErr(error); return; }
+  const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name]));
+  $('#rl-h').innerHTML=`<table class="tbl"><thead><tr><th>Herramienta</th><th>Tienda</th><th>Zona</th><th class="r">Por día</th><th class="r">Depósito</th><th>Estado</th></tr></thead><tbody>${(data||[]).map(t=>`<tr class="click" onclick="rTool('${t.id}')"><td><div class="who">${rThumb(t.image_url,t.name)}<div><div class="n">${esc(t.name)}</div><div class="u">${esc(t.category||'')}</div></div></div></td><td class="muted">${esc(sm[t.store_id]||'Ruedda')}</td><td class="muted">${esc(t.zone||'—')}</td><td class="r">${usd(t.price_usd_day)}</td><td class="r">${usd(t.deposit_usd)}</td><td>${t.active?'<span class="pill g">Activa</span>':'<span class="pill">Pausada</span>'}</td></tr>`).join('')||`<tr><td colspan="6">${empty('Sin herramientas en alquiler','En la tienda se ve “Próximamente” hasta que agregues la primera.')}</td></tr>`}</tbody></table>`;
+};
+async function rTool(id){
+  const ov=modal({title:id?'Herramienta':'Nueva herramienta',body:'<div class="skel" style="height:200px"></div>'});
+  const [tr,st]=await Promise.all([id?SR().from('tool_rentals').select('*').eq('id',id).maybeSingle():Promise.resolve({data:{active:true}}),rStoreMap()]);
+  if(!ov.isConnected) return; const t=tr.data||{}; window._rtImg=t.image_url||'';
+  ov.querySelector('.modal-b').innerHTML=`<div class="form">${rF('Tienda',`<select class="input" id="th-store">${(st.data||[]).map(s=>`<option value="${s.id}" ${s.id===t.store_id?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`,true)}${rF('Nombre',rIn('th-name',t.name,'Ej. Extractor de rolineras'),true)}${rF('Categoría',rIn('th-cat',t.category,'Ej. Suspensión'))}${rF('Zona',rIn('th-zone',t.zone,'Ej. Caracas'))}${rF('Precio por día (USD)',rIn('th-day',t.price_usd_day,'0','number'))}${rF('Depósito (USD)',rIn('th-dep',t.deposit_usd,'0','number'))}${rF('Descripción',rIn('th-desc',t.description,'Qué incluye, condiciones'),true)}${rF('Estado',`<select class="input" id="th-act"><option value="1">Activa</option><option value="0" ${t.active===false?'selected':''}>Pausada</option></select>`)}
+  <div class="field"><span>Foto</span><div id="th-img" style="display:flex;gap:8px;align-items:center"></div></div></div>`;
+  const paint=()=>{ $('#th-img').innerHTML=(window._rtImg?`<img src="${esc(tImg(window._rtImg,160))}" style="width:64px;height:64px;border-radius:12px;object-fit:cover">`:'')+`<button type="button" class="btn btn-soft" style="height:34px" id="th-up">${window._rtImg?'Cambiar':'Subir foto'}</button>`; $('#th-up').onclick=async()=>{ const f=await pickFile(); if(!f) return; toast('subiendo foto…'); try{ window._rtImg=await upload('rr-productos',f,(rV('th-store')||'admin')+'/h',{compress:1400}); paint(); }catch(e){ toast('no se pudo subir: '+(e.message||e),true); } }; }; paint();
+  const f=document.createElement('div'); f.className='modal-f'; f.innerHTML=`${id?`<button class="btn btn-red" style="margin-right:auto" id="th-del">Eliminar</button>`:''}<button class="btn btn-soft" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" id="th-save">${id?'Guardar':'Agregar'}</button>`; ov.querySelector('.modal').appendChild(f);
+  if(id) f.querySelector('#th-del').onclick=()=>{ if(confirm('¿Eliminar esta herramienta?')) rAct(SR().from('tool_rentals').delete().eq('id',id),'herramienta eliminada','rherr').then(ok=>ok&&closeModal()); };
+  f.querySelector('#th-save').onclick=async e=>{ const row={store_id:rV('th-store')||null,name:rV('th-name'),category:rV('th-cat')||null,zone:rV('th-zone')||null,price_usd_day:+rV('th-day')||0,deposit_usd:+rV('th-dep')||0,description:rV('th-desc')||null,active:rV('th-act')==='1',image_url:window._rtImg||null};
+    if(!row.name) return toast('falta el nombre',true); e.target.disabled=true;
+    const ok=await rAct(id?SR().from('tool_rentals').update(row).eq('id',id):SR().from('tool_rentals').insert(row),id?'herramienta actualizada':'herramienta agregada','rherr'); e.target.disabled=false; if(ok) closeModal(); };
+}
+
+/* ── RESEÑAS (solo compradores que pagaron pueden calificar) ── */
+RENDER.rresenas=async(tok)=>{
+  const V=$('#view'); V.innerHTML=rShell('rl-r','');
+  const [pr,sr,st,pd]=await Promise.all([rq('r:prev',30000,()=>SR().from('product_reviews').select('*').order('created_at',{ascending:false}).limit(300)),rq('r:srev',30000,()=>SR().from('store_reviews').select('*').order('created_at',{ascending:false}).limit(300)),rStoreMap(),rq('r:prods',20000,()=>SR().from('products').select('id,name,brand,model,part_number,medida,price_usd,stock,status,images,store_id,reject_reason,created_at').order('created_at',{ascending:false}).limit(2000))]); if(stale(tok)) return;
+  if(pr.error&&sr.error){ $('#rl-r').innerHTML=repErr(pr.error); return; }
+  const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name])); const pm=Object.fromEntries((pd.data||[]).map(p=>[p.id,p.name]));
+  const all=[...(pr.data||[]).map(r=>({...r,k:'Producto',obj:pm[r.product_id]||'producto'})),...(sr.data||[]).map(r=>({...r,k:'Tienda',obj:sm[r.store_id]||'tienda'}))].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const avg=a=>a.length?(a.reduce((x,y)=>x+(+y.rating||0),0)/a.length).toFixed(1):'—';
+  const stars=r=>'★★★★★'.slice(0,r)+'<span style="opacity:.25">'+'★★★★★'.slice(0,5-r)+'</span>';
+  V.innerHTML=`<div class="grid g4" style="margin-bottom:14px">${kpiCard('Reseñas',n(all.length),'de compradores verificados','flag')}${kpiCard('Productos',avg(pr.data||[])+' ★',`${n((pr.data||[]).length)} calificaciones`,'offer')}${kpiCard('Tiendas',avg(sr.data||[])+' ★',`${n((sr.data||[]).length)} calificaciones`,'car')}${kpiCard('Malas (1-2 ★)',n(all.filter(r=>r.rating<=2).length),'revísalas con la tienda','x')}</div>
+  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Calificación</th><th>Sobre</th><th>Comentario</th><th>Fecha</th></tr></thead><tbody>${all.slice(0,300).map(r=>`<tr><td style="color:#e0a400;white-space:nowrap;letter-spacing:1px">${stars(Math.max(0,Math.min(5,+r.rating||0)))}</td><td><div class="n" style="font-weight:600">${esc(r.obj)}</div><div class="u">${r.k}</div></td><td class="muted" style="max-width:420px;white-space:normal">${esc(r.comment||'—')}</td><td class="muted">${ago(r.created_at)}</td></tr>`).join('')||`<tr><td colspan="4">${empty('Sin reseñas todavía','Solo califica quien pagó su pedido.')}</td></tr>`}</tbody></table></div>`;
+};
+
+/* ── OFERTAS (el comprador ofrece un precio, la tienda acepta o contraoferta) ── */
+RENDER.rofertas=async(tok)=>{
+  const V=$('#view'); V.innerHTML=rShell('rl-f','');
+  const [{data,error},st,pd]=await Promise.all([rq('r:offers',15000,()=>SR().from('product_offers').select('*').order('created_at',{ascending:false}).limit(400)),rStoreMap(),rq('r:prods',20000,()=>SR().from('products').select('id,name,brand,model,part_number,medida,price_usd,stock,status,images,store_id,reject_reason,created_at').order('created_at',{ascending:false}).limit(2000))]); if(stale(tok)) return;
+  if(error){ V.innerHTML=/does not exist|404|schema cache/i.test(error.message||'')||error.code==='PGRST205'?`<div class="notice">Las ofertas se activan al correr <code>repuestos/sql/16_marketplace_entregas_ofertas.sql</code> en Supabase (también activa entregas por tienda, búsquedas y “en vivo”).</div>`:repErr(error); return; }
+  const sm=Object.fromEntries((st.data||[]).map(s=>[s.id,s.name])); const pm=Object.fromEntries((pd.data||[]).map(p=>[p.id,p]));
+  const SPL={pending:['Pendiente','o'],countered:['Contraoferta','b'],accepted:['Aceptada','g'],rejected:['Rechazada','r'],expired:['Vencida',''],ordered:['Convertida en pedido','g']};
+  const all=data||[];
+  V.innerHTML=`<div class="grid g4" style="margin-bottom:14px">${kpiCard('Ofertas',n(all.length),'hechas por compradores','offer')}${kpiCard('Pendientes',n(all.filter(o=>o.status==='pending'||o.status==='countered').length),'esperando a la tienda o al comprador','flag')}${kpiCard('Aceptadas',n(all.filter(o=>o.status==='accepted'||o.status==='ordered').length),'cerraron trato','pay')}${kpiCard('Descuento medio',(()=>{const a=all.filter(o=>pm[o.product_id]&&pm[o.product_id].price_usd);return a.length?Math.round(a.reduce((x,o)=>x+(1-o.amount_usd/pm[o.product_id].price_usd),0)/a.length*100)+'%':'—';})(),'vs. precio publicado','act')}</div>
+  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Repuesto</th><th>Tienda</th><th class="r">Precio</th><th class="r">Oferta</th><th class="r">Contraoferta</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>${all.map(o=>{const p=pm[o.product_id]||{};return `<tr${o.product_id?` class="click" onclick="rProd('${o.product_id}')"`:''}><td><div class="n" style="font-weight:600">${esc(p.name||'repuesto')}</div><div class="u">${n(o.qty||1)} unid.${o.message?' · '+esc(o.message):''}</div></td><td class="muted">${esc(sm[o.store_id]||'—')}</td><td class="r">${usd(p.price_usd)}</td><td class="r" style="font-weight:600">${usd(o.amount_usd)}</td><td class="r">${o.counter_usd?usd(o.counter_usd):'—'}</td><td class="muted">${ago(o.created_at)}</td><td>${rPill(SPL,o.status)}</td></tr>`;}).join('')||`<tr><td colspan="7">${empty('Sin ofertas todavía')}</td></tr>`}</tbody></table></div>`;
+};
+
+/* ── AVALTA (próximamente): certificación del historial real del vehículo ── */
+RENDER.ravalta=async(tok)=>{
+  const V=$('#view');
+  V.innerHTML=`<div class="card" style="padding:28px 28px 24px;margin-bottom:14px;background:linear-gradient(135deg,#0b0b0c,#1c1c1f);color:#fff;border:0">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px"><span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#9cff57">próximamente</span><span style="font-size:11px;color:#8a8a92">marca hermana del ecosistema Ruedda</span></div>
+    <div style="font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1">AVALTA</div>
+    <div style="font-size:15px;color:#c8c8cf;margin-top:8px;max-width:620px;line-height:1.5">Certifica el historial real de cada vehículo: mantenimientos, reparaciones y repuestos instalados por mecánicos avalados, ligados a su VIN. Un carro con historial certificado se vende mejor y más rápido.</div></div>
+  <div class="grid g4" id="av-k" style="margin-bottom:14px">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">00</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
+  <div class="grid g3" style="gap:14px">${[['Mecánicos RTA','Cada trabajo cerrado por un mecánico avalado queda en el historial del vehículo, firmado y con fecha.','users'],['Ruedda Market','El token VIN de Mi Garage conecta ese historial con la publicación: el comprador ve lo que se le hizo al carro.','car'],['FlotaIQ','Las flotas suman su telemetría y mantenimiento preventivo al mismo historial.','act']].map(([t,d,i])=>`<div class="card" style="padding:18px"><div style="display:flex;align-items:center;gap:8px;font-weight:600;margin-bottom:6px">${ico(i,16)} ${t}</div><div class="muted" style="font-size:13px;line-height:1.5">${d}</div></div>`).join('')}</div>`;
+  const [h,t]=await Promise.all([rq('r:hist',60000,()=>SR().from('historial_vehiculo').select('serial,fecha,tipo_evento').order('fecha',{ascending:false}).limit(5000)),rq('r:trab',60000,()=>SR().from('trabajos_rta').select('estado,emitido_at').limit(5000))]); if(stale(tok)) return;
+  const H=h.data||[], T=t.data||[]; const vins=new Set(H.map(x=>x.serial).filter(Boolean));
+  const k=$('#av-k'); if(k) k.innerHTML=kpiCard('Vehículos con historial',n(vins.size),'por VIN / serial','car')+kpiCard('Eventos registrados',n(H.length),'mantenimientos y reparaciones','act')+kpiCard('Trabajos emitidos',n(T.filter(x=>x.estado==='emitido').length),'cerrados por mecánicos RTA','kyc')+kpiCard('Estado',h.error?'—':'Base lista',h.error?'falta correr el SQL de RTA':'acumulando historial para el lanzamiento','flag');
+};
+
 async function rExportOrders(){ const r=await SR().rpc('admin_export_orders'); if(r.error) return toast('error: '+r.error.message,true); const d=r.data; const rows=Array.isArray(d)?d:(d&&d.rows)||[]; if(typeof d==='string'){ dl(d); return; } if(!rows.length) return toast('no hay pedidos para exportar'); const cols=Object.keys(rows[0]); dl([cols.join(',')].concat(rows.map(x=>cols.map(c=>`"${String(x[c]==null?'':x[c]).replace(/"/g,'""')}"`).join(','))).join('\n'));
   function dl(csv){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv'})); a.download='repuestos-pedidos-'+new Date().toISOString().slice(0,10)+'.csv'; a.click(); } }
 
-RENDER.rmec=async(tok)=>{
-  const V=$('#view');
-  const{data,error}=await rq('r:mec',30000,()=>SR().from('mechanics').select('*').order('created_at',{ascending:false}).limit(300)); if(stale(tok)) return;
-  if(error){ V.innerHTML=repErr(error); return; }
-  const stages=['borrador','verificacion','verificado','avalado','maestro','suspendido'];
-  V.innerHTML=`<div class="grid g4" style="margin-bottom:14px">${stages.slice(0,4).map(s2=>kpiCard(s2.charAt(0).toUpperCase()+s2.slice(1),n((data||[]).filter(m=>(m.stage||'borrador')===s2).length),'mecánicos','users')).join('')}</div>
-  <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Mecánico</th><th>Especialidad</th><th>Zona</th><th>Calificación</th><th>Etapa RTA</th></tr></thead><tbody>${(data||[]).map(m=>`<tr><td><div class="who"><div class="av">${initials(m.name)}</div><div><div class="n">${esc(m.name||'—')}</div><div class="m">${m.verified?'verificado':''}${m.authorized?' · autorizado':''}</div></div></div></td><td class="muted">${esc(m.specialty||'—')}</td><td class="muted">${esc(m.zone||'—')}</td><td>${m.rating?Number(m.rating).toFixed(1)+' ★':'—'}</td>
-  <td><select class="input" style="height:30px;max-width:150px" onchange="rAct(SR().rpc('admin_set_mechanic_stage',{p_mechanic_id:'${m.id}',p_stage:this.value}),'etapa actualizada','rmec')">${[m.stage||'borrador'].concat(stages.filter(x=>x!==(m.stage||'borrador'))).map(x=>`<option value="${x}">${x}</option>`).join('')}</select></td></tr>`).join('')||`<tr><td colspan="5">${empty('Sin mecánicos registrados')}</td></tr>`}</tbody></table></div>`;
-};
 
 RENDER.rmar=async(tok)=>{
   const V=$('#view');
