@@ -1436,6 +1436,17 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
 .plan-invite-apply{background:var(--w8);border:1px solid var(--w12);border-radius:10px;padding:11px 14px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--white);cursor:pointer;white-space:nowrap;transition:background .15s}
 .plan-invite-apply:hover{background:var(--w14)}
 .plan-cta{margin-top:14px;width:100%;background:var(--lime);color:var(--lime-ink);border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;letter-spacing:-.1px}
+/* [2026-10-06] planes: "publicar gratis" arriba, tiers compactos debajo */
+.plan-card--free{border-color:var(--w20)}
+.plan-tiers-head{font-size:13px;color:var(--w45);text-align:center;line-height:1.5;margin:10px 0 0}
+.plan-card--tier{padding:15px 18px;border-radius:16px}
+.plan-card--tier .plan-card-header{align-items:center;margin-bottom:4px}
+.plan-card--tier .plan-card-name{font-size:19px;letter-spacing:-.4px}
+.plan-card--tier .plan-card-price{font-size:18px}
+.plan-card--tier .plan-card-desc{font-size:13px}
+.plan-card--tier .plan-cta{margin-top:12px;padding:13px}
+/* [2026-10-06] códigos de invitación PAUSADOS — borrar esta línea para reactivarlos */
+.rd-code-ui{display:none!important}
 .plan-cta:active{transform:scale(.98)}
 
 .btn-vender{transition:background .15s,transform .1s,box-shadow .2s}
@@ -5242,7 +5253,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     <!-- CTA -->
     <div style="padding:24px 24px 0;display:flex;flex-direction:column;gap:10px">
       <!-- INVITATION CODE -->
-      <div style="margin-bottom:14px">
+      <div class="rd-code-ui" style="margin-bottom:14px">
         <div style="display:flex;gap:8px">
           <input id="invite-code-input" class="form-input" type="text" placeholder="código de invitación (opcional)" style="flex:1;text-transform:uppercase;letter-spacing:1px" oninput="this.value=this.value.toUpperCase()">
           <button onclick="redeemInviteCode()" style="background:var(--w6);border:1px solid var(--w10);border-radius:12px;padding:13px 16px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--white);cursor:pointer;white-space:nowrap;transition:all .15s;flex-shrink:0" onmouseover="this.style.background='var(--w10)'" onmouseout="this.style.background='var(--w6)'">aplicar</button>
@@ -5338,7 +5349,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
     </div>
 
     <!-- INVITE CODE -->
-    <div style="margin:16px 22px 0;display:flex;gap:8px;align-items:center;background:var(--w3);border:1px solid var(--w7);border-radius:12px;padding:4px 4px 4px 14px">
+    <div class="rd-code-ui" style="margin:16px 22px 0;display:flex;gap:8px;align-items:center;background:var(--w3);border:1px solid var(--w7);border-radius:12px;padding:4px 4px 4px 14px">
       <svg fill="none" viewBox="0 0 20 20" stroke="var(--w25)" stroke-width="1.8" style="width:15px;height:15px;flex-shrink:0"><path d="M15 7a3 3 0 1 0-6 0 3 3 0 0 0 6 0zM2 17a8 8 0 1 1 16 0"/></svg>
       <input id="checkout-invite" type="text" placeholder="código de invitación (opcional)" style="flex:1;background:transparent;border:none;outline:none;font-family:var(--font);font-size:14px;color:var(--white);padding:10px 0">
       <button onclick="redeemCheckoutCode()" style="background:var(--w8);border:none;border-radius:9px;padding:9px 14px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--white);cursor:pointer;flex-shrink:0;transition:background .15s" onmouseover="this.style.background='var(--w14)'" onmouseout="this.style.background='var(--w8)'">aplicar</button>
@@ -10681,27 +10692,31 @@ function confirmPayment(){
 const PRICING_PLANS = {
   particular: [
     {
-      id:'gratis', name:'Gratis', nameColor:'var(--white)', price:'', priceColor:'var(--w50)',
-      desc:'Vende gratis en Ruedda con tu código de invitación. Publicación básica.',
-      allowCode:true, showArrow:false
+      id:'gratis', name:'Publicar gratis', nameColor:'var(--white)', price:'', priceColor:'var(--w50)',
+      desc:'Tu carro en Ruedda por 30 días.',
+      free:true, showArrow:false
     },
     {
-      id:'full', name:'RueddaFull', nameColor:'var(--white)', price:'4.95$', priceColor:'var(--white)',
-      desc:'Exposición garantizada para vender más rápido.', allowCode:false, showArrow:true, hasInfo:true
+      id:'founder', name:'Founder <span style="color:#08441A">Pack</span>', nameColor:'var(--white)', price:'2$', priceColor:'var(--white)',
+      desc:'Apóyanos y llévate tu insignia Founder.', tier:true, showArrow:true, hasInfo:true
     },
     {
-      id:'plus', name:'Ruedda<span style="color:#08441A">Plus+</span>', nameColor:'var(--white)', price:'9.93$', priceColor:'var(--white)',
-      desc:'Máxima visibilidad y presencia en redes.', allowCode:false, showArrow:true, hasInfo:true
+      id:'full', name:'RueddaFull', nameColor:'var(--white)', price:'5$', priceColor:'var(--white)',
+      desc:'Destacada 7 días y asesor por chat.', tier:true, showArrow:true, hasInfo:true
     },
     {
-      id:'pro', name:'Ruedda<span style="color:#08441A">Pro</span>', nameColor:'var(--white)', price:'60$', priceColor:'var(--white)',
-      desc:'Servicio completo: video profesional, sesión de fotos de calidad y 2 meses de exposición destacada.', allowCode:false, showArrow:true, hasInfo:true
+      id:'plus', name:'Ruedda<span style="color:#08441A">Plus+</span>', nameColor:'var(--white)', price:'15$', priceColor:'var(--white)',
+      desc:'Destacada siempre, primero en búsqueda y en redes.', tier:true, showArrow:true, hasInfo:true
+    },
+    {
+      id:'pro', name:'Ruedda<span style="color:#08441A">Pro</span>', nameColor:'var(--white)', price:'90$', priceColor:'var(--white)',
+      desc:'Fotógrafo, video profesional y sello auditado.', tier:true, showArrow:true, hasInfo:true
     },
   ],
   subasta: [
     {
       id:'gratis', name:'Gratis', nameColor:'var(--white)', price:'', priceColor:'var(--w50)',
-      desc:'Subasta gratuita con tu código de invitación.',
+      desc:'Subasta gratuita.',
       allowCode:true, showArrow:false
     },
     {
@@ -10730,8 +10745,8 @@ function openPricingSheet(demo){
       ? 'elige el tipo de subasta para tu vehículo.'
       : 'vende en el marketplace automotriz más avanzado de venezuela.';
 
-  document.getElementById('pricing-plans').innerHTML = plans.map(p => `
-    <div class="plan-card" id="plan-card-${p.id}" onclick="selectPlan('${p.id}','${type}')">
+  document.getElementById('pricing-plans').innerHTML = plans.map((p,i) => `${p.tier&&!plans[i-1]?.tier?'<div class="plan-tiers-head">¿te gusta Ruedda? apóyanos y vende más rápido.</div>':''}
+    <div class="plan-card${p.tier?' plan-card--tier':''}${p.free?' plan-card--free':''}" id="plan-card-${p.id}" onclick="selectPlan('${p.id}','${type}')">
       <div class="plan-card-header">
         <div class="plan-card-name">${p.name}</div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
@@ -10739,15 +10754,15 @@ function openPricingSheet(demo){
 
         </div>
       </div>
-      ${p.allowCode?`<div class="plan-card-desc">${p.desc}</div>`:''}
+      ${p.allowCode||p.free||p.tier?`<div class="plan-card-desc">${p.desc}</div>`:''}
       ${p.hasInfo?`<div onclick="openPlanInfo('${type}','${p.id}',event)" style="font-size:14px;color:var(--w40);cursor:pointer;font-weight:400;margin-top:8px;transition:color .15s" onmouseover="this.style.color='var(--w70)'" onmouseout="this.style.color='var(--w40)'">Ver más info.</div>`:''}
       ${p.allowCode ? `
-        <div class="plan-invite-wrap" id="invite-wrap-${p.id}">
+        <div class="plan-invite-wrap rd-code-ui" id="invite-wrap-${p.id}">
           <input type="text" id="invite-input-${p.id}" placeholder="código de invitación" oninput="this.value=this.value.toUpperCase()">
           <button class="plan-invite-apply" onclick="applyPlanCode('${p.id}',event)">aplicar</button>
         </div>` : ''}
       <div id="plan-msg-${p.id}" style="font-size:12px;margin-top:6px;display:none"></div>
-      <button class="plan-cta" id="plan-cta-${p.id}" onclick="confirmPlan('${p.id}','${type}',event)" style="display:none">continuar</button>
+      <button class="plan-cta" id="plan-cta-${p.id}" onclick="confirmPlan('${p.id}','${type}',event)"${p.free?' data-keep="1"':''} style="display:${p.free&&!demo?'block':'none'}">${p.free?'publicar gratis':'continuar'}</button>
     </div>`).join('');
 
   document.getElementById('pricing-sheet').classList.add('open');
@@ -10793,7 +10808,7 @@ function selectPlan(id, type){
   document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
   const card = document.getElementById('plan-card-'+id);
   if(card) card.classList.add('selected');
-  document.querySelectorAll('[id^="plan-cta-"]').forEach(b => b.style.display='none');
+  document.querySelectorAll('[id^="plan-cta-"]').forEach(b => { if(!b.dataset.keep) b.style.display='none'; });
   if(window._pricingDemoMode){
     const msg = document.getElementById('plan-msg-'+id);
     if(msg){ msg.textContent='vista previa — cierra y publica tu vehículo para elegir tu plan'; msg.style.color='var(--muted)'; msg.style.display='block'; }
@@ -10837,12 +10852,12 @@ async function confirmPlan(id, type, e){
     PAID_TYPES[pendingVenderType]=true;
     closePricingSheet();
     await publishListing({skipSplash:true});
-    showRevisionScreen('code');
+    showRevisionScreen(freeCode?'code':'free');
     return;
   }
   // paid plan → open checkout
   closePricingSheet();
-  const priceMap={'full':4.95,'plus':type==='subasta'?23.95:9.93,'normal':7.99};
+  const priceMap={'founder':2,'full':5,'plus':type==='subasta'?23.95:15,'pro':90,'normal':7.99};
   PLAN_PRICE[pendingVenderType] = priceMap[id]||4.95;
   openCheckout();
 }
@@ -12437,34 +12452,46 @@ function confirmDeleteAccount(){
 
 const PLAN_INFO = {
   particular: {
+    founder: {
+      title:'Founder Pack',
+      price:'$2',
+      perks:[
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><circle cx="12" cy="8" r="6"/><path d="M8.2 13.3 7 22l5-3 5 3-1.2-8.7"/></svg>', label:'Insignia Founder', detail:'Una insignia permanente en tu perfil: estuviste en Ruedda desde el principio.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'Exposición de 60 días', detail:'Tu publicación permanece activa 60 días.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', label:'Destacada 3 días', detail:'Tu carro aparece como featured durante 3 días.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>', label:'Acceso anticipado', detail:'Prueba primero lo nuevo de Ruedda.'},
+      ]
+    },
     full: {
       title:'RueddaFull',
-      price:'$4.95',
+      price:'$5',
       perks:[
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'Exposición de 2 meses', detail:'Tu publicación permanece activa 2 meses completos.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-4.66"/></svg>', label:'1 republicación', detail:'Publica tu carro de nuevo sin costo adicional si no se vende.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Soporte en venta', detail:'Un asesor Ruedda te orienta durante el proceso de venta.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.46 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.37 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.4a16 16 0 0 0 7.7 7.7l.79-.79a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 18.54"/></svg>', label:'Facilitación de interesados', detail:'Te conectamos con compradores verificados de tu zona.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'Exposición de 60 días', detail:'Tu publicación permanece activa 60 días.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', label:'Destacada 7 días', detail:'Tu carro aparece como featured y en Hot Deals durante 7 días.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>', label:'Historia en Instagram', detail:'Tu carro en una historia de Ruedda en Instagram.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Asesor por chat', detail:'Un asesor Ruedda te orienta por chat durante la venta.'},
       ]
     },
     plus: {
       title:'RueddaPlus+',
-      price:'$9.93',
+      price:'$15',
       perks:[
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>', label:'Promoción en redes sociales', detail:'Tu carro aparece en el Instagram y TikTok de Ruedda.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'Exposición de 3 meses', detail:'Tu publicación permanece activa por 3 meses.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 .49-4.66"/></svg>', label:'2 republicaciones', detail:'Republica tu carro hasta 2 veces sin costo adicional.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3"/><rect x="9" y="11" width="14" height="10" rx="1"/><path d="m12 11-4 4 4 4"/></svg>', label:'Venta a la puerta de la esquina', detail:'Coordinamos visitas y pruebas de manejo en tu zona.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'Exposición de 90 días', detail:'Tu publicación permanece activa 90 días.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', label:'Destacada toda la publicación', detail:'Featured y en Hot Deals los 90 días completos.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>', label:'Primero en búsqueda y en tu ciudad', detail:'Tu carro aparece antes que el resto cuando buscan algo como él.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>', label:'Post e historia en redes', detail:'Promocionamos tu carro en las redes de Ruedda.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', label:'Tu clip en Clips', detail:'Sube un video de tu carro y lo mostramos en la sección Clips.'},
       ]
     },
     pro: {
       title:'RueddaPro',
-      price:'$60',
+      price:'$90',
       perks:[
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', label:'Video profesional', detail:'Un video corto de tu vehículo, grabado y editado por el equipo de Ruedda.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>', label:'Sesión de fotos profesional', detail:'Un fotógrafo autorizado por Ruedda te visita y toma las fotos de tu publicación.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'2 meses de exposición destacada', detail:'Tu publicación permanece activa y destacada por 2 meses completos.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Soporte prioritario', detail:'Un asesor Ruedda te acompaña de principio a fin en la venta.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>', label:'Fotógrafo a domicilio', detail:'Un fotógrafo autorizado por Ruedda te visita y toma las fotos de tu publicación.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', label:'Video profesional', detail:'Un video corto de tu carro, grabado y editado por el equipo de Ruedda.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>', label:'Sello auditado Ruedda', detail:'Inspeccionamos tu carro y tu publicación lleva el sello auditado.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Asesor dedicado', detail:'Coordina visitas y pruebas de manejo, de principio a fin.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:#08441A"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', label:'Destacada hasta que se venda', detail:'Featured y en Hot Deals mientras tu carro esté a la venta.'},
       ]
     }
   },
@@ -14942,8 +14969,8 @@ function showRevisionScreen(method){
   const existing = document.getElementById('revision-screen-overlay');
   if(existing) existing.remove();
 
-  const isCode = method==='code';
-  const title = isCode ? 'código<br>activado' : 'pago<br>recibido';
+  const isCode = method==='code' || method==='free';
+  const title = method==='free' ? 'publicación<br>enviada' : isCode ? 'código<br>activado' : 'pago<br>recibido';
   const sub = isCode
     ? 'publicación en revisión.<br>te avisamos apenas esté activa.'
     : 'publicación en revisión.<br>el equipo de Ruedda verificará tu pago<br>en las próximas horas.';
