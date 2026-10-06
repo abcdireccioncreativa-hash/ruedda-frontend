@@ -5752,6 +5752,17 @@ function _superadminPostLoad(){
 }
 
 // ===================== VIEW =====================
+// [2026-10-06] asistente de soporte (rd-support.js) — carga diferida, una sola vez.
+// Si no carga, la vista de soporte original (correo + WhatsApp) sigue intacta.
+function _rdLoadSupport(){
+  const v=document.getElementById('view-soporte-ruedda');
+  if(window.RDSupport){ window.RDSupport.mount(v); return; }
+  if(window._rdSupLoading) return; window._rdSupLoading=true;
+  const s=document.createElement('script'); s.src='/rd-support.js?v=1'; s.async=true;
+  s.onload=()=>{ try{ window.RDSupport&&window.RDSupport.mount(v); }catch(e){ console.error('[ruedda] soporte:',e); } };
+  s.onerror=()=>{ window._rdSupLoading=false; };
+  document.head.appendChild(s);
+}
 function showView(name,param){
   document.documentElement.scrollTop=0;document.body.scrollTop=0;
   // [pedido explícito] al salir de una publicación/subasta por CUALQUIER
@@ -5838,6 +5849,7 @@ function showView(name,param){
   if(name==='vender')populateYears();
   if(name==='cuenta'){document.getElementById('stat-guardadas').textContent=watchlist.size;updateCuentaView();showDealerFab(false);}
   if(name==='notificaciones'){renderNotifications();document.getElementById('notif-dot').style.display='none';}
+  if(name==='soporte-ruedda') _rdLoadSupport(); // [2026-10-06] asistente Enzo: se descarga solo al abrir soporte
   if(name==='favoritos')renderFavoritos();
   if(name==='carspotting')loadCarspotting();
   if(name==='alquileres')_loadRentals();
