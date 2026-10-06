@@ -47,6 +47,24 @@ select.input{appearance:none;-webkit-appearance:none;background-image:url("data:
 .btn-red{background:var(--red-bg);color:var(--red)}.btn-red:hover{background:#fbdde1}
 .btn-lg{height:46px;width:100%;font-size:15px}
 .login-err{color:var(--red);font-size:13px;min-height:18px;margin:4px 0 8px}
+/* [2026-10-05] selector de panel */
+.login-card{max-width:440px}
+.pnl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 22px}
+.pnl button{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:14px;border:1px solid var(--line);background:var(--panel);text-align:left;cursor:pointer;transition:border-color .18s ease,background .18s ease,transform .12s ease;font:inherit;color:var(--ink)}
+.pnl button:hover{border-color:var(--line2)}
+.pnl button:active{transform:scale(.98)}
+.pnl button.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+.pnl .cd{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:700;letter-spacing:.04em;background:var(--hover);color:var(--ink2);flex-shrink:0;transition:background .18s,color .18s}
+.pnl button.on .cd{background:var(--ink);color:#fff}
+.pnl b{display:block;font-size:13.5px;font-weight:600;line-height:1.15}
+.pnl small{display:block;font-size:11.5px;color:var(--mute);margin-top:2px}
+.pnl .soon small{color:#b0b0b8}
+.pnl-note{font-size:13px;color:var(--mute);background:var(--hover);border-radius:12px;padding:12px 14px;margin:2px 0 14px;line-height:1.45;display:none}
+#login-form.off .field,#login-form.off .login-err{display:none}
+#login-form.off .pnl-note{display:block}
+.me-panel{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink2);background:var(--hover);border-radius:999px;padding:4px 10px;margin:0 0 10px}
+.me-panel i{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.aside-foot .switch{display:block;margin-top:6px}
 
 /* ── shell ── */
 #app{display:grid;grid-template-columns:252px 1fr;min-height:100vh}
@@ -252,6 +270,21 @@ main{min-width:0}
 @keyframes vin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 #nav a{transition:background .18s ease,color .18s ease}
 @media(prefers-reduced-motion:reduce){#view.vin{animation:none}}
+/* [2026-10-05 · pulido] transición entre secciones, entrada escalonada, barra de carga, fotos con fundido */
+#view{transition:opacity .14s ease}
+#view.vout{opacity:0;transition:opacity .12s ease}
+.rin-i{animation:rin .5s cubic-bezier(.22,1,.36,1) both}
+@keyframes rin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+tr.rin-i{animation-name:rinRow}
+@keyframes rinRow{from{opacity:0}to{opacity:1}}
+#rdbar{position:fixed;top:0;left:0;right:0;height:2px;z-index:400;pointer-events:none;transform-origin:0 50%;transform:scaleX(0);opacity:0;background:linear-gradient(90deg,#0071e3,#5ac8fa)}
+#rdbar.go{opacity:1;transform:scaleX(.82);transition:transform 1.6s cubic-bezier(.08,.82,.17,1),opacity .1s}
+#rdbar.end{opacity:0;transform:scaleX(1);transition:transform .22s ease,opacity .3s ease .18s}
+#view img{opacity:0;transition:opacity .35s ease}
+#view img.ld{opacity:1}
+.kpi .v.bump{animation:bump .6s cubic-bezier(.22,1,.36,1)}
+@keyframes bump{0%{color:var(--blue)}100%{color:inherit}}
+@media(prefers-reduced-motion:reduce){.rin-i,tr.rin-i{animation:none}#view img{opacity:1}#rdbar{display:none}}
 #toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:999px;font-size:13.5px;font-weight:500;opacity:0;transition:all .25s cubic-bezier(.22,1,.36,1);z-index:300;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.2)}
 #toast.on{opacity:1;transform:translate(-50%,0)}
 #toast.err{background:var(--red)}
@@ -278,8 +311,15 @@ main{min-width:0}
 <div id="login" class="hidden">
   <form class="login-card" id="login-form" autocomplete="on">
     <img src="/assets/ruedda-wordmark-negro.png" alt="Ruedda">
-    <h1>Ruedda Control</h1>
-    <p>Panel de administración. Inicia sesión una vez y tu navegador lo recordará.</p>
+    <h1 id="lg-t">Ruedda Control</h1>
+    <p id="lg-p">Panel de administración. Inicia sesión una vez y tu navegador lo recordará.</p>
+    <div class="pnl" role="radiogroup" aria-label="panel">
+      <button type="button" data-p="ve" role="radio"><span class="cd">VE</span><span><b>Venezuela</b><small>Ruedda · superadmin</small></span></button>
+      <button type="button" data-p="rc" role="radio"><span class="cd">RC</span><span><b>Rubén</b><small>panel de socio</small></span></button>
+      <button type="button" data-p="co" role="radio" class="soon"><span class="cd">CO</span><span><b>Colombia</b><small>en preparación</small></span></button>
+      <button type="button" data-p="ca" role="radio" class="soon"><span class="cd">CA</span><span><b>Canadá</b><small>en preparación</small></span></button>
+    </div>
+    <div class="pnl-note" id="lg-note"></div>
     <label class="field"><span>Correo</span><input class="input" type="email" name="username" id="lg-email" autocomplete="username" value="empresa@ruedda.com" required></label>
     <label class="field"><span>Contraseña</span><input class="input" type="password" name="password" id="lg-pass" autocomplete="current-password" required></label>
     <div class="login-err" id="lg-err"></div>
@@ -293,8 +333,10 @@ main{min-width:0}
     <img class="logo" src="/assets/ruedda-wordmark-negro.png" alt="Ruedda">
     <nav class="nav" id="nav"></nav>
     <div class="aside-foot">
+      <span class="me-panel" id="me-panel"><i></i><span>Venezuela</span></span><br>
       <b id="me-name">—</b><span id="me-mail"></span><br>
       <button onclick="logout()">Cerrar sesión</button>
+      <button class="switch" onclick="logout()">Cambiar de panel</button>
     </div>
   </aside>
   <main id="main">
@@ -432,6 +474,7 @@ async function boot(){
   }
   if(window.SOCIO){ location.hash=''; location.reload(); return; } // [fix] nunca heredar el panel de socio
   ME=me; $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
+  try{ localStorage.setItem('ctrl_panel','ve'); }catch(e){}
   $('#me-name').textContent=me.nombre||'Ruedda'; $('#me-mail').textContent=me.email||session.user.email||'';
   buildNav(); route(); startLive();
 }
@@ -444,6 +487,27 @@ $('#login-form').addEventListener('submit',async e=>{
   boot();
 });
 async function logout(){ await sb.auth.signOut().catch(()=>{}); location.hash=''; location.reload(); }
+
+/* ── selector de panel (login). Las credenciales nunca van en el código: cada panel pide las suyas
+   y el navegador/llavero las recuerda por correo. Colombia y Canadá se activan con su propio Supabase. ── */
+const PANELS={
+  ve:{t:'Ruedda Control',p:'Venezuela · administración de Ruedda.',mail:'empresa@ruedda.com'},
+  rc:{t:'Panel de socio',p:'Rubén · Ruedda App, Hub y Repuestos.',mail:''},
+  co:{t:'Ruedda Colombia',p:'',soon:'El panel de Colombia se activa cuando conectemos su base de datos propia. La app ya está traducida y lista en el repo ruedda-ecosystem.'},
+  ca:{t:'Ruedda Canadá',p:'',soon:'El panel de Canadá (inglés y francés) se activa cuando conectemos su base de datos propia. La app ya está traducida y lista en el repo ruedda-ecosystem.'}
+};
+function pickPanel(k,focus){
+  const P=PANELS[k]||PANELS.ve; try{ localStorage.setItem('ctrl_panel',k); }catch(e){}
+  document.querySelectorAll('.pnl button').forEach(b=>{ const on=b.dataset.p===k; b.classList.toggle('on',on); b.setAttribute('aria-checked',on); });
+  $('#lg-t').textContent=P.t; $('#lg-p').textContent=P.p||'Próximamente.';
+  const f=$('#login-form'); f.classList.toggle('off',!!P.soon); $('#lg-note').textContent=P.soon||'';
+  const b=$('#lg-btn'); b.disabled=!!P.soon; b.textContent=P.soon?'Próximamente':'Entrar';
+  const em=$('#lg-email'); if(!P.soon){ if(!em.dataset.touched) em.value=P.mail; em.placeholder=k==='rc'?'correo de socio':''; }
+  if(focus&&!P.soon) setTimeout(()=>(em.value?$('#lg-pass'):em).focus(),30);
+}
+document.querySelectorAll('.pnl button').forEach(b=>b.addEventListener('click',()=>pickPanel(b.dataset.p,true)));
+$('#lg-email').addEventListener('input',e=>{ e.target.dataset.touched='1'; });
+pickPanel((()=>{ try{ return localStorage.getItem('ctrl_panel')||'ve'; }catch(e){ return 've'; } })());
 
 /* ════════════ NAVEGACIÓN ════════════ */
 let VIEWS=[
@@ -500,11 +564,8 @@ function route(){
   $('#page-t').textContent=v.t; $('#page-s').textContent=v.s||''; document.title=v.t+' · Ruedda Control';
   window.scrollTo(0,0);
   const tok=++VIEW_TOKEN;
-  const VV=$('#view'); VV.classList.remove('vin'); void VV.offsetWidth; VV.classList.add('vin');
-  // [socios] secciones que no pintan esqueleto propio: feedback inmediato al tocar el menú
-  if(window.SOCIO&&['shub','rtiendas','rprod','rped','rmec','rmar','postulaciones','sugerencias','criterio','comparativa'].includes(v.id))
-    VV.innerHTML='<div class="card"><div style="padding:18px;display:grid;gap:12px"><div class="skel" style="height:22px;width:40%"></div><div class="skel" style="height:44px"></div><div class="skel" style="height:44px"></div><div class="skel" style="height:44px"></div></div></div>';
-  RENDER[v.id](tok,rest);
+  rdBegin(tok);
+  rdDone(tok, Promise.resolve().then(()=>RENDER[v.id](tok,rest)));
 }
 const stale=tok=>tok!==VIEW_TOKEN;
 window.addEventListener('scroll',()=>$('#topbar').classList.toggle('scrolled',scrollY>4),{passive:true});
@@ -524,7 +585,15 @@ function startLive(){
     }).subscribe();
   }catch(e){}
 }
-function refresh(manual){ lastUpd=Date.now(); if(manual) memoClear(); refreshBadges(); if(window.SOCIO&&!manual) return; if(CUR) RENDER[CUR](VIEW_TOKEN,[],true); if(manual) toast('actualizado'); }
+function refresh(manual){
+  lastUpd=Date.now(); if(manual) memoClear();
+  if(CUR!=='control'||window.SOCIO) refreshBadges(); // la portada ya los pide en su propio render
+  if(window.SOCIO&&!manual) return;
+  if(!manual&&rdBusy()){ if(CUR==='control') refreshBadges(); return; } // no reconstruir mientras escribes o hay una ventana abierta
+  if(CUR){ window._SOFT=true; const tok=VIEW_TOKEN; if(manual) rdBar(true);
+    Promise.resolve().then(()=>RENDER[CUR](tok,[],true)).catch(()=>{}).finally(()=>{ window._SOFT=false; if(manual) rdBar(false); }); }
+  if(manual) toast('actualizado');
+}
 let BADGES={};
 const SUG_SEEN='ctrl_sug_seen';
 const sugSeenISO=()=>{ try{ return localStorage.getItem(SUG_SEEN)||new Date(Date.now()-7*DAY).toISOString(); }catch(e){ return new Date(Date.now()-7*DAY).toISOString(); } };
@@ -1759,6 +1828,7 @@ const SOCIO_VIEWS=[
 
 async function startSocio(me){
   window.SOCIO=me; ME=me;
+  try{ $('#me-panel span').textContent='Socio · '+((me&&me.nombre)||'Rubén'); localStorage.setItem('ctrl_panel','rc'); }catch(e){}
   document.body.classList.add('is-socio');
   $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
   $('#me-name').textContent=me.nombre||'Socio'; $('#me-mail').textContent=me.email||'';
@@ -1968,6 +2038,98 @@ function socioOfficeBtn(){
   a.innerHTML='<span class="so-t">ir a oficina</span><span class="so-go"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>';
   document.body.appendChild(a);
 }
+
+/* ════════════ PULIDO DE INTERFAZ (2026-10-05) ════════════
+   1. Escrituras idénticas dentro de #view se ignoran: los refrescos de fondo cada 10 s
+      ya no reconstruyen tablas, gráficas ni fotos si nada cambió (fin del lag y los saltos).
+   2. Cuando el contenido real reemplaza al esqueleto, entra escalonado y los números cuentan.
+   3. Cambio de sección: salida rápida, barra fina de progreso y esqueleto solo si tarda.
+   4. Fotos con carga diferida y fundido al terminar de cargar. */
+(function(){
+  const D=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+  const LAST=new WeakMap(), LOADED=new Set();
+  let VIEW=null;
+  const view=()=>VIEW||(VIEW=document.getElementById('view'));
+  window._rdWrote=0;
+  Object.defineProperty(Element.prototype,'innerHTML',{configurable:true,enumerable:D.enumerable,get:D.get,set(html){
+    const V=view();
+    if(!V||!(this===V||V.contains(this))) return D.set.call(this,html);
+    html=String(html);
+    const prev=D.get.call(this), last=LAST.get(this);
+    if(last&&last.a===html&&prev===last.s) return;                 // idéntico: no tocar el DOM
+    const fromSkel=prev.indexOf('skel')>=0;
+    D.set.call(this,html.replace(/<img(?![^>]*\bloading=)/g,'<img loading="lazy" decoding="async"'));
+    LAST.set(this,{a:html,s:D.get.call(this)});
+    window._rdWrote++;
+    if(LOADED.size) this.querySelectorAll('img').forEach(i=>{ if(LOADED.has(i.getAttribute('src'))) i.classList.add('ld'); }); // ya vista: sin parpadeo
+    const isSkel=html.indexOf('skel')>=0;
+    if(this===V&&V.classList.contains('vout')){            // primer contenido de la nueva sección
+      V.classList.remove('vout','vin'); void V.offsetWidth; V.classList.add('vin');
+      if(!isSkel) enter(this);
+      return;
+    }
+    if(window._SOFT){ bumpNums(this); return; }
+    if(fromSkel&&!isSkel) enter(this);
+  }});
+
+  function enter(el){
+    const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches; if(reduce) return;
+    let t=[...el.querySelectorAll(':scope > *:not(script), :scope > .grid > *, tbody > tr, .queue > a, .ev, .items > *')];
+    t=[...new Set(t)].filter(x=>!x.classList.contains('skel')).slice(0,22);
+    t.forEach((x,i)=>{ x.classList.remove('rin-i'); x.style.animationDelay=Math.min(i,14)*26+'ms'; x.classList.add('rin-i');
+      x.addEventListener('animationend',()=>{ x.classList.remove('rin-i'); x.style.animationDelay=''; },{once:true}); });
+    countUp(el);
+  }
+  function parseNum(t){ const m=t.match(/\d[\d.,]*/); if(!m) return null; const v=parseInt(m[0].replace(/[.,]/g,''),10); return isFinite(v)?{m:m[0],v}:null; }
+  function fmt(v,sample){ const s=String(Math.round(v)); if(!/[.,]/.test(sample)) return s; return s.replace(/\B(?=(\d{3})+(?!\d))/g,sample.match(/[.,]/)[0]); }
+  function countUp(el){
+    el.querySelectorAll('.kpi .v').forEach(v=>{
+      const full=v.textContent, p=parseNum(full); if(!p||p.v<10||v.children.length) return;
+      const t0=performance.now(), dur=750;
+      const step=now=>{ if(!v.isConnected) return; const k=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-k,3);
+        D.set.call(v,full.replace(p.m,fmt(p.v*e,p.m))); if(k<1) requestAnimationFrame(step); else D.set.call(v,full); };
+      requestAnimationFrame(step);
+    });
+  }
+  // en refrescos de fondo: si un número cambió, se marca un instante
+  const PREVN=new WeakMap();
+  function bumpNums(el){
+    el.querySelectorAll('.kpi .v').forEach(v=>{ const k=v.closest('.kpi'); const before=PREVN.get(k); const now=v.textContent; PREVN.set(k,now);
+      if(before!==undefined&&before!==now){ v.classList.remove('bump'); void v.offsetWidth; v.classList.add('bump'); } });
+  }
+  // fotos: fundido al cargar
+  document.addEventListener('load',e=>{ const t=e.target; if(t&&t.tagName==='IMG'){ t.classList.add('ld'); const s=t.getAttribute('src'); if(s&&LOADED.size<2000) LOADED.add(s); } },true);
+  document.addEventListener('error',e=>{ const t=e.target; if(t&&t.tagName==='IMG') t.classList.add('ld'); },true);
+  new MutationObserver(()=>{ const V=view(); if(V) V.querySelectorAll('img:not(.ld)').forEach(i=>{ if(i.complete&&i.naturalWidth) i.classList.add('ld'); }); })
+    .observe(document.documentElement,{childList:true,subtree:true});
+
+  // barra de progreso
+  const bar=document.createElement('div'); bar.id='rdbar'; document.body.appendChild(bar);
+  let barT=0;
+  window.rdBar=on=>{ clearTimeout(barT);
+    if(on){ bar.classList.remove('end','go'); void bar.offsetWidth; bar.classList.add('go'); }
+    else { bar.classList.add('end'); barT=setTimeout(()=>bar.classList.remove('go','end'),520); } };
+
+  const SKEL='<div class="card"><div style="padding:18px;display:grid;gap:12px"><div class="skel" style="height:22px;width:40%"></div><div class="skel" style="height:44px"></div><div class="skel" style="height:44px"></div><div class="skel" style="height:44px"></div></div></div>';
+  let begunAt=0;
+  window.rdBegin=tok=>{
+    window._SOFT=false;
+    const V=view(); begunAt=window._rdWrote;
+    rdBar(true);
+    V.classList.remove('vin'); V.classList.add('vout');
+    // si la sección no pinta nada en 140 ms, mostramos un esqueleto (nunca pantalla vacía)
+    setTimeout(()=>{ if(tok===VIEW_TOKEN&&window._rdWrote===begunAt){ V.innerHTML=SKEL; } },140);
+    setTimeout(()=>{ if(tok===VIEW_TOKEN&&V.classList.contains('vout')){ V.classList.remove('vout'); V.classList.add('vin'); } },1800);
+  };
+  window.rdDone=(tok,p)=>{ p.catch(err=>console.warn('[control]',err)).finally(()=>{ if(tok!==VIEW_TOKEN) return; rdBar(false);
+    const V=view(); if(V.classList.contains('vout')){ V.classList.remove('vout'); V.classList.add('vin'); } }); };
+  // no reconstruir durante interacción
+  window.rdBusy=()=>{ const a=document.activeElement; const V=view();
+    if(a&&V&&V.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+    if(document.querySelector('.ov')) return true;
+    const sel=getSelection&&getSelection(); if(sel&&String(sel).length>0) return true;
+    return false; };
+})();
 
 </script>
 </body>
