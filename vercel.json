@@ -103,6 +103,10 @@
       "dest": "https://ruedda-hub.vercel.app/hub/$1"
     },
     {
+      "src": "^/linktree/?$",
+      "dest": "https://ruedda-linktree.vercel.app/linktree/"
+    },
+    {
       "src": "^/repuestos$",
       "status": 308,
       "headers": {
