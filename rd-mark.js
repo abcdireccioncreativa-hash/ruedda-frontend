@@ -2,7 +2,7 @@
    MÓDULO OPCIONAL: para quitarlo basta borrar la línea <script src="/rd-mark.js…"> en index.html.
    Para resaltar otro título, agrega su selector a SELECTORS. Se dibuja cada vez que vuelve a entrar en pantalla. */
 (function () {
-  var SELECTORS = ['#pd-head .hd-title'];
+  var SELECTORS = ['#pd-head .hd-title', '.rd-footer .rf-stat b']; // [2026-10-08] + titulares de "¿Por qué Ruedda?" (footer desktop)
   if (!('IntersectionObserver' in window)) return;
   var st = document.createElement('style');
   st.textContent =
@@ -31,5 +31,6 @@
       });
     });
   }
+  window.rdMarkScan = scan; // para contenido que se pinta después (footer desktop)
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan); else scan();
 })();

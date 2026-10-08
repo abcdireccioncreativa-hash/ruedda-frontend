@@ -103,6 +103,14 @@
       "dest": "https://ruedda-hub.vercel.app/hub/$1"
     },
     {
+      "src": "^/chrono/?$",
+      "dest": "https://ruedda-chrono.vercel.app/chrono"
+    },
+    {
+      "src": "^/chrono/(.*)$",
+      "dest": "https://ruedda-chrono.vercel.app/chrono/$1"
+    },
+    {
       "src": "^/linktree/?$",
       "dest": "https://ruedda-linktree.vercel.app/linktree/"
     },

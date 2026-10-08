@@ -23,6 +23,10 @@
             "exclude": true
           },
           {
+            "/": "/chrono*",
+            "exclude": true
+          },
+          {
             "/": "/api/*",
             "exclude": true
           },

@@ -563,6 +563,7 @@ let VIEWS=[
   {id:'actualizacion',t:'Actualización de la app',i:'upd',s:'Aviso para que actualicen la app de iPhone, con sus novedades'},
   {id:'configuracion',t:'Configuración',i:'pay',s:'Datos de pago e historia de Ruedda'},
   {id:'office',t:'Ruedda Office',i:'users',s:'Oficina virtual del equipo: usuarios autorizados, quién está, visitas y actividad'},
+  {id:'chrono',t:'Ruedda Chrono',i:'act',s:'Planner de contenido: métricas de redes del mes, pendientes, reglas, editores y el planner completo'},
   {id:'socios',t:'Socios',i:'user',s:'Panel de socios (Rubén): accesos y todo lo que editan'}
 ];
 function buildNav(){
@@ -1489,16 +1490,17 @@ async function posSet(id,estado){ const{error}=await sb.from('postulaciones').up
 async function posNota(id,notas){ const{error}=await sb.from('postulaciones').update({notas:notas.trim()||null}).eq('id',id); if(error) return toast('error: '+error.message,true); toast('nota guardada'); }
 
 /* ── PATROCINANTES ── */
-const PAT_CATS=['market','promo grande','mini banner detalle','chocados','busqueda','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
+const PAT_CATS=['market','promo grande','mini banner detalle','chocados','chocados market','busqueda','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];
 /* [patrocinantes] los banners de la app arriba, con nombre claro, dónde salen, su formato y edición */
 const PAT_META={
   'market':['Banner superior del market','Carrusel angosto arriba del market (app y web).','3/1'],
   'promo grande':['Banner grande del market','El grande, de lado a lado, a mitad del market en la app. 16:9 · hasta 5 fotos · rota cada 3 s.','16/9'],
   'mini banner detalle':['Mini banner en publicaciones','Dentro de cada publicación, entre especificaciones y comparativa de precios. Hasta 5 fotos.','3/1'],
   'chocados':['Banner de chocados','Arriba de la pestaña chocados en subastas.','3/1'],
+  'chocados market':['Banner de chocados (market)','Carrusel grande de la sección Chocados del market (pill "chocados" y menú de arriba en la web). 16:5 · con nombre y link opcionales · cambia cada 5 s. Sin banners cargados usa los de chocados de subastas.','16/5'],
   'busqueda':['Banner de la búsqueda (lupa)','Dentro de la búsqueda, debajo de marcas populares (app y web). Imagen 3:1 con link. Sin banner cargado se ve la tarjeta "tu taller de confianza".','3/1']
 };
-const PAT_BANNERS=['promo grande','market','mini banner detalle','chocados','busqueda'];
+const PAT_BANNERS=['promo grande','market','mini banner detalle','chocados','chocados market','busqueda'];
 const patTitle=c=>(PAT_META[c]&&PAT_META[c][0])||c;
 const patRatio=c=>(PAT_META[c]&&PAT_META[c][2])||'3/1';
 RENDER.patrocinantes=async(tok)=>{
@@ -1759,6 +1761,68 @@ async function offAccAdd(btn){ const u=$('#oa-u').value.trim().replace(/^@+/,'')
   if(!/^[a-z0-9._-]{2,40}$/.test(u)) return toast('usuario inválido: letras, números, punto o guion',true); btn.disabled=true;
   const{error}=await sb.rpc('office_account_upsert',{p_username:u,p_name:$('#oa-n').value.trim(),p_slot:$('#oa-s').value,p_cargo:$('#oa-c').value.trim(),p_admin:$('#oa-a').checked,p_active:true});
   btn.disabled=false; if(error) return toast('error: '+error.message,true); toast('autorizado: '+u); RENDER.office(VIEW_TOKEN,[],true); }
+
+/* ════════════ RUEDDA CHRONO · planner de contenido (2026-10-08) ════════════
+   Proyecto aparte (ruedda-chrono.vercel.app/chrono → ruedda.app/chrono). Tablas chrono_posts,
+   chrono_rules, chrono_events, chrono_offdays, chrono_editors (SQL: chrono_migration.sql).
+   Aquí: métricas del mes (mismo cálculo que el planner), pendientes, próximos 7 días, reglas,
+   editores y el planner completo embebido (editable; el token va por postMessage). */
+const CHRONO_URL='https://ruedda-chrono.vercel.app/chrono';
+const CHR_T={historia:'Historia',reel:'Reel',post:'Post',carrusel:'Carrusel',live:'En vivo'};
+const CHR_M=['reach','likes','comments','shares','saves','actions','followers'];
+const chrHasM=p=>p.reach!=null&&+p.reach>0;
+const chrDay=d=>new Date(d+'T12:00:00').toLocaleDateString('es-VE',{weekday:'short',day:'numeric',month:'short'});
+const chrK=(ps)=>{ const w=ps.filter(chrHasM), t={posts:ps.length,withM:w.length,reach:0,inter:0,actions:0,followers:0};
+  w.forEach(p=>{t.reach+=+p.reach||0;t.inter+=(+p.likes||0)+(+p.comments||0)+(+p.shares||0)+(+p.saves||0);t.actions+=+p.actions||0;t.followers+=+p.followers||0;});
+  t.er=t.reach?t.inter/t.reach:0; return t; };
+const chrDelta=(c,p)=>p>0?`<span class="${c>=p?'up':'dn'}" style="font-weight:700;color:${c>=p?'#1FB574':'#E5392D'}">${c>=p?'▲':'▼'} ${Math.round(Math.abs(c-p)/p*100)}%</span> vs mes anterior`:'sin mes anterior';
+const chrBlk=r=>!r.from_time&&!r.to_time?'todo el día':r.from_time&&!r.to_time?'después de las '+r.from_time:!r.from_time?'antes de las '+r.to_time:'de '+r.from_time+' a '+r.to_time;
+const CHR_DOW=['dom','lun','mar','mié','jue','vie','sáb'];
+RENDER.chrono=async(tok,_,soft)=>{
+  const V=$('#view'); if(!soft) V.innerHTML='<div class="card"><div style="padding:18px"><div class="skel" style="height:40px"></div></div></div>';
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth(), iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const from=iso(new Date(y,m-1,1)), today=iso(now), in7=iso(new Date(+now+7*DAY));
+  const [ps,rs,ed]=await Promise.all([
+    sb.from('chrono_posts').select('id,date,time,type,platform,title,learned,example,'+CHR_M.join(',')).gte('date',from).order('date').order('time').limit(3000),
+    sb.from('chrono_rules').select('*').order('created_at'),
+    sb.rpc('chrono_editors_list')
+  ]);
+  if(stale(tok)) return;
+  if(ps.error){ V.innerHTML=`<div class="notice">Ruedda Chrono todavía no está instalado: corre en Supabase el SQL <code>chrono_migration.sql</code> (se puede repetir sin problema).<br><span class="muted">${esc(ps.error.message)}</span></div>`; return; }
+  const P=ps.data||[], R=rs.data||[], E=ed.data||[];
+  const mPre=iso(new Date(y,m,1)).slice(0,7), pPre=from.slice(0,7);
+  const cur=chrK(P.filter(p=>p.date.startsWith(mPre))), prev=chrK(P.filter(p=>p.date.startsWith(pPre)));
+  const pend=P.filter(p=>p.date<today&&!chrHasM(p)).reverse();
+  const next=P.filter(p=>p.date>=today&&p.date<=in7);
+  // qué tipo rinde mejor este mes (interacción / alcance)
+  const byT={}; P.filter(p=>p.date.startsWith(mPre)&&chrHasM(p)).forEach(p=>{const k=p.type,g=byT[k]||(byT[k]={r:0,i:0,n:0}); g.r+=+p.reach; g.i+=(+p.likes||0)+(+p.comments||0)+(+p.shares||0)+(+p.saves||0); g.n++;});
+  const best=Object.entries(byT).map(([k,g])=>({k,er:g.r?g.i/g.r:0,n:g.n})).sort((a,b)=>b.er-a.er)[0];
+  const K=(l,v,d)=>`<div class="card kpi"><div class="l">${l}</div><div class="v num">${v}</div><div class="d">${d}</div></div>`;
+  const ex=P.some(p=>p.example);
+  const row=p=>`<tr><td class="muted" style="white-space:nowrap">${esc(chrDay(p.date))} · ${esc(p.time)}</td><td><span class="pill">${esc(CHR_T[p.type]||p.type)}</span></td><td><b>${esc(p.title)}</b></td></tr>`;
+  V.innerHTML=`<div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px"><button class="btn btn-soft" onclick="chrToggleFrame()">Ver el planner aquí</button><a class="btn btn-primary" href="/chrono" target="_blank" rel="noopener">Abrir Ruedda Chrono</a></div>
+    ${ex?'<div class="notice" style="margin-bottom:12px">Hay datos de ejemplo cargados. Se borran desde el planner con “Borrar ejemplos”.</div>':''}
+    <div class="grid g4">${K('Publicaciones del mes',n(cur.posts),`${n(cur.withM)} con resultados · `+chrDelta(cur.posts,prev.posts))+K('Alcance',n(cur.reach),chrDelta(cur.reach,prev.reach))+K('Interacción',(cur.er*100).toFixed(1).replace('.',',')+'%',n(cur.inter)+' interacciones · '+chrDelta(cur.inter,prev.inter))+K('Mensajes y clics',n(cur.actions),'+'+n(cur.followers)+' seguidores · '+chrDelta(cur.actions,prev.actions))}</div>
+    <div class="grid g2" style="margin-top:14px">
+      ${card('Próximos 7 días',best?`Lo que mejor rinde este mes: <b>${esc(CHR_T[best.k]||best.k)}</b> (${(best.er*100).toFixed(1).replace('.',',')}% de interacción, ${best.n} publ.)`:'Aún sin resultados este mes',next.length?`<div class="tbl-wrap"><table class="tbl"><tbody>${next.map(row).join('')}</tbody></table></div>`:empty('Nada agendado','Agenda publicaciones en el planner.'))}
+      ${card('Falta cargar resultados',pend.length?`${n(pend.length)} publicaciones ya salieron y no tienen números`:'Todo al día',pend.length?`<div class="tbl-wrap"><table class="tbl"><tbody>${pend.slice(0,12).map(row).join('')}</tbody></table></div>`:empty('Todo al día',''))}
+    </div>
+    <div class="grid g2">
+      ${card('Reglas','Ritmo de subida y horarios en los que no se publica',R.length?`<div class="tbl-wrap"><table class="tbl"><tbody>${R.map(r=>`<tr><td>${r.kind==='block'?'<span class="pill r">no se publica</span>':'<span class="pill g">se publica</span>'}</td><td><b>${esc(r.title||'No se publica')}</b><div class="muted" style="font-size:12px">${(r.days||[]).map(d=>CHR_DOW[d]).join(' ')} · ${r.kind==='block'?esc(chrBlk(r)):esc((CHR_T[r.type]||r.type)+' '+r.time)}</div></td><td>${r.active===false?'<span class="pill">pausada</span>':''}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin reglas',''))}
+      ${card('Editores','Pueden crear y editar. Los superadmin siempre pueden; la gente de Ruedda Office solo ve (desde el botón Calendario de la oficina).',ed.error?`<div class="muted">${esc(ed.error.message)}</div>`:`<div class="tbl-wrap"><table class="tbl"><tbody>${E.map(e=>`<tr><td><b>${esc(e.nombre||e.email)}</b><div class="muted" style="font-size:12px">${esc(e.email)}</div></td><td class="r"><button class="btn btn-red" onclick="chrEdDel('${esc(e.user_id)}',this)">Quitar</button></td></tr>`).join('')}
+        <tr><td><input class="input" style="height:34px" id="chr-ed" type="email" placeholder="correo de la cuenta de Ruedda"></td><td class="r"><button class="btn btn-primary" onclick="chrEdAdd(this)">Agregar</button></td></tr></tbody></table></div>`)}
+    </div>
+    <div id="chr-frame-wrap" style="display:none;margin-top:4px">${card('Planner','Editable con tu sesión de Control','<div style="height:min(900px,85vh);border-radius:12px;overflow:hidden"><iframe id="chr-frame" title="Ruedda Chrono" style="width:100%;height:100%;border:0;background:#F5F5F7"></iframe></div>')}</div>`;
+};
+async function chrSendToken(){ const f=$('#chr-frame'); if(!f||!f.contentWindow) return; const{data:{session}}=await sb.auth.getSession(); if(session) f.contentWindow.postMessage({type:'chrono-auth',token:session.access_token},new URL(CHRONO_URL).origin); }
+window.addEventListener('message',e=>{ if(e.origin===new URL(CHRONO_URL).origin&&e.data&&e.data.type==='chrono-ready') chrSendToken(); });
+function chrToggleFrame(){ const w=$('#chr-frame-wrap'), f=$('#chr-frame'); if(!w) return; const show=w.style.display==='none'; w.style.display=show?'':'none';
+  if(show&&!f.src){ f.src=CHRONO_URL+'?embed=control'; f.addEventListener('load',chrSendToken); clearInterval(window._chrIv); window._chrIv=setInterval(()=>{ if(!document.body.contains(f)) return clearInterval(window._chrIv); chrSendToken(); },240000); }
+  if(show) w.scrollIntoView({behavior:'smooth'}); }
+async function chrEdAdd(btn){ const e=$('#chr-ed').value.trim(); if(!/^\S+@\S+\.\S+$/.test(e)) return toast('escribe un correo válido',true); btn.disabled=true;
+  const{error}=await sb.rpc('chrono_editor_add',{p_email:e}); btn.disabled=false; if(error) return toast('error: '+error.message,true); toast('editor agregado'); RENDER.chrono(++VIEW_TOKEN,[],true); }
+async function chrEdDel(uid,btn){ if(!confirm('¿Quitar este editor de Ruedda Chrono?')) return; btn.disabled=true;
+  const{error}=await sb.rpc('chrono_editor_remove',{p_user:uid}); if(error){btn.disabled=false;return toast('error: '+error.message,true);} toast('editor quitado'); RENDER.chrono(++VIEW_TOKEN,[],true); }
 
 RENDER.configuracion=async(tok)=>{
   const [{data:pd},{data:hi},{data:ai}]=await Promise.all([sb.from('app_settings').select('value').eq('key','payment_data').maybeSingle(),sb.from('historia_app').select('id,content').limit(1),sb.from('app_settings').select('value').eq('key','ai_powered_by').maybeSingle()]);
