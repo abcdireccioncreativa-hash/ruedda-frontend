@@ -497,6 +497,25 @@ html{scrollbar-width:none}
 .nav-icon{background:none;border:none;color:var(--white);cursor:pointer;padding:6px;display:flex;align-items:center;border-radius:50%;transition:background .15s}
 .nav-icon:hover{background:var(--w8)} .nav-icon:active{background:var(--w15);box-shadow:0 0 12px var(--w15)}
 .nav-icon svg{width:21px;height:21px}
+/* [2026-10-08] lupa que se despliega suave al acercar el mouse: la píldora flota hacia la izquierda
+   sobre el navbar (no empuja el resto); grid 0fr→1fr anima el ancho real sin medirlo */
+.rd-qs{position:relative;width:33px;height:33px;flex:0 0 33px;padding:0;border:0;background:none;color:var(--white);cursor:pointer;font:inherit}
+.rd-qs-pill{position:absolute;right:0;top:0;width:max-content;height:33px;display:flex;align-items:center;padding:0 6px;border-radius:999px;border:1px solid transparent;white-space:nowrap;transition:background .3s cubic-bezier(.23,1,.32,1),border-color .3s cubic-bezier(.23,1,.32,1),box-shadow .3s cubic-bezier(.23,1,.32,1),transform .16s cubic-bezier(.23,1,.32,1)}
+.rd-qs-pill>svg{width:21px;height:21px;flex:0 0 21px}
+.rd-qs-x{display:grid;grid-template-columns:0fr;transition:grid-template-columns .34s cubic-bezier(.23,1,.32,1)}
+.rd-qs-in{overflow:hidden;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);opacity:0;transform:translateX(6px);transition:opacity .18s ease-out,transform .34s cubic-bezier(.23,1,.32,1)}
+.rd-qs kbd{font-family:inherit;font-size:10.5px;font-weight:500;line-height:1;padding:3px 5px;border-radius:5px;background:var(--w8);color:var(--white)}
+.rd-qs:hover,.rd-qs.near,.rd-qs:focus-visible{z-index:2}
+.rd-qs:hover .rd-qs-pill,.rd-qs.near .rd-qs-pill,.rd-qs:focus-visible .rd-qs-pill{background:var(--surface-mid);border-color:var(--w12);box-shadow:0 8px 24px -10px rgba(0,0,0,.5)}
+.rd-qs:hover .rd-qs-x,.rd-qs.near .rd-qs-x,.rd-qs:focus-visible .rd-qs-x{grid-template-columns:1fr}
+.rd-qs:hover .rd-qs-in,.rd-qs.near .rd-qs-in,.rd-qs:focus-visible .rd-qs-in{opacity:1;transform:none;padding:0 9px 0 6px;transition-delay:.05s,0s}
+.rd-qs:active .rd-qs-pill{transform:scale(.97)}
+/* dado: gira al tirarlo */
+.rd-dice svg{transition:transform .5s cubic-bezier(.23,1,.32,1)}
+.rd-dice:hover svg{transform:rotate(-14deg)}
+.rd-dice.roll svg{animation:rdRoll .6s cubic-bezier(.23,1,.32,1)}
+@keyframes rdRoll{0%{transform:rotate(0) scale(1)}35%{transform:rotate(200deg) scale(.82)}100%{transform:rotate(360deg) scale(1)}}
+@media (prefers-reduced-motion:reduce){.rd-qs-pill,.rd-qs-x,.rd-qs-in,.rd-dice svg{transition:none!important;animation:none!important}}
 /* [V137-web] toggle sol/luna — modo claro/oscuro, chiquito y discreto en el header */
 .theme-switch{display:flex;align-items:center;gap:1px;background:var(--w6);border:1px solid var(--w10);border-radius:100px;padding:3px}
 .theme-switch-btn{background:none;border:none;color:var(--w32);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:background .15s,color .15s}
@@ -2403,8 +2422,12 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
       </button>
     </div>
     <span id="nav-auth-text" onclick="showLandingAuth('login')" style="font-size:13.5px;font-weight:400;color:var(--white);cursor:pointer;white-space:nowrap;margin-right:4px;transition:color .15s">inicia sesión</span>
-    <button class="nav-icon" onclick="openSearch()">
-      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <!-- [2026-10-08] dado "sorpréndeme" (abre un carro al azar) + lupa que se despliega en "buscar un carro ⌘K" al acercarse -->
+    <button class="rd-qs" id="rd-qs" onclick="openSearch()" aria-label="buscar un carro">
+      <span class="rd-qs-pill"><span class="rd-qs-x"><span class="rd-qs-in">buscar un carro<kbd>⌘K</kbd></span></span><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
+    </button>
+    <button class="nav-icon rd-dice" id="rd-dice" onclick="_rdSurprise()" title="sorpréndeme" aria-label="sorpréndeme">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3.6"/><circle cx="9" cy="9" r=".9" fill="currentColor"/><circle cx="15" cy="15" r=".9" fill="currentColor"/><circle cx="15" cy="9" r=".9" fill="currentColor"/><circle cx="9" cy="15" r=".9" fill="currentColor"/><circle cx="12" cy="12" r=".9" fill="currentColor"/></svg>
     </button>
     <button class="btn-vender" onclick="openVenderModal()">vender</button>
     <button class="nav-icon" onclick="openDrawer()">
@@ -10620,6 +10643,29 @@ function markNotifRead(id){
 
 // ===================== SEARCH =====================
 
+// [2026-10-08] sorpréndeme: abre un carro al azar del market general (sin chocados), distinto al anterior
+let _rdSurpriseLast=null;
+function _rdSurprise(){
+  const b=document.getElementById('rd-dice'); if(b){ b.classList.remove('roll'); void b.offsetWidth; b.classList.add('roll'); }
+  const pool=(typeof _mktGen==='function'?_mktGen():MARKET_LISTINGS).filter(l=>!l.vendido&&l.id!==_rdSurpriseLast);
+  if(!pool.length) return;
+  const l=pool[Math.floor(Math.random()*pool.length)]; _rdSurpriseLast=l.id;
+  setTimeout(()=>{ if(typeof openMarketDetail==='function') openMarketDetail(l.id); },260);
+}
+// la lupa se despliega cuando el mouse se acerca (no solo encima); un solo listener liviano en el navbar
+(function(){
+  let raf=0;
+  document.addEventListener('mousemove',e=>{
+    if(raf||e.clientY>140) { const q=document.getElementById('rd-qs'); if(q&&e.clientY>140) q.classList.remove('near'); return; }
+    raf=requestAnimationFrame(()=>{ raf=0;
+      const q=document.getElementById('rd-qs'); if(!q) return;
+      const r=q.getBoundingClientRect(), dx=Math.max(r.left-e.clientX,0,e.clientX-r.right), dy=Math.max(r.top-e.clientY,0,e.clientY-r.bottom);
+      q.classList.toggle('near',Math.hypot(dx,dy)<26);
+    });
+  },{passive:true});
+  // ⌘K / Ctrl+K abre el buscador desde cualquier parte
+  document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&!e.altKey&&e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); } });
+})();
 function openSearch(){document.getElementById('search-overlay').classList.add('open');if(typeof _rdEnsureConcesionarios==='function')_rdEnsureConcesionarios();setTimeout(()=>document.getElementById('search-input').focus(),150);_loadMarcaLogos().then(_renderSearchPopMarcas);}
 function closeSearch(){document.getElementById('search-overlay').classList.remove('open');document.getElementById('search-input').value='';resetSearchResults()}
 function resetSearchResults(){
