@@ -24542,3 +24542,22 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
   if(typeof sv==='function') window.showView=function(name){ var r=sv.apply(this,arguments); if(name==='favoritos'||name==='cuenta') setTimeout(window._rdSlotBanners,60); return r; };
 })();
 </script>
+
+<script>
+/* [En línea ahora] pulso liviano para el contador de Control (#k0): 1 RPC chiquita cada 60 s,
+   solo con la pestaña visible, arranca en idle tras load. No escucha nada (sin realtime).
+   Si falta el SQL (site_pulse) se apaga sola a la primera. */
+(function(){
+  var KIND='movil', off=false, last=0, sid;
+  try{ var C=window.Capacitor; if(C&&C.isNativePlatform&&C.isNativePlatform()) KIND=C.getPlatform()==='android'?'android':'ios'; }catch(e){}
+  function rid(){ return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,12); }
+  try{ sid=localStorage.getItem('rd_pulse_sid'); if(!sid){ sid=rid(); localStorage.setItem('rd_pulse_sid',sid); } }catch(e){ sid=rid(); }
+  function beat(){
+    if(off||document.hidden||typeof _supa==='undefined'||!_supa||Date.now()-last<20000) return; last=Date.now();
+    var v=''; try{ v=String(typeof currentView!=='undefined'?currentView:''); }catch(e){}
+    try{ _supa.rpc('site_pulse',{p_sid:sid,p_kind:KIND,p_view:v}).then(function(r){ if(r&&r.error&&(r.error.code==='PGRST202'||r.error.code==='42883')) off=true; },function(){}); }catch(e){}
+  }
+  function start(){ (window.requestIdleCallback||function(f){ setTimeout(f,1500); })(beat,{timeout:5000}); setInterval(beat,60000); document.addEventListener('visibilitychange',function(){ if(!document.hidden) beat(); }); }
+  if(document.readyState==='complete') start(); else window.addEventListener('load',start,{once:true});
+})();
+</script>

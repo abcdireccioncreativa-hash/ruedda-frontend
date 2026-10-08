@@ -828,7 +828,8 @@ async function socioToggle(uid,activo){ const{error}=await sb.from('control_soci
 /* ── CONTROL ── */
 RENDER.control=async(tok,_,soft)=>{
   const V=$('#view');
-  if(!soft) V.innerHTML=`<div class="grid g4" id="k1">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
+  if(!soft) V.innerHTML=`<div class="grid g4" id="k0" style="margin-bottom:14px">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
+    <div class="grid g4" id="k1">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
     <div class="grid g4" id="k2" style="margin-top:14px">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
     <div class="grid g21" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Registros · últimos 30 días</h3><span class="muted" id="c1s"></span></div><div class="card-b" id="c1"><div class="skel" style="height:120px"></div></div></div>
     <div class="card"><div class="card-h"><h3>Por atender</h3><a href="#/moderacion" class="muted" style="font-size:12px">ver cola</a></div><div class="queue" id="q"></div></div></div>
@@ -884,7 +885,24 @@ RENDER.control=async(tok,_,soft)=>{
     const reserve=!a.sin_reserva&&a.precio_reserva>0?(a.current_bid>=a.precio_reserva?'<span class="pill g">reserva alcanzada</span>':'<span class="pill o">bajo reserva</span>'):'<span class="pill">sin reserva</span>';
     return `<tr class="click" onclick="openAuction('${a.id}')"><td><div class="who"><img class="thumb" src="${esc(tImg(ph,160))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="n">${esc(carName(a))}</div><div class="u">${reserve}</div></div></div></td><td class="r num" style="font-weight:600">${usd(a.current_bid)}</td><td class="r num">${n(a.bid_count)}</td><td class="r num">${left(a.end_time)}</td></tr>`;}).join('')}</tbody></table></div>`:empty('No hay subastas en vivo','Aparecerán aquí apenas se active una.');
   renderFeed($('#feed'),10);
+  onlinePaint();
 };
+/* [En línea ahora] cuenta pulsos de los últimos 90 s (site_pulse, lo mandan index/desktop cada 60 s).
+   Se refresca cada 15 s solo mientras #k0 está en pantalla. */
+let _onlineT=null;
+async function onlinePaint(){
+  const el=$('#k0'); if(!el){ clearInterval(_onlineT); _onlineT=null; return; }
+  if(!_onlineT) _onlineT=setInterval(onlinePaint,15000);
+  if(document.hidden) return;
+  const r=await sb.rpc('site_online',{p_secs:90}); const box=$('#k0'); if(!box) return;
+  if(r.error){ clearInterval(_onlineT); _onlineT=null; box.outerHTML=`<div class="notice" id="k0" style="margin-bottom:14px">Para ver quién está en línea falta correr en Supabase <code>Ruedda_EnLinea_SQL_2026-10-08.sql</code>.</div>`; return; }
+  const d=r.data||{}, k=d.kind||{}, vw=Object.entries(d.views||{}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([v,c])=>`${esc(v)} ${n(c)}`).join(' · ');
+  const T=(l,v,s,live)=>`<div class="card kpi"><div class="l">${live?'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#1d8a3a;margin-right:6px;vertical-align:1px"></span>':''}${l}</div><div class="v num">${n(v)}</div><div class="d">${s}</div></div>`;
+  box.innerHTML=T('En línea ahora',d.total||0,`${n(d.logged||0)} con sesión iniciada`,true)
+    +T('App iOS',k.ios||0,'iPhone · App Store')
+    +T('App Android',k.android||0,'Play Store')
+    +T('Web',(k.movil||0)+(k.desktop||0),`${n(k.movil||0)} móvil · ${n(k.desktop||0)} desktop${vw?'<br>'+vw:''}`);
+}
 function barChart(arr,days){
   const m=Math.max(1,...arr); const base=startOfDay().getTime()-(days-1)*DAY;
   const lbl=i=>new Date(base+i*DAY).toLocaleDateString('es-VE',{day:'numeric',month:'short'});
