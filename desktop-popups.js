@@ -460,9 +460,12 @@
   }
 
   // ── peritaje: a los 10 s mirando el mismo carro (market, subastas, concesionarios) ──
-  var K_INSP='rd_insp_posts';           // publicaciones donde ya salió (una vez por publicación)
-  function inspSeen(id){ try{ return (JSON.parse(get(K_INSP)||'[]')).indexOf(id)>-1; }catch(e){ return false; } }
-  function inspMark(id){ try{ var l=JSON.parse(get(K_INSP)||'[]'); if(l.indexOf(id)<0) l.push(id); set(K_INSP,JSON.stringify(l.slice(-300))); }catch(e){} }
+  // una vez por publicación y por día: antes era una sola vez para siempre y, tras ver cada carro
+  // una vez, el popup dejaba de salir (parecía roto). Mañana vuelve a salir en el mismo carro.
+  var K_INSP='rd_insp_posts_d';         // {fecha, ids}: publicaciones donde ya salió hoy
+  function inspList(){ try{ var o=JSON.parse(get(K_INSP)||'null'); return (o&&o.d===inspToday()&&o.ids)||[]; }catch(e){ return []; } }
+  function inspSeen(id){ return inspList().indexOf(id)>-1; }
+  function inspMark(id){ try{ var l=inspList(); if(l.indexOf(id)<0) l.push(id); set(K_INSP,JSON.stringify({d:inspToday(),ids:l.slice(-300)})); }catch(e){} }
   var INSP={
     tag:'peritaje ruedda',
     title:'¿Interesado en este activo? Solicita un peritaje profesional',
