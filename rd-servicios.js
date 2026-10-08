@@ -1,7 +1,9 @@
 /* [2026-10-08] servicios del post: card de financiamiento + traslado nacional.
    - .rd-fin-soon: card "financiamiento" cuando el vendedor NO lo ofrece. Es un
      contenedor de imagen (app_settings 'financiamiento_card_url', se sube en
-     Control → Apariencia). Al tocarla abre "financiamiento en camino".
+     Control → Apariencia), sin texto encima (la imagen ya lo dice); el degradado y la
+     imagen cubren también el borde (si no, el borde de 1px mostraba el fondo claro).
+     Al tocarla abre "financiamiento en camino".
    - .rd-tras-card: card "traslado nacional" → abre el menú de grúas (aún sin aliados).
    Las cards con financiamiento activo del vendedor no se tocan. */
 (function(){
@@ -16,8 +18,8 @@
   +'html[data-theme="light"] .rds-root{--rds-acc:#0a0a0a;--rds-acc-ink:#fff}'
   +'.rd-fin-soon,.rd-tras-card{cursor:pointer;transition:transform .25s cubic-bezier(.32,.72,0,1);-webkit-tap-highlight-color:transparent}'
   +'.rd-fin-soon:active,.rd-tras-card:active{transform:scale(.97)}'
-  +'.rd-fin-soon.rds-img{position:relative;overflow:hidden;padding:0!important;min-height:108px;background-color:var(--surface-hi)!important;background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important;border-color:transparent!important}'
-  +'.rds-img .rds-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.72) 100%)}'
+  +'.rd-fin-soon.rds-img{position:relative;overflow:hidden;padding:0!important;min-height:108px;background-color:var(--surface-hi)!important;background-origin:border-box!important;background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important;border-color:transparent!important}'
+  +'.rds-img .rds-shade{position:absolute;inset:-1px;background:linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(0,0,0,.72) 100%)}'
   +'.rds-img .rds-txt{position:absolute;left:13px;right:13px;bottom:12px;display:flex;flex-direction:column;gap:5px}'
   +'.rds-img .rds-t{font-size:14px;font-weight:700;color:#fff;letter-spacing:-.2px}'
   +'.rds-chip{align-self:flex-start;font-size:9.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:3px 8px;border-radius:99px;background:#e6f03b;color:#000}'
@@ -69,7 +71,7 @@
     if(IMG){
       el.classList.add('rds-img');
       el.style.backgroundImage='url("'+esc(IMG)+'")';
-      el.innerHTML='<div class="rds-shade"></div><div class="rds-txt"><div class="rds-t">financiamiento</div><div class="rds-chip">en camino</div></div>';
+      el.innerHTML='<div class="rds-shade"></div>'; el.setAttribute('aria-label','financiamiento');
     } else {
       el.classList.remove('rds-img'); el.style.backgroundImage='';
       var lab=el.querySelectorAll('div')[1]; if(lab) lab.textContent='en camino';

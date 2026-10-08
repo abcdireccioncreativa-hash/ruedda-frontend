@@ -2310,7 +2310,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/rd-map.js?v=1" data-desktop="1" defer></script>
 <script src="/desktop-popups.js?v=20261008a" defer></script>
 <script src="/rd-ai.js?v=2" defer></script>
-<script src="/rd-servicios.js?v=1" defer></script>
+<script src="/rd-servicios.js?v=2" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <script src="/rd-mark.js?v=3" defer></script><!-- [2026-10-04] resaltador amarillo de "price drops" al hacer scroll (mismo módulo que móvil) --><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 </head>
@@ -12919,7 +12919,10 @@ function _renderMisPubGrid(){
     const republishesLeft=2-(l.republishCount||0);
     const canMarkSold=l.type==='market'&&!isVendido&&!isRevision&&!isNegada&&!isPublicando&&!isAprobada;
     let actionBtn;
-    if(isVendido||isNegada||isAprobada){
+    if(isVendido&&l.type==='market'){
+      // [2026-10-08] vendido por error → se puede volver a publicar (confirma antes)
+      actionBtn=`<button onclick="event.stopPropagation();_desmarcarVendido('${l.id}')" style="flex:1;background:var(--lime);border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:var(--lime-ink);cursor:pointer">volver a publicar</button>`;
+    }else if(isVendido||isNegada||isAprobada){
       // [V126] 'aprobada' es un estado histórico — con el flujo nuevo el admin
       // aprueba y la publicación queda 'activa' directo, sin paso "subir".
       actionBtn='';
@@ -13241,7 +13244,38 @@ async function _republishAuction(id){
   }catch(e){console.warn('[ruedda republish]',e?.message||e);showToast('error al republicar');}
 }
 // [RC7] marcar listing de market como vendido — precio tachado + tag, visible 24h en el feed
-async function _marcarVendido(id){
+// [2026-10-08] confirmación antes de marcar vendido / volver a publicar (antes era de golpe)
+function _rdConfirmSold(title,body,okLabel,onOk){
+  let ov=document.getElementById('rd-sold-confirm'); if(ov) ov.remove();
+  ov=document.createElement('div'); ov.id='rd-sold-confirm';
+  ov.style.cssText='position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.4);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);animation:fadeIn .2s ease';
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div style="background:var(--gc10);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w10);border-radius:24px;padding:28px 24px;max-width:320px;width:100%;text-align:center;animation:fadeInUp .25s cubic-bezier(.25,.46,.45,.94)">
+      <div style="font-size:17px;font-weight:700;margin-bottom:8px;letter-spacing:-.2px">${title}</div>
+      <div style="font-size:13px;color:var(--w40);line-height:1.6;margin-bottom:24px">${body}</div>
+      <div style="display:flex;gap:10px">
+        <button data-x style="flex:1;background:var(--w7);border:1px solid var(--w10);border-radius:13px;padding:13px;font-family:var(--font);font-size:14px;font-weight:600;color:var(--w70);cursor:pointer">cancelar</button>
+        <button data-ok style="flex:1;background:var(--lime);border:none;border-radius:13px;padding:13px;font-family:var(--font);font-size:14px;font-weight:800;color:var(--lime-ink);cursor:pointer">${okLabel}</button>
+      </div></div>`;
+  ov.querySelector('[data-x]').onclick=()=>ov.remove();
+  ov.querySelector('[data-ok]').onclick=()=>{ov.remove();onOk();};
+  document.body.appendChild(ov);
+}
+function _marcarVendido(id){
+  _rdConfirmSold('¿Marcar como vendido?','Tu publicación saldrá del market como vendida. Si fue un error, podrás volver a publicarla desde aquí.','sí, vendido',()=>_marcarVendidoOk(id));
+}
+function _desmarcarVendido(id){
+  _rdConfirmSold('¿Volver a publicar?','Tu publicación vuelve al market como disponible.','publicar',async()=>{
+    if(!_supa)return;
+    try{
+      const{error}=await _supa.from('listings').update({vendido:false,vendido_at:null}).eq('id',id);
+      if(error){showToast('error al volver a publicar: '+error.message);return;}
+      showToast('tu publicación volvió al market',true);
+      _loadMyListings();
+    }catch(e){console.warn('[ruedda desvendido]',e?.message||e);showToast('error al volver a publicar');}
+  });
+}
+async function _marcarVendidoOk(id){
   if(!_supa)return;
   try{
     const{error}=await _supa.from('listings').update({vendido:true,vendido_at:new Date().toISOString()}).eq('id',id);
@@ -22785,18 +22819,27 @@ function rdRegion(r){
 <script>
 /* [En línea ahora] pulso liviano para el contador de Control (#k0): 1 RPC chiquita cada 60 s,
    solo con la pestaña visible, arranca en idle tras load. No escucha nada (sin realtime).
-   Si falta el SQL (site_pulse) se apaga sola a la primera. */
+   Al salir (app a segundo plano / cerrar pestaña) avisa con site_leave para que baje al instante;
+   al volver late de inmediato. Un sid por pestaña. Si falta el SQL (site_pulse) se apaga sola. */
 (function(){
   var KIND='desktop', off=false, last=0, sid;
   try{ var C=window.Capacitor; if(C&&C.isNativePlatform&&C.isNativePlatform()) KIND=C.getPlatform()==='android'?'android':'ios'; }catch(e){}
   function rid(){ return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,12); }
-  try{ sid=localStorage.getItem('rd_pulse_sid'); if(!sid){ sid=rid(); localStorage.setItem('rd_pulse_sid',sid); } }catch(e){ sid=rid(); }
+  sid=rid();
   function beat(){
     if(off||document.hidden||typeof _supa==='undefined'||!_supa||Date.now()-last<20000) return; last=Date.now();
     var v=''; try{ v=String(typeof currentView!=='undefined'?currentView:''); }catch(e){}
     try{ _supa.rpc('site_pulse',{p_sid:sid,p_kind:KIND,p_view:v}).then(function(r){ if(r&&r.error&&(r.error.code==='PGRST202'||r.error.code==='42883')) off=true; },function(){}); }catch(e){}
   }
-  function start(){ (window.requestIdleCallback||function(f){ setTimeout(f,1500); })(beat,{timeout:5000}); setInterval(beat,60000); document.addEventListener('visibilitychange',function(){ if(!document.hidden) beat(); }); }
+  function leave(){
+    if(off||!last||typeof _supa==='undefined'||!_supa) return; last=0;
+    var u=_supa.supabaseUrl, k=_supa.supabaseKey;
+    try{
+      if(typeof u==='string'&&k) fetch(u.replace(/\/$/,'')+'/rest/v1/rpc/site_leave',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json',apikey:k,Authorization:'Bearer '+k},body:JSON.stringify({p_sid:sid})}).catch(function(){});
+      else _supa.rpc('site_leave',{p_sid:sid}).then(function(){},function(){});
+    }catch(e){}
+  }
+  function start(){ (window.requestIdleCallback||function(f){ setTimeout(f,1500); })(beat,{timeout:5000}); setInterval(beat,60000); document.addEventListener('visibilitychange',function(){ if(document.hidden) leave(); else beat(); }); window.addEventListener('pagehide',leave); }
   if(document.readyState==='complete') start(); else window.addEventListener('load',start,{once:true});
 })();
 </script>

@@ -888,11 +888,11 @@ RENDER.control=async(tok,_,soft)=>{
   onlinePaint();
 };
 /* [En línea ahora] cuenta pulsos de los últimos 90 s (site_pulse, lo mandan index/desktop cada 60 s).
-   Se refresca cada 15 s solo mientras #k0 está en pantalla. */
+   Se refresca cada 5 s solo mientras #k0 está en pantalla (las salidas avisan con site_leave). */
 let _onlineT=null;
 async function onlinePaint(){
   const el=$('#k0'); if(!el){ clearInterval(_onlineT); _onlineT=null; return; }
-  if(!_onlineT) _onlineT=setInterval(onlinePaint,15000);
+  if(!_onlineT) _onlineT=setInterval(onlinePaint,5000);
   if(document.hidden) return;
   const r=await sb.rpc('site_online',{p_secs:90}); const box=$('#k0'); if(!box) return;
   if(r.error){ clearInterval(_onlineT); _onlineT=null; box.outerHTML=`<div class="notice" id="k0" style="margin-bottom:14px">Para ver quién está en línea falta correr en Supabase <code>Ruedda_EnLinea_SQL_2026-10-08.sql</code>.</div>`; return; }
