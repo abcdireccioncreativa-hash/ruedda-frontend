@@ -2308,6 +2308,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/rd-map.js?v=1" data-desktop="1" defer></script>
 <script src="/desktop-popups.js?v=20261008a" defer></script>
 <script src="/rd-ai.js?v=2" defer></script>
+<script src="/rd-servicios.js?v=1" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <script src="/rd-mark.js?v=3" defer></script><!-- [2026-10-04] resaltador amarillo de "price drops" al hacer scroll (mismo módulo que móvil) --><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 </head>
@@ -3220,12 +3221,12 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         </div>
         <div class="detail-section">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-            <div style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:16px;padding:16px 15px;display:flex;flex-direction:column;gap:6px">
+            <div class="rd-fin-soon" style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:16px;padding:16px 15px;display:flex;flex-direction:column;gap:6px">
               <svg fill="none" viewBox="0 0 24 24" stroke="var(--w25)" stroke-width="1.5" style="width:20px;height:20px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-4H9l3-8 3 8h-2v4z"/></svg>
               <div style="font-size:14px;font-weight:700;color:var(--w35)">financiamiento</div>
               <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:rgba(8,68,26,.5)">Próximamente</div>
             </div>
-            <div style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:16px;padding:16px 15px;display:flex;flex-direction:column;gap:6px">
+            <div class="rd-tras-card" style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:16px;padding:16px 15px;display:flex;flex-direction:column;gap:6px">
               <img class="icon-invert-light" data-rdimg="tras" alt="" style="width:20px;height:20px;opacity:.25;object-fit:contain">
               <div style="font-size:14px;font-weight:700;color:var(--w35)">traslado nacional</div>
               <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:rgba(8,68,26,.5)">Próximamente</div>
@@ -3382,12 +3383,12 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         <!-- SERVICIOS -->
         <div class="detail-section">
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-            <div id="mkt-financiamiento-card" style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:16px;padding:16px 15px;display:flex;flex-direction:column;gap:6px">
+            <div class="rd-fin-soon" id="mkt-financiamiento-card" style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:16px;padding:16px 15px;display:flex;flex-direction:column;gap:6px">
               <img class="icon-invert-light" data-rdimg="fin" alt="" style="width:20px;height:20px;object-fit:contain;opacity:.3">
               <div style="font-size:14px;font-weight:700;color:var(--w35)">financiamiento</div>
               <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:rgba(8,68,26,.5)">Próximamente</div>
             </div>
-            <div style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:16px;padding:16px 15px;display:flex;flex-direction:column;gap:6px">
+            <div class="rd-tras-card" style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:16px;padding:16px 15px;display:flex;flex-direction:column;gap:6px">
               <img class="icon-invert-light" data-rdimg="tras" alt="" style="width:20px;height:20px;opacity:.25;object-fit:contain">
               <div style="font-size:14px;font-weight:700;color:var(--w35)">traslado nacional</div>
               <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:rgba(8,68,26,.5)">Próximamente</div>
@@ -13521,41 +13522,36 @@ function removePhoto(i){
 }
 
 function handleFiles(input){
-  if(!window._venderPhotos) window._venderPhotos=[];
-  const newFiles=[...input.files];
-  window._venderPhotos=[...(window._venderPhotos||[]),...newFiles];
-  Array.from(input.files).forEach(file=>{
-    const reader=new FileReader();
-    // guardar File object en photoItems para que _uploadVenderPhotos lo use directo
-    reader.onload=e=>{ photoItems.push({src:e.target.result,name:file.name,file:file}); renderPhotoGrid(); };
-    reader.readAsDataURL(file);
+  // [2026-10-08] miniaturas con objectURL (instantáneo, sin base64 de 12MP en memoria)
+  // y en el orden en que se eligieron. photoItems = fuente de verdad del orden.
+  Array.from(input.files||[]).forEach(file=>{
+    photoItems.push({src:URL.createObjectURL(file),name:file.name,file:file});
   });
   input.value='';
+  renderPhotoGrid();
 }
+
+function _rdSyncVenderPhotos(){ window._venderPhotos=photoItems.map(p=>p.file).filter(Boolean); }
 
 function renderPhotoGrid(){
   const grid=document.getElementById('photo-grid');
   if(!grid) return;
+  _rdSyncVenderPhotos();
+  _rdPhotoSortInit(grid);
   const addBtn=document.getElementById('photo-add-btn');
   grid.innerHTML='';
   if(addBtn) grid.appendChild(addBtn);
 
   photoItems.forEach((item,i)=>{
     const cell=document.createElement('div');
-    cell.style.cssText='aspect-ratio:1;border-radius:14px;overflow:hidden;position:relative;cursor:grab;transition:opacity .2s,transform .15s';
-    cell.draggable=true;
+    cell.className='rd-ph';
     cell.dataset.idx=i;
-    const isFirst=i===0;
+    cell.style.cssText='aspect-ratio:1;border-radius:14px;overflow:hidden;position:relative;background:var(--surface-hi);cursor:grab;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none';
     cell.innerHTML=`
-      <img decoding="async" src="${item.src}" style="width:100%;height:100%;object-fit:cover;pointer-events:none">
-      ${isFirst?'<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.55));padding:6px 8px;font-size:9px;font-weight:800;color:#08441A;letter-spacing:.5px;text-transform:uppercase">portada</div>':''}
-      <button onclick="removePhoto(${i})" style="position:absolute;top:5px;right:5px;width:22px;height:22px;background:rgba(0,0,0,.65);border:none;border-radius:50%;color:var(--white);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;transition:background .15s" onmouseover="this.style.background='rgba(255,60,60,.8)'" onmouseout="this.style.background='rgba(0,0,0,.65)'">×</button>
+      <img src="${item.src}" alt="" draggable="false" decoding="async" style="width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none">
+      ${i===0?'<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.55));padding:6px 8px;font-size:9px;font-weight:800;color:var(--rd-green);letter-spacing:.5px;text-transform:uppercase;pointer-events:none">portada</div>':''}
+      <button type="button" class="rd-ph-x" onclick="removePhoto(${i})" style="position:absolute;top:5px;right:5px;width:22px;height:22px;background:rgba(0,0,0,.65);border:none;border-radius:50%;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
     `;
-    cell.addEventListener('dragstart',e=>{ dragSrcIdx=i; e.dataTransfer.effectAllowed='move'; cell.style.opacity='.45'; });
-    cell.addEventListener('dragend',()=>{ cell.style.opacity='1'; });
-    cell.addEventListener('dragover',e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; cell.style.transform='scale(.95)'; });
-    cell.addEventListener('dragleave',()=>{ cell.style.transform=''; });
-    cell.addEventListener('drop',e=>{ e.preventDefault(); cell.style.transform=''; if(dragSrcIdx===null||dragSrcIdx===i) return; const moved=photoItems.splice(dragSrcIdx,1)[0]; photoItems.splice(i,0,moved); dragSrcIdx=null; renderPhotoGrid(); });
     grid.appendChild(cell);
   });
 
@@ -13564,15 +13560,119 @@ function renderPhotoGrid(){
     if(photoItems.length>0){
       hint.style.display='block';
       const ok=photoItems.length>=10;
-      hint.style.color=ok?'rgba(8,68,26,.7)':'var(--w30)';
-      hint.textContent=`${photoItems.length} foto${photoItems.length!==1?'s':''} ${ok?'· listo ✓':'· faltan '+(10-photoItems.length)+' para el mínimo'}`;
+      hint.style.color=ok?'rgba(var(--rd-green-rgb),.7)':'var(--w30)';
+      hint.textContent=`${photoItems.length} foto${photoItems.length!==1?'s':''} ${ok?'· listo ✓':'· faltan '+(10-photoItems.length)+' para el mínimo'}${photoItems.length>1?' · mantén presionada una foto para moverla':''}`;
     } else { hint.style.display='none'; }
   }
 }
 
 function removePhoto(idx){
-  photoItems.splice(idx,1);
+  const it=photoItems.splice(idx,1)[0];
+  if(it&&it.src&&it.src.startsWith('blob:')) setTimeout(()=>URL.revokeObjectURL(it.src),0);
   renderPhotoGrid();
+}
+
+// [2026-10-08] reordenar fotos con el dedo (mantener presionado) o el mouse (arrastrar).
+// Solo transforms (GPU): la foto levantada sigue al dedo y las demás se acomodan con
+// animación; al soltar se confirma el orden en photoItems (la 1ª queda de portada).
+function _rdPhotoSortInit(grid){
+  if(grid._rdSort) return; grid._rdSort=1;
+  const HOLD=230, SLOP=8, EDGE=70;
+  let st=null, timer=0, raf=0;
+
+  function cells(){ return Array.from(grid.querySelectorAll('.rd-ph')); }
+  function scroller(el){
+    for(let p=el.parentElement;p&&p!==document.body;p=p.parentElement){
+      const o=getComputedStyle(p).overflowY;
+      if((o==='auto'||o==='scroll')&&p.scrollHeight>p.clientHeight) return p;
+    }
+    return document.scrollingElement||document.documentElement;
+  }
+  function begin(cell,x,y){
+    const cs=cells(), g=grid.getBoundingClientRect();
+    st={cell,from:cs.indexOf(cell),to:cs.indexOf(cell),cs,x0:x,y0:y,x,y,sc:scroller(grid),
+        slots:cs.map(c=>{const r=c.getBoundingClientRect();return {x:r.left-g.left,y:r.top-g.top,w:r.width,h:r.height};}),
+        gy0:g.top};
+    cs.forEach(c=>{ c.style.transition='transform .22s cubic-bezier(.32,.72,0,1)'; c.style.willChange='transform'; });
+    cell.style.transition='box-shadow .2s';
+    cell.style.zIndex='5';
+    cell.style.boxShadow='0 14px 34px rgba(0,0,0,.45)';
+    cell.style.cursor='grabbing';
+    try{ window._rdHapticNow&&window._rdHapticNow(); }catch(e){}
+    try{ navigator.vibrate&&navigator.vibrate(8); }catch(e){}
+    frame();
+  }
+  function frame(){
+    raf=0; if(!st) return;
+    const g=grid.getBoundingClientRect();
+    // auto-scroll cerca de los bordes de la pantalla
+    const vh=window.innerHeight;
+    if(st.y<EDGE) st.sc.scrollTop-=Math.ceil((EDGE-st.y)/6);
+    else if(st.y>vh-EDGE) st.sc.scrollTop+=Math.ceil((st.y-(vh-EDGE))/6);
+    const scrolled=g.top-st.gy0; // cuánto se movió el grid desde que empezó
+    const s0=st.slots[st.from];
+    const dx=st.x-st.x0, dy=st.y-st.y0-scrolled;
+    st.cell.style.transform=`translate3d(${dx}px,${dy}px,0) scale(1.06)`;
+    // slot más cercano al centro de la foto levantada
+    const cx=s0.x+s0.w/2+dx, cy=s0.y+s0.h/2+dy;
+    let best=st.to, bd=Infinity;
+    st.slots.forEach((s,i)=>{ const d=(s.x+s.w/2-cx)**2+(s.y+s.h/2-cy)**2; if(d<bd){bd=d;best=i;} });
+    if(best!==st.to){
+      st.to=best;
+      try{ window._rdHapticNow&&window._rdHapticNow(); }catch(e){}
+      const order=st.cs.slice(); order.splice(st.from,1); order.splice(best,0,st.cell);
+      order.forEach((c,ni)=>{ if(c===st.cell) return; const oi=st.cs.indexOf(c), a=st.slots[oi], b=st.slots[ni];
+        c.style.transform=(a.x===b.x&&a.y===b.y)?'':`translate3d(${b.x-a.x}px,${b.y-a.y}px,0)`; });
+    }
+    if(st.y<EDGE||st.y>vh-EDGE) raf=requestAnimationFrame(frame);
+  }
+  function move(x,y){ if(!st) return; st.x=x; st.y=y; if(!raf) raf=requestAnimationFrame(frame); }
+  function end(){
+    clearTimeout(timer); timer=0;
+    if(raf){ cancelAnimationFrame(raf); raf=0; }
+    if(!st) return;
+    frame(); if(raf){ cancelAnimationFrame(raf); raf=0; } // posición final aunque se suelte en el mismo cuadro
+    const s=st; st=null;
+    const a=s.slots[s.from], b=s.slots[s.to];
+    s.cell.style.transition='transform .2s cubic-bezier(.32,.72,0,1),box-shadow .2s';
+    s.cell.style.transform=`translate3d(${b.x-a.x}px,${b.y-a.y}px,0)`;
+    s.cell.style.boxShadow='';
+    setTimeout(()=>{
+      if(s.to!==s.from){ const m=photoItems.splice(s.from,1)[0]; photoItems.splice(s.to,0,m); }
+      renderPhotoGrid();
+    },200);
+  }
+
+  // táctil: mantener presionado activa; si el dedo se mueve antes, es scroll normal
+  grid.addEventListener('touchstart',e=>{
+    if(st||e.touches.length>1) return;
+    const cell=e.target.closest('.rd-ph'); if(!cell||e.target.closest('.rd-ph-x')) return;
+    const t=e.touches[0], x=t.clientX, y=t.clientY;
+    clearTimeout(timer);
+    timer=setTimeout(()=>{ timer=0; begin(cell,x,y); },HOLD);
+    cell._tx=x; cell._ty=y; grid._pend=cell;
+  },{passive:true});
+  grid.addEventListener('touchmove',e=>{
+    const t=e.touches[0];
+    if(st){ e.preventDefault(); move(t.clientX,t.clientY); return; }
+    const c=grid._pend;
+    if(timer&&c&&Math.hypot(t.clientX-c._tx,t.clientY-c._ty)>SLOP){ clearTimeout(timer); timer=0; }
+  },{passive:false});
+  grid.addEventListener('touchend',end);
+  grid.addEventListener('touchcancel',end);
+  grid.addEventListener('contextmenu',e=>{ if(e.target.closest('.rd-ph')) e.preventDefault(); });
+
+  // mouse: arrastrar directo (después de unos px)
+  grid.addEventListener('mousedown',e=>{
+    if(e.button!==0||st) return;
+    const cell=e.target.closest('.rd-ph'); if(!cell||e.target.closest('.rd-ph-x')) return;
+    e.preventDefault();
+    const x0=e.clientX, y0=e.clientY;
+    const mm=ev=>{ if(!st&&Math.hypot(ev.clientX-x0,ev.clientY-y0)>4) begin(cell,x0,y0); move(ev.clientX,ev.clientY); };
+    const mu=()=>{ document.removeEventListener('mousemove',mm); document.removeEventListener('mouseup',mu); end(); };
+    document.addEventListener('mousemove',mm);
+    document.addEventListener('mouseup',mu);
+  });
 }
 
 function submitVender(){showToast('publicación enviada para revisión',true);setTimeout(()=>showView('home'),1400)}
@@ -18478,6 +18578,9 @@ function closeRatingModal(){
 function _updateMktFinanciamientoCard(l){
   const card=document.getElementById('mkt-financiamiento-card');
   if(!card) return;
+  // [2026-10-08] sin financiamiento del vendedor = card de imagen "en camino" (rd-servicios.js)
+  card.classList.toggle('rd-fin-soon',!(l&&l.financiamiento));
+  if(l&&l.financiamiento){ card.classList.remove('rds-img'); card.style.backgroundImage=''; }
   if(l&&l.financiamiento){
     card.innerHTML=`<img src="${RD_IMG.fin}" alt="" style="width:20px;height:20px;object-fit:contain;opacity:.9">
       <div style="font-size:14px;font-weight:700;color:var(--white)">financiamiento</div>
@@ -18487,6 +18590,7 @@ function _updateMktFinanciamientoCard(l){
     card.innerHTML=`<img src="${RD_IMG.fin}" alt="" style="width:20px;height:20px;object-fit:contain;opacity:.3">
       <div style="font-size:14px;font-weight:700;color:var(--w35)">financiamiento</div>
       <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:rgba(8,68,26,.5)">Próximamente</div>`;
+    if(window.rdSvcPaint) rdSvcPaint();
   }
 }
 function openFinanciamientoPopup(){
