@@ -2062,11 +2062,10 @@ html[data-theme="light"] .rx-menu-card-icon svg{stroke:#000!important}
 #encuentra-all-grid .enc-card:nth-child(4){animation-delay:90ms}#encuentra-all-grid .enc-card:nth-child(5){animation-delay:120ms}
 #encuentra-all-grid .enc-card:nth-child(6){animation-delay:150ms}#encuentra-all-grid .enc-card:nth-child(n+7){animation-delay:180ms}
 /* [2026-10-08] BODAS by Ruedda — tarjeta en Encuentra + vista en blanco con flores SVG */
-.enc-card.enc-bodas{background:#fff;border-color:rgba(20,22,10,.07);align-items:center}
-.enc-card.enc-bodas .enc-title{color:#1b1c15;position:relative;z-index:2}
-.enc-bodas-fl{position:absolute;left:6%;right:6%;bottom:20%;width:88%;height:auto}
+.enc-card.enc-bodas{background:#2a2a2a;align-items:center}
+.enc-bodas-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.enc-card.enc-bodas .enc-title{color:#fff;position:relative;z-index:2;text-shadow:0 1px 8px rgba(0,0,0,.55)}
 .enc-bodas-tag{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:8.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#c27a89;background:#fdf0f2;border-radius:100px;padding:2px 7px;z-index:2}
-#encuentra-all-grid .enc-card.enc-bodas{background:#fff}
 html.rd-bodas{--bg:#ffffff;--card:#ffffff;--card2:#fbfaf8;--border:rgba(20,22,10,.08);--navbar-bg:rgba(255,255,255,.94);--bottomnav-bg:rgba(255,255,255,.7)}
 html.rd-bodas,html.rd-bodas body{background:#fff!important}
 html.rd-bodas body,html.rd-bodas .navbar{transition:background-color .55s ease,color .55s ease}
@@ -2075,6 +2074,7 @@ html.rd-bodas body,html.rd-bodas .navbar{transition:background-color .55s ease,c
 .bodas-hero-fl{width:min(300px,78vw);height:auto;display:block;margin:0 auto 6px;animation:rdEncAll .5s cubic-bezier(.22,1,.36,1) both}
 .bodas-hero h2{margin:0;font-family:Georgia,"Times New Roman",serif;font-weight:400;font-size:34px;letter-spacing:-.5px;color:#1b1c15;animation:rdEncAll .5s .06s cubic-bezier(.22,1,.36,1) both}
 .bodas-hero h2 em{font-style:italic;color:#c27a89}
+.bodas-logo{display:inline-block;height:.82em;width:auto;vertical-align:-.04em;margin-left:.08em;filter:invert(1)}
 .bodas-hero p{margin:10px auto 14px;max-width:420px;font-size:14px;line-height:1.55;color:#7c7e70;animation:rdEncAll .5s .1s cubic-bezier(.22,1,.36,1) both}
 .bodas-soon{display:inline-block;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#c27a89;border:1px solid #f1cdd4;background:#fff7f8;border-radius:100px;padding:6px 14px;animation:rdEncAll .5s .14s cubic-bezier(.22,1,.36,1) both}
 .bodas-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 14px 110px}
@@ -2943,9 +2943,9 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
         <div class="enc-photo-placeholder" id="enc-comunidad-placeholder" style="opacity:1;color:inherit"><div class="enc-icon enc-icon-sm"><img src="/assets/inline/25c7a75b99.png" style="width:100%;height:100%;object-fit:contain" alt="comunidad" loading="lazy" decoding="async"></div></div>
       </div>
       <!-- [2026-10-08] BODAS by Ruedda (próximamente): tarjeta blanca con flores; abre view-bodas y pone toda la app en blanco -->
-      <div class="enc-card enc-bodas" data-enc="bodas" onclick="_rdBodasOpen()">
+      <div class="enc-card enc-fullphoto enc-bodas" data-enc="bodas" onclick="_rdBodasOpen()">
+        <img class="enc-bodas-img" src="/assets/inline/bodas-card.webp" alt="" loading="lazy" decoding="async">
         <div class="enc-title">Bodas</div>
-        <svg class="enc-bodas-fl" viewBox="0 0 120 80" aria-hidden="true"><use href="#fl-euca" x="4" y="14" width="46" height="62"/><use href="#fl-lav" x="74" y="10" width="42" height="64"/><use href="#fl-peony" x="56" y="22" width="38" height="38"/><use href="#fl-rose" x="26" y="8" width="56" height="64"/></svg>
         <span class="enc-bodas-tag">pronto</span>
       </div>
     </div>
@@ -4524,7 +4524,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
   </div>
   <div class="bodas-hero">
     <svg class="bodas-hero-fl" viewBox="0 0 220 120" aria-hidden="true"><use href="#fl-euca" x="6" y="26" width="64" height="90"/><use href="#fl-lav" x="152" y="14" width="56" height="100"/><use href="#fl-daisy" x="44" y="36" width="44" height="76"/><use href="#fl-tulip" x="128" y="34" width="48" height="80"/><use href="#fl-peony" x="66" y="40" width="44" height="44"/><use href="#fl-peony" x="118" y="44" width="34" height="34"/><use href="#fl-rose" x="80" y="6" width="68" height="100"/></svg>
-    <h2><em>bodas</em> by ruedda</h2>
+    <h2><em>bodas</em> by <img class="bodas-logo" data-rdimg="logo" alt="ruedda"></h2>
     <p>Autos de ensueño para el día más importante. Estamos preparando algo bonito.</p>
     <span class="bodas-soon">próximamente</span>
   </div>
