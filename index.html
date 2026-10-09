@@ -5073,6 +5073,21 @@ function rdRegion(r){
       </div>
     </div>
 
+    <!-- CERTIFICADO AVALTA: pregunta misteriosa (FOMO) -->
+    <div class="form-group" id="field-avalta">
+      <div style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:20px;padding:16px 18px;display:flex;align-items:center;gap:14px">
+        <svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;flex-shrink:0"><path d="M12 2l2.4 1.8 3-.2.9 2.9 2.5 1.7-1 2.8 1 2.8-2.5 1.7-.9 2.9-3-.2L12 20l-2.4-1.8-3 .2-.9-2.9-2.5-1.7 1-2.8-1-2.8 2.5-1.7.9-2.9 3 .2z"/><path d="M8.5 11.2l2.3 2.3 4.7-4.7"/></svg>
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:700;color:var(--white)">Certificado Avalta</div>
+          <div id="avalta-sub" style="font-size:12.5px;color:var(--w45);margin-top:2px;line-height:1.4">solo con código de invitación</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="avalta-toggle" onchange="avaltaToggle(this)">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
     <!-- VIDEOS DEL VEHÍCULO (opcional) -->
     <div class="form-group">
       <label class="form-label">Videos del vehículo (opcional).</label>
@@ -6334,6 +6349,20 @@ function rdRegion(r){
     <div style="font-size:19px;font-weight:800;letter-spacing:-.3px;margin-bottom:8px">cars &amp; coffee · próximamente</div>
     <p style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:22px">Consigue las mejores cafeterías para reunirte con la comunidad Ruedda.</p>
     <button onclick="closeCarsCoffeeSoon()" style="width:100%;background:var(--w5);border:1px solid var(--border);border-radius:13px;color:var(--w60);font-size:14px;font-weight:700;padding:13px;cursor:pointer;font-family:var(--font)">cerrar</button>
+  </div>
+</div>
+
+<!-- CERTIFICADO AVALTA — ingresar código (popup chiquito) -->
+<div id="avalta-sheet" onclick="if(event.target.id==='avalta-sheet')closeAvalta(false)" style="display:none;position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px">
+  <div style="width:100%;max-width:310px;background:var(--surface-hi,#16181c);border:1px solid var(--w8);border-radius:22px;padding:20px 18px 16px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:17px;font-weight:800;letter-spacing:-.2px;color:var(--white);margin-bottom:6px">Ingresa código</div>
+    <div style="font-size:11.5px;color:var(--w45);line-height:1.45;margin-bottom:14px">Si el vehículo del código no coincide con los datos de esta publicación, el certificado no se aplicará.</div>
+    <input id="avalta-code" class="form-input" type="text" placeholder="XXXX-XXXX" maxlength="24" autocomplete="off" autocapitalize="characters" spellcheck="false" onkeydown="if(event.key==='Enter')avaltaApply()" style="text-align:center;text-transform:uppercase;letter-spacing:3px;font-weight:700;margin-bottom:6px">
+    <div id="avalta-err" style="font-size:11.5px;color:#ff5a5a;min-height:16px;margin-bottom:8px"></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="closeAvalta(false)" style="flex:1;background:var(--w5);border:1px solid var(--border);border-radius:13px;color:var(--w60);font-size:13.5px;font-weight:700;padding:12px;cursor:pointer;font-family:var(--font)">cancelar</button>
+      <button onclick="avaltaApply()" style="flex:1;background:var(--lime);color:var(--lime-ink);border:none;border-radius:13px;font-size:13.5px;font-weight:800;padding:12px;cursor:pointer;font-family:var(--font)">aplicar</button>
+    </div>
   </div>
 </div>
 
@@ -13476,7 +13505,7 @@ function openVenderForm(){
   // reset chocado state on form open
   const tog=document.getElementById('chocado-toggle');if(tog){tog.checked=false;document.getElementById('campo-estado-chocado').style.display='none';document.querySelectorAll('.dano-pill,.estado-pill').forEach(p=>p.classList.remove('active'));}
   // reset financiamiento state on form open
-  const togF=document.getElementById('financiamiento-toggle');if(togF){togF.checked=false;const cf=document.getElementById('campo-financiamiento-detalle');if(cf)cf.classList.remove('open');const tf=document.getElementById('financiamiento-detalle-textarea');if(tf)tf.value='';}
+  if(window._avaltaReset)window._avaltaReset();const togF=document.getElementById('financiamiento-toggle');if(togF){togF.checked=false;const cf=document.getElementById('campo-financiamiento-detalle');if(cf)cf.classList.remove('open');const tf=document.getElementById('financiamiento-detalle-textarea');if(tf)tf.value='';}
   // reset programada state on form open
   const togP=document.getElementById('programada-toggle');
   if(togP){togP.checked=false;document.getElementById('campo-fecha-programada').classList.remove('open');document.getElementById('programada-fecha').value='';document.getElementById('programada-hora').value='';}
@@ -14924,6 +14953,40 @@ function toggleChocado(cb){
   panel.style.display=cb.checked?'block':'none';
   if(!cb.checked)document.querySelectorAll('.estado-pill').forEach(p=>p.classList.remove('active'));
 }
+/* ── Certificado Avalta: pregunta misteriosa del formulario de vender ──
+   Solo interfaz por ahora: guarda el código en window._avaltaCode, no se envía
+   al publicar ni se valida contra ninguna base todavía. */
+window._avaltaCode='';
+function _avaltaSub(){
+  const s=document.getElementById('avalta-sub');
+  if(s) s.textContent=window._avaltaCode?('código '+window._avaltaCode+' · pendiente de verificación'):'solo con código de invitación';
+}
+function avaltaToggle(cb){
+  if(cb.checked){ openAvalta(); } else { window._avaltaCode=''; _avaltaSub(); }
+}
+function openAvalta(){
+  const o=document.getElementById('avalta-sheet'); if(!o) return;
+  const i=document.getElementById('avalta-code'); if(i) i.value=window._avaltaCode||'';
+  const e=document.getElementById('avalta-err'); if(e) e.textContent='';
+  o.style.display='flex';
+  setTimeout(()=>{ try{ i&&i.focus(); }catch(_){} },120);
+}
+function closeAvalta(ok){
+  const o=document.getElementById('avalta-sheet'); if(o) o.style.display='none';
+  if(!ok && !window._avaltaCode){ const cb=document.getElementById('avalta-toggle'); if(cb) cb.checked=false; }
+}
+function avaltaApply(){
+  const i=document.getElementById('avalta-code'); const e=document.getElementById('avalta-err');
+  const v=(i&&i.value||'').trim().toUpperCase();
+  if(v.replace(/[^A-Z0-9]/g,'').length<6){ if(e) e.textContent='código incompleto'; return; }
+  window._avaltaCode=v; _avaltaSub(); closeAvalta(true);
+  try{ window._rdHapticSuccess&&window._rdHapticSuccess(); }catch(_){}
+}
+window._avaltaReset=function(){
+  window._avaltaCode=''; _avaltaSub();
+  const cb=document.getElementById('avalta-toggle'); if(cb) cb.checked=false;
+  const o=document.getElementById('avalta-sheet'); if(o) o.style.display='none';
+};
 function toggleFinanciamientoDetalle(cb){
   document.getElementById('campo-financiamiento-detalle').classList.toggle('open',cb.checked);
 }
