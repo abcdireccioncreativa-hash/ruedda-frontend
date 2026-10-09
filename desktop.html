@@ -1499,6 +1499,12 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
 .plan-card--tier .plan-cta{margin-top:12px;padding:13px}
 /* [2026-10-06] códigos de invitación PAUSADOS — borrar esta línea para reactivarlos */
 .rd-code-ui{display:none!important}
+/* [2026-10-08] chocados más serio: sin punto rojo pulsante */
+.mkt-choc-kick i{display:none!important}
+/* [2026-10-08] lupa SIN despliegue (pedido): queda solo el ícono; ⌘K sigue abriendo la búsqueda */
+.rd-qs .rd-qs-x{display:none!important}
+.rd-qs:hover .rd-qs-pill,.rd-qs.near .rd-qs-pill,.rd-qs:focus-visible .rd-qs-pill{background:none!important;border-color:transparent!important;padding:0 6px!important}
+.rd-qs:hover .rd-qs-pill>svg,.rd-qs.near .rd-qs-pill>svg,.rd-qs:focus-visible .rd-qs-pill>svg{width:21px!important;flex-basis:21px!important;opacity:1!important}
 /* [comparativa de precios] PAUSADA (Criterio Ruedda sigue) — borrar esta línea para reactivar */
 [id="mkt-pricecmp-section"]{display:none!important}
 .plan-cta:active{transform:scale(.98)}
@@ -1684,7 +1690,7 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
   .enc-photo-placeholder svg{width:22px;height:22px}
 
   /* ── SPONSOR: banner mas bajo y proporcionado a un ancho de escritorio ── */
-  .sponsor-slider{aspect-ratio:60/7}
+  .sponsor-slider{aspect-ratio:1918/350;margin-left:0;margin-right:0;border-radius:10px}
 
   /* ── ritmo vertical mas denso, menos "mobile estirado" ── */
   .trending-head,.hd-head,.encuentra-head{margin-top:8px}
@@ -2310,7 +2316,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/rd-map.js?v=1" data-desktop="1" defer></script>
 <script src="/desktop-popups.js?v=20261008a" defer></script>
 <script src="/rd-ai.js?v=2" defer></script>
-<script src="/rd-servicios.js?v=3" defer></script>
+<script src="/rd-servicios.js?v=4" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <script src="/rd-mark.js?v=3" defer></script><!-- [2026-10-04] resaltador amarillo de "price drops" al hacer scroll (mismo módulo que móvil) --><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 </head>
@@ -6222,7 +6228,7 @@ function renderCards(filter){
   // datasets entran al hash para que el dirty-check detecte cambios en cualquiera de los dos.
   const _hashSrc=currentTab==='chocados'?AUCTIONS_CHOCADOS:currentTab==='reciente'?[...AUCTIONS,...AUCTIONS_CHOCADOS]:AUCTIONS;
   const hash = currentTab+'|'+(filter||'')+
-    '|'+_hashSrc.map(a=>a.id+'_'+a.currentBid+'_'+a.bidCount+'_'+(a.programada?'p':'a')).join(',');
+    '|'+_hashSrc.map(a=>a.id+'_'+a.currentBid+'_'+a.bidCount+'_'+(a.programada?'p':'a')).join(',')+'|d'+(window.AUCTIONS_DEMO||[]).map(a=>a.id).join(',');
   if(hash===_lastCardsHash && document.getElementById('card-list').children.length>0) return;
   _lastCardsHash=hash;
 
@@ -6278,6 +6284,8 @@ function renderCards(filter){
       else data=data.filter(a=>a.category===filter);
     }
   }
+  // [subastas demo] finalizadas elegidas en Control (app_settings 'subastas_demo'), siempre al final
+  if(currentTab!=='reciente'&&(!filter||filter==='todos')){ const _ids=new Set(data.map(a=>String(a.id))); (window.AUCTIONS_DEMO||[]).forEach(a=>{ if(!_ids.has(String(a.id))) data.push(a); }); }
   if(!data.length){list.innerHTML=window._feedLoaded?.auc?`<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>${currentTab==='reciente'?'sin subastas programadas por ahora':'sin publicaciones disponibles'}</p></div>`:_feedLoaderHTML();return;}
   data.forEach((a,idx)=>{
     const el=document.createElement('div');
@@ -6323,7 +6331,7 @@ function renderCards(filter){
       return;
     }
     el.className='auction-card';
-    const urgent=isUrgent(a.endTime);
+    const urgent=!a.demo&&isUrgent(a.endTime);
     const days=getDaysLeft(a.endTime);
     el.innerHTML=`
       <div class="card-img-wrap" style="background:linear-gradient(${grads[_gidx(a.id)]})">
@@ -6335,7 +6343,7 @@ function renderCards(filter){
         ${a.recienActivada?'<div class="badge-sinreserva" style="background:rgba(8,68,26,.85);border-color:rgba(8,68,26,.4);color:#fff">recién publicado</div>':''}
         ${a.destacado?'<div class="rd-joya">featured</div>':''}
         ${urgent?'<div class="badge-ending">terminando</div>':''}
-        <div class="badge-timer ${urgent?'urgent':days>=1?'days':''}" id="timer-card-${a.id}">--:--:--</div>
+        ${a.demo?'<div class="badge-timer">finalizada</div>':`<div class="badge-timer ${urgent?'urgent':days>=1?'days':''}" id="timer-card-${a.id}">--:--:--</div>`}
         <div class="badge-bids">${a.bidCount} ofertas · ${fmtBid(a.currentBid)}</div>
       </div>
       <div class="card-body">
@@ -6354,7 +6362,7 @@ function renderCards(filter){
         </div>
       </div>`;
     list.appendChild(el);
-    startCardTimer(a.id,a.endTime);
+    if(!a.demo) startCardTimer(a.id,a.endTime);
   });
 }
 
@@ -16982,6 +16990,32 @@ function _rdMapAuctionRow(a,photos,sellerName){
 }
 // subastas abiertas por id que no están en el feed (p. ej. vendidas, desde un perfil)
 const _rdAucExtra={};
+// [subastas demo] subastas ya finalizadas que se muestran al final de "subastas" para motivar
+// (Control → Apariencia → Subastas demo; app_settings 'subastas_demo' = JSON con ids).
+window.AUCTIONS_DEMO=window.AUCTIONS_DEMO||[];
+let _rdDemoBusy=false;
+async function _rdLoadDemoAuctions(){
+  if(!_supa||_rdDemoBusy) return; _rdDemoBusy=true;
+  try{
+    const{data:st}=await _supa.from('app_settings').select('value').eq('key','subastas_demo').maybeSingle();
+    let ids=[]; try{ ids=JSON.parse(st?.value||'[]'); }catch(e){}
+    ids=(Array.isArray(ids)?ids:[]).filter(Boolean).map(String).slice(0,12);
+    if(!ids.length){ if(window.AUCTIONS_DEMO.length){ window.AUCTIONS_DEMO=[]; if(typeof renderCards==='function') renderCards(); } return; }
+    const{data:rows}=await _supa.from('auctions').select(_RD_AUC_COLS).in('id',ids);
+    if(!rows?.length) return;
+    const uids=[...new Set(rows.map(a=>a.user_id).filter(Boolean))];
+    const[{data:ph},{data:us}]=await Promise.all([
+      _supa.from('auction_photos').select('auction_id,url,orden').in('auction_id',rows.map(a=>a.id)),
+      uids.length?_supa.from('users').select('id,nombre').in('id',uids):Promise.resolve({data:[]})
+    ]);
+    const pm={}; (ph||[]).forEach(p=>{ (pm[p.auction_id]=pm[p.auction_id]||[]).push(p); });
+    const um={}; (us||[]).forEach(u=>{ um[u.id]=u.nombre; });
+    window.AUCTIONS_DEMO=rows.map(a=>{ const m=_rdMapAuctionRow(a,pm[a.id],um[a.user_id]); m.demo=true; m.programada=false; if(!(m.endTime<Date.now())) m.endTime=Date.now()-1000; _rdAucExtra[String(a.id)]=m; return m; })
+      .sort((x,y)=>ids.indexOf(String(x.id))-ids.indexOf(String(y.id)));
+    if(typeof renderCards==='function') renderCards();
+  }catch(e){ console.warn('[ruedda] subastas demo',e?.message||e); }
+  finally{ _rdDemoBusy=false; }
+}
 async function _rdFetchAuction(id){
   if(!_supa||!id) return null;
   if(_rdAucExtra[String(id)]) return _rdAucExtra[String(id)];
@@ -16998,6 +17032,7 @@ async function _rdFetchAuction(id){
 
 async function _loadAuctions(){
   if(!_supa) return;
+  _rdLoadDemoAuctions();
   try{
     const _corte48h=new Date(Date.now()-48*3600*1000).toISOString();
     const _aucCols=_RD_AUC_COLS;

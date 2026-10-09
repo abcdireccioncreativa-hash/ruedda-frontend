@@ -12,7 +12,9 @@
   if(window.__rdSvc) return; window.__rdSvc=1;
   var SUPA='https://ltodsegzbbdcaublkgtp.supabase.co';
   var ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0b2RzZWd6YmJkY2F1YmxrZ3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjIwOTgsImV4cCI6MjA5NTI5ODA5OH0.WXbnE5_XfNwwVUtDGSWa6Voetcflcl7m2vDOpEofs_w';
-  var LS='rd_fin_card_url';
+  // en web desktop la card es más ancha: usa 'financiamiento_card_desktop_url' si existe
+  var DESK=window.innerWidth>=900;
+  var LS=DESK?'rd_fin_card_url_d':'rd_fin_card_url';
   var IMG=''; try{ IMG=localStorage.getItem(LS)||''; }catch(e){}
 
   var css=''
@@ -136,11 +138,12 @@
 
   function boot(){
     paint();
-    fetch(SUPA+'/rest/v1/app_settings?select=value&key=eq.financiamiento_card_url',{headers:{apikey:ANON,Authorization:'Bearer '+ANON}})
+    fetch(SUPA+'/rest/v1/app_settings?select=key,value&key=in.(financiamiento_card_url,financiamiento_card_desktop_url)',{headers:{apikey:ANON,Authorization:'Bearer '+ANON}})
       .then(function(r){ return r.ok?r.json():null; })
       .then(function(rows){
         if(!rows) return;
-        var u=(rows[0]&&rows[0].value)||'';
+        var m={}; rows.forEach(function(x){ m[x.key]=x.value||''; });
+        var u=(DESK&&m.financiamiento_card_desktop_url)||m.financiamiento_card_url||'';
         if(u===IMG) return;
         IMG=u; try{ u?localStorage.setItem(LS,u):localStorage.removeItem(LS); }catch(e){}
         if(u){ var im=new Image(); im.onload=paint; im.onerror=paint; im.src=u; } else paint();
