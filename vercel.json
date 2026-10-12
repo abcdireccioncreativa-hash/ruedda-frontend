@@ -95,6 +95,30 @@
       "dest": "https://ruedda-office.vercel.app/office/$1"
     },
     {
+      "src": "^/colombia/?$",
+      "dest": "https://ruedda-colombia.vercel.app/colombia"
+    },
+    {
+      "src": "^/colombia/(.*)$",
+      "dest": "https://ruedda-colombia.vercel.app/colombia/$1"
+    },
+    {
+      "src": "^/canada/?$",
+      "dest": "https://ruedda-canada.vercel.app/canada"
+    },
+    {
+      "src": "^/canada/(.*)$",
+      "dest": "https://ruedda-canada.vercel.app/canada/$1"
+    },
+    {
+      "src": "^/avalta/?$",
+      "dest": "https://avalta-web.vercel.app/avalta"
+    },
+    {
+      "src": "^/avalta/(.*)$",
+      "dest": "https://avalta-web.vercel.app/avalta/$1"
+    },
+    {
       "src": "^/hub/?$",
       "dest": "https://ruedda-hub.vercel.app/hub/"
     },

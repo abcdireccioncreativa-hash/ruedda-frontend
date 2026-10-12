@@ -7,6 +7,18 @@
         ],
         "components": [
           {
+            "/": "/avalta*",
+            "exclude": true
+          },
+          {
+            "/": "/canada*",
+            "exclude": true
+          },
+          {
+            "/": "/colombia*",
+            "exclude": true
+          },
+          {
             "/": "/control*",
             "exclude": true
           },
