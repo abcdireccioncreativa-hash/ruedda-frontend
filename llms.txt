@@ -1,0 +1,21 @@
+# Ruedda
+
+> Ruedda (ruedda.app) es el marketplace automotriz de Venezuela para comprar, vender y subastar vehículos: subastas en vivo, market, concesionarios, mecánicos, repuestos y comunidad. App web y app iOS.
+
+## Datos legales
+
+- Razón social: RUEDDA MARKETPLACE C.A.
+- RIF: J-30460850-9
+- País: Venezuela (Caracas)
+- Sitio oficial: https://www.ruedda.app/
+- App iOS: https://apps.apple.com/app/ruedda-la-app-automotriz/id6812039590
+- Instagram: https://www.instagram.com/ruedda.app
+
+Ruedda es operada por RUEDDA MARKETPLACE C.A., RIF J-30460850-9.
+
+## Enlaces
+
+- [Inicio](https://www.ruedda.app/)
+- [Subastas](https://www.ruedda.app/subastas)
+- [Vehículos](https://www.ruedda.app/vehiculos)
+- [Términos y documentos legales](https://www.ruedda.app/ruedda_legal.html)
