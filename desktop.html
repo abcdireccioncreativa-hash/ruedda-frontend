@@ -2325,6 +2325,20 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/rd-servicios.js?v=4" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <script src="/rd-mark.js?v=3" defer></script><!-- [2026-10-04] resaltador amarillo de "price drops" al hacer scroll (mismo módulo que móvil) --><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
+<style id="rd-ajustes-2026-10-12">
+/* [2026-10-12] "vender": amarillo featured literal (igual en ambos temas), un poquito más grande, interletrado -40 */
+.btn-vender,html:not([data-theme="light"]) .btn-vender{background:#e6f03b;color:#0a0a0a;font-size:15px;letter-spacing:-.04em}
+.btn-vender:active,html:not([data-theme="light"]) .btn-vender:active{background:#d4dd2c}
+.btn-vender:hover{box-shadow:0 0 18px rgba(230,240,59,.35)}
+@media(min-width:768px){.btn-vender{font-size:16px}}
+/* [2026-10-12] detalle market: favoritos / ofrecer cambio / ofrecer menos con el color de "enviar mensaje al vendedor"
+   (guardado sigue en amarillo por .rd-saved !important) */
+#view-market-detail .bid-section .btn-watchlist{background:var(--lime);color:var(--lime-ink);border-color:var(--lime)}
+#view-market-detail .bid-section .btn-watchlist:active{background:var(--lime-dark)}
+/* [2026-10-12] nota fija bajo "ciudad" en market */
+.rd-nosub{margin:12px 0 0 auto;max-width:210px;font-size:10.5px;line-height:1.45;font-weight:400;color:var(--white);opacity:.8;text-align:right;letter-spacing:0}
+.rd-nosub b{font-weight:700}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -3450,6 +3464,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
             <div>
               <div class="bid-amount-label" style="text-align:right">ciudad</div>
               <div style="font-size:16px;font-weight:600;text-align:right" id="mkt-city"></div>
+              <p class="rd-nosub">Este vehículo <b>no es subasta</b>, para buscar subastas: Click en market / subastas.</p>
             </div>
           </div>
           <!-- Contact CTA -->
@@ -4353,13 +4368,13 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
     <div style="width:100%;display:flex;flex-direction:column;gap:12px;max-width:360px">
       <!-- EMAIL -->
-      <a href="mailto:contactoruedda@gmail.com" style="display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='var(--w20)'" onmouseout="this.style.borderColor='var(--border)'">
+      <a href="mailto:team@ruedda.app" style="display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 20px;text-decoration:none;transition:border-color .2s" onmouseover="this.style.borderColor='var(--w20)'" onmouseout="this.style.borderColor='var(--border)'">
         <div style="width:40px;height:40px;border-radius:12px;background:var(--surface-hi);border:1px solid var(--w10);display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg fill="none" viewBox="0 0 24 24" stroke="var(--w70)" stroke-width="1.8" style="width:18px;height:18px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
         </div>
         <div style="text-align:left">
           <div style="font-size:13px;color:var(--w40);margin-bottom:2px">escríbenos</div>
-          <div style="font-size:15px;font-weight:600;color:var(--white)">contactoruedda@gmail.com</div>
+          <div style="font-size:15px;font-weight:600;color:var(--white)">team@ruedda.app</div>
         </div>
       </a>
       <!-- WHATSAPP -->
@@ -4413,7 +4428,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 
   <!-- BOTTOM NOTE -->
   <div style="text-align:center;padding:32px 24px 100px">
-    <div style="font-size:12px;color:var(--w20);line-height:1.7">¿quieres colaborar o tienes algo que contar?<br><span style="color:var(--w35)">contactoruedda@gmail.com</span></div>
+    <div style="font-size:12px;color:var(--w20);line-height:1.7">¿quieres colaborar o tienes algo que contar?<br><span style="color:var(--w35)">team@ruedda.app</span></div>
   </div>
 </div>
 
@@ -21461,7 +21476,7 @@ async function _saDeletePat(id,cat){
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px;text-align:center;gap:16px">
     <div style="font-size:32px;font-weight:800;letter-spacing:-.6px">sé parte de<br>Ruedda.</div>
     <p style="font-size:15px;color:var(--muted);line-height:1.7;max-width:280px">¿quieres colaborar, invertir o trabajar con nosotros? escríbenos.</p>
-    <a href="mailto:contactoruedda@gmail.com" style="margin-top:8px;font-size:17px;font-weight:700;color:#08441A;text-decoration:none;letter-spacing:-.2px">contactoruedda@gmail.com</a>
+    <a href="mailto:team@ruedda.app" style="margin-top:8px;font-size:17px;font-weight:700;color:#08441A;text-decoration:none;letter-spacing:-.2px">team@ruedda.app</a>
   </div>
 </div>
 
@@ -21474,7 +21489,7 @@ async function _saDeletePat(id,cat){
   <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 32px;text-align:center;gap:16px">
     <div style="font-size:28px;font-weight:800;letter-spacing:-.5px">soporte Ruedda</div>
     <p style="font-size:15px;color:var(--muted);line-height:1.7;max-width:280px">estamos aquí para ayudarte. escríbenos y te respondemos a la brevedad.</p>
-    <a href="mailto:contactoruedda@gmail.com" style="font-size:16px;font-weight:700;color:#08441A;text-decoration:none">contactoruedda@gmail.com</a>
+    <a href="mailto:team@ruedda.app" style="font-size:16px;font-weight:700;color:#08441A;text-decoration:none">team@ruedda.app</a>
     <a href="https://wa.me/584123921048" target="_blank" style="background:var(--lime);color:var(--lime-ink);border:none;border-radius:13px;padding:14px 28px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;margin-top:6px">contactar por WhatsApp</a>
   </div>
 </div>
@@ -22857,12 +22872,12 @@ html:not([data-theme="light"]) #login-splash .rd-wel-track{stroke:rgba(230,240,5
         '<div class="rf-col"><h4>Comprar</h4><a onclick="_rfNav(\'market\')">Market</a><a onclick="_rfNav(\'subastas\')">Subastas</a><a onclick="_rfNav(\'consesionarios\')">Concesionarios</a><a onclick="window.open(\'https://ruedda.app/repuestos\',\'_blank\')">Repuestos</a></div>'+
         '<div class="rf-col"><h4>Vender</h4><a onclick="openVenderModal()">Vender mi carro</a><a onclick="window.rdPartnersPopup&&rdPartnersPopup()">Programa Fundadores</a><a onclick="window.rdPartnersPopup&&rdPartnersPopup()">Vitrina para concesionarios</a></div>'+
         '<div class="rf-col"><h4>Ruedda</h4><a onclick="showView(\'como-funciona\');scrollTo({top:0})">Nosotros</a><a onclick="showView(\'favoritos\');scrollTo({top:0})">Comunidad</a><a href="https://instagram.com/ruedda.app" target="_blank" rel="noopener">Instagram</a></div>'+
-        '<div class="rf-col"><h4>Ayuda</h4><a href="mailto:contactoruedda@gmail.com">Contacto</a><a href="/ruedda_legal.html">Términos</a><a href="/ruedda_legal.html">Privacidad</a></div>'+
+        '<div class="rf-col"><h4>Ayuda</h4><a href="mailto:team@ruedda.app">Contacto</a><a href="/ruedda_legal.html">Términos</a><a href="/ruedda_legal.html">Privacidad</a></div>'+
         '<div class="rf-apps"><a class="rf-badge" href="https://apps.apple.com/app/ruedda-la-app-automotriz/id6812039590" target="_blank" rel="noopener">'+apple+'<span><small>Descárgala en el</small><b>App Store</b></span></a>'+
           '<div class="rf-badge soon">'+play+'<span><small>Muy pronto en</small><b>Google Play</b></span></div>'+
-          '<div class="rf-social"><a href="https://instagram.com/ruedda.app" target="_blank" rel="noopener" aria-label="Instagram">'+ig+'</a><a href="mailto:contactoruedda@gmail.com" aria-label="Correo">'+mail+'</a></div></div>'+
+          '<div class="rf-social"><a href="https://instagram.com/ruedda.app" target="_blank" rel="noopener" aria-label="Instagram">'+ig+'</a><a href="mailto:team@ruedda.app" aria-label="Correo">'+mail+'</a></div></div>'+
       '</div>'+
-      '<div class="rf-bottom"><span>© '+new Date().getFullYear()+' RUEDDA MARKETPLACE C.A. · RIF J-30460850-9 · Hecho en Venezuela</span><span class="rf-bl"><a href="/ruedda_legal.html">Términos</a><a href="/ruedda_legal.html">Privacidad</a><a href="mailto:contactoruedda@gmail.com">Contacto</a><span class="rf-cubica">powered by<svg width="58" height="15" aria-label="Cubica"><use href="#csym"/></svg></span></span></div>';
+      '<div class="rf-bottom"><span>© '+new Date().getFullYear()+' RUEDDA MARKETPLACE C.A. · RIF J-30460850-9 · Hecho en Venezuela</span><span class="rf-bl"><a href="/ruedda_legal.html">Términos</a><a href="/ruedda_legal.html">Privacidad</a><a href="mailto:team@ruedda.app">Contacto</a><span class="rf-cubica">powered by<svg width="58" height="15" aria-label="Cubica"><use href="#csym"/></svg></span></span></div>';
     last.parentNode.insertBefore(f,last.nextSibling);
     stats();
   }

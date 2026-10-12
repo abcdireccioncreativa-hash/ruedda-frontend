@@ -6,7 +6,7 @@
 (function(){
   if(window.RDSupport) return;
 
-  var WA='https://wa.me/584123921048', MAIL='contactoruedda@gmail.com';
+  var WA='https://wa.me/584123921048', MAIL='team@ruedda.app';
 
   // ── acciones: solo se muestran si la función existe en esta página ──
   function fn(n){ return typeof window[n]==='function'; }
