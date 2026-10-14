@@ -2719,10 +2719,15 @@ function rdRegion(r){
 }catch(e){}})();</script>
 <style id="rd-ajustes-2026-10-12">
 /* [2026-10-12] "vender": amarillo featured literal (igual en ambos temas), un poquito más grande (interletrado original) */
-.btn-vender,html:not([data-theme="light"]) .btn-vender{background:#e6f03b;color:#0a0a0a;font-size:15px}
+.btn-vender,html:not([data-theme="light"]) .btn-vender{background:#e6f03b;color:#0a0a0a}
 .btn-vender:active,html:not([data-theme="light"]) .btn-vender:active{background:#d4dd2c}
 .btn-vender:hover{box-shadow:0 0 18px rgba(230,240,59,.35)}
-@media(min-width:768px){.btn-vender{font-size:16px}}
+/* [2026-10-14] invitación a publicar bajo "te podría interesar" (texto, sin botón) */
+.rd-invita{display:flex;flex-direction:column;align-items:center;gap:6px;margin:34px auto 6px;padding:8px 16px;text-align:center;text-decoration:none;color:var(--white);-webkit-tap-highlight-color:transparent}
+.rd-invita span{font-size:13px;font-weight:500;opacity:.55;letter-spacing:-.01em}
+.rd-invita b{font-size:17px;font-weight:700;letter-spacing:-.02em;border-bottom:1.5px solid #e6f03b;padding-bottom:3px}
+.rd-invita i{font-style:normal;display:inline-block;transition:transform .2s}
+.rd-invita:active b i,.rd-invita:hover b i{transform:translateX(4px)}
 /* [2026-10-12] detalle market: favoritos / ofrecer cambio / ofrecer menos con el color de "enviar mensaje al vendedor"
    (guardado sigue en amarillo por .rd-saved !important) */
 #view-market-detail .bid-section .btn-watchlist{background:var(--lime);color:var(--lime-ink);border-color:var(--lime)}
@@ -3889,7 +3894,13 @@ html[data-theme="light"] #view-market-detail .rd-acc .btn-watchlist{background:#
   <div id="market-section" style="animation:fadeIn .25s ease">
 
     <!-- [RC] subtítulo de bienvenida — migrado desde subastas, vive entre el selector de sección y el banner de patrocinantes -->
-    <!-- SLOGAN-OFF (prueba 2026-10-08): <div class="rdv" style="padding:2px 18px 12px;font-size:11px;color:var(--white);font-weight:300;line-height:1.5;letter-spacing:.3px;opacity:.92">bienvenido al marketplace automotriz mas avanzado de venezuela.</div> -->
+    <div class="rdv" id="mkt-slogan" style="padding:2px 18px 12px;font-size:11px;color:var(--white);font-weight:300;line-height:1.5;letter-spacing:.3px;opacity:.92">Soporte experto. Compradores reales.</div>
+    <script>/* [2026-10-14] slogan del market editable y apagable desde control (app_settings 'market_slogan' = {"on":bool,"text":str}) */
+(function(){var el=document.getElementById('mkt-slogan');if(!el)return;
+function ap(v){try{v=typeof v==='string'?JSON.parse(v):v;}catch(e){return;}if(!v)return;if(typeof v.text==='string'&&v.text.trim())el.textContent=v.text.trim();el.style.display=v.on===false?'none':'';}
+try{ap(localStorage.getItem('rd_market_slogan'));}catch(e){}
+var K='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0b2RzZWd6YmJkY2F1YmxrZ3RwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MjIwOTgsImV4cCI6MjA5NTI5ODA5OH0.WXbnE5_XfNwwVUtDGSWa6Voetcflcl7m2vDOpEofs_w';
+fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=value&key=eq.market_slogan',{headers:{apikey:K,Authorization:'Bearer '+K}}).then(function(r){return r.ok?r.json():null;}).then(function(d){if(!d||!d[0]||!d[0].value)return;ap(d[0].value);try{localStorage.setItem('rd_market_slogan',d[0].value);}catch(e){}}).catch(function(){});})();</script>
 
     <!-- SPONSOR SLIDER — [RDV] el espacio queda reservado desde el frame 1 con
          un skeleton shimmer; la foto real hace crossfade EN el mismo espacio.
@@ -4465,6 +4476,8 @@ html[data-theme="light"] #view-market-detail .rd-acc .btn-watchlist{background:#
           <!-- [te podría interesar] slider horizontal, otros vehículos de market -->
           <h2 id="mkt-interest-title" style="display:none;font-size:22px;font-weight:700;letter-spacing:-.4px;margin-top:36px;margin-bottom:14px">te podría interesar</h2>
           <div class="mkt-interest-row" id="mkt-interest-row"></div>
+          <!-- [2026-10-14] invitación a publicar, solo texto, centrada -->
+          <a class="rd-invita" href="javascript:void(0)" onclick="openVenderModal()"><span>¿Vas a vender tu carro?</span><b>Publícalo gratis en Ruedda <i>→</i></b></a>
           <div class="mkt-back-pill-row">
             <button class="mkt-back-pill" onclick="_rdExitMarketDetail()">
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg>
@@ -12516,10 +12529,6 @@ const PRICING_PLANS = {
       id:'gratis', name:'Publicar gratis', nameColor:'var(--white)', price:'', priceColor:'var(--w50)',
       desc:'Tu carro en Ruedda por 30 días.',
       free:true, showArrow:false
-    },
-    {
-      id:'founder', name:'Founder <span style="color:var(--rd-green)">Pack</span>', nameColor:'var(--white)', price:'2$', priceColor:'var(--white)',
-      desc:'Apóyanos y llévate tu insignia Founder.', tier:true, showArrow:true, hasInfo:true
     },
     {
       id:'full', name:'RueddaFull', nameColor:'var(--white)', price:'5$', priceColor:'var(--white)',
