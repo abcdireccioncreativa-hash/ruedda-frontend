@@ -2324,6 +2324,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=4" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
+<script src="/rd-slogan-fx.js?v=1" defer></script><!-- [2026-10-14] animación del slogan del market (módulo opcional: borrar esta línea para volver atrás) -->
 <script src="/rd-mark.js?v=3" defer></script><!-- [2026-10-04] resaltador amarillo de "price drops" al hacer scroll (mismo módulo que móvil) --><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 <style id="rd-ajustes-2026-10-12">
 /* [2026-10-12] "vender": amarillo featured literal (igual en ambos temas), un poquito más grande (interletrado original) */
@@ -4933,8 +4934,8 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
       <!-- AVATAR -->
       <div style="position:relative;cursor:pointer" onclick="document.getElementById('avatar-upload').click()">
         <div class="avatar-circle" id="cuenta-avatar" style="overflow:hidden;position:relative;border:1.5px solid var(--w10)">R</div>
-        <div style="position:absolute;bottom:0;right:0;width:24px;height:24px;background:var(--lime);border-radius:50%;border:2px solid #0a0a0a;display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 14 14" stroke="#fff" stroke-width="2.2" style="width:8px;height:8px"><path d="M7 2v10M2 7h10"/></svg>
+        <div style="position:absolute;bottom:0;right:0;width:24px;height:24px;background:#e6f03b;border-radius:50%;border:2px solid #0a0a0a;display:flex;align-items:center;justify-content:center"><!-- [2026-10-14] + amarillo como "vender" -->
+          <svg fill="none" viewBox="0 0 14 14" stroke="#0a0a0a" stroke-width="2.4" style="width:8px;height:8px"><path d="M7 2v10M2 7h10"/></svg>
         </div>
       </div>
       <input type="file" id="avatar-upload" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">

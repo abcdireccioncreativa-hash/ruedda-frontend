@@ -2696,6 +2696,7 @@ function rdRegion(r){
 <script src="/rd-servicios.js?v=4" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
+<script src="/rd-slogan-fx.js?v=1" defer></script><!-- [2026-10-14] animación del slogan del market (módulo opcional: borrar esta línea para volver atrás) -->
 <script src="/rd-mark.js?v=2" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
 <!-- chat nativo: solo en la app iOS que lo trae (__RD_NATIVE_CHAT); se carga al final, después de todas las funciones de mensajes -->
 <script>(function(){try{if(window.__RD_NATIVE_CHAT){var go=function(){var s=document.createElement('script');s.src='/native-chat.js?v=3';document.head.appendChild(s);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();}}catch(e){}})();</script>
@@ -5970,8 +5971,8 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
       <!-- AVATAR -->
       <div style="position:relative;cursor:pointer" onclick="document.getElementById('avatar-upload').click()">
         <div class="avatar-circle" id="cuenta-avatar" style="overflow:hidden;position:relative;border:1.5px solid var(--w10)">R</div>
-        <div style="position:absolute;bottom:0;right:0;width:24px;height:24px;background:var(--white);border-radius:50%;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center">
-          <svg fill="none" viewBox="0 0 14 14" stroke-width="2.4" style="width:9px;height:9px;stroke:var(--bg)"><path d="M7 2v10M2 7h10"/></svg>
+        <div style="position:absolute;bottom:0;right:0;width:24px;height:24px;background:#e6f03b;border-radius:50%;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center"><!-- [2026-10-14] + amarillo como "vender" -->
+          <svg fill="none" viewBox="0 0 14 14" stroke-width="2.4" style="width:9px;height:9px;stroke:#0a0a0a"><path d="M7 2v10M2 7h10"/></svg>
         </div>
       </div>
       <input type="file" id="avatar-upload" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
