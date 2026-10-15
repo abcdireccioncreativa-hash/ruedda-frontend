@@ -146,6 +146,42 @@
       }
     },
     {
+      "src": "^/(index\\.html|desktop\\.html)?$",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|SkypeUriPreview|Pinterest|redditbot|Applebot|Googlebot|bingbot|Iframely|Embedly|vkShare|SignalBot|Viber).*"
+        },
+        {
+          "type": "query",
+          "key": "market"
+        }
+      ],
+      "headers": {
+        "Vary": "User-Agent"
+      },
+      "dest": "/api/admin-user?og=1"
+    },
+    {
+      "src": "^/(index\\.html|desktop\\.html)?$",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|SkypeUriPreview|Pinterest|redditbot|Applebot|Googlebot|bingbot|Iframely|Embedly|vkShare|SignalBot|Viber).*"
+        },
+        {
+          "type": "query",
+          "key": "auction"
+        }
+      ],
+      "headers": {
+        "Vary": "User-Agent"
+      },
+      "dest": "/api/admin-user?og=1"
+    },
+    {
       "src": "^/$",
       "missing": [
         {

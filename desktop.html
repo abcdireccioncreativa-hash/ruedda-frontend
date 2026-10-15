@@ -9984,7 +9984,9 @@ function openPhotoViewer(photos,startIndex,shareInfo){
 // [V123] comparte la publicación (no solo la foto) — genera un link que reabre
 // directo en esa subasta/listing de market, con Web Share API y respaldo a copiar.
 function _shareUrlFor(type,id){
-  return `${window.location.origin}${window.location.pathname}?${type}=${id}`;
+  // [2026-10-15] siempre el dominio público (la vista previa de WhatsApp sale con la foto del carro, ver lib/og.js)
+  const base='https://www.ruedda.app'; // en la app nativa el origin no es ruedda.app
+  return `${base}/?${type}=${id}`;
 }
 function _pvShare(){
   if(!_pvShareInfo) return;
@@ -18117,7 +18119,7 @@ async function _loadComments(sourceType,sourceId,listId,explicitOwnerId){
   if(!list||!_supa) return;
   list.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 0">cargando...</div>';
   const{data,error}=await _supa.from('comments')
-    .select('id,body,created_at,parent_id,user_id,likes,users(nombre,username,avatar_url,kyc_verified,role,email)')
+    .select('id,body,created_at,parent_id,user_id,likes,users(nombre,username,avatar_url,kyc_verified,role)')
     .eq(_commentCol(sourceType),sourceId)
     .is('parent_id',null)
     .order('created_at',{ascending:false});
@@ -18135,7 +18137,7 @@ async function _loadComments(sourceType,sourceId,listId,explicitOwnerId){
   // cargar replies
   const ids=data.map(c=>c.id);
   const{data:replies}=await _supa.from('comments')
-    .select('id,body,created_at,parent_id,user_id,users(nombre,username,avatar_url,kyc_verified,role,email)')
+    .select('id,body,created_at,parent_id,user_id,users(nombre,username,avatar_url,kyc_verified,role)')
     .in('parent_id',ids)
     .order('created_at',{ascending:true});
   const replyMap={};
@@ -18148,7 +18150,7 @@ async function _loadComments(sourceType,sourceId,listId,explicitOwnerId){
     const isOwner=c.user_id===ownerId;
     const isMe=c.user_id===USER_STATE.id;
     const isDealer=c.users?.role==='concesionario'||c.users?.role==='consesionario';
-    const isAdmin=c.users?.email==='empresa@ruedda.com';
+    const isAdmin=c.users?.role==='superadmin';
     const _cu=c.users||{};
     // [V100] 5 reglas: owner=nombre completo+verif, dealer=nombre vitrina+verif, admin=Ruedda+admin, kyc=@user+verif, sin kyc=@user+particular
     const _uname=_cu.username||_cu.nombre||'usuario';
@@ -18165,7 +18167,7 @@ async function _loadComments(sourceType,sourceId,listId,explicitOwnerId){
     const replyBtns=!isMe?`<button onclick="_openReplyBox('${c.id}','${sourceType}','${sourceId}','${listId}')" style="background:none;border:none;color:var(--muted);font-size:12px;font-family:var(--font);cursor:pointer;padding:0">responder</button>`:'';    const cReplies=(replyMap[c.id]||[]).map(r=>{
       const rOwner=r.user_id===ownerId;
       const rDealer=r.users?.role==='concesionario'||r.users?.role==='consesionario';
-      const rIsAdmin=r.users?.email==='empresa@ruedda.com';
+      const rIsAdmin=r.users?.role==='superadmin';
       const _ru=r.users||{};
       const rUname=_ru.username||_ru.nombre||'usuario';
       const rFull=_ru.nombre||_ru.username||'usuario';

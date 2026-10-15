@@ -26,6 +26,8 @@ module.exports = async (req, res) => {
   if (req.query && req.query.ai === 'describe') return require('../lib/ai-describe.js')(req, res);
   // Postulaciones de RueddaCarreras desde ruedda.app/hub
   if (req.query && req.query.postulacion) return require('../lib/postulacion.js')(req, res);
+  // Vista previa al compartir (/?market=ID y /?auction=ID pedidos por WhatsApp y otros bots, ver vercel.json)
+  if (req.query && req.query.og) return require('../lib/og.js')(req, res);
 
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'method not allowed' });

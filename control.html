@@ -526,6 +526,7 @@ let VIEWS=[
   {id:'subastas',t:'Subastas',i:'gavel',s:'En vivo, programadas y finalizadas'},
   {id:'ofertas',t:'Ofertas',i:'offer',s:'Ofertas de compra y de cambio'},
   {h:'Comercial'},
+  {id:'concesionarios',t:'Concesionarios',i:'car',s:'Vitrinas: crear, editar, activar, vencimientos y sus publicaciones'},
   {id:'solicitudes',t:'Solicitudes',i:'msg',s:'Vitrinas de concesionarios, buscan carro y publicar por ellos',b:'sol'},
   {id:'documentos',t:'Documentos',i:'kyc',s:'Papeles para el sello "auditado por Ruedda"'},
   {id:'patrocinantes',t:'Patrocinantes y banners',i:'offer',s:'Banner grande del market, banners de la app y aliados'},
@@ -1604,6 +1605,136 @@ RENDER.solicitudes=async(tok)=>{
     const sub=SOL_K==='car'?(r.especificaciones||''):SOL_K==='partner'?[r.representante?('Representante: '+r.representante):'',ciudad].filter(Boolean).join(' · ')+(fund?'':(r.motivo?' · '+r.motivo:'')):'pidió que publiquemos por él/ella';
     return `<tr><td style="font-weight:600">${esc(title)}${fund?' <span class="pill k" style="margin-left:4px">🏁 fundador</span>':''}</td><td class="muted" style="max-width:320px">${esc(sub)}</td><td class="num">${tel?`<a href="${wa(tel)}" target="_blank" rel="noopener">${esc(tel)}</a>`:'—'}</td><td>${r.estado==='pendiente'?'<span class="pill o">pendiente</span>':`<span class="pill g">${esc(r.estado)}</span>`}</td><td class="muted">${ago(r.created_at)}</td><td class="r" style="white-space:nowrap">${tel?`<a class="btn btn-green" style="height:30px" href="${wa(tel)}" target="_blank" rel="noopener">WhatsApp</a> `:''}${r.estado==='pendiente'?`<button class="btn btn-soft" style="height:30px" onclick="rowSet('${S.t}','${r.id}',{estado:'${S.done}'},'solicitudes')">Marcar atendida</button> `:''}${delBtn(`delRow('${S.t}','${r.id}','solicitudes')`)}</td></tr>`;}).join('')}</tbody></table></div>`;
 };
+
+/* ── CONCESIONARIOS [2026-10-15] vitrinas: crear, editar, activar, vencimientos, logo/portada y sus publicaciones ── */
+let C_F={q:'',st:'todos',tipo:'todos'};
+const C_TIPOS=[['agencia','Agencia'],['marca_oficial','Marca oficial']];
+const C_FIELDS=[['nombre','Nombre','text'],['ciudad','Ciudad','text'],['direccion','Dirección','text'],['telefono','Teléfono','text'],['whatsapp','WhatsApp','text'],['instagram','Instagram (sin @)','text'],['tag','Etiqueta corta','text'],['descripcion','Descripción','area']];
+const cVence=c=>c.plan_expiry?new Date(c.plan_expiry):null;
+const cDias=c=>{ const d=cVence(c); return d?Math.ceil((d-Date.now())/864e5):null; };
+function cEstado(c){
+  if(c.activo===false) return '<span class="pill">inactivo</span>';
+  const d=cDias(c); if(d===null) return '<span class="pill g">activo · sin vencimiento</span>';
+  if(d<0) return `<span class="pill r">vencido hace ${n(-d)} d</span>`;
+  if(d<=7) return `<span class="pill o">vence en ${n(d)} d</span>`;
+  return `<span class="pill g">activo · ${n(d)} d</span>`;
+}
+const cLogo=(c,sz)=>`<div class="av" style="width:${sz||36}px;height:${sz||36}px;border-radius:10px;overflow:hidden;background:#111;color:#fff;flex:none">${c.logo_url&&/\/storage\//.test(c.logo_url)?`<img src="${esc(tImg(c.logo_url,160))}" style="width:100%;height:100%;object-fit:contain">`:initials(c.nombre||'C')}</div>`;
+RENDER.concesionarios=async(tok,_,soft)=>{
+  const V=$('#view');
+  if(window.SOCIO){ V.innerHTML=empty('Solo el administrador','La gestión de concesionarios es del superadmin'); return; }
+  if(!soft||!$('#ct')) V.innerHTML=`<div class="grid g4" id="ckpi" style="margin-bottom:14px">${[1,2,3,4].map(()=>'<div class="card kpi"><div class="skel" style="height:58px"></div></div>').join('')}</div>
+    <div class="toolbar"><input class="input" id="cq" placeholder="Buscar por nombre o ciudad" value="${esc(C_F.q)}">
+    <div class="seg" id="cst">${[['todos','Todos'],['activos','Activos'],['porvencer','Por vencer'],['vencidos','Vencidos'],['inactivos','Inactivos']].map(([k,t])=>`<button data-k="${k}" class="${C_F.st===k?'on':''}">${t}</button>`).join('')}</div>
+    <div class="seg" id="ctipo">${[['todos','Todos'],...C_TIPOS].map(([k,t])=>`<button data-k="${k}" class="${C_F.tipo===k?'on':''}">${t}</button>`).join('')}</div>
+    <span class="muted" id="ccount" style="margin-left:auto;font-size:12.5px"></span><button class="btn btn-primary" onclick="concNuevo()">Nuevo concesionario</button></div><div class="card" id="ct"></div>`;
+  const qi=$('#cq'); qi.oninput=()=>{clearTimeout(qi._t);qi._t=setTimeout(()=>{C_F.q=qi.value.trim();RENDER.concesionarios(++VIEW_TOKEN,[],true);},250);};
+  $('#cst').onclick=e=>{const b=e.target.closest('button');if(!b)return;C_F.st=b.dataset.k;document.querySelectorAll('#cst button').forEach(x=>x.classList.toggle('on',x===b));RENDER.concesionarios(++VIEW_TOKEN,[],true);};
+  $('#ctipo').onclick=e=>{const b=e.target.closest('button');if(!b)return;C_F.tipo=b.dataset.k;document.querySelectorAll('#ctipo button').forEach(x=>x.classList.toggle('on',x===b));RENDER.concesionarios(++VIEW_TOKEN,[],true);};
+  const [{data,error},{data:pubs},{data:rts}]=await Promise.all([
+    sb.from('concesionarios').select('*').order('created_at',{ascending:false}).limit(1000),
+    sb.from('listings').select('concesionario_id,estado,vendido').not('concesionario_id','is',null).limit(5000),
+    sb.from('concesionario_ratings').select('*').limit(5000)
+  ]); if(stale(tok)) return;
+  const T=$('#ct');
+  if(error){ T.innerHTML=empty('No se pudo cargar',error.message); return; }
+  const P={}; (pubs||[]).forEach(p=>{ const o=P[p.concesionario_id]=P[p.concesionario_id]||{act:0,tot:0,vend:0}; o.tot++; if(p.vendido) o.vend++; else if(p.estado==='activa') o.act++; });
+  const R={}; (rts||[]).forEach(r=>{ const k=r.concesionario_id; const v=Number(r.score??r.rating??r.estrellas); if(!k||!isFinite(v)) return; (R[k]=R[k]||[]).push(v); });
+  const all=data||[]; window._CONC=all;
+  const act=all.filter(c=>c.activo!==false), venc=act.filter(c=>cDias(c)!==null&&cDias(c)<0), pv=act.filter(c=>{const d=cDias(c);return d!==null&&d>=0&&d<=7;});
+  $('#ckpi').innerHTML=kpiCard('Concesionarios',n(all.length),`${n(all.filter(c=>c.tipo==='marca_oficial').length)} marcas oficiales`,'car')+kpiCard('Activos',n(act.length-venc.length),'se ven en la app','users')+kpiCard('Por vencer',n(pv.length),'en los próximos 7 días','pay')+kpiCard('Vencidos',n(venc.length),'siguen activos con el plan vencido','flag');
+  let L=all;
+  if(C_F.tipo!=='todos') L=L.filter(c=>(c.tipo||'agencia')===C_F.tipo);
+  if(C_F.st==='activos') L=L.filter(c=>c.activo!==false&&!(cDias(c)<0));
+  else if(C_F.st==='porvencer') L=L.filter(c=>pv.includes(c)); else if(C_F.st==='vencidos') L=L.filter(c=>venc.includes(c)); else if(C_F.st==='inactivos') L=L.filter(c=>c.activo===false);
+  if(C_F.q){ const s=C_F.q.toLowerCase(); L=L.filter(c=>[c.nombre,c.ciudad,c.tag].some(v=>String(v||'').toLowerCase().includes(s))); }
+  $('#ccount').textContent=n(L.length)+' concesionarios';
+  if(!L.length){ T.innerHTML=empty('Sin concesionarios en este filtro'); return; }
+  const um=await usersMap(L.map(c=>c.user_id)); if(stale(tok)) return;
+  T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Concesionario</th><th>Tipo</th><th>Dueño de la cuenta</th><th>Ciudad</th><th class="r">Publicaciones</th><th class="r">Calificación</th><th>Plan</th><th>Alta</th></tr></thead><tbody>${L.map(c=>{const p=P[c.id]||{act:0,tot:0,vend:0}; const r=R[c.id]; const u=um[c.user_id];
+    return `<tr class="click" onclick="openConc('${c.id}')"><td><div class="who">${cLogo(c)}<div><div class="n">${esc(c.nombre||'sin nombre')}</div><div class="u">${esc(c.tag||'')}</div></div></div></td><td>${c.tipo==='marca_oficial'?'<span class="pill b">marca oficial</span>':'<span class="pill">agencia</span>'}</td><td>${u?esc(uname(u)):'<span class="muted">—</span>'}<div class="muted" style="font-size:11.5px">${esc(u&&u.email||'')}</div></td><td>${esc(c.ciudad||'—')}</td><td class="r num">${n(p.act)} <span class="muted">/ ${n(p.tot)}</span></td><td class="r num">${r?(r.reduce((a,b)=>a+b,0)/r.length).toFixed(1)+' <span class="muted">('+r.length+')</span>':'—'}</td><td>${cEstado(c)}</td><td class="muted">${ago(c.created_at)}</td></tr>`;}).join('')}</tbody></table></div>`;
+};
+async function openConc(id){
+  closeModal(); const ov=modal({wide:true,title:'Concesionario',body:'<div class="skel" style="height:320px"></div>'});
+  const{data:c,error}=await sb.from('concesionarios').select('*').eq('id',id).maybeSingle();
+  if(!ov.isConnected) return; if(error||!c){ ov.querySelector('.modal-b').innerHTML=empty('No encontrado',error&&error.message); return; }
+  const [um,{data:L},{data:pays}]=await Promise.all([usersMap([c.user_id]),
+    sb.from('listings').select('id,marca,modelo,year,estado,vendido,precio_usd,created_at').eq('concesionario_id',id).order('created_at',{ascending:false}).limit(60),
+    sb.from('payment_refs').select('id,amount_usd,status,metodo,created_at').eq('user_id',c.user_id).eq('tipo','vitrina').order('created_at',{ascending:false}).limit(20)]);
+  if(!ov.isConnected) return; const u=um[c.user_id];
+  ov.querySelector('.modal-h h3').textContent=c.nombre||'Concesionario';
+  ov.querySelector('.modal-h div').insertAdjacentHTML('beforeend',`<div class="muted" style="font-size:12.5px;margin-top:3px">${cEstado(c)} · cuenta de ${u?`<a href="javascript:void 0" onclick="openUser('${c.user_id}')">${esc(uname(u))}</a>`:'—'} · alta ${fdate(c.created_at)}</div>`);
+  const img=(k,l,r)=>`<div><div class="muted" style="font-size:12px;margin-bottom:6px">${l}</div>${imgSlot(c[k]&&/\/storage\//.test(c[k])?c[k]:'',`concImg('${c.id}','${k}')`,r)}</div>`;
+  const venceTxt=c.plan_expiry?new Date(c.plan_expiry).toLocaleDateString('es-VE',{day:'numeric',month:'long',year:'numeric'}):'sin vencimiento';
+  ov.querySelector('.modal-b').innerHTML=`<div style="display:grid;grid-template-columns:150px minmax(0,360px);gap:14px;margin-bottom:16px">${img('logo_url','Logo','1/1')}${img('banner_url','Portada de la vitrina','16/7')}</div>
+    <div class="form" style="margin-bottom:6px"><label class="field"><span>Tipo</span><select class="input" data-f="tipo">${C_TIPOS.map(([k,t])=>`<option value="${k}" ${(c.tipo||'agencia')===k?'selected':''}>${t}</option>`).join('')}</select></label></div>
+    ${formHtml(C_FIELDS,c)}
+    <div class="switch" style="margin-top:10px"><div><div style="font-weight:600">Vitrina activa</div><div class="muted" style="font-size:12px">Apágala para ocultar el concesionario de la app sin borrarlo</div></div><input type="checkbox" id="c-act" ${c.activo!==false?'checked':''}></div>
+    <div class="section-t" style="margin-top:16px">Plan de la vitrina</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="muted" style="font-size:13px">Vence: <b id="c-vence" style="color:var(--ink,inherit)">${esc(venceTxt)}</b></span>
+      ${[[30,'+30 días'],[90,'+90 días'],[365,'+1 año']].map(([d,t])=>`<button class="btn btn-soft" onclick="concPlan('${c.id}',${d})">${t}</button>`).join('')}
+      <input class="input" type="date" id="c-fecha" style="max-width:170px" value="${c.plan_expiry?String(c.plan_expiry).slice(0,10):''}"><button class="btn btn-soft" onclick="concPlan('${c.id}','fecha')">Fijar fecha</button><button class="btn btn-soft" onclick="concPlan('${c.id}',null)">Sin vencimiento</button></div>
+    ${(pays&&pays.length)?`<div class="section-t" style="margin-top:16px">Pagos de vitrina</div><div class="card" style="box-shadow:none"><table class="tbl"><tbody>${pays.map(p=>`<tr><td class="num">${usd(p.amount_usd)}</td><td>${esc(p.metodo||'—')}</td><td>${p.status==='confirmado'?'<span class="pill g">confirmado</span>':p.status==='rechazado'?'<span class="pill r">rechazado</span>':'<span class="pill o">pendiente</span>'}</td><td class="muted">${fdate(p.created_at)}</td></tr>`).join('')}</tbody></table></div>`:''}
+    <div class="section-t" style="margin-top:16px">Publicaciones (${(L||[]).length})</div>${(L&&L.length)?`<div class="card" style="box-shadow:none"><table class="tbl"><tbody>${L.map(p=>`<tr class="click" onclick="openListing('${p.id}')"><td style="font-weight:600">${esc(carName(p))}</td><td>${stPill(p)}</td><td class="r num">${usd(p.precio_usd)}</td><td class="muted">${fdate(p.created_at)}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin publicaciones')}`;
+  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><a class="btn btn-soft" href="https://www.ruedda.app/" target="_blank" rel="noopener" style="margin-right:auto">Abrir Ruedda</a><button class="btn btn-primary" onclick="concGuardar('${c.id}',this)">Guardar cambios</button></div>`);
+}
+async function concGuardar(id,btn){
+  const root=$('#ov .modal'); const patch=readForm(root,C_FIELDS);
+  patch.tipo=root.querySelector('[data-f="tipo"]').value; patch.activo=$('#c-act').checked;
+  if(patch.instagram) patch.instagram=patch.instagram.replace(/^@/,'');
+  if(!patch.nombre){ toast('el nombre es obligatorio',true); return; }
+  btn.disabled=true; const{error}=await sb.from('concesionarios').update(patch).eq('id',id); btn.disabled=false;
+  if(error){ toast('error: '+error.message,true); return; }
+  toast('concesionario guardado'); closeModal(); if(CUR==='concesionarios') RENDER.concesionarios(VIEW_TOKEN,[],true);
+}
+async function concPlan(id,dias){
+  let v;
+  if(dias===null) v=null;
+  else if(dias==='fecha'){ const f=$('#c-fecha').value; if(!f){ toast('elige una fecha',true); return; } v=new Date(f+'T23:59:59').toISOString(); }
+  else { const c=(window._CONC||[]).find(x=>x.id===id); const base=c&&c.plan_expiry&&new Date(c.plan_expiry)>new Date()?new Date(c.plan_expiry):new Date(); base.setDate(base.getDate()+dias); v=base.toISOString(); }
+  const patch={plan_expiry:v}; if(v) patch.activo=true;
+  const{error}=await sb.from('concesionarios').update(patch).eq('id',id);
+  if(error){ toast('error: '+error.message,true); return; }
+  toast(v?'plan hasta el '+new Date(v).toLocaleDateString('es-VE'):'plan sin vencimiento');
+  if(CUR==='concesionarios') await RENDER.concesionarios(VIEW_TOKEN,[],true); openConc(id);
+}
+async function concImg(id,col){
+  const f=await pickFile('image/*'); if(!f) return;
+  try{ const url=await upload('assets',f,'dealer_'+col.replace(/_url$/,''),{compress:col==='logo_url'?600:1800,q:0.85});
+    const{error}=await sb.from('concesionarios').update({[col]:url}).eq('id',id); if(error) throw error;
+    toast(col==='logo_url'?'logo actualizado':'portada actualizada'); openConc(id); if(CUR==='concesionarios') RENDER.concesionarios(VIEW_TOKEN,[],true);
+  }catch(e){ toast('error: '+e.message,true); }
+}
+function concNuevo(){
+  const ov=modal({title:'Nuevo concesionario',sub:'Se crea la vitrina sobre una cuenta que ya existe en Ruedda',body:`<div class="form">
+    <label class="field full"><span>Cuenta del dueño (correo, @usuario o nombre)</span><input class="input" id="cn-q" placeholder="Buscar cuenta"></label>
+    <div class="full" id="cn-res" style="display:grid;gap:6px"></div>
+    <label class="field"><span>Nombre del concesionario</span><input class="input" id="cn-nombre"></label>
+    <label class="field"><span>Tipo</span><select class="input" id="cn-tipo">${C_TIPOS.map(([k,t])=>`<option value="${k}">${t}</option>`).join('')}</select></label>
+    <label class="field"><span>Ciudad</span><input class="input" id="cn-ciudad"></label>
+    <label class="field"><span>Plan</span><select class="input" id="cn-plan"><option value="30">30 días</option><option value="90">90 días</option><option value="365">1 año</option><option value="">sin vencimiento</option></select></label>
+  </div><div class="switch" style="margin-top:10px"><div><div style="font-weight:600">Marcar la cuenta como concesionario</div><div class="muted" style="font-size:12px">Cambia el rol de la cuenta para que entre con su vitrina</div></div><input type="checkbox" id="cn-rol" checked></div>`});
+  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><button class="btn btn-primary" id="cn-ok" onclick="concCrear(this)" disabled>Crear concesionario</button></div>`);
+  const qi=$('#cn-q'); qi.oninput=()=>{clearTimeout(qi._t);qi._t=setTimeout(async()=>{
+    const s=qi.value.trim().replace(/[%,()]/g,' '); const R=$('#cn-res'); if(s.length<2){ R.innerHTML=''; return; }
+    const ids=await adminFind(s); const base=`nombre.ilike.%${s}%,username.ilike.%${s}%,apellido.ilike.%${s}%`;
+    const{data}=await sb.from('users').select(PUB_COLS).or(ids&&ids.length?`${base},id.in.(${ids.join(',')})`:base).limit(8);
+    const pv=await privMap((data||[]).map(u=>u.id)); (data||[]).forEach(u=>Object.assign(u,pv[u.id]||{}));
+    R.innerHTML=(data||[]).length?data.map(u=>`<button class="btn btn-soft" style="justify-content:flex-start;text-align:left" data-uid="${u.id}" onclick="concPick(this)">${esc(uname(u))} <span class="muted" style="margin-left:6px">@${esc(u.username||'—')} · ${esc(u.email||'')}</span></button>`).join(''):'<div class="muted" style="font-size:12.5px">Sin cuentas con ese dato</div>';
+  },280);};
+}
+function concPick(b){ document.querySelectorAll('#cn-res button').forEach(x=>x.classList.toggle('btn-primary',x===b)); $('#cn-res').dataset.uid=b.dataset.uid; if(!$('#cn-nombre').value) $('#cn-nombre').value=b.firstChild.textContent.trim(); $('#cn-ok').disabled=false; }
+async function concCrear(btn){
+  const uid=$('#cn-res').dataset.uid, nombre=$('#cn-nombre').value.trim(); if(!uid||!nombre){ toast('elige la cuenta y escribe el nombre',true); return; }
+  btn.disabled=true;
+  const{data:ya}=await sb.from('concesionarios').select('id').eq('user_id',uid).maybeSingle();
+  if(ya){ btn.disabled=false; toast('esa cuenta ya tiene concesionario'); openConc(ya.id); return; }
+  const d=$('#cn-plan').value; const exp=d?new Date(Date.now()+Number(d)*864e5).toISOString():null;
+  const{data,error}=await sb.from('concesionarios').insert({user_id:uid,nombre,tipo:$('#cn-tipo').value,ciudad:$('#cn-ciudad').value.trim()||'',tag:'',activo:true,plan_expiry:exp}).select('id').single();
+  if(error){ btn.disabled=false; toast('error: '+error.message,true); return; }
+  if($('#cn-rol').checked){ const{error:e2}=await sb.from('users').update({role:'concesionario'}).eq('id',uid); if(e2) toast('vitrina creada, pero el rol no cambió: '+e2.message,true); }
+  toast('concesionario creado'); if(CUR==='concesionarios') RENDER.concesionarios(VIEW_TOKEN,[],true); openConc(data.id);
+}
 
 /* ── DOCUMENTOS (sello auditado por Ruedda) ── */
 RENDER.documentos=async(tok)=>{
