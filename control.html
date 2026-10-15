@@ -404,7 +404,8 @@ async function api(path,body){
   return j;
 }
 async function cnt(table,f){
-  let q=sb.from(table).select('*',{count:'exact',head:true}); if(f) q=f(q);
+  // [2026-10-15] users solo deja leer columnas públicas (privacidad): contar por id, no por *
+  let q=sb.from(table).select(table==='users'?'id':'*',{count:'exact',head:true}); if(f) q=f(q);
   const{count,error}=await q; if(error) return {error}; return count||0;
 }
 const PUB_COLS='id,nombre,apellido,username,ciudad,role,avatar_url,activo,created_at,updated_at,kyc_verified,descripcion,default_view';
