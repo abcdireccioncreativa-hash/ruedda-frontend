@@ -1676,7 +1676,7 @@ async function openConc(id){
       <input class="input" type="date" id="c-fecha" style="max-width:170px" value="${c.plan_expiry?String(c.plan_expiry).slice(0,10):''}"><button class="btn btn-soft" onclick="concPlan('${c.id}','fecha')">Fijar fecha</button><button class="btn btn-soft" onclick="concPlan('${c.id}',null)">Sin vencimiento</button></div>
     ${(pays&&pays.length)?`<div class="section-t" style="margin-top:16px">Pagos de vitrina</div><div class="card" style="box-shadow:none"><table class="tbl"><tbody>${pays.map(p=>`<tr><td class="num">${usd(p.amount_usd)}</td><td>${esc(p.metodo||'—')}</td><td>${p.status==='confirmado'?'<span class="pill g">confirmado</span>':p.status==='rechazado'?'<span class="pill r">rechazado</span>':'<span class="pill o">pendiente</span>'}</td><td class="muted">${fdate(p.created_at)}</td></tr>`).join('')}</tbody></table></div>`:''}
     <div class="section-t" style="margin-top:16px">Publicaciones (${(L||[]).length})</div>${(L&&L.length)?`<div class="card" style="box-shadow:none"><table class="tbl"><tbody>${L.map(p=>`<tr class="click" onclick="openListing('${p.id}')"><td style="font-weight:600">${esc(carName(p))}</td><td>${stPill(p)}</td><td class="r num">${usd(p.precio_usd)}</td><td class="muted">${fdate(p.created_at)}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin publicaciones')}`;
-  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><a class="btn btn-soft" href="https://www.ruedda.app/" target="_blank" rel="noopener" style="margin-right:auto">Abrir Ruedda</a><button class="btn btn-primary" onclick="concGuardar('${c.id}',this)">Guardar cambios</button></div>`);
+  ov.querySelector('.modal').insertAdjacentHTML('beforeend',`<div class="modal-f"><button class="btn btn-red" onclick="concEliminar('${c.id}',this)">Eliminar</button><button class="btn btn-soft" onclick="concCancelar('${c.id}',this)" ${c.activo===false?'disabled':''}>Cancelar membresía</button><a class="btn btn-soft" href="https://www.ruedda.app/" target="_blank" rel="noopener" style="margin-right:auto">Abrir Ruedda</a><button class="btn btn-primary" onclick="concGuardar('${c.id}',this)">Guardar cambios</button></div>`);
 }
 async function concGuardar(id,btn){
   const root=$('#ov .modal'); const patch=readForm(root,C_FIELDS);
@@ -1704,6 +1704,30 @@ async function concImg(id,col){
     const{error}=await sb.from('concesionarios').update({[col]:url}).eq('id',id); if(error) throw error;
     toast(col==='logo_url'?'logo actualizado':'portada actualizada'); openConc(id); if(CUR==='concesionarios') RENDER.concesionarios(VIEW_TOKEN,[],true);
   }catch(e){ toast('error: '+e.message,true); }
+}
+async function concCancelar(id,btn){
+  const c=(window._CONC||[]).find(x=>x.id===id)||{};
+  if(!confirm(`¿Cancelar la membresía de ${c.nombre||'este concesionario'}? Su vitrina deja de verse en la app desde ya. Sus datos y publicaciones se conservan y puedes reactivarlo cuando quieras.`)) return;
+  btn.disabled=true;
+  const{error}=await sb.from('concesionarios').update({activo:false,plan_expiry:new Date().toISOString()}).eq('id',id);
+  if(error){ btn.disabled=false; toast('error: '+error.message,true); return; }
+  toast('membresía cancelada'); if(CUR==='concesionarios') await RENDER.concesionarios(VIEW_TOKEN,[],true); openConc(id);
+}
+async function concEliminar(id,btn){
+  const c=(window._CONC||[]).find(x=>x.id===id)||{}; const nom=c.nombre||'';
+  const t=prompt(`Eliminar ${nom||'este concesionario'} borra su vitrina para siempre (logo, portada, datos y calificaciones). Sus publicaciones NO se borran: quedan como publicaciones de la cuenta.\n\nPara confirmar escribe el nombre exacto:`);
+  if(t===null) return; if(t.trim()!==nom.trim()){ toast('el nombre no coincide, no se eliminó',true); return; }
+  const rol=confirm('¿Devolver la cuenta del dueño a "particular"? (Aceptar = sí, Cancelar = dejar el rol como está)');
+  btn.disabled=true;
+  try{
+    // las publicaciones siguen vivas, solo se desligan de la vitrina
+    for(const tb of ['listings','auctions']){ const{error}=await sb.from(tb).update({concesionario_id:null}).eq('concesionario_id',id); if(error&&!/column|does not exist/i.test(error.message)) throw error; }
+    await sb.from('concesionario_ratings').delete().eq('concesionario_id',id); // si la tabla no existe se ignora
+    const{error,count}=await sb.from('concesionarios').delete({count:'exact'}).eq('id',id);
+    if(error) throw error; if(count===0) throw new Error('sin permiso para eliminar (corre el SQL de concesionarios)');
+    if(rol&&c.user_id){ const{error:e2}=await sb.from('users').update({role:'particular'}).eq('id',c.user_id); if(e2) toast('eliminado, pero el rol no cambió: '+e2.message,true); }
+    toast('concesionario eliminado'); closeModal(); if(CUR==='concesionarios') RENDER.concesionarios(VIEW_TOKEN,[],true);
+  }catch(e){ btn.disabled=false; toast('error: '+e.message,true); }
 }
 function concNuevo(){
   const ov=modal({title:'Nuevo concesionario',sub:'Se crea la vitrina sobre una cuenta que ya existe en Ruedda',body:`<div class="form">
