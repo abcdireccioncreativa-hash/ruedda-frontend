@@ -13309,9 +13309,8 @@ async function publishListing(opts){
     if(fechaInicioProgramada.getTime()<=Date.now()){showToast('la fecha programada debe ser en el futuro');return;}
   }
   if(!_supa){
-    showToast('publicación enviada para revisión ✓',true);
-    showDealerFab(false);
-    setTimeout(()=>showView('home'),1200);
+    // [2026-10-15] antes decía "enviada para revisión ✓" sin guardar nada: la publicación se perdía
+    showToast('no hay conexión con Ruedda: tu publicación NO se envió. Revisa tu internet y toca publicar otra vez.');
     return;
   }
   const btn=document.getElementById('btn-submit-vender');
@@ -18454,6 +18453,16 @@ async function _appleSignIn(){
 // 20260929000100_users_privacidad.sql). El perfil propio completo, la verificación de
 // cédula duplicada y los datos privados para superadmin pasan por funciones seguras.
 // Si esas funciones aún no existen en la base, se usa la lectura de antes (sin romper nada).
+// [2026-10-15] users ya no deja leer correo/cédula/teléfono (privacidad), y un upsert con ON CONFLICT necesita
+// leerlos: Supabase lo rechaza con "permission denied". Se guarda en dos pasos: actualizar la fila; si no existe, crearla.
+async function _rdGuardarUsuario(row){
+  const{id,...resto}=row;
+  const u=await _supa.from('users').update(resto).eq('id',id).select('id');
+  if(u.error) return {error:u.error};
+  if(u.data&&u.data.length) return {error:null};
+  const i=await _supa.from('users').insert(row);
+  return {error:i.error||null};
+}
 async function _rdMyProfile(uid){
   try{ const r=await _supa.rpc('get_my_profile'); if(!r.error){ const row=Array.isArray(r.data)?r.data[0]:r.data; if(row&&row.id===uid) return {data:row,error:null}; } }catch(e){}
   return await _supa.from('users').select('*').eq('id',uid).maybeSingle();
@@ -18546,7 +18555,7 @@ async function _submitGoogleProfile(userId,email){
     if(_existingCedula){ showToast('ya existe una cuenta registrada con esta cédula'); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
   }catch(e){ console.warn('[ruedda] check cedula google',e?.message||e); }
   try{
-    const{error}=await _supa.from('users').upsert({id:userId,nombre,apellido:'',cedula,cedula_tipo:cedTipo,telefono:'',username,role:'particular',email},{onConflict:'id'});
+    const{error}=await _rdGuardarUsuario({id:userId,nombre,apellido:'',cedula,cedula_tipo:cedTipo,telefono:'',username,role:'particular',email});
     if(error){ showToast('no se pudo guardar: '+error.message); if(btn){btn.textContent='continuar';btn.disabled=false;btn.style.opacity='1';} return; }
     const m=document.getElementById('google-complete-sheet');
     if(m){ const i=document.getElementById('gcp-inner'); if(i){i.style.transform='scale(.94)';i.style.opacity='0';} m.style.opacity='0'; setTimeout(()=>m.remove(),320); }
@@ -18721,7 +18730,7 @@ async function _rueddaRegister(email,pass){
   // reintenta con un sufijo numérico en vez de fallar en silencio.
   let _upErr=null;
   for(let attempt=0;attempt<5;attempt++){
-    const{error:upErr}=await _supa.from('users').upsert({id:data.user.id,nombre,apellido,cedula,cedula_tipo:cedTipo,telefono,username,role},{onConflict:'id'});
+    const{error:upErr}=await _rdGuardarUsuario({id:data.user.id,nombre,apellido,cedula,cedula_tipo:cedTipo,telefono,username,role});
     if(!upErr){ _upErr=null; break; }
     _upErr=upErr;
     const isUsernameConflict=upErr.code==='23505'||/username/i.test(upErr.message||'');
