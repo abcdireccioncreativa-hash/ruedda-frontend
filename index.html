@@ -2763,29 +2763,37 @@ html[data-theme="light"] #view-market-detail .rd-acc .btn-watchlist{background:#
 .rd-consultar-precios{color:var(--white);font-family:var(--font);font-size:14px;font-weight:500;letter-spacing:-.1px;padding:16px 2px;cursor:pointer;flex-shrink:0;text-decoration:underline;text-decoration-color:var(--w30);text-decoration-thickness:1px;text-underline-offset:4px;transition:opacity .2s,text-decoration-color .2s;-webkit-tap-highlight-color:transparent}
 .rd-consultar-precios:hover{text-decoration-color:var(--white)}
 .rd-consultar-precios:active{opacity:.55}
-/* [2026-10-21] hoja "¿cómo lo vendiste?" al marcar vendido */
-#rd-vendido-sheet{position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);animation:fadeIn .2s ease;font-family:var(--font)}
-#rd-vendido-sheet .rdv-card{width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;background:var(--gc10);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w10);border-bottom:none;border-radius:26px 26px 0 0;animation:fadeInUp .28s cubic-bezier(.25,.46,.45,.94)}
-@media(min-width:700px){#rd-vendido-sheet{align-items:center;padding:24px}#rd-vendido-sheet .rdv-card{border-bottom:1px solid var(--w10);border-radius:26px}}
+/* [2026-10-21] hoja de vendido: sube suave desde abajo, negro total, "felicidades" entra palabra por palabra */
+#rd-vendido-sheet{position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0);transition:background .45s ease;font-family:var(--font);color:#fff}
+#rd-vendido-sheet.in{background:rgba(0,0,0,.62)}
+#rd-vendido-sheet .rdv-card{width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;background:#000;border:1px solid rgba(255,255,255,.08);border-bottom:none;border-radius:28px 28px 0 0;transform:translateY(100%);transition:transform .55s cubic-bezier(.32,.72,0,1);will-change:transform}
+#rd-vendido-sheet.in .rdv-card{transform:translateY(0)}
+@media(min-width:700px){#rd-vendido-sheet{align-items:center;padding:24px}#rd-vendido-sheet .rdv-card{border-bottom:1px solid rgba(255,255,255,.08);border-radius:28px;transform:translateY(40px);opacity:0;transition:transform .55s cubic-bezier(.32,.72,0,1),opacity .4s ease}#rd-vendido-sheet.in .rdv-card{transform:translateY(0);opacity:1}}
 #rd-vendido-sheet .rdv-scroll{overflow-y:auto;padding:10px 22px 8px;-webkit-overflow-scrolling:touch}
-#rd-vendido-sheet .rdv-grab{width:38px;height:4px;border-radius:4px;background:var(--w20,rgba(255,255,255,.2));margin:10px auto 4px}
-#rd-vendido-sheet .rdv-t{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.15;margin-top:10px}
-#rd-vendido-sheet .rdv-s{font-size:13.5px;color:var(--w40);line-height:1.5;margin-top:6px}
-#rd-vendido-sheet .rdv-g{font-size:11.5px;font-weight:700;color:var(--w40);letter-spacing:.2px;margin:18px 0 8px}
+#rd-vendido-sheet .rdv-grab{width:38px;height:4px;border-radius:4px;background:rgba(255,255,255,.18);margin:10px auto 4px}
+#rd-vendido-sheet .rdv-t{font-size:24px;font-weight:800;letter-spacing:-.6px;line-height:1.15;margin-top:12px;color:#fff}
+#rd-vendido-sheet .rdv-t span{display:inline-block;opacity:0;transform:translateY(7px);filter:blur(3px)}
+#rd-vendido-sheet.in .rdv-t span{animation:rdvWord .9s cubic-bezier(.22,1,.36,1) forwards;animation-delay:calc(.22s + var(--i)*.07s)}
+@keyframes rdvWord{to{opacity:1;transform:none;filter:blur(0)}}
+#rd-vendido-sheet .rdv-s{font-size:13.5px;color:rgba(255,255,255,.5);line-height:1.5;margin-top:6px;opacity:0;transition:opacity .8s ease .55s}
+#rd-vendido-sheet.in .rdv-s{opacity:1}
+@media(prefers-reduced-motion:reduce){#rd-vendido-sheet .rdv-card,#rd-vendido-sheet .rdv-t span{transition:none;animation:none;opacity:1;transform:none;filter:none}#rd-vendido-sheet .rdv-s{opacity:1}}
+#rd-vendido-sheet .rdv-g{font-size:11.5px;font-weight:700;color:rgba(255,255,255,.45);letter-spacing:.2px;margin:18px 0 8px}
 #rd-vendido-sheet .rdv-chips{display:flex;flex-wrap:wrap;gap:8px}
-#rd-vendido-sheet .rdv-chip{border:1px solid var(--w10);background:var(--w7);color:var(--white);border-radius:999px;padding:10px 14px;font-family:var(--font);font-size:13.5px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+#rd-vendido-sheet .rdv-chip{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.06);color:#fff;border-radius:999px;padding:10px 14px;font-family:var(--font);font-size:13.5px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s,transform .1s;-webkit-tap-highlight-color:transparent}
 #rd-vendido-sheet .rdv-chip:active{transform:scale(.96)}
-#rd-vendido-sheet .rdv-chip.on{background:var(--lime);border-color:var(--lime);color:var(--lime-ink)}
-#rd-vendido-sheet .rdv-in{width:100%;margin-top:10px;background:var(--w7);border:1px solid var(--w10);border-radius:14px;padding:13px 14px;font-family:var(--font);font-size:15px;color:var(--white);outline:none}
-#rd-vendido-sheet .rdv-in:focus{border-color:var(--w30)}
+#rd-vendido-sheet .rdv-chip.on{background:#e6f03b;border-color:#e6f03b;color:#000}
+#rd-vendido-sheet .rdv-in{width:100%;margin-top:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:13px 14px;font-family:var(--font);font-size:15px;color:#fff;outline:none}
+#rd-vendido-sheet .rdv-in::placeholder{color:rgba(255,255,255,.35)}
+#rd-vendido-sheet .rdv-in:focus{border-color:rgba(255,255,255,.3)}
 #rd-vendido-sheet .rdv-precio{position:relative}
-#rd-vendido-sheet .rdv-precio span{position:absolute;left:14px;top:50%;transform:translateY(-50%);margin-top:5px;color:var(--w40);font-size:15px;font-weight:600}
+#rd-vendido-sheet .rdv-precio span{position:absolute;left:14px;top:50%;transform:translateY(-50%);margin-top:5px;color:rgba(255,255,255,.45);font-size:15px;font-weight:600}
 #rd-vendido-sheet .rdv-precio .rdv-in{padding-left:30px}
-#rd-vendido-sheet .rdv-f{display:flex;gap:10px;padding:14px 22px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--w6,rgba(255,255,255,.06))}
+#rd-vendido-sheet .rdv-f{display:flex;gap:10px;padding:14px 22px calc(16px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.07)}
 #rd-vendido-sheet .rdv-f button{flex:1;border-radius:14px;padding:14px;font-family:var(--font);font-size:14.5px;cursor:pointer;border:none}
-#rd-vendido-sheet .rdv-x{background:var(--w7);border:1px solid var(--w10)!important;color:var(--w70);font-weight:600}
-#rd-vendido-sheet .rdv-ok{background:var(--lime);color:var(--lime-ink);font-weight:800;transition:opacity .2s}
-#rd-vendido-sheet .rdv-ok:disabled{opacity:.35;cursor:default}
+#rd-vendido-sheet .rdv-x{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)!important;color:rgba(255,255,255,.75);font-weight:600}
+#rd-vendido-sheet .rdv-ok{background:#e6f03b;color:#000;font-weight:800;transition:opacity .2s}
+#rd-vendido-sheet .rdv-ok:disabled{opacity:.3;cursor:default}
 /* [2026-10-21] botón "enviar a revisión" blanco; carga dentro del botón; al llegar amarillo suave "enviada" */
 #btn-submit-vender{background:#fff;color:#000;transition:background .35s ease,color .2s,transform .1s}
 #btn-submit-vender:active{background:#ececec}
@@ -15097,7 +15105,7 @@ function _marcarVendido(id){
   let ov=document.getElementById('rd-vendido-sheet'); if(ov) ov.remove();
   ov=document.createElement('div'); ov.id='rd-vendido-sheet';
   ov.innerHTML=`<div class="rdv-card"><div class="rdv-grab"></div><div class="rdv-scroll">
-      <div class="rdv-t">¡felicidades por la venta!</div>
+      <div class="rdv-t">${"¡felicidades por la venta!".split(" ").map((w,i)=>`<span style="--i:${i}">${w}</span>`).join(" ")}</div>
       <div class="rdv-s">¿dónde conseguiste al comprador? nos ayuda a hacer Ruedda mejor para todos.</div>
       ${RD_VENTA_CANALES.map(([g,ops])=>`${g?`<div class="rdv-g">${g}</div>`:'<div style="height:10px"></div>'}<div class="rdv-chips">${ops.map(([k,t])=>`<button type="button" class="rdv-chip" data-v="${k}">${t}</button>`).join('')}</div>`).join('')}
       <input class="rdv-in" id="rdv-otro" placeholder="cuéntanos dónde" maxlength="80" style="display:none">
@@ -15106,8 +15114,9 @@ function _marcarVendido(id){
     </div><div class="rdv-f"><button type="button" class="rdv-x">cancelar</button><button type="button" class="rdv-ok" disabled>marcar vendido</button></div></div>`;
   let via='';
   const ok=ov.querySelector('.rdv-ok'), otro=ov.querySelector('#rdv-otro');
-  ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
-  ov.querySelector('.rdv-x').onclick=()=>ov.remove();
+  const cerrar=()=>{ ov.classList.remove('in'); setTimeout(()=>ov.remove(),480); };
+  ov.onclick=e=>{ if(e.target===ov) cerrar(); };
+  ov.querySelector('.rdv-x').onclick=cerrar;
   ov.querySelectorAll('.rdv-chip').forEach(b=>b.onclick=()=>{
     via=b.dataset.v;
     ov.querySelectorAll('.rdv-chip').forEach(x=>x.classList.toggle('on',x===b));
@@ -15120,9 +15129,10 @@ function _marcarVendido(id){
     const precio=parseFloat(_numClean(ov.querySelector('#rdv-precio').value)||'0')||null;
     ok.disabled=true; ok.textContent='guardando…';
     await _marcarVendidoOk(id,{via,detalle:via==='otro'?(otro.value.trim()||null):null,precio});
-    ov.remove();
+    cerrar();
   };
   document.body.appendChild(ov);
+  ov.offsetHeight; requestAnimationFrame(()=>ov.classList.add('in'));
 }
 function _desmarcarVendido(id){
   _rdConfirmSold('¿Volver a publicar?','Tu publicación vuelve al market como disponible.','publicar',async()=>{
