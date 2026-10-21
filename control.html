@@ -1168,6 +1168,30 @@ async function userDelete(id,label,btn){
   catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
 }
 
+/* [2026-10-21] dónde se venden los carros (lo responde el vendedor al marcar vendido en la app) */
+const VENTA_LBL={ruedda_chat:'Chat de Ruedda',ruedda_oferta:'Oferta o cambio en Ruedda',ruedda_whatsapp:'WhatsApp desde Ruedda',facebook:'Facebook Marketplace',facebook_grupos:'Grupos de Facebook',instagram:'Instagram',whatsapp:'Estados o grupos de WhatsApp',tiktok:'TikTok',tucarro:'TuCarro / MercadoLibre',otra_app:'Otra app de carros',conocido:'Conocido o recomendación',cartel:'Cartel de "se vende"',feria:'Feria o evento',comision_externa:'Venta por comisión externa',concesionario:'Concesionario o compraventa',consignacion:'A consignación',parte_pago:'Parte de pago',otro:'Otro'};
+async function ventasCanales(T,tok){
+  const{data,error}=await sb.from('listings').select('vendido_via,vendido_detalle,vendido_precio_usd').eq('vendido',true).limit(5000);
+  if(stale(tok)||!T.isConnected) return;
+  if(error){ T.insertAdjacentHTML('beforebegin',`<div class="card" style="padding:14px 18px;margin-bottom:12px" id="vcan"><div class="muted" style="font-size:12.5px">Para ver dónde se venden los carros falta correr el SQL <b>Ruedda_Vendido_Canal_SQL_2026-10-21.sql</b> en Supabase.</div></div>`); return; }
+  const c={}; let resp=0,usd=0,conPrecio=0,sin=0; const otros=[];
+  (data||[]).forEach(x=>{ if(!x.vendido_via){sin++;return;} resp++; c[x.vendido_via]=(c[x.vendido_via]||0)+1; if(x.vendido_precio_usd){usd+=Number(x.vendido_precio_usd);conPrecio++;} if(x.vendido_detalle) otros.push(x.vendido_detalle); });
+  const rows=Object.entries(c).sort((a,b)=>b[1]-a[1]); const max=rows.length?rows[0][1]:1;
+  const enRuedda=rows.filter(([k])=>k.indexOf('ruedda')===0).reduce((s,[,v])=>s+v,0);
+  const pct=v=>resp?Math.round(v*100/resp)+'%':'—';
+  $('#vcan')?.remove();
+  T.insertAdjacentHTML('beforebegin',`<div class="card" id="vcan" style="padding:18px 20px;margin-bottom:12px">
+    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><div style="font-size:16px;font-weight:700">¿Dónde se vendieron?</div><div class="muted" style="font-size:12.5px">${n(resp)} respondieron · ${n(sin)} sin respuesta (vendidas antes de la pregunta)</div></div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;margin:14px 0 16px">
+      <div><div class="muted" style="font-size:12px">Dentro de Ruedda</div><div style="font-size:22px;font-weight:700">${pct(enRuedda)}</div></div>
+      <div><div class="muted" style="font-size:12px">Fuera de Ruedda</div><div style="font-size:22px;font-weight:700">${pct(resp-enRuedda)}</div></div>
+      <div><div class="muted" style="font-size:12px">Precio promedio declarado</div><div style="font-size:22px;font-weight:700">${conPrecio?usd$(usd/conPrecio):'—'}</div></div>
+    </div>
+    ${rows.length?rows.map(([k,v])=>`<div style="display:grid;grid-template-columns:minmax(150px,220px) 1fr 70px;gap:12px;align-items:center;margin:7px 0;font-size:13px"><div>${esc(VENTA_LBL[k]||k)}</div><div style="background:var(--hover);border-radius:6px;height:10px;overflow:hidden"><div style="width:${Math.max(3,v*100/max)}%;height:100%;background:${k.indexOf('ruedda')===0?'var(--brand)':'var(--ink2)'};border-radius:6px"></div></div><div class="r num" style="text-align:right">${n(v)} · ${pct(v)}</div></div>`).join(''):'<div class="muted" style="font-size:13px">Todavía nadie ha respondido.</div>'}
+    ${otros.length?`<div class="muted" style="font-size:12px;margin-top:12px">Escribieron en "otro": ${otros.slice(0,12).map(esc).join(' · ')}</div>`:''}
+  </div>`);
+}
+function usd$(v){ return typeof usd==='function'?usd(v):'$'+Math.round(v).toLocaleString('es'); }
 /* ── MARKET ── */
 let L_F={q:'',st:'activa'};
 RENDER.publicaciones=async(tok,_,soft)=>{
@@ -1182,6 +1206,7 @@ RENDER.publicaciones=async(tok,_,soft)=>{
   const T=$('#lt'); $('#lcount').textContent=count!=null?n(count)+' publicaciones':'';
   if(error){ T.innerHTML=empty('No se pudo cargar',error.message); return; }
   if(!data.length){ T.innerHTML=empty('Sin publicaciones en este filtro'); return; }
+  $('#vcan')?.remove(); if(L_F.st==='vendido') ventasCanales(T,tok);
   const um=await usersMap(data.map(x=>x.user_id)); if(stale(tok)) return;
   T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vehículo</th><th>Vendedor</th><th>Ciudad</th><th class="r">Precio</th><th class="r">Vistas</th><th>Estado</th><th>Publicada</th></tr></thead><tbody>${data.map(x=>{const ph=(x.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url;return `<tr class="click" onclick="openListing('${x.id}')"><td><div class="who"><img class="thumb" src="${esc(tImg(ph,160))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="n">${esc(carName(x))}</div><div class="u">${x.km!=null?n(x.km)+' km':''}${x.es_destacado?' · destacado':''}${x.auditado_ruedda?' · auditado':''}</div></div></div></td><td class="muted">${esc(uname(um[x.user_id]))}</td><td class="muted">${esc(x.ciudad||'—')}</td><td class="r num" style="font-weight:600">${usd(x.precio_usd)}${x.precio_anterior>x.precio_usd?`<div class="muted" style="text-decoration:line-through;font-weight:400;font-size:12px">${usd(x.precio_anterior)}</div>`:''}</td><td class="r num">${n(x.view_count)}</td><td>${stPill(x)}</td><td class="muted">${ago(x.created_at)}</td></tr>`;}).join('')}</tbody></table></div>`;
 };

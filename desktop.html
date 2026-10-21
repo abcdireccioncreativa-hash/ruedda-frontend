@@ -2360,6 +2360,59 @@ html[data-theme="light"] #view-market-detail .bid-section .rd-acc .btn-watchlist
 .rd-nosub{margin:12px 0 0 auto;max-width:210px;font-size:7px;line-height:1.45;font-weight:400;color:var(--white);opacity:.8;text-align:right;letter-spacing:0}
 .rd-nosub b{font-weight:700}
 </style>
+<style id="rd-ajustes-2026-10-21">
+/* [2026-10-21] pestaña "finalizadas" en subastas: 4 pestañas no caben en 375px → se desplazan */
+#auctions-section .tabs{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#auctions-section .tabs::-webkit-scrollbar{display:none}
+#auctions-section .rd-fin-link{display:inline-block;margin-top:14px;font-size:14px;font-weight:600;color:var(--white);text-decoration:underline;text-decoration-color:var(--w30);text-underline-offset:4px;cursor:pointer}
+/* [2026-10-21] "Consultar precios" junto a volver (formulario de vender): solo texto */
+.rd-consultar-precios{color:var(--white);font-family:var(--font);font-size:14px;font-weight:500;letter-spacing:-.1px;padding:16px 2px;cursor:pointer;flex-shrink:0;text-decoration:underline;text-decoration-color:var(--w30);text-decoration-thickness:1px;text-underline-offset:4px;transition:opacity .2s,text-decoration-color .2s;-webkit-tap-highlight-color:transparent}
+.rd-consultar-precios:hover{text-decoration-color:var(--white)}
+.rd-consultar-precios:active{opacity:.55}
+/* [2026-10-21] hoja "¿cómo lo vendiste?" al marcar vendido */
+#rd-vendido-sheet{position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);animation:fadeIn .2s ease;font-family:var(--font)}
+#rd-vendido-sheet .rdv-card{width:100%;max-width:520px;max-height:90vh;display:flex;flex-direction:column;background:var(--gc10);-webkit-backdrop-filter:blur(28px) saturate(160%);backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w10);border-bottom:none;border-radius:26px 26px 0 0;animation:fadeInUp .28s cubic-bezier(.25,.46,.45,.94)}
+@media(min-width:700px){#rd-vendido-sheet{align-items:center;padding:24px}#rd-vendido-sheet .rdv-card{border-bottom:1px solid var(--w10);border-radius:26px}}
+#rd-vendido-sheet .rdv-scroll{overflow-y:auto;padding:10px 22px 8px;-webkit-overflow-scrolling:touch}
+#rd-vendido-sheet .rdv-grab{width:38px;height:4px;border-radius:4px;background:var(--w20,rgba(255,255,255,.2));margin:10px auto 4px}
+#rd-vendido-sheet .rdv-t{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.15;margin-top:10px}
+#rd-vendido-sheet .rdv-s{font-size:13.5px;color:var(--w40);line-height:1.5;margin-top:6px}
+#rd-vendido-sheet .rdv-g{font-size:11.5px;font-weight:700;color:var(--w40);letter-spacing:.2px;margin:18px 0 8px}
+#rd-vendido-sheet .rdv-chips{display:flex;flex-wrap:wrap;gap:8px}
+#rd-vendido-sheet .rdv-chip{border:1px solid var(--w10);background:var(--w7);color:var(--white);border-radius:999px;padding:10px 14px;font-family:var(--font);font-size:13.5px;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s,transform .1s;-webkit-tap-highlight-color:transparent}
+#rd-vendido-sheet .rdv-chip:active{transform:scale(.96)}
+#rd-vendido-sheet .rdv-chip.on{background:var(--lime);border-color:var(--lime);color:var(--lime-ink)}
+#rd-vendido-sheet .rdv-in{width:100%;margin-top:10px;background:var(--w7);border:1px solid var(--w10);border-radius:14px;padding:13px 14px;font-family:var(--font);font-size:15px;color:var(--white);outline:none}
+#rd-vendido-sheet .rdv-in:focus{border-color:var(--w30)}
+#rd-vendido-sheet .rdv-precio{position:relative}
+#rd-vendido-sheet .rdv-precio span{position:absolute;left:14px;top:50%;transform:translateY(-50%);margin-top:5px;color:var(--w40);font-size:15px;font-weight:600}
+#rd-vendido-sheet .rdv-precio .rdv-in{padding-left:30px}
+#rd-vendido-sheet .rdv-f{display:flex;gap:10px;padding:14px 22px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--w6,rgba(255,255,255,.06))}
+#rd-vendido-sheet .rdv-f button{flex:1;border-radius:14px;padding:14px;font-family:var(--font);font-size:14.5px;cursor:pointer;border:none}
+#rd-vendido-sheet .rdv-x{background:var(--w7);border:1px solid var(--w10)!important;color:var(--w70);font-weight:600}
+#rd-vendido-sheet .rdv-ok{background:var(--lime);color:var(--lime-ink);font-weight:800;transition:opacity .2s}
+#rd-vendido-sheet .rdv-ok:disabled{opacity:.35;cursor:default}
+/* [2026-10-21] botón "enviar a revisión" blanco; carga dentro del botón; al llegar amarillo suave "enviada" */
+#btn-submit-vender{background:#fff;color:#000;transition:background .35s ease,color .2s,transform .1s}
+#btn-submit-vender:active{background:#ececec}
+html[data-theme="light"] #btn-submit-vender{box-shadow:inset 0 0 0 1px rgba(0,0,0,.14)}
+#btn-submit-vender.rd-cargando,#btn-submit-vender.rd-enviada{display:flex;align-items:center;justify-content:center;gap:10px;cursor:default;width:100%}
+#btn-submit-vender .rd-btn-txt{font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#btn-submit-vender .rd-btn-spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(0,0,0,.15);border-top-color:#000;animation:rdBtnSpin .8s linear infinite;flex-shrink:0}
+@keyframes rdBtnSpin{to{transform:rotate(360deg)}}
+#btn-submit-vender.rd-enviada{background:#f4f8b8;color:#000}
+/* [2026-10-21] lupa: 10 más populares estilo marketplace (cuadrados grandes, 2 columnas, de borde a borde) */
+#rd-search-pop .rsp-g{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin:0 -18px}
+#rd-search-pop .rsp-i{cursor:pointer;min-width:0;-webkit-tap-highlight-color:transparent}
+#rd-search-pop .rsp-i:active{opacity:.75}
+#rd-search-pop .rsp-ph{position:relative;aspect-ratio:1/1;background:var(--card);overflow:hidden}
+#rd-search-pop .rsp-ph img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s ease}
+#rd-search-pop .rsp-tag{position:absolute;top:10px;left:10px;background:#fff;color:#000;font-size:11.5px;font-weight:600;border-radius:7px;padding:4px 8px;line-height:1}
+#rd-search-pop .rsp-t{font-size:14px;font-weight:500;color:var(--white);padding:9px 10px 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.1px}
+#rd-search-pop .rsp-t b{font-weight:700}
+#rd-search-pop .rsp-t s{color:var(--muted);font-weight:500;margin-left:4px}
+@media(min-width:900px){#rd-search-pop .rsp-g{margin:0;gap:10px;grid-template-columns:repeat(3,1fr)}#rd-search-pop .rsp-ph{border-radius:12px}}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -2827,6 +2880,7 @@ html[data-theme="light"] #view-market-detail .bid-section .rd-acc .btn-watchlist
       <div class="tab active" id="tab-pronto" onclick="switchTab('pronto')">terminando pronto</div>
       <div class="tab" id="tab-reciente" onclick="switchTab('reciente')">programadas</div>
       <div class="tab" id="tab-chocados" onclick="switchTab('chocados')">chocados</div>
+      <div class="tab" id="tab-fin" onclick="switchTab('fin')">finalizadas</div>
     </div>
     <!-- [RC] calendario desplegable — solo visible en la pestaña "programadas" -->
     <div id="sched-cal-wrap" style="display:none;padding:2px 18px 6px">
@@ -6158,6 +6212,7 @@ function renderCurrentSection(){
     document.getElementById('tab-pronto').classList.toggle('active', currentTab==='pronto');
     document.getElementById('tab-reciente').classList.toggle('active', currentTab==='reciente');
     document.getElementById('tab-chocados').classList.toggle('active', currentTab==='chocados');
+    { const _tf=document.getElementById('tab-fin'); if(_tf) _tf.classList.toggle('active', currentTab==='fin'); }
     renderCards();
   } else if(s==='market'){
     renderMarket();
@@ -6307,12 +6362,13 @@ let _mktCurrentData = [];
 let _mktObserver = null;
 
 function renderCards(filter){
+  if(typeof _rdAucAutoTab==='function') _rdAucAutoTab();
   // [v76] dirty check — si los datos y filtro no cambiaron, no re-renderizar
   // [RC] 'reciente' (programadas) combina AUCTIONS + AUCTIONS_CHOCADOS, así que ambos
   // datasets entran al hash para que el dirty-check detecte cambios en cualquiera de los dos.
   const _hashSrc=currentTab==='chocados'?AUCTIONS_CHOCADOS:currentTab==='reciente'?[...AUCTIONS,...AUCTIONS_CHOCADOS]:AUCTIONS;
   const hash = currentTab+'|'+(filter||'')+
-    '|'+_hashSrc.map(a=>a.id+'_'+a.currentBid+'_'+a.bidCount+'_'+(a.programada?'p':'a')).join(',')+'|d'+(window.AUCTIONS_DEMO||[]).map(a=>a.id).join(',');
+    '|'+_hashSrc.map(a=>a.id+'_'+a.currentBid+'_'+a.bidCount+'_'+(a.programada?'p':'a')).join(',')+'|d'+(window.AUCTIONS_DEMO||[]).map(a=>a.id).join(',')+'|f'+(window._RD_AUC_FIN||[]).map(a=>a.id).join(',')+'|e'+AUCTIONS.filter(a=>a.endTime<=Date.now()).length;
   if(hash===_lastCardsHash && document.getElementById('card-list').children.length>0) return;
   _lastCardsHash=hash;
 
@@ -6353,14 +6409,17 @@ function renderCards(filter){
   }
 
   let data;
-  if(currentTab==='reciente'){
+  if(currentTab==='fin'){
+    // copia con demo:true → misma card con el badge rojo "finalizada" y sin reloj
+    data=(typeof _rdAucFinList==='function'?_rdAucFinList():[]).map(a=>Object.assign({},a,{demo:true,programada:false}));
+  } else if(currentTab==='reciente'){
     // [RC] "programadas" — todas las subastas programadas, normales Y de chocados,
     // ordenadas por fecha de inicio más próxima primero.
     data=[...AUCTIONS.filter(a=>a.programada),...AUCTIONS_CHOCADOS.filter(a=>a.programada)];
     data.sort((a,b)=>(a.fechaInicioProgramada||0)-(b.fechaInicioProgramada||0));
     if(typeof _schedCalRender==='function') _schedCalRender(); // [RC] datos recién cargados: refrescar puntos del mes visible
   } else {
-    data=[...AUCTIONS];
+    data=AUCTIONS.filter(a=>a.programada||a.endTime>Date.now()); // las terminadas viven en "finalizadas"
     if(currentTab==='pronto')data.sort((a,b)=>a.endTime-b.endTime);
     else data.sort((a,b)=>b.id-a.id);
     if(filter&&filter!=='todos'){
@@ -6369,8 +6428,8 @@ function renderCards(filter){
     }
   }
   // [subastas demo] finalizadas elegidas en Control (app_settings 'subastas_demo'), siempre al final
-  if(currentTab!=='reciente'&&(!filter||filter==='todos')){ const _ids=new Set(data.map(a=>String(a.id))); (window.AUCTIONS_DEMO||[]).forEach(a=>{ if(!_ids.has(String(a.id))) data.push(a); }); }
-  if(!data.length){list.innerHTML=window._feedLoaded?.auc?`<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>${currentTab==='reciente'?'sin subastas programadas por ahora':'sin publicaciones disponibles'}</p></div>`:_feedLoaderHTML();return;}
+  // [2026-10-21] las demo finalizadas ahora salen en la pestaña "finalizadas" (_rdAucFinList)
+  if(!data.length){list.innerHTML=window._feedLoaded?.auc?`<div class="empty-state"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg><p>${currentTab==='reciente'?'sin subastas programadas por ahora':currentTab==='fin'?'todavía no hay subastas finalizadas':'no hay subastas en vivo ahora mismo'}</p>${currentTab==='pronto'&&typeof _rdAucFinList==='function'&&_rdAucFinList().length?`<span class="rd-fin-link" onclick="switchTab('fin')">ver finalizadas</span>`:''}</div>`:_feedLoaderHTML();return;}
   data.forEach((a,idx)=>{
     const el=document.createElement('div');
     el.style.animationDelay=Math.min(idx,12)*60+'ms';
@@ -6474,8 +6533,10 @@ if(!window._cardTick) window._cardTick=setInterval(()=>{
 
 function clearTimers(){Object.values(timers).forEach(clearInterval);timers={};}
 
-function switchTab(tab){
+function switchTab(tab,auto){
   currentTab=tab;
+  if(!auto){ window._rdTabElegida=true; window._rdTabAuto=false; }
+  { const _tf=document.getElementById('tab-fin'); if(_tf) _tf.classList.toggle('active',tab==='fin'); }
   document.getElementById('tab-pronto').classList.toggle('active',tab==='pronto');
   document.getElementById('tab-reciente').classList.toggle('active',tab==='reciente');
   document.getElementById('tab-chocados').classList.toggle('active',tab==='chocados');
@@ -11825,6 +11886,12 @@ function _rdPubOverlay(){
   return o;
 }
 function _rdPubCargando(txt){
+  const b=document.getElementById('btn-submit-vender');
+  if(b&&b.offsetParent!==null){
+    if(!b.classList.contains('rd-cargando')){ b.classList.remove('rd-enviada'); b.classList.add('rd-cargando'); b.innerHTML='<span class="rd-btn-spin"></span><span class="rd-btn-txt"></span>'; }
+    b.disabled=true; b.querySelector('.rd-btn-txt').textContent=txt||'enviando…';
+    return;
+  }
   const o=_rdPubOverlay();
   o.innerHTML='<div class="rp-box"><div class="rp-spin"></div><div class="rp-t">enviando a revisión</div><div class="rp-s" id="rd-pub-txt"></div><div class="rp-s" style="font-size:12px;opacity:.5;margin-top:14px">no cierres la app hasta que termine</div></div>';
   document.getElementById('rd-pub-txt').textContent=txt||'';
@@ -11905,8 +11972,8 @@ async function publishListing(opts){
     return false;
   }
   const btn=document.getElementById('btn-submit-vender');
-  const btnTxt=(btn&&btn.textContent!=='enviando...')?btn.textContent:'enviar a revisión';
-  if(btn){btn.textContent='enviando...';btn.disabled=true;}
+  const btnTxt=btn?(btn.classList.contains('rd-cargando')||btn.classList.contains('rd-enviada')?(btn.dataset.rdLabel||'enviar a revisión'):btn.textContent):'';
+  if(btn){btn.dataset.rdLabel=btnTxt;btn.disabled=true;}
   _rdPubCargando('enviando tu publicación…');
   try{
     // ── getSession con autoRefreshToken:true — sin refresh forzado (causa latencia) ──
@@ -12004,6 +12071,7 @@ async function publishListing(opts){
       if(vAddBtn){vAddBtn.style.display='flex';videoGrid.appendChild(vAddBtn);}
     }
     }catch(_e){ console.warn('[ruedda] limpiar formulario:',_e&&_e.message); }
+    if(btn&&btn.offsetParent!==null){ btn.classList.remove('rd-cargando'); btn.classList.add('rd-enviada'); btn.textContent='enviada ✓'; await new Promise(r=>setTimeout(r,850)); }
     if(!opts.skipSplash) _showPublicacionRevisionSplash(isConcesionario()||USER_STATE.role==='concesionario');
     if(_despues) _despues();
     return true;
@@ -12014,7 +12082,7 @@ async function publishListing(opts){
     _rdPubError(e?.message||'error desconocido — toca reintentar',opts);
     return false;
   }finally{
-    if(btn){btn.textContent=btnTxt;btn.disabled=false;}
+    if(btn){btn.classList.remove('rd-cargando','rd-enviada');btn.textContent=btnTxt;btn.disabled=false;}
   }
 }
 
@@ -13464,8 +13532,44 @@ function _rdConfirmSold(title,body,okLabel,onOk){
   ov.querySelector('[data-ok]').onclick=()=>{ov.remove();onOk();};
   document.body.appendChild(ov);
 }
+// [2026-10-21] al marcar vendido se pregunta dónde se vendió (métricas en Control → Market → Vendidas)
+const RD_VENTA_CANALES=[
+  ['en Ruedda',[['ruedda_chat','chat de Ruedda'],['ruedda_oferta','oferta o cambio en Ruedda'],['ruedda_whatsapp','WhatsApp desde Ruedda']]],
+  ['redes y otras apps',[['facebook','Facebook Marketplace'],['facebook_grupos','grupos de Facebook'],['instagram','Instagram'],['whatsapp','estados o grupos de WhatsApp'],['tiktok','TikTok'],['tucarro','TuCarro / MercadoLibre'],['otra_app','otra app de carros']]],
+  ['en persona',[['conocido','conocido o recomendación'],['cartel','cartel de "se vende"'],['feria','feria o evento de carros']]],
+  ['intermediarios',[['comision_externa','venta por comisión externa'],['concesionario','concesionario o compraventa'],['consignacion','lo dejé a consignación'],['parte_pago','parte de pago de otro carro']]],
+  ['',[['otro','otro']]]
+];
 function _marcarVendido(id){
-  _rdConfirmSold('¿Marcar como vendido?','Tu publicación saldrá del market como vendida. Si fue un error, podrás volver a publicarla desde aquí.','sí, vendido',()=>_marcarVendidoOk(id));
+  let ov=document.getElementById('rd-vendido-sheet'); if(ov) ov.remove();
+  ov=document.createElement('div'); ov.id='rd-vendido-sheet';
+  ov.innerHTML=`<div class="rdv-card"><div class="rdv-grab"></div><div class="rdv-scroll">
+      <div class="rdv-t">¡felicidades por la venta!</div>
+      <div class="rdv-s">¿dónde conseguiste al comprador? nos ayuda a hacer Ruedda mejor para todos.</div>
+      ${RD_VENTA_CANALES.map(([g,ops])=>`${g?`<div class="rdv-g">${g}</div>`:'<div style="height:10px"></div>'}<div class="rdv-chips">${ops.map(([k,t])=>`<button type="button" class="rdv-chip" data-v="${k}">${t}</button>`).join('')}</div>`).join('')}
+      <input class="rdv-in" id="rdv-otro" placeholder="cuéntanos dónde" maxlength="80" style="display:none">
+      <div class="rdv-g">¿en cuánto lo vendiste? (opcional, solo para estadísticas)</div>
+      <div class="rdv-precio"><span>$</span><input class="rdv-in" id="rdv-precio" inputmode="numeric" placeholder="ej. 8.500"></div>
+    </div><div class="rdv-f"><button type="button" class="rdv-x">cancelar</button><button type="button" class="rdv-ok" disabled>marcar vendido</button></div></div>`;
+  let via='';
+  const ok=ov.querySelector('.rdv-ok'), otro=ov.querySelector('#rdv-otro');
+  ov.onclick=e=>{ if(e.target===ov) ov.remove(); };
+  ov.querySelector('.rdv-x').onclick=()=>ov.remove();
+  ov.querySelectorAll('.rdv-chip').forEach(b=>b.onclick=()=>{
+    via=b.dataset.v;
+    ov.querySelectorAll('.rdv-chip').forEach(x=>x.classList.toggle('on',x===b));
+    otro.style.display=via==='otro'?'':'none'; if(via==='otro') otro.focus();
+    ok.disabled=false;
+    try{ if(typeof _rdHapticNow==='function') _rdHapticNow(); }catch(_){}
+  });
+  ok.onclick=async()=>{
+    if(!via) return;
+    const precio=parseFloat(_numClean(ov.querySelector('#rdv-precio').value)||'0')||null;
+    ok.disabled=true; ok.textContent='guardando…';
+    await _marcarVendidoOk(id,{via,detalle:via==='otro'?(otro.value.trim()||null):null,precio});
+    ov.remove();
+  };
+  document.body.appendChild(ov);
 }
 function _desmarcarVendido(id){
   _rdConfirmSold('¿Volver a publicar?','Tu publicación vuelve al market como disponible.','publicar',async()=>{
@@ -13478,12 +13582,20 @@ function _desmarcarVendido(id){
     }catch(e){console.warn('[ruedda desvendido]',e?.message||e);showToast('error al volver a publicar');}
   });
 }
-async function _marcarVendidoOk(id){
+async function _marcarVendidoOk(id,info){
   if(!_supa)return;
   try{
-    const{error}=await _supa.from('listings').update({vendido:true,vendido_at:new Date().toISOString()}).eq('id',id);
+    const base={vendido:true,vendido_at:new Date().toISOString()};
+    const canal=info?{vendido_via:info.via||null,vendido_detalle:info.detalle||null,vendido_precio_usd:info.precio||null}:{};
+    let{error}=await _supa.from('listings').update({...base,...canal}).eq('id',id);
+    // [defensivo] si las columnas vendido_via/… aún no existen en Supabase, la venta se marca igual
+    if(error&&info&&/vendido_(via|detalle|precio)/i.test(String(error.message||''))){
+      console.warn('[ruedda vendido] columnas del canal de venta aún no existen:',error.message);
+      ({error}=await _supa.from('listings').update(base).eq('id',id));
+    }
     if(error){showToast('error al marcar como vendido: '+error.message);return;}
-    showToast('marcado como vendido',true);
+    showToast('marcado como vendido · ¡gracias!',true);
+    try{ if(typeof _rdHapticSuccess==='function') _rdHapticSuccess(); }catch(_){}
     _loadMyListings();
   }catch(e){console.warn('[ruedda vendido]',e?.message||e);showToast('error al marcar como vendido');}
 }
@@ -17270,9 +17382,47 @@ async function _rdFetchAuction(id){
   }catch(e){ console.warn('[ruedda] _rdFetchAuction',e?.message||e); return null; }
 }
 
+// [2026-10-21] pestaña "finalizadas": las subastas terminadas ya no salen en "terminando pronto".
+// Junta las terminadas del feed (últimas 48 h), las cargadas aparte (_rdLoadAucFin) y las demo de Control.
+window._RD_AUC_FIN=window._RD_AUC_FIN||[];
+function _rdAucFinList(){
+  const now=Date.now(), m=new Map();
+  [...AUCTIONS.filter(a=>!a.programada&&a.endTime<=now),...window._RD_AUC_FIN,...(window.AUCTIONS_DEMO||[])]
+    .forEach(a=>{ if(!m.has(String(a.id))) m.set(String(a.id),a); });
+  return [...m.values()].sort((x,y)=>y.endTime-x.endTime);
+}
+// sin subastas en vivo y con finalizadas → arranca en "finalizadas" (solo si la persona no eligió pestaña)
+function _rdAucAutoTab(){
+  if(window._rdTabElegida||!(window._feedLoaded&&window._feedLoaded.auc)) return;
+  const vivas=AUCTIONS.some(a=>!a.programada&&a.endTime>Date.now());
+  let t=null;
+  if(currentTab==='pronto'&&!vivas&&_rdAucFinList().length) t='fin';
+  else if(currentTab==='fin'&&window._rdTabAuto&&vivas) t='pronto';
+  if(!t) return;
+  currentTab=t; window._rdTabAuto=(t==='fin');
+  ['pronto','reciente','chocados','fin'].forEach(k=>{ const e=document.getElementById('tab-'+k); if(e) e.classList.toggle('active',k===t); });
+}
+async function _rdLoadAucFin(){
+  if(!_supa) return;
+  try{
+    const{data:rows,error}=await _supa.from('auctions').select(_RD_AUC_COLS).in('tipo',['subasta','chocado']).in('estado',['activa','cerrada']).lt('end_time',new Date().toISOString()).order('end_time',{ascending:false}).limit(24);
+    if(error){ console.warn('[ruedda] finalizadas',error.message); return; }
+    if(!rows?.length) return;
+    const uids=[...new Set(rows.map(a=>a.user_id).filter(Boolean))];
+    const[{data:ph},{data:us}]=await Promise.all([
+      _supa.from('auction_photos').select('auction_id,url,orden').in('auction_id',rows.map(a=>a.id)),
+      uids.length?_supa.from('users').select('id,nombre').in('id',uids):Promise.resolve({data:[]})
+    ]);
+    const pm={}; (ph||[]).forEach(p=>{ (pm[p.auction_id]=pm[p.auction_id]||[]).push(p); });
+    const um={}; (us||[]).forEach(u=>{ um[u.id]=u.nombre; });
+    window._RD_AUC_FIN=rows.map(a=>{ const x=_rdMapAuctionRow(a,pm[a.id],um[a.user_id]); x.programada=false; if(!_rdAucExtra[String(a.id)]) _rdAucExtra[String(a.id)]=x; return x; });
+    if(typeof renderCards==='function') renderCards();
+  }catch(e){ console.warn('[ruedda] finalizadas',e?.message||e); }
+}
 async function _loadAuctions(){
   if(!_supa) return;
   _rdLoadDemoAuctions();
+  _rdLoadAucFin();
   try{
     const _corte48h=new Date(Date.now()-48*3600*1000).toISOString();
     const _aucCols=_RD_AUC_COLS;
