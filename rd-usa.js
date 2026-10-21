@@ -40,11 +40,11 @@
       '#rd-usa .ru-arrow svg{width:19px;height:19px}',
       '#rd-usa .ru-strip{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 18px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}',
       '#rd-usa .ru-strip::-webkit-scrollbar{display:none}',
-      '#rd-usa .ru-strip .ru-card{flex:0 0 44%;scroll-snap-align:start}',
-      '@media(min-width:700px){#rd-usa .ru-strip .ru-card{flex-basis:240px}}',
+      '#rd-usa .ru-strip .ru-card{flex:0 0 72%;scroll-snap-align:start}',
+      '@media(min-width:700px){#rd-usa .ru-strip .ru-card{flex-basis:320px}}',
       '#rd-usa .ru-card{min-width:0;cursor:pointer;-webkit-tap-highlight-color:transparent}',
       '#rd-usa .ru-card:active{opacity:.8}',
-      '#rd-usa .ru-ph{position:relative;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:var(--card)}',
+      '#rd-usa .ru-ph{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:var(--card)}',
       '#rd-usa .ru-ph img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s ease}',
       '#rd-usa .ru-ph .ru-noph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--w20,rgba(255,255,255,.2))}',
       '.ru-badge{position:absolute;top:10px;left:10px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#fff;border-radius:999px;padding:6px 11px;line-height:1}',
@@ -55,7 +55,7 @@
       '#rd-usa .ru-ct{font-size:15px;font-weight:700;letter-spacing:-.2px;margin-top:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '#rd-usa .ru-cl{font-size:13px;color:var(--w45,rgba(255,255,255,.45));margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       '.ru-tm{display:flex;align-items:center;gap:5px;font-size:13.5px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}',
-      '.ru-tm svg{width:15px;height:15px;color:var(--rd-green);flex-shrink:0}',
+      '.ru-tm svg{width:15px;height:15px;color:var(--white);flex-shrink:0}',
       '.ru-tm.fin{color:var(--w40)}',
       '#rd-usa .ru-pr{display:flex;align-items:stretch;gap:10px;margin-top:7px}',
       '#rd-usa .ru-pr>div{min-width:0}',
@@ -70,13 +70,49 @@
       '#rd-usa .ru-empty{padding:40px 24px;text-align:center;color:var(--w40);font-size:14px}',
       '#rd-usa .ru-foot{padding:26px 18px 0;font-size:11.5px;color:var(--w30);line-height:1.5}',
       /* hojas: detalle, calculadora, filtro */
-      '.ru-sheet{position:fixed;inset:0;z-index:9990;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);animation:fadeIn .2s ease;font-family:var(--font);color:var(--white)}',
+      '.ru-sheet{position:fixed;inset:0;z-index:10010;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);animation:fadeIn .2s ease;font-family:var(--font);color:var(--white)}',
       '.ru-sheet .ru-sc{width:100%;max-width:560px;max-height:92vh;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-bottom:none;border-radius:26px 26px 0 0;padding:0 0 calc(22px + env(safe-area-inset-bottom));animation:fadeInUp .28s cubic-bezier(.25,.46,.45,.94);-webkit-overflow-scrolling:touch}',
       '@media(min-width:700px){.ru-sheet{align-items:center;padding:24px}.ru-sheet .ru-sc{border-radius:26px;border-bottom:1px solid var(--border)}}',
       '.ru-sheet .ru-grab{width:38px;height:4px;border-radius:4px;background:var(--w20,rgba(255,255,255,.2));margin:10px auto 6px}',
       '.ru-sheet .ru-pad{padding:6px 20px 0}',
       '.ru-sheet .ru-h{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.15}',
       '.ru-sheet .ru-sub{font-size:13px;color:var(--w45,rgba(255,255,255,.45));margin-top:4px;line-height:1.45}',
+      /* página del lote (entra al post, no hoja) */
+      '#ru-post{position:fixed;inset:0;z-index:10000;background:var(--bg);color:var(--white);overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:var(--font);transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1)}',
+      '#ru-post.in{transform:none}',
+      '#ru-post .rp-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:var(--bg);border-bottom:1px solid var(--border)}',
+      '#ru-post .rp-back{display:flex;align-items:center;gap:4px;font-size:15px;font-weight:400;cursor:pointer;padding:6px 4px;background:none;border:none;color:var(--white);font-family:var(--font)}',
+      '#ru-post .rp-back svg{width:22px;height:22px}',
+      '#ru-post .rp-bar .ru-badge{position:static}',
+      '#ru-post .rp-hero{position:relative}',
+      '#ru-post .rp-gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;background:var(--card)}',
+      '#ru-post .rp-gal::-webkit-scrollbar{display:none}',
+      '#ru-post .rp-gal img{flex:0 0 100%;width:100%;aspect-ratio:4/3;object-fit:cover;scroll-snap-align:start;display:block}',
+      '#ru-post .rp-count{position:absolute;right:12px;bottom:12px;font-size:12px;font-weight:600;color:#fff;background:rgba(0,0,0,.6);border-radius:999px;padding:5px 10px;font-variant-numeric:tabular-nums}',
+      '#ru-post .rp-thumbs{display:flex;gap:6px;overflow-x:auto;padding:10px 20px 0;scrollbar-width:none}',
+      '#ru-post .rp-thumbs::-webkit-scrollbar{display:none}',
+      '#ru-post .rp-thumbs img{flex:0 0 64px;height:48px;object-fit:cover;border-radius:8px;opacity:.45;cursor:pointer;transition:opacity .2s}',
+      '#ru-post .rp-thumbs img.on{opacity:1;box-shadow:0 0 0 2px var(--white)}',
+      '#ru-post .rp-b{padding:20px 20px calc(40px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}',
+      '#ru-post .rp-eye{font-size:11.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--w45,rgba(255,255,255,.45))}',
+      '#ru-post .rp-t{font-size:27px;font-weight:800;letter-spacing:-.8px;line-height:1.1;margin-top:6px}',
+      '#ru-post .rp-loc{font-size:14px;color:var(--w50,rgba(255,255,255,.5));margin-top:6px}',
+      '#ru-post .rp-time{display:flex;align-items:center;gap:10px;margin-top:18px;padding:14px 16px;border:1px solid var(--border);border-radius:14px}',
+      '#ru-post .rp-time svg{width:20px;height:20px;color:var(--white);flex-shrink:0}',
+      '#ru-post .rp-time .a{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}',
+      '#ru-post .rp-time .b{font-size:12.5px;color:var(--w45,rgba(255,255,255,.45));margin-top:1px}',
+      '#ru-post .rp-pr{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border);border-radius:14px;margin-top:10px;overflow:hidden}',
+      '#ru-post .rp-pr>div{padding:14px 16px}#ru-post .rp-pr>div+div{border-left:1px solid var(--border)}',
+      '#ru-post .rp-pr .l{font-size:12px;color:var(--w45,rgba(255,255,255,.45))}',
+      '#ru-post .rp-pr .v{font-size:24px;font-weight:800;letter-spacing:-.6px;margin-top:3px;font-variant-numeric:tabular-nums}',
+      '#ru-post .rp-pr .v.buy{color:var(--rd-green)}',
+      '#ru-post .rp-pr.one{grid-template-columns:1fr}',
+      '#ru-post .rp-h{font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--w45,rgba(255,255,255,.45));margin:30px 0 4px}',
+      '#ru-post .rp-row{display:flex;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid var(--border);font-size:14.5px}',
+      '#ru-post .rp-row span:first-child{color:var(--w55,rgba(255,255,255,.55))}#ru-post .rp-row span:last-child{font-weight:600;text-align:right;word-break:break-word}',
+      '#ru-post .rp-cta{display:flex;flex-direction:column;gap:10px;margin-top:22px}',
+      '#ru-post .rp-cta .ru-btn{margin-top:0}',
+      '#ru-post .rp-link{display:inline-block;margin-top:20px;font-size:14px;font-weight:500;color:var(--white);text-decoration:underline;text-decoration-color:var(--w30);text-underline-offset:4px}',
       '.ru-gal{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;padding:8px 20px 4px;scrollbar-width:none}',
       '.ru-gal::-webkit-scrollbar{display:none}',
       '.ru-gal img{flex:0 0 86%;aspect-ratio:4/3;object-fit:cover;border-radius:16px;scroll-snap-align:center;background:var(--card)}',
@@ -122,7 +158,8 @@
     var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
     return d ? d + 'd ' + h + 'h ' + m + 'm' : h + 'h ' + m + 'm ' + ss + 's';
   }
-  function name(x) { return [x.year, x.make, x.model].filter(Boolean).join(' ') || x.title || 'vehículo'; }
+  function tc(t) { return String(t || '').toLowerCase().replace(/(^|[\s\-\/])([a-záéíóúñ0-9])/g, function (m, a, b) { return a + b.toUpperCase(); }).replace(/\b(Bmw|Gmc|Ram|Amg|Gt|Gts|Gti|Suv|Srt|Rs|Mx|Cx|Hr|Xc|Xj|Xf|Sl|Slk|Cla|Gla|Glb|Glc|Gle|Gls|Ml|Se|Le|Xle|Xse|Lx|Ex|Sv|Sr|Sr5|Trd|Awd|4wd|Ii|Iii)\b/g, function (m) { return m.toUpperCase(); }); }
+  function name(x) { return [x.year, tc(x.make), tc(x.model)].filter(Boolean).join(' ') || x.title || 'vehículo'; }
   function photos(x) { try { return Array.isArray(x.photos) ? x.photos : JSON.parse(x.photos || '[]'); } catch (e) { return []; } }
 
   function card(x) {
@@ -199,7 +236,7 @@
   // cuenta regresiva en las cards visibles
   setInterval(function () {
     if (!on) return;
-    document.querySelectorAll('#rd-usa [data-end],.ru-sheet [data-end]').forEach(function (s) {
+    document.querySelectorAll('#rd-usa [data-end],.ru-sheet [data-end],#ru-post [data-end]').forEach(function (s) {
       var t = left(s.getAttribute('data-end')); if (s.textContent !== t) { s.textContent = t; if (t === 'finalizada') s.parentNode.classList.add('fin'); }
     });
   }, 1000);
@@ -214,22 +251,41 @@
 
   function detail(id) {
     var x = LOTS.filter(function (l) { return l.id === id; })[0]; if (!x) return;
-    var phs = photos(x), t = left(x.auction_at);
+    var phs = photos(x), t = left(x.auction_at), plat = x.platform === 'iaai' ? 'IAAI' : 'Copart';
     var src = x.platform === 'iaai' ? 'https://www.iaai.com/Search?Keyword=' + encodeURIComponent(x.vin || x.lot_number || '') : 'https://www.copart.com/lot/' + encodeURIComponent(x.lot_number || '');
-    var kv = [['Plataforma', x.platform === 'iaai' ? 'IAAI' : 'Copart'], ['Lote', x.lot_number], ['VIN', x.vin], ['Ubicación', x.location], ['Subasta', x.auction_at ? new Date(x.auction_at).toLocaleString('es', { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : ''], ['Daño', x.damage], ['Odómetro', x.odometer_mi ? Math.round(x.odometer_mi).toLocaleString('es') + ' mi' : ''], ['Combustible', x.fuel], ['Transmisión', x.transmission], ['Valor estimado (ERV)', x.erv ? usd(x.erv) : '']]
+    var fecha = x.auction_at ? new Date(x.auction_at).toLocaleString('es', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit' }) : '';
+    var ficha = [['Lote', x.lot_number], ['VIN', x.vin], ['Odómetro', x.odometer_mi ? Math.round(x.odometer_mi).toLocaleString('es') + ' mi · ' + Math.round(x.odometer_mi * 1.609).toLocaleString('es') + ' km' : ''], ['Daño', tc(x.damage)], ['Combustible', tc(x.fuel)], ['Transmisión', tc(x.transmission)], ['Ubicación', x.location], ['Subasta', fecha], ['Valor estimado (ERV)', x.erv ? usd(x.erv) : '']]
       .filter(function (r) { return r[1]; });
     var base = x.buy_now || x.current_bid || 0;
-    sheet((phs.length ? '<div class="ru-gal">' + phs.slice(0, 12).map(function (p) { return '<img src="' + esc(img(p, 1100)) + '" alt="" loading="lazy">'; }).join('') + '</div>' : '') +
-      '<div class="ru-pad"><div class="ru-h">' + esc(name(x)) + '</div>' +
-      (x.auction_at ? '<div class="ru-tm' + (t === 'finalizada' ? ' fin' : '') + '" style="margin-top:6px">' + IC.timer + '<span data-end="' + esc(x.auction_at) + '">' + t + '</span></div>' : '') +
-      '<div class="ru-box"><div><div class="l">puja actual</div><div class="v">' + usd(x.current_bid) + '</div></div>' + (x.buy_now ? '<div><div class="l">comprar ya</div><div class="v buy">' + usd(x.buy_now) + '</div></div>' : '') + '</div>' +
-      '<dl class="ru-kv">' + kv.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
-      '<button class="ru-btn p" data-calc="' + base + '">calcular cuánto me sale en Venezuela</button>' +
-      '<a class="ru-btn s" href="mailto:team@ruedda.app?subject=' + encodeURIComponent('Quiero importar: ' + name(x) + ' · lote ' + (x.lot_number || '')) + '&body=' + encodeURIComponent('Hola Ruedda, me interesa este carro de ' + (x.platform === 'iaai' ? 'IAAI' : 'Copart') + ':\n' + name(x) + '\nLote: ' + (x.lot_number || '') + '\nVIN: ' + (x.vin || '') + '\n' + src) + '">quiero este carro · hablar con Ruedda</a>' +
-      '<a class="ru-btn s" href="' + esc(src) + '" target="_blank" rel="noopener">ver lote en ' + (x.platform === 'iaai' ? 'IAAI' : 'Copart') + '</a>' +
-      '<button class="ru-btn s" data-x>cerrar</button>' +
-      '<div class="ru-note">Datos de la subasta actualizados una vez al día. La puja real cambia en vivo.</div></div>')
-      .querySelector('[data-calc]').onclick = function () { calc(base); };
+    var old = document.getElementById('ru-post'); if (old) old.remove();
+    var o = document.createElement('div'); o.id = 'ru-post';
+    o.innerHTML = '<div class="rp-bar"><button class="rp-back" data-a="back">' + IC.back + '<span>volver</span></button><span class="ru-badge ' + x.platform + '">' + plat.toUpperCase() + '</span></div>' +
+      (phs.length ? '<div class="rp-hero"><div class="rp-gal">' + phs.map(function (p, i) { return '<img src="' + esc(img(p, 1200)) + '" alt="" ' + (i ? 'loading="lazy" ' : '') + 'decoding="async">'; }).join('') + '</div>' + (phs.length > 1 ? '<span class="rp-count">1 / ' + phs.length + '</span>' : '') + '</div>' +
+        (phs.length > 1 ? '<div class="rp-thumbs">' + phs.map(function (p, i) { return '<img src="' + esc(img(p, 200)) + '" data-i="' + i + '" class="' + (i ? '' : 'on') + '" alt="" loading="lazy">'; }).join('') + '</div>' : '') : '') +
+      '<div class="rp-b"><div class="rp-eye">' + plat + ' · lote ' + esc(x.lot_number || '') + '</div>' +
+      '<div class="rp-t">' + esc(name(x)) + '</div><div class="rp-loc">' + esc(x.location || 'Estados Unidos') + '</div>' +
+      (x.auction_at ? '<div class="rp-time">' + IC.timer + '<div><div class="a">' + (t === 'finalizada' ? 'subasta finalizada' : 'cierra en <span data-end="' + esc(x.auction_at) + '">' + t + '</span>') + '</div><div class="b">' + esc(fecha) + '</div></div></div>' : '') +
+      '<div class="rp-pr' + (x.buy_now ? '' : ' one') + '"><div><div class="l">puja actual</div><div class="v">' + usd(x.current_bid) + '</div></div>' + (x.buy_now ? '<div><div class="l">comprar ya</div><div class="v buy">' + usd(x.buy_now) + '</div></div>' : '') + '</div>' +
+      '<div class="rp-cta"><a class="ru-btn p" href="mailto:team@ruedda.app?subject=' + encodeURIComponent('Quiero importar: ' + name(x) + ' · lote ' + (x.lot_number || '')) + '&body=' + encodeURIComponent('Hola Ruedda, me interesa este carro de ' + plat + ':\n' + name(x) + '\nLote: ' + (x.lot_number || '') + '\nVIN: ' + (x.vin || '') + '\n' + src) + '">quiero este carro</a>' +
+      '<button class="ru-btn s" data-a="calc">calcular cuánto me sale en Venezuela</button></div>' +
+      '<div class="rp-h">ficha del lote</div>' + ficha.map(function (r) { return '<div class="rp-row"><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>'; }).join('') +
+      '<a class="rp-link" href="' + esc(src) + '" target="_blank" rel="noopener">ver lote original en ' + plat + '</a>' +
+      '<div class="ru-note" style="margin-top:18px">Puja tomada en la última actualización de Ruedda; en la subasta cambia en vivo. Ruedda no está afiliado a ' + plat + '.</div></div>';
+    document.body.appendChild(o);
+    var close = function () { o.classList.remove('in'); setTimeout(function () { o.remove(); }, 420); };
+    o.addEventListener('click', function (e) {
+      var a = e.target.closest('[data-a]');
+      if (a && a.getAttribute('data-a') === 'back') return close();
+      if (a && a.getAttribute('data-a') === 'calc') return calc(base);
+      var th = e.target.closest('.rp-thumbs img'); if (th) { var g = o.querySelector('.rp-gal'); g.scrollTo({ left: g.clientWidth * Number(th.getAttribute('data-i')), behavior: 'smooth' }); }
+    });
+    var g = o.querySelector('.rp-gal'), cnt = o.querySelector('.rp-count');
+    if (g) g.addEventListener('scroll', function () {
+      var i = Math.round(g.scrollLeft / Math.max(1, g.clientWidth));
+      if (cnt) cnt.textContent = (i + 1) + ' / ' + phs.length;
+      o.querySelectorAll('.rp-thumbs img').forEach(function (im, k) { im.classList.toggle('on', k === i); });
+    }, { passive: true });
+    o.offsetHeight; requestAnimationFrame(function () { o.classList.add('in'); });
   }
 
   function cfg() { var c = {}; for (var k in CALC_DEF) c[k] = (CALC && CALC[k] != null && CALC[k] !== '') ? Number(CALC[k]) : CALC_DEF[k]; return c; }
