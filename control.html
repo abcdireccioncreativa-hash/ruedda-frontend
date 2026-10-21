@@ -560,6 +560,7 @@ let VIEWS=[
   {h:'Precios'},
   {id:'criterio',t:'Criterio Ruedda',i:'bid',s:'Precio justo manual por publicación'},
   {id:'comparativa',t:'Comparativa',i:'act',s:'Histórico de precios por modelo'},
+  {id:'usa',t:'Subastas USA',i:'bid',s:'Lotes de Copart/IAAI y tasas de la calculadora de importación'},
   {h:'Ajustes'},
   {id:'apariencia',t:'Apariencia',i:'car',s:'Banners, Encuentra, intro, logos e insignias'},
   {id:'actualizacion',t:'Actualización de la app',i:'upd',s:'Aviso para que actualicen la app de iPhone, con sus novedades'},
@@ -2049,6 +2050,26 @@ async function chrEdAdd(btn){ const e=$('#chr-ed').value.trim(); if(!/^\S+@\S+\.
 async function chrEdDel(uid,btn){ if(!confirm('¿Quitar este editor de Ruedda Chrono?')) return; btn.disabled=true;
   const{error}=await sb.rpc('chrono_editor_remove',{p_user:uid}); if(error){btn.disabled=false;return toast('error: '+error.message,true);} toast('editor quitado'); RENDER.chrono(++VIEW_TOKEN,[],true); }
 
+/* [2026-10-21] Subastas USA: estado de la sincronización y tasas de la calculadora de importación (app_settings 'usa_calc') */
+const USA_CALC=[['fee_pct','Comisión de la subasta (%)',10],['fee_min','Comisión mínima (USD)',400],['grua_usd','Grúa hasta el puerto en USA (USD)',600],['flete_usd','Flete marítimo a Venezuela (USD)',1800],['seguro_pct','Seguro (%)',1.5],['arancel_pct','Arancel de nacionalización (% sobre CIF)',40],['iva_pct','IVA (%)',16],['tasas_pct','Tasas aduaneras (% sobre CIF)',2],['inttt_usd','INTTT · placas y registro (USD)',150],['gestoria_usd','Agente aduanal y gestoría (USD)',700]];
+RENDER.usa=async(tok)=>{
+  const [{data:L,error:le},{data:st}]=await Promise.all([sb.from('usa_lots').select('fila_titulo,platform,updated_at').limit(500),sb.from('app_settings').select('value').eq('key','usa_calc').maybeSingle()]);
+  if(stale(tok)) return;
+  let C={}; try{ C=st&&st.value?JSON.parse(st.value):{}; }catch(e){}
+  const by={}; (L||[]).forEach(x=>{ by[x.fila_titulo]=(by[x.fila_titulo]||0)+1; });
+  const upd=(L||[]).reduce((m,x)=>x.updated_at>m?x.updated_at:m,'');
+  const estado=le?`<div class="notice">Falta correr el SQL <b>Ruedda_Subastas_USA_SQL_2026-10-21.sql</b> en Supabase (${esc(le.message)}).</div>`
+    :!L.length?`<div class="notice">Todavía no hay lotes. Mientras esté vacío, el botón "usa" muestra el aviso de lanzamiento. La sincronización corre sola cada día a las 7:15 a. m. (GitHub → Actions → "Subastas USA"). Necesita los secretos <b>APIBARA_KEY</b> y <b>SUPABASE_SERVICE_KEY</b> en el repo.</div>`
+    :`<div class="grid g3">${Object.entries(by).map(([t,c])=>`<div><div class="muted" style="font-size:12px">${esc(t)}</div><div style="font-size:22px;font-weight:700">${n(c)}</div></div>`).join('')}</div><div class="muted" style="font-size:12.5px;margin-top:10px">${n(L.length)} lotes en línea · última actualización ${upd?fdate(upd):'—'}</div>`;
+  $('#view').innerHTML=card('Lotes de Copart e IAAI','Se actualizan una vez al día desde la API gratuita de Apibara (100 consultas al mes)',estado)
+    +card('Calculadora de importación','Tasas que usa la calculadora de la app (nacionalización + IVA + INTTT). Son estimados: ajústalos con los números de tu agente aduanal.',`<div class="form">${USA_CALC.map(([k,l,d])=>`<label class="field"><span>${l}</span><input class="input num" type="number" step="any" data-uc="${k}" value="${esc(C[k]!=null&&C[k]!==''?C[k]:d)}"></label>`).join('')}</div><div style="margin-top:12px;display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="usaCalcSave(this)">Guardar tasas</button></div>`);
+};
+async function usaCalcSave(btn){
+  const C={}; document.querySelectorAll('[data-uc]').forEach(el=>{ const v=el.value.trim(); if(v!=='') C[el.dataset.uc]=Number(v); });
+  btn.disabled=true;
+  try{ await setSetting('usa_calc',JSON.stringify(C)); toast('tasas de importación guardadas'); }catch(e){ toast('error: '+e.message,true); }
+  btn.disabled=false;
+}
 RENDER.configuracion=async(tok)=>{
   const [{data:pd},{data:hi},{data:ai}]=await Promise.all([sb.from('app_settings').select('value').eq('key','payment_data').maybeSingle(),sb.from('historia_app').select('id,content').limit(1),sb.from('app_settings').select('value').eq('key','ai_powered_by').maybeSingle()]);
   if(stale(tok)) return;

@@ -2680,10 +2680,12 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 function rdRegion(r){
   var el=document.getElementById('rd-region'); if(!el) return;
   var set=function(v){ el.classList.toggle('us',v==='us'); el.querySelectorAll('button').forEach(function(b){ var on=b.getAttribute('data-r')===v; b.classList.toggle('on',on); b.setAttribute('aria-selected',on?'true':'false'); }); };
-  if(r==='ve'){ set('ve'); return; }
+  if(r==='ve'){ set('ve'); if(window.rdUsaHide) window.rdUsaHide(); return; }
   if(el.classList.contains('us')) return;
   set('us');
   try{ window._rdHapticNow&&window._rdHapticNow('LIGHT'); }catch(e){}
+  // [2026-10-21] subastas USA (rd-usa.js): si ya hay lotes de Copart/IAAI cargados se muestra la sección; si no, el aviso de siempre
+  if(window.rdUsaShow&&window.rdUsaShow()) return;
   setTimeout(function(){
     if(window.rdUsaPopup) window.rdUsaPopup(function(){ set('ve'); });
     else setTimeout(function(){ set('ve'); },900);
@@ -2694,6 +2696,7 @@ function rdRegion(r){
 <script src="/desktop-popups.js?v=20261008a" data-mode="mobile" defer></script>
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=4" defer></script>
+<script src="/rd-usa.js?v=1" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
 <script src="/rd-mark.js?v=2" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
