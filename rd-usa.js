@@ -4,7 +4,9 @@
    de lanzamiento de siempre (rdUsaPopup).
    Calculadora de importación: tasas en app_settings 'usa_calc' (Control → Subastas USA). */
 (function () {
-  var LOTS = [], CALC = null, loaded = false, loading = null, on = false, view = 'home', q = '', F = { plat: 'all', buy: false };
+  var LOTS = [], CALC = null, loaded = false, loading = null, on = false, view = 'home', q = '', F = { plat: 'all', buy: false, make: '', y1: 0, y2: 0, pmax: 0, sort: 'cierre' };
+  var F0 = JSON.stringify(F);
+  function activo() { return JSON.stringify(F) !== F0; }
   var CALC_DEF = { fee_pct: 10, fee_min: 400, grua_usd: 600, flete_usd: 1800, seguro_pct: 1.5, arancel_pct: 40, iva_pct: 16, tasas_pct: 2, inttt_usd: 150, gestoria_usd: 700 };
 
   function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -137,6 +139,10 @@
       '.ru-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}',
       '.ru-chip{border:1px solid var(--border);background:var(--w7);color:var(--white);border-radius:999px;padding:10px 15px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer}',
       '.ru-chip.on{background:var(--lime);border-color:var(--lime);color:var(--lime-ink)}',
+      '.ru-yrs{display:flex;align-items:center;gap:10px;margin-top:10px}.ru-yrs span{color:var(--w40)}',
+      '.ru-sel{flex:1;min-width:0;appearance:none;-webkit-appearance:none;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23999%27 stroke-width=%272%27%3E%3Cpath d=%27m6 9 6 6 6-6%27/%3E%3C/svg%3E") no-repeat right 12px center/16px;border:1px solid var(--border);border-radius:14px;padding:13px 36px 13px 14px;font-family:var(--font);font-size:15px;font-weight:600;color:var(--white)}',
+      '.ru-clear{background:none;border:none;color:var(--w50,rgba(255,255,255,.5));font-family:var(--font);font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:4px}',
+      '.ru-sheet .ru-chips{flex-wrap:wrap}',
       '.ru-lab{font-size:12px;font-weight:700;color:var(--w45,rgba(255,255,255,.45));margin-top:18px}'
     ].join('');
     document.head.appendChild(s);
@@ -162,15 +168,15 @@
     var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
     return d ? d + 'd ' + h + 'h ' + m + 'm' : h + 'h ' + m + 'm ' + ss + 's';
   }
-  function tc(t) { return String(t || '').toLowerCase().replace(/(^|[\s\-\/])([a-záéíóúñ0-9])/g, function (m, a, b) { return a + b.toUpperCase(); }).replace(/\b(Bmw|Gmc|Ram|Amg|Gt|Gts|Gti|Suv|Srt|Rs|Mx|Cx|Hr|Xc|Xj|Xf|Sl|Slk|Cla|Gla|Glb|Glc|Gle|Gls|Ml|Se|Le|Xle|Xse|Lx|Ex|Sv|Sr|Sr5|Trd|Awd|4wd|Ii|Iii)\b/g, function (m) { return m.toUpperCase(); }); }
+  function tc(t) { return String(t || '').toLowerCase().replace(/(^|[\s\-\/])([a-záéíóúñ0-9])/g, function (m, a, b) { return a + b.toUpperCase(); }).replace(/\b(Bmw|Gmc|Ram|Amg|Ev|Phev|Gt3|Ss|Zl1|Gt|Gts|Gti|Suv|Srt|Rs|Mx|Cx|Hr|Xc|Xj|Xf|Sl|Slk|Cla|Gla|Glb|Glc|Gle|Gls|Ml|Se|Le|Xle|Xse|Lx|Ex|Sv|Sr|Sr5|Trd|Awd|4wd|Ii|Iii)\b/g, function (m) { return m.toUpperCase(); }); }
   function name(x) { return [x.year, tc(x.make), tc(x.model)].filter(Boolean).join(' ') || x.title || 'vehículo'; }
   function photos(x) { try { return Array.isArray(x.photos) ? x.photos : JSON.parse(x.photos || '[]'); } catch (e) { return []; } }
 
   function card(x) {
     var ph = photos(x)[0], t = left(x.auction_at), fin = t === 'finalizada';
     var pr = x.buy_now
-      ? '<div><div class="ru-pl">actual</div><div class="ru-pv">' + usd(x.current_bid) + '</div></div><div><div class="ru-pl buy">comprar ya</div><div class="ru-pv buy">' + usd(x.buy_now) + '</div></div>'
-      : '<div><div class="ru-pl">puja actual</div><div class="ru-pv">' + usd(x.current_bid) + '</div></div>';
+      ? '<div><div class="ru-pl">bids</div><div class="ru-pv">' + usd(x.current_bid) + '</div></div><div><div class="ru-pl buy">comprar ya</div><div class="ru-pv buy">' + usd(x.buy_now) + '</div></div>'
+      : '<div><div class="ru-pl">bids</div><div class="ru-pv">' + usd(x.current_bid) + '</div></div>';
     return '<div class="ru-card" data-id="' + esc(x.id) + '">' +
       '<div class="ru-ph">' + (ph ? '<img src="' + esc(img(ph, 600)) + '" alt="" loading="lazy" decoding="async" onload="this.style.opacity=1" onerror="this.remove()">' : '<div class="ru-noph">' + IC.car + '</div>') +
       '<span class="ru-badge ' + (x.platform === 'iaai' ? 'iaai">IAAI' : 'copart">COPART') + '</span>' +
@@ -181,14 +187,27 @@
       '<div class="ru-pr">' + pr + '</div></div>';
   }
 
+  function precio(x) { return Number(x.current_bid) || 0; }
   function list() {
     var ql = q.trim().toLowerCase();
-    return LOTS.filter(function (x) {
+    var out = LOTS.filter(function (x) {
       if (F.plat !== 'all' && x.platform !== F.plat) return false;
       if (F.buy && !x.buy_now) return false;
+      if (F.make && tc(x.make) !== F.make) return false;
+      if (F.y1 && (x.year || 0) < F.y1) return false;
+      if (F.y2 && (x.year || 9999) > F.y2) return false;
+      if (F.pmax && precio(x) > F.pmax) return false;
       if (ql && (name(x) + ' ' + (x.location || '') + ' ' + (x.damage || '') + ' ' + (x.lot_number || '')).toLowerCase().indexOf(ql) === -1) return false;
       return true;
     });
+    var by = {
+      cierre: function (a, b) { return new Date(a.auction_at || 0) - new Date(b.auction_at || 0); },
+      barato: function (a, b) { return precio(a) - precio(b); },
+      caro: function (a, b) { return precio(b) - precio(a); },
+      nuevo: function (a, b) { return (b.year || 0) - (a.year || 0); }
+    };
+    if (activo() || ql) out.sort(by[F.sort] || by.cierre);
+    return out;
   }
   function rows(items) {
     var m = {}, order = [];
@@ -217,13 +236,13 @@
 
   function paint() {
     var r = root(); if (!r) return;
-    var items = list(), act = F.plat !== 'all' || F.buy;
+    var items = list(), act = activo();
     var head = '<div class="ru-top"><label class="ru-search">' + IC.search + '<input id="ru-q" type="search" placeholder="Buscar en USA" value="' + esc(q) + '" autocomplete="off"></label>' +
       '<button class="ru-fbtn' + (act ? ' act' : '') + '" data-ru="filter">' + IC.filter + 'Filtro</button></div>';
     var calcCard = '<div class="ru-calc" data-ru="calc"><div class="ru-calc-ic">' + IC.ship + '</div><div style="min-width:0"><div class="ru-calc-t">Calculadora de importación</div><div class="ru-calc-s">Nacionalización + IVA + INTTT</div></div><span class="ru-chev">' + IC.chev + '</span></div>';
     var body;
     if (!items.length) body = '<div class="ru-empty">' + (LOTS.length ? 'nada coincide con tu búsqueda' : 'cargando subastas de USA…') + '</div>';
-    else if (q.trim() || view === 'todo') body = '<div class="ru-row"><div class="ru-rh"><div class="ru-rt">' + (q.trim() ? 'Resultados (' + items.length + ')' : 'Todo') + '</div></div><div class="ru-grid">' + items.map(card).join('') + '</div></div>';
+    else if (q.trim() || act || view === 'todo') body = '<div class="ru-row"><div class="ru-rh"><div class="ru-rt">' + (q.trim() || act ? 'Resultados (' + items.length + ')' : 'Todo') + '</div></div><div class="ru-grid">' + items.map(card).join('') + '</div></div>';
     else if (view !== 'home') {
       var rw = rows(items).filter(function (x) { return x.k === view; })[0];
       body = '<div class="ru-back" data-ru="back">' + IC.back + '<span>volver</span></div>' + (rw ? '<div class="ru-row" style="margin-top:6px"><div class="ru-rh"><div class="ru-rt">' + esc(rw.t) + '</div></div><div class="ru-grid">' + rw.items.map(card).join('') + '</div></div>' : '');
@@ -269,7 +288,7 @@
       '<div class="rp-b"><div class="rp-eye">' + plat + ' · lote ' + esc(x.lot_number || '') + '</div>' +
       '<div class="rp-t">' + esc(name(x)) + '</div><div class="rp-loc">' + esc(x.location || 'Estados Unidos') + '</div>' +
       (x.auction_at ? '<div class="rp-time">' + IC.timer + '<div><div class="a">' + (t === 'finalizada' ? 'subasta finalizada' : 'cierra en <span data-end="' + esc(x.auction_at) + '">' + t + '</span>') + '</div><div class="b">' + esc(fecha) + '</div></div></div>' : '') +
-      '<div class="rp-pr' + (x.buy_now ? '' : ' one') + '"><div><div class="l">puja actual</div><div class="v">' + usd(x.current_bid) + '</div></div>' + (x.buy_now ? '<div><div class="l">comprar ya</div><div class="v buy">' + usd(x.buy_now) + '</div></div>' : '') + '</div>' +
+      '<div class="rp-pr' + (x.buy_now ? '' : ' one') + '"><div><div class="l">bids</div><div class="v">' + usd(x.current_bid) + '</div></div>' + (x.buy_now ? '<div><div class="l">comprar ya</div><div class="v buy">' + usd(x.buy_now) + '</div></div>' : '') + '</div>' +
       '<div class="rp-cta"><a class="ru-btn p" href="mailto:team@ruedda.app?subject=' + encodeURIComponent('Quiero importar: ' + name(x) + ' · lote ' + (x.lot_number || '')) + '&body=' + encodeURIComponent('Hola Ruedda, me interesa este carro de ' + plat + ':\n' + name(x) + '\nLote: ' + (x.lot_number || '') + '\nVIN: ' + (x.vin || '') + '\n' + src) + '">quiero este carro</a>' +
       '<button class="ru-btn s" data-a="calc">calcular cuánto me sale en Venezuela</button>' +
       '<button class="ru-btn s" data-a="share">compartir publicación</button></div>' +
@@ -339,17 +358,34 @@
   }
 
   function filter() {
-    var o = sheet('<div class="ru-pad"><div class="ru-h">Filtro</div><div class="ru-lab">subasta</div><div class="ru-chips" data-g="plat">' +
-      [['all', 'todas'], ['copart', 'Copart'], ['iaai', 'IAAI']].map(function (p) { return '<button class="ru-chip' + (F.plat === p[0] ? ' on' : '') + '" data-v="' + p[0] + '">' + p[1] + '</button>'; }).join('') +
-      '</div><div class="ru-lab">precio</div><div class="ru-chips" data-g="buy"><button class="ru-chip' + (!F.buy ? ' on' : '') + '" data-v="0">todos</button><button class="ru-chip' + (F.buy ? ' on' : '') + '" data-v="1">solo con "comprar ya"</button></div>' +
-      '<button class="ru-btn p" data-x>ver resultados</button></div>');
+    var makes = {}, ys = [];
+    LOTS.forEach(function (x) { var m = tc(x.make); if (m) makes[m] = (makes[m] || 0) + 1; if (x.year) ys.push(x.year); });
+    var mk = Object.keys(makes).sort(function (a, b) { return makes[b] - makes[a] || a.localeCompare(b); });
+    var ymin = ys.length ? Math.min.apply(null, ys) : 1990, ymax = ys.length ? Math.max.apply(null, ys) : new Date().getFullYear() + 1, yr = [];
+    for (var y = ymax; y >= ymin; y--) yr.push(y);
+    var chips = function (g, ops, cur) { return '<div class="ru-chips" data-g="' + g + '">' + ops.map(function (p) { return '<button class="ru-chip' + (String(cur) === String(p[0]) ? ' on' : '') + '" data-v="' + esc(p[0]) + '">' + esc(p[1]) + '</button>'; }).join('') + '</div>'; };
+    var sel = function (id, cur, lbl) { return '<select class="ru-sel" id="' + id + '"><option value="0">' + lbl + '</option>' + yr.map(function (y) { return '<option value="' + y + '"' + (cur === y ? ' selected' : '') + '>' + y + '</option>'; }).join('') + '</select>'; };
+    var o = sheet('<div class="ru-pad"><div style="display:flex;align-items:baseline;justify-content:space-between"><div class="ru-h">Filtros</div><button class="ru-clear" data-clear>limpiar</button></div>' +
+      '<div class="ru-lab">subasta</div>' + chips('plat', [['all', 'todas'], ['copart', 'Copart'], ['iaai', 'IAAI']], F.plat) +
+      '<div class="ru-lab">marca</div>' + chips('make', [['', 'todas']].concat(mk.map(function (m) { return [m, m + ' · ' + makes[m]]; })), F.make) +
+      '<div class="ru-lab">año</div><div class="ru-yrs">' + sel('ru-y1', F.y1, 'desde') + '<span>—</span>' + sel('ru-y2', F.y2, 'hasta') + '</div>' +
+      '<div class="ru-lab">bids hasta</div>' + chips('pmax', [[0, 'cualquiera'], [5000, '$5.000'], [10000, '$10.000'], [20000, '$20.000'], [40000, '$40.000'], [80000, '$80.000']], F.pmax) +
+      '<div class="ru-lab">compra</div>' + chips('buy', [[0, 'todas'], [1, 'solo con comprar ya']], F.buy ? 1 : 0) +
+      '<div class="ru-lab">ordenar por</div>' + chips('sort', [['cierre', 'cierra primero'], ['barato', 'menor bid'], ['caro', 'mayor bid'], ['nuevo', 'más nuevos']], F.sort) +
+      '<button class="ru-btn p" data-x id="ru-fgo"></button></div>');
+    var go = o.querySelector('#ru-fgo');
+    function upd() { var n = list().length; go.textContent = n ? 'ver ' + n + (n === 1 ? ' resultado' : ' resultados') : 'sin resultados con estos filtros'; paint(); }
     o.addEventListener('click', function (e) {
+      if (e.target.closest('[data-clear]')) { F = JSON.parse(F0); o.remove(); paint(); filter(); return; }
       var b = e.target.closest('.ru-chip'); if (!b) return;
-      var g = b.parentNode.getAttribute('data-g');
+      var g = b.parentNode.getAttribute('data-g'), v = b.getAttribute('data-v');
       b.parentNode.querySelectorAll('.ru-chip').forEach(function (x) { x.classList.toggle('on', x === b); });
-      if (g === 'plat') F.plat = b.getAttribute('data-v'); else F.buy = b.getAttribute('data-v') === '1';
-      paint();
+      if (g === 'plat') F.plat = v; else if (g === 'make') F.make = v; else if (g === 'pmax') F.pmax = Number(v); else if (g === 'buy') F.buy = v === '1'; else if (g === 'sort') F.sort = v;
+      haptic(); upd();
     });
+    o.querySelector('#ru-y1').onchange = function () { F.y1 = Number(this.value); if (F.y2 && F.y1 > F.y2) { F.y2 = F.y1; o.querySelector('#ru-y2').value = F.y1; } upd(); };
+    o.querySelector('#ru-y2').onchange = function () { F.y2 = Number(this.value); if (F.y1 && F.y2 && F.y2 < F.y1) { F.y1 = F.y2; o.querySelector('#ru-y1').value = F.y2; } upd(); };
+    upd();
   }
 
   function load() {
