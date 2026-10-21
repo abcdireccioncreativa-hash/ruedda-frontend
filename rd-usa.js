@@ -78,12 +78,15 @@
       '.ru-sheet .ru-h{font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.15}',
       '.ru-sheet .ru-sub{font-size:13px;color:var(--w45,rgba(255,255,255,.45));margin-top:4px;line-height:1.45}',
       /* página del lote (entra al post, no hoja) */
-      '#ru-post{position:fixed;inset:0;z-index:10000;background:var(--bg);color:var(--white);overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:var(--font);transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1)}',
+      '#ru-post{position:fixed;inset:0;z-index:99;background:var(--bg);color:var(--white);overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:var(--font);transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1)}',
       '#ru-post.in{transform:none}',
-      '#ru-post .rp-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;background:var(--bg);border-bottom:1px solid var(--border)}',
+      '#ru-post .rp-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 14px 8px;background:var(--bg);border-bottom:1px solid var(--border)}',
       '#ru-post .rp-back{display:flex;align-items:center;gap:4px;font-size:15px;font-weight:400;cursor:pointer;padding:6px 4px;background:none;border:none;color:var(--white);font-family:var(--font)}',
       '#ru-post .rp-back svg{width:22px;height:22px}',
       '#ru-post .rp-bar .ru-badge{position:static}',
+      '#ru-post .rp-acts{display:flex;align-items:center;gap:10px}',
+      '#ru-post .rp-share{width:36px;height:36px;border-radius:50%;background:var(--w7);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--white);cursor:pointer;padding:0}',
+      '#ru-post .rp-share svg{width:17px;height:17px}',
       '#ru-post .rp-hero{position:relative}',
       '#ru-post .rp-gal{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;background:var(--card)}',
       '#ru-post .rp-gal::-webkit-scrollbar{display:none}',
@@ -93,7 +96,7 @@
       '#ru-post .rp-thumbs::-webkit-scrollbar{display:none}',
       '#ru-post .rp-thumbs img{flex:0 0 64px;height:48px;object-fit:cover;border-radius:8px;opacity:.45;cursor:pointer;transition:opacity .2s}',
       '#ru-post .rp-thumbs img.on{opacity:1;box-shadow:0 0 0 2px var(--white)}',
-      '#ru-post .rp-b{padding:20px 20px calc(40px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}',
+      '#ru-post .rp-b{padding:20px 20px calc(130px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}',
       '#ru-post .rp-eye{font-size:11.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--w45,rgba(255,255,255,.45))}',
       '#ru-post .rp-t{font-size:27px;font-weight:800;letter-spacing:-.8px;line-height:1.1;margin-top:6px}',
       '#ru-post .rp-loc{font-size:14px;color:var(--w50,rgba(255,255,255,.5));margin-top:6px}',
@@ -148,6 +151,7 @@
     timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 1.5M10 2.5h4M18.5 6.5l1.3-1.3"/></svg>',
     play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>',
     car: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" style="width:54px;height:54px"><path d="M3 15.5V12l2-5h14l2 5v3.5"/><path d="M3 15.5h18v2.5H3z"/><circle cx="7" cy="15.5" r="1.4"/><circle cx="17" cy="15.5" r="1.4"/></svg>',
+    share: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M5 12v6.5A2.5 2.5 0 0 0 7.5 21h9a2.5 2.5 0 0 0 2.5-2.5V12"/></svg>',
     back: '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>'
   };
 
@@ -259,7 +263,7 @@
     var base = x.buy_now || x.current_bid || 0;
     var old = document.getElementById('ru-post'); if (old) old.remove();
     var o = document.createElement('div'); o.id = 'ru-post';
-    o.innerHTML = '<div class="rp-bar"><button class="rp-back" data-a="back">' + IC.back + '<span>volver</span></button><span class="ru-badge ' + x.platform + '">' + plat.toUpperCase() + '</span></div>' +
+    o.innerHTML = '<div class="rp-bar"><button class="rp-back" data-a="back">' + IC.back + '<span>volver</span></button><div class="rp-acts"><span class="ru-badge ' + x.platform + '">' + plat.toUpperCase() + '</span><button class="rp-share" data-a="share" aria-label="compartir publicación">' + IC.share + '</button></div></div>' +
       (phs.length ? '<div class="rp-hero"><div class="rp-gal">' + phs.map(function (p, i) { return '<img src="' + esc(img(p, 1200)) + '" alt="" ' + (i ? 'loading="lazy" ' : '') + 'decoding="async">'; }).join('') + '</div>' + (phs.length > 1 ? '<span class="rp-count">1 / ' + phs.length + '</span>' : '') + '</div>' +
         (phs.length > 1 ? '<div class="rp-thumbs">' + phs.map(function (p, i) { return '<img src="' + esc(img(p, 200)) + '" data-i="' + i + '" class="' + (i ? '' : 'on') + '" alt="" loading="lazy">'; }).join('') + '</div>' : '') : '') +
       '<div class="rp-b"><div class="rp-eye">' + plat + ' · lote ' + esc(x.lot_number || '') + '</div>' +
@@ -267,16 +271,21 @@
       (x.auction_at ? '<div class="rp-time">' + IC.timer + '<div><div class="a">' + (t === 'finalizada' ? 'subasta finalizada' : 'cierra en <span data-end="' + esc(x.auction_at) + '">' + t + '</span>') + '</div><div class="b">' + esc(fecha) + '</div></div></div>' : '') +
       '<div class="rp-pr' + (x.buy_now ? '' : ' one') + '"><div><div class="l">puja actual</div><div class="v">' + usd(x.current_bid) + '</div></div>' + (x.buy_now ? '<div><div class="l">comprar ya</div><div class="v buy">' + usd(x.buy_now) + '</div></div>' : '') + '</div>' +
       '<div class="rp-cta"><a class="ru-btn p" href="mailto:team@ruedda.app?subject=' + encodeURIComponent('Quiero importar: ' + name(x) + ' · lote ' + (x.lot_number || '')) + '&body=' + encodeURIComponent('Hola Ruedda, me interesa este carro de ' + plat + ':\n' + name(x) + '\nLote: ' + (x.lot_number || '') + '\nVIN: ' + (x.vin || '') + '\n' + src) + '">quiero este carro</a>' +
-      '<button class="ru-btn s" data-a="calc">calcular cuánto me sale en Venezuela</button></div>' +
+      '<button class="ru-btn s" data-a="calc">calcular cuánto me sale en Venezuela</button>' +
+      '<button class="ru-btn s" data-a="share">compartir publicación</button></div>' +
       '<div class="rp-h">ficha del lote</div>' + ficha.map(function (r) { return '<div class="rp-row"><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>'; }).join('') +
       '<a class="rp-link" href="' + esc(src) + '" target="_blank" rel="noopener">ver lote original en ' + plat + '</a>' +
       '<div class="ru-note" style="margin-top:18px">Puja tomada en la última actualización de Ruedda; en la subasta cambia en vivo. Ruedda no está afiliado a ' + plat + '.</div></div>';
+    var nav = document.querySelector('.navbar'), nb = nav ? nav.getBoundingClientRect().bottom : 0;
+    o.style.top = Math.max(0, Math.round(nb)) + 'px';
     document.body.appendChild(o);
     var close = function () { o.classList.remove('in'); setTimeout(function () { o.remove(); }, 420); };
+    POST_CLOSE = close;
     o.addEventListener('click', function (e) {
       var a = e.target.closest('[data-a]');
       if (a && a.getAttribute('data-a') === 'back') return close();
       if (a && a.getAttribute('data-a') === 'calc') return calc(base);
+      if (a && a.getAttribute('data-a') === 'share') return share(x);
       var th = e.target.closest('.rp-thumbs img'); if (th) { var g = o.querySelector('.rp-gal'); g.scrollTo({ left: g.clientWidth * Number(th.getAttribute('data-i')), behavior: 'smooth' }); }
     });
     var g = o.querySelector('.rp-gal'), cnt = o.querySelector('.rp-count');
@@ -286,6 +295,27 @@
       o.querySelectorAll('.rp-thumbs img').forEach(function (im, k) { im.classList.toggle('on', k === i); });
     }, { passive: true });
     o.offsetHeight; requestAnimationFrame(function () { o.classList.add('in'); });
+  }
+
+  var POST_CLOSE = null;
+  function share(x) {
+    var url = 'https://www.ruedda.app/?usa=' + encodeURIComponent(x.id);
+    var title = name(x) + ' · subasta en ' + (x.platform === 'iaai' ? 'IAAI' : 'Copart') + ' · Ruedda';
+    haptic();
+    if (navigator.share) { navigator.share({ title: title, text: title, url: url }).catch(function () {}); return; }
+    var ok = function () { if (typeof showToast === 'function') showToast('link copiado', true); };
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(ok).catch(function () { if (typeof showToast === 'function') showToast(url); });
+    else if (typeof showToast === 'function') showToast(url);
+  }
+  // link compartido (?usa=copart:123): abre Subastas → usa → la página del lote
+  function deepLink() {
+    var id = null; try { id = new URLSearchParams(location.search).get('usa'); } catch (e) {}
+    if (!id) return;
+    load().then(function () {
+      if (!LOTS.some(function (l) { return l.id === id; })) { if (typeof showToast === 'function') showToast('esa subasta de USA ya cerró'); return; }
+      try { if (typeof showView === 'function') showView('home'); if (typeof selectSection === 'function') selectSection('subastas'); } catch (e) {}
+      setTimeout(function () { if (typeof rdRegion === 'function') rdRegion('us'); detail(id); }, 350);
+    });
   }
 
   function cfg() { var c = {}; for (var k in CALC_DEF) c[k] = (CALC && CALC[k] != null && CALC[k] !== '') ? Number(CALC[k]) : CALC_DEF[k]; return c; }
@@ -365,6 +395,13 @@
     var w = function () { var r = o.apply(this, arguments); try { sync(); } catch (e) {} return r; };
     w._ru = true; window.renderCurrentSection = w;
   }
-  function start() { hook(); setTimeout(load, 2500); }
+  // al cambiar de vista desde el header (vender, menú…) se cierra la página del lote
+  function hookView() {
+    var o = window.showView;
+    if (typeof o !== 'function' || o._ru) return;
+    var w = function () { if (POST_CLOSE && document.getElementById('ru-post')) { POST_CLOSE(); POST_CLOSE = null; } return o.apply(this, arguments); };
+    w._ru = true; window.showView = w;
+  }
+  function start() { hook(); hookView(); setTimeout(load, 2500); deepLink(); }
   if (document.readyState === 'complete') start(); else window.addEventListener('load', start);
 })();
