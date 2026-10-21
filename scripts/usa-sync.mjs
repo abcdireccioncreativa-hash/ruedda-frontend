@@ -15,6 +15,7 @@ const FILAS = [
 ];
 
 const ahora = new Date().toISOString();
+const grande = u => String(u).replace(/([?&])width=\d+&height=\d+/, '$1width=1200&height=900').replace('_thb.', '_ful.');
 const rows = [];
 for (const [i, f] of FILAS.entries()) {
   const u = new URL(API);
@@ -28,14 +29,17 @@ for (const [i, f] of FILAS.entries()) {
     rows.push({
       id: plat + ':' + v.lot_number, platform: plat, lot_number: String(v.lot_number), vin: v.vin || null,
       year: v.year || null, make: v.make || null, model: v.model || null, title: v.title || null,
-      damage: v.damage || null, fuel: v.fuel_type || null, transmission: v.transmission || null,
+      damage: [v.condition && v.condition.primary_damage, v.condition && v.condition.secondary_damage].filter(Boolean).join(' · ') || v.damage || null,
+      fuel: (v.vehicle_specs && v.vehicle_specs.fuel_type) || v.fuel_type || null,
+      transmission: (v.vehicle_specs && v.vehicle_specs.transmission) || v.transmission || null,
       odometer_mi: v.odometer && v.odometer.mi != null ? v.odometer.mi : null,
       location: (v.location && v.location.display) || null,
       auction_at: (v.auction && v.auction.auction_at) || null,
       current_bid: (v.pricing && v.pricing.current_bid_usd) || 0,
       buy_now: (v.pricing && v.pricing.buy_now_usd) || null,
       erv: (v.pricing && v.pricing.estimated_retail_value_usd) || null,
-      photos: ((v.media && v.media.photos) || []).slice(0, 15),
+      // la lista trae miniaturas (400×300): se piden en grande a la misma fuente
+      photos: (((v.media && v.media.photos) || []).length ? v.media.photos : ((v.media && v.media.thumbs) || [])).slice(0, 15).map(grande),
       has_360: !!(v.media && v.media.has_360), has_video: !!(v.media && v.media.has_video),
       fila: f.k, fila_titulo: f.t, fila_orden: i, orden: n, updated_at: ahora
     });
