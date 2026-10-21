@@ -11186,8 +11186,7 @@ async function confirmPlan(id, type, e){
     }
     PAID_TYPES[pendingVenderType]=true;
     closePricingSheet();
-    await publishListing({skipSplash:true});
-    showRevisionScreen(freeCode?'code':'free');
+    await publishListing({skipSplash:true,despues:()=>showRevisionScreen(freeCode?'code':'free')});
     return;
   }
   // paid plan → open checkout
@@ -11256,9 +11255,7 @@ async function _useLevelFreePub(btn){
     if(error) throw error;
     PAID_TYPES[pendingVenderType]=true;
     closeCheckout();
-    await publishListing({skipSplash:true});
-    showRevisionScreen('code');
-    showToast('publicación gratis por tu nivel · te quedan '+(left||0)+' este mes',true);
+    await publishListing({skipSplash:true,despues:()=>{ showRevisionScreen('code'); showToast('publicación gratis por tu nivel · te quedan '+(left||0)+' este mes',true); }});
   }catch(e){
     showToast((e&&e.message)||'no se pudo usar la publicación gratis');
     if(btn){ btn.disabled=false; btn.textContent='publicar gratis'; }
@@ -11359,8 +11356,7 @@ async function processPayment(){
       return;
     }
     // particular o subasta — código válido, publicar directo
-    await publishListing({skipSplash:true});
-    showRevisionScreen('code');
+    await publishListing({skipSplash:true,despues:()=>showRevisionScreen('code')});
     return;
   }
   // _getUid definida arriba
@@ -11411,8 +11407,7 @@ async function processPayment(){
     }
     PAID_TYPES[pendingVenderType]=true;
     try{
-      await publishListing({skipSplash:true});
-      setTimeout(()=>showRevisionScreen('paid'),300);
+      await publishListing({skipSplash:true,despues:()=>setTimeout(()=>showRevisionScreen('paid'),300)});
     }catch(e){
       console.error('[ruedda] processPayment (pago_movil) publishListing falló:',e);
       showToast('error al publicar: '+(e?.message||'intenta de nuevo'));
@@ -11442,8 +11437,7 @@ async function processPayment(){
     }
     PAID_TYPES[pendingVenderType]=true;
     try{
-      await publishListing({skipSplash:true});
-      setTimeout(()=>showRevisionScreen('paid'),300);
+      await publishListing({skipSplash:true,despues:()=>setTimeout(()=>showRevisionScreen('paid'),300)});
     }catch(e){
       console.error('[ruedda] processPayment (binance) publishListing falló:',e);
       showToast('error al publicar: '+(e?.message||'intenta de nuevo'));
@@ -11617,6 +11611,8 @@ function handlePublicar(){
   // particular/subasta/chocado eligen plan y pagan (o aplican código) ANTES
   // de entrar a revisión — publishListing() lo dispara confirmPlan()/processPayment().
   if(pendingVenderType==='consesionario'){ publishListing(); return; }
+  // [2026-10-20] ya pagó o canjeó pero el envío falló: reintenta directo, sin cobrar otra vez
+  if(window._rdPubDraft&&window._rdPubDraft.despues){ publishListing({skipSplash:true,despues:window._rdPubDraft.despues}); return; }
   openPricingSheet();
 }
 
@@ -11748,6 +11744,100 @@ async function _pjTriggerValuation(itemId, itemType, {marca, modelo, version, ye
   }catch(e){ console.warn('[precio justo] no se pudo disparar la tasación:',e.message); }
 }
 
+// [2026-10-20] PUBLICAR CONFIRMADO — antes publishListing atrapaba su propio error y quien la llamaba
+// mostraba "en revisión" igual: si se cortaba la conexión o Supabase rechazaba el insert, el vendedor
+// veía el splash pero su carro nunca llegó a moderación. Ahora: pantalla de carga real, reintentos con
+// plazo, se suben fotos/videos/documentos ANTES del splash, se confirma leyendo la fila, y si algo falla
+// queda un aviso fijo con "reintentar" (reusa el mismo id: lo que ya subió no se duplica ni se vuelve a cobrar).
+async function _rdConPlazo(fn,ms){
+  const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
+  try{ return await fn(c.signal); }
+  catch(e){ return {data:null,error:{message:(e&&e.name==='AbortError')?'tiempo agotado':String((e&&e.message)||e),code:'timeout'}}; }
+  finally{ clearTimeout(t); }
+}
+function _rdEsErrorDeRed(err){
+  if(!err) return false;
+  if(err.code==='timeout') return true;
+  return /fetch|network|abort|timeout|tiempo agotado|load failed|conexi|internet/i.test(String(err.message||''))||!err.code;
+}
+async function _rdInsertarSeguro(tabla,payload){
+  let ultimo=null;
+  for(let i=0;i<3;i++){
+    if(i){ _rdPubCargando('la conexión está lenta, reintentando ('+(i+1)+' de 3)…'); await new Promise(r=>setTimeout(r,1500*i)); }
+    const r=await _rdConPlazo(s=>(_supaWrite||_supa).from(tabla).insert(payload).abortSignal(s),25000);
+    if(!r.error) return null;
+    // un intento anterior sí llegó (se cortó la respuesta, no el envío): mismo id ya guardado
+    if(r.error.code==='23505'&&String(r.error.message||'').indexOf(tabla+'_pkey')!==-1) return null;
+    ultimo=r.error;
+    if(!_rdEsErrorDeRed(r.error)) return r.error;
+  }
+  return ultimo;
+}
+function _rdPubErrorAmigable(err){
+  const m=String((err&&err.message)||err||'');
+  if(_rdEsErrorDeRed(err)) return new Error('se cortó la conexión y tu publicación NO llegó a Ruedda. Revisa tu internet y toca reintentar.');
+  if(err&&err.code==='23503'&&/user/i.test(m)) return new Error('tu perfil no está completo, por eso Ruedda no pudo recibir la publicación. Cierra sesión, vuelve a entrar y completa tus datos.');
+  if(err&&(err.code==='42501'||/row-level security|permission denied/i.test(m))) return new Error('Ruedda no aceptó la publicación porque tu sesión venció. Cierra sesión, vuelve a entrar y toca publicar (no se te cobra de nuevo).');
+  return new Error('tu publicación NO se envió: '+m);
+}
+async function _rdSubirUno(bucket,file,path,opciones,tabla,filaFn,st,k){
+  for(let a=0;a<3;a++){
+    try{
+      if(a) await new Promise(r=>setTimeout(r,1200*a));
+      if(st[k]!=='subida'&&st[k]!=='ok'){
+        const up=await Promise.race([
+          _supa.storage.from(bucket).upload(path,file,opciones),
+          new Promise(r=>setTimeout(()=>r({error:{message:'tiempo agotado'}}),120000))
+        ]);
+        if(up&&up.error){ console.warn('[ruedda] subir',bucket,k,'intento',a+1,up.error.message); continue; }
+        st[k]='subida';
+      }
+      if(st[k]!=='ok'){
+        const{data:{publicUrl}}=_supa.storage.from(bucket).getPublicUrl(path);
+        const ins=await _rdConPlazo(s=>(_supaWrite||_supa).from(tabla).insert(filaFn(publicUrl)).abortSignal(s),20000);
+        if(ins.error){ console.warn('[ruedda] fila',tabla,k,'intento',a+1,ins.error.message); continue; }
+        st[k]='ok';
+      }
+      return true;
+    }catch(e){ console.warn('[ruedda] subir',bucket,k,'catch:',e&&e.message); }
+  }
+  return false;
+}
+function _rdPubOverlay(){
+  let o=document.getElementById('rd-pub-overlay');
+  if(o) return o;
+  if(!document.getElementById('rd-pub-style')){
+    const s=document.createElement('style'); s.id='rd-pub-style';
+    s.textContent='#rd-pub-overlay{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);font-family:var(--font)}'
+      +'#rd-pub-overlay .rp-box{width:100%;max-width:320px;display:flex;flex-direction:column;align-items:center;text-align:center;color:#fff}'
+      +'#rd-pub-overlay .rp-spin{width:44px;height:44px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:#e6f03b;animation:rpSpin .8s linear infinite;margin-bottom:22px}'
+      +'@keyframes rpSpin{to{transform:rotate(360deg)}}'
+      +'#rd-pub-overlay .rp-t{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.2}'
+      +'#rd-pub-overlay .rp-s{font-size:13.5px;line-height:1.45;opacity:.72;margin-top:8px}'
+      +'#rd-pub-overlay .rp-x{width:44px;height:44px;border-radius:50%;background:#FA243C;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;margin-bottom:20px}'
+      +'#rd-pub-overlay .rp-b{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:24px}'
+      +'#rd-pub-overlay button{border:none;border-radius:14px;padding:14px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer}'
+      +'#rd-pub-overlay .rp-ok{background:#e6f03b;color:#000}#rd-pub-overlay .rp-no{background:rgba(255,255,255,.12);color:#fff}';
+    document.head.appendChild(s);
+  }
+  o=document.createElement('div'); o.id='rd-pub-overlay';
+  document.body.appendChild(o);
+  return o;
+}
+function _rdPubCargando(txt){
+  const o=_rdPubOverlay();
+  o.innerHTML='<div class="rp-box"><div class="rp-spin"></div><div class="rp-t">enviando a revisión</div><div class="rp-s" id="rd-pub-txt"></div><div class="rp-s" style="font-size:12px;opacity:.5;margin-top:14px">no cierres la app hasta que termine</div></div>';
+  document.getElementById('rd-pub-txt').textContent=txt||'';
+}
+function _rdPubCerrar(){ const o=document.getElementById('rd-pub-overlay'); if(o) o.remove(); }
+function _rdPubError(msg,opts){
+  const o=_rdPubOverlay();
+  o.innerHTML='<div class="rp-box"><div class="rp-x">!</div><div class="rp-t">no se pudo enviar</div><div class="rp-s" id="rd-pub-txt"></div><div class="rp-b"><button class="rp-ok" id="rd-pub-re">reintentar</button><button class="rp-no" id="rd-pub-cerrar">volver al formulario</button></div></div>';
+  document.getElementById('rd-pub-txt').textContent=msg;
+  document.getElementById('rd-pub-re').onclick=()=>publishListing(opts||{});
+  document.getElementById('rd-pub-cerrar').onclick=_rdPubCerrar;
+}
+
 async function publishListing(opts){
   opts=opts||{};
   closeCheckout();
@@ -11811,11 +11901,13 @@ async function publishListing(opts){
   }
   if(!_supa){
     // [2026-10-15] antes decía "enviada para revisión ✓" sin guardar nada: la publicación se perdía
-    showToast('no hay conexión con Ruedda: tu publicación NO se envió. Revisa tu internet y toca publicar otra vez.');
-    return;
+    _rdPubError('no hay conexión con Ruedda: tu publicación NO se envió. Revisa tu internet y toca reintentar.',opts);
+    return false;
   }
   const btn=document.getElementById('btn-submit-vender');
+  const btnTxt=(btn&&btn.textContent!=='enviando...')?btn.textContent:'enviar a revisión';
   if(btn){btn.textContent='enviando...';btn.disabled=true;}
+  _rdPubCargando('enviando tu publicación…');
   try{
     // ── getSession con autoRefreshToken:true — sin refresh forzado (causa latencia) ──
     const{data:{session}}=await _supa.auth.getSession();
@@ -11829,7 +11921,13 @@ async function publishListing(opts){
     const tabla = esListing ? 'listings' : 'auctions';
     const _esBinance = (window._pendingPaymentRef||'').startsWith('BNB-');
     const estadoInicial = _esBinance ? 'pendiente_pago' : 'revision';
-    const recordId = crypto.randomUUID();
+    // mismo borrador = mismo id: si se reintenta tras un corte no se duplica la publicación
+    const _sig=[tabla,userId,titulo,precioFijo,precioBase,ciudad].join('|');
+    let _dr=window._rdPubDraft;
+    if(!_dr||(_dr.insertado&&_dr.sig!==_sig)) _dr=window._rdPubDraft={id:crypto.randomUUID(),fotos:{},videos:{},docs:{}};
+    _dr.sig=_sig;
+    if(opts.despues) _dr.despues=opts.despues;
+    const recordId=_dr.id;
     const endTime = (!esListing)
       ? (esProgramada&&fechaInicioProgramada ? new Date(fechaInicioProgramada.getTime()+duracion*86400000).toISOString() : new Date(Date.now()+duracion*86400000).toISOString())
       : null;
@@ -11843,30 +11941,43 @@ async function publishListing(opts){
       ? {...payloadBase, concesionario_id:concesionarioId, financiamiento_disponible:ofreceFinanciamiento, financiamiento_detalle:detalleFinanciamiento||null}
       : {...payloadBase, tipo, sin_reserva:precioRes===0&&(tipo==='subasta'||tipo==='chocado'), duracion_dias:duracion, end_time:endTime, precio_reserva:precioRes||null, current_bid:precioBase||0, access_code:(typeof _genAccessCode==='function'?_genAccessCode():null), es_programada:esProgramada, fecha_inicio_programada:(esProgramada&&fechaInicioProgramada)?fechaInicioProgramada.toISOString():null};
     if(window._DEBUG) console.log('[ruedda publish] tabla:', tabla, '| payload:', JSON.stringify(payload));
-    let{error}=await (_supaWrite||_supa).from(tabla).insert(payload);
+    let error=_dr.insertado?null:await _rdInsertarSeguro(tabla,payload);
     // [defensivo] si financiamiento_disponible/financiamiento_detalle todavía no
     // existen en Supabase, no bloquea la publicación entera — reintenta sin esos
     // 2 campos. Corriendo la migración de esas columnas, esto deja de activarse solo.
     if(error && esListing && /financiamiento/i.test(String(error?.message||''))){
       console.warn('[ruedda publish] columnas de financiamiento aún no existen en Supabase — publicando sin ese dato:', error.message);
       const{financiamiento_disponible,financiamiento_detalle,...payloadSinFinanciamiento}=payload;
-      ({error}=await (_supaWrite||_supa).from(tabla).insert(payloadSinFinanciamiento));
+      error=await _rdInsertarSeguro(tabla,payloadSinFinanciamiento);
     }
     if(error) console.error('[ruedda publish] insert error:', error);
-    if(error) throw new Error(error.message);
-    // operaciones post-insert aisladas — si fallan NO matan el publish ni bloquean el splash
+    if(error) throw _rdPubErrorAmigable(error);
+    _dr.insertado=true;
+    // fotos, videos y documentos se suben ANTES del splash (antes iban en segundo plano y se perdían si se cortaba)
+    const _faltan=[];
+    const _rF=await _uploadVenderPhotos(recordId,userId,esListing,_dr);
+    if(_rF&&_rF.fallas) _faltan.push(_rF.fallas===1?'1 foto':_rF.fallas+' fotos');
+    if(videoItems.length){ const r=await _uploadVenderVideos(recordId,userId,esListing,_dr); if(r&&r.fallas) _faltan.push(r.fallas===1?'1 video':r.fallas+' videos'); }
+    if(docItems.length){ const r=await _uploadVenderDocs(recordId,userId,esListing,_dr); if(r&&r.fallas) _faltan.push(r.fallas===1?'1 documento':r.fallas+' documentos'); }
+    if(window._pendingPaymentRef){
+      const refField = esListing ? 'listing_id' : 'auction_id';
+      const rp=await _rdConPlazo(s=>_supa.from('payment_refs').update({[refField]:recordId}).eq('ref_num',window._pendingPaymentRef).abortSignal(s),20000);
+      if(rp.error) _faltan.push('el comprobante de pago');
+      else window._pendingPaymentRef=null;
+    }
+    _rdPubCargando('confirmando que llegó a Ruedda…');
+    const _chk=await _rdConPlazo(s=>(_supaWrite||_supa).from(tabla).select('id').eq('id',recordId).abortSignal(s).maybeSingle(),15000);
+    if(_chk.error||!_chk.data) throw new Error('no pudimos confirmar que tu publicación llegó a Ruedda. Revisa tu internet y toca reintentar (no se duplica).');
+    if(_faltan.length) throw new Error('tu publicación ya está en revisión, pero faltan '+_faltan.join(' y ')+' por subir. Revisa tu internet y toca reintentar (lo que ya subió no se repite).');
     Promise.allSettled([
-      window._venderPhotos?.length ? _uploadVenderPhotos(recordId,userId,esListing) : Promise.resolve(),
-      videoItems.length ? _uploadVenderVideos(recordId,userId,esListing) : Promise.resolve(),
-      docItems.length ? _uploadVenderDocs(recordId,userId,esListing) : Promise.resolve(),
-      window._pendingPaymentRef ? (async()=>{
-        const refField = esListing ? 'listing_id' : 'auction_id';
-        await _supa.from('payment_refs').update({[refField]:recordId}).eq('ref_num',window._pendingPaymentRef);
-        window._pendingPaymentRef=null;
-      })() : Promise.resolve(),
       (_supaWrite||_supa).from('notifications').insert({user_id:userId,tipo:'system',titulo:'publicación en revisión',body:`Tu ${year} ${marca} ${modelo} está en revisión. Te notificaremos cuando sea aprobado.`,icon:'lime'}),
       _pjTriggerValuation(recordId, esListing?'listing':'auction', {marca:marcaCanonica||marca, modelo:modeloCanonico||modelo, version:versionCanonica||version, year, km, precio: esListing?precioFijo:precioBase})
     ]).then(null,e=>console.warn('[ruedda] post-insert:',e?.message));
+    const _despues=_dr.despues;
+    window._rdPubDraft=null;
+    _rdPubCerrar();
+    // ya llegó: si limpiar el formulario falla no puede convertirse en "no se pudo enviar"
+    try{
     showDealerFab(false);
     window._venderPhotos=[];
     photoItems=[];
@@ -11892,56 +12003,59 @@ async function publishListing(opts){
       videoGrid.innerHTML='';
       if(vAddBtn){vAddBtn.style.display='flex';videoGrid.appendChild(vAddBtn);}
     }
+    }catch(_e){ console.warn('[ruedda] limpiar formulario:',_e&&_e.message); }
     if(!opts.skipSplash) _showPublicacionRevisionSplash(isConcesionario()||USER_STATE.role==='concesionario');
+    if(_despues) _despues();
+    return true;
   }catch(e){
     console.error('[ruedda publish] ERROR COMPLETO:',e);
     console.error('[ruedda publish] user:', window._rueddaUser);
     console.error('[ruedda publish] _supa:', !!_supa);
-    showToast('error: '+( e?.message||JSON.stringify(e)||'desconocido'));
+    _rdPubError(e?.message||'error desconocido — toca reintentar',opts);
+    return false;
   }finally{
-    if(btn){btn.textContent='publicar';btn.disabled=false;}
+    if(btn){btn.textContent=btnTxt;btn.disabled=false;}
   }
 }
 
 // [RC V5] documentos del vehículo (opcional) — quedan "pendiente" hasta que SuperAdmin apruebe o niegue
-async function _uploadVenderDocs(recordId,userId,isListing=false){
-  if(!_supa||!docItems.length) return;
+async function _uploadVenderDocs(recordId,userId,isListing=false,dr){
+  if(!_supa||!docItems.length) return {fallas:0};
   const itemType=isListing?'market':'subasta';
+  const st=(dr&&dr.docs)||{}; st.rutas=st.rutas||{};
+  let fallas=0;
   for(let i=0;i<docItems.length;i++){
     const item=docItems[i];
     const file=item?.file;
-    if(!file) continue;
+    if(!file||st[i]==='ok') continue;
+    _rdPubCargando('subiendo documento '+(i+1)+' de '+docItems.length+'…');
     const ext=(file.name||'doc').split('.').pop()||'doc';
-    const path=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`;
-    try{
-      const{error}=await _supa.storage.from('vehicle-documents').upload(path,file,{upsert:true,cacheControl:'31536000'});
-      if(error){console.error('[ruedda] doc upload',i,error.message);continue;}
-      const{data:{publicUrl}}=_supa.storage.from('vehicle-documents').getPublicUrl(path);
-      await (_supaWrite||_supa).from('vehicle_documents').insert({item_id:recordId,item_type:itemType,user_id:userId,file_url:publicUrl,file_name:file.name||'',estado:'pendiente'});
-    }catch(e){console.error('[ruedda] doc',i,'catch:',e.message);}
+    const path=st.rutas[i]||(st.rutas[i]=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`);
+    const ok=await _rdSubirUno('vehicle-documents',file,path,{upsert:true,cacheControl:'31536000'},'vehicle_documents',url=>({item_id:recordId,item_type:itemType,user_id:userId,file_url:url,file_name:file.name||'',estado:'pendiente'}),st,i);
+    if(!ok) fallas++;
   }
-  console.log('[ruedda] documentos subidos:',docItems.length);
+  console.log('[ruedda] documentos:',docItems.length,'fallas:',fallas);
+  return {fallas};
 }
 
-async function _uploadVenderVideos(recordId,userId,isListing=false){
-  if(!_supa||!videoItems.length) return;
+async function _uploadVenderVideos(recordId,userId,isListing=false,dr){
+  if(!_supa||!videoItems.length) return {fallas:0};
   const videoTable=isListing?'listing_videos':'auction_videos';
+  const st=(dr&&dr.videos)||{}; st.rutas=st.rutas||{};
+  let fallas=0;
   // upload secuencial — los videos pesan mucho, evitar saturar la conexión con paralelo
   for(let i=0;i<videoItems.length;i++){
     const item=videoItems[i];
     const file=item?.file;
-    if(!file) continue;
+    if(!file||st[i]==='ok') continue;
+    _rdPubCargando('subiendo video '+(i+1)+' de '+videoItems.length+'…');
     const ext=(file.name||'mp4').split('.').pop()||'mp4';
-    const path=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`;
-    try{
-      const{error}=await _supa.storage.from('car-videos').upload(path,file,{upsert:true,cacheControl:'31536000'});
-      if(error){console.error('[ruedda] video upload',i,error.message);continue;}
-      const{data:{publicUrl}}=_supa.storage.from('car-videos').getPublicUrl(path);
-      const videoPayload=isListing?{listing_id:recordId,url:publicUrl,orden:i}:{auction_id:recordId,url:publicUrl,orden:i};
-      await (_supaWrite||_supa).from(videoTable).insert(videoPayload);
-    }catch(e){console.error('[ruedda] video',i,'catch:',e.message);}
+    const path=st.rutas[i]||(st.rutas[i]=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`);
+    const ok=await _rdSubirUno('car-videos',file,path,{upsert:true,cacheControl:'31536000'},videoTable,url=>(isListing?{listing_id:recordId,url,orden:i}:{auction_id:recordId,url,orden:i}),st,i);
+    if(!ok) fallas++;
   }
-  console.log('[ruedda] videos subidos:',videoItems.length);
+  console.log('[ruedda] videos:',videoItems.length,'fallas:',fallas);
+  return {fallas};
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -12108,8 +12222,8 @@ function _rdWarmFeedImages(){  if(window._rdWarmed) return;
   }catch(e){}
 }
 
-async function _uploadVenderPhotos(recordId,userId,isListing=false){
-  if(!_supa) return;
+async function _uploadVenderPhotos(recordId,userId,isListing=false,dr){
+  if(!_supa) return {fallas:0};
   // fuente de verdad: photoItems (UI) con fallback a _venderPhotos
   const files=photoItems.length>0
     ? await Promise.all(photoItems.map(item=>{
@@ -12119,23 +12233,22 @@ async function _uploadVenderPhotos(recordId,userId,isListing=false){
         return fetch(item.src).then(r=>r.blob()).then(b=>new File([b],item.name||'foto.jpg',{type:b.type||'image/jpeg'}));
       }))
     : (window._venderPhotos||[]);
-  if(!files.length) return;
+  if(!files.length) return {fallas:0};
   const photoTable=isListing?'listing_photos':'auction_photos';
+  const st=(dr&&dr.fotos)||{}; st.rutas=st.rutas||{};
+  let fallas=0;
   // upload secuencial para evitar colisiones de timestamp
   for(let i=0;i<files.length;i++){
     const file=files[i];
-    if(!file) continue;
+    if(!file||st[i]==='ok') continue;
+    _rdPubCargando('subiendo foto '+(i+1)+' de '+files.length+'…');
     const ext=(file.name||'jpg').split('.').pop()||'jpg';
-    const path=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`;
-    try{
-      const{data,error}=await _supa.storage.from('car-photos').upload(path,file,{upsert:true,cacheControl:'31536000'});
-      if(error){console.error('[ruedda] foto upload',i,error.message);continue;}
-      const{data:{publicUrl}}=_supa.storage.from('car-photos').getPublicUrl(path);
-      const photoPayload=isListing?{listing_id:recordId,url:publicUrl,orden:i}:{auction_id:recordId,url:publicUrl,orden:i};
-      await (_supaWrite||_supa).from(photoTable).insert(photoPayload);
-    }catch(e){console.error('[ruedda] foto',i,'catch:',e.message);}
+    const path=st.rutas[i]||(st.rutas[i]=`${userId}/${recordId}/${i}_${Date.now()}.${ext}`);
+    const ok=await _rdSubirUno('car-photos',file,path,{upsert:true,cacheControl:'31536000'},photoTable,url=>(isListing?{listing_id:recordId,url,orden:i}:{auction_id:recordId,url,orden:i}),st,i);
+    if(!ok) fallas++;
   }
-  console.log('[ruedda] fotos subidas:',files.length);
+  console.log('[ruedda] fotos:',files.length,'fallas:',fallas);
+  return {fallas};
 }
 
 function validateForm(){ return true; } // full validation on Supabase integration
@@ -16324,6 +16437,7 @@ function logOut(){
     USER_STATE.dealerActive=false;USER_STATE.dealerExpiry=null;
     USER_STATE.concesionarioId=null;
     Object.keys(PAID_TYPES).forEach(k=>delete PAID_TYPES[k]);
+    window._rdPubDraft=null;
     // purgar notificaciones en memoria (las del usuario anterior) + acceso a subastas
     NOTIFICATIONS.length=0;
     window._auctionAccessGranted={};
