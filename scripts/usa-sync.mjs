@@ -6,11 +6,12 @@ const SUPA = 'https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1';
 const KEY = process.env.APIBARA_KEY, SK = process.env.SUPABASE_SERVICE_KEY;
 if (!KEY || !SK) { console.error('faltan APIBARA_KEY o SUPABASE_SERVICE_KEY'); process.exit(1); }
 
-const hoy = new Date().toISOString().slice(0, 10);
+// las filas de lujo y comprar ya traen lotes que cierran desde mañana: así la sección no queda vacía en la tarde
+const manana = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
 // filas de la sección (orden = como salen en la app). Para cambiarlas: editar aquí.
 const FILAS = [
-  { k: 'lujo', t: 'Superdeportivos y lujo', q: { price_min: 25000, auction_date_from: hoy } },
-  { k: 'comprar', t: 'Comprar ya', q: { lot_status: 'Buy Now', auction_date_from: hoy } },
+  { k: 'lujo', t: 'Superdeportivos y lujo', q: { price_min: 25000, auction_date_from: manana } },
+  { k: 'comprar', t: 'Comprar ya', q: { lot_status: 'Buy Now', auction_date_from: manana } },
   { k: 'hoy', t: 'Cierran hoy', q: { today_only: true } }
 ];
 
