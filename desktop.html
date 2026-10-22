@@ -8939,7 +8939,7 @@ function _rdUsersPaint(users,emptyMsg){
   const seal='<svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg>';
   list.innerHTML=users.map((u,i)=>{
     const nm=u.nombre||u.username||'usuario';
-    const av=u.avatar_url?`<img src="${_tImg(u.avatar_url,{width:96,quality:70})}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">`:_esc(nm).charAt(0).toUpperCase();
+    const av=u.avatar_url?`<img src="${_tImg(u.avatar_url,{width:240,quality:82})}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">`:_esc(nm).charAt(0).toUpperCase();
     return `<div class="rd-us-row" onclick="_rdUsersSheetClose();openUserProfile('${u.id}')" style="display:flex;align-items:center;gap:12px;padding:10px 4px;cursor:pointer;animation-delay:${Math.min(i,12)*28}ms">
       <div style="width:42px;height:42px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;overflow:hidden;flex-shrink:0">${av}</div>
       <div style="min-width:0;flex:1">
@@ -16690,16 +16690,33 @@ function handleAvatarUpload(input){
   reader.onload=()=>{
     const img=new Image();
     img.onload=async()=>{
-      const cv=document.createElement('canvas');
-      const S=128, m=Math.min(img.width,img.height);
-      cv.width=S;cv.height=S;
-      cv.getContext('2d').drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,S,S);
-      const dataUrl=cv.toDataURL('image/jpeg',.82);
-      USER_STATE.avatar=dataUrl;
-      _paintAvatar(dataUrl);
+      // [2026-10-22] antes se guardaba a 128 px en base64: en pantallas 3x se veía borrosa/pixelada.
+      // Ahora 720 px, subida a Storage (users.avatar_url = URL pública, y así _tImg puede servir
+      // cada tamaño). Si la subida falla, queda en base64 a 384 px, nítida hasta ~128 pt.
+      const crop=S=>{
+        const cv=document.createElement('canvas'), m=Math.min(img.width,img.height), s=Math.min(S,m);
+        cv.width=s;cv.height=s;
+        const cx=cv.getContext('2d'); cx.imageSmoothingEnabled=true; cx.imageSmoothingQuality='high';
+        cx.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,s,s);
+        return cv;
+      };
+      const big=crop(720);
+      const preview=big.toDataURL('image/jpeg',.9);
+      USER_STATE.avatar=preview;
+      _paintAvatar(preview);
       showToast('foto actualizada',true);
       if(_supa&&USER_STATE.id){
-        const{error}=await _supa.from('users').update({avatar_url:dataUrl}).eq('id',USER_STATE.id);
+        let url='';
+        try{
+          const blob=await new Promise(r=>big.toBlob(r,'image/jpeg',.9));
+          const path=`${USER_STATE.id}/avatar/${Date.now()}.jpg`;
+          const{error:upErr}=await _supa.storage.from('garage-photos').upload(path,blob,{upsert:false,contentType:'image/jpeg',cacheControl:'31536000'});
+          if(!upErr) url=_supa.storage.from('garage-photos').getPublicUrl(path).data.publicUrl;
+          else console.warn('[avatar upload]',upErr.message);
+        }catch(e){ console.warn('[avatar upload]',e.message); }
+        if(!url) url=crop(384).toDataURL('image/jpeg',.88);
+        USER_STATE.avatar=url;
+        const{error}=await _supa.from('users').update({avatar_url:url}).eq('id',USER_STATE.id);
         if(error){console.warn('[avatar]',error.message);showToast('la foto no se pudo guardar: '+error.message);}
       }
     };
@@ -18669,7 +18686,7 @@ async function _rdRvLoad(){
   const um={}; (us||[]).forEach(u=>um[u.id]=u);
   list.innerHTML=rows.map((x,i)=>{
     const u=um[x.rater_id]||{}; const nm=u.nombre||u.username||'usuario';
-    const av=u.avatar_url?`<img src="${_tImg(u.avatar_url,{width:80,quality:70})}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">`:_esc(nm).charAt(0).toUpperCase();
+    const av=u.avatar_url?`<img src="${_tImg(u.avatar_url,{width:240,quality:82})}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">`:_esc(nm).charAt(0).toUpperCase();
     const when=new Date(x.updated_at||x.created_at).toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'numeric'});
     return `<div class="rd-rv" style="display:flex;gap:12px;padding:12px 2px;border-top:1px solid var(--w6);animation-delay:${Math.min(i,12)*28}ms">
       <div onclick="document.getElementById('rd-reviews-sheet').classList.remove('open');openUserProfile('${x.rater_id}')" style="width:36px;height:36px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;overflow:hidden;flex-shrink:0;cursor:pointer">${av}</div>

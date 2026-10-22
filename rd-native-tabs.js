@@ -110,7 +110,7 @@
         var dealer = !!(t.otherIsDealer || t.otherRole === 'concesionario' || t.otherRole === 'consesionario');
         var nm = t.isPM ? (t.otherName || 'usuario') : (((t.participants || []).find(function (p) { return !p.isSeller; }) || {}).user || 'usuario');
         var txt = m ? String(m.text || '').replace(/\n?\[\[rdpost:[\w-]+\]\]/g, ' · publicación').replace(/\s+/g, ' ').trim() : '';
-        return { id: String(t.id), name: nm, av: img(t.otherAvatar, 120), dealer: dealer, kyc: !!t.otherKyc,
+        return { id: String(t.id), name: nm, av: img(t.otherAvatar, 240), dealer: dealer, kyc: !!t.otherKyc,
           title: t.sourceTitle || t.carTitle || '', text: txt, mine: !!(m && (m.mine || m.sender_id === (USER_STATE && USER_STATE.id))),
           at: (m && (m.created_at || '')) || '', time: (m && m.time) || '', unread: !!t.unread };
       });
