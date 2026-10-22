@@ -978,9 +978,11 @@ async function modDetail(id){
 }
 async function modAct(id,action,btn){
   const x=(window._MOD||[]).find(i=>i.id===id); if(!x) return;
-  if(action==='rechazar'&&!confirm('¿Rechazar esta publicación? Se le notificará al vendedor.')) return;
+  // [2026-10-22] rechazar pide el motivo: le llega al vendedor como mensaje del equipo Ruedda
+  let motivo='';
+  if(action==='rechazar'){ motivo=(prompt('Motivo del rechazo (lo verá el vendedor como mensaje del equipo Ruedda):','')||'').trim(); if(!motivo) return; }
   if(btn){btn.disabled=true;}
-  try{ await api('/api/mod-listing',{item_id:id,item_type:x._t,action}); toast(action==='aprobar'?'publicación aprobada y activa':'publicación rechazada'); closeModal(); }
+  try{ await api('/api/mod-listing',{item_id:id,item_type:x._t,action,motivo}); toast(action==='aprobar'?'publicación aprobada y activa':'publicación rechazada'); closeModal(); }
   catch(e){ if(/estado actual/i.test(e.message)) toast('ya estaba '+(action==='aprobar'?'activa':'rechazada')); else { toast('error: '+e.message,true); if(btn) btn.disabled=false; return; } }
   refreshBadges(); RENDER.moderacion(VIEW_TOKEN,[],true);
 }

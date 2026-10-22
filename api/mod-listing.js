@@ -1166,7 +1166,7 @@ const ADMIN_PANEL_HTML_DESKTOP = `  <div class="detail-back" onclick="showView('
 
 // aviso en la app + correo al dueño (best-effort): lo usan la moderación manual
 // y la auto-aprobación de los 20 minutos
-async function notifyOwner(item, action) {
+async function notifyOwner(item, action, motivo) {
   if (item.user_id) {
     const label = [item.year, item.marca, item.modelo].filter(Boolean).join(' ');
     // [fix 2026-10-04] el builder de supabase-js no tiene .catch(): llamar .insert(...).catch()
@@ -1178,8 +1178,11 @@ async function notifyOwner(item, action) {
         titulo: action === 'aprobar' ? '¡Publicación aprobada!' : 'Publicación rechazada',
         body: action === 'aprobar'
           ? `Tu ${label} ya está activa en Ruedda.`
-          : 'Tu publicación no cumplió los estándares de Ruedda. Contáctanos por soporte.',
-        icon: action === 'aprobar' ? 'lime' : ''
+          : (motivo ? `Motivo: ${motivo}` : 'Tu publicación no cumplió los estándares de Ruedda. Contáctanos por soporte.'),
+        icon: action === 'aprobar' ? 'lime' : '',
+        // [2026-10-22] el motivo del rechazo viaja en el body de la notificación: la app lo
+        // muestra en "ver motivo" (notificaciones y mis publicaciones) buscando source_type 'rechazo'
+        ...(action === 'aprobar' ? {} : { source_id: String(item.id), source_type: 'rechazo' })
       });
       if (notifErr) console.error('[ruedda mod-listing] notif:', notifErr.message);
     } catch (e) { console.error('[ruedda mod-listing] notif:', e.message); }
@@ -1202,7 +1205,9 @@ async function notifyOwner(item, action) {
           sendEmail({
             to: data.email,
             subject: 'Tu publicación no fue aprobada',
-            html: layout('Publicación rechazada', `Tu ${label || 'publicación'} no cumplió los estándares de Ruedda. Contáctanos por soporte si tienes dudas.`)
+            html: layout('Publicación rechazada', motivo
+              ? `Tu ${label || 'publicación'} no fue aprobada. Mensaje del equipo Ruedda: «${String(motivo).replace(/[<>&]/g, '')}». Puedes corregirla y volver a publicarla.`
+              : `Tu ${label || 'publicación'} no cumplió los estándares de Ruedda. Contáctanos por soporte si tienes dudas.`)
           });
         }
       })
@@ -1278,6 +1283,7 @@ module.exports = async function handler(req, res) {
       return res.status(400).json({ error: 'parámetros inválidos' });
     }
 
+    const motivo = action === 'rechazar' && typeof body.motivo === 'string' ? body.motivo.replace(/[<>]/g, '').trim().slice(0, 500) : '';
     const tabla = item_type === 'listing' ? 'listings' : 'auctions';
     const nuevoEstado = action === 'aprobar' ? 'activa' : 'rechazada';
 
@@ -1307,7 +1313,7 @@ module.exports = async function handler(req, res) {
     }
 
     // 4. Notificar al usuario (best-effort)
-    await notifyOwner(item, action);
+    await notifyOwner(item, action, motivo);
 
     return res.status(200).json({ ok: true, estado: nuevoEstado });
 

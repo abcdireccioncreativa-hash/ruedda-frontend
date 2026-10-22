@@ -15904,12 +15904,15 @@ async function modApprove(id){
 
 async function modReject(id){
   if(_modActionInFlight.has(id))return;
+  // [2026-10-22] rechazar pide el motivo: le llega al vendedor como mensaje del equipo Ruedda
+  let motivo=prompt('Motivo del rechazo (lo verá el vendedor como mensaje del equipo Ruedda):','');
+  motivo=(motivo||'').trim(); if(!motivo){ if(motivo!==null) showToast('escribe el motivo'); return; }
   _modActionInFlight.add(id);
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
   const item=(window._modQueueData||[]).find(x=>x.id===id);
   const itemType=item?._table==='listings'?'listing':'auction';
   try{
-    await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'rechazar'});
+    await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'rechazar',motivo});
     showToast('publicación rechazada');
   }catch(e){
     console.error('[ruedda modReject]',e.message);

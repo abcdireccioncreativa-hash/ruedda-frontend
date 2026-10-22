@@ -2945,6 +2945,28 @@ html[data-theme="light"] #notif-list .notif-item .rdc-dot{box-shadow:0 0 0 1px r
 #view-ruedda-extra.rx-anim .rx-menu>:nth-child(11){animation-delay:0.545s}
 #view-ruedda-extra.rx-anim .rx-menu>:nth-child(12){animation-delay:0.590s}
 @media (prefers-reduced-motion: reduce){#view-ruedda-extra.rx-anim .rx-hdr .rx-logo,#view-ruedda-extra.rx-anim .rx-menu>*{animation:none}}
+.rd-mt-ov{position:fixed;inset:0;z-index:10050;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0);transition:background .26s}
+.rd-mt-ov.on{background:rgba(0,0,0,.5)}
+.rd-mt{width:100%;max-width:520px;box-sizing:border-box;margin:0 8px calc(8px + env(safe-area-inset-bottom));padding:22px 20px 18px;border-radius:32px;background:rgba(20,20,20,.97);-webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);border:.5px solid var(--w10);box-shadow:inset 0 1px 0 var(--w10),0 20px 60px rgba(0,0,0,.4);color:var(--white);font-family:var(--font);transform:translateY(110%);transition:transform .34s cubic-bezier(.32,.72,0,1)}
+.rd-mt-ov.on .rd-mt{transform:none}
+html[data-theme="light"] .rd-mt{background:rgba(255,255,255,.98)}
+.rd-mt-k{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+.rd-mt-t{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-top:6px}
+.rd-mt-s{font-size:13.5px;color:var(--w50);margin-top:4px}
+.rd-mt-chips{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0 12px}
+.rd-mt-chips button{border:.5px solid var(--w12);background:var(--w5);color:var(--white);border-radius:100px;padding:8px 12px;font:600 12.5px var(--font);cursor:pointer}
+.rd-mt-chips button:active{transform:scale(.96)}
+.rd-mt textarea{width:100%;box-sizing:border-box;min-height:84px;resize:none;border-radius:16px;border:.5px solid var(--w12);background:var(--w4);color:var(--white);font:400 15px/1.4 var(--font);padding:12px 14px;outline:none}
+.rd-mt textarea.err{border-color:rgba(255,90,80,.7)}
+.rd-mt-row{display:flex;gap:8px;margin-top:14px}
+.rd-mt-row button{flex:1;height:50px;border-radius:25px;border:none;font:700 15px var(--font);cursor:pointer}
+.rd-mt-no{background:var(--w8);color:var(--white)}
+.rd-mt-go{background:var(--white);color:var(--bg)}
+.rd-mt-from{display:flex;align-items:center;gap:12px;margin-top:16px}
+.rd-mt-from b{display:block;font-size:15px}.rd-mt-from span{font-size:12px;color:var(--muted)}
+.rd-mt-iso{width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;flex-shrink:0}
+.rd-mt-iso img{width:20px;height:20px;object-fit:contain}
+.rd-mt-msg{margin-top:14px;padding:14px 16px;border-radius:18px 18px 18px 6px;background:var(--w6);font-size:15px;line-height:1.45;white-space:pre-wrap}
 @keyframes rdcIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
 #view-notificaciones.rdc-anim #mensajes-list>*,#view-notificaciones.rdc-anim #notif-list>*{animation:rdcIn .55s cubic-bezier(.22,.9,.3,1) both}
 #view-notificaciones.rdc-anim #mensajes-list>:nth-child(1),#view-notificaciones.rdc-anim #notif-list>:nth-child(1){animation-delay:0.000s}
@@ -11567,6 +11589,50 @@ function _shareUrlFor(type,id){
   const base='https://www.ruedda.app'; // en la app nativa el origin no es ruedda.app
   return `${base}/?${type}=${id}`;
 }
+
+// ── [2026-10-22] motivo de rechazo ────────────────────────────────────────
+// El admin lo escribe al rechazar (_rdAskMotivo); api/mod-listing lo guarda como body
+// ("Motivo: …") de la notificación source_type 'rechazo' del vendedor, y el vendedor lo
+// abre con "ver motivo" desde mis publicaciones o tocando esa notificación (_rdVerMotivo).
+function _rdMtSheet(html){
+  const ov=document.createElement('div'); ov.className='rd-mt-ov';
+  ov.innerHTML='<div class="rd-mt">'+html+'</div>';
+  const close=()=>{ ov.classList.remove('on'); setTimeout(()=>ov.remove(),260); };
+  ov.addEventListener('click',e=>{ if(e.target===ov) close(); });
+  document.body.appendChild(ov); requestAnimationFrame(()=>ov.classList.add('on'));
+  return {ov,close};
+}
+function _rdAskMotivo(){
+  return new Promise(res=>{
+    const R=['Fotos poco claras o insuficientes','Precio fuera de mercado','Datos del vehículo incompletos','Contenido no permitido','Publicación duplicada'];
+    const {ov,close}=_rdMtSheet(`<div class="rd-mt-k">rechazar publicación</div><div class="rd-mt-t">¿Por qué no se aprueba?</div>
+      <div class="rd-mt-s">El vendedor lo verá como mensaje del equipo Ruedda.</div>
+      <div class="rd-mt-chips">${R.map(r=>`<button type="button">${r}</button>`).join('')}</div>
+      <textarea maxlength="500" placeholder="Escribe el motivo…"></textarea>
+      <div class="rd-mt-row"><button type="button" class="rd-mt-no">cancelar</button><button type="button" class="rd-mt-go">rechazar</button></div>`);
+    const ta=ov.querySelector('textarea'); let done=false;
+    const fin=v=>{ if(done) return; done=true; close(); res(v); };
+    ov.querySelectorAll('.rd-mt-chips button').forEach(b=>b.onclick=()=>{ ta.value=b.textContent+'.'; ta.focus(); });
+    ov.querySelector('.rd-mt-no').onclick=()=>fin(null);
+    ov.querySelector('.rd-mt-go').onclick=()=>{ const v=ta.value.trim(); if(!v){ ta.focus(); ta.classList.add('err'); showToast('escribe el motivo'); return; } fin(v); };
+    ov.addEventListener('click',e=>{ if(e.target===ov) fin(null); });
+  });
+}
+async function _rdVerMotivo(id,body){
+  let txt=body||'';
+  if(!txt&&_supa&&USER_STATE.id){
+    try{ const{data}=await _supa.from('notifications').select('body').eq('user_id',USER_STATE.id).eq('source_type','rechazo').eq('source_id',String(id)).order('created_at',{ascending:false}).limit(1);
+      txt=(data&&data[0]&&data[0].body)||''; }catch(e){}
+  }
+  const has=/^motivo:/i.test(txt);
+  const m=has?txt.replace(/^motivo:\s*/i,''):'Tu publicación no cumplió los estándares de Ruedda. Escríbenos por soporte y te explicamos qué ajustar.';
+  const own=(typeof MOCK_MY_LISTINGS!=='undefined'?MOCK_MY_LISTINGS:[]).some(l=>String(l.id)===String(id));
+  const {ov,close}=_rdMtSheet(`<div class="rd-mt-k">publicación no aprobada</div>
+    <div class="rd-mt-from"><span class="rd-mt-iso"><img src="/assets/ruedda-iso-negro.png" alt=""></span><div><b>Equipo Ruedda</b><span>mensaje de moderación</span></div></div>
+    <div class="rd-mt-msg">${_esc(m)}</div>
+    <div class="rd-mt-row">${own?'<button type="button" class="rd-mt-no" data-a="edit">corregir publicación</button>':''}<button type="button" class="rd-mt-go" data-a="sup">hablar con soporte</button></div>`);
+  ov.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{ close(); setTimeout(()=>{ try{ if(b.dataset.a==='edit') openEditListingModal(String(id)); else showView('soporte-ruedda'); }catch(e){} },200); });
+}
 // [2026-10-22] botón compartir en cada publicación (subasta / market), a la altura de "volver":
 // la fila de "volver" pasa a ser .rd-dhead (volver a la izquierda, compartir a la derecha).
 function _rdSharePost(type){
@@ -12425,7 +12491,8 @@ function _notifClick(id){
   n.read=true;
   // navegar según tipo
   try{
-    if(n.type==='question'){
+    if((n.sourceType||n.source_type)==='rechazo'){ _rdVerMotivo(n.sourceId||n.source_id,n.body); }
+    else if(n.type==='question'){
       // [V107] si la notif trae fuente (comentario en mi publicación), abrir esa publicación
       if(n.source_id||n.sourceId){ _goToSource(String(n.source_id||n.sourceId),n.source_type||n.sourceType||'auction'); }
       else { openNotifThread(n.auction_id||n.auctionId||1); }
@@ -15071,7 +15138,9 @@ function _renderMisPubGrid(){
     if(isVendido&&l.type==='market'){
       // [2026-10-08] vendido por error → se puede volver a publicar (confirma antes)
       actionBtn=`<button onclick="event.stopPropagation();_desmarcarVendido('${l.id}')" style="flex:1;background:var(--lime);border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:var(--lime-ink);cursor:pointer">volver a publicar</button>`;
-    }else if(isVendido||isNegada||isAprobada){
+    }else if(isNegada){
+      actionBtn=`<button onclick="event.stopPropagation();_rdVerMotivo('${l.id}')" style="flex:1;background:rgba(255,70,70,.1);border:1px solid rgba(255,70,70,.28);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:#ff6b6b;cursor:pointer">ver motivo</button>`;
+    }else if(isVendido||isAprobada){
       // [V126] 'aprobada' es un estado histórico — con el flujo nuevo el admin
       // aprueba y la publicación queda 'activa' directo, sin paso "subir".
       actionBtn='';
@@ -17959,12 +18028,15 @@ async function modApprove(id){
 
 async function modReject(id){
   if(_modActionInFlight.has(id))return;
+  // [2026-10-22] rechazar pide el motivo: le llega al vendedor como "mensaje del equipo Ruedda"
+  const motivo=await _rdAskMotivo();
+  if(!motivo) return;
   _modActionInFlight.add(id);
   const m=document.getElementById('mod-review-modal');if(m)m.remove();
   const item=(window._modQueueData||[]).find(x=>x.id===id);
   const itemType=item?._table==='listings'?'listing':'auction';
   try{
-    await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'rechazar'});
+    await _apiPost('/api/mod-listing',{item_id:id,item_type:itemType,action:'rechazar',motivo});
     showToast('publicación rechazada');
   }catch(e){
     console.error('[ruedda modReject]',e.message);
