@@ -118,7 +118,9 @@
     },
     notifs: function () {
       if (guest()) return { logged: false, rows: [] };
-      return { logged: true, rows: (typeof NOTIFICATIONS !== 'undefined' ? NOTIFICATIONS : []).map(function (n) {
+      var fb = false;
+      try { fb = typeof _feedbackCardDismissed === 'function' && !_feedbackCardDismissed(); } catch (e) {}
+      return { logged: true, fb: fb, rows: (typeof NOTIFICATIONS !== 'undefined' ? NOTIFICATIONS : []).map(function (n) {
         return { id: String(n.id), title: String(n.title || ''), body: String(n.body || ''), time: String(n.time || ''), read: !!n.read, type: n.type || '', icon: n.icon || '' };
       }) };
     },
@@ -138,6 +140,9 @@
       try { _syncNotifBadge(); } catch (e) {}
       return true;
     },
+    // tarjeta fija de feedback (reportar un bug / calificar en la App Store)
+    feedback: function () { try { openFeedbackSheet(); } catch (e) {} return true; },
+    feedbackDismiss: function () { try { _dismissFeedbackCard(); } catch (e) {} return true; },
     readAll: function () { try { markAllRead(); } catch (e) {} try { _syncNotifBadge(); } catch (e) {} return true; },
     refresh: async function (kind) {
       try {
