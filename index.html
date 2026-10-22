@@ -2697,7 +2697,7 @@ function rdRegion(r){
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=4" defer></script>
 <script src="/rd-usa.js?v=5" defer></script>
-<script src="/rd-post.js?v=2" defer></script>
+<script src="/rd-post.js?v=3" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
 <script src="/rd-mark.js?v=2" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
@@ -2828,8 +2828,21 @@ html:not([data-theme="light"]) #cons-req-submit-btn{background:#fff!important;co
 #search-results{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -18px;padding:0 18px calc(40px + env(safe-area-inset-bottom))}
 #rd-search-more{height:1px}
 /* menú: foto de perfil arriba */
-#rd-drw-me{display:flex;align-items:center;gap:14px;padding:6px 0 22px;margin-bottom:10px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent}
+#rd-drw-me{display:flex;align-items:center;gap:14px;padding:6px 0 22px 2px;margin-bottom:10px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent}
 #rd-drw-me:active{opacity:.7}
+#rd-extra-door{position:relative;overflow:hidden;margin:0 16px 26px;border-radius:22px;min-height:188px;display:flex;align-items:flex-end;padding:22px;cursor:pointer;-webkit-tap-highlight-color:transparent;background:radial-gradient(120% 140% at 100% 0%,#2a2a2a 0%,#141414 46%,#0b0b0b 100%);border:1px solid rgba(255,255,255,.09);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:transform .18s cubic-bezier(.32,.72,0,1)}
+#rd-extra-door:active{transform:scale(.985)}
+#rd-extra-door .rxd-flag{position:absolute;right:-34px;top:-22px;width:210px;height:auto;filter:invert(1);opacity:.07;pointer-events:none}
+#rd-extra-door .rxd-copy{position:relative}
+#rd-extra-door .rxd-t{font-size:30px;font-weight:800;line-height:1.04;letter-spacing:-.9px;color:#f4f4f2}
+#rd-extra-door .rxd-s{margin-top:8px;font-size:13px;line-height:1.4;color:rgba(244,244,242,.6);max-width:250px}
+#rd-extra-door .rxd-b{margin-top:16px;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 16px;border-radius:100px;background:#f4f4f2;color:#0b0b0b;font-size:14px;font-weight:700;letter-spacing:-.2px}
+#rd-extra-door .rxd-b svg{width:16px;height:16px}
+html[data-theme="light"] #rd-extra-door{background:radial-gradient(120% 140% at 100% 0%,#ffffff 0%,#f1f1ee 50%,#e9e9e5 100%);border-color:rgba(0,0,0,.08);box-shadow:inset 0 1px 0 #fff}
+html[data-theme="light"] #rd-extra-door .rxd-flag{filter:none;opacity:.06}
+html[data-theme="light"] #rd-extra-door .rxd-t{color:#111}
+html[data-theme="light"] #rd-extra-door .rxd-s{color:rgba(17,17,17,.6)}
+html[data-theme="light"] #rd-extra-door .rxd-b{background:#111;color:#fff}
 #rd-drw-me .av{width:56px;height:56px;border-radius:50%;flex-shrink:0;background:var(--card2);box-shadow:0 0 0 1px var(--w12);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:var(--white)}
 #rd-drw-me .av img{width:100%;height:100%;object-fit:cover;display:block}
 #rd-drw-me .nm{font-size:17px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -5606,6 +5619,15 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     </div>
 
     <div class="rd-slot-banner" data-rdslot="comunidad" hidden><img alt="" decoding="async"></div>
+    <!-- [2026-10-22] puerta a Ruedda Extra: mismo formato grande que el banner de patrocinantes -->
+    <div id="rd-extra-door" role="button" tabindex="0" onclick="showView('ruedda-extra')" aria-label="acceder a ruedda extra">
+      <img class="rxd-flag" src="/assets/ruedda-iso-negro.png" alt="" decoding="async">
+      <div class="rxd-copy">
+        <div class="rxd-t">Explora más<br>de Ruedda.</div>
+        <div class="rxd-s">Historias, cafés, partners y la store, en un solo lugar.</div>
+        <span class="rxd-b">Acceder a Ruedda Extra<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+      </div>
+    </div>
     <!-- Ruedda Clips -->
     <div style="padding:0 16px;margin-bottom:6px">
       <div style="font-size:28px;font-weight:800;line-height:1.1;margin-bottom:4px">
@@ -7373,6 +7395,7 @@ function showView(name,param){
     if(travelled<40||vel<0.35) return;
     try{
       if(typeof _isNativeApp!=='function'||!_isNativeApp()) return;
+      if(window.__RD_NATIVE_BOUNCE) return; // la app 1.7+ ya rebota con el resorte de iOS
       if(typeof currentView==='undefined'||currentView!=='home') return;
       const vh=document.getElementById('view-home');
       if(!vh||!vh.animate) return;
@@ -23567,8 +23590,7 @@ async function _saDeletePat(id,cat){
     const trig=THRESHOLD*0.5;
     const progress=Math.min(1,dist/trig);
     const easing=dist===0?'transform .32s cubic-bezier(.32,.72,0,1)':'none';
-    vh.style.transition=easing;
-    vh.style.transform=`translateY(${dist}px)`;
+    if(!window.__RD_NATIVE_BOUNCE){ vh.style.transition=easing; vh.style.transform=`translateY(${dist}px)`; }
     // el spinner va centrado en el hueco que se abre entre el header y el contenido
     ind.style.transition=dist===0?`opacity .2s ease, ${easing}`:'none';
     ind.style.opacity=String(Math.min(1,progress*1.4));
@@ -23581,10 +23603,9 @@ async function _saDeletePat(id,cat){
   async function _ptrTrigger(){
     _ptrRefreshing=true; _ptrArmed=false;
     const vh=document.getElementById('view-home'), ind=document.getElementById('ptr-indicator'), icon=document.getElementById('ptr-icon');
-    const _settleDist=58;
+    const _settleDist=window.__RD_NATIVE_BOUNCE?20:58;
     const _easing='transform .28s cubic-bezier(.32,.72,0,1)';
-    vh.style.transition=_easing;
-    vh.style.transform=`translateY(${_settleDist}px)`;
+    if(!window.__RD_NATIVE_BOUNCE){ vh.style.transition=_easing; vh.style.transform=`translateY(${_settleDist}px)`; }
     ind.style.transition=`opacity .2s ease, ${_easing}`;
     ind.style.transform=`translateY(${_settleDist/2}px)`;
     ind.style.opacity='1';
@@ -23602,8 +23623,7 @@ async function _saDeletePat(id,cat){
     setTimeout(()=>{
       try{ if(typeof renderCurrentSection==='function') renderCurrentSection(); }catch(e){}
       _ptrHaptic();
-      vh.style.transition=_easing;
-      vh.style.transform='translateY(0)';
+      if(!window.__RD_NATIVE_BOUNCE){ vh.style.transition=_easing; vh.style.transform='translateY(0)'; }
       ind.style.transition=`opacity .18s ease, ${_easing}`;
       ind.style.transform='translateY(0)';
       ind.style.opacity='0';
@@ -25178,7 +25198,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
   }
   setInterval(msgDot,3000);
   /* app iOS con barra nativa (build 16+): carga su capa de datos */
-  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=2'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
+  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=3'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
 
   /* menú hamburguesa: foto de perfil arriba */
   function paintMe(){

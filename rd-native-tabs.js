@@ -91,6 +91,8 @@
   function lastMsg(t) { var m = t.messages && t.messages[t.messages.length - 1]; return m || null; }
   var RDNT = window.RDNT = {
     go: function (tab) {
+      // el mismo "click" que sonaba al tocar la barra web
+      try { window.RD_SND && RD_SND.play('click'); } catch (e) {}
       try {
         if (tab === 'home') goHome();
         else if (tab === 'notifs') _rdOpenNotifs();
@@ -123,8 +125,10 @@
     openThread: function (id) { try { openThread(id); } catch (e) {} return true; },
     openGlobal: function () { try { openGlobalChat(); } catch (e) {} return true; },
     notifTap: function (id) {
+      var before = currentView;
       try { _notifClick(id); } catch (e) {}
-      return new Promise(function (res) { setTimeout(function () { res({ view: currentView }); }, 60); });
+      // si abrió algo (otra vista o una hoja/popup web encima), la lista nativa se quita
+      return new Promise(function (res) { setTimeout(function () { res({ view: currentView, moved: currentView !== before || covered() }); }, 90); });
     },
     notifDel: function (id) {
       var i = NOTIFICATIONS.findIndex(function (x) { return String(x.id) === String(id); });

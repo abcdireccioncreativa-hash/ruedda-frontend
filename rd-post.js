@@ -8,6 +8,11 @@
        la velocidad del dedo, si no, vuelve con resorte
      · swipe a la derecha, botón volver y el "atrás" del sistema cierran igual, sin splash
    Al cerrar se destapa la pantalla de abajo tal cual estaba (mismo scroll, sin re-render).
+   [2026-10-22 b] la pantalla de abajo ya NO se congela con position:fixed: se queda en su
+   sitio, en el flujo, con el mismo scroll de la página. Es el post el que va encima, fijo
+   y con su propio scroll. Antes, al cerrar, la de abajo volvía del fixed al flujo y se
+   restauraba el scroll en el mismo cuadro: WebKit tenía que repintar todo el home en otra
+   capa y ese cuadro salía negro ("como recargando"). Ahora al cerrar no se mueve nada.
    Si el post se abrió sin pantalla de origen (link directo), queda el flujo de siempre. */
 (function () {
   if (typeof window.showView !== 'function') return;
@@ -23,10 +28,10 @@
 
   var css = document.createElement('style');
   css.textContent =
-    '.view.rd-under{display:block!important;position:fixed!important;left:0;right:0;z-index:0;pointer-events:none;animation:none!important;contain:layout paint}' +
-    '.view.rd-over{position:relative;z-index:2;animation:none!important;box-shadow:0 -10px 40px rgba(0,0,0,.35)}' +
+    '.view.rd-under{display:block!important;pointer-events:none;animation:none!important}' +
+    '.view.rd-over{position:fixed!important;top:0;left:0;right:0;bottom:0;z-index:60;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;animation:none!important;box-shadow:0 -10px 40px rgba(0,0,0,.35)}' +
     '.view.rd-calm{animation:none!important}' +
-    '#rd-sheet-shade{position:fixed;inset:0;z-index:1;background:#000;opacity:0;pointer-events:none}';
+    '#rd-sheet-shade{position:fixed;inset:0;z-index:59;background:#000;opacity:0;pointer-events:none}';
   document.head.appendChild(css);
   var shade = document.createElement('div');
   shade.id = 'rd-sheet-shade';
@@ -34,6 +39,9 @@
 
   function viewEl(n) { return document.getElementById('view-' + n); }
   function on() { return !!st && !!DETAIL[currentView]; }
+  // scroll del post (en modo capa el post scrollea solo; la página sigue en el de abajo)
+  function postTop() { var v = viewEl(currentView); return on() && v ? v.scrollTop : (window.scrollY || 0); }
+  window._rdPostScroller = function () { return on() ? viewEl(currentView) : null; };
   window._rdSheetOn = on;
   window._rdSheetShade = function (p) { if (on()) shadeTo(0.32 * (1 - Math.min(1, p))); };
 
@@ -42,7 +50,6 @@
     if (!el) return false;
     var y = window.scrollY || document.documentElement.scrollTop || 0;
     var nav = document.querySelector('.bnav-item.active');
-    el.style.top = (-y) + 'px';
     el.classList.add('rd-under');
     if (!shade.parentNode) document.body.appendChild(shade);
     shadeTo(0.32);
@@ -54,9 +61,12 @@
   function release() {
     if (!st) return;
     st.el.classList.remove('rd-under');
-    st.el.style.top = '';
     shadeTo(0);
     st = null;
+  }
+  // showView pone el scroll de la página en 0: la de abajo se queda donde estaba
+  function keepY(y) {
+    if ((window.scrollY || 0) !== y) { document.documentElement.scrollTop = y; document.body.scrollTop = y; }
   }
 
   var _show = window.showView;
@@ -65,8 +75,10 @@
     if (DETAIL[name] && !DETAIL[from] && !st && UNDER_OK[from] && freeze(from)) {
       var r = _show.apply(this, arguments);
       var v = viewEl(name);
+      keepY(st.y);
       if (v) {
         v.classList.add('rd-over');
+        v.scrollTop = 0;
         if (!reduce && v.animate) {
           v.animate([{ transform: 'translate3d(0,44px,0)', opacity: 0 }, { transform: 'none', opacity: 1 }],
             { duration: 380, easing: 'cubic-bezier(.32,.72,0,1)' });
@@ -78,6 +90,22 @@
       var dv = viewEl(from);
       if (dv) { dv.classList.remove('rd-over'); dv.style.transform = ''; dv.style.borderRadius = ''; }
       release();
+    }
+    // de un post a otro (similares, subasta ↔ market): sigue siendo capa
+    if (st && DETAIL[name] && DETAIL[from]) {
+      var y0 = st.y, ov = viewEl(from);
+      // reemplaza la entrada del post anterior: "atrás" cierra la capa de una vez
+      var nf = false;
+      try { nf = _navigatingFromPopstate; _navigatingFromPopstate = true; } catch (e) {}
+      var r2;
+      try { r2 = _show.apply(this, arguments); }
+      finally { try { _navigatingFromPopstate = nf; } catch (e) {} }
+      try { if (!nf) history.replaceState({ rueddaView: name, param: arguments[1] !== undefined ? arguments[1] : null }, '', location.href); } catch (e) {}
+      keepY(y0);
+      var nv = viewEl(name);
+      if (ov && ov !== nv) { ov.classList.remove('rd-over'); ov.style.transform = ''; ov.style.borderRadius = ''; }
+      if (nv) { nv.classList.add('rd-over'); nv.scrollTop = 0; }
+      return r2;
     }
     return _show.apply(this, arguments);
   };
@@ -93,12 +121,11 @@
     }
     s.el.classList.add('rd-calm', 'active');
     s.el.classList.remove('rd-under');
-    s.el.style.top = '';
     shadeTo(0);
     currentView = s.name;
     document.querySelectorAll('.bnav-item').forEach(function (b) { b.classList.remove('active'); });
     if (s.nav) s.nav.classList.add('active');
-    document.documentElement.scrollTop = s.y; document.body.scrollTop = s.y;
+    keepY(s.y);
     st = null;
     setTimeout(function () { s.el.classList.remove('rd-calm'); }, 60);
   }
@@ -165,7 +192,7 @@
   var g = null;
   document.addEventListener('touchstart', function (e) {
     if (!on() || closing || e.touches.length !== 1) { g = null; return; }
-    if ((window.scrollY || 0) > 0) { g = null; return; }
+    if (postTop() > 0) { g = null; return; }
     var t = e.touches[0];
     if (e.target.closest && e.target.closest('input,textarea,select,[contenteditable],.rd-no-sheet-drag')) { g = null; return; }
     g = { x: t.clientX, y: t.clientY, dy: 0, decided: false, drag: false, hist: [[performance.now(), t.clientY]] };
@@ -174,10 +201,11 @@
   document.addEventListener('touchmove', function (e) {
     if (!g) return;
     var t = e.touches[0], dx = t.clientX - g.x, dy = t.clientY - g.y;
+    if (!g.decided && dy > 0 && dy >= Math.abs(dx) && postTop() <= 0) e.preventDefault();
     if (!g.decided) {
       if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
       g.decided = true;
-      g.drag = dy > 0 && Math.abs(dy) > Math.abs(dx) * 1.2 && (window.scrollY || 0) <= 0;
+      g.drag = dy > 0 && Math.abs(dy) > Math.abs(dx) * 1.2 && postTop() <= 0;
       if (!g.drag) { g = null; return; }
       g.y = t.clientY - 1; dy = 1;
       var v0 = viewEl(currentView); if (v0) { v0.style.willChange = 'transform'; v0.style.transition = 'none'; }
