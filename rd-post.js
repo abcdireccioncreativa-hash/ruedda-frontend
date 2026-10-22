@@ -180,11 +180,19 @@
   wrapExit('_rdExitAuctionDetail');
 
   // "atrás" del sistema: cierra la capa (y se traga el popstate que provoca nuestro history.back)
+  // Safari móvil: deslizar desde el borde ya anima su propia vuelta atrás (con la foto de
+  // la pantalla anterior); si encima animábamos la salida, el post "se iba dos veces".
+  // Si el atrás llega justo después de un toque en el borde, la capa se cierra al instante.
+  var edgeAt = -1e9;
+  document.addEventListener('touchstart', function (e) {
+    var x = e.touches && e.touches[0] ? e.touches[0].clientX : 99;
+    if (x < 30 || x > window.innerWidth - 30) edgeAt = performance.now();
+  }, { passive: true, capture: true });
   window.addEventListener('popstate', function (e) {
     if (ignorePop > 0) { ignorePop--; e.stopImmediatePropagation(); return; }
     if (on()) {
       e.stopImmediatePropagation();
-      close('right', 0, true);
+      close('right', 0, true, performance.now() - edgeAt < 1800);
     }
   }, true);
 
