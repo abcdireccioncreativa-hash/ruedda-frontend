@@ -2696,7 +2696,8 @@ function rdRegion(r){
 <script src="/desktop-popups.js?v=20261008a" data-mode="mobile" defer></script>
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=4" defer></script>
-<script src="/rd-usa.js?v=4" defer></script>
+<script src="/rd-usa.js?v=5" defer></script>
+<script src="/rd-post.js?v=1" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
 <script src="/rd-mark.js?v=2" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
@@ -2814,6 +2815,37 @@ html[data-theme="light"] #btn-submit-vender{box-shadow:inset 0 0 0 1px rgba(0,0,
 #rd-search-pop .rsp-t b{font-weight:700}
 #rd-search-pop .rsp-t s{color:var(--muted);font-weight:500;margin-left:4px}
 @media(min-width:900px){#rd-search-pop .rsp-g{margin:0;gap:10px;grid-template-columns:repeat(3,1fr)}#rd-search-pop .rsp-ph{border-radius:12px}}
+</style>
+<style id="rd-ajustes-2026-10-22">
+/* botones de marca en oscuro: blancos (antes #0a0a0a sobre negro = "full black") */
+:root:not([data-theme="light"]){--lime:#ffffff;--lime-dark:#e6e6e6;--lime-ink:#000}
+html:not([data-theme="light"]) .btn-vender{background:#e6f03b;color:#000}
+html:not([data-theme="light"]) .btn-vender:active{background:#d4dd2c}
+html:not([data-theme="light"]) #cons-req-submit-btn{background:#fff!important;color:#000!important;border-color:#fff!important}
+/* lupa: los resultados tienen su propio scroll (la capa es fija) */
+#search-results{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -18px;padding:0 18px calc(40px + env(safe-area-inset-bottom))}
+#rd-search-more{height:1px}
+/* menú: foto de perfil arriba */
+#rd-drw-me{display:flex;align-items:center;gap:14px;padding:6px 0 22px;margin-bottom:10px;border-bottom:1px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent}
+#rd-drw-me:active{opacity:.7}
+#rd-drw-me .av{width:56px;height:56px;border-radius:50%;flex-shrink:0;background:var(--card2);box-shadow:0 0 0 1px var(--w12);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:var(--white)}
+#rd-drw-me .av img{width:100%;height:100%;object-fit:cover;display:block}
+#rd-drw-me .nm{font-size:17px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rd-drw-me .sb{font-size:12.5px;color:var(--muted);margin-top:3px}
+.drawer{padding-top:calc(env(safe-area-inset-top) + 46px)}
+/* nav: mensajes en el lugar del corazón, comunidad (bandera) al centro */
+#bnav-ruedda{display:none!important}
+#bnav-mensajes{position:relative}
+#bnav-favoritos img{width:24px;height:24px;object-fit:contain;display:block;opacity:.62;transition:opacity .2s}
+#bnav-favoritos.active img{opacity:1}
+html[data-theme="light"] #bnav-favoritos img{filter:invert(1)}
+#view-notificaciones.rd-m-msgs #notif-tab-title,#view-notificaciones.rd-m-notifs #mensajes-tab-btn{display:none}
+#view-notificaciones.rd-m-msgs #mensajes-tab-btn{color:var(--white)!important;font-size:inherit!important}
+#view-notificaciones.rd-m-msgs .notif-header>div:nth-child(2),#view-notificaciones.rd-m-notifs .notif-header>div:nth-child(2){display:none!important}
+/* subastas: ícono del martillo en "ir a subastas" */
+.trending-link .rd-gv{width:14px;height:14px;object-fit:contain;vertical-align:-2px;margin-right:5px;opacity:.9}
+.rd-slot-banner[data-link]{cursor:pointer}
+.rd-slot-banner[data-link]:active{opacity:.85}
 </style>
 </head>
 <body>
@@ -3914,6 +3946,7 @@ html[data-theme="light"] #btn-submit-vender{box-shadow:inset 0 0 0 1px rgba(0,0,
       <div class="tab" id="tab-chocados" onclick="switchTab('chocados')">chocados</div>
       <div class="tab" id="tab-fin" onclick="switchTab('fin')">finalizadas</div>
     </div>
+    <div class="rd-slot-banner" data-rdslot="subastas" hidden style="margin:4px 18px 14px"><img alt="" decoding="async"></div>
     <!-- [RC] calendario desplegable — solo visible en la pestaña "programadas" -->
     <div id="sched-cal-wrap" style="display:none;padding:2px 18px 6px">
       <button class="sched-cal-trigger" id="sched-cal-trigger" onclick="_schedCalToggle()">
@@ -3978,7 +4011,7 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     <!-- TRENDING HOY -->
     <div class="trending-head rdv" style="animation-delay:.1s">
       <div class="trending-title">trending hoy <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-9"/><path d="M16 6h5v5"/></svg></div>
-      <span class="trending-link" onclick="showView('home');selectSection('subastas')">ir a subastas</span>
+      <span class="trending-link" onclick="showView('home');selectSection('subastas')"><img class="rd-gv" data-rdimg="gavel" alt="">ir a subastas</span>
     </div>
     <div class="trending-shell rdv" style="animation-delay:.15s">
       <div class="trending-scroll" id="trending-scroll">
@@ -6177,15 +6210,19 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
   <div class="bnav-item active" id="bnav-home" onclick="goHome()">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
   </div>
-  <div class="bnav-item" id="bnav-notificaciones" onclick="showView('notificaciones')">
+  <div class="bnav-item" id="bnav-notificaciones" onclick="_rdOpenNotifs()">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
     <span class="notif-dot" id="notif-dot"></span>
+  </div>
+  <div class="bnav-item" id="bnav-favoritos" onclick="showView('favoritos')" aria-label="comunidad">
+    <img data-rdimg="extra" alt="" style="width:24px;height:24px;object-fit:contain;display:block">
   </div>
   <div class="bnav-item" id="bnav-ruedda" onclick="_toggleRueddaExtra();document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('active'));this.classList.add('active')">
     <img data-rdimg="extra" alt="" style="width:24px;height:24px;object-fit:contain;display:block">
   </div>
-  <div class="bnav-item" id="bnav-favoritos" onclick="showView('favoritos')">
-    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 0 0 0 6.364L12 20.364l7.682-7.682a4.5 4.5 0 0 0-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 0 0-6.364 0z"/></svg>
+  <div class="bnav-item" id="bnav-mensajes" onclick="_rdOpenMensajes()" aria-label="mensajes">
+    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <span class="notif-dot" id="rd-msg-dot"></span>
   </div>
   <div class="bnav-item" id="bnav-cuenta" onclick="showView('cuenta')">
     <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -6375,6 +6412,7 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
 <div class="drawer" id="drawer">
   <button class="drawer-close" onclick="closeDrawer()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   <div class="drawer-scroll">
+  <div id="rd-drw-me" onclick="_rdDrawerMe()"><div class="av"></div><div style="min-width:0"><div class="nm"></div><div class="sb"></div></div></div>
   <div class="drawer-item" onclick="closeDrawer();showView('home')"><img data-rdimg="gavel" style="width:20px;height:20px;flex-shrink:0;opacity:.7;object-fit:contain" alt="">subastas</div>
   <!-- [TODO] ícono temporal de garaje/taller — reemplazar por el ícono definitivo de Market cuando esté listo -->
   <div class="drawer-item" onclick="closeDrawer();showView('home');selectSection('market')"><span class="icon-mask icon-mask-market" style="width:20px;height:20px"></span>market</div>
@@ -7289,7 +7327,7 @@ function showView(name,param){
   } else {}
   if(name==='vender')populateYears();
   if(name==='cuenta'){document.getElementById('stat-guardadas').textContent=watchlist.size;updateCuentaView();showDealerFab(false);}
-  if(name==='notificaciones'){renderNotifications();document.getElementById('notif-dot').style.display='none';}
+  if(name==='notificaciones'){renderNotifications();document.getElementById('notif-dot').style.display='none';if(typeof _refreshNotifs==='function')_refreshNotifs();}
   if(name==='soporte-ruedda') _rdLoadSupport(); // [2026-10-06] asistente Enzo: se descarga solo al abrir soporte
   if(name==='favoritos')renderFavoritos();
   if(name==='carspotting')loadCarspotting();
@@ -12309,11 +12347,29 @@ function _rdSearchPopular(){
   if(!res||!res.querySelector('#search-pop-marcas')) return;
   const now=Date.now();
   const items=[..._mktGen().filter(l=>!l.vendido).map(a=>({a,k:'market'})),...AUCTIONS.filter(a=>!a.programada&&a.endTime>now).map(a=>({a,k:'subasta'}))]
-    .sort((x,y)=>(y.a.viewCount||0)-(x.a.viewCount||0)).slice(0,10);
+    .sort((x,y)=>(y.a.viewCount||0)-(x.a.viewCount||0));
+  window._rdSpAll=items; window._rdSpN=Math.min(10,items.length);
   let w=res.querySelector('#rd-search-pop');
   if(!items.length){ if(w) w.remove(); return; }
   if(!w){ w=document.createElement('div'); w.id='rd-search-pop'; res.appendChild(w); }
-  w.innerHTML='<div class="search-cat-label" style="margin-bottom:10px">más populares</div><div class="rsp-g">'+items.map(({a,k})=>{
+  w.innerHTML='<div class="search-cat-label" style="margin-bottom:10px">más populares</div><div class="rsp-g">'+_rdSpHtml(items.slice(0,window._rdSpN))+'</div><div id="rd-search-more"></div>';
+  _rdSpWatch();
+}
+function _rdSpWatch(){
+  const res=document.getElementById('search-results'), m=document.getElementById('rd-search-more');
+  if(!res||!m||!('IntersectionObserver' in window)) return;
+  if(window._rdSpIO) window._rdSpIO.disconnect();
+  window._rdSpIO=new IntersectionObserver(es=>{
+    if(!es.some(x=>x.isIntersecting)) return;
+    const all=window._rdSpAll||[], n=window._rdSpN||0, g=document.querySelector('#rd-search-pop .rsp-g');
+    if(!g||n>=all.length) return;
+    const nx=Math.min(all.length,n+12); window._rdSpN=nx;
+    g.insertAdjacentHTML('beforeend',_rdSpHtml(all.slice(n,nx)));
+  },{root:res,rootMargin:'0px 0px 600px 0px'});
+  window._rdSpIO.observe(m);
+}
+function _rdSpHtml(items){
+  return items.map(({a,k})=>{
     const sub=k==='subasta';
     const ph=a.photoUrls&&a.photoUrls[0];
     const precio=sub?fmtBid(a.currentBid):fmtBid(a.price);
@@ -12322,7 +12378,7 @@ function _rdSearchPopular(){
     return `<div class="rsp-i" onclick="closeSearch();${sub?`openDetail('${a.id}')`:`openMarketDetail('${a.id}')`}">
       <div class="rsp-ph" style="background:linear-gradient(${grads[_gidx(a.id)]})">${ph?`<img src="${_tImg(ph,{width:600,quality:80})}" alt="" loading="lazy" decoding="async" onload="this.style.opacity=1" onerror="this.remove()">`:''}${tag?`<span class="rsp-tag">${tag}</span>`:''}</div>
       <div class="rsp-t"><b>${precio}</b>${antes} · ${_esc(a.title)}</div></div>`;
-  }).join('')+'</div>';
+  }).join('');
 }
 function _renderSearchPopMarcas(){
   setTimeout(_rdSearchPopular,0);
@@ -19692,16 +19748,40 @@ function _subscribeToAuctions(){
   }).subscribe(); }
 }
 
+// [2026-10-06] notis al día sin reabrir la app: iOS corta el websocket en segundo plano y
+// lo que llegaba mientras tanto solo aparecía al reiniciar. Una consulta liviana (40 últimas)
+// al volver a la app y al abrir notificaciones; solo AGREGA las que no se habían visto
+// (no revive las que el usuario borró con swipe ni toca el estado de leídas).
+var _notifSeen=new Set(), _notifRefreshAt=0; // var: sin zona muerta si algo llama antes de esta línea
+async function _refreshNotifs(){
+  if(!_supa||!USER_STATE.id||isGuest()) return;
+  const now=Date.now(); if(now-_notifRefreshAt<2500) return; _notifRefreshAt=now;
+  const{data,error}=await _supa.from('notifications').select('*').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}).limit(40);
+  if(error||!data) return;
+  const fresh=data.filter(n=>!_notifSeen.has(String(n.id)));
+  if(!fresh.length) return;
+  fresh.forEach(n=>_notifSeen.add(String(n.id)));
+  NOTIFICATIONS.unshift(...fresh.map(n=>({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'reciente',read:!!n.read,icon:n.icon||'default',sourceId:n.source_id||null,sourceType:n.source_type||''})));
+  _saveNotifsToStorage();
+  if(fresh.some(n=>!n.read)){ const dot=document.getElementById('notif-dot'); if(dot&&currentView!=='notificaciones') dot.style.display='block'; }
+  _syncNotifBadge();
+  if(currentView==='notificaciones') renderNotifications();
+}
+
 function _subscribeNotifs(userId){
   if(!_supa||!userId) return;
   // [PM v82] singleton: remover canal anterior antes de crear uno nuevo (evita suscripciones zombi)
   if(window._notifChannel){try{window._notifChannel.unsubscribe();_supa.removeChannel(window._notifChannel);}catch(e){}window._notifChannel=null;}
   const ch=_supa.channel(`ruedda-notifs-${userId}-${Date.now()}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${userId}`},payload=>{
     const n=payload.new;
+    // [2026-10-06] dedupe: el refresco al volver a la app pudo haberla traído ya
+    if(_notifSeen.has(String(n.id))) return;
+    _notifSeen.add(String(n.id));
     NOTIFICATIONS.unshift({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'ahora mismo',read:false,icon:n.icon||'default',sourceId:n.source_id||null,sourceType:n.source_type||''});
     _saveNotifsToStorage(); // [RUEDDA v61] persistir notif realtime
     const dot=document.getElementById('notif-dot');if(dot)dot.style.display='block';
     if(typeof _syncNotifBadge==='function')_syncNotifBadge();
+    if(currentView==='notificaciones') renderNotifications(); // [2026-10-06] antes la lista abierta no se actualizaba
   }).subscribe(status=>{
     // [V87] paridad con el canal PM: auto-resuscripción si el canal muere en primer plano
     if(window._notifChannel!==ch) return;
@@ -19735,6 +19815,7 @@ async function _rueddaLoadUserData(userId,role){
   // [RUEDDA v61] cargar notifs guardadas (offline/persistidas) antes de Supabase
   _loadNotifsFromStorage();
   const{data:notifs}=await _supa.from('notifications').select('*').eq('user_id',userId).order('created_at',{ascending:false}).limit(40);
+  _notifSeen=new Set((notifs||[]).map(n=>String(n.id))); // [2026-10-06] base para _refreshNotifs
   if(notifs?.length){
     // merge: respetar estado read guardado en localStorage para cada notif
     const storedMap=Object.fromEntries(NOTIFICATIONS.map(n=>[String(n.id),n.read]));
@@ -19798,6 +19879,7 @@ function _subscribePrivateMessages(userId){
     if(!window._pmChannel||window._pmChannel.state!=='joined') _subscribePrivateMessages(USER_STATE.id);
     if(!window._notifChannel||window._notifChannel.state!=='joined') _subscribeNotifs(USER_STATE.id);
     _loadPrivateMessages();
+    _refreshNotifs(); // [2026-10-06] trae lo que llegó mientras la app estaba en segundo plano
   }
   document.addEventListener('visibilitychange',_pmWake);
   window.addEventListener('focus',_pmWake);
@@ -24524,7 +24606,7 @@ function _rdSetupSwipeExit(viewId,exitFn,matchView){
     const v=el(); if(!v)return;
     v.style.transition='none';
     v.style.transform=`translateX(${dx}px)`;
-    v.style.opacity=String(Math.max(.35,1-dx/window.innerWidth*0.6));
+    if(window._rdSheetOn&&window._rdSheetOn()){ window._rdSheetShade(dx/window.innerWidth); } else v.style.opacity=String(Math.max(.35,1-dx/window.innerWidth*0.6));
   },{passive:false});
   document.addEventListener('touchend',()=>{
     if(!dragging)return;
@@ -24542,6 +24624,7 @@ function _rdSetupSwipeExit(viewId,exitFn,matchView){
       // a mitad de un drag). Ahora, apenas se decide que el gesto se completa, esta
       // vista salta a invisible al instante (sin transición) — cero remanente del
       // drag que pueda asomarse mientras el splash todavía se está formando.
+      if(window._rdSheetOn&&window._rdSheetOn()){ exitFn(); return; }
       v.style.transition='none';
       v.style.opacity='0';
       exitFn(()=>{ v.style.transition='';v.style.transform='';v.style.opacity=''; });
@@ -24563,8 +24646,8 @@ function _rdSetupSwipeExit(viewId,exitFn,matchView){
   });
 }
 
-_rdSetupSwipeExit('view-market-detail',_rdExitMarketDetail,'market-detail');
-_rdSetupSwipeExit('view-detail',_rdExitAuctionDetail,'detail');
+_rdSetupSwipeExit('view-market-detail',function(a){window._rdSheetDir='right';return _rdExitMarketDetail(a);},'market-detail');
+_rdSetupSwipeExit('view-detail',function(a){window._rdSheetDir='right';return _rdExitAuctionDetail(a);},'detail');
 _rdSetupSwipeExit('view-vitrina',_rdExitVitrina,'vitrina');
 </script>
 <script>
@@ -25018,6 +25101,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
     document.querySelectorAll('.rd-slot-banner').forEach(function(b){
       var u=urls&&urls['banner_'+b.getAttribute('data-rdslot')+'_url'];
       if(!u){ b.hidden=true; return; }
+      var lk=urls['banner_'+b.getAttribute('data-rdslot')+'_link']; if(lk) b.setAttribute('data-link',lk); else b.removeAttribute('data-link');
       var im=b.querySelector('img'), src=(typeof _tImg==='function')?_tImg(u,{width:1200,quality:82}):u;
       if(im.getAttribute('src')!==src){ im.onload=function(){ b.classList.add('in'); }; im.src=src; }
       b.hidden=false;
@@ -25026,7 +25110,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
   window._rdSlotBanners=function(){
     if(urls){ fill(); return; }
     if(asked||typeof _supa==='undefined'||!_supa) return; asked=true;
-    _supa.from('app_settings').select('key,value').in('key',['banner_comunidad_url','banner_cuenta_url']).then(function(r){
+    _supa.from('app_settings').select('key,value').in('key',['banner_comunidad_url','banner_cuenta_url','banner_subastas_url','banner_subastas_link']).then(function(r){
       urls={}; (r.data||[]).forEach(function(x){ if(x.value) urls[x.key]=x.value; }); fill();
     },function(){ asked=false; });
   };
@@ -25060,5 +25144,79 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
   }
   function start(){ (window.requestIdleCallback||function(f){ setTimeout(f,1500); })(beat,{timeout:5000}); setInterval(beat,60000); document.addEventListener('visibilitychange',function(){ if(document.hidden) leave(); else beat(); }); window.addEventListener('pagehide',leave); }
   if(document.readyState==='complete') start(); else window.addEventListener('load',start,{once:true});
+})();
+</script>
+<script>
+/* [2026-10-22] nav nuevo, menú con foto, lupa infinita, subastas en "terminando pronto", banner de subastas con link */
+(function(){
+  /* nav: notificaciones / mensajes como secciones separadas */
+  window._rdOpenNotifs=function(){ showView('notificaciones'); switchNotifTab('notifs'); };
+  window._rdOpenMensajes=function(){ showView('notificaciones'); switchNotifTab('mensajes'); };
+  var _snt=window.switchNotifTab;
+  if(typeof _snt==='function') window.switchNotifTab=function(t){ var r=_snt.apply(this,arguments); _rdNotifMode(t==='notifs'?'notifs':'msgs'); return r; };
+  window._rdNotifMode=function(m){
+    var v=document.getElementById('view-notificaciones'); if(!v) return;
+    v.classList.toggle('rd-m-msgs',m==='msgs'); v.classList.toggle('rd-m-notifs',m==='notifs');
+    document.querySelectorAll('.bnav-item').forEach(function(b){ b.classList.remove('active'); });
+    var b=document.getElementById(m==='msgs'?'bnav-mensajes':'bnav-notificaciones'); if(b) b.classList.add('active');
+  };
+  var _show=window.showView;
+  window.showView=function(name){
+    var r=_show.apply(this,arguments);
+    if(name==='thread'||name==='global-chat'){ document.querySelectorAll('.bnav-item').forEach(function(b){ b.classList.remove('active'); }); var m=document.getElementById('bnav-mensajes'); if(m) m.classList.add('active'); }
+    if(name==='notificaciones'){ var tn=document.getElementById('notif-tab-notifs'); _rdNotifMode(tn&&tn.style.display==='none'?'msgs':'notifs'); }
+    if(name==='favoritos'||name==='cuenta'||name==='home') setTimeout(function(){ window._rdSlotBanners&&window._rdSlotBanners(); },60);
+    return r;
+  };
+  /* punto de mensajes sin leer */
+  function msgDot(){
+    var d=document.getElementById('rd-msg-dot'); if(!d) return;
+    var n=(typeof THREADS!=='undefined'&&THREADS&&THREADS.some)?THREADS.some(function(t){ return t.unread; }):false;
+    d.style.display=n?'block':'none';
+  }
+  setInterval(msgDot,3000);
+
+  /* menú hamburguesa: foto de perfil arriba */
+  function paintMe(){
+    var w=document.getElementById('rd-drw-me'); if(!w) return;
+    var g=(typeof isGuest==='function')?isGuest():true, U=(typeof USER_STATE!=='undefined')?USER_STATE:{};
+    var nm=g?'invitado':(U.nombre||U.username||'mi perfil');
+    var av=w.querySelector('.av');
+    if(!g&&U.avatar){ var src=(typeof _tImg==='function')?_tImg(U.avatar,{width:160,quality:80}):U.avatar; av.innerHTML='<img alt="" decoding="async" src="'+String(src).replace(/"/g,'&quot;')+'">'; }
+    else if(g) av.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:26px;height:26px;opacity:.75"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    else av.textContent=(nm||'?').charAt(0).toUpperCase();
+    w.querySelector('.nm').textContent=nm;
+    w.querySelector('.sb').textContent=g?'inicia sesión':'ver mi perfil';
+  }
+  window._rdDrawerMe=function(){
+    if(typeof closeDrawer==='function') closeDrawer();
+    var g=(typeof isGuest==='function')?isGuest():true;
+    if(g){ if(typeof showMobileAuth==='function') showMobileAuth('login'); return; }
+    if(typeof openUserProfile==='function'&&USER_STATE&&USER_STATE.id) openUserProfile(USER_STATE.id); else showView('cuenta');
+  };
+  var _od=window.openDrawer;
+  if(typeof _od==='function') window.openDrawer=function(){ try{ paintMe(); }catch(e){} return _od.apply(this,arguments); };
+
+  /* subastas: siempre abre en "terminando pronto" */
+  window._rdAucAutoTab=function(){};
+  var _sel=window.selectSection;
+  if(typeof _sel==='function') window.selectSection=function(s){
+    var r=_sel.apply(this,arguments);
+    if(s==='subastas'&&typeof currentTab!=='undefined'&&currentTab!=='pronto'&&typeof switchTab==='function'){ try{ switchTab('pronto'); }catch(e){} }
+    if(s==='subastas') setTimeout(function(){ window._rdSlotBanners&&window._rdSlotBanners(); },60);
+    return r;
+  };
+
+  /* banners con link (Control → Apariencia) */
+  document.addEventListener('click',function(e){
+    var b=e.target.closest&&e.target.closest('.rd-slot-banner[data-link]'); if(!b) return;
+    var u=b.getAttribute('data-link'); if(!u) return;
+    try{
+      var x=new URL(u,location.href);
+      if(x.host===location.host){ location.href=x.href; return; }
+      if(window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser){ Capacitor.Plugins.Browser.open({url:x.href}); return; }
+      window.open(x.href,'_blank','noopener');
+    }catch(err){}
+  });
 })();
 </script>

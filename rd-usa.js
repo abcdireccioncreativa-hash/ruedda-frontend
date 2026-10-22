@@ -37,16 +37,17 @@
       '#rd-usa .ru-chev{margin-left:auto;width:20px;height:20px;color:var(--w50);flex-shrink:0}',
       '#rd-usa .ru-row{margin-top:26px}',
       '#rd-usa .ru-rh{display:flex;align-items:center;justify-content:space-between;padding:0 18px;margin-bottom:14px}',
-      '#rd-usa .ru-rt{font-size:22px;font-weight:800;letter-spacing:-.6px}',
+      '#rd-usa .ru-rt{font-size:21px;font-weight:800;letter-spacing:-.6px;line-height:1.15}',
       '#rd-usa .ru-arrow{width:40px;height:40px;border-radius:50%;background:var(--w7);border:none;display:flex;align-items:center;justify-content:center;color:var(--white);cursor:pointer}',
       '#rd-usa .ru-arrow svg{width:19px;height:19px}',
-      '#rd-usa .ru-strip{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:0 18px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}',
+      '#rd-usa .ru-strip{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 18px;padding:0 18px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}',
       '#rd-usa .ru-strip::-webkit-scrollbar{display:none}',
       '#rd-usa .ru-strip .ru-card{flex:0 0 72%;scroll-snap-align:start}',
       '@media(min-width:700px){#rd-usa .ru-strip .ru-card{flex-basis:320px}}',
       '#rd-usa .ru-card{min-width:0;cursor:pointer;-webkit-tap-highlight-color:transparent}',
       '#rd-usa .ru-card:active{opacity:.8}',
-      '#rd-usa .ru-ph{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:var(--card)}',
+      '#rd-usa .ru-ph{position:relative;aspect-ratio:4/3;border-radius:18px;overflow:hidden;background:var(--card);box-shadow:inset 0 0 0 1px var(--w6,rgba(255,255,255,.06))}',
+      '#rd-usa .ru-ph::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);pointer-events:none}',
       '#rd-usa .ru-ph img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s ease}',
       '#rd-usa .ru-ph .ru-noph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--w20,rgba(255,255,255,.2))}',
       '.ru-badge{position:absolute;top:10px;left:10px;font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#fff;border-radius:999px;padding:6px 11px;line-height:1}',
@@ -82,7 +83,7 @@
       /* página del lote (entra al post, no hoja) */
       '#ru-post{position:fixed;inset:0;z-index:99;background:var(--bg);color:var(--white);overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:var(--font);transform:translateX(100%);transition:transform .42s cubic-bezier(.32,.72,0,1)}',
       '#ru-post.in{transform:none}',
-      '#ru-post .rp-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 14px 8px;background:var(--bg);border-bottom:1px solid var(--border)}',
+      '#ru-post .rp-bar{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 14px 8px;background:color-mix(in srgb,var(--bg) 80%,transparent);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);border-bottom:1px solid var(--border)}',
       '#ru-post .rp-back{display:flex;align-items:center;gap:4px;font-size:15px;font-weight:400;cursor:pointer;padding:6px 4px;background:none;border:none;color:var(--white);font-family:var(--font)}',
       '#ru-post .rp-back svg{width:22px;height:22px}',
       '#ru-post .rp-bar .ru-badge{position:static}',
@@ -239,7 +240,7 @@
     var items = list(), act = activo();
     var head = '<div class="ru-top"><label class="ru-search">' + IC.search + '<input id="ru-q" type="search" placeholder="Buscar en USA" value="' + esc(q) + '" autocomplete="off"></label>' +
       '<button class="ru-fbtn' + (act ? ' act' : '') + '" data-ru="filter">' + IC.filter + 'Filtro</button></div>';
-    var calcCard = '<div class="ru-calc" data-ru="calc"><div class="ru-calc-ic">' + IC.ship + '</div><div style="min-width:0"><div class="ru-calc-t">Calculadora de importación</div><div class="ru-calc-s">Nacionalización + IVA + INTTT</div></div><span class="ru-chev">' + IC.chev + '</span></div>';
+    var calcCard = '<div class="ru-calc" data-ru="calc"><div class="ru-calc-ic">' + IC.ship + '</div><div style="min-width:0"><div class="ru-calc-t">¿Cuánto te sale traerlo?</div><div class="ru-calc-s">Puesto y nacionalizado en Venezuela</div></div><span class="ru-chev">' + IC.chev + '</span></div>';
     var body;
     if (!items.length) body = '<div class="ru-empty">' + (LOTS.length ? 'nada coincide con tu búsqueda' : 'cargando subastas de USA…') + '</div>';
     else if (q.trim() || act || view === 'todo') body = '<div class="ru-row"><div class="ru-rh"><div class="ru-rt">' + (q.trim() || act ? 'Resultados (' + items.length + ')' : 'Todo') + '</div></div><div class="ru-grid">' + items.map(card).join('') + '</div></div>';
@@ -290,7 +291,7 @@
       (x.auction_at ? '<div class="rp-time">' + IC.timer + '<div><div class="a">' + (t === 'finalizada' ? 'subasta finalizada' : 'cierra en <span data-end="' + esc(x.auction_at) + '">' + t + '</span>') + '</div><div class="b">' + esc(fecha) + '</div></div></div>' : '') +
       '<div class="rp-pr' + (x.buy_now ? '' : ' one') + '"><div><div class="l">bids</div><div class="v">' + usd(x.current_bid) + '</div></div>' + (x.buy_now ? '<div><div class="l">comprar ya</div><div class="v buy">' + usd(x.buy_now) + '</div></div>' : '') + '</div>' +
       '<div class="rp-cta"><a class="ru-btn p" href="mailto:team@ruedda.app?subject=' + encodeURIComponent('Quiero importar: ' + name(x) + ' · lote ' + (x.lot_number || '')) + '&body=' + encodeURIComponent('Hola Ruedda, me interesa este carro de ' + plat + ':\n' + name(x) + '\nLote: ' + (x.lot_number || '') + '\nVIN: ' + (x.vin || '') + '\n' + src) + '">quiero este carro</a>' +
-      '<button class="ru-btn s" data-a="calc">calcular cuánto me sale en Venezuela</button>' +
+      '<button class="ru-btn s" data-a="calc">¿cuánto me sale traerlo?</button>' +
       '<button class="ru-btn s" data-a="share">compartir publicación</button></div>' +
       '<div class="rp-h">ficha del lote</div>' + ficha.map(function (r) { return '<div class="rp-row"><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>'; }).join('') +
       '<a class="rp-link" href="' + esc(src) + '" target="_blank" rel="noopener">ver lote original en ' + plat + '</a>' +
@@ -300,6 +301,7 @@
     document.body.appendChild(o);
     var close = function () { o.classList.remove('in'); setTimeout(function () { o.remove(); }, 420); };
     POST_CLOSE = close;
+    dragClose(o, function () { POST_CLOSE = null; o.remove(); });
     o.addEventListener('click', function (e) {
       var a = e.target.closest('[data-a]');
       if (a && a.getAttribute('data-a') === 'back') return close();
@@ -317,6 +319,48 @@
   }
 
   var POST_CLOSE = null;
+  // mismo gesto que los posts de Ruedda: sigue el dedo, se va con la velocidad o vuelve con resorte
+  function dragClose(o, gone) {
+    var g = null;
+    o.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1 || o.scrollTop > 0 || e.target.closest('.rp-gal,.rp-thumbs,input')) { g = null; return; }
+      var t = e.touches[0]; g = { x: t.clientX, y: t.clientY, d: 0, ax: null, h: [[performance.now(), t.clientY]] };
+    }, { passive: true });
+    o.addEventListener('touchmove', function (e) {
+      if (!g) return;
+      var t = e.touches[0], dx = t.clientX - g.x, dy = t.clientY - g.y;
+      if (!g.ax) {
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+        g.ax = dy > 0 && dy > Math.abs(dx) * 1.2 ? 'y' : (dx > 0 && dx > Math.abs(dy) * 1.3 ? 'x' : 'no');
+        if (g.ax === 'no') { g = null; return; }
+        o.style.transition = 'none';
+      }
+      e.preventDefault();
+      var now = performance.now(), c = g.ax === 'y' ? t.clientY : t.clientX;
+      g.h.push([now, c]); while (g.h.length > 2 && now - g.h[0][0] > 90) g.h.shift();
+      g.d = Math.max(0, g.ax === 'y' ? dy : dx);
+      var p = g.d / (g.ax === 'y' ? innerHeight : innerWidth);
+      o.style.transform = g.ax === 'y' ? 'translate3d(0,' + g.d + 'px,0) scale(' + (1 - p * 0.08).toFixed(4) + ')' : 'translate3d(' + g.d + 'px,0,0)';
+      o.style.borderRadius = g.ax === 'y' ? Math.min(26, g.d / 4) + 'px' : '';
+    }, { passive: false });
+    var end = function () {
+      if (!g || !g.ax) { g = null; return; }
+      var a = g.h[0], b = g.h[g.h.length - 1], v = (b[1] - a[1]) / Math.max(16, b[0] - a[0]);
+      var ax = g.ax, d = g.d, L = ax === 'y' ? innerHeight : innerWidth; g = null;
+      var cur = o.style.transform;
+      if (d > L * 0.22 || (v > 0.55 && d > 24)) {
+        haptic();
+        var to = ax === 'y' ? 'translate3d(0,' + innerHeight + 'px,0) scale(.92)' : 'translate3d(' + innerWidth + 'px,0,0)';
+        var an = o.animate([{ transform: cur }, { transform: to }], { duration: Math.max(170, Math.min(320, L / Math.max(v, 2.2))), easing: 'cubic-bezier(.25,.8,.3,1)', fill: 'forwards' });
+        an.onfinish = gone;
+        return;
+      }
+      o.style.transform = ''; o.style.borderRadius = ''; o.style.transition = '';
+      o.animate([{ transform: cur }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.32,1.25,.5,1)' });
+    };
+    o.addEventListener('touchend', end, { passive: true });
+    o.addEventListener('touchcancel', end, { passive: true });
+  }
   function share(x) {
     var url = 'https://www.ruedda.app/?usa=' + encodeURIComponent(x.id);
     var title = name(x) + ' · subasta en ' + (x.platform === 'iaai' ? 'IAAI' : 'Copart') + ' · Ruedda';
@@ -339,7 +383,7 @@
 
   function cfg() { var c = {}; for (var k in CALC_DEF) c[k] = (CALC && CALC[k] != null && CALC[k] !== '') ? Number(CALC[k]) : CALC_DEF[k]; return c; }
   function calc(precio) {
-    var o = sheet('<div class="ru-pad"><div class="ru-h">Calculadora de importación</div><div class="ru-sub">Precio del carro en la subasta → cuánto te sale puesto y nacionalizado en Venezuela.</div>' +
+    var o = sheet('<div class="ru-pad"><div class="ru-h">¿Cuánto te sale traerlo?</div><div class="ru-sub">Escribe el precio de la subasta y te decimos cuánto te sale puesto y nacionalizado en Venezuela: grúa, flete, seguro, arancel, IVA y placas.</div>' +
       '<div class="ru-inw"><span>$</span><input class="ru-in" id="ru-cp" inputmode="numeric" placeholder="precio en la subasta" value="' + (precio ? Math.round(precio) : '') + '"></div>' +
       '<div class="ru-lines" id="ru-cl"></div>' +
       '<div class="ru-note">Estimado de referencia con tasas cargadas por Ruedda. El costo final depende del agente aduanal, el puerto, el tipo de vehículo y la tasa del día.</div>' +
