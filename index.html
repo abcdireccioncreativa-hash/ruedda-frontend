@@ -2905,6 +2905,19 @@ html[data-theme="light"] #mensajes-list .msg-preview,html[data-theme="light"] #n
 html[data-theme="light"] #mensajes-list .msg-item.unread .msg-preview,html[data-theme="light"] #notif-list .notif-item.unread .notif-content p{color:rgba(21,22,14,.88)}
 html[data-theme="light"] .rdc-dot{background:#15160e}
 html[data-theme="light"] .rdc-chev{border-color:rgba(21,22,14,.28)}
+/* avisos: tarjeta delgada, icono suelto en trazo grueso (sin círculo); la de feedback queda igual */
+#notif-list .notif-item{min-height:0;padding:13px 18px;gap:14px;border-radius:18px}
+#notif-list .notif-item .notif-icon{width:24px;height:24px;background:none!important;box-shadow:none!important;border-radius:0}
+#notif-list .notif-item .notif-icon svg{width:21px;height:21px;stroke-width:2.3;color:rgba(255,255,255,.62)!important}
+#notif-list .notif-item.unread .notif-icon svg{color:#fff!important}
+#notif-list .notif-item .notif-content h4{font-size:15px;display:block;flex:1;min-width:0;white-space:nowrap;text-overflow:ellipsis}
+#notif-list .notif-item .notif-content p{font-size:13.5px;line-height:18px;margin-top:2px;-webkit-line-clamp:1;display:block;white-space:nowrap;text-overflow:ellipsis}
+#notif-list .notif-item .notif-time{font-size:12px}
+#notif-list .notif-item .rdc-top{gap:8px}
+#notif-list .notif-item.unread .notif-content p{color:rgba(255,255,255,.72)}
+html[data-theme="light"] #notif-list .notif-item .notif-icon svg{color:rgba(21,22,14,.62)!important}
+html[data-theme="light"] #notif-list .notif-item.unread .notif-icon svg{color:#15160e!important}
+html[data-theme="light"] #notif-list .notif-item.unread .notif-content p{color:rgba(21,22,14,.72)}
 @keyframes rdcIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
 #view-notificaciones.rdc-anim #mensajes-list>*,#view-notificaciones.rdc-anim #notif-list>*{animation:rdcIn .55s cubic-bezier(.22,.9,.3,1) both}
 #view-notificaciones.rdc-anim #mensajes-list>:nth-child(1),#view-notificaciones.rdc-anim #notif-list>:nth-child(1){animation-delay:0.000s}
