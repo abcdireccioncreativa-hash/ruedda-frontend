@@ -72,6 +72,7 @@
   var _show = window.showView;
   window.showView = function (name) {
     var from = currentView;
+    document.querySelectorAll('.view.rd-calm').forEach(function (v) { if (v.id !== 'view-' + name) v.classList.remove('rd-calm'); });
     if (DETAIL[name] && !DETAIL[from] && !st && UNDER_OK[from] && freeze(from)) {
       var r = _show.apply(this, arguments);
       var v = viewEl(name);
@@ -127,7 +128,8 @@
     if (s.nav) s.nav.classList.add('active');
     keepY(s.y);
     st = null;
-    setTimeout(function () { s.el.classList.remove('rd-calm'); }, 60);
+    // rd-calm se queda hasta que la vista se vaya: quitarlo con la vista activa relanzaba
+    // su animación de entrada (fundido desde 0) y el home "destellaba" al volver
   }
 
   // anima la salida desde donde esté el post y destapa
