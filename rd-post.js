@@ -89,7 +89,7 @@
     if (typeof _stopViewerPresence === 'function') { try { _stopViewerPresence(); } catch (e) {} }
     if (v) {
       v.classList.remove('active', 'rd-over');
-      v.style.transform = ''; v.style.borderRadius = ''; v.style.opacity = ''; v.style.transition = ''; v.style.willChange = '';
+      v.style.transform = ''; v.style.borderRadius = ''; v.style.opacity = ''; v.style.transition = ''; v.style.willChange = ''; v.style.visibility = '';
     }
     s.el.classList.add('rd-calm', 'active');
     s.el.classList.remove('rd-under');
@@ -104,14 +104,14 @@
   }
 
   // anima la salida desde donde esté el post y destapa
-  function close(dir, vel, fromPop) {
+  function close(dir, vel, fromPop, instant) {
     if (!on() || closing) return false;
     closing = true;
     var v = viewEl(currentView);
     if (!fromPop) { ignorePop++; try { history.back(); } catch (e) { ignorePop--; } }
     try { navigator.vibrate && navigator.vibrate(0); } catch (e) {}
     var done = function () { closing = false; restore(); };
-    if (!v || reduce || !v.animate) { done(); return true; }
+    if (!v || reduce || instant || !v.animate) { done(); return true; }
     var cur = getComputedStyle(v).transform;
     var H = window.innerHeight, W = window.innerWidth;
     var to = dir === 'right' ? 'translate3d(' + W + 'px,0,0)' : 'translate3d(0,' + H + 'px,0) scale(.92)';
@@ -125,6 +125,15 @@
     return true;
   }
   window._rdSheetClose = close;
+  // gesto nativo de borde (app iOS): la foto del post la mueve iOS; aquí solo se
+  // esconde el post para que se vea la pantalla de abajo, viva, mientras arrastras
+  window._rdSheetPeek = function (hide) {
+    var v = viewEl(currentView);
+    if (!on() || !v) return false;
+    v.style.visibility = hide ? 'hidden' : '';
+    shadeTo(hide ? 0 : 0.32);
+    return true;
+  };
 
   // botón volver / swipe a la derecha / casita → misma salida, sin splash
   function wrapExit(name) {

@@ -36,10 +36,25 @@
     var el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
     return !(el && n.contains(el));
   }
+  // ¿hay a dónde volver con el gesto de borde? (no en las pantallas raíz de la barra,
+  // ni si un menú u hoja web tapa el borde izquierdo)
+  var ROOTS = { home: 1, favoritos: 1, notificaciones: 1, cuenta: 1 };
+  function sheet() { return !!(window._rdSheetOn && window._rdSheetOn()); }
+  function canBack() {
+    try {
+      if (edge) return false;
+      if (ROOTS[currentView] && !sheet()) return false;
+      if (!sheet() && !(history.state && history.state.rueddaView)) return false;
+      var v = document.getElementById('view-' + currentView);
+      var el = document.elementFromPoint(6, innerHeight / 2);
+      return !!(v && el && v.contains(el));
+    } catch (e) { return false; }
+  }
+  var edge = '';
   var last = '';
   function state() {
     var a = document.querySelector('.bottom-nav .bnav-item.active');
-    var s = { ev: 'state', sel: a ? (SEL[a.id] || '') : '', hidden: covered(), nd: vis('notif-dot'), md: vis('rd-msg-dot'), theme: theme(), logged: !guest() };
+    var s = { ev: 'state', sel: a ? (SEL[a.id] || '') : '', hidden: covered(), back: canBack(), nd: vis('notif-dot'), md: vis('rd-msg-dot'), theme: theme(), logged: !guest() };
     var k = JSON.stringify(s);
     if (k !== last) { last = k; post(s); }
   }
@@ -125,6 +140,24 @@
         if (kind === 'notifs' && typeof _refreshNotifs === 'function') { window._notifRefreshAt = 0; await _refreshNotifs(); }
         if (kind === 'msgs' && typeof _loadPrivateMessages === 'function') await _loadPrivateMessages(true);
       } catch (e) {}
+      return true;
+    },
+    edgeBegin: function () {
+      if (!canBack()) return 'none';
+      if (sheet()) { window._rdSheetPeek(true); edge = 'sheet'; }
+      else { edge = 'nav'; try { history.back(); } catch (e) { edge = ''; return 'none'; } }
+      return edge;
+    },
+    edgeEnd: async function (ok) {
+      var m = edge;
+      if (m === 'sheet') {
+        if (ok) window._rdSheetClose('right', 0, false, true); else window._rdSheetPeek(false);
+      } else if (m === 'nav' && !ok) {
+        try { history.forward(); } catch (e) {}
+        // que la pantalla vuelva a estar armada antes de quitar la foto
+        await new Promise(function (r) { setTimeout(r, 420); });
+      }
+      edge = ''; last = ''; state();
       return true;
     },
     login: function () { try { showMobileAuth('login'); } catch (e) {} return true; },
