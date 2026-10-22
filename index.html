@@ -2819,8 +2819,10 @@ html[data-theme="light"] #btn-submit-vender{box-shadow:inset 0 0 0 1px rgba(0,0,
 <style id="rd-ajustes-2026-10-22">
 /* botones de marca en oscuro: blancos (antes #0a0a0a sobre negro = "full black") */
 :root:not([data-theme="light"]){--lime:#ffffff;--lime-dark:#e6e6e6;--lime-ink:#000}
-html:not([data-theme="light"]) .btn-vender{background:#e6f03b;color:#000}
-html:not([data-theme="light"]) .btn-vender:active{background:#d4dd2c}
+/* vender: amarillo Ruedda con acabado de vidrio ultra ligero (brillo interno + borde de luz) */
+html:not([data-theme="light"]) .btn-vender{position:relative;color:#000;background:linear-gradient(180deg,rgba(255,255,255,.22) 0%,rgba(255,255,255,0) 48%),#e6f03b;box-shadow:inset 0 0 0 1px rgba(250,255,170,.95),inset 0 1px 1px rgba(255,255,255,.6),inset 0 -1px 2px rgba(80,90,0,.18),0 4px 16px rgba(230,240,59,.14)}
+html:not([data-theme="light"]) .btn-vender:active{background:linear-gradient(180deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 48%),#d9e330}
+html:not([data-theme="light"]) .btn-vender:hover{box-shadow:inset 0 0 0 1px rgba(250,255,170,.95),inset 0 1px 1px rgba(255,255,255,.6),inset 0 -1px 2px rgba(80,90,0,.18),0 4px 18px rgba(230,240,59,.22)}
 html:not([data-theme="light"]) #cons-req-submit-btn{background:#fff!important;color:#000!important;border-color:#fff!important}
 /* lupa: los resultados tienen su propio scroll (la capa es fija) */
 #search-results{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -18px;padding:0 18px calc(40px + env(safe-area-inset-bottom))}
