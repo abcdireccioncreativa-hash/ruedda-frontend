@@ -2718,7 +2718,7 @@ function rdRegion(r){
   },260);
 }
 </script>
-<script src="/rd-map.js?v=1" defer></script>
+<script src="/rd-map.js?v=2" defer></script>
 <script src="/desktop-popups.js?v=20261008a" data-mode="mobile" defer></script>
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=4" defer></script>
@@ -2927,6 +2927,24 @@ html[data-theme="light"] #notif-list .notif-item.unread .notif-content p{color:r
 html[data-theme="light"] #notif-list .notif-item,html[data-theme="light"] #notif-list .notif-item.unread{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.62));border:.5px solid rgba(20,22,10,.06);box-shadow:inset 0 1px 0 #fff,0 6px 18px rgba(20,22,10,.06)}
 html[data-theme="light"] #notif-list .notif-item.unread{border-color:rgba(20,22,10,.09)}
 html[data-theme="light"] #notif-list .notif-item .rdc-dot{box-shadow:0 0 0 1px rgba(20,22,10,.12)}
+.rd-dhead{display:flex;align-items:center;justify-content:space-between;padding-right:14px}
+.rd-share{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;cursor:pointer;color:var(--white);background:var(--w6);border:.5px solid var(--w10);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);transition:transform .18s cubic-bezier(.32,.72,0,1),background .18s;-webkit-tap-highlight-color:transparent}
+.rd-share svg{width:16px;height:16px;margin-top:-1px}
+.rd-share:active{transform:scale(.9);background:var(--w10)}
+#view-ruedda-extra.rx-anim .rx-hdr .rx-logo,#view-ruedda-extra.rx-anim .rx-menu>*{animation:rdcIn .55s cubic-bezier(.22,.9,.3,1) both}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(1){animation-delay:0.095s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(2){animation-delay:0.140s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(3){animation-delay:0.185s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(4){animation-delay:0.230s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(5){animation-delay:0.275s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(6){animation-delay:0.320s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(7){animation-delay:0.365s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(8){animation-delay:0.410s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(9){animation-delay:0.455s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(10){animation-delay:0.500s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(11){animation-delay:0.545s}
+#view-ruedda-extra.rx-anim .rx-menu>:nth-child(12){animation-delay:0.590s}
+@media (prefers-reduced-motion: reduce){#view-ruedda-extra.rx-anim .rx-hdr .rx-logo,#view-ruedda-extra.rx-anim .rx-menu>*{animation:none}}
 @keyframes rdcIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
 #view-notificaciones.rdc-anim #mensajes-list>*,#view-notificaciones.rdc-anim #notif-list>*{animation:rdcIn .55s cubic-bezier(.22,.9,.3,1) both}
 #view-notificaciones.rdc-anim #mensajes-list>:nth-child(1),#view-notificaciones.rdc-anim #notif-list>:nth-child(1){animation-delay:0.000s}
@@ -11549,6 +11567,32 @@ function _shareUrlFor(type,id){
   const base='https://www.ruedda.app'; // en la app nativa el origin no es ruedda.app
   return `${base}/?${type}=${id}`;
 }
+// [2026-10-22] botón compartir en cada publicación (subasta / market), a la altura de "volver":
+// la fila de "volver" pasa a ser .rd-dhead (volver a la izquierda, compartir a la derecha).
+function _rdSharePost(type){
+  const o=type==='auction'?(typeof currentAuction!=='undefined'?currentAuction:null):(typeof currentMarketListing!=='undefined'?currentMarketListing:null);
+  if(!o||!o.id) return;
+  try{ window.RD_SND&&RD_SND.play('click'); }catch(e){}
+  const url=_shareUrlFor(type,o.id), title=o.title||'Ruedda';
+  if(navigator.share){ navigator.share({title,url}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(url).then(()=>showToast('link copiado',true)).catch(()=>showToast(url)); }
+  else showToast(url);
+}
+(function(){
+  function mount(){
+    [['view-detail','auction'],['view-market-detail','market']].forEach(function(p){
+      const v=document.getElementById(p[0]); const back=v&&v.querySelector(':scope>.detail-back');
+      if(!back||v.querySelector('.rd-dhead')) return;
+      const row=document.createElement('div'); row.className='rd-dhead';
+      back.parentNode.insertBefore(row,back); row.appendChild(back);
+      const b=document.createElement('button'); b.type='button'; b.className='rd-share'; b.setAttribute('aria-label','compartir');
+      b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7.5 7.5 4.5-4.5 4.5 4.5"/><path d="M8 11H6.5A1.5 1.5 0 0 0 5 12.5v7A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-7a1.5 1.5 0 0 0-1.5-1.5H16"/></svg>';
+      b.addEventListener('click',function(e){ e.stopPropagation(); _rdSharePost(p[1]); });
+      row.appendChild(b);
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',mount); else mount();
+})();
 function _pvShare(){
   if(!_pvShareInfo) return;
   const url=_shareUrlFor(_pvShareInfo.type,_pvShareInfo.id);
@@ -25449,7 +25493,15 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
     function anim(){ var v=document.getElementById('view-notificaciones'); if(!v||currentView!=='notificaciones') return; v.classList.remove('rdc-anim'); void v.offsetWidth; v.classList.add('rdc-anim'); clearTimeout(t); t=setTimeout(function(){ v.classList.remove('rdc-anim'); },1500); }
     ['showView','switchNotifTab'].forEach(function(fn){ var o=window[fn]; if(typeof o!=='function') return; window[fn]=function(){ var was=currentView; var r=o.apply(this,arguments); if(fn==='switchNotifTab'||was!=='notificaciones') anim(); return r; }; });
   })();
-  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=6'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
+  /* Ruedda Extra: misma entrada escalonada (rdcIn) para el encabezado y cada tarjeta al abrir */
+  (function(){
+    var t=0;
+    var o=window.showView; if(typeof o!=='function') return;
+    window.showView=function(name){ var was=currentView; var r=o.apply(this,arguments);
+      if(name==='ruedda-extra'&&was!=='ruedda-extra'){ var v=document.getElementById('view-ruedda-extra'); if(v){ v.classList.remove('rx-anim'); void v.offsetWidth; v.classList.add('rx-anim'); clearTimeout(t); t=setTimeout(function(){ v.classList.remove('rx-anim'); },1400); } }
+      return r; };
+  })();
+  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=7'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
 
   /* menú hamburguesa: foto de perfil arriba */
   function paintMe(){

@@ -110,7 +110,7 @@
         var dealer = !!(t.otherIsDealer || t.otherRole === 'concesionario' || t.otherRole === 'consesionario');
         var nm = t.isPM ? (t.otherName || 'usuario') : (((t.participants || []).find(function (p) { return !p.isSeller; }) || {}).user || 'usuario');
         var txt = m ? String(m.text || '').replace(/\n?\[\[rdpost:[\w-]+\]\]/g, ' · publicación').replace(/\s+/g, ' ').trim() : '';
-        return { id: String(t.id), name: nm, av: img(t.otherAvatar, 240), dealer: dealer, kyc: !!t.otherKyc,
+        return { id: String(t.id), uid: t.isPM && t.otherId ? String(t.otherId) : '', name: nm, av: img(t.otherAvatar, 240), dealer: dealer, kyc: !!t.otherKyc,
           title: t.sourceTitle || t.carTitle || '', text: txt, mine: !!(m && (m.mine || m.sender_id === (USER_STATE && USER_STATE.id))),
           at: (m && (m.created_at || '')) || '', time: (m && m.time) || '', unread: !!t.unread };
       });
@@ -125,6 +125,13 @@
       }) };
     },
     openThread: function (id) { try { openThread(id); } catch (e) {} return true; },
+    // foto de una conversación → perfil (o vitrina del concesionario)
+    profile: async function (id, dealer) {
+      try { (dealer && typeof _openVitrinaByUserId === 'function' ? _openVitrinaByUserId : openUserProfile)(id); } catch (e) {}
+      await new Promise(function (r) { setTimeout(r, 60); });
+      last = ''; state();
+      return true;
+    },
     openGlobal: function () { try { openGlobalChat(); } catch (e) {} return true; },
     notifTap: function (id) {
       var before = currentView;
