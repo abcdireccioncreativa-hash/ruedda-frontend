@@ -133,9 +133,7 @@
       return new Promise(function (res) { setTimeout(function () { res({ view: currentView, moved: currentView !== before || covered() }); }, 90); });
     },
     notifDel: function (id) {
-      var i = NOTIFICATIONS.findIndex(function (x) { return String(x.id) === String(id); });
-      if (i > -1) NOTIFICATIONS.splice(i, 1);
-      try { _saveNotifsToStorage(); } catch (e) {}
+      try { _deleteNotif(id); } catch (e) {}
       try { renderNotifications(); } catch (e) {}
       try { _syncNotifBadge(); } catch (e) {}
       return true;

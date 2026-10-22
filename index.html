@@ -2918,6 +2918,15 @@ html[data-theme="light"] .rdc-chev{border-color:rgba(21,22,14,.28)}
 html[data-theme="light"] #notif-list .notif-item .notif-icon svg{color:rgba(21,22,14,.62)!important}
 html[data-theme="light"] #notif-list .notif-item.unread .notif-icon svg{color:#15160e!important}
 html[data-theme="light"] #notif-list .notif-item.unread .notif-content p{color:rgba(21,22,14,.72)}
+/* avisos en vidrio (aproximación web del Liquid Glass de iOS): fondo translúcido con desenfoque,
+   brillo en el borde superior y contorno fino; punto de no leído en amarillo Ruedda */
+#notif-list .notif-item,#notif-list .notif-item.unread{background:linear-gradient(180deg,rgba(255,255,255,.085),rgba(255,255,255,.035));-webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);border:.5px solid rgba(255,255,255,.07);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 8px 24px rgba(0,0,0,.25)}
+#notif-list .notif-item.unread{border-color:rgba(255,255,255,.11)}
+#notif-list .notif-item:active{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.06))}
+#notif-list .notif-item .rdc-dot,html[data-theme="light"] #notif-list .notif-item .rdc-dot{background:#e6f03b;box-shadow:0 0 8px rgba(230,240,59,.45)}
+html[data-theme="light"] #notif-list .notif-item,html[data-theme="light"] #notif-list .notif-item.unread{background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.62));border:.5px solid rgba(20,22,10,.06);box-shadow:inset 0 1px 0 #fff,0 6px 18px rgba(20,22,10,.06)}
+html[data-theme="light"] #notif-list .notif-item.unread{border-color:rgba(20,22,10,.09)}
+html[data-theme="light"] #notif-list .notif-item .rdc-dot{box-shadow:0 0 0 1px rgba(20,22,10,.12)}
 @keyframes rdcIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
 #view-notificaciones.rdc-anim #mensajes-list>*,#view-notificaciones.rdc-anim #notif-list>*{animation:rdcIn .55s cubic-bezier(.22,.9,.3,1) both}
 #view-notificaciones.rdc-anim #mensajes-list>:nth-child(1),#view-notificaciones.rdc-anim #notif-list>:nth-child(1){animation-delay:0.000s}
@@ -7073,6 +7082,20 @@ const _NOTIF_KEY = 'ruedda_notifs_v1';
 
 // Lee notifs guardadas y las mergea en NOTIFICATIONS (preserva estado read)
 function _notifKey(){ return 'ruedda_notifs_'+(USER_STATE&&USER_STATE.id?USER_STATE.id:'guest'); }
+// [2026-10-22] notifs borradas: antes solo salían del array local y al volver a cargar desde
+// Supabase reaparecían. Ahora se borran en la base y además quedan anotadas en el equipo
+// (por si la política de la tabla no deja borrar), y se filtran al cargar, refrescar y en realtime.
+function _notifGoneKey(){ return 'ruedda_notifs_gone_'+(USER_STATE&&USER_STATE.id?USER_STATE.id:'guest'); }
+function _notifGone(){ try{ return new Set(JSON.parse(localStorage.getItem(_notifGoneKey())||'[]')); }catch(e){ return new Set(); } }
+function _deleteNotif(id){
+  id=String(id);
+  const i=NOTIFICATIONS.findIndex(x=>String(x.id)===id);
+  if(i>-1)NOTIFICATIONS.splice(i,1);
+  try{ const g=_notifGone(); g.add(id); localStorage.setItem(_notifGoneKey(),JSON.stringify([...g].slice(-300))); }catch(e){}
+  _saveNotifsToStorage();
+  try{ if(_supa&&USER_STATE.id&&!isGuest()) _supa.from('notifications').delete().eq('id',id).eq('user_id',USER_STATE.id).then(({error})=>{ if(error) console.warn('[ruedda notif delete]',error.message); }); }catch(e){}
+  if(typeof _syncNotifBadge==='function')_syncNotifBadge();
+}
 function _loadNotifsFromStorage(){
   try {
     const raw = localStorage.getItem(_notifKey());
@@ -12335,9 +12358,7 @@ function _attachNotifSwipe(list){
         item.style.opacity='0';
         const id=item.dataset.notifId;
         setTimeout(()=>{
-          const i=NOTIFICATIONS.findIndex(x=>String(x.id)===String(id));
-          if(i>-1)NOTIFICATIONS.splice(i,1);
-          _saveNotifsToStorage();
+          _deleteNotif(id);
           item.remove();
           if(!NOTIFICATIONS.length)renderNotifications();
           if(typeof _syncNotifBadge==='function')_syncNotifBadge();
@@ -19992,7 +20013,8 @@ async function _refreshNotifs(){
   const now=Date.now(); if(now-_notifRefreshAt<2500) return; _notifRefreshAt=now;
   const{data,error}=await _supa.from('notifications').select('*').eq('user_id',USER_STATE.id).order('created_at',{ascending:false}).limit(40);
   if(error||!data) return;
-  const fresh=data.filter(n=>!_notifSeen.has(String(n.id)));
+  const gone=_notifGone();
+  const fresh=data.filter(n=>!_notifSeen.has(String(n.id))&&!gone.has(String(n.id)));
   if(!fresh.length) return;
   fresh.forEach(n=>_notifSeen.add(String(n.id)));
   NOTIFICATIONS.unshift(...fresh.map(n=>({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'reciente',read:!!n.read,icon:n.icon||'default',sourceId:n.source_id||null,sourceType:n.source_type||''})));
@@ -20009,7 +20031,7 @@ function _subscribeNotifs(userId){
   const ch=_supa.channel(`ruedda-notifs-${userId}-${Date.now()}`).on('postgres_changes',{event:'INSERT',schema:'public',table:'notifications',filter:`user_id=eq.${userId}`},payload=>{
     const n=payload.new;
     // [2026-10-06] dedupe: el refresco al volver a la app pudo haberla traído ya
-    if(_notifSeen.has(String(n.id))) return;
+    if(_notifSeen.has(String(n.id))||_notifGone().has(String(n.id))) return;
     _notifSeen.add(String(n.id));
     NOTIFICATIONS.unshift({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'ahora mismo',read:false,icon:n.icon||'default',sourceId:n.source_id||null,sourceType:n.source_type||''});
     _saveNotifsToStorage(); // [RUEDDA v61] persistir notif realtime
@@ -20054,7 +20076,9 @@ async function _rueddaLoadUserData(userId,role){
     // merge: respetar estado read guardado en localStorage para cada notif
     const storedMap=Object.fromEntries(NOTIFICATIONS.map(n=>[String(n.id),n.read]));
     NOTIFICATIONS.length=0; // limpiar para re-poblar ordenado desde Supabase
+    const gone=_notifGone();
     notifs.forEach(n=>{
+      if(gone.has(String(n.id))) return;
       const wasRead = storedMap[String(n.id)] !== undefined ? storedMap[String(n.id)] : !!n.read;
       NOTIFICATIONS.push({id:n.id,type:n.tipo,title:n.titulo,body:n.body,time:'reciente',read:wasRead,icon:n.icon||'default',sourceId:n.source_id||null,sourceType:n.source_type||''});
     });
@@ -25408,7 +25432,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
     function anim(){ var v=document.getElementById('view-notificaciones'); if(!v||currentView!=='notificaciones') return; v.classList.remove('rdc-anim'); void v.offsetWidth; v.classList.add('rdc-anim'); clearTimeout(t); t=setTimeout(function(){ v.classList.remove('rdc-anim'); },1500); }
     ['showView','switchNotifTab'].forEach(function(fn){ var o=window[fn]; if(typeof o!=='function') return; window[fn]=function(){ var was=currentView; var r=o.apply(this,arguments); if(fn==='switchNotifTab'||was!=='notificaciones') anim(); return r; }; });
   })();
-  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=4'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
+  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=5'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
 
   /* menú hamburguesa: foto de perfil arriba */
   function paintMe(){
