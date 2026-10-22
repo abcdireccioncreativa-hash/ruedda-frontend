@@ -25441,3 +25441,11 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
   });
 })();
 </script>
+<script>
+/* [regla 2026-10-22] auto-aprobación a los 20 min en revisión: la app la dispara al abrir
+   (máx. una vez cada 2 min por equipo) para no depender solo del cron de GitHub (api/mod-listing.js ?auto=1) */
+window.addEventListener('load',function(){setTimeout(function(){
+  try{var k='rd_auto_ap',t=+localStorage.getItem(k)||0;if(Date.now()-t<120000)return;localStorage.setItem(k,Date.now());}catch(e){}
+  fetch('/api/mod-listing?auto=1',{cache:'no-store'}).catch(function(){});
+},4000);});
+</script>

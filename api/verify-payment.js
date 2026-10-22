@@ -62,10 +62,10 @@ module.exports = async function handler(req, res) {
       } else {
         // Mover publicación a revisión
         if (ref.listing_id) {
-          await supabaseAdmin.from('listings').update({ estado: 'revision' }).eq('id', ref.listing_id);
+          await supabaseAdmin.from('listings').update({ estado: 'revision', updated_at: new Date().toISOString() }).eq('id', ref.listing_id);
         }
         if (ref.auction_id) {
-          await supabaseAdmin.from('auctions').update({ estado: 'revision' }).eq('id', ref.auction_id);
+          await supabaseAdmin.from('auctions').update({ estado: 'revision', updated_at: new Date().toISOString() }).eq('id', ref.auction_id);
         }
         notifTitulo = '¡Pago confirmado!';
         notifBody = 'Tu pago fue verificado. Tu publicación está en revisión y será aprobada pronto.';

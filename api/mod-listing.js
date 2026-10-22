@@ -1164,6 +1164,75 @@ const ADMIN_PANEL_HTML_DESKTOP = `  <div class="detail-back" onclick="showView('
     <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Una insignia por cada nivel del sistema de XP. Sube PNG o SVG ultra liviano, toca el cuadro.</div>
     <div id="sa-levels-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px"></div>`;
 
+// aviso en la app + correo al dueño (best-effort): lo usan la moderación manual
+// y la auto-aprobación de los 20 minutos
+async function notifyOwner(item, action) {
+  if (item.user_id) {
+    const label = [item.year, item.marca, item.modelo].filter(Boolean).join(' ');
+    // [fix 2026-10-04] el builder de supabase-js no tiene .catch(): llamar .insert(...).catch()
+    // lanzaba un TypeError DESPUÉS de aprobar, y Control mostraba "error" aunque sí se aprobaba.
+    try {
+      const { error: notifErr } = await supabaseAdmin.from('notifications').insert({
+        user_id: item.user_id,
+        tipo: action === 'aprobar' ? 'ganador' : 'system',
+        titulo: action === 'aprobar' ? '¡Publicación aprobada!' : 'Publicación rechazada',
+        body: action === 'aprobar'
+          ? `Tu ${label} ya está activa en Ruedda.`
+          : 'Tu publicación no cumplió los estándares de Ruedda. Contáctanos por soporte.',
+        icon: action === 'aprobar' ? 'lime' : ''
+      });
+      if (notifErr) console.error('[ruedda mod-listing] notif:', notifErr.message);
+    } catch (e) { console.error('[ruedda mod-listing] notif:', e.message); }
+
+    // 5. Correo al dueño (best-effort; se espera: en serverless lo que queda suelto tras responder se corta)
+    await supabaseAdmin
+      .from('users')
+      .select('email')
+      .eq('id', item.user_id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data?.email) return;
+        if (action === 'aprobar') {
+          sendEmail({
+            to: data.email,
+            subject: '¡Tu publicación ya está activa en Ruedda!',
+            html: layout('Publicación activa', `Tu ${label || 'publicación'} fue aprobada y ya está visible para todos en Ruedda. No necesitas hacer nada más.`)
+          });
+        } else {
+          sendEmail({
+            to: data.email,
+            subject: 'Tu publicación no fue aprobada',
+            html: layout('Publicación rechazada', `Tu ${label || 'publicación'} no cumplió los estándares de Ruedda. Contáctanos por soporte si tienes dudas.`)
+          });
+        }
+      })
+      .catch(() => {});
+  }
+}
+
+// [regla 2026-10-22] una publicación que lleva 20 minutos en revisión se aprueba sola.
+// Cuenta desde que entró a revisión (updated_at: verify-payment lo marca al pasar de
+// pendiente_pago a revisión). pendiente_pago no se toca: sin pago no hay aprobación.
+// Idempotente y sin auth: solo aplica la regla. Lo llaman GitHub Actions cada 5 min
+// (.github/workflows/auto-aprobar.yml) y la app al abrir, para que no espere al cron.
+const AUTO_MIN = 20;
+async function autoApprove() {
+  const limite = new Date(Date.now() - AUTO_MIN * 60000).toISOString();
+  let n = 0;
+  for (const tabla of ['listings', 'auctions']) {
+    const { data, error } = await supabaseAdmin
+      .from(tabla)
+      .update({ estado: 'activa' })
+      .eq('estado', 'revision')
+      .lt('created_at', limite)
+      .lt('updated_at', limite)
+      .select('id, user_id, titulo, marca, modelo, year');
+    if (error) { console.error('[ruedda auto-aprobar]', tabla, error.message); continue; }
+    for (const item of data || []) { n++; await notifyOwner(item, 'aprobar'); }
+  }
+  return n;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -1172,6 +1241,10 @@ module.exports = async function handler(req, res) {
 
   // ── rama GET: fragmento del panel SuperAdmin, aislada del flujo POST ──
   if (req.method === 'GET') {
+    if (req.query.auto === '1') {
+      try { return res.status(200).json({ ok: true, aprobadas: await autoApprove() }); }
+      catch (e) { console.error('[ruedda auto-aprobar]', e.message); return res.status(500).json({ error: 'error interno' }); }
+    }
     if (req.query.panel !== '1') return res.status(404).json({ error: 'not found' });
     const user = await getUserFromToken(req);
     if (!user) return res.status(401).json({ error: 'no autenticado' });
@@ -1234,47 +1307,7 @@ module.exports = async function handler(req, res) {
     }
 
     // 4. Notificar al usuario (best-effort)
-    if (item.user_id) {
-      const label = [item.year, item.marca, item.modelo].filter(Boolean).join(' ');
-      // [fix 2026-10-04] el builder de supabase-js no tiene .catch(): llamar .insert(...).catch()
-      // lanzaba un TypeError DESPUÉS de aprobar, y Control mostraba "error" aunque sí se aprobaba.
-      try {
-        const { error: notifErr } = await supabaseAdmin.from('notifications').insert({
-          user_id: item.user_id,
-          tipo: action === 'aprobar' ? 'ganador' : 'system',
-          titulo: action === 'aprobar' ? '¡Publicación aprobada!' : 'Publicación rechazada',
-          body: action === 'aprobar'
-            ? `Tu ${label} ya está activa en Ruedda.`
-            : 'Tu publicación no cumplió los estándares de Ruedda. Contáctanos por soporte.',
-          icon: action === 'aprobar' ? 'lime' : ''
-        });
-        if (notifErr) console.error('[ruedda mod-listing] notif:', notifErr.message);
-      } catch (e) { console.error('[ruedda mod-listing] notif:', e.message); }
-
-      // 5. Correo al dueño (best-effort, no bloquea la respuesta)
-      supabaseAdmin
-        .from('users')
-        .select('email')
-        .eq('id', item.user_id)
-        .maybeSingle()
-        .then(({ data }) => {
-          if (!data?.email) return;
-          if (action === 'aprobar') {
-            sendEmail({
-              to: data.email,
-              subject: '¡Tu publicación ya está activa en Ruedda!',
-              html: layout('Publicación activa', `Tu ${label || 'publicación'} fue aprobada y ya está visible para todos en Ruedda. No necesitas hacer nada más.`)
-            });
-          } else {
-            sendEmail({
-              to: data.email,
-              subject: 'Tu publicación no fue aprobada',
-              html: layout('Publicación rechazada', `Tu ${label || 'publicación'} no cumplió los estándares de Ruedda. Contáctanos por soporte si tienes dudas.`)
-            });
-          }
-        })
-        .catch(() => {});
-    }
+    await notifyOwner(item, action);
 
     return res.status(200).json({ ok: true, estado: nuevoEstado });
 

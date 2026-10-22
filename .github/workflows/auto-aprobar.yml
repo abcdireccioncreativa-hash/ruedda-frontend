@@ -1,0 +1,11 @@
+name: Auto-aprobar publicaciones (20 min en revisión)
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # cada 5 min; la app también lo dispara al abrir (api/mod-listing.js ?auto=1)
+  workflow_dispatch: {}
+jobs:
+  aprobar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - run: curl -fsS --max-time 60 'https://www.ruedda.app/api/mod-listing?auto=1'
