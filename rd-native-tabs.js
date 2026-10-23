@@ -209,7 +209,27 @@
     login: function () { try { showMobileAuth('login'); } catch (e) {} return true; },
     vender: function (k) { try { handleVenderClick(k); } catch (e) {} return true; },
     venderWeb: function () { try { webVender(); } catch (e) {} return true; },
-    agencia: function () { try { showView('afiliate'); } catch (e) {} last = ''; state(); return true; }
+    agencia: function () { try { showView('afiliate'); } catch (e) {} last = ''; state(); return true; },
+    // hoja nativa "registrar agencia" (build 37+): datos para precargar y envío al panel (partner_leads → Control › Solicitudes)
+    agenciaInfo: function () {
+      var u = (typeof USER_STATE === 'object' && USER_STATE) || {};
+      var g = guest();
+      return { nombre: g ? '' : (u.nombre || ''), tel: g ? '' : (u.telefono || u.celular || ''), ciudad: g ? '' : (u.ciudad || '') };
+    },
+    agenciaLead: async function (d) {
+      d = d || {};
+      if (typeof _supa === 'undefined' || !_supa) return { ok: false, err: 'sin conexión' };
+      var u = (typeof USER_STATE === 'object' && USER_STATE) || {};
+      var motivo = ['registro de agencia', d.ciudad || '', d.cantidad ? d.cantidad + ' vehículos' : ''].filter(Boolean).join(' · ');
+      try {
+        var r = await _supa.from('partner_leads').insert({
+          user_id: (!guest() && u.id) ? u.id : null,
+          marca_nombre: String(d.agencia || '').slice(0, 120), representante: String(d.rep || '').slice(0, 120),
+          telefono: String(d.tel || '').slice(0, 40), motivo: motivo
+        });
+        return r.error ? { ok: false, err: r.error.message } : { ok: true };
+      } catch (e) { return { ok: false, err: 'no se pudo enviar' }; }
+    }
   };
   if (document.readyState === 'complete') state(); else window.addEventListener('load', state);
 })();

@@ -42,16 +42,16 @@
   '.rd-pin.sel{background:#fff}.rd-pin span{line-height:1}'+
   // logo cuadrado (agencias / fotógrafos)
   // MapLibre posiciona el elemento del marcador con transform: la burbuja va adentro (.rd-logo)
-  // y es la que anima. Logos de agencia en contain con margen: se ven completos, sin recorte.
+  // y es la que anima. Logos a sangre (cover) con aro blanco fino: sin el marco blanco grueso del contain.
   '.rd-lw{cursor:pointer}'+
-  '.rd-logo{position:relative;width:46px;height:46px;border-radius:14px;background:#fff center/cover no-repeat;box-shadow:0 0 0 1.5px rgba(0,0,0,.35),0 4px 12px rgba(0,0,0,.22);display:grid;place-items:center;font:800 16px var(--font);color:#0a0a0a;transition:transform .2s cubic-bezier(.22,1,.36,1);animation:rdLogoIn .5s cubic-bezier(.34,1.45,.64,1) both;will-change:transform}'+
+  '.rd-logo{position:relative;width:44px;height:44px;border-radius:13px;background:#111 center/cover no-repeat;box-shadow:0 0 0 2px #fff,0 0 0 2.5px rgba(0,0,0,.18),0 6px 14px rgba(0,0,0,.28);display:grid;place-items:center;font:800 16px var(--font);color:#fff;transition:transform .2s cubic-bezier(.22,1,.36,1);animation:rdLogoIn .5s cubic-bezier(.34,1.45,.64,1) both;will-change:transform}'+
   '.rd-lw:hover .rd-logo{transform:scale(1.08)}'+
   '.rd-lw:active .rd-logo{transform:scale(.94)}'+
   '.rd-logo.contain{background-size:contain;background-origin:content-box;padding:6px;box-sizing:border-box}'+
   '@keyframes rdLogoIn{from{opacity:0;transform:scale(.45) translateY(10px)}to{opacity:1;transform:none}}'+
   '@media (prefers-reduced-motion:reduce){.rd-logo{animation:none}}'+
   '.rd-logo b{position:absolute;top:-7px;right:-8px;min-width:20px;height:20px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:#e6f03b;color:#0a0a0a;font:800 11px/20px var(--font);text-align:center;box-shadow:0 0 0 2px rgba(0,0,0,.45)}'+
-  '.rd-logo.stack{box-shadow:0 0 0 2px rgba(0,0,0,.5),5px 5px 0 -1px rgba(255,255,255,.55),0 6px 16px rgba(0,0,0,.35)}'+
+  '.rd-logo.stack{box-shadow:0 0 0 2px #fff,0 0 0 2.5px rgba(0,0,0,.18),5px 5px 0 0 rgba(255,255,255,.6),0 6px 16px rgba(0,0,0,.32)}'+
   '.rd-me{width:16px;height:16px;border-radius:50%;background:#2f80ed;border:3px solid #fff;box-shadow:0 0 0 6px rgba(47,128,237,.25),0 2px 6px rgba(0,0,0,.4)}'+
   '#rd-map-el .maplibregl-ctrl-attrib{font-size:9px;background:rgba(0,0,0,.35)!important;color:rgba(255,255,255,.6)}'+
   '#rd-map-el .maplibregl-ctrl-attrib a{color:inherit}'+
@@ -72,7 +72,7 @@
   '.rd-city-row .sub{font-size:12.5px;color:var(--muted);white-space:nowrap}'+
   '.rd-city-row .bar{width:64px;height:5px;border-radius:5px;background:var(--w8);overflow:hidden}'+
   '.rd-city-row .bar i{display:block;height:100%;background:#e6f03b;border-radius:5px}'+
-  '.rd-city-row .lg{width:38px;height:38px;border-radius:10px;background:#fff center/cover no-repeat;flex-shrink:0;display:grid;place-items:center;font:800 14px var(--font);color:#0a0a0a;box-shadow:0 0 0 1px var(--w10)}'+
+  '.rd-city-row .lg{width:40px;height:40px;border-radius:11px;background:var(--w7) center/cover no-repeat;flex-shrink:0;display:grid;place-items:center;font:800 14px var(--font);color:var(--white);box-shadow:inset 0 0 0 1px var(--w10)}'+
   '.rd-city-row .lg.contain{background-size:contain;background-origin:content-box;padding:5px;box-sizing:border-box}'+
   '.rd-city-in{animation:rdCityIn .28s cubic-bezier(.22,.61,.36,1) both}'+
   '@keyframes rdCityIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}'+
@@ -118,7 +118,7 @@
   function items(kind){
     if(kind==='agencias'){
       var src=(typeof CONCESIONARIOS_ALL!=='undefined'&&CONCESIONARIOS_ALL.length)?CONCESIONARIOS_ALL:(typeof CONCESIONARIOS!=='undefined'?CONCESIONARIOS:[]);
-      return src.filter(function(d){ return d&&d.nombre; }).map(function(d){ return {id:d.id,name:d.nombre,city:d.ciudad||'',logo:d.logo||d.logo_url||'',contain:true}; });
+      return src.filter(function(d){ return d&&d.nombre; }).map(function(d){ return {id:d.id,name:d.nombre,city:d.ciudad||'',logo:d.logo||d.logo_url||''}; });
     }
     if(kind==='fotografos'){
       var f=typeof FOTOGRAFOS!=='undefined'?FOTOGRAFOS:[];
