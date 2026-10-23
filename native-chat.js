@@ -26,7 +26,8 @@
     return {id:String(m.id),uid:String(m.user_id),mine:String(m.user_id)===String(me()),text:m.text||'',
       img:m.image_url?img(m.image_url,500,75):'',full:m.image_url||'',at:m.created_at||''};
   }
-  function gcUser(u){ return u?{id:String(u.id),n:u.nombre||u.username||'usuario Ruedda',av:u.avatar_url?img(u.avatar_url,120,75):''}:null; }
+  function gcUser(u){ if(!u) return null; var lv=0; try{ _rdLvlTag(u.id); var c=_rdLvOf(String(u.id)); lv=c?c.lv:0; }catch(e){}
+    return {id:String(u.id),n:u.nombre||u.username||'usuario Ruedda',av:u.avatar_url?img(u.avatar_url,120,75):'',lv:lv}; }
 
   var RDNC=window.RDNC={}, cur=null;
 

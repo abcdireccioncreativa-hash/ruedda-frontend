@@ -54,7 +54,7 @@
   var last = '';
   function state() {
     var a = document.querySelector('.bottom-nav .bnav-item.active');
-    var s = { ev: 'state', sel: a ? (SEL[a.id] || '') : '', hidden: covered(), back: canBack(), nd: vis('notif-dot'), md: vis('rd-msg-dot'), theme: theme(), logged: !guest() };
+    var s = { ev: 'state', view: (typeof currentView !== 'undefined' ? currentView : ''), sel: a ? (SEL[a.id] || '') : '', hidden: covered(), back: canBack(), nd: vis('notif-dot'), md: vis('rd-msg-dot'), theme: theme(), logged: !guest() };
     var k = JSON.stringify(s);
     if (k !== last) { last = k; post(s); }
   }
@@ -110,7 +110,9 @@
         var dealer = !!(t.otherIsDealer || t.otherRole === 'concesionario' || t.otherRole === 'consesionario');
         var nm = t.isPM ? (t.otherName || 'usuario') : (((t.participants || []).find(function (p) { return !p.isSeller; }) || {}).user || 'usuario');
         var txt = m ? String(m.text || '').replace(/\n?\[\[rdpost:[\w-]+\]\]/g, ' · publicación').replace(/\s+/g, ' ').trim() : '';
-        return { id: String(t.id), uid: t.isPM && t.otherId ? String(t.otherId) : '', name: nm, av: img(t.otherAvatar, 240), dealer: dealer, kyc: !!t.otherKyc,
+        var lv = 0;
+        try { if (t.isPM && t.otherId) { _rdLvlTag(t.otherId); var c = _rdLvOf(String(t.otherId)); lv = c ? c.lv : 0; } } catch (e) {}
+        return { id: String(t.id), uid: t.isPM && t.otherId ? String(t.otherId) : '', lv: lv, name: nm, av: img(t.otherAvatar, 240), dealer: dealer, kyc: !!t.otherKyc,
           title: t.sourceTitle || t.carTitle || '', text: txt, mine: !!(m && (m.mine || m.sender_id === (USER_STATE && USER_STATE.id))),
           at: (m && (m.created_at || '')) || '', time: (m && m.time) || '', unread: !!t.unread };
       });
