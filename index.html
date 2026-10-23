@@ -3162,6 +3162,21 @@ html[data-theme="light"] #pricing-plans .plan-cta{background:#111!important;colo
 .news-ext-t{font-size:13px;font-weight:700;line-height:1.32;letter-spacing:-.15px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .news-ext-m{margin-top:7px;font-size:11px;color:var(--muted)}
 </style>
+<style id="rd-v40">
+/* [v40] lupa y formularios abren como hoja nativa de iOS (curva de UISheet), sin saltos */
+@media (max-width:899px) and (prefers-reduced-motion:no-preference){
+  .search-overlay.open{animation:rdSheetIn .5s cubic-bezier(.32,.72,0,1) both}
+  .search-overlay.open .search-top{animation:rdRise .52s cubic-bezier(.32,.72,0,1) .03s both}
+  .search-overlay.open>.sb-budget{animation:rdRise .55s cubic-bezier(.32,.72,0,1) .08s both}
+  .search-overlay.open>#search-results{animation:rdRise .6s cubic-bezier(.32,.72,0,1) .13s both}
+  .search-overlay.open.closing{animation:rdSheetOut .24s cubic-bezier(.4,0,1,1) both;pointer-events:none}
+  #view-vender.active,#view-alquiler-form.active,#view-afiliate.active{animation:rdFormIn .52s cubic-bezier(.32,.72,0,1) both}
+}
+@keyframes rdSheetIn{from{opacity:0;transform:translate3d(0,34px,0) scale(.985)}to{opacity:1;transform:none}}
+@keyframes rdSheetOut{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(0,26px,0) scale(.99)}}
+@keyframes rdRise{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
+@keyframes rdFormIn{from{opacity:0;transform:translate3d(0,42px,0)}to{opacity:1;transform:none}}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -12840,8 +12855,9 @@ function markNotifRead(id){
 
 // ===================== SEARCH =====================
 
-function openSearch(){document.getElementById('search-overlay').classList.add('open');if(typeof _rdSearchPopular==='function')_rdSearchPopular();if(typeof _rdEnsureConcesionarios==='function')_rdEnsureConcesionarios();/* sin autofocus: el teclado sale solo al tocar el campo */_loadMarcaLogos().then(_renderSearchPopMarcas);}
-function closeSearch(){document.getElementById('search-overlay').classList.remove('open');document.getElementById('search-input').value='';_resetSearchBudget();resetSearchResults()}
+// [v40] la lupa entra como hoja nativa: primero arranca la animación, el pintado pesado va en el cuadro siguiente
+function openSearch(){const o=document.getElementById('search-overlay');clearTimeout(o._rdOut);o.classList.remove('closing');o.classList.add('open');requestAnimationFrame(()=>requestAnimationFrame(()=>{if(typeof _rdSearchPopular==='function')_rdSearchPopular();if(typeof _rdEnsureConcesionarios==='function')_rdEnsureConcesionarios();/* sin autofocus: el teclado sale solo al tocar el campo */_loadMarcaLogos().then(_renderSearchPopMarcas);}));}
+function closeSearch(){const o=document.getElementById('search-overlay');const fin=()=>{o.classList.remove('open','closing');document.getElementById('search-input').value='';_resetSearchBudget();resetSearchResults()};if(!o.classList.contains('open')||matchMedia('(prefers-reduced-motion:reduce)').matches||innerWidth>899){fin();return}document.activeElement&&document.activeElement.blur&&document.activeElement.blur();o.classList.add('closing');clearTimeout(o._rdOut);o._rdOut=setTimeout(fin,240)}
 function resetSearchResults(){
   document.getElementById('search-results').innerHTML=`<div class="search-cat-label" style="margin-bottom:8px">categorías rápidas</div>
     <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:20px">
