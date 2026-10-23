@@ -76,7 +76,9 @@ function apnsSend(session, token, payload, collapseId) {
 }
 
 // texto limpio del mensaje: sin marcas internas [[rdpost:ID]]
-const plain = (t) => String(t || '').replace(/\n?\[\[rdpost:[\w-]+\]\]/g, ' · publicación').replace(/\s+/g, ' ').trim();
+// [2026-10-23] corazón ([[rdlike:ID]], mensaje oculto) y respuesta citada ([[rdre:ID]])
+const plain = (t) => /^\[\[rdlike:[\w-]+\]\]$/.test(String(t || '')) ? '❤️ le gustó tu mensaje'
+  : String(t || '').replace(/\n?\[\[rdre:[\w-]+\]\]/g, '').replace(/\n?\[\[rdpost:[\w-]+\]\]/g, ' · publicación').replace(/\s+/g, ' ').trim();
 const clip = (t, n) => (t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t);
 
 // arma el contenido del push (igual para web y app)

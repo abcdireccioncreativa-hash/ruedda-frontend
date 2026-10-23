@@ -18,12 +18,18 @@
   function theme(){ return document.documentElement.getAttribute('data-theme')==='light'?'light':'dark'; }
   function dealerRole(r){ return r==='concesionario'||r==='consesionario'; }
   function img(u,w,q){ try{ return u?_tImg(u,{width:w,quality:q}):''; }catch(e){ return u||''; } }
+  // corazones (doble toque) y respuestas (deslizar): marcas en el texto, sin tablas nuevas.
+  //  [[rdlike:ID]] / [[rdunlike:ID]] → mensaje oculto; [[rdre:ID]] → cita del mensaje ID.
+  // La app que las entiende trae window.__RD_CHAT_RX; a las anteriores (1.6) se les filtran.
+  var RX=!!window.__RD_CHAT_RX, LIKE=/^\[\[rd(un)?like:[\w-]+\]\]$/, RE=/\n?\[\[rdre:[\w-]+\]\]/g;
+  function isLike(t){ return LIKE.test(String(t||'')); }
+  function txt(t){ t=t||''; return RX?t:String(t).replace(RE,''); }
   function pmRow(m){
-    return {id:String(m.id),mine:String(m.sender_id)===String(me()),text:m.text||'',at:m.created_at||'',read:!!m.read,
+    return {id:String(m.id),mine:String(m.sender_id)===String(me()),text:txt(m.text),at:m.created_at||'',read:!!m.read,
       st:m.source_type||'',sid:m.source_id!=null?String(m.source_id):'',stitle:m.source_title||''};
   }
   function gcRow(m){
-    return {id:String(m.id),uid:String(m.user_id),mine:String(m.user_id)===String(me()),text:m.text||'',
+    return {id:String(m.id),uid:String(m.user_id),mine:String(m.user_id)===String(me()),text:txt(m.text),
       img:m.image_url?img(m.image_url,500,75):'',full:m.image_url||'',at:m.created_at||''};
   }
   function gcUser(u){ if(!u) return null; var lv=0; try{ _rdLvlTag(u.id); var c=_rdLvOf(String(u.id)); lv=c?c.lv:0; }catch(e){}
@@ -63,7 +69,21 @@
     var data=r.data||[];
     var un=data.filter(function(m){ return String(m.receiver_id)===String(u)&&!m.read; }).map(function(m){ return m.id; });
     if(un.length) _supa.from('private_messages').update({read:true}).in('id',un).then(null,function(){});
-    return {rows:data.reverse().map(pmRow),more:data.length===60};
+    var more=data.length===60;
+    if(!RX) data=data.filter(function(m){ return !isLike(m.text); });
+    return {rows:data.reverse().map(pmRow),more:more};
+  };
+  // corazón: el otro recibe aviso solo al marcarlo (no al quitarlo)
+  RDNC.pmReact=async function(o,id,on,title,sid,st){
+    var r=await _supa.from('private_messages').insert({sender_id:me(),receiver_id:o,source_id:sid||null,source_type:st||null,source_title:title,text:'[[rd'+(on?'':'un')+'like:'+id+']]'}).select(PM_COLS).single();
+    if(r.error) throw new Error(r.error.message);
+    if(on) _supa.from('notifications').insert({user_id:o,tipo:'pm',titulo:'Le gustó tu mensaje',body:myName()+' le dio ❤️ a tu mensaje',icon:'lime',source_id:String(me()),source_type:'pm'}).then(null,function(){});
+    return pmRow(r.data);
+  };
+  // mensajes citados que quedaron fuera de la ventana cargada
+  RDNC.pmGet=async function(ids){
+    var r=await _supa.from('private_messages').select(PM_COLS).in('id',ids||[]);
+    return (r.data||[]).map(pmRow);
   };
   RDNC.pmRead=async function(ids){
     if(ids&&ids.length) await _supa.from('private_messages').update({read:true}).in('id',ids);
@@ -125,6 +145,9 @@
 
   // ── conduciendo el mercado ─────────────────────────────────────
   var ROOM=typeof GLOBAL_CHAT_ROOM!=='undefined'?GLOBAL_CHAT_ROOM:'conduciendo-el-mercado';
+  // los corazones del chat del mercado van en su propia sala: la poda de 35 por sala
+  // no les quita lugar a los mensajes de verdad
+  var RXROOM=ROOM+':rx';
   async function gcUsers(ids){
     var cache=typeof _globalChatUsersCache!=='undefined'?_globalChatUsersCache:{};
     var miss=ids.filter(function(id,i){ return ids.indexOf(id)===i&&!cache[id]; });
@@ -136,7 +159,12 @@
     if(r.error) throw new Error(r.error.message);
     var rows=(r.data||[]).reverse();
     try{ GLOBAL_CHAT_MSGS=rows.slice(); }catch(e){}
-    return {rows:rows.map(gcRow),users:await gcUsers(rows.map(function(m){ return m.user_id; }))};
+    var all=rows;
+    if(RX){
+      var x=await _supa.from('public_chat_messages').select('*').eq('room',RXROOM).order('created_at',{ascending:false}).limit(35);
+      all=rows.concat(x.data||[]).sort(function(a,b){ return String(a.created_at).localeCompare(String(b.created_at)); });
+    }
+    return {rows:all.map(gcRow),users:await gcUsers(rows.map(function(m){ return m.user_id; }))};
   };
   RDNC.gcSend=async function(text,b64){
     var url=null;
@@ -151,6 +179,15 @@
     var r=await _supa.from('public_chat_messages').insert({room:ROOM,user_id:me(),text:text||null,image_url:url}).select('*').single();
     if(r.error) throw new Error(r.error.message);
     return gcRow(r.data);
+  };
+  RDNC.gcReact=async function(id,on){
+    var r=await _supa.from('public_chat_messages').insert({room:RXROOM,user_id:me(),text:'[[rd'+(on?'':'un')+'like:'+id+']]'}).select('*').single();
+    if(r.error) throw new Error(r.error.message);
+    return gcRow(r.data);
+  };
+  RDNC.gcGet=async function(ids){
+    var r=await _supa.from('public_chat_messages').select('*').in('id',ids||[]);
+    return (r.data||[]).map(gcRow);
   };
   RDNC.gcDelete=async function(id){
     var r=await _supa.from('public_chat_messages').delete().eq('id',id).select('id');
@@ -176,14 +213,17 @@
     stopLive(); var u=me(); if(!u) return false;
     var c=_supa.channel('rdnc-'+kind+'-'+Date.now());
     if(kind==='pm'){
-      var onIns=function(p){ var m=p.new; var other=String(m.sender_id)===String(u)?m.receiver_id:m.sender_id; if(String(other)===String(o)) post({ev:'pm',row:pmRow(m)}); };
+      var onIns=function(p){ var m=p.new; if(!RX&&isLike(m.text)) return; var other=String(m.sender_id)===String(u)?m.receiver_id:m.sender_id; if(String(other)===String(o)) post({ev:'pm',row:pmRow(m)}); };
       c.on('postgres_changes',{event:'INSERT',schema:'public',table:'private_messages',filter:'receiver_id=eq.'+u},onIns)
        .on('postgres_changes',{event:'INSERT',schema:'public',table:'private_messages',filter:'sender_id=eq.'+u},onIns)
        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'private_messages',filter:'sender_id=eq.'+u},function(p){ var m=p.new; if(m&&m.read&&String(m.receiver_id)===String(o)) post({ev:'pmread',id:String(m.id)}); });
     } else {
-      c.on('postgres_changes',{event:'INSERT',schema:'public',table:'public_chat_messages',filter:'room=eq.'+ROOM},async function(p){
+      var onGc=async function(p){
         var m=p.new, us=await gcUsers([m.user_id]); post({ev:'gc',row:gcRow(m),user:us[0]||null});
-      }).on('postgres_changes',{event:'DELETE',schema:'public',table:'public_chat_messages'},function(p){ if(p.old&&p.old.id) post({ev:'gcdel',id:String(p.old.id)}); });
+      };
+      c.on('postgres_changes',{event:'INSERT',schema:'public',table:'public_chat_messages',filter:'room=eq.'+ROOM},onGc);
+      if(RX) c.on('postgres_changes',{event:'INSERT',schema:'public',table:'public_chat_messages',filter:'room=eq.'+RXROOM},onGc);
+      c.on('postgres_changes',{event:'DELETE',schema:'public',table:'public_chat_messages'},function(p){ if(p.old&&p.old.id) post({ev:'gcdel',id:String(p.old.id)}); });
     }
     c.subscribe(function(s){ post({ev:'live',state:s}); });
     ch=c; return true;

@@ -2724,11 +2724,12 @@ function rdRegion(r){
 <script src="/rd-servicios.js?v=4" defer></script>
 <script src="/rd-usa.js?v=5" defer></script>
 <script src="/rd-post.js?v=5" defer></script>
+<script src="/rd-chatrx.js?v=1" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
 <script src="/rd-mark.js?v=2" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
 <!-- chat nativo: solo en la app iOS que lo trae (__RD_NATIVE_CHAT); se carga al final, después de todas las funciones de mensajes -->
-<script>(function(){try{if(window.__RD_NATIVE_CHAT){var go=function(){var s=document.createElement('script');s.src='/native-chat.js?v=4';document.head.appendChild(s);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();}}catch(e){}})();</script>
+<script>(function(){try{if(window.__RD_NATIVE_CHAT){var go=function(){var s=document.createElement('script');s.src='/native-chat.js?v=5';document.head.appendChild(s);};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();}}catch(e){}})();</script>
 <!-- aviso "actualiza la app": solo en la app iOS con una versión más vieja que la anunciada en Ruedda Control
      (app_settings.app_update_notice). Versión instalada: __RD_APP_VERSION (1.7+) o, en builds anteriores, por
      sus marcas (__RD_NATIVE_CHAT = 1.6 · __RD_NATIVE_SPLASH = 1.5 · ninguna = 1.4 o menos). Una vez por versión. -->
@@ -9684,6 +9685,7 @@ async function _loadGlobalChatMessages(){
       (users||[]).forEach(u=>{_globalChatUsersCache[u.id]=u;});
     }
     renderGlobalChatMessages();
+    if(window.RDRX) RDRX.gcLoadRx(); // corazones (sala aparte)
   }catch(e){
     console.error('[ruedda] _loadGlobalChatMessages catch',e?.message||e);
     GLOBAL_CHAT_MSGS=[]; renderGlobalChatMessages();
@@ -9709,6 +9711,9 @@ function renderGlobalChatMessages(){
     </div>`;
     return;
   }
+  if(window.RDRX) RDRX.gcSync();
+  const _keep=box.childElementCount&&box.dataset.n===String(GLOBAL_CHAT_MSGS.length)?box.scrollTop:null; // un corazón no te baja al final
+  box.dataset.n=String(GLOBAL_CHAT_MSGS.length);
   box.innerHTML=GLOBAL_CHAT_MSGS.map(m=>{
     const mine=m.user_id===USER_STATE.id;
     const name=_globalChatSenderName(m.user_id);
@@ -9716,18 +9721,19 @@ function renderGlobalChatMessages(){
     const av=_globalChatUsersCache[m.user_id]?.avatar_url;
     const avatarHtml=`<div style="width:26px;height:26px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;overflow:hidden;flex-shrink:0">${av?`<img src="${av}" style="width:100%;height:100%;object-fit:cover">`:_esc(name).charAt(0).toUpperCase()}</div>`;
     const imgHtml=m.image_url?`<img src="${_tImg(m.image_url,{width:500,quality:75})}" data-full="${_esc(m.image_url)}" onclick="openPhotoViewer([this.dataset.full],0)" loading="lazy" decoding="async" style="width:100%;max-width:220px;border-radius:10px;display:block;cursor:pointer;${m.text?'margin-bottom:6px':''}">`:'';
-    return `<div class="thread-bubble ${mine?'mine':'theirs'}">
+    const _x=window.RDRX?RDRX.gcBits(m):{a:'',c:'',q:'',p:'',h:'',text:m.text};
+    return `<div class="thread-bubble ${mine?'mine':'theirs'}${_x.c}"${_x.a}>
       <div style="display:flex;gap:8px;align-items:flex-end;flex-direction:${mine?'row-reverse':'row'}">
         ${!mine?avatarHtml:''}
         <div style="display:flex;flex-direction:column;${mine?'align-items:flex-end':'align-items:flex-start'}">
           ${!mine?`<div style="font-size:11.5px;font-weight:700;color:var(--rd-green);margin-bottom:3px;padding:0 4px;display:flex;align-items:center">${_esc(name)}${_rdLvlTag(m.user_id)}</div>`:''}
-          <div class="bubble-body">${imgHtml}${m.text?_esc(m.text):''}</div>
+          <div class="bubble-body">${_x.q}${imgHtml}${_x.text?_esc(_x.text):''}${_x.p}${_x.h}</div>
           <div class="bubble-time">${time}</div>
         </div>
       </div>
     </div>`;
   }).join('');
-  box.scrollTop=box.scrollHeight;
+  if(_keep!=null) box.scrollTop=_keep; else box.scrollTop=box.scrollHeight;
   // si una foto termina de cargar después, mantener el final a la vista (solo si ya estabas abajo)
   box.querySelectorAll('img').forEach(im=>{ if(!im.complete) im.addEventListener('load',()=>{ if(box.scrollHeight-box.scrollTop-box.clientHeight<320) box.scrollTop=box.scrollHeight; },{once:true}); });
 }
@@ -9842,9 +9848,10 @@ async function _gcShareListing(i){
 async function sendGlobalChatMessage(){
   if(isGuest()){ showToast('inicia sesión para escribir'); return; }
   const input=document.getElementById('global-chat-input');
-  const text=input.value.trim();
+  let text=input.value.trim();
   const photo=_gcPendingPhoto;
   if(!text&&!photo) return;
+  if(window.RDRX) text=RDRX.gcTake(text); // respuesta citada: [[rdre:ID]]
   input.value='';input.style.height='44px';input.focus();
   _gcPendingPhoto=null; _gcRenderPhotoPreview();
   const optimistic={id:'tmp_'+Date.now(),room:GLOBAL_CHAT_ROOM,user_id:USER_STATE.id,text:text||null,image_url:photo?photo.dataUrl:null,created_at:new Date().toISOString()};
@@ -9868,7 +9875,7 @@ async function sendGlobalChatMessage(){
   if(error){
     showToast('error enviando');
     GLOBAL_CHAT_MSGS=GLOBAL_CHAT_MSGS.filter(m=>m.id!==optimistic.id);
-    input.value=text;
+    input.value=window.RDRX?RDRX.strip(text):text;
     renderGlobalChatMessages();
   }
 }
@@ -9889,6 +9896,7 @@ function _subscribeGlobalChat(){
       if(GLOBAL_CHAT_MSGS.length>35) GLOBAL_CHAT_MSGS=GLOBAL_CHAT_MSGS.slice(-35);
       if(currentView==='global-chat') renderGlobalChatMessages();
     })
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'public_chat_messages',filter:`room=eq.${GLOBAL_CHAT_ROOM}:rx`},p=>{ if(window.RDRX) RDRX.gcOnRx(p.new); })
     .subscribe(status=>{
       if(window._gcChannel!==ch) return;
       if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
@@ -20353,6 +20361,7 @@ function _subscribePrivateMessages(userId){
       filter:`receiver_id=eq.${userId}`
     },payload=>{
       const m=payload.new;
+      if(/^\[\[rd(un)?like:/.test(m.text||'')){ _loadPrivateMessages(); return; } // corazón: sin aviso de "nuevo mensaje"
       // refetch (dedupe interno) — reconstruye threads y refresca thread abierto si aplica
       _loadPrivateMessages();
       // notif local si la vista de mensajes no está abierta
@@ -22255,7 +22264,7 @@ async function _rdLvFetch(){
   // la lista y el chat nativos de la app también muestran el nivel
   try{ window.webkit&&webkit.messageHandlers.rdTabs&&webkit.messageHandlers.rdTabs.postMessage({ev:'dirty'}); }catch(e){}
 }
-function _rdPostPlain(t){ return String(t||'').replace(/\n?\[\[rdpost:[\w-]+\]\]/g,' 📎 publicación').trim(); }
+function _rdPostPlain(t){ return String(t||'').replace(/\n?\[\[rdre:[\w-]+\]\]/g,'').replace(/\n?\[\[rdpost:[\w-]+\]\]/g,' 📎 publicación').trim(); }
 function _rdPostCardsHtml(t){
   const ids=[...String(t||'').matchAll(/\[\[rdpost:([\w-]+)\]\]/g)].map(m=>m[1]);
   return ids.map(id=>`<div class="rd-post-card" data-lid="${id}" onclick="openMarketDetail('${id}')"><div class="rd-pc-img"></div><div class="rd-pc-bd"><b>publicación</b><span>toca para ver</span></div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></div>`).join('');
@@ -22419,6 +22428,8 @@ async function _loadPrivateMessages(force){
         messages:[],unread:0
       };
     }
+    // [2026-10-23] corazones (mensajes ocultos [[rdlike:ID]]): no son burbujas ni cuentan como no leídos
+    if(/^\[\[rd(un)?like:[\w-]+\]\]$/.test(m.text||'')){ (threads[key].likes=threads[key].likes||[]).push({text:m.text,mine:isMe,at:m.created_at}); return; }
     threads[key].messages.push({...m,mine:isMe});
     if(!isMe&&!m.read) threads[key].unread++;
   });
@@ -22441,9 +22452,11 @@ async function _loadPrivateMessages(force){
     sourceId:t.sourceId,
     sourceType:t.sourceType,
     unread:t.unread>0,
+    likes:(t.likes||[]).sort((a,b)=>new Date(a.at)-new Date(b.at)),
     messages:t.messages
       .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at))
       .map(m=>({
+        id:m.id,
         from:m.mine?'tú':t.otherName,
         text:m.text,
         time:_fmtTimeAgo(m.created_at),
@@ -22456,7 +22469,7 @@ async function _loadPrivateMessages(force){
   }));
 
   // [PM v82] anti-parpadeo: solo re-render si el estado realmente cambió
-  const sig=JSON.stringify(pmThreads.map(t=>[t.id,t.unread,t.messages.length,t.messages[t.messages.length-1]?.text]));
+  const sig=JSON.stringify(pmThreads.map(t=>[t.id,t.unread,t.messages.length,t.messages[t.messages.length-1]?.text,(t.likes||[]).length]));
   const changed=sig!==window._pmLastSig;
   window._pmLastSig=sig;
   const nonPM=THREADS.filter(t=>!t.isPM);
@@ -22707,6 +22720,7 @@ function _getStoryThumb(storyId){
 }
 function renderThreadMessages(){
   if(!currentThread) return;
+  if(window.RDRX) RDRX.pmSync(); // [2026-10-23] doble toque = corazón, deslizar = responder
   const el=document.getElementById('thread-messages');
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
   const _bubble=m=>{
@@ -22716,10 +22730,11 @@ function renderThreadMessages(){
     const storyThumb=m.sourceType==='story'?_getStoryThumb(m.sourceId):null;
     const storyThumbHtml=storyThumb?`<img src="${_tImg(storyThumb,{width:120,quality:70})}" style="width:32px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0">`:'';
     const storyRef=m.sourceType==='story'?`<div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--w40);margin-bottom:4px">${storyThumbHtml}<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" style="width:11px;height:11px;flex-shrink:0"><rect x="4" y="3.5" width="13" height="17" rx="3.2"/><path d="M17 7.2l3 1.4v10.8l-3 1.4"/></svg><span>${m.mine?'respondiste a':'respondió a'} ${_esc(m.sourceTitle||'tu historia')}</span></div>`:'';
-    return `<div class="thread-bubble ${m.mine?'mine':'theirs'}">
+    const _x=window.RDRX?RDRX.pmBits(m):{a:'',c:'',q:'',p:'',h:'',text:m.text};
+    return `<div class="thread-bubble ${m.mine?'mine':'theirs'}${_x.c}"${_x.a}>
       ${storyRef}
       <div class="bubble-name">${m.mine?'tú':_esc(m.from)}${badge}</div>
-      <div class="bubble-body">${_escLine(String(m.text||'').replace(/\n?\[\[rdpost:[\w-]+\]\]/g,''))}${_rdPostCardsHtml(m.text)}</div>
+      <div class="bubble-body">${_x.q}${_escLine(String(_x.text||'').replace(/\n?\[\[rdpost:[\w-]+\]\]/g,''))}${_rdPostCardsHtml(m.text)}${_x.p}${_x.h}</div>
       <div class="bubble-time">${_esc(m.time)}</div>
     </div>`;
   };
@@ -22728,22 +22743,28 @@ function renderThreadMessages(){
   const prevTid=el.dataset.pmTid||'';
   const prevCount=parseInt(el.dataset.pmCount||'0',10);
   const msgs=currentThread.messages;
-  if(prevTid===tid&&prevCount>0&&msgs.length>prevCount){
+  // un corazón nuevo repinta las burbujas sin mover el scroll
+  const rxSig=window.RDRX?RDRX.pmSig():'0', rxOnly=!!(prevTid===tid&&msgs.length===prevCount&&el.childElementCount&&el.dataset.pmRx!==rxSig);
+  if(prevTid===tid&&prevCount>0&&msgs.length>prevCount&&el.dataset.pmRx===rxSig){
     el.insertAdjacentHTML('beforeend',msgs.slice(prevCount).map(_bubble).join(''));
-  } else if(prevTid!==tid||msgs.length!==prevCount||!el.childElementCount){
+  } else if(prevTid!==tid||msgs.length!==prevCount||!el.childElementCount||el.dataset.pmRx!==rxSig){
+    const keep=rxOnly?el.scrollTop:null;
     el.innerHTML=msgs.map(_bubble).join('');
+    if(keep!=null) el.scrollTop=keep;
   }
+  el.dataset.pmRx=rxSig;
   el.dataset.pmTid=tid;
   el.dataset.pmCount=String(msgs.length);
   _rdHydratePostCards(el);
-  setTimeout(()=>{el.scrollTop=el.scrollHeight;},50);
+  if(!rxOnly) setTimeout(()=>{el.scrollTop=el.scrollHeight;},50);
 }
 
 async function sendThreadReply(){
   if(!currentThread) return;
   const input=document.getElementById('thread-input');
-  const text=input.value.trim();
+  let text=input.value.trim();
   if(!text) return;
+  if(window.RDRX&&currentThread.isPM) text=RDRX.pmTake(text); // respuesta citada: [[rdre:ID]]
   // canal oficial: respuesta local, no toca private_messages
   if(currentThread.isOfficial){
     currentThread.messages.push({from:'tú',text,time:'ahora mismo',mine:true});
@@ -22773,7 +22794,7 @@ async function sendThreadReply(){
       showToast('error enviando');
       // revertir optimistic update si falla la inserción
       currentThread.messages.pop();
-      input.value=text;
+      input.value=window.RDRX?RDRX.strip(text):text;
       renderThreadMessages();
       return;
     }
