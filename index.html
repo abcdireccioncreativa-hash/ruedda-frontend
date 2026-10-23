@@ -22532,7 +22532,7 @@ function renderMensajesList(){
     // [2026-10-22] misma tarjeta que la lista nativa de la app
     const _pv=last?.text?_rdPostPlain(last.text):'';
     return `<div class="msg-item${t.unread?' unread':''}" onclick="openThread('${t.id}')">
-      <div class="msg-avatar${isDealer?' dealer':''}" ${avatarClick}>${avatarInner}</div>
+      <div class="msg-avatar${isDealer||t.otherKyc?' dealer':''}" ${avatarClick}>${avatarInner}</div>
       <div class="rdc-mid">
         <div class="rdc-top"><div class="msg-name"><span class="rdc-nm">${nameStr}</span>${dealerBadge}${t.isPM&&t.otherId?_rdLvlTag(t.otherId):''}</div><div class="msg-time">${last?.time||''}</div></div>
         ${t.carTitle?`<div class="msg-model">${t.carTitle}</div>`:''}
