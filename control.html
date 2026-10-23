@@ -533,6 +533,7 @@ let VIEWS=[
   {id:'patrocinantes',t:'Patrocinantes y banners',i:'offer',s:'Banner grande del market, banners de la app y aliados'},
   {id:'fotografos',t:'Fotógrafos',i:'user',s:'Directorio de fotógrafos'},
   {id:'codigos',t:'Códigos',i:'key',s:'Códigos de publicación gratis'},
+  {id:'partners',t:'Partners',i:'users',s:'RueddaCarreras · códigos de los Dealer Partnerships Managers y sus concesionarios'},
   {h:'Contenido'},
   {id:'noticias',t:'Noticias',i:'msg',s:'Noticias de la comunidad'},
   {id:'clips',t:'Clips',i:'act',s:'Videos de la comunidad'},
@@ -1617,6 +1618,74 @@ async function cdSave(btn){
   if(ex&&ex.length){ toast('ese código ya existe',true); btn.disabled=false; return; }
   const{error}=await sb.from('invitation_codes').insert({code,tipos,usos_maximos:usos,usos_actuales:0,dias,expires_at:new Date(Date.now()+dias*DAY).toISOString(),activo:true});
   if(error){ toast('error: '+error.message,true); btn.disabled=false; return; } toast('código '+code+' creado'); RENDER.codigos(++VIEW_TOKEN);
+}
+
+/* ── PARTNERS (RueddaCarreras · Dealer Partnerships Managers) ──
+   Cada partner entra a partners.ruedda con su código (máx. 6 dígitos) y da de alta concesionarios.
+   Los datos viven en un bucket privado, por eso todo pasa por /api/admin-user?partner=1 */
+const PAPI=b=>api('/api/admin-user?partner=1',b);
+RENDER.partners=async(tok)=>{
+  const V=$('#view');
+  if(window.SOCIO){ V.innerHTML=empty('Solo el administrador','Los partners los gestiona el superadmin'); return; }
+  V.innerHTML=`<div class="grid g4" id="pkpi" style="margin-bottom:14px">${[1,2,3,4].map(()=>'<div class="card kpi"><div class="skel" style="height:58px"></div></div>').join('')}</div>`
+    +card('Nuevo partner','Genera su código de acceso a la web de partners',`<div class="form">
+      <label class="field"><span>Nombre y apellido</span><input class="input" id="pt-n" placeholder="Ej. Edgardo Corado"></label>
+      <label class="field"><span>Teléfono (WhatsApp)</span><input class="input" id="pt-t" placeholder="+58 412 000 0000"></label>
+      <label class="field"><span>Correo</span><input class="input" id="pt-e" type="email" placeholder="correo@ruedda.app"></label>
+      <label class="field"><span>Zona</span><input class="input" id="pt-z" placeholder="Ej. Caracas Este"></label>
+      <label class="field"><span>Código (4 a 6 dígitos)</span><div style="display:flex;gap:8px"><input class="input num" id="pt-c" inputmode="numeric" maxlength="6" placeholder="automático" style="letter-spacing:.2em;font-weight:700"><button class="btn btn-soft" type="button" onclick="$('#pt-c').value=String(100000+Math.floor(Math.random()*900000))">Generar</button></div></label>
+      <label class="field full"><span>Notas internas</span><input class="input" id="pt-x" placeholder="Opcional"></label>
+    </div><div style="margin-top:12px"><button class="btn btn-primary" onclick="ptCreate(this)">Crear partner</button></div>`)
+    +`<div class="card" id="ptl"><div class="skel" style="height:120px"></div></div>`;
+  let j; try{ j=await PAPI({action:'p_list'}); }catch(e){ if(!stale(tok)) $('#ptl').innerHTML=empty('No se pudo cargar',e.message); return; }
+  if(stale(tok)) return;
+  const L=j.partners||[], tot=L.reduce((s,p)=>s+(p.total||0),0);
+  $('#pkpi').innerHTML=kpiCard('Partners',n(L.length),`${n(L.filter(p=>p.activo).length)} activos`,'users')+kpiCard('Concesionarios creados',n(tot),'por todos los partners','car')
+    +kpiCard('Promedio',L.length?(tot/L.length).toFixed(1):'0','concesionarios por partner','act')+kpiCard('Web de partners','<a href="https://ruedda-partners.vercel.app" target="_blank" style="font-size:15px">abrir ↗</a>','ruedda-partners.vercel.app','key');
+  $('#ptl').innerHTML=L.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Partner</th><th>Código</th><th>Zona</th><th>Contacto</th><th class="r">Concesionarios</th><th>Estado</th><th>Alta</th></tr></thead><tbody>${L.map(p=>`<tr class="click" onclick="ptOpen('${p.code}')">
+    <td><div class="n" style="font-weight:600">${esc(p.nombre)}</div>${p.notas?`<div class="muted" style="font-size:12px">${esc(p.notas)}</div>`:''}</td>
+    <td class="num" style="font-weight:700;letter-spacing:.14em">${esc(p.code)}</td><td>${esc(p.zona||'—')}</td>
+    <td><div>${esc(p.telefono||'—')}</div><div class="muted" style="font-size:12px">${esc(p.email||'')}</div></td>
+    <td class="r num" style="font-weight:700">${n(p.total||0)}</td>
+    <td>${p.activo?'<span class="pill" style="background:var(--green-bg);color:var(--green)">activo</span>':'<span class="pill" style="background:var(--red-bg);color:var(--red)">desactivado</span>'}</td>
+    <td class="muted">${esc(String(p.created_at||'').slice(0,10))}</td></tr>`).join('')}</tbody></table></div>`:empty('Aún no hay partners','Crea el primero arriba y compártele su código.');
+};
+async function ptCreate(btn){
+  const b={action:'p_create',nombre:$('#pt-n').value,telefono:$('#pt-t').value,email:$('#pt-e').value,zona:$('#pt-z').value,code:$('#pt-c').value.trim(),notas:$('#pt-x').value};
+  if(!b.nombre.trim()) return toast('escribe el nombre del partner',true);
+  if(b.code&&!/^\d{4,6}$/.test(b.code)) return toast('el código es de 4 a 6 dígitos',true);
+  btn.disabled=true;
+  try{ const j=await PAPI(b); toast('partner creado · código '+j.partner.code); RENDER.partners(++VIEW_TOKEN); }
+  catch(e){ btn.disabled=false; toast('error: '+e.message,true); }
+}
+async function ptOpen(code){
+  const ov=modal({title:'Partner',sub:'Código '+esc(code),body:'<div class="skel" style="height:160px"></div>',wide:true});
+  let j; try{ j=await PAPI({action:'p_dealers',code}); }catch(e){ ov.querySelector('.modal-b').innerHTML=empty('No se pudo cargar',e.message); return; }
+  const p=j.partner, D=j.dealers||[];
+  ov.querySelector('.modal-h h2,.modal-h h3')&&(ov.querySelector('.modal-h h2,.modal-h h3').textContent=p.nombre);
+  const msg=encodeURIComponent(`Hola ${p.nombre.split(' ')[0]}, este es tu acceso a RueddaCarreras · Partners:\n\nhttps://ruedda-partners.vercel.app\nTu código: ${p.code}\n\nAhí creas los concesionarios, activas su vitrina y les mandas su acceso por WhatsApp.`);
+  const tel=String(p.telefono||'').replace(/[^\d]/g,'');
+  ov.querySelector('.modal-b').innerHTML=`<div class="form">
+      <label class="field"><span>Nombre</span><input class="input" id="pe-n" value="${esc(p.nombre)}"></label>
+      <label class="field"><span>Teléfono</span><input class="input" id="pe-t" value="${esc(p.telefono)}"></label>
+      <label class="field"><span>Correo</span><input class="input" id="pe-e" value="${esc(p.email)}"></label>
+      <label class="field"><span>Zona</span><input class="input" id="pe-z" value="${esc(p.zona)}"></label>
+      <label class="field full"><span>Notas</span><input class="input" id="pe-x" value="${esc(p.notas)}"></label></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px">
+      <button class="btn btn-primary" onclick="ptSave('${p.code}',this)">Guardar</button>
+      <a class="btn btn-soft" target="_blank" href="https://wa.me/${tel}?text=${msg}">Enviar su código por WhatsApp</a>
+      <button class="btn btn-soft" style="color:${p.activo?'var(--red)':'var(--green)'}" onclick="ptToggle('${p.code}',${!p.activo})">${p.activo?'Desactivar código':'Reactivar código'}</button></div>
+    <h3 style="font-size:15px;margin-bottom:8px">${n(D.length)} concesionarios creados</h3>
+    ${D.length?`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Concesionario</th><th>Cuenta</th><th>Ciudad</th><th class="r">Publicaciones</th><th>Vitrina</th><th>Alta</th></tr></thead><tbody>${D.map(d=>`<tr${d.borrado?'':` class="click" onclick="closeModal();openConc('${d.id}')"`}><td style="font-weight:600">${esc(d.nombre)}${d.borrado?' <span class="muted">(eliminado)</span>':''}</td><td class="muted">${esc(d.email||'')}</td><td>${esc(d.ciudad||'—')}</td><td class="r num">${n(d.publicaciones||0)}</td><td>${d.borrado?'—':d.activo?'<span class="pill" style="background:var(--green-bg);color:var(--green)">activa</span>':'<span class="pill">inactiva</span>'}</td><td class="muted">${esc(String(d.created_at||'').slice(0,10))}</td></tr>`).join('')}</tbody></table></div>`:empty('Sin concesionarios todavía','Cuando el partner cree uno, aparece aquí.')}`;
+}
+async function ptSave(code,btn){
+  btn.disabled=true;
+  try{ await PAPI({action:'p_update',code,nombre:$('#pe-n').value,telefono:$('#pe-t').value,email:$('#pe-e').value,zona:$('#pe-z').value,notas:$('#pe-x').value}); toast('partner guardado'); closeModal(); RENDER.partners(++VIEW_TOKEN); }
+  catch(e){ btn.disabled=false; toast('error: '+e.message,true); }
+}
+async function ptToggle(code,on){
+  try{ await PAPI({action:'p_update',code,activo:on}); toast(on?'código reactivado':'código desactivado'); closeModal(); RENDER.partners(++VIEW_TOKEN); }
+  catch(e){ toast('error: '+e.message,true); }
 }
 
 /* ── SOLICITUDES ── */
