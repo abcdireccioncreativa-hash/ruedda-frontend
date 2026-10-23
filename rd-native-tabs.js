@@ -84,6 +84,8 @@
       var opts = ['particular', 'subasta', 'consesionario', 'alquiler'].map(function (k) {
         var b = document.getElementById('vender-btn-' + k);
         if (!b || b.style.display === 'none') return null;
+        // sin sesión no sale "concesionario": para eso está la tarjeta de registrar agencia de abajo
+        if (k === 'consesionario' && guest()) return null;
         var h = b.querySelector('h3'), p = b.querySelector('.vt-sub');
         return { k: k, t: h ? h.textContent.trim() : k, s: p ? p.textContent.trim() : '' };
       }).filter(Boolean);

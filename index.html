@@ -3106,36 +3106,47 @@ html[data-theme="light"] .rd-ld,html[data-theme="light"] #cons-banner-placeholde
 @keyframes rdLdSpin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.rd-ld,#cons-banner-placeholder::before,#sponsor-skel::before{animation:rdLdIn .25s ease .15s forwards}}
 
-/* [v32] planes: mismo lenguaje que la hoja nativa de vender — siempre en claro, vidrio blanco flotante,
-   tarjetas translúcidas con la bandera de agua, "más popular" con el vidrio amarillo del botón vender */
-#pricing-sheet{background:rgba(0,0,0,.3)!important}
-#pricing-sheet>div{margin:0 8px 8px;width:calc(100% - 16px)!important;border-radius:40px!important;border:.5px solid rgba(0,0,0,.08)!important;background:rgba(250,250,248,.96)!important;-webkit-backdrop-filter:blur(34px) saturate(180%);backdrop-filter:blur(34px) saturate(180%);box-shadow:0 18px 60px rgba(0,0,0,.28);color:#111;padding-bottom:calc(22px + env(safe-area-inset-bottom))!important;color-scheme:light}
-#pricing-sheet>div>div:first-child>div{background:rgba(0,0,0,.18)!important}
-#pricing-sheet h2{color:#111}
-#pricing-subtitle{color:rgba(17,17,17,.55)!important}
-#pricing-sheet .plan-tiers-head{font-size:12px;margin:8px 0 2px;color:rgba(17,17,17,.5)}
-#pricing-sheet>div>div:last-child p{color:rgba(17,17,17,.38)!important}
+/* [v32] planes: siguen el tema. Oscuro: tarjetas como la puerta de Ruedda Extra (degradado, bandera de agua),
+   acento amarillo; claro: hoja de vidrio blanco como la hoja nativa de vender. Textos chicos y "más popular" en vidrio amarillo. */
+#pricing-sheet .plan-tiers-head{font-size:12px;margin:8px 0 2px}
 #pricing-plans{gap:9px!important}
-#pricing-plans .plan-card{border-radius:22px;padding:16px 16px 14px;background:rgba(255,255,255,.8);border:.5px solid rgba(0,0,0,.08);box-shadow:none;color:#111;transition:transform .18s cubic-bezier(.32,.72,0,1),border-color .2s,background .2s}
-#pricing-plans .plan-card:hover{background:rgba(255,255,255,.75);border-color:rgba(0,0,0,.12)}
+#pricing-plans .plan-card{border-radius:22px;padding:16px 16px 14px;background:radial-gradient(120% 140% at 100% 0%,#242424 0%,#131313 50%,#0b0b0b 100%);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:transform .18s cubic-bezier(.32,.72,0,1),border-color .2s}
 #pricing-plans .plan-card:active{transform:scale(.985)}
-#pricing-plans .plan-card.selected{border-color:rgba(0,0,0,.4);background:#fff}
-#pricing-plans .plan-card--pop{background:radial-gradient(120% 140% at 100% 0%,#ffffff 0%,#f4f4f0 50%,#ececE7 100%);border:1px solid rgba(160,170,0,.5);box-shadow:inset 0 1px 0 #fff,0 6px 22px rgba(120,130,0,.10)}
-#pricing-plans .plan-card--pop.selected{border-color:rgba(130,140,0,.8)}
-#pricing-plans .plan-flag{position:absolute;right:-24px;top:-20px;width:128px;height:auto;opacity:.05;pointer-events:none}
-#pricing-plans .plan-card--pop .plan-flag{opacity:.07}
+#pricing-plans .plan-card.selected{border-color:rgba(255,255,255,.3)}
+#pricing-plans .plan-card--pop{border-color:rgba(230,240,59,.34)}
+#pricing-plans .plan-card--pop.selected{border-color:rgba(230,240,59,.6)}
+#pricing-plans .plan-flag{position:absolute;right:-24px;top:-20px;width:128px;height:auto;filter:invert(1);opacity:.06;pointer-events:none}
 #pricing-plans .plan-card-header{position:relative;align-items:center;margin-bottom:4px}
-#pricing-plans .plan-card-name{font-size:17px;letter-spacing:-.4px;line-height:1.15;display:flex;align-items:center;flex-wrap:wrap;gap:8px;color:#111}
-#pricing-plans .plan-card-name span[style]{color:rgba(17,17,17,.42)!important}
-#pricing-plans .plan-card-price{font-size:16px;letter-spacing:-.3px;color:#111!important}
-#pricing-plans .plan-card-desc{position:relative;font-size:12.5px;line-height:1.45;color:rgba(17,17,17,.58);max-width:270px}
+#pricing-plans .plan-card-name{font-size:17px;letter-spacing:-.4px;line-height:1.15;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+#pricing-plans .plan-card-price{font-size:16px;letter-spacing:-.3px}
+#pricing-plans .plan-card-desc{position:relative;font-size:12.5px;line-height:1.45;color:rgba(244,244,242,.55);max-width:270px}
 #pricing-plans .plan-foot{position:relative;display:flex;margin-top:12px}
-#pricing-plans .plan-more{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:100px;border:0;background:#111;color:#fff;font-family:var(--font);font-size:12px;font-weight:700;letter-spacing:-.1px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,opacity .15s}
-#pricing-plans .plan-more:active{transform:scale(.96);opacity:.85}
+#pricing-plans .plan-more{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 13px;border-radius:100px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);color:#f4f4f2;font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:-.1px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .15s}
+#pricing-plans .plan-more:active{transform:scale(.96);background:rgba(255,255,255,.1)}
 #pricing-plans .plan-more svg{width:12px;height:12px}
-#pricing-plans .plan-pop{display:inline-flex;align-items:center;height:20px;padding:0 9px;border-radius:100px;font-size:10.5px;font-weight:700;letter-spacing:-.1px;color:#000;background:linear-gradient(180deg,rgba(255,255,255,.3) 0%,rgba(255,255,255,0) 50%),#e6f03b;box-shadow:inset 0 0 0 1px rgba(205,215,40,.9),inset 0 1px 1px rgba(255,255,255,.7),inset 0 -1px 2px rgba(80,90,0,.2),0 3px 10px rgba(180,190,0,.25)}
-#pricing-plans .plan-cta{position:relative;margin-top:12px;padding:12px;font-size:13.5px;border-radius:100px;background:#111!important;color:#fff!important}
-#pricing-plans .plan-cta:active{background:#000!important}
+#pricing-plans .plan-pop{display:inline-flex;align-items:center;height:20px;padding:0 9px;border-radius:100px;font-size:10.5px;font-weight:700;letter-spacing:-.1px;color:#000;background:linear-gradient(180deg,rgba(255,255,255,.24) 0%,rgba(255,255,255,0) 50%),#e6f03b;box-shadow:inset 0 0 0 1px rgba(250,255,170,.95),inset 0 1px 1px rgba(255,255,255,.6),inset 0 -1px 2px rgba(80,90,0,.18),0 3px 12px rgba(230,240,59,.16)}
+#pricing-plans .plan-cta{position:relative;margin-top:12px;padding:12px;font-size:13.5px;border-radius:100px}
+/* claro */
+html[data-theme="light"] #pricing-sheet{background:rgba(0,0,0,.3)!important}
+html[data-theme="light"] #pricing-sheet>div{margin:0 8px 8px;width:calc(100% - 16px)!important;border-radius:40px!important;border:.5px solid rgba(0,0,0,.08)!important;background:rgba(250,250,248,.96)!important;-webkit-backdrop-filter:blur(34px) saturate(180%);backdrop-filter:blur(34px) saturate(180%);box-shadow:0 18px 60px rgba(0,0,0,.28);color:#111;padding-bottom:calc(22px + env(safe-area-inset-bottom))!important}
+html[data-theme="light"] #pricing-sheet>div>div:first-child>div{background:rgba(0,0,0,.18)!important}
+html[data-theme="light"] #pricing-sheet h2{color:#111}
+html[data-theme="light"] #pricing-subtitle{color:rgba(17,17,17,.55)!important}
+html[data-theme="light"] #pricing-sheet .plan-tiers-head{color:rgba(17,17,17,.5)}
+html[data-theme="light"] #pricing-sheet>div>div:last-child p{color:rgba(17,17,17,.38)!important}
+html[data-theme="light"] #pricing-plans .plan-card{background:#fbfbf9;border:1px solid rgba(0,0,0,.07);box-shadow:none;color:#111}
+html[data-theme="light"] #pricing-plans .plan-card.selected{border-color:rgba(0,0,0,.4);background:#fff}
+html[data-theme="light"] #pricing-plans .plan-card--pop{border-color:rgba(160,170,0,.5)}
+html[data-theme="light"] #pricing-plans .plan-card--pop.selected{border-color:rgba(130,140,0,.8)}
+html[data-theme="light"] #pricing-plans .plan-flag{filter:none;opacity:.05}
+html[data-theme="light"] #pricing-plans .plan-card-name{color:#111}
+html[data-theme="light"] #pricing-plans .plan-card-name span[style]{color:rgba(17,17,17,.42)!important}
+html[data-theme="light"] #pricing-plans .plan-card-price{color:#111!important}
+html[data-theme="light"] #pricing-plans .plan-card-desc{color:rgba(17,17,17,.58)}
+html[data-theme="light"] #pricing-plans .plan-more{height:32px;padding:0 14px;border:0;background:#111;color:#fff;font-weight:700}
+html[data-theme="light"] #pricing-plans .plan-more:active{background:#000;opacity:.85}
+html[data-theme="light"] #pricing-plans .plan-pop{box-shadow:inset 0 0 0 1px rgba(205,215,40,.9),inset 0 1px 1px rgba(255,255,255,.7),inset 0 -1px 2px rgba(80,90,0,.2),0 3px 10px rgba(180,190,0,.25)}
+html[data-theme="light"] #pricing-plans .plan-cta{background:#111!important;color:#fff!important}
 
 /* [v32] Comunidad → Noticias by Motorpasión */
 .news-ext-h{display:flex;align-items:center;gap:7px;font-size:22px;font-weight:800;line-height:1.1;letter-spacing:-.5px;margin-bottom:6px}
@@ -25864,7 +25875,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
       if(name==='ruedda-extra'&&was!=='ruedda-extra'){ var v=document.getElementById('view-ruedda-extra'); if(v){ v.classList.remove('rx-anim'); void v.offsetWidth; v.classList.add('rx-anim'); clearTimeout(t); t=setTimeout(function(){ v.classList.remove('rx-anim'); },1400); } }
       return r; };
   })();
-  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=11'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
+  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=12'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
 
   /* menú hamburguesa: foto de perfil arriba */
   function paintMe(){
