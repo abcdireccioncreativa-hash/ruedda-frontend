@@ -22103,7 +22103,8 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
     panel.onclick=e=>{if(e.target===panel)_closePmPanel();};
     document.body.appendChild(panel);
   }
-  const dealerBadge=isDealer?`<span style="font-size:9px;font-weight:700;color:#1d9bf0;margin-left:6px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>`:'';
+  const _vBadge=`<span style="font-size:9px;font-weight:700;color:#1d9bf0;margin-left:6px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>`;
+  const dealerBadge=isDealer?_vBadge:'';
   // [V136] el isotipo animado anterior (si venía de otra conversación) sigue
   // corriendo su rAF sobre nodos ya reemplazados — se detiene antes de repintar.
   if(window._pmPanelMarkStop){ window._pmPanelMarkStop(); window._pmPanelMarkStop=null; }
@@ -22111,7 +22112,7 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
     <div id="pm-panel-mark" style="position:absolute;top:18px;right:18px;width:32px;height:32px;color:var(--white)"></div>
     <div style="width:36px;height:4px;border-radius:2px;background:var(--w15);margin:0 auto 20px"></div>
     <div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">mensaje privado</div>
-    <div style="font-size:16px;font-weight:700;margin-bottom:2px">${receiverName}${dealerBadge}</div>
+    <div style="font-size:16px;font-weight:700;margin-bottom:2px">${receiverName}<span id="pm-vbadge">${dealerBadge}</span></div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:18px">sobre ${sourceTitle}</div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
       <button type="button" onclick="_pmQuickFill(&quot;¿Sigue disponible?&quot;)" style="flex:1;min-width:0;background:var(--w5);border:1px solid var(--w10);border-radius:100px;padding:9px 10px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--white);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">¿Sigue disponible?</button>
@@ -22121,6 +22122,13 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
     <button onclick="_sendPrivateMessage('${receiverId}','${sourceId}','${sourceType}','${sourceTitle.replace(/'/g,"\'")}');event.stopPropagation()" style="margin-top:12px;width:100%;background:var(--lime);color:var(--lime-ink);border:none;border-radius:14px;padding:14px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s" onmousedown="this.style.opacity='.8'" onmouseup="this.style.opacity='1'">enviar mensaje</button>
     <button onclick="_closePmPanel()" style="margin-top:8px;width:100%;background:none;border:none;color:var(--muted);font-family:var(--font);font-size:13px;cursor:pointer;padding:8px">cancelar</button>
   </div>`;
+  // usuario con KYC: mismo "verificado" azul que un concesionario
+  if(!isDealer&&receiverId&&_supa){
+    const _fill=v=>{ const b=document.getElementById('pm-vbadge'); if(v&&b&&!b.innerHTML) b.innerHTML=_vBadge; };
+    window._rdKycCache=window._rdKycCache||{};
+    if(receiverId in window._rdKycCache) _fill(window._rdKycCache[receiverId]);
+    else _supa.from('users').select('kyc_verified').eq('id',receiverId).maybeSingle().then(({data})=>{ window._rdKycCache[receiverId]=!!data?.kyc_verified; _fill(!!data?.kyc_verified); },()=>{});
+  }
   const pmMark=document.getElementById('pm-panel-mark');
   if(pmMark&&typeof _rdWaveFlag==='function') window._pmPanelMarkStop=_rdWaveFlag(pmMark,{size:32});
   // [fix vidrio] la capa NO hace fundido: con opacity<1 el navegador apaga el
@@ -22702,7 +22710,7 @@ function renderThreadMessages(){
   const el=document.getElementById('thread-messages');
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
   const _bubble=m=>{
-    const mDealer=(!m.mine)&&isDealer;
+    const mDealer=(!m.mine)&&(isDealer||!!currentThread.otherKyc);
     const badge=mDealer?'<span style="font-size:9px;color:#1d9bf0;margin-left:4px;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>':'';
     // [BLOQUE 3] referencia estilo Instagram cuando el mensaje viene de responder una historia
     const storyThumb=m.sourceType==='story'?_getStoryThumb(m.sourceId):null;
