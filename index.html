@@ -3138,6 +3138,11 @@ html[data-theme="light"] .rd-ld,html[data-theme="light"] #cons-banner-placeholde
 #pricing-plans .plan-cta:active{background:#000!important}
 
 /* [v32] Comunidad → Noticias by Motorpasión */
+.news-ext-h{display:flex;align-items:center;gap:7px;font-size:22px;font-weight:800;line-height:1.1;letter-spacing:-.5px;margin-bottom:6px}
+.news-ext-by{font-size:11px;font-weight:600;letter-spacing:0;color:var(--muted);margin:5px 0 0 2px}
+/* logo de Motorpasión como máscara: toma el color del texto en oscuro y en claro */
+.news-ext-logo{display:block;width:118px;height:15px;margin-top:4px;background:var(--white);-webkit-mask:url(/assets/partners/motorpasion.svg) left center/contain no-repeat;mask:url(/assets/partners/motorpasion.svg) left center/contain no-repeat;-webkit-tap-highlight-color:transparent}
+.news-ext-logo span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .news-ext-card{flex-shrink:0;width:236px;scroll-snap-align:start;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .18s cubic-bezier(.32,.72,0,1);animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
 .news-ext-card:active{transform:scale(.97)}
 .news-ext-ph{position:relative;aspect-ratio:16/10;background:var(--w5);overflow:hidden}
@@ -6007,7 +6012,7 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     <!-- [v32] noticias de afuera: Motorpasión (RSS en español vía /api/noticias); cada nota abre en su web -->
     <div id="news-ext-wrap" style="display:none">
       <div style="padding:0 16px;margin-top:26px;margin-bottom:6px">
-        <div style="font-size:22px;font-weight:800;line-height:1.1;letter-spacing:-.5px;margin-bottom:5px">Noticias <span style="color:var(--muted)">by <span id="news-ext-src">Motorpasión</span></span></div>
+        <div class="news-ext-h"><span>Noticias</span><span class="news-ext-by">by</span><a class="news-ext-logo" href="https://www.motorpasion.com.mx" onclick="event.preventDefault();abrirLink(this.href)" aria-label="Motorpasión"><span id="news-ext-src">Motorpasión</span></a></div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:14px">lo último del mundo del motor, en español.</div>
       </div>
       <div id="news-ext-row" class="noticias-row" style="padding:0 16px 4px;scroll-padding:0 16px"></div>
