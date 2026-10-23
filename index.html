@@ -3252,6 +3252,89 @@ html[data-theme="light"] #dealer-city-menu{background:#fff!important;border-colo
 @keyframes rdRise{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
 @keyframes rdFormIn{from{opacity:0;transform:translate3d(0,42px,0)}to{opacity:1;transform:none}}
 </style>
+<script id="rd-android-v41">
+/* [v41 Android] 1) botón atrás del sistema: cierra lo que esté encima antes de navegar (lo llama MainActivity).
+   2) modo rendimiento: en el WebView de Android cada backdrop-filter se recompone por cuadro y en gama media
+      tumba los 120 Hz. Se apagan TODOS (no solo nav/badges) reescribiendo las reglas una vez, y el fondo
+      semitransparente se vuelve más opaco para que el vidrio siga leyéndose igual. Web e iOS, sin cambios. */
+window.RDBack=function(){
+  try{
+    var on=function(id,c){var e=document.getElementById(id);return !!(e&&e.classList.contains(c||'open'));};
+    var x=document.querySelector('.rdp .rdp-x'); if(x){x.click();return true;}
+    if(on('rd-agency')){_rdAgencyClose();return true;}
+    if(on('rd-city-sheet','on')){closeCitySheet();return true;}
+    if(on('search-overlay')){closeSearch();return true;}
+    if(on('drawer')){closeDrawer();return true;}
+    if(on('vender-modal')){closeVenderModal();return true;}
+    if(on('pricing-sheet')){closePricingSheet();return true;}
+    var mo=[].slice.call(document.querySelectorAll('.modal-overlay.open,.vender-modal.open')).pop();
+    if(mo){mo.classList.remove('open');setTimeout(function(){if(!mo.classList.contains('open'))mo.style.display='';},420);return true;}
+    if(typeof currentView!=='undefined'&&currentView&&currentView!=='home'){
+      if(history.length>1) history.back(); else showView('home');
+      return true;
+    }
+  }catch(e){}
+  return false;
+};
+(function(){
+  function android(){ try{ return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='android'); }catch(e){ return false; } }
+  var SKIP=/overlay|modal|backdrop|scrim|dim\b|-dim|veil/i;
+  function boost(st){
+    var c=st.backgroundColor; if(!c) return;
+    var m=/^rgba\(\s*([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)\s*\)$/.exec(c); if(!m) return;
+    var a=+m[4]; if(a<.12||a>=.9) return;
+    var na=Math.min(.96,a+(1-a)*.62);
+    st.setProperty('background-color','rgba('+m[1]+','+m[2]+','+m[3]+','+na.toFixed(3)+')',st.getPropertyPriority('background-color'));
+  }
+  function walk(rules){
+    for(var i=0;i<rules.length;i++){
+      var r=rules[i];
+      if(r.cssRules&&!r.style){ walk(r.cssRules); continue; }
+      var st=r.style; if(!st) continue;
+      var bf=st.getPropertyValue('backdrop-filter')||st.getPropertyValue('-webkit-backdrop-filter');
+      if(!bf||bf==='none') continue;
+      st.setProperty('backdrop-filter','none','important'); st.setProperty('-webkit-backdrop-filter','none','important');
+      if(!SKIP.test(r.selectorText||'')) boost(st);
+    }
+  }
+  function inline(root){
+    var els=root.querySelectorAll?root.querySelectorAll('[style*="backdrop-filter"]'):[];
+    for(var i=0;i<els.length;i++){ var st=els[i].style; if(st.backdropFilter==='none'&&st.webkitBackdropFilter==='none') continue;
+      st.setProperty('backdrop-filter','none','important'); st.setProperty('-webkit-backdrop-filter','none','important');
+      if(!SKIP.test(els[i].id+' '+els[i].className)) boost(st); }
+  }
+  var done=false;
+  function run(){
+    if(done||!android()) return; done=true;
+    document.documentElement.classList.add('rd-android-app','rd-android-lite');
+    for(var i=0;i<document.styleSheets.length;i++){ try{ walk(document.styleSheets[i].cssRules); }catch(e){} }
+    inline(document);
+    // hojas que se agregan después (rd-map, popups) y plantillas con estilo en línea
+    var q=[],t=0;
+    new MutationObserver(function(ms){
+      for(var i=0;i<ms.length;i++) for(var j=0;j<ms[i].addedNodes.length;j++){ var n=ms[i].addedNodes[j];
+        if(n.nodeType!==1) continue;
+        if(n.tagName==='STYLE'||n.tagName==='LINK'){ q.push(n); continue; }
+        if(n.getAttribute('style')&&n.getAttribute('style').indexOf('backdrop-filter')>=0) q.push(n); else if(n.firstElementChild) q.push(n);
+      }
+      if(!t) t=requestAnimationFrame(function(){ t=0; var l=q.splice(0);
+        for(var k=0;k<l.length;k++){ var e=l[k];
+          if(e.sheet){ try{ walk(e.sheet.cssRules); }catch(x){} } else { if(e.style&&e.getAttribute('style')&&e.getAttribute('style').indexOf('backdrop-filter')>=0){ e.style.setProperty('backdrop-filter','none','important'); boost(e.style); } inline(e); }
+        } });
+    }).observe(document.documentElement,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run); else run();
+  window.addEventListener('load',run);
+})();
+</script>
+<style id="rd-android-lite">
+/* [v41 Android] sombras grandes de las hojas más livianas (se componen en cada cuadro de la animación) */
+html.rd-android-lite #vender-modal .vender-sheet,html.rd-android-lite .rd-agx-card{box-shadow:0 6px 18px rgba(0,0,0,.22)}
+html.rd-android-lite .rd-agx-send{box-shadow:none}
+html.rd-android-lite .bottom-nav{background:rgba(14,14,14,.94)!important}
+html.rd-android-lite[data-theme="light"] .bottom-nav{background:rgba(250,250,248,.95)!important}
+html.rd-android-lite .search-overlay.open{animation-name:rdRise}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
