@@ -78,6 +78,9 @@
   if (typeof webVender === 'function') {
     window.openVenderModal = function () {
       try { if (typeof updateVenderModal === 'function') updateVenderModal(); } catch (e) {}
+      // el popup de "crear cuenta" no sale encima ni después de la hoja de vender
+      window._rdNoSignup = 1;
+      try { document.querySelectorAll('.rdp.in .rdp-x').forEach(function (x) { x.click(); }); } catch (e) {}
       var opts = ['particular', 'subasta', 'consesionario', 'alquiler'].map(function (k) {
         var b = document.getElementById('vender-btn-' + k);
         if (!b || b.style.display === 'none') return null;

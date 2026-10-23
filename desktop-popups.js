@@ -201,11 +201,13 @@
   function guest(){ try{ return typeof isGuest==='function'&&isGuest(); }catch(e){ return false; } }
   function authOpen(){ var a=document.querySelector('.auth-sheet.open,#auth-sheet.open,#auth-modal.open'); return !!a; }
   function vis(id){ var e=document.getElementById(id); return !!(e&&e.getClientRects().length&&getComputedStyle(e).display!=='none'); }
-  function busy(){ return authOpen()||vis('rd-intro')||vis('boot-splash')||vis('login-splash')||!!document.querySelector('.modal-overlay.open,#rd-city-sheet,#photo-viewer-overlay.open'); }
+  // window._rdNoSignup: la app lo pone al abrir la hoja nativa de vender (ahí no debe salir este popup)
+  function busy(){ return !!window._rdNoSignup||authOpen()||vis('rd-intro')||vis('boot-splash')||vis('login-splash')||!!document.querySelector('.modal-overlay.open,#rd-city-sheet,#photo-viewer-overlay.open'); }
   var waits=0;
   function showSignup(){
     // sale en cada carga mientras no haya sesión iniciada
     if(!guest()) return;
+    if(window._rdNoSignup) return;
     if(busy()){ if(++waits<60) setTimeout(showSignup,2000); return; }
     var c=COPY.signup, T=COPY.tour;
     var slides=[{tag:c.tag,title:c.title,body:c.body,bullets:c.bullets}].concat(T);
