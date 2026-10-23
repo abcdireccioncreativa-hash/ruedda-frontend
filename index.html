@@ -58,7 +58,8 @@ window._rdShow=function(img){
   // [perf] si la foto salió de caché (o llegó en <80 ms) aparece YA, sin fundido
   try{ var _e=performance.getEntriesByName(img.currentSrc||img.src), _l=_e&&_e[_e.length-1];
     if(!_l||_l.duration<80) img.style.transition='none'; }catch(_x){}
-  var go=function(){ if(done) return; done=true; img.style.opacity='1'; };
+  var go=function(){ if(done) return; done=true; img.style.opacity='1';
+    var sp=img.parentElement&&img.parentElement.querySelector('.rd-ld'); if(sp){ sp.classList.add('out'); setTimeout(function(){ sp.remove(); },300); } };
   try{ if(img.decode) img.decode().then(go,go); else go(); }catch(e){ go(); }
   setTimeout(go,800); // respaldo: nunca queda invisible
 };
@@ -3096,6 +3097,51 @@ html[data-theme="light"] #bnav-favoritos img{filter:invert(1)}
 .rd-slot-banner[data-link]{cursor:pointer}
 .rd-slot-banner[data-link]:active{opacity:.85}
 </style>
+<style id="rd-v32">
+/* [v32] cargando: rueda pequeña tipo iOS en el centro de la foto mientras llega (aparece solo si tarda >150 ms) */
+.rd-ld,#cons-banner-placeholder::before,#sponsor-skel::before{content:'';position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg stroke='%23ffffff' stroke-width='2.3' stroke-linecap='round'%3E%3Cpath d='M12 2.6v4.6' opacity='1.00' transform='rotate(0 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.89' transform='rotate(-45 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.78' transform='rotate(-90 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.67' transform='rotate(-135 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.56' transform='rotate(-180 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.45' transform='rotate(-225 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.34' transform='rotate(-270 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.23' transform='rotate(-315 12 12)'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;z-index:1;pointer-events:none;opacity:0;animation:rdLdIn .25s ease .15s forwards,rdLdSpin .85s steps(8) infinite;transition:opacity .25s ease}
+html[data-theme="light"] .rd-ld,html[data-theme="light"] #cons-banner-placeholder::before,html[data-theme="light"] #sponsor-skel::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg stroke='%23111111' stroke-width='2.3' stroke-linecap='round'%3E%3Cpath d='M12 2.6v4.6' opacity='1.00' transform='rotate(0 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.89' transform='rotate(-45 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.78' transform='rotate(-90 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.67' transform='rotate(-135 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.56' transform='rotate(-180 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.45' transform='rotate(-225 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.34' transform='rotate(-270 12 12)'/%3E%3Cpath d='M12 2.6v4.6' opacity='0.23' transform='rotate(-315 12 12)'/%3E%3C/g%3E%3C/svg%3E")}
+.rd-ld.out{animation:rdLdSpin .85s steps(8) infinite;opacity:0}
+@keyframes rdLdIn{to{opacity:.85}}
+@keyframes rdLdSpin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.rd-ld,#cons-banner-placeholder::before,#sponsor-skel::before{animation:rdLdIn .25s ease .15s forwards}}
+
+/* [v32] planes: tarjetas en el lenguaje de la puerta de Ruedda Extra (bandera de agua), textos más chicos,
+   "más popular" con el mismo vidrio amarillo del botón vender */
+#pricing-sheet .plan-tiers-head{font-size:12px;margin:8px 0 2px}
+#pricing-plans{gap:9px!important}
+#pricing-plans .plan-card{border-radius:22px;padding:16px 16px 14px;background:radial-gradient(120% 140% at 100% 0%,#242424 0%,#131313 50%,#0b0b0b 100%);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);transition:transform .18s cubic-bezier(.32,.72,0,1),border-color .2s}
+#pricing-plans .plan-card:active{transform:scale(.985)}
+#pricing-plans .plan-card.selected{border-color:rgba(255,255,255,.3)}
+#pricing-plans .plan-card--pop{border-color:rgba(230,240,59,.34)}
+#pricing-plans .plan-card--pop.selected{border-color:rgba(230,240,59,.6)}
+#pricing-plans .plan-flag{position:absolute;right:-24px;top:-20px;width:128px;height:auto;filter:invert(1);opacity:.06;pointer-events:none}
+#pricing-plans .plan-card-header{position:relative;align-items:center;margin-bottom:4px}
+#pricing-plans .plan-card-name{font-size:17px;letter-spacing:-.4px;line-height:1.15;display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+#pricing-plans .plan-card-price{font-size:16px;letter-spacing:-.3px}
+#pricing-plans .plan-card-desc{position:relative;font-size:12.5px;line-height:1.45;color:rgba(244,244,242,.55);max-width:270px}
+#pricing-plans .plan-foot{position:relative;display:flex;margin-top:12px}
+#pricing-plans .plan-more{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 13px;border-radius:100px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);color:#f4f4f2;font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:-.1px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .15s}
+#pricing-plans .plan-more:active{transform:scale(.96);background:rgba(255,255,255,.1)}
+#pricing-plans .plan-more svg{width:12px;height:12px}
+#pricing-plans .plan-pop{display:inline-flex;align-items:center;height:20px;padding:0 9px;border-radius:100px;font-size:10.5px;font-weight:700;letter-spacing:-.1px;color:#000;background:linear-gradient(180deg,rgba(255,255,255,.24) 0%,rgba(255,255,255,0) 50%),#e6f03b;box-shadow:inset 0 0 0 1px rgba(250,255,170,.95),inset 0 1px 1px rgba(255,255,255,.6),inset 0 -1px 2px rgba(80,90,0,.18),0 3px 12px rgba(230,240,59,.16)}
+#pricing-plans .plan-cta{position:relative;margin-top:12px;padding:12px;font-size:13.5px;border-radius:100px}
+html[data-theme="light"] #pricing-plans .plan-card{background:radial-gradient(120% 140% at 100% 0%,#ffffff 0%,#f3f3f0 52%,#ebebe7 100%);border-color:rgba(0,0,0,.08);box-shadow:inset 0 1px 0 #fff}
+html[data-theme="light"] #pricing-plans .plan-card.selected{border-color:rgba(0,0,0,.3)}
+html[data-theme="light"] #pricing-plans .plan-card--pop{border-color:rgba(150,160,0,.45)}
+html[data-theme="light"] #pricing-plans .plan-flag{filter:none;opacity:.05}
+html[data-theme="light"] #pricing-plans .plan-card-desc{color:rgba(17,17,17,.55)}
+html[data-theme="light"] #pricing-plans .plan-more{border-color:rgba(0,0,0,.12);background:rgba(0,0,0,.04);color:#111}
+
+/* [v32] Comunidad → Noticias by Motorpasión */
+.news-ext-card{flex-shrink:0;width:236px;scroll-snap-align:start;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .18s cubic-bezier(.32,.72,0,1);animation:fadeUp .38s cubic-bezier(.25,.46,.45,.94) both}
+.news-ext-card:active{transform:scale(.97)}
+.news-ext-ph{position:relative;aspect-ratio:16/10;background:var(--w5);overflow:hidden}
+.news-ext-ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s ease}
+.news-ext-b{padding:11px 13px 13px}
+.news-ext-t{font-size:13px;font-weight:700;line-height:1.32;letter-spacing:-.15px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.news-ext-m{margin-top:7px;font-size:11px;color:var(--muted)}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -5949,10 +5995,19 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
 
     <!-- Artículos y Noticias -->
     <div style="padding:0 16px;margin-top:28px;margin-bottom:6px">
-      <div style="font-size:28px;font-weight:800;line-height:1.1;margin-bottom:6px">Artículos y noticias</div>
+      <div style="font-size:28px;font-weight:800;line-height:1.1;margin-bottom:6px">Noticias Ruedda</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:14px">noticias y artículos redactados sin IA.<br>Por petrolheads y personas reales.</div>
     </div>
     <div id="noticias-row" class="noticias-row" style="padding:0 16px 4px;scroll-padding:0 16px"></div>
+
+    <!-- [v32] noticias de afuera: Motorpasión (RSS en español vía /api/noticias); cada nota abre en su web -->
+    <div id="news-ext-wrap" style="display:none">
+      <div style="padding:0 16px;margin-top:26px;margin-bottom:6px">
+        <div style="font-size:22px;font-weight:800;line-height:1.1;letter-spacing:-.5px;margin-bottom:5px">Noticias <span style="color:var(--muted)">by <span id="news-ext-src">Motorpasión</span></span></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px">lo último del mundo del motor, en español.</div>
+      </div>
+      <div id="news-ext-row" class="noticias-row" style="padding:0 16px 4px;scroll-padding:0 16px"></div>
+    </div>
 
     <!-- [V134] Eventos -->
     <div style="padding:0 16px;margin-top:28px;margin-bottom:6px">
@@ -7134,9 +7189,9 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     </div>
 
     <!-- HEADER -->
-    <div style="padding:28px 22px 20px;text-align:center">
-      <h2 style="font-size:34px;font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:14px">elige tu plan.</h2>
-      <p id="pricing-subtitle" style="font-size:15px;color:var(--w45);line-height:1.65;max-width:300px;margin:0 auto">vende en el marketplace automotriz más avanzado de venezuela.</p>
+    <div style="padding:24px 22px 16px;text-align:center">
+      <h2 style="font-size:24px;font-weight:800;letter-spacing:-.6px;line-height:1.1;margin-bottom:8px">elige tu plan.</h2>
+      <p id="pricing-subtitle" style="font-size:13px;color:var(--w45);line-height:1.5;max-width:280px;margin:0 auto">vende en el marketplace automotriz más avanzado de venezuela.</p>
     </div>
 
     <!-- PLANS -->
@@ -7144,7 +7199,7 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
 
     <!-- DISCLAIMER -->
     <div style="margin:20px 20px 0;text-align:center">
-      <p style="font-size:12px;color:var(--w25);line-height:1.7">recordatorio: recuerda revisar toda la información del vehículo. si Ruedda detecta discrepancias en la publicación puede ser cancelada.</p>
+      <p style="font-size:11px;color:var(--w25);line-height:1.6">recordatorio: recuerda revisar toda la información del vehículo. si Ruedda detecta discrepancias en la publicación puede ser cancelada.</p>
     </div>
   </div>
 </div>
@@ -7564,7 +7619,7 @@ function _rdLoadSupport(){
   const v=document.getElementById('view-soporte-ruedda');
   if(window.RDSupport){ window.RDSupport.mount(v); return; }
   if(window._rdSupLoading) return; window._rdSupLoading=true;
-  const s=document.createElement('script'); s.src='/rd-support.js?v=3'; s.async=true;
+  const s=document.createElement('script'); s.src='/rd-support.js?v=4'; s.async=true;
   s.onload=()=>{ try{ window.RDSupport&&window.RDSupport.mount(v); }catch(e){ console.error('[ruedda] soporte:',e); } };
   s.onerror=()=>{ window._rdSupLoading=false; };
   document.head.appendChild(s);
@@ -10733,7 +10788,7 @@ async function openMarketDetail(id, origin){
         if(isDealer&&_supa){
           try{
             const{data:cd}=await _supa.from('concesionarios').select('logo_url').eq('user_id',l.user_id).maybeSingle();
-            if(cd?.logo_url) logoUrl=cd.logo_url;
+            if(cd?.logo_url) logoUrl=_tImg(cd.logo_url,{width:160,quality:85});
           }catch(e){}
         }
         const _img=logoUrl?`<img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:null;
@@ -11521,9 +11576,39 @@ function _eventoCardHTML(ev,i){
   </div>`;
 }
 
+// [v32] Noticias by Motorpasión: /api/noticias (la CDN lo guarda 30 min); se pinta una vez por sesión
+window._newsExt=window._newsExt||null;
+function _newsAgo(iso){
+  const m=Math.max(1,Math.round((Date.now()-new Date(iso).getTime())/60000));
+  if(!isFinite(m)) return '';
+  if(m<60) return 'hace '+m+' min';
+  const h=Math.round(m/60); if(h<24) return 'hace '+h+' h';
+  const d=Math.round(h/24); return d===1?'ayer':'hace '+d+' días';
+}
+async function _loadNewsExt(){
+  const wrap=document.getElementById('news-ext-wrap'), row=document.getElementById('news-ext-row');
+  if(!wrap||!row) return;
+  try{
+    if(!window._newsExt){
+      const r=await fetch('/api/noticias');
+      const j=r.ok?await r.json():null;
+      if(!j||!j.items||!j.items.length) return;
+      window._newsExt=j;
+    }
+    const j=window._newsExt;
+    const src=document.getElementById('news-ext-src'); if(src&&j.source) src.textContent=j.source;
+    row.innerHTML=j.items.map((n,i)=>`<div class="news-ext-card" style="animation-delay:${i*60}ms" onclick="abrirLink(window._newsExt.items[${i}].u)">
+      <div class="news-ext-ph">${n.img?`<i class="rd-ld"></i><img src="${_esc(n.img)}" alt="" loading="${i<3?'eager':'lazy'}" decoding="async" onload="_rdShow(this)" onerror="_rdShow(this);this.remove()">`:''}</div>
+      <div class="news-ext-b"><div class="news-ext-t">${_esc(n.t)}</div><div class="news-ext-m">${_esc(_newsAgo(n.at))}${n.by?' · '+_esc(n.by):''}</div></div>
+    </div>`).join('');
+    wrap.style.display='';
+  }catch(e){ console.warn('[ruedda] noticias externas',e?.message||e); }
+}
+
 async function renderComunidad(){
   const container=document.getElementById('comunidad-section');
   if(!container)return;
+  _loadNewsExt();
   const clipsRow=document.getElementById('clips-row');
   const noticiasRow=document.getElementById('noticias-row');
   const eventosRow=document.getElementById('eventos-row');
@@ -12613,9 +12698,10 @@ function _notifClick(id){
       showView('cuenta');
     }
     else if(n.type==='pm'){
-      // abrir bandeja de mensajes
-      showView('notificaciones');
-      if(typeof switchNotifTab==='function') switchNotifTab('mensajes');
+      // [v32] abre la conversación de quien escribió (antes solo la bandeja, y en la app no se movía nada)
+      const _o=n.sourceId||n.source_id;
+      if(_o&&(n.sourceType||n.source_type||'pm')==='pm') _openPmThreadFrom(String(_o),n.pmSourceId||'');
+      else { showView('notificaciones'); if(typeof switchNotifTab==='function') switchNotifTab('mensajes'); }
     }
     else if(n.type==='aprobacion'||n.type==='market'||n.type==='subasta'||n.type==='reserva'||n.type==='offer'){
       // si la notif trae fuente, ir a la publicación; si no, a mis publicaciones
@@ -12848,7 +12934,7 @@ function _searchCardHtml(a,kind){
 }
 function _searchDealerHtml(d){
   return `<div class="search-cat-item" style="display:flex;align-items:center;gap:10px" onclick="closeSearch();goToVitrinaFromSearch('${d.id}')">
-    ${d.logo_url?`<img src="${d.logo_url}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0">`:''}
+    ${d.logo_url?`<img src="${_tImg(d.logo_url,{width:96,quality:85})}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0">`:''}
     <span>${_esc(d.nombre)} <span style="color:var(--muted);font-weight:400;font-size:12px">— concesionario${d.ciudad?' · '+_esc(String(d.ciudad).toLowerCase()):''}</span></span>
   </div>`;
 }
@@ -13104,20 +13190,20 @@ const PRICING_PLANS = {
   particular: [
     {
       id:'gratis', name:'Publicar gratis', nameColor:'var(--white)', price:'', priceColor:'var(--w50)',
-      desc:'Tu carro en Ruedda por 30 días.',
+      desc:'Tu carro en Ruedda por 1 mes.',
       free:true, showArrow:false
     },
     {
       id:'full', name:'RueddaFull', nameColor:'var(--white)', price:'5$', priceColor:'var(--white)',
-      desc:'Destacada 7 días y asesor por chat.', tier:true, showArrow:true, hasInfo:true
+      desc:'Destacada 15 días, 2 meses y prioridad con clientes.', tier:true, popular:true, showArrow:true, hasInfo:true
     },
     {
       id:'plus', name:'Ruedda<span style="color:var(--rd-green)">Plus+</span>', nameColor:'var(--white)', price:'15$', priceColor:'var(--white)',
-      desc:'Destacada siempre, primero en búsqueda y en redes.', tier:true, showArrow:true, hasInfo:true
+      desc:'Tiempo ilimitado, publicidad y soporte directo por IG.', tier:true, showArrow:true, hasInfo:true
     },
     {
       id:'pro', name:'Ruedda<span style="color:var(--rd-green)">Pro</span>', nameColor:'var(--white)', price:'90$', priceColor:'var(--white)',
-      desc:'Fotógrafo, video profesional y sello auditado.', tier:true, showArrow:true, hasInfo:true
+      desc:'Ilimitado, fotos y video profesional, y seguro de devolución.', tier:true, showArrow:true, hasInfo:true
     },
   ],
   subasta: [
@@ -13153,16 +13239,17 @@ function openPricingSheet(demo){
       : 'vende en el marketplace automotriz más avanzado de venezuela.';
 
   document.getElementById('pricing-plans').innerHTML = plans.map((p,i) => `${p.tier&&!plans[i-1]?.tier?'<div class="plan-tiers-head">¿te gusta Ruedda? apóyanos y vende más rápido.</div>':''}
-    <div class="plan-card${p.tier?' plan-card--tier':''}${p.free?' plan-card--free':''}" id="plan-card-${p.id}" onclick="selectPlan('${p.id}','${type}')">
+    <div class="plan-card${p.tier?' plan-card--tier':''}${p.free?' plan-card--free':''}${p.popular?' plan-card--pop':''}" id="plan-card-${p.id}" onclick="selectPlan('${p.id}','${type}')">
+      <img class="plan-flag" src="/assets/ruedda-iso-negro.png" alt="" decoding="async">
       <div class="plan-card-header">
-        <div class="plan-card-name">${p.name}</div>
+        <div class="plan-card-name"><span>${p.name}</span>${p.popular?'<span class="plan-pop">más popular</span>':''}</div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           <div class="plan-card-price" style="color:${p.priceColor}">${p.price}</div>
 
         </div>
       </div>
       ${p.allowCode||p.free||p.tier?`<div class="plan-card-desc">${p.desc}</div>`:''}
-      ${p.hasInfo?`<div onclick="openPlanInfo('${type}','${p.id}',event)" style="font-size:14px;color:var(--w40);cursor:pointer;font-weight:400;margin-top:8px;transition:color .15s" onmouseover="this.style.color='var(--w70)'" onmouseout="this.style.color='var(--w40)'">Ver más info.</div>`:''}
+      ${p.hasInfo?`<div class="plan-foot"><button type="button" class="plan-more" onclick="openPlanInfo('${type}','${p.id}',event)">ver más<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>`:''}
       ${p.allowCode ? `
         <div class="plan-invite-wrap rd-code-ui" id="invite-wrap-${p.id}">
           <input type="text" id="invite-input-${p.id}" placeholder="código de invitación" oninput="this.value=this.value.toUpperCase()">
@@ -15024,32 +15111,28 @@ const PLAN_INFO = {
       title:'RueddaFull',
       price:'$5',
       perks:[
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'Exposición de 60 días', detail:'Tu publicación permanece activa 60 días.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', label:'Destacada 7 días', detail:'Tu carro aparece como featured y en Hot Deals durante 7 días.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>', label:'Historia en Instagram', detail:'Tu carro en una historia de Ruedda en Instagram.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Asesor por chat', detail:'Un asesor Ruedda te orienta por chat durante la venta.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'Exposición de 2 meses', detail:'Tu publicación permanece activa 60 días en el market.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', label:'Destacada 15 días', detail:'Aparece en destacados y Hot Deals durante 15 días.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Prioridad con clientes', detail:'Te damos prioridad al conectar compradores interesados con tu carro.'},
       ]
     },
     plus: {
       title:'RueddaPlus+',
       price:'$15',
       perks:[
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>', label:'Exposición de 90 días', detail:'Tu publicación permanece activa 90 días.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', label:'Destacada toda la publicación', detail:'Featured y en Hot Deals los 90 días completos.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>', label:'Primero en búsqueda y en tu ciudad', detail:'Tu carro aparece antes que el resto cuando buscan algo como él.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>', label:'Post e historia en redes', detail:'Promocionamos tu carro en las redes de Ruedda.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', label:'Tu clip en Clips', detail:'Sube un video de tu carro y lo mostramos en la sección Clips.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M18.18 8c5.1 0 5.1 8 0 8-5.1 0-7.14-8-12.74-8-4.58 0-4.58 8 0 8 5.6 0 7.64-8 12.74-8z"/></svg>', label:'Tiempo ilimitado', detail:'Tu carro queda en la plataforma sin fecha de vencimiento, hasta que lo vendas.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>', label:'Publicidad', detail:'Promocionamos tu carro en las redes y espacios publicitarios de Ruedda.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>', label:'Soporte directo por Instagram', detail:'Te atendemos directo por el Instagram de Ruedda.'},
       ]
     },
     pro: {
       title:'RueddaPro',
       price:'$90',
       perks:[
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>', label:'Fotógrafo a domicilio', detail:'Un fotógrafo autorizado por Ruedda te visita y toma las fotos de tu publicación.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', label:'Video profesional', detail:'Un video corto de tu carro, grabado y editado por el equipo de Ruedda.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>', label:'Sello auditado Ruedda', detail:'Inspeccionamos tu carro y tu publicación lleva el sello auditado.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>', label:'Asesor dedicado', detail:'Coordina visitas y pruebas de manejo, de principio a fin.'},
-        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', label:'Destacada hasta que se venda', detail:'Featured y en Hot Deals mientras tu carro esté a la venta.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M18.18 8c5.1 0 5.1 8 0 8-5.1 0-7.14-8-12.74-8-4.58 0-4.58 8 0 8 5.6 0 7.64-8 12.74-8z"/></svg>', label:'Publicación ilimitada', detail:'Tu carro queda en Ruedda sin fecha de vencimiento, hasta que lo vendas.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>', label:'Fotos profesionales', detail:'Un fotógrafo hace las fotos de tu carro.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>', label:'Video profesional', detail:'Un video profesional de tu carro para la publicación y las redes.'},
+        {icon:'<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="width:22px;height:22px;color:var(--rd-green)"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>', label:'Seguro de devolución', detail:'Si tu carro no se vende en Ruedda, te devolvemos tu dinero.'},
       ]
     }
   },
@@ -15093,8 +15176,8 @@ function openPlanInfo(type, planId, e){
       <div style="display:flex;align-items:center;gap:12px;padding:20px 20px 0">
         <button onclick="closePlanInfoSheet()" style="background:var(--w7);border:none;color:var(--w50);cursor:pointer;padding:8px;border-radius:50%;display:flex;transition:background .15s" onmouseover="this.style.background='var(--w12)'" onmouseout="this.style.background='var(--w7)'"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" style="width:16px;height:16px"><path d="m15 18-6-6 6-6"/></svg></button>
         <div>
-          <div style="font-size:20px;font-weight:800;letter-spacing:-.4px">${info.title}</div>
-          <div style="font-size:14px;color:var(--rd-green);font-weight:700">${info.price}</div>
+          <div style="font-size:17px;font-weight:800;letter-spacing:-.4px">${info.title}</div>
+          <div style="font-size:13px;color:var(--rd-green);font-weight:700">${info.price}</div>
         </div>
       </div>
       <div style="padding:18px 20px 0;display:flex;flex-direction:column;gap:12px">
@@ -15102,8 +15185,8 @@ function openPlanInfo(type, planId, e){
           <div style="display:flex;align-items:flex-start;gap:14px;background:var(--w4);border:1px solid var(--w8);border-radius:14px;padding:14px">
             <div style="flex-shrink:0;display:flex;align-items:center;justify-content:center;width:38px;height:38px;background:rgba(var(--rd-green-rgb),.07);border-radius:10px">${p.icon}</div>
             <div>
-              <div style="font-size:14px;font-weight:700;margin-bottom:3px">${p.label}</div>
-              <div style="font-size:13px;color:var(--w50);line-height:1.55">${p.detail}</div>
+              <div style="font-size:13px;font-weight:700;margin-bottom:2px">${p.label}</div>
+              <div style="font-size:12px;color:var(--w50);line-height:1.5">${p.detail}</div>
             </div>
           </div>`).join('')}
       </div>
@@ -16380,7 +16463,7 @@ function renderDealerFiltered(){
   if(f.tipo !== 'todos') dealers = dealers.filter(d=>(d.tag||'').includes(f.tipo));
   grid.innerHTML = dealers.length
     ? dealers.map((d,i)=>`<div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
-        <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" decoding="async" onload="_rdShow(this)">`:d.initial}</div>
+        <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<i class="rd-ld"></i><img src="${_tImg(d.logo,{width:480,quality:85})}" onerror="this.previousElementSibling&&this.previousElementSibling.remove();this.remove()" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" decoding="async" onload="_rdShow(this)">`:d.initial}</div>
         <div class="dealer-info"><div class="dealer-name" style="display:flex;align-items:center;gap:0">${d.nombre}<svg viewBox="0 0 16 16" fill="#0a0a0a" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="dealer-meta">${d.ciudad.toLowerCase()}</div><div class="dealer-count">${d.autos} vehículos</div></div>
       </div>`).join('')
     : '<div class="empty-state" style="grid-column:1/-1"><p>sin concesionarios con estos filtros</p></div>';
@@ -16436,7 +16519,7 @@ function renderDealerGrid(){
   }
   grid.innerHTML = data.map((d,i) => `
     <div class="dealer-card" style="animation-delay:${i*60}ms" onclick="openVitrina('${d.id}')">
-      <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<img src="${d.logo}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" decoding="async" onload="_rdShow(this)">`:d.initial}</div>
+      <div class="dealer-logo" style="background:linear-gradient(${d.color})">${d.logo?`<i class="rd-ld"></i><img src="${_tImg(d.logo,{width:480,quality:85})}" onerror="this.previousElementSibling&&this.previousElementSibling.remove();this.remove()" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .3s ease" loading="lazy" decoding="async" onload="_rdShow(this)">`:d.initial}</div>
       <div class="dealer-info">
         <div class="dealer-name" style="display:flex;align-items:center">${d.nombre}<svg viewBox="0 0 16 16" fill="#0a0a0a" style="width:13px;height:13px;flex-shrink:0;margin-left:4px;vertical-align:middle" xmlns="http://www.w3.org/2000/svg"><path d="M8 0l1.8 2.4L13 1.6l-.8 3.2L15 7l-2.8 1 .8 3.4-3-1.6L8 12l-2-2.2-3 1.6.8-3.4L1 7l2.8-2.2L3 1.6l3.2.8z"/><path d="M5.5 8l1.8 1.8 3.2-3.6" stroke="#fff" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="dealer-meta">${d.ciudad.toLowerCase()}</div>
@@ -20218,6 +20301,7 @@ async function _loadConcesionarios(){
   CONCESIONARIOS_ALL.splice(0,CONCESIONARIOS_ALL.length,..._mapped);
   MARCAS_OFICIALES.splice(0,MARCAS_OFICIALES.length,..._mapped.filter(c=>c.tipo==='marca_oficial'));
   CONCESIONARIOS.splice(0,CONCESIONARIOS.length,..._mapped.filter(c=>c.tipo!=='marca_oficial'));
+  setTimeout(()=>{ _mapped.slice(0,8).forEach(c=>{ if(c.logo){ const i=new Image(); i.decoding='async'; i.src=_tImg(c.logo,{width:480,quality:85}); } }); },1200);
   // [CONSESIONARIOS V2] promedios de calificación de agencias (tolerante: si la tabla
   // concesionario_ratings no existe todavía, se salta en silencio)
   _loadAgenciaRatings(ids).catch(()=>{});
@@ -21785,7 +21869,7 @@ async function openStories(){
     const u=r.users;
     if(u&&(u.role==='consesionario'||u.role==='concesionario')){
       const d=dealerMap[r.user_id];
-      if(d){r._displayName=d.nombre||u.nombre||u.username;r._displayAvatar=d.logo_url||u.avatar_url;}
+      if(d){r._displayName=d.nombre||u.nombre||u.username;r._displayAvatar=(d.logo_url?_tImg(d.logo_url,{width:200,quality:85}):'')||u.avatar_url;}
     }
   });
 
@@ -22393,7 +22477,7 @@ async function _loadPrivateMessages(force){
   let dealerLogoMap={};
   if(dealerUserIds.length){
     const{data:dealers}=await _supa.from('concesionarios').select('user_id,nombre,logo_url').in('user_id',dealerUserIds);
-    dealerLogoMap=Object.fromEntries((dealers||[]).map(d=>[d.user_id,{logo:d.logo_url,nombre:d.nombre}]));
+    dealerLogoMap=Object.fromEntries((dealers||[]).map(d=>[d.user_id,{logo:d.logo_url?_tImg(d.logo_url,{width:240,quality:85}):d.logo_url,nombre:d.nombre}]));
   }
 
   // [BLOQUE 3] agrupar por CONTRAPARTE únicamente — antes se agrupaba por source_id+otherId,
@@ -22627,7 +22711,7 @@ function openThread(id){
     _supa.from('concesionarios').select('*').eq('user_id',currentThread.otherId).maybeSingle().then(async({data:cd})=>{
       if(cd){
         const logo=cd.logo_url||cd.logo||'';
-        if(logo&&av) av.innerHTML=`<img src="${logo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+        if(logo&&av) av.innerHTML=`<img src="${_tImg(logo,{width:160,quality:85})}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
       }
       let tel=String(cd?.telefono||cd?.whatsapp||'').replace(/[^0-9+]/g,'');
       // [V87] fallback: whatsapp de la publicación origen (obligatorio al publicar)
@@ -22861,13 +22945,30 @@ async function _msgAuctionSeller(sellerId,auctionId,title){
 async function _openPmThreadFrom(otherId,sourceId){
   if(!otherId) return;
   if(isGuest()){showToast('inicia sesión para ver tus mensajes');return;}
-  showView('notificaciones');
-  if(typeof switchNotifTab==='function') switchNotifTab('mensajes');
-  // esperar cualquier carga en vuelo (el dedupe encolaría la nuestra y THREADS estaría vacío)
-  for(let i=0;i<40&&window._pmLoading;i++){await new Promise(r=>setTimeout(r,100));}
-  await _loadPrivateMessages(true);
-  const t=THREADS.find(x=>x.isPM&&String(x.otherId)===String(otherId)&&sourceId&&String(x.sourceId||'')===String(sourceId))
+  // [v32] en la app el chat es nativo y sube encima de lo que haya: no se cambia de pestaña debajo
+  const nat=!!window.__RD_NATIVE_CHAT;
+  if(!nat){ showView('notificaciones'); if(typeof switchNotifTab==='function') switchNotifTab('mensajes'); }
+  const find=()=>THREADS.find(x=>x.isPM&&String(x.otherId)===String(otherId)&&sourceId&&String(x.sourceId||'')===String(sourceId))
     ||THREADS.find(x=>x.isPM&&String(x.otherId)===String(otherId));
+  // si la conversación ya está cargada abre al instante; si no, se recarga la bandeja
+  let t=find();
+  if(!t){
+    // esperar cualquier carga en vuelo (el dedupe encolaría la nuestra y THREADS estaría vacío)
+    for(let i=0;i<40&&window._pmLoading;i++){await new Promise(r=>setTimeout(r,100));}
+    await _loadPrivateMessages(true);
+    t=find();
+  }
+  // conversación vieja que no entra en la bandeja cargada: el chat nativo trae su historial solo
+  if(!t&&nat&&_supa){
+    try{
+      const{data:u}=await _supa.from('users').select('nombre,username,role,kyc_verified,avatar_url').eq('id',otherId).maybeSingle();
+      if(u){
+        t={id:'pm_new_'+otherId,carTitle:'mensaje',isPM:true,otherId:String(otherId),otherName:u.nombre||u.username||'usuario',
+          otherAvatar:u.avatar_url||null,otherRole:u.role||'',otherKyc:!!u.kyc_verified,sourceId:sourceId?String(sourceId):null,sourceType:'',unread:false,messages:[]};
+        if(!THREADS.find(x=>x.id===t.id)) THREADS.unshift(t);
+      }
+    }catch(e){}
+  }
   if(t) openThread(t.id);
   else showToast('conversación no encontrada');
 }
@@ -25754,7 +25855,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
       if(name==='ruedda-extra'&&was!=='ruedda-extra'){ var v=document.getElementById('view-ruedda-extra'); if(v){ v.classList.remove('rx-anim'); void v.offsetWidth; v.classList.add('rx-anim'); clearTimeout(t); t=setTimeout(function(){ v.classList.remove('rx-anim'); },1400); } }
       return r; };
   })();
-  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=8'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
+  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=9'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
 
   /* menú hamburguesa: foto de perfil arriba */
   function paintMe(){

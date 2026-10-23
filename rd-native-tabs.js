@@ -84,7 +84,9 @@
         var h = b.querySelector('h3'), p = b.querySelector('.vt-sub');
         return { k: k, t: h ? h.textContent.trim() : k, s: p ? p.textContent.trim() : '' };
       }).filter(Boolean);
-      post({ ev: 'vender', theme: theme(), opts: opts });
+      // tarjeta "¿tienes varios vehículos? → registrar agencia" debajo de las opciones (no para quien ya es concesionario)
+      var role = (typeof USER_STATE !== 'undefined' && USER_STATE.role) || 'guest';
+      post({ ev: 'vender', theme: theme(), opts: opts, agency: role !== 'consesionario' && role !== 'concesionario' });
     };
   }
 
@@ -178,7 +180,8 @@
     },
     login: function () { try { showMobileAuth('login'); } catch (e) {} return true; },
     vender: function (k) { try { handleVenderClick(k); } catch (e) {} return true; },
-    venderWeb: function () { try { webVender(); } catch (e) {} return true; }
+    venderWeb: function () { try { webVender(); } catch (e) {} return true; },
+    agencia: function () { try { showView('afiliate'); } catch (e) {} last = ''; state(); return true; }
   };
   if (document.readyState === 'complete') state(); else window.addEventListener('load', state);
 })();
