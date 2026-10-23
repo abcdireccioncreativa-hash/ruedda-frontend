@@ -102,7 +102,7 @@
   {t:'vender',q:['es obligatorio poner la ciudad'],k:['ciudad obligatoria','ubicacion','direccion'],
    a:'Sí, la **ciudad** es necesaria para que los compradores filtren por zona. No mostramos tu dirección exacta.'},
   {t:'vender',q:['puedo publicar varios carros'],k:['varios carros','mas de un carro','muchos carros','otra publicacion','segundo carro'],
-   a:'Sí. Cada carro es una publicación aparte. Si vendes muchos carros, el **paquete concesionario** ($89/mes) te da hasta **35 publicaciones activas** y vitrina propia.',x:['concesionarios']},
+   a:'Sí. Cada carro es una publicación aparte. Si vendes muchos carros, el **paquete concesionario** ($90/mes, tasa BCV) te da hasta **35 publicaciones activas** y vitrina propia.',x:['concesionarios']},
   {t:'vender',q:['puedo publicar un carro chocado'],k:['chocado','chocada','chocados','chocadas','choque','danado','siniestrado','accidentado','dano'],
    a:'Sí. Ruedda tiene una sección de **chocados**: vehículos con daños, a precio de daños, indicando tipo de daño y estado. Cero sorpresas.'},
   {t:'vender',q:['qué son las historias','cómo subo una historia'],k:['historia','historias','stories','story','reel'],
@@ -179,8 +179,8 @@
    a:'Desde el **perfil público** del vendedor puedes dejarle una **reseña con estrellas**. Las reseñas de 4★ y 5★ también le suman XP.'},
 
   // CONCESIONARIOS
-  {t:'dealer',q:['soy concesionario','cuánto cuesta la vitrina','paquete concesionario'],k:['concesionario','concesionarios','agencia','dealer','vitrina','negocio','empresa','89'],
-   a:'El **paquete concesionario** cuesta **$89/mes** e incluye:\n• **35 publicaciones** activas a la vez\n• vitrina con tu **nombre, logo y banner**\n• botón directo de **WhatsApp y llamada**\n• **estadísticas** de visitas por carro\n• soporte prioritario',x:['concesionarios','wa']},
+  {t:'dealer',q:['soy concesionario','cuánto cuesta la vitrina','paquete concesionario'],k:['concesionario','concesionarios','agencia','dealer','vitrina','negocio','empresa','90','precio vitrina'],
+   a:'El **paquete concesionario** cuesta **$90/mes** (en bolívares a tasa BCV) e incluye:\n• **35 publicaciones** activas a la vez\n• vitrina con tu **nombre, logo y banner**\n• botón directo de **WhatsApp y llamada**\n• **estadísticas** de visitas por carro\n• soporte prioritario',x:['concesionarios','wa']},
   {t:'dealer',q:['cómo administro mi vitrina','venció mi vitrina'],k:['administrar vitrina','vitrina vencida','renovar vitrina','vitrina digital'],
    a:'En **cuenta → administrar vitrina digital** editas tu vitrina. El paquete dura **30 días**; al vencer, la app te pide renovarlo.',x:['cuenta']},
 

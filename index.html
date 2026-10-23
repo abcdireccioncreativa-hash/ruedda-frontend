@@ -7569,7 +7569,7 @@ function _rdLoadSupport(){
   const v=document.getElementById('view-soporte-ruedda');
   if(window.RDSupport){ window.RDSupport.mount(v); return; }
   if(window._rdSupLoading) return; window._rdSupLoading=true;
-  const s=document.createElement('script'); s.src='/rd-support.js?v=2'; s.async=true;
+  const s=document.createElement('script'); s.src='/rd-support.js?v=3'; s.async=true;
   s.onload=()=>{ try{ window.RDSupport&&window.RDSupport.mount(v); }catch(e){ console.error('[ruedda] soporte:',e); } };
   s.onerror=()=>{ window._rdSupLoading=false; };
   document.head.appendChild(s);
@@ -12998,7 +12998,7 @@ const PLANS = {
     badge:'concesionario', badgeColor:'var(--w6)', badgeText:'var(--w45)',
     title:'paquete<br>concesionario',
     subtitle:'Todo lo que tu negocio necesita para vender más.',
-    price:'$89', priceSub:'USD / mes',
+    price:'$90', priceSub:'USD / mes · tasa BCV',
     features:[
       {text:'35 publicaciones activas simultáneas', ok:true},
       {text:'Sección dedicada con tu nombre y logo', ok:true},
@@ -13008,7 +13008,7 @@ const PLANS = {
       {text:'Soporte prioritario de Ruedda', ok:true},
     ],
     legal:'Suscripción mensual. Cancela cuando quieras. El acceso se mantiene hasta el fin del período pagado.',
-    cta:'contratar paquete — $89 / mes',
+    cta:'contratar paquete — $90 / mes',
   }
 };
 
@@ -13276,7 +13276,7 @@ function closePricingSheet(){
 }
 
 
-const PLAN_PRICE={particular:5,subasta:10,consesionario:89};
+const PLAN_PRICE={particular:5,subasta:10,consesionario:90};
 let bcvRate=0;
 let checkoutPayTab='usd';
 
@@ -13433,7 +13433,7 @@ async function processPayment(){
   // ── VITRINA ACTIVATION PATH: pago por activar vitrina (no por publicación) ──
   if(pendingVenderType==='consesionario'&&isConcesionario()&&!USER_STATE.dealerActive){
     const uid=await _getUid();
-    const price=PLAN_PRICE['consesionario']||89;
+    const price=PLAN_PRICE['consesionario']||90;
     const tab=checkoutPayTab;
     const refRaw=tab==='bcv'?document.getElementById('checkout-ref')?.value.trim():document.getElementById('checkout-binance-txid')?.value.trim();
     if(!refRaw){showToast('ingresa la referencia de pago');return;}
