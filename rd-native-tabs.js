@@ -93,6 +93,29 @@
     };
   }
 
+  // "consultar precios" (solo ver planes): la misma hoja nativa que vender, si la app la trae (build 35+)
+  var webPricing = window.openPricingSheet;
+  if (typeof webPricing === 'function' && window.__RD_NATIVE_PRICES) {
+    window.openPricingSheet = function (demo) {
+      if (!demo) return webPricing.apply(this, arguments);
+      try {
+        var type = (typeof pendingVenderType !== 'undefined' && pendingVenderType === 'subasta') ? 'subasta' : 'particular';
+        var info = (typeof PLAN_INFO !== 'undefined' && PLAN_INFO[type]) || {};
+        var plans = PRICING_PLANS[type].map(function (p) {
+          var tmp = document.createElement('div'); tmp.innerHTML = p.name;
+          var acc = tmp.querySelector('span'), accent = acc ? acc.textContent : '';
+          if (acc) acc.remove();
+          var i = info[p.id];
+          return { id: p.id, name: tmp.textContent.trim(), accent: accent, price: p.price || '', desc: p.desc || '', popular: !!p.popular,
+            perks: i ? i.perks.map(function (k) { return { l: k.label, d: k.detail }; }) : [] };
+        });
+        window._rdNoSignup = 1;
+        post({ ev: 'precios', theme: theme(), plans: plans,
+          sub: type === 'subasta' ? 'Elige el tipo de subasta para tu vehículo.' : 'Vende en el marketplace automotriz más avanzado de Venezuela.' });
+      } catch (e) { return webPricing.apply(this, arguments); }
+    };
+  }
+
   function lastMsg(t) { var m = t.messages && t.messages[t.messages.length - 1]; return m || null; }
   var RDNT = window.RDNT = {
     go: function (tab) {
