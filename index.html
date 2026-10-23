@@ -3172,6 +3172,81 @@ html[data-theme="light"] #pricing-plans .plan-cta{background:#111!important;colo
   .search-overlay.open.closing{animation:rdSheetOut .24s cubic-bezier(.4,0,1,1) both;pointer-events:none}
   #view-vender.active,#view-alquiler-form.active,#view-afiliate.active{animation:rdFormIn .52s cubic-bezier(.32,.72,0,1) both}
 }
+/* [v40] pill de ciudad de "Mejores agencias": en claro era negro sobre negro */
+html[data-theme="light"] #dealer-city-btn{background:#fff!important;border-color:rgba(0,0,0,.12)!important;color:#111!important;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+html[data-theme="light"] #dealer-city-btn>svg:last-of-type{stroke:rgba(0,0,0,.45)}
+html[data-theme="light"] #dealer-city-menu{background:#fff!important;border-color:rgba(0,0,0,.08)!important;box-shadow:0 12px 34px rgba(0,0,0,.14)!important;color:#111}
+/* [v40] hoja de vender en la web = la nativa: tarjeta flotante, flecha negra animada por fila, tarjeta de agencia */
+@media (max-width:899px){
+  #vender-modal .vender-sheet{margin:0 8px 8px;border-radius:40px;border:.5px solid var(--w10);padding:14px 18px 18px;box-shadow:0 10px 40px rgba(0,0,0,.35);max-height:calc(100dvh - 20px - env(safe-area-inset-top));overflow-y:auto;overscroll-behavior:contain;transform:translate3d(0,calc(100% + 40px),0)}
+  #vender-modal.open .vender-sheet{transform:none}
+  #vender-modal .vender-handle{width:38px;height:5px;margin:0 auto 20px;background:var(--w20)}
+  #vender-modal .vender-sheet-title{padding:0 6px}
+  #vender-modal .vender-sheet-sub{padding:0 6px;margin-bottom:18px}
+  #vender-modal .vender-type-btn{position:relative;border-radius:18px;padding:14px 50px 14px 14px;margin-bottom:10px;gap:14px;min-height:72px;box-sizing:border-box}
+  #vender-modal .vender-type-btn:active{transform:scale(.98);opacity:.85;transition:transform .08s,opacity .08s}
+  #vender-modal .vender-type-icon{width:44px;height:44px}
+  #vender-modal .vender-type-btn::after{content:"";position:absolute;right:14px;top:50%;width:26px;height:26px;margin-top:-13px;border-radius:50%;background:var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E") center/12px no-repeat;opacity:0;transform:translateX(-10px) scale(.6)}
+  html:not([data-theme="light"]) #vender-modal .vender-type-btn::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230b0b0b' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E")}
+  #vender-modal.open .vender-type-btn::after{animation:rdArrowIn .55s cubic-bezier(.34,1.5,.64,1) .28s forwards}
+  #vender-modal.open #vender-btn-subasta::after{animation-delay:.35s}
+  #vender-modal.open #vender-btn-consesionario::after{animation-delay:.42s}
+  #vender-modal.open #vender-btn-alquiler::after{animation-delay:.49s}
+}
+@keyframes rdArrowIn{to{opacity:1;transform:none}}
+.rd-ag-card{position:relative;overflow:hidden;margin-top:14px;padding:18px;border-radius:22px;background:var(--card);border:1px solid var(--border);cursor:pointer;color:var(--white);transition:transform .2s cubic-bezier(.32,.72,0,1),opacity .2s}
+.rd-ag-card:active{transform:scale(.98);opacity:.85}
+.rd-ag-card b{display:block;font-size:21px;line-height:23px;font-weight:700;letter-spacing:-.6px;position:relative}
+.rd-ag-card span{display:block;margin-top:6px;max-width:calc(100% - 60px);font-size:13px;line-height:17px;opacity:.6;position:relative}
+.rd-ag-card em{display:inline-flex;align-items:center;gap:7px;margin-top:14px;height:34px;padding:0 13px 0 15px;border-radius:17px;background:var(--white);color:var(--bg);font-style:normal;font-size:13px;font-weight:700;letter-spacing:-.2px;position:relative}
+.rd-ag-card em svg{width:14px;height:14px}
+.rd-ag-flag{position:absolute;right:-26px;top:-22px;width:150px;height:150px;background:var(--white);opacity:.07;-webkit-mask:url(/assets/ruedda-iso-negro.png) center/contain no-repeat;mask:url(/assets/ruedda-iso-negro.png) center/contain no-repeat;pointer-events:none}
+/* sheet de agencia: blanco puro siempre */
+.rd-agx{display:none;position:fixed;inset:0;z-index:420;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0);transition:background .34s cubic-bezier(.32,.72,0,1);color:#000;font-family:var(--font)}
+.rd-agx.open{background:rgba(0,0,0,.4)}
+.rd-agx-card{width:calc(100% - 16px);max-width:560px;margin:0 8px 8px;max-height:calc(100dvh - 20px - env(safe-area-inset-top));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#fff;border-radius:40px;padding:9px 18px 18px;box-sizing:border-box;box-shadow:0 10px 30px rgba(0,0,0,.18);transform:translate3d(0,calc(100% + 40px),0);transition:transform .5s cubic-bezier(.32,.72,0,1)}
+.rd-agx.open .rd-agx-card{transform:none}
+.rd-agx:not(.open) .rd-agx-card{transition-duration:.3s;transition-timing-function:cubic-bezier(.4,0,1,1)}
+.rd-agx-grab{width:38px;height:5px;border-radius:3px;background:#dcdcd8;margin:0 auto 21px}
+.rd-agx-lock{display:flex;align-items:center;gap:11px;padding:4px 6px 0}
+.rd-agx-mark{width:78px;height:21px;background:#000;-webkit-mask:url(/assets/ruedda-wordmark-negro.png) left center/contain no-repeat;mask:url(/assets/ruedda-wordmark-negro.png) left center/contain no-repeat}
+.rd-agx-lock s{width:1px;height:16px;background:#e9e9e6}
+.rd-agx-lock span{font-size:11px;font-weight:700;letter-spacing:1.8px}
+.rd-agx h2{margin:18px 6px 0;font-size:25px;line-height:28px;font-weight:700;letter-spacing:-.7px;color:#000}
+.rd-agx-legal{margin:5px 6px 16px;font-size:11.5px;line-height:15px;color:#000}
+.rd-agx-panel{background:#f5f5f3;border-radius:20px;overflow:hidden}
+.rd-agx-perk{display:flex;align-items:center;gap:13px;padding:10px 14px;position:relative}
+.rd-agx-perk+.rd-agx-perk::before,.rd-agx-fields input+input{box-shadow:inset 0 .5px 0 #e9e9e6}
+.rd-agx-perk+.rd-agx-perk::before{content:"";position:absolute;left:16px;right:0;top:0;height:1px}
+.rd-agx-perk i{flex:none;width:38px;height:38px;border-radius:11px;background:#fff;display:grid;place-items:center}
+.rd-agx-perk i svg{width:19px;height:19px}
+.rd-agx-perk b{display:block;font-size:14.5px;line-height:19px;font-weight:700;letter-spacing:-.2px}
+.rd-agx-perk span{display:block;font-size:12.5px;line-height:17px}
+.rd-agx-eb{margin:18px 8px 10px;font-size:12.5px;font-weight:700;letter-spacing:-.1px}
+.rd-agx-fields input{display:block;width:100%;height:48px;box-sizing:border-box;border:0;background:transparent;padding:0 16px;font:500 16px var(--font);color:#000;caret-color:#000;outline:none;-webkit-appearance:none;border-radius:0}
+.rd-agx-fields input::placeholder{color:#9a9a96;font-weight:400}
+.rd-agx-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rd-agx-chips button{height:38px;border:0;border-radius:15px;background:#f5f5f3;color:#000;font:700 13.5px var(--font);letter-spacing:-.2px;cursor:pointer;transition:background .2s,color .2s,transform .12s}
+.rd-agx-chips button:active{transform:scale(.96)}
+.rd-agx-chips button.on{background:#000;color:#fff}
+.rd-agx-send{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;margin-top:16px;border:0;border-radius:26px;background:#e6f03b;color:#000;font:700 16px var(--font);letter-spacing:-.2px;box-shadow:0 3px 5px rgba(180,190,0,.28);cursor:pointer;transition:transform .12s,opacity .12s}
+.rd-agx-send:active{transform:scale(.98);opacity:.85}
+.rd-agx-send svg{width:15px;height:15px}
+.rd-agx-send.busy{pointer-events:none;color:transparent;position:relative}
+.rd-agx-send.busy svg{opacity:0}
+.rd-agx-send.busy::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;border:2px solid rgba(0,0,0,.2);border-top-color:#000;animation:rdSpin .7s linear infinite}
+@keyframes rdSpin{to{transform:rotate(360deg)}}
+.rd-agx-foot{margin:12px 0 0;text-align:center;font-size:11.5px;line-height:15px;color:#000}
+#rd-agx-ok{text-align:center;padding:26px 12px 4px}
+#rd-agx-ok h2{margin:20px 0 0}
+#rd-agx-ok p{margin:10px 0 0;font-size:14px;line-height:19px}
+#rd-agx-ok .rd-agx-send{margin-top:22px}
+.rd-agx-okc{display:inline-grid;place-items:center;width:64px;height:64px;border-radius:32px;background:#000;animation:rdOkPop .55s cubic-bezier(.34,1.5,.64,1) both}
+.rd-agx-okc svg{width:30px;height:30px}
+@keyframes rdOkPop{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+.rd-shake{animation:rdShake .38s}
+@keyframes rdShake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@media (prefers-reduced-motion:reduce){.rd-agx-card,#vender-modal .vender-sheet{transition-duration:.01s}#vender-modal.open .vender-type-btn::after{animation:none;opacity:1;transform:none}}
 @keyframes rdSheetIn{from{opacity:0;transform:translate3d(0,34px,0) scale(.985)}to{opacity:1;transform:none}}
 @keyframes rdSheetOut{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(0,26px,0) scale(.99)}}
 @keyframes rdRise{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
@@ -6694,6 +6769,47 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
         <h3>vehículo en alquiler</h3>
         <p class="vt-sub">gana dinero con tu carro cuando no lo estés usando</p>
       </div>
+    </div>
+    <!-- [v40] igual que la hoja nativa: tarjeta de agencia abajo (no para quien ya es concesionario) -->
+    <div class="rd-ag-card" id="vender-agency-card" onclick="closeVenderModal();setTimeout(_rdAgencyOpen,300)">
+      <i class="rd-ag-flag" aria-hidden="true"></i>
+      <b>¿Tienes varios<br>vehículos?</b>
+      <span>Registra tu agencia y publica todo tu inventario.</span>
+      <em>Registrar agencia<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></em>
+    </div>
+  </div>
+</div>
+
+<!-- [v40] registrar agencia (RueddaCarreras): mismo sheet que el nativo, blanco puro → partner_leads -->
+<div id="rd-agency" class="rd-agx" onclick="if(event.target===this)_rdAgencyClose()">
+  <div class="rd-agx-card" role="dialog" aria-label="Registra tu agencia">
+    <div class="rd-agx-grab"></div>
+    <div id="rd-agx-form">
+      <div class="rd-agx-lock"><i class="rd-agx-mark" aria-label="ruedda"></i><s></s><span>CARRERAS</span></div>
+      <h2>Registra tu agencia.</h2>
+      <p class="rd-agx-legal">Un asesor de RueddaCarreras te contacta para dar de alta tu agencia y subir tu inventario.</p>
+      <div class="rd-agx-panel">
+        <div class="rd-agx-perk"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 10h18M9 4v16"/></svg></i><div><b>Todo tu inventario</b><span>Un solo perfil con todos tus vehículos.</span></div></div>
+        <div class="rd-agx-perk"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></i><div><b>En el mapa de agencias</b><span>Los compradores te encuentran por ciudad.</span></div></div>
+        <div class="rd-agx-perk"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9.5" r="3.6"/><path d="M6.2 10.5v-.7a5.8 5.8 0 0 1 11.6 0v.7"/><rect x="4.6" y="9.6" width="2.6" height="4.4" rx="1.2"/><rect x="16.8" y="9.6" width="2.6" height="4.4" rx="1.2"/><path d="M18.1 14v.4c0 1.6-1.3 2.6-3 2.6h-1.6M5.5 21v-.3a4.7 4.7 0 0 1 4.7-4.7h3.6a4.7 4.7 0 0 1 4.7 4.7v.3"/></svg></i><div><b>Asesor dedicado</b><span>Te acompaña en el alta y la carga inicial.</span></div></div>
+      </div>
+      <div class="rd-agx-eb">Datos de la agencia</div>
+      <div class="rd-agx-panel rd-agx-fields">
+        <input id="agx-agencia" autocomplete="organization" placeholder="Nombre de la agencia" enterkeyhint="next">
+        <input id="agx-rep" autocomplete="name" placeholder="Representante" enterkeyhint="next">
+        <input id="agx-tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="WhatsApp" enterkeyhint="next">
+        <input id="agx-ciudad" autocomplete="address-level2" placeholder="Ciudad" enterkeyhint="done">
+      </div>
+      <div class="rd-agx-eb">¿Cuántos vehículos tienes?</div>
+      <div class="rd-agx-chips" id="agx-chips"><button type="button">1 a 5</button><button type="button">6 a 20</button><button type="button">21 a 50</button><button type="button">+50</button></div>
+      <button type="button" class="rd-agx-send" id="agx-send" onclick="_rdAgencySubmit()"><span>Enviar solicitud</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <p class="rd-agx-foot">Te escribimos por WhatsApp · solo Ruedda ve tus datos.</p>
+    </div>
+    <div id="rd-agx-ok" hidden>
+      <i class="rd-agx-okc"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 12.5l4.5 4.5L19.5 6.5"/></svg></i>
+      <h2>Solicitud enviada.</h2>
+      <p id="agx-ok-p">Un asesor de RueddaCarreras te escribirá por WhatsApp.</p>
+      <button type="button" class="rd-agx-send" onclick="_rdAgencyClose()"><span>Listo</span></button>
     </div>
   </div>
 </div>
@@ -12855,6 +12971,52 @@ function markNotifRead(id){
 
 // ===================== SEARCH =====================
 
+// [v40] registrar agencia — mismo sheet que el nativo (RDAgencySheet), envío a partner_leads → Control › Solicitudes
+let _rdAgQty='';
+function _rdAgencyOpen(){
+  const m=document.getElementById('rd-agency'); if(!m) return;
+  const u=(typeof USER_STATE==='object'&&USER_STATE)||{}, g=typeof isGuest==='function'?isGuest():true;
+  const set=(id,v)=>{const el=document.getElementById(id); if(el&&!el.value) el.value=v||'';};
+  if(!g){ set('agx-rep',u.nombre); set('agx-tel',u.telefono||u.celular); set('agx-ciudad',u.ciudad); }
+  document.getElementById('rd-agx-form').hidden=false; document.getElementById('rd-agx-ok').hidden=true;
+  try{window._rdHapticNow&&window._rdHapticNow('LIGHT')}catch(e){}
+  m.style.display='flex'; requestAnimationFrame(()=>requestAnimationFrame(()=>m.classList.add('open')));
+}
+function _rdAgencyClose(){
+  const m=document.getElementById('rd-agency'); if(!m||!m.classList.contains('open')) return;
+  document.activeElement&&document.activeElement.blur&&document.activeElement.blur();
+  m.classList.remove('open'); setTimeout(()=>{ if(!m.classList.contains('open')) m.style.display='none'; },340);
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('#agx-chips button'); if(!b) return;
+  _rdAgQty=b.textContent; document.querySelectorAll('#agx-chips button').forEach(x=>x.classList.toggle('on',x===b));
+  try{window._rdHapticNow&&window._rdHapticNow('LIGHT')}catch(e){}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||!e.target.closest||!e.target.closest('.rd-agx-fields')) return;
+  e.preventDefault(); const n=e.target.nextElementSibling; if(n) n.focus(); else e.target.blur();
+});
+async function _rdAgencySubmit(){
+  const v=id=>(document.getElementById(id)?.value||'').trim();
+  const d={agencia:v('agx-agencia'),rep:v('agx-rep'),tel:v('agx-tel'),ciudad:v('agx-ciudad')};
+  for(const [k,id] of [['agencia','agx-agencia'],['rep','agx-rep'],['tel','agx-tel']]){
+    if(!d[k]||(k==='tel'&&d.tel.replace(/\D/g,'').length<7)){ const el=document.getElementById(id); el.classList.remove('rd-shake'); void el.offsetWidth; el.classList.add('rd-shake'); el.focus(); try{window._rdHapticNow&&window._rdHapticNow('HEAVY')}catch(e){} return; }
+  }
+  const btn=document.getElementById('agx-send'), lbl=btn.querySelector('span');
+  if(btn.classList.contains('busy')) return;
+  if(!_supa){ showToast('sin conexión'); return; }
+  btn.classList.add('busy');
+  const u=(typeof USER_STATE==='object'&&USER_STATE)||{}, g=typeof isGuest==='function'?isGuest():true;
+  const motivo=['registro de agencia',d.ciudad,_rdAgQty?_rdAgQty+' vehículos':''].filter(Boolean).join(' · ');
+  let err='';
+  try{ const r=await _supa.from('partner_leads').insert({user_id:(!g&&u.id)?u.id:null,marca_nombre:d.agencia.slice(0,120),representante:d.rep.slice(0,120),telefono:d.tel.slice(0,40),motivo}); if(r.error) err=r.error.message; }catch(e){ err='no se pudo enviar'; }
+  btn.classList.remove('busy');
+  if(err){ lbl.textContent='No se pudo enviar · reintentar'; return; }
+  lbl.textContent='Enviar solicitud';
+  document.getElementById('agx-ok-p').textContent='Un asesor de RueddaCarreras te escribirá por WhatsApp para dar de alta '+d.agencia+'.';
+  document.getElementById('rd-agx-form').hidden=true; document.getElementById('rd-agx-ok').hidden=false;
+  ['agx-agencia'].forEach(id=>{document.getElementById(id).value='';});
+}
 // [v40] la lupa entra como hoja nativa: primero arranca la animación, el pintado pesado va en el cuadro siguiente
 function openSearch(){const o=document.getElementById('search-overlay');clearTimeout(o._rdOut);o.classList.remove('closing');o.classList.add('open');requestAnimationFrame(()=>requestAnimationFrame(()=>{if(typeof _rdSearchPopular==='function')_rdSearchPopular();if(typeof _rdEnsureConcesionarios==='function')_rdEnsureConcesionarios();/* sin autofocus: el teclado sale solo al tocar el campo */_loadMarcaLogos().then(_renderSearchPopMarcas);}));}
 function closeSearch(){const o=document.getElementById('search-overlay');const fin=()=>{o.classList.remove('open','closing');document.getElementById('search-input').value='';_resetSearchBudget();resetSearchResults()};if(!o.classList.contains('open')||matchMedia('(prefers-reduced-motion:reduce)').matches||innerWidth>899){fin();return}document.activeElement&&document.activeElement.blur&&document.activeElement.blur();o.classList.add('closing');clearTimeout(o._rdOut);o._rdOut=setTimeout(fin,240)}
@@ -18781,8 +18943,9 @@ function updateVenderModal(){
     b.style.filter=''; b.style.pointerEvents='';
   });
 
+  const agc=document.getElementById('vender-agency-card'); if(agc) agc.style.display=role==='consesionario'?'none':'';
   if(role === 'guest'){
-    btnConsesion.querySelector('.vt-sub').textContent='solo por invitación del equipo Ruedda';
+    btnConsesion.style.display='none'; // [v40] como en la app: para eso está la tarjeta de registrar agencia
   } else if(role === 'particular'){
     btnConsesion.style.display='none'; // el particular no ve la opción de concesionario
   } else if(role === 'consesionario'){
