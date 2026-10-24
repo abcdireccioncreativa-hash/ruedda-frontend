@@ -39,6 +39,7 @@
   /* puerta */
   '#rd-track-door{position:relative;margin:0 16px 26px;border-radius:28px;padding:22px 22px 20px;background:#08080a;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 20px 40px rgba(0,0,0,.35);color:#f8f8f4;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent;transition:transform .18s '+EASE+'}'+
   '#rd-track-door:active{transform:scale(.985)}'+
+  '.rx-menu #rd-track-door{margin:0 0 4px}'+
   '#rd-track-door::before{content:"";position:absolute;inset:0;background:radial-gradient(90% 70% at 100% 0%,rgba(255,90,31,.16),rgba(255,90,31,0) 60%);pointer-events:none}'+
   '.rdt-h{display:flex;justify-content:space-between;align-items:center;position:relative}'+
   '.rdt-brand{display:flex;align-items:center;gap:9px}'+
@@ -131,13 +132,13 @@
   var door=null;
   function mountDoor(){
     if(door&&door.isConnected) return;
-    var ref=document.getElementById('rd-extra-door'); if(!ref) return;
+    var ref=document.querySelector('#view-ruedda-extra .rx-menu'); if(!ref) return;
     injectCss();
     door=document.createElement('div'); door.id='rd-track-door'; door.setAttribute('role','button'); door.tabIndex=0; door.setAttribute('aria-label','abrir ruedda track');
     door.innerHTML='<div class="rdt-h"><span class="rdt-brand"><img src="'+LOGO+'" alt="ruedda"><span>TRACK</span></span><span class="rdt-rec"><span class="rdt-dot"></span><span class="rdt-vn">VUELTA 1</span></span></div>'+
       '<div class="rdt-time">0:00.00</div><div class="rdt-t2">Cronómetro de vueltas, decibelímetro de escape y 0–100 con GPS.</div>'+
       '<span class="rdt-cta">ABRIR TRACK'+ARR+'</span>';
-    ref.insertAdjacentElement('afterend',door);
+    ref.insertBefore(door,ref.firstChild);
     door.addEventListener('click',function(){ haptic(); open(); });
     paintDoor();
   }
@@ -454,8 +455,8 @@
   function hook(){
     mountDoor();
     syncFromWidget(); wpost({k:'ready'});
-    // comunidad se pinta al entrar: si la puerta aún no existe, se monta cuando aparezca
-    if(!door){ var mo=new MutationObserver(function(){ if(document.getElementById('rd-extra-door')){ mountDoor(); if(door) mo.disconnect(); } }); mo.observe(document.body,{childList:true,subtree:true}); }
+    // Ruedda Extra: si el menú aún no existe, se monta cuando aparezca
+    if(!door){ var mo=new MutationObserver(function(){ if(document.querySelector('#view-ruedda-extra .rx-menu')){ mountDoor(); if(door) mo.disconnect(); } }); mo.observe(document.body,{childList:true,subtree:true}); }
     var bk=window.RDBack;
     window.RDBack=function(){ if(el){ var hs=el.querySelector('.rdt-hs.on'); if(hs) closeHist(); else close(); return true; } return typeof bk==='function'?bk.apply(this,arguments):false; };
   }
