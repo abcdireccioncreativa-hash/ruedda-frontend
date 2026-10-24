@@ -4439,7 +4439,7 @@ function _rdThemeStep(root, done){
           <div style="position:relative;flex-shrink:0;margin-top:1px">
             <input type="checkbox" id="auth-terms-check" style="position:absolute;opacity:0;width:0;height:0" onchange="updateAuthTerms(this)">
             <div id="auth-terms-ui" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--w18);background:transparent;display:flex;align-items:center;justify-content:center;transition:all .15s">
-              <svg id="auth-terms-icon" fill="none" viewBox="0 0 14 14" stroke="#fff" stroke-width="2.5" style="width:10px;height:10px;display:none"><path d="m2 7 3.5 3.5 6.5-7"/></svg>
+              <svg id="auth-terms-icon" fill="none" viewBox="0 0 14 14" stroke="#0b0b0b" stroke-width="2.5" style="width:10px;height:10px;display:none"><path d="m2 7 3.5 3.5 6.5-7"/></svg>
             </div>
           </div>
           <span style="font-size:13px;color:var(--w55);line-height:1.6">acepto los <span style="color:var(--rd-green);font-weight:600;text-decoration:underline;text-underline-offset:2px">términos y condiciones</span> y la <span style="color:var(--rd-green);font-weight:600;text-decoration:underline;text-underline-offset:2px">política de privacidad</span> de Ruedda.</span>
@@ -19396,8 +19396,8 @@ function updateAuthTerms(input){
   const icon=document.getElementById('auth-terms-icon');
   if(!ui||!icon) return;
   if(input.checked){
-    ui.style.background='var(--lime)';
-    ui.style.borderColor='var(--rd-green)';
+    ui.style.background='#e6f03b';
+    ui.style.borderColor='#e6f03b';
     icon.style.display='block';
   } else {
     ui.style.background='transparent';
