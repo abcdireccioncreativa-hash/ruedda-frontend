@@ -2722,7 +2722,7 @@ function rdRegion(r){
 <script src="/rd-map.js?v=3" defer></script>
 <script src="/desktop-popups.js?v=20261023a" data-mode="mobile" defer></script>
 <script src="/rd-ai.js?v=2" defer></script>
-<script src="/rd-servicios.js?v=4" defer></script>
+<script src="/rd-servicios.js?v=5" defer></script>
 <script src="/rd-usa.js?v=5" defer></script>
 <script src="/rd-post.js?v=5" defer></script>
 <script src="/rd-chatrx.js?v=1" defer></script>
@@ -3296,6 +3296,15 @@ html[data-theme="light"] .modal-overlay>div:first-child,html[data-theme="light"]
 #vender-modal .vender-type-btn{background:radial-gradient(120% 140% at 100% 0%,#242424 0%,#131313 50%,#0b0b0b 100%);border:1px solid rgba(255,255,255,.08)}
 html[data-theme="light"] #vender-modal .vender-type-btn{background:#fbfbf9;border-color:rgba(0,0,0,.07)}
 html:not([data-theme="light"]) #vender-modal .vender-type-icon{background:rgba(255,255,255,.07)}
+</style>
+<style id="rd-v42">
+/* [v42] pulido: "Marcas." sigue el tema y tiene tamaño de título, como "market" */
+html:not([data-theme="light"]) .marcas-hero{background:radial-gradient(120% 140% at 100% 0%,#1c1c1c 0%,#0e0e0e 55%,#000 100%);border-bottom:1px solid var(--w8)}
+html:not([data-theme="light"]) .marcas-hero h1{color:#f4f4f2}
+html:not([data-theme="light"]) .marcas-hero .world-ico{filter:brightness(0) invert(1);opacity:.1}
+html[data-theme="light"] .marcas-hero{background:#fff;border-bottom:1px solid rgba(0,0,0,.06)}
+.marcas-hero h1{font-size:30px;line-height:1.05;letter-spacing:-.9px}
+.marcas-hero .world-ico{left:auto;right:-30px;transform:translateY(-50%);width:260px}
 </style>
 <script id="rd-android-v41">
 /* [v41 Android] 1) botón atrás del sistema: cierra lo que esté encima antes de navegar (lo llama MainActivity).
