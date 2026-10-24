@@ -2327,7 +2327,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/rd-servicios.js?v=5" defer></script>
 <script src="/rd-usa.js?v=4" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
-<script src="/rd-mark.js?v=3" defer></script><script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=1" defer></script><script src="/rd-track.js?v=3" defer></script><!-- [2026-10-04] resaltador amarillo de "price drops" al hacer scroll (mismo módulo que móvil) --><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
+<script src="/rd-mark.js?v=3" defer></script><script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=2" defer></script><script src="/rd-track.js?v=3" defer></script><!-- [2026-10-04] resaltador amarillo de "price drops" al hacer scroll (mismo módulo que móvil) --><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 <style id="rd-ajustes-2026-10-12">
 /* [2026-10-12] "vender": amarillo featured literal (igual en ambos temas), un poquito más grande (interletrado original) */
 .btn-vender,html:not([data-theme="light"]) .btn-vender{background:#e6f03b;color:#0a0a0a}
@@ -2363,7 +2363,7 @@ html[data-theme="light"] #view-market-detail .bid-section .rd-acc .btn-watchlist
 .rd-nosub{margin:12px 0 0 auto;max-width:210px;font-size:7px;line-height:1.45;font-weight:400;color:var(--white);opacity:.8;text-align:right;letter-spacing:0}
 .rd-nosub b{font-weight:700}
 /* [2026-10-24] precio rebajado: actual primero, anterior tachado en Open Sauce Light más chico */
-.bid-amount .rd-was{font-weight:300;font-size:.6em;letter-spacing:-.3px;margin-left:9px;opacity:.5;text-decoration:line-through;text-decoration-thickness:1px;white-space:nowrap;vertical-align:.12em;display:inline-block}
+.bid-amount:has(.rd-was){white-space:nowrap}.bid-amount .rd-was{font-weight:300;font-size:.42em;letter-spacing:-.1px;margin-left:8px;color:var(--w35,rgba(255,255,255,.35));text-decoration:line-through;text-decoration-thickness:1px;white-space:nowrap;vertical-align:baseline;display:inline}
 </style>
 <style id="rd-ajustes-2026-10-21">
 /* [2026-10-21] pestaña "finalizadas" en subastas: 4 pestañas no caben en 375px → se desplazan */
