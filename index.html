@@ -3252,6 +3252,51 @@ html[data-theme="light"] #dealer-city-menu{background:#fff!important;border-colo
 @keyframes rdRise{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
 @keyframes rdFormIn{from{opacity:0;transform:translate3d(0,42px,0)}to{opacity:1;transform:none}}
 </style>
+<style id="rd-v41">
+/* [v41] estándar de la app iOS build 40 en toda la web: hojas flotantes (esquinas 40, agarradera 38×5,
+   fondo oscurecido .55 / .28 en claro), botones que se encogen al tocarlos, campos de 48 px con letra de 16
+   (iOS no hace zoom), etiquetas como las de la hoja de agencia y planes con el encabezado de la hoja nativa */
+.modal-overlay.open,.vender-modal.open{background:rgba(0,0,0,.55)!important}
+html[data-theme="light"] .modal-overlay.open,html[data-theme="light"] .vender-modal.open{background:rgba(0,0,0,.28)!important}
+.modal-overlay>div:first-child,.vender-modal>.vender-sheet{border-radius:40px!important;border:.5px solid var(--w14)!important;box-shadow:0 10px 30px rgba(0,0,0,.35)!important;box-sizing:border-box;overscroll-behavior:contain}
+html[data-theme="light"] .modal-overlay>div:first-child,html[data-theme="light"] .vender-modal>.vender-sheet{border-color:rgba(0,0,0,.1)!important;box-shadow:0 10px 30px rgba(0,0,0,.16)!important}
+.modal-overlay>div:first-child{animation-duration:.5s!important;animation-timing-function:cubic-bezier(.32,.72,0,1)!important}
+.modal-sheet{padding:9px 18px 18px}
+.modal-handle,.vender-handle{width:38px!important;height:5px!important;border-radius:3px!important;background:var(--w22)!important;margin:0 auto 20px!important}
+.modal-overlay>div>div:first-child[style*="padding:14px 0 0"]{padding-top:9px!important}
+.modal-overlay>div>div:first-child[style*="padding:14px 0 0"]>div[style*="width:36px"]{width:38px!important;height:5px!important;border-radius:3px!important;background:var(--w22)!important}
+@media (max-width:899px){
+  .modal-overlay>div:first-child,.vender-modal>.vender-sheet{width:calc(100% - 16px)!important;margin:0 8px 8px!important;max-height:calc(100dvh - 20px - env(safe-area-inset-top))!important;overflow-y:auto}
+  html:not(.rd-safari-tab) .modal-overlay>div:first-child[style*="padding:0 0 4"],html:not(.rd-safari-tab) .modal-overlay>.modal-sheet,html:not(.rd-safari-tab) .vender-modal>.vender-sheet{padding-bottom:calc(18px + env(safe-area-inset-bottom) / 2)!important}
+}
+
+/* planes: encabezado y aviso como "elige tu plan." de la hoja nativa */
+#pricing-sheet>div>div:has(>h2){padding:20px 24px 20px!important;text-align:left!important}
+#pricing-sheet h2{font-size:22px!important;font-weight:700!important;letter-spacing:-.4px!important;line-height:1.2!important;margin:0 0 6px!important}
+#pricing-subtitle{font-size:14px!important;line-height:1.4!important;max-width:none!important;margin:0!important}
+#pricing-plans{padding:0 18px!important;gap:10px!important}
+#pricing-sheet .rd-plan-note{margin:16px 24px 0!important}
+#pricing-sheet .rd-plan-note p{font-size:11px!important;line-height:15px!important;color:var(--muted)!important}
+
+/* botones: mismo toque que RDPressRow (se encoge a .98 y baja a .85) y la forma del botón de la hoja */
+.btn-bid,.btn-confirm-bid,.btn-submit,.rd-agx-send{border-radius:26px;min-height:52px;letter-spacing:-.2px;transition:transform .22s cubic-bezier(.32,.72,0,1),opacity .22s,background .15s}
+.btn-bid:active,.btn-confirm-bid:active,.btn-submit:active,.rd-agx-send:active,.plan-cta:active,.cf-cta:active,.config-save-btn:active{transform:scale(.98);opacity:.85;transition-duration:.08s}
+.vender-type-btn:active,.plan-card:active,.rd-ag-card:active,#rd-extra-door:active{transform:scale(.98);opacity:.85;transition:transform .08s,opacity .08s}
+
+/* formularios: campos de 48 px y letra de 16 (como la hoja de agencia) */
+.form-input,.form-select{min-height:48px;border-radius:14px;font-size:16px;font-weight:500}
+.form-textarea{border-radius:14px;font-size:16px}
+.form-input::placeholder,.form-textarea::placeholder{font-weight:400}
+.form-label{font-size:12.5px;font-weight:700;letter-spacing:-.1px;color:var(--white)}
+.plan-invite-wrap input{font-size:16px;border-radius:14px}
+.plan-invite-apply{border-radius:14px}
+.bid-input-row{border-radius:16px}
+
+/* filas de "¿cómo quieres vender?": mismo fondo que paintSolid de la hoja nativa */
+#vender-modal .vender-type-btn{background:radial-gradient(120% 140% at 100% 0%,#242424 0%,#131313 50%,#0b0b0b 100%);border:1px solid rgba(255,255,255,.08)}
+html[data-theme="light"] #vender-modal .vender-type-btn{background:#fbfbf9;border-color:rgba(0,0,0,.07)}
+html:not([data-theme="light"]) #vender-modal .vender-type-icon{background:rgba(255,255,255,.07)}
+</style>
 <script id="rd-android-v41">
 /* [v41 Android] 1) botón atrás del sistema: cierra lo que esté encima antes de navegar (lo llama MainActivity).
    2) modo rendimiento: en el WebView de Android cada backdrop-filter se recompone por cuadro y en gama media
@@ -7432,8 +7477,8 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     <div style="padding:0 16px;display:flex;flex-direction:column;gap:10px" id="pricing-plans"></div>
 
     <!-- DISCLAIMER -->
-    <div style="margin:20px 20px 0;text-align:center">
-      <p style="font-size:11px;color:var(--w25);line-height:1.6">recordatorio: recuerda revisar toda la información del vehículo. si Ruedda detecta discrepancias en la publicación puede ser cancelada.</p>
+    <div class="rd-plan-note" style="margin:20px 20px 0;text-align:center">
+      <p style="font-size:11px;color:var(--w25);line-height:1.6">Si Ruedda detecta discrepancias en la publicación, puede ser cancelada.</p>
     </div>
   </div>
 </div>
