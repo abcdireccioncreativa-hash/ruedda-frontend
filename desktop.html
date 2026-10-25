@@ -2972,7 +2972,7 @@ html[data-theme="light"] .marcas-hero{background:#fff;border-bottom:1px solid rg
       <div id="auth-remember-row" style="display:none;align-items:center;justify-content:space-between;margin-top:16px">
         <div id="auth-remember-wrap" style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="_toggleRemember()">
           <div id="auth-remember-ui" style="width:20px;height:20px;border-radius:6px;border:1.5px solid var(--w18);background:transparent;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .18s">
-            <svg id="auth-remember-icon" fill="none" viewBox="0 0 14 14" stroke="#fff" stroke-width="2.5" style="width:10px;height:10px;display:none"><path d="m2 7 3.5 3.5 6.5-7"/></svg>
+            <svg id="auth-remember-icon" fill="none" viewBox="0 0 14 14" stroke="#0b0b0b" stroke-width="2.5" style="width:10px;height:10px;display:none"><path d="m2 7 3.5 3.5 6.5-7"/></svg>
           </div>
           <span style="font-size:11px;color:var(--w35);font-weight:500;user-select:none">recordar sesión</span>
         </div>
@@ -17092,7 +17092,7 @@ function _toggleRemember(){
   _rememberChecked=!_rememberChecked;
   const ui=document.getElementById('auth-remember-ui');
   const icon=document.getElementById('auth-remember-icon');
-  if(ui){ ui.style.background=_rememberChecked?'var(--lime)':'transparent'; ui.style.borderColor=_rememberChecked?'#08441A':'var(--w18)'; }
+  if(ui){ ui.style.background=_rememberChecked?'#e6f03b':'transparent'; ui.style.borderColor=_rememberChecked?'#e6f03b':'var(--w18)'; }
   if(icon){ icon.style.display=_rememberChecked?'block':'none'; }
 }
 
