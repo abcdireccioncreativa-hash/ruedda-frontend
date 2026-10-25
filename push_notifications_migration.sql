@@ -52,7 +52,7 @@ create policy "usuarios manejan sus propias suscripciones push"
 create extension if not exists pg_net;
 
 -- 3. Función que llama a /api/send-push cada vez que se inserta una notificación.
--- IMPORTANTE: reemplaza 'e15bbb581a70532303fbfcf6c94e448258eccf815360623c71b366a61e9286df' por un secreto random tuyo (el
+-- IMPORTANTE: reemplaza 'PEGA_AQUI_EL_PUSH_WEBHOOK_SECRET' por un secreto random tuyo (el
 -- mismo que vas a poner como PUSH_WEBHOOK_SECRET en las env vars de Vercel) —
 -- así el endpoint sabe que la llamada viene de verdad de este trigger y no
 -- de cualquiera que le pegue a la URL. Genera uno con: openssl rand -hex 32
@@ -64,7 +64,7 @@ as $$
 begin
   perform net.http_post(
     url := 'https://www.ruedda.app/api/send-push',
-    headers := jsonb_build_object('Content-Type','application/json','x-push-secret','e15bbb581a70532303fbfcf6c94e448258eccf815360623c71b366a61e9286df'),
+    headers := jsonb_build_object('Content-Type','application/json','x-push-secret','PEGA_AQUI_EL_PUSH_WEBHOOK_SECRET'),
     body := jsonb_build_object(
       'user_id', new.user_id,
       'titulo', new.titulo,
