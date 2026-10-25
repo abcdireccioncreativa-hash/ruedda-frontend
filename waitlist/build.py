@@ -9,21 +9,21 @@ ANON = ('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im
 PAISES = {
     'colombia': dict(
         lang='es-CO', title='Ruedda Colombia', pais='colombia', place='colombia',
-        desc='El mercado automotriz de Colombia. Por invitación.',
-        h1='el mercado automotriz<br>de colombia.', h2='por invitación.',
+        desc='El mercado automotriz de Colombia. Acceso anticipado.',
+        h1='el mercado automotriz<br>de colombia.', h2='acceso anticipado.',
         ph='tu correo', cta='solicitar acceso', busy='enviando',
         ok='estás dentro.', okn='n.º', oks='te escribimos primero.',
         err='revisa tu correo e inténtalo de nuevo.', net='sin conexión. inténtalo de nuevo.',
-        foot='venezuela · colombia · canadá',
+        foot='no todos entran.',
     ),
     'canada': dict(
         lang='en-CA', title='Ruedda Canada', pais='canada', place='canada',
-        desc="Canada's car market. By invitation.",
-        h1="canada's<br>car market.", h2='by invitation.',
+        desc="Canada's car market. Early access.",
+        h1="canada's<br>car market.", h2='early access.',
         ph='your email', cta='request access', busy='sending',
         ok="you're in.", okn='no.', oks="we'll write to you first.",
         err='check your email and try again.', net='no connection. try again.',
-        foot='venezuela · colombia · canada',
+        foot='not everyone gets in.',
     ),
 }
 
