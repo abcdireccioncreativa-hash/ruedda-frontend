@@ -10563,8 +10563,28 @@ function _rdTrDots(){
     const upd=()=>{ q=0; const w=sc.clientWidth+10, k=Math.round(sc.scrollLeft/w); d.querySelectorAll('i').forEach((e,i)=>e.classList.toggle('on',i===k)); };
     sc.addEventListener('scroll',()=>{ if(!q) q=requestAnimationFrame(upd); },{passive:true});
     sc._rdDotsUpd=upd;
+    _rdTrAuto(sc);
   }
   sc._rdDotsUpd();
+}
+// autoavance cada 3 s. Un solo temporizador; no hace nada si el carrusel no se ve, la app está
+// en segundo plano o hay una hoja abierta. En cuanto la persona desliza, se apaga para siempre.
+function _rdTrAuto(sc){
+  try{ if(window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; }catch(e){}
+  let off=false, vis=false, t=0;
+  const stop=()=>{ off=true; clearTimeout(t); };
+  ['touchmove','wheel','mousedown'].forEach(k=>sc.addEventListener(k,stop,{passive:true,once:true}));
+  if('IntersectionObserver' in window) new IntersectionObserver(es=>{ vis=es[es.length-1].intersectionRatio>=.6; },{threshold:[0,.6]}).observe(sc);
+  else vis=true;
+  const tick=()=>{
+    if(off) return;
+    t=setTimeout(tick,3000);
+    if(!vis||document.hidden||document.documentElement.classList.contains('rd-lk')) return;
+    const n=sc.querySelectorAll('.trending-panel').length; if(n<2) return;
+    const w=sc.clientWidth+10, k=Math.round(sc.scrollLeft/w);
+    sc.scrollTo({left:((k+1)%n)*w,behavior:'smooth'});
+  };
+  t=setTimeout(tick,3000);
 }
 let _lastTrendingIds=null;
 function renderTrendingHoy(){
