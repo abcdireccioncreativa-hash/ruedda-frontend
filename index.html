@@ -15976,8 +15976,9 @@ async function openEditListingModal(id){
   modal.onclick=e=>{if(e.target===modal)_rdEdClose();};
   modal.innerHTML=`<div style="background:var(--surface-hi)"><div class="ed-hd"><div class="mp-grab"></div><div class="ed-row"><b>editar publicación</b><button type="button" class="rd-gb mp-x" onclick="_rdEdClose()" aria-label="cerrar">${_MP_X}</button></div><div id="ed-segw"></div></div><div id="ed-main"><div class="ed-sk">${'<i class="rdv-skel"></i>'.repeat(8)}</div></div></div>`;
   const entered=new Promise(r=>setTimeout(r,520));
-  if(!late) _rdEdFill(modal,l,_idStr);
+  // se rellena ya dentro del documento (los getElementById del formulario lo necesitan); mismo frame, no se ve el cambio
   document.body.appendChild(modal); _rdScrollGuard(modal,'.ed-body'); _rdLkWatch(); _rdEdDrag(modal);
+  if(!late) _rdEdFill(modal,l,_idStr);
   requestAnimationFrame(()=>modal.classList.add('in'));
   if(late){
     const r=await fetchRow;
