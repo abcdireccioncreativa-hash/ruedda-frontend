@@ -3435,7 +3435,7 @@ html.rd-android-lite .search-overlay.open{animation-name:rdRise}
 #mis-pub-sheet{position:fixed;inset:0;z-index:9990;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0);transition:background .5s cubic-bezier(.32,.72,0,1);font-family:var(--font)}
 #mis-pub-sheet.in{background:rgba(0,0,0,.55)}
 html[data-theme="light"] #mis-pub-sheet.in{background:rgba(0,0,0,.28)}
-#mis-pub-inner{width:calc(100% - 16px);max-width:540px;margin:0 8px 8px;max-height:calc(100dvh - 20px - env(safe-area-inset-top));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:9px 18px 18px;background:var(--surface-hi);border:.5px solid var(--w10);border-radius:40px;box-shadow:0 10px 40px rgba(0,0,0,.35);transform:translate3d(0,calc(100% + 40px),0);transition:transform .55s cubic-bezier(.32,.72,0,1);will-change:transform}
+#mis-pub-inner{width:calc(100% - 16px);max-width:540px;margin:0 8px 8px;max-height:calc(100dvh - 20px - env(safe-area-inset-top));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:9px 18px 18px;background:var(--surface-hi);border:.5px solid var(--w10);border-radius:40px;box-shadow:0 10px 40px rgba(0,0,0,.35);transform:translate3d(0,calc(100% + 40px),0);transition:transform .5s cubic-bezier(.32,.72,0,1);will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}
 html[data-theme="light"] #mis-pub-inner{border-color:rgba(0,0,0,.1);box-shadow:0 10px 30px rgba(0,0,0,.16)}
 #mis-pub-sheet.in #mis-pub-inner{transform:none}
 #mis-pub-sheet.out #mis-pub-inner{transition-duration:.3s;transition-timing-function:cubic-bezier(.4,0,1,1)}
@@ -3458,14 +3458,14 @@ html[data-theme="light"] .mp-row::after{background-image:url("data:image/svg+xml
 .mp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mp-sec{grid-column:1/-1;display:flex;align-items:baseline;gap:7px;padding:18px 6px 4px;font-size:15px;font-weight:700;letter-spacing:-.3px}
 .mp-sec span{font-size:13px;font-weight:500;color:var(--muted)}
-.mp-card{display:flex;flex-direction:column;min-width:0;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:rdRise .55s cubic-bezier(.32,.72,0,1) backwards;animation-delay:var(--d,0s);transition:transform .2s cubic-bezier(.32,.72,0,1),opacity .2s}
+.mp-card{display:flex;flex-direction:column;min-width:0;contain:layout paint;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:rdRise .55s cubic-bezier(.32,.72,0,1) backwards;animation-delay:var(--d,0s);transition:transform .2s cubic-bezier(.32,.72,0,1),opacity .2s}
 .mp-card:active{transform:scale(.98);opacity:.9}
 .mp-ph{position:relative;isolation:isolate;aspect-ratio:4/3;overflow:hidden;background:var(--card2)}
 .mp-ph>img:not(.rd-lq){position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s ease}
 .mp-ph>svg{position:absolute;left:50%;top:50%;width:40px;height:30px;margin:-15px 0 0 -20px}
-.mp-st{position:absolute;top:8px;left:8px;z-index:2;display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px 0 8px;border-radius:11px;background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);color:#fff;font-size:11px;font-weight:600}
+.mp-st{position:absolute;top:8px;left:8px;z-index:2;display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px 0 8px;border-radius:11px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:600}
 .mp-st i{width:6px;height:6px;border-radius:50%;background:var(--c)}
-.mp-del{position:absolute;top:8px;right:8px;z-index:2;width:28px;height:28px;border-radius:14px;padding:0;background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff}
+.mp-del{position:absolute;top:8px;right:8px;z-index:2;width:28px;height:28px;border-radius:14px;padding:0;background:rgba(0,0,0,.55);color:#fff}
 .mp-del svg{width:13px;height:13px}
 .mp-bd{flex:1;display:flex;flex-direction:column;padding:11px 11px 11px}
 .mp-nm{font-size:14px;font-weight:700;line-height:1.25;letter-spacing:-.2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -3489,16 +3489,40 @@ html[data-theme="light"] .mp-row::after{background-image:url("data:image/svg+xml
 html[data-theme="light"] #edit-listing-modal.in{background:rgba(0,0,0,.28)}
 #edit-listing-modal>div{width:calc(100% - 16px)!important;max-width:540px!important;height:min(calc(100dvh - 20px - env(safe-area-inset-top)),760px)!important;max-height:none!important;margin:0 8px 8px;padding:0!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;border-radius:40px!important;border:.5px solid var(--w10);box-shadow:0 10px 40px rgba(0,0,0,.35);overflow:hidden;box-sizing:border-box;animation:rdEdUp .55s cubic-bezier(.32,.72,0,1) backwards!important}
 html[data-theme="light"] #edit-listing-modal>div{border-color:rgba(0,0,0,.1);box-shadow:0 10px 30px rgba(0,0,0,.16)}
-@keyframes rdEdUp{from{transform:translate3d(0,calc(100% + 40px),0)}to{transform:none}}
+@keyframes rdEdUp{from{transform:translate3d(0,calc(100% + 40px),0)}to{transform:translate3d(0,0,0)}}
 @keyframes rdEdFade{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:none}}
 .ed-hd{flex-shrink:0;padding:9px 24px 14px}
 .ed-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .ed-row b{font-size:22px;font-weight:700;letter-spacing:-.4px}
-.ed-body{animation:rdEdFade .4s cubic-bezier(.32,.72,0,1) backwards}
+#ed-main{flex:1;min-height:0;display:flex;flex-direction:column}
+/* el contenido solo se funde si llegó después de que la hoja terminó de subir; si ya estaba, sube completo con ella */
+.ed-late .rd-seg,.ed-late #ed-main>*{animation:rdEdFade .38s cubic-bezier(.32,.72,0,1) backwards}
+.ed-late #ed-main>.ed-ft{animation-delay:.05s}
+.ed-sw{animation:rdEdFade .3s cubic-bezier(.32,.72,0,1) backwards}
+/* precio con − y + */
+.ed-pr{display:flex;align-items:center;gap:8px}
+.ed-pr .form-input{flex:1;min-width:0;text-align:center;font-size:19px;font-weight:700;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+.ed-st{flex:none;width:50px;height:50px;border-radius:25px;padding:0;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.ed-st svg{width:18px;height:18px}
+.ed-hint{display:flex;gap:8px;align-items:flex-start;margin-top:9px;font-size:12.5px;line-height:1.45;color:var(--muted);transition:color .25s}
+.ed-hint svg{flex:none;width:15px;height:15px;margin-top:1px}
+.ed-hint.dn{color:var(--white)}
+.ed-hint.dn b{color:#30d158;font-weight:700}
+/* fotos: se reordenan arrastrando (mantén presionada y mueve) */
+.ed-lbl{display:flex;align-items:baseline;justify-content:space-between;font-size:15px;font-weight:700;letter-spacing:-.3px;margin:2px 0 10px}
+.ed-lbl span{font-size:12.5px;font-weight:500;color:var(--muted)}
+#edit-current-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}
+.ed-ph{position:relative;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:var(--card2);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;transition:transform .32s cubic-bezier(.32,.72,0,1),box-shadow .25s,opacity .25s;cursor:grab}
+.ed-ph img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none}
+.ed-ph.lift{z-index:5;transition:box-shadow .25s;box-shadow:0 14px 34px rgba(0,0,0,.45);cursor:grabbing}
+.ed-ph:first-child::after{content:"portada";position:absolute;left:6px;bottom:6px;height:20px;padding:0 8px;border-radius:10px;background:rgba(0,0,0,.55);color:#fff;font:600 10.5px/20px var(--font)}
+.ed-rm{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:13px;border:0;padding:0;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center;cursor:pointer}
+.ed-rm svg{width:11px;height:11px}
+.ed-add{margin-bottom:4px}
 .ed-sk{flex:1;display:flex;flex-direction:column;gap:12px;padding:6px 24px}
 .ed-sk i{display:block;height:48px;border-radius:14px}
 .ed-sk i:nth-child(odd){height:12px;width:30%;border-radius:6px;margin-top:6px}
-.rd-seg{display:flex;position:relative;margin:16px 0 0;padding:3px;border-radius:13px;background:var(--w7);animation:rdEdFade .4s cubic-bezier(.32,.72,0,1) backwards}
+.rd-seg{display:flex;position:relative;margin:16px 0 0;padding:3px;border-radius:13px;background:var(--w7)}
 .rd-seg .edit-tab-btn{flex:1;position:relative;z-index:1;height:32px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:13px;font-weight:600;color:var(--w50);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .25s}
 .rd-seg .edit-tab-btn.active{color:var(--white)}
 .rd-seg i{position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:calc((100% - 6px)/3);border-radius:10px;background:var(--card2);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .4s cubic-bezier(.32,.72,0,1)}
@@ -3515,9 +3539,9 @@ html[data-theme="light"] .rd-seg i{background:#fff;box-shadow:0 1px 3px rgba(0,0
 #confirm-delete-overlay button+button{background:rgba(255,69,58,.14)!important;border:0!important;color:#ff6b61!important}
 @keyframes rdFadeBg{from{background:rgba(0,0,0,0)}}
 /* con la hoja abierta la página de atrás no se mueve: el scroll vive solo dentro de la hoja */
-html:has(#mis-pub-sheet),html:has(#mis-pub-sheet) body,html:has(#edit-listing-modal),html:has(#edit-listing-modal) body{overflow:hidden!important;overscroll-behavior:none}
+html.rd-lk,html.rd-lk body{overflow:hidden!important;overscroll-behavior:none}
 #edit-listing-modal .ed-body{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-@media (prefers-reduced-motion:reduce){#mis-pub-inner,.mp-card,#edit-listing-modal>div,#confirm-delete-overlay>div,.rd-seg i,.ed-body{transition-duration:.01s!important;animation:none!important}}
+@media (prefers-reduced-motion:reduce){#mis-pub-inner,.mp-card,#edit-listing-modal>div,#confirm-delete-overlay>div,.rd-seg i,.ed-late #ed-main>*,.ed-sw{transition-duration:.01s!important;animation:none!important}}
 </style>
 </head>
 <body>
@@ -15774,9 +15798,19 @@ function openMisPublicaciones(){
       <div id="mis-pub-grid" class="mp-grid">${'<div class="mp-card mp-sk"><div class="mp-ph rdv-skel"></div><div class="mp-bd"><b class="rdv-skel"></b><b class="rdv-skel"></b></div></div>'.repeat(4)}</div>
     </div>`;
   document.body.appendChild(sheet);
-  _mpDrag(sheet); _rdScrollGuard(sheet,'#mis-pub-inner');
-  requestAnimationFrame(()=>requestAnimationFrame(()=>sheet.classList.add('in')));
+  _mpDrag(sheet); _rdScrollGuard(sheet,'#mis-pub-inner'); _rdLkWatch();
+  // la lista se pinta cuando la hoja terminó de subir: así la animación corre sola, sin trabajo encima
+  const card=sheet.querySelector('#mis-pub-inner');
+  window._mpEnter=new Promise(r=>{ let ok=0; const f=()=>{ if(!ok){ ok=1; r(); } }; card.addEventListener('transitionend',f,{once:true}); setTimeout(f,560); });
+  card.getBoundingClientRect();
+  requestAnimationFrame(()=>sheet.classList.add('in'));
   _loadMyListings();
+}
+// con una hoja abierta la página de atrás queda quieta; se mira solo a los hijos directos del body
+function _rdLkWatch(){
+  const sync=()=>{ const on=!!document.querySelector('body>#mis-pub-sheet:not(.out),body>#edit-listing-modal'); document.documentElement.classList.toggle('rd-lk',on); if(!on&&window._rdLkObs){ window._rdLkObs.disconnect(); window._rdLkObs=null; } };
+  if(!window._rdLkObs){ window._rdLkObs=new MutationObserver(sync); window._rdLkObs.observe(document.body,{childList:true}); }
+  sync();
 }
 // deslizar hacia abajo desde arriba de la hoja la cierra (sigue el dedo, suelta con resorte)
 function _rdScrollGuard(ov,sel){
@@ -15818,11 +15852,13 @@ async function _loadMyListings(){
       // activa, revision, aprobada, rechazada/negada (finalizada se deriva client-side
       // de activa+end_time vencido, y vendido es un flag aparte). Cualquier otro
       // estado = ya no listado → no entra. Mismo espíritu que renderVitrinavGrid.
-      _supa.from('listings').select('id,titulo,marca,modelo,year,precio_usd,estado,vendido,vendido_at,listing_photos(url,orden)').eq('user_id',USER_STATE.id).in('estado',['activa','revision','aprobada','rechazada','negada']).order('created_at',{ascending:false}),
+      _supa.from('listings').select('*,listing_photos(id,url,orden)').eq('user_id',USER_STATE.id).in('estado',['activa','revision','aprobada','rechazada','negada']).order('created_at',{ascending:false}),
       _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo,end_time,republish_count,auction_photos(url,orden)').eq('user_id',USER_STATE.id).in('estado',['activa','revision','aprobada','rechazada','negada']).order('created_at',{ascending:false})
     ]);
     if(resListings.error) console.error('[ruedda] _loadMyListings listings:',resListings.error.message);
     if(resAuctions.error) console.error('[ruedda] _loadMyListings auctions:',resAuctions.error.message);
+    // fila completa en memoria: editar abre al instante, ya con todo adentro
+    window._mpRows=new Map((resListings.data||[]).map(l=>[String(l.id),l]));
     const listings=(resListings.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.vendido?'vendido':l.estado,vendido:!!l.vendido,daysLeft:0,fotos:0,type:'market',desc:'',photoUrl:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null}));
     // [V83] subasta con end_time vencido y estado activa → estado finalizada (permanente para el dueño)
     const auctions=(resAuctions.data||[]).map(l=>{
@@ -15831,6 +15867,7 @@ async function _loadMyListings(){
       return {id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status,republishCount:l.republish_count||0,daysLeft:0,fotos:0,type:'subasta',desc:'',photoUrl:(l.auction_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null};
     });
     const all=[...listings,...auctions];
+    if(window._mpEnter) await window._mpEnter;
     if(!all.length){ grid.innerHTML=_mpEmpty(); const sb=document.getElementById('mis-pub-sub'); if(sb) sb.textContent='tus carros en Ruedda'; return; }
     MOCK_MY_LISTINGS.splice(0,MOCK_MY_LISTINGS.length,...all);
     _renderMisPubGrid();
@@ -15903,6 +15940,7 @@ function closeMisPub(){
   const s=document.getElementById('mis-pub-sheet');
   if(!s||s.classList.contains('out'))return;
   s.classList.add('out'); s.classList.remove('in');
+  if(window._rdLkObs) _rdLkWatch();
   setTimeout(()=>s.remove(),320);
 }
 // cierre suave de la hoja de editar (mismo gesto que el resto de las hojas)
@@ -15912,6 +15950,7 @@ function _rdEdClose(){
   const c=m.querySelector('div');
   if(c){ c.style.transition='transform .3s cubic-bezier(.4,0,1,1)'; c.style.transform='translate3d(0,calc(100% + 40px),0)'; }
   setTimeout(()=>m.remove(),300);
+  return new Promise(r=>setTimeout(r,300));
 }
 
 // [REDISEÑO] modal de editar publicación — antes leía de un array local recortado
@@ -15920,19 +15959,47 @@ function _rdEdClose(){
 // valor verdadero. Mismas opciones que el formulario de publicar — nada inventado.
 async function openEditListingModal(id){
   const _idStr=String(id);
+  if(!_supa){ showToast('sin conexión a Supabase'); return; }
   let modal=document.getElementById('edit-listing-modal');
   if(modal) modal.remove();
+  // si la fila ya está en memoria (viene de mis publicaciones) la hoja sube completa; si no,
+  // espera un instante corto antes de mostrar el esqueleto — casi siempre llega antes
+  let l=window._mpRows&&window._mpRows.get(_idStr), late=false;
+  const fetchRow=l?null:Promise.all([
+    _supa.from('listings').select('*').eq('id',_idStr).maybeSingle(),
+    _supa.from('listing_photos').select('id,url,orden').eq('listing_id',_idStr).order('orden',{ascending:true})
+  ]).then(([a,b])=>a.data?Object.assign(a.data,{listing_photos:b.data||[]}):null).catch(()=>null);
+  if(fetchRow){ const r=await Promise.race([fetchRow,new Promise(z=>setTimeout(()=>z(0),260))]); if(r) l=r; else if(r===null){ showToast('publicación no encontrada'); return; } else late=true; }
   modal=document.createElement('div');
   modal.id='edit-listing-modal';
   modal.style.cssText='position:fixed;inset:0;z-index:9995;display:flex;align-items:flex-end;justify-content:center;font-family:var(--font)';
   modal.onclick=e=>{if(e.target===modal)_rdEdClose();};
+  modal.innerHTML=`<div style="background:var(--surface-hi)"><div class="ed-hd"><div class="mp-grab"></div><div class="ed-row"><b>editar publicación</b><button type="button" class="rd-gb mp-x" onclick="_rdEdClose()" aria-label="cerrar">${_MP_X}</button></div><div id="ed-segw"></div></div><div id="ed-main"><div class="ed-sk">${'<i class="rdv-skel"></i>'.repeat(8)}</div></div></div>`;
+  const entered=new Promise(r=>setTimeout(r,520));
+  if(!late) _rdEdFill(modal,l,_idStr);
+  document.body.appendChild(modal); _rdScrollGuard(modal,'.ed-body'); _rdLkWatch(); _rdEdDrag(modal);
   requestAnimationFrame(()=>modal.classList.add('in'));
-  modal.innerHTML=`<div style="background:var(--surface-hi)"><div class="ed-hd"><div class="mp-grab"></div><div class="ed-row"><b>editar publicación</b><button type="button" class="rd-gb mp-x" onclick="_rdEdClose()" aria-label="cerrar">${_MP_X}</button></div></div><div class="ed-sk">${'<i class="rdv-skel"></i>'.repeat(8)}</div></div>`;
-  document.body.appendChild(modal); _rdScrollGuard(modal,'.ed-body');
-  if(!_supa){ modal.remove(); showToast('sin conexión a Supabase'); return; }
-  const{data:l,error}=await _supa.from('listings').select('*').eq('id',_idStr).maybeSingle();
-  if(error||!l){ modal.remove(); showToast('publicación no encontrada'); return; }
-
+  if(late){
+    const r=await fetchRow;
+    if(!document.body.contains(modal)) return;
+    if(!r){ _rdEdClose(); showToast('publicación no encontrada'); return; }
+    await entered;
+    if(!document.body.contains(modal)) return;
+    modal.firstElementChild.classList.add('ed-late');
+    _rdEdFill(modal,r,_idStr);
+  }
+}
+// arrastrar la cabecera hacia abajo cierra la hoja de editar
+function _rdEdDrag(modal){
+  const card=modal.firstElementChild, hd=card.querySelector('.ed-hd'); let y0=null,dy=0,t0=0;
+  hd.addEventListener('touchstart',e=>{ if(e.target.closest('button,.edit-tab-btn')){y0=null;return;} y0=e.touches[0].clientY; dy=0; t0=performance.now(); card.style.animation='none'; },{passive:true});
+  hd.addEventListener('touchmove',e=>{ if(y0===null) return; dy=Math.max(0,e.touches[0].clientY-y0); if(e.cancelable) e.preventDefault(); card.style.transition='none'; card.style.transform=`translate3d(0,${dy}px,0)`; },{passive:false});
+  hd.addEventListener('touchend',()=>{ if(y0===null) return; y0=null; const v=dy/Math.max(1,performance.now()-t0);
+    if(dy>110||v>.6){ card.style.transition=''; _rdEdClose(); return; }
+    card.style.transition='transform .4s cubic-bezier(.32,.72,0,1)'; card.style.transform='translate3d(0,0,0)'; });
+}
+function _rdEdFill(modal,l,id){
+  const _idStr=String(id);
   const marcasOpts=['Alfa Romeo','Audi','BAIC','Bentley','Bera','BMW','BYD','Cadillac','Changan','Chery','Chevrolet','Chrysler','Citroën','Dodge','Ferrari','Fiat','Ford','GAC','Geely','GMC','Great Wall','Honda','Hummer','Hyundai','Infiniti','JAC','Jaguar','Jeep','Kia','Lamborghini','Land Rover','Lexus','Lincoln','Maserati','Mazda','Mercedes-Benz','MINI','Mitsubishi','Nissan','Peugeot','Pontiac','Porsche','Ram','Renault','Rolls-Royce','SAIC','Saturn','Seat','Skoda','Smart','SsangYong','Subaru','Suzuki','Tesla','Toyota','Volkswagen','Volvo','Zotye','Otro'];
   const transOpts=['automática','automática con levas','auto CVT','DSG','DCT','sincrónica','secuencial'];
   const combOpts=['gasolina','diesel','eléctrico','híbrido'];
@@ -15950,18 +16017,12 @@ async function openEditListingModal(id){
   let yearOpts='';
   for(let y=2026;y>=1950;y--) yearOpts+=`<option value="${y}" ${Number(l.year)===y?'selected':''}>${y}</option>`;
 
-  const inner=modal.querySelector('div');
-  inner.style.padding='0';
-  inner.innerHTML=`
-    <div class="ed-hd">
-      <div class="mp-grab"></div>
-      <div class="ed-row"><b>editar publicación</b><button type="button" class="rd-gb mp-x" onclick="_rdEdClose()" aria-label="cerrar">${_MP_X}</button></div>
-      <div class="rd-seg"><i></i>
+  modal.querySelector('#ed-segw').innerHTML=`<div class="rd-seg"><i></i>
         <div class="edit-tab-btn active" data-t="basico">básico</div>
         <div class="edit-tab-btn" data-t="detalles">detalles</div>
         <div class="edit-tab-btn" data-t="fotos">fotos</div>
-      </div>
-    </div>
+      </div>`;
+  modal.querySelector('#ed-main').innerHTML=`
     <div class="ed-body" style="overflow-y:auto;padding:4px 24px 18px;flex:1;min-height:0">
 
       <div id="edit-panel-basico" class="form-group" style="display:flex;flex-direction:column;gap:14px">
@@ -15972,7 +16033,14 @@ async function openEditListingModal(id){
           <div class="form-group"><label class="form-label">Año.</label><select class="form-select" id="edit-year">${yearOpts}</select></div>
         </div>
         <div class="form-group"><label class="form-label">Modelo.</label><input class="form-input" type="text" id="edit-modelo" value="${(l.modelo||'').replace(/"/g,'&quot;')}" placeholder="ej. Corolla XLI"></div>
-        <div class="form-group"><label class="form-label">Precio (USD).</label><input class="form-input" type="text" inputmode="numeric" id="edit-precio" value="${_milesFmt(l.precio_usd||0)}" placeholder="precio de venta" oninput="_milesInputHandler(this)"></div>
+        <div class="form-group"><label class="form-label">Precio (USD).</label>
+          <div class="ed-pr">
+            <button type="button" class="rd-gb ed-st" data-s="-1" aria-label="bajar 100"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <input class="form-input" type="text" inputmode="numeric" id="edit-precio" value="${_milesFmt(l.precio_usd||0)}" placeholder="precio de venta" oninput="_milesInputHandler(this);_edPrHint()">
+            <button type="button" class="rd-gb ed-st" data-s="1" aria-label="subir 100"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <div class="ed-hint" id="ed-pr-hint"></div>
+        </div>
         <div class="form-group">
           <label class="form-label">¿Cómo clasificas tu carro?</label>
           <select class="form-select" id="edit-clasificacion"><option value="">seleccionar</option>${clasifOpts.map(([v,lb])=>`<option value="${v}" ${sel(l.clasificacion,v)}>${lb}</option>`).join('')}</select>
@@ -16017,15 +16085,12 @@ async function openEditListingModal(id){
         <div class="form-group"><label class="form-label">WhatsApp de contacto.</label><input class="form-input" type="tel" id="edit-whatsapp" value="${(l.whatsapp||'').replace(/"/g,'&quot;')}" placeholder="+58 412 000 0000"></div>
       </div>
 
-      <div id="edit-panel-fotos" style="display:none;flex-direction:column;gap:8px">
-        <div style="font-size:13px;font-weight:700;color:var(--w40);margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px">fotos actuales</div>
-        <div id="edit-current-photos" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px">
-          <div style="font-size:12px;color:var(--w25);padding:8px 0">cargando fotos...</div>
-        </div>
-        <div style="font-size:13px;font-weight:700;color:var(--w40);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">agregar fotos</div>
-        <label style="display:flex;align-items:center;gap:10px;background:var(--w4);border:1px solid var(--w14);border-radius:12px;padding:14px;cursor:pointer" onmouseover="this.style.borderColor='rgba(var(--rd-green-rgb),.35)'" onmouseout="this.style.borderColor='var(--w14)'">
-          <svg fill="none" viewBox="0 0 24 24" stroke="var(--w40)" stroke-width="1.5" style="width:22px;height:22px;flex-shrink:0"><path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
-          <span id="edit-photos-label" style="font-size:13px;color:var(--w40)">agregar fotos del vehículo</span>
+      <div id="edit-panel-fotos" style="display:none;flex-direction:column">
+        <div class="ed-lbl">tus fotos<span>mantén presionada y arrastra para ordenar</span></div>
+        <div id="edit-current-photos"></div>
+        <label class="mp-row ed-add">
+          <span class="mp-ic"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg></span>
+          <span><b>agregar fotos</b><small id="edit-photos-label">se suben al guardar</small></span>
           <input type="file" accept="image/*" multiple style="display:none" onchange="handleEditPhotos(this,'${id}')">
         </label>
       </div>
@@ -16034,7 +16099,6 @@ async function openEditListingModal(id){
     <div class="ed-ft">
       <button type="button" id="save-listing-btn" class="rd-wb" onclick="saveListingEdit('${id}')">guardar cambios</button>
     </div>`;
-  inner.style.cssText='background:var(--surface-hi);width:100%;display:flex;flex-direction:column';
 
   // tabs
   modal.querySelectorAll('.edit-tab-btn').forEach(btn=>{
@@ -16047,26 +16111,120 @@ async function openEditListingModal(id){
       if(seg) seg.style.transform=`translateX(${ix*100}%)`;
       ['basico','detalles','fotos'].forEach(t=>{
         const p=document.getElementById('edit-panel-'+t);
-        if(p) p.style.display = t===btn.dataset.t ? 'flex' : 'none';
+        if(!p) return;
+        const on=t===btn.dataset.t;
+        if(on&&p.style.display==='none'){ p.classList.remove('ed-sw'); void p.offsetWidth; p.classList.add('ed-sw'); }
+        p.style.display = on ? 'flex' : 'none';
       });
     };
   });
 
   window._editListingCond = l.condicion==='nuevo' ? 'nuevo' : 'usado';
   window._editPhotosFiles = null;
+  window._edPrOrig = Number(l.precio_usd||0);
+  modal.querySelectorAll('.ed-st').forEach(_edStepper);
+  _edPrHint();
 
-  if(_supa){
-    _supa.from('listing_photos').select('id,url,orden').eq('listing_id',_idStr).order('orden',{ascending:true}).then(({data:photos})=>{
-      const cont=document.getElementById('edit-current-photos');
-      if(!cont) return;
-      if(!photos?.length){cont.innerHTML='<div style="font-size:12px;color:var(--w25);padding:4px 0;grid-column:1/-1">sin fotos aún</div>';return;}
-      cont.innerHTML=photos.map(p=>`
-        <div style="position:relative;aspect-ratio:1/1;border-radius:10px;overflow:hidden;background:var(--surface-mid)">
-          <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;display:block">
-          <button onclick="_deleteEditPhoto('${p.id}','${_idStr}',this.closest('div[style*=relative]'))" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.7);border:1px solid var(--w20);color:var(--white);font-size:13px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)">×</button>
-        </div>`).join('');
-    });
+  const photos=[...(l.listing_photos||[])].sort((a,b)=>(a.orden??0)-(b.orden??0));
+  const cont=document.getElementById('edit-current-photos');
+  window._edPhotoOrder0=photos.map(p=>String(p.id)).join(',');
+  if(!photos.length){ cont.innerHTML='<div style="grid-column:1/-1;font-size:13px;color:var(--muted);padding:2px 0 4px">sin fotos aún</div>'; }
+  else{
+    cont.innerHTML=photos.map(p=>`<div class="ed-ph" data-id="${p.id}"><img src="${_tImg(p.url,{width:300,quality:70})}" alt="" draggable="false" decoding="async"><button type="button" class="ed-rm" aria-label="quitar foto" onclick="_deleteEditPhoto('${p.id}','${_idStr}',this.closest('.ed-ph'))">${_MP_X}</button></div>`).join('');
+    _edPhotoDrag(cont);
   }
+}
+// precio: − / + de a 100; dejándolo presionado acelera (luego de a 500)
+function _edStepper(b){
+  let t=0,n=0;
+  const H=()=>{ try{ return window._rdCapPlugin&&window._rdCapPlugin('Haptics'); }catch(e){ return null; } };
+  const step=()=>{
+    const el=document.getElementById('edit-precio'); if(!el) return;
+    const cur=Number(_numClean(el.value))||0, by=(n++>=10?500:100)*Number(b.dataset.s);
+    const nx=Math.max(100,Math.round((cur+by)/100)*100);
+    if(nx===cur) return;
+    el.value=_milesFmt(nx); _edPrHint();
+    try{ const h=H(); if(h&&h.selectionChanged) h.selectionChanged(); }catch(e){}
+  };
+  const stop=()=>{ clearTimeout(t); t=0; };
+  b.addEventListener('pointerdown',e=>{ e.preventDefault(); n=0; step(); const rep=d=>{ t=setTimeout(()=>{ step(); rep(Math.max(45,d*.82)); },d); }; t=setTimeout(()=>rep(110),380); });
+  ['pointerup','pointercancel','pointerleave'].forEach(k=>b.addEventListener(k,stop));
+  b.addEventListener('click',e=>{ if(e.detail===0){ n=0; step(); } });
+}
+function _edPrHint(){
+  const h=document.getElementById('ed-pr-hint'), el=document.getElementById('edit-precio'); if(!h||!el) return;
+  const cur=Number(_numClean(el.value))||0, o=window._edPrOrig||0, ic='<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l6 6 4-4 8 8M21 11v6h-6"/></svg>';
+  if(o>0&&cur>0&&cur<o){
+    const d=o-cur, pc=Math.round(d/o*100);
+    h.classList.add('dn');
+    h.innerHTML=`${ic}<span>bajas <b>$${d.toLocaleString('en-US')}${pc>0?` (−${pc}%)`:''}</b>. al guardar, tu carro aparece en <b style="color:inherit">price drops</b> con el precio anterior tachado.</span>`;
+  }else{
+    h.classList.remove('dn');
+    h.innerHTML=`${ic}<span>si le bajas el precio, tu carro aparece en la sección especial de price drops.</span>`;
+  }
+}
+// fotos: mantener presionada ~¼ s levanta la foto; al moverla las demás se acomodan solas
+function _edPhotoDrag(cont){
+  let it=null,timer=0,on=false,sx=0,sy=0,slots=[],from=0,at=0;
+  const items=()=>[...cont.querySelectorAll('.ed-ph')];
+  const hap=()=>{ try{ window._rdHapticNow&&window._rdHapticNow('LIGHT'); }catch(e){} };
+  const lift=()=>{
+    if(!it) return; on=true;
+    const list=items(); from=at=list.indexOf(it);
+    slots=list.map(el=>el.getBoundingClientRect());
+    it.classList.add('lift'); it.style.transform='scale(1.06)'; hap();
+  };
+  const move=(x,y)=>{
+    const r0=slots[from], cx=r0.left+r0.width/2+(x-sx), cy=r0.top+r0.height/2+(y-sy);
+    let best=at,bd=1e9;
+    slots.forEach((r,i)=>{ const d=Math.hypot(r.left+r.width/2-cx,r.top+r.height/2-cy); if(d<bd){bd=d;best=i;} });
+    if(best!==at){
+      const others=items().filter(el=>el!==it), before=new Map(others.map(el=>[el,el.getBoundingClientRect()]));
+      const list=items().filter(el=>el!==it);
+      cont.insertBefore(it,list[best]||null);
+      at=best;
+      others.forEach(el=>{ const a=before.get(el), b=el.getBoundingClientRect(), dx=a.left-b.left, dy=a.top-b.top; if(!dx&&!dy) return;
+        el.style.transition='none'; el.style.transform=`translate3d(${dx}px,${dy}px,0)`; el.getBoundingClientRect(); el.style.transition=''; el.style.transform=''; });
+      try{ const h=window._rdCapPlugin&&window._rdCapPlugin('Haptics'); if(h&&h.selectionChanged) h.selectionChanged(); }catch(e){}
+    }
+    const r=slots[at];
+    it.style.transform=`translate3d(${x-sx+r0.left-r.left}px,${y-sy+r0.top-r.top}px,0) scale(1.06)`;
+  };
+  const drop=()=>{
+    clearTimeout(timer);
+    if(it&&on){ const el=it; el.classList.remove('lift'); el.style.transform=''; }
+    it=null; on=false;
+  };
+  cont.addEventListener('touchstart',e=>{
+    const el=e.target.closest('.ed-ph'); if(!el||e.target.closest('.ed-rm')||e.touches.length>1) return;
+    it=el; on=false; sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+    timer=setTimeout(lift,240);
+  },{passive:true});
+  cont.addEventListener('touchmove',e=>{
+    if(!it) return; const t=e.touches[0];
+    if(!on){ if(Math.hypot(t.clientX-sx,t.clientY-sy)>8){ clearTimeout(timer); it=null; } return; }
+    if(e.cancelable) e.preventDefault(); move(t.clientX,t.clientY);
+  },{passive:false});
+  cont.addEventListener('touchend',drop); cont.addEventListener('touchcancel',drop);
+  cont.addEventListener('contextmenu',e=>{ if(e.target.closest('.ed-ph')) e.preventDefault(); });
+  // ratón: arrastrar directo
+  cont.addEventListener('pointerdown',e=>{
+    if(e.pointerType!=='mouse'||e.button!==0) return;
+    const el=e.target.closest('.ed-ph'); if(!el||e.target.closest('.ed-rm')) return;
+    e.preventDefault(); it=el; on=false; sx=e.clientX; sy=e.clientY;
+    const mv=ev=>{ if(!it) return; if(!on){ if(Math.hypot(ev.clientX-sx,ev.clientY-sy)<5) return; lift(); } move(ev.clientX,ev.clientY); };
+    const up=()=>{ window.removeEventListener('pointermove',mv); window.removeEventListener('pointerup',up); drop(); };
+    window.addEventListener('pointermove',mv); window.addEventListener('pointerup',up);
+  });
+}
+// guarda el orden nuevo de las fotos (la primera es la portada). Devuelve false si Supabase no lo aceptó.
+async function _saveEditPhotoOrder(){
+  const cont=document.getElementById('edit-current-photos'); if(!cont||!_supa) return true;
+  const ids=[...cont.querySelectorAll('.ed-ph')].map(el=>el.dataset.id);
+  const now=ids.join(','); if(now===window._edPhotoOrder0) return true;
+  const was=(window._edPhotoOrder0||'').split(',');
+  const res=await Promise.all(ids.map((pid,i)=>was[i]===pid?null:_supa.from('listing_photos').update({orden:i}).eq('id',pid).select('id')));
+  return res.every(r=>!r||(!r.error&&r.data&&r.data.length));
 }
 function _setEditCond(val){
   window._editListingCond=val;
@@ -16081,13 +16239,14 @@ async function _deleteEditPhoto(photoId, listingId, el){
   el.style.opacity='.4';
   const{error}=await _supa.from('listing_photos').delete().eq('id',photoId);
   if(error){el.style.opacity='1';showToast('error eliminando foto');return;}
-  el.remove();
+  el.style.transition='transform .25s cubic-bezier(.4,0,1,1),opacity .2s'; el.style.transform='scale(.85)'; el.style.opacity='0';
+  setTimeout(()=>{ el.remove(); if(window._edPhotoOrder0) window._edPhotoOrder0=window._edPhotoOrder0.split(',').filter(x=>x!==String(photoId)).join(','); },250);
   showToast('foto eliminada ✓',true);
 }
 function handleEditPhotos(input, id){
   if(!input.files?.length) return;
   const lbl=document.getElementById('edit-photos-label');
-  if(lbl) lbl.textContent=input.files.length+' foto(s) lista(s) — se suben al guardar';
+  if(lbl) lbl.textContent=input.files.length===1?'1 foto lista — se sube al guardar':input.files.length+' fotos listas — se suben al guardar';
   window._editPhotosFiles=input.files;
 }
 // [FIX subida fantasma] handleEditPhotos guardaba los archivos en window._editPhotosFiles
@@ -16160,18 +16319,15 @@ async function saveListingEdit(id){
       else if(Number(precio)>=prevPrice) upd.precio_anterior=null;
       const{error}=await _supa.from('listings').update(upd).eq('id',_idStr);
       if(error){ showToast('error al guardar: '+error.message); if(btn){btn.innerHTML='guardar cambios';btn.disabled=false;btn.style.opacity='1';} return; }
+      const ordOk=await _saveEditPhotoOrder();
+      if(!ordOk) showToast('no se pudo guardar el orden de las fotos');
       if(cur?.user_id) await _uploadEditPhotos(_idStr,cur.user_id);
       const ml=MARKET_LISTINGS.find(x=>String(x.id)===_idStr);
       if(ml){ ml.price=Number(precio); ml.precioAnterior=Number(upd.precio_anterior||0); ml.marca=marca; ml.modelo=modelo; ml.year=year; ml.title=`${year} ${marca} ${modelo}`; if(desc) ml.desc=desc; }
     }catch(e){ console.error('[ruedda] saveListingEdit:',e?.message||e); showToast('error al guardar'); if(btn){btn.innerHTML='guardar cambios';btn.disabled=false;btn.style.opacity='1';} return; }
   }
 
-  const modal=document.getElementById('edit-listing-modal');
-  const inner=modal?.querySelector('div');
-  if(inner){inner.style.transition='transform .3s cubic-bezier(.4,0,.2,1)';inner.style.transform='translateY(100%)';}
-  if(modal){modal.style.transition='opacity .3s';modal.style.opacity='0';}
-  await new Promise(r=>setTimeout(r,280));
-  modal?.remove();
+  await _rdEdClose();
   showToast('publicación actualizada ✓',true);
   const lDealer=DEALER_LISTINGS_OWN.find(x=>String(x.id)===_idStr);
   if(lDealer){ renderDhPubs(); }
