@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>{{title}}</title>
+<meta name="description" content="{{desc}}">
+<meta property="og:title" content="{{title}}">
+<meta property="og:description" content="{{desc}}">
+<meta property="og:image" content="https://www.ruedda.app/waitlist/ruedda.png">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preload" href="/assets/fonts/opensauceone-300.906e8fb6.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:'OpenSauceOne';font-weight:300;font-display:swap;src:url('/assets/fonts/opensauceone-300.906e8fb6.woff2') format('woff2')}
+@font-face{font-family:'OpenSauceOne';font-weight:400;font-display:swap;src:url('/assets/fonts/opensauceone-400.d20e72bf.woff2') format('woff2')}
+@font-face{font-family:'OpenSauceOne';font-weight:500;font-display:swap;src:url('/assets/fonts/opensauceone-500.0fc79baa.woff2') format('woff2')}
+/* Codec Pro: se usa si está disponible (local o /assets/fonts/codecpro-*.woff2); si no, Open Sauce. */
+@font-face{font-family:'CodecPro';font-weight:400;font-display:swap;src:local('Codec Pro'),local('CodecPro-Regular'),url('/assets/fonts/codecpro-400.woff2') format('woff2')}
+@font-face{font-family:'CodecPro';font-weight:300;font-display:swap;src:local('Codec Pro Light'),local('CodecPro-Light'),url('/assets/fonts/codecpro-300.woff2') format('woff2')}
+:root{--bg:#000;--fg:#fff;--mute:rgba(255,255,255,.42);--line:rgba(255,255,255,.18)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--fg)}
+body{font-family:'OpenSauceOne',-apple-system,system-ui,sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;
+  min-height:100svh;display:grid;grid-template-rows:auto 1fr auto;grid-template-columns:minmax(0,1fr);overflow-x:hidden;
+  padding:max(28px,env(safe-area-inset-top)) 28px max(24px,env(safe-area-inset-bottom))}
+.cx{font-family:'CodecPro','OpenSauceOne',-apple-system,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center}
+header img{height:15px;width:auto;display:block}
+header span{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--mute)}
+main{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;width:100%;max-width:520px;margin:0 auto;padding:6vh 0}
+#flag{width:min(46vw,210px);aspect-ratio:400/420;color:var(--fg);margin:0 0 7vh -6px}
+h1{font-size:clamp(30px,8.4vw,52px);line-height:1.04;letter-spacing:-.035em;font-weight:300}
+h2{font-size:clamp(30px,8.4vw,52px);line-height:1.04;letter-spacing:-.035em;font-weight:300;color:var(--mute);margin-top:2px}
+form{width:100%;margin-top:7vh;display:flex;align-items:center;border-bottom:1px solid var(--line);transition:border-color .5s}
+form:focus-within{border-color:var(--fg)}
+input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--fg);font:inherit;font-size:16px;font-weight:400;padding:16px 0;letter-spacing:-.01em}
+input::placeholder{color:var(--mute)}
+button{background:none;border:0;color:var(--fg);font:inherit;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  padding:16px 0 16px 18px;cursor:pointer;display:flex;align-items:center;gap:10px;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+button i{display:block;width:18px;height:1px;background:currentColor;position:relative;transition:width .4s cubic-bezier(.32,.72,0,1)}
+button i:after{content:'';position:absolute;right:0;top:-3px;width:6px;height:6px;border-top:1px solid;border-right:1px solid;transform:rotate(45deg)}
+button:hover i{width:28px}
+button[disabled]{opacity:.4;cursor:default}
+#msg{min-height:18px;margin-top:14px;font-size:12px;color:var(--mute);letter-spacing:.01em}
+#ok{display:none;margin-top:7vh}
+#ok b{display:block;font-weight:300;font-size:clamp(30px,8.4vw,52px);letter-spacing:-.035em;line-height:1.04}
+#ok p{margin-top:18px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+#ok p em{font-style:normal;color:var(--fg);font-variant-numeric:tabular-nums}
+body.in #f,body.in #msg{display:none}
+body.in #ok{display:block;animation:up .9s cubic-bezier(.32,.72,0,1) both}
+footer{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--mute);text-align:center}
+.r{opacity:0;transform:translateY(14px);animation:up 1.2s cubic-bezier(.32,.72,0,1) forwards}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (min-width:900px){
+  body{padding:44px 56px}
+  main{max-width:1100px;display:grid;grid-template-columns:1fr 1fr;align-items:center;column-gap:8vw}
+  #flag{grid-row:1/4;grid-column:2;width:min(30vw,380px);margin:0;justify-self:end}
+  #flag~*{grid-column:1}
+  header img{height:17px}
+}
+@media (prefers-reduced-motion:reduce){.r{animation:none;opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<header class="r" style="animation-delay:.1s">
+  <img src="/waitlist/ruedda.png" alt="Ruedda" width="996" height="272">
+  <span class="cx">{{place}}</span>
+</header>
+<main>
+  <div id="flag" class="r" aria-hidden="true"></div>
+  <div>
+    <h1 class="cx r" style="animation-delay:.35s">{{h1}}</h1>
+    <h2 class="cx r" style="animation-delay:.5s">{{h2}}</h2>
+  </div>
+  <div class="r" style="animation-delay:.7s;width:100%">
+    <form id="f" novalidate>
+      <input id="e" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" placeholder="{{ph}}" aria-label="{{ph}}" required>
+      <button id="b" type="submit"><span>{{cta}}</span><i></i></button>
+    </form>
+    <div id="msg" role="status" aria-live="polite"></div>
+    <div id="ok"><b class="cx">{{ok}}</b><p>{{okn}} <em id="n">—</em> &nbsp;·&nbsp; {{oks}}</p></div>
+  </div>
+</main>
+<footer class="r" style="animation-delay:.9s">{{foot}}</footer>
+<script>
+(function(){
+  // Bandera Ruedda ondeando (mismo trazo que _rdWaveFlag de la app, a frame completo).
+  var el=document.getElementById('flag'),NS='http://www.w3.org/2000/svg';
+  var svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','-20 0 400 420');svg.setAttribute('width','100%');svg.setAttribute('height','100%');svg.style.display='block';svg.style.overflow='visible';
+  var g=document.createElementNS(NS,'g');g.style.transformOrigin='180px 200px';svg.appendChild(g);
+  var L=[[110,25,120,90,1],[0,115,110,100,.82],[230,115,120,100,.82],[110,215,120,90,.9],[230,300,120,100,.78]];
+  var P=L.map(function(p){var e=document.createElementNS(NS,'path');e.setAttribute('fill','currentColor');e.setAttribute('fill-opacity',p[4]);g.appendChild(e);return e;});
+  el.appendChild(svg);
+  var AMP=10,FREQ=.012,SP=Math.PI/4,AMP2=3,FREQ2=.025,SP2=Math.PI/2,WI=1.7,SW=1.2;
+  function wy(x,t){return WI*(AMP*Math.sin(x*FREQ-SP*SW*t)+AMP2*Math.sin(x*FREQ2-SP2*SW*t+1.3));}
+  function pp(x0,y0,w,h,t){
+    var x1=x0+w,y1=y0+h,mx=(x0+x1)/2,a=wy(x0,t),b=wy(x1,t),m=wy(mx,t);
+    var tl=y0+a,tr=y0+b,tm=y0+m,bl=y1+a,br=y1+b,bm=y1+m,tc=2*tm-(tl+tr)/2,bc=2*bm-(bl+br)/2;
+    return 'M'+x0+' '+tl+'Q'+mx+' '+tc+' '+x1+' '+tr+'L'+x1+' '+br+'Q'+mx+' '+bc+' '+x0+' '+bl+'Z';
+  }
+  function paint(t){for(var i=0;i<L.length;i++)P[i].setAttribute('d',pp(L[i][0],L[i][1],L[i][2],L[i][3],t));g.style.transform='rotate('+(Math.sin(t*(Math.PI/4)*SW)*1.4)+'deg)';}
+  paint(0);
+  var rm=false;try{rm=matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  if(!rm){var s=null;(function f(now){if(s==null)s=now;if(!document.hidden)paint((now-s)/1000);requestAnimationFrame(f);})(performance.now());}
+
+  // Waitlist
+  var PAIS='{{pais}}',KEY='rd_wl_'+PAIS,URL='{{supa}}/rest/v1/rpc/waitlist_join',ANON='{{anon}}';
+  var f=document.getElementById('f'),e=document.getElementById('e'),b=document.getElementById('b'),msg=document.getElementById('msg'),n=document.getElementById('n');
+  function fmt(x){x=String(x||'');return x.length<4?('0000'+x).slice(-4):x;}
+  function done(pos){n.textContent=fmt(pos);document.body.classList.add('in');}
+  try{var saved=localStorage.getItem(KEY);if(saved)done(saved);}catch(_){}
+  f.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var v=e.value.trim().toLowerCase();
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)){msg.textContent='{{err}}';e.focus();return;}
+    b.disabled=true;b.firstChild.textContent='{{busy}}';msg.textContent='';
+    fetch(URL,{method:'POST',headers:{'Content-Type':'application/json',apikey:ANON,Authorization:'Bearer '+ANON},body:JSON.stringify({p_email:v,p_pais:PAIS})})
+      .then(function(r){if(!r.ok)throw r;return r.json();})
+      .then(function(pos){try{localStorage.setItem(KEY,pos);}catch(_){}done(pos);})
+      .catch(function(r){msg.textContent=(r&&r.status)?'{{err}}':'{{net}}';b.disabled=false;b.firstChild.textContent='{{cta}}';});
+  });
+})();
+</script>
+</body>
+</html>

@@ -100,19 +100,19 @@
     },
     {
       "src": "^/colombia/?$",
-      "dest": "https://ruedda-colombia.vercel.app/colombia"
+      "dest": "/waitlist/colombia.html"
     },
     {
       "src": "^/colombia/(.*)$",
-      "dest": "https://ruedda-colombia.vercel.app/colombia/$1"
+      "dest": "/waitlist/colombia.html"
     },
     {
       "src": "^/canada/?$",
-      "dest": "https://ruedda-canada.vercel.app/canada"
+      "dest": "/waitlist/canada.html"
     },
     {
       "src": "^/canada/(.*)$",
-      "dest": "https://ruedda-canada.vercel.app/canada/$1"
+      "dest": "/waitlist/canada.html"
     },
     {
       "src": "^/avalta/?$",
