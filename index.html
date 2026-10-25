@@ -2535,6 +2535,9 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
 #rd-intro.rd-final #rd-intro-final>div>*:nth-child(3){transition-delay:.27s}
 #rd-intro.rd-final #rd-intro-final>div>*:nth-child(4){transition-delay:.33s}
 #rd-intro.rd-final #rd-intro-final>div>*:nth-child(5){transition-delay:.4s}
+#rd-intro-final>div>#rd-intro-social{opacity:1}
+#rd-intro-social>*{opacity:0;transition:opacity .45s ease}
+#rd-intro.rd-final #rd-intro-social>*{opacity:1;transition-delay:.33s}
 #rd-intro-or{display:flex;align-items:center;gap:12px;margin:17px 2px 3px}
 #rd-intro-or i{flex:1;height:1px;background:rgba(255,255,255,.14)}
 #rd-intro-or span{font-size:12.5px;color:rgba(255,255,255,.5);white-space:nowrap}
@@ -2564,12 +2567,18 @@ html:not(.rd-safari-tab) #rd-intro{height:auto}
   position:absolute;left:var(--x);top:var(--y);
   display:inline-flex;align-items:center;gap:8px;white-space:nowrap;
   font-size:12.5px;font-weight:600;letter-spacing:-.1px;color:#fff;
-  opacity:0;transform:translateY(14px) scale(.96) rotate(var(--r,0deg));
-  transition:opacity .6s ease,transform .8s cubic-bezier(.22,1,.36,1);
+  transform:translateY(14px) scale(.96) rotate(var(--r,0deg));
+  transition:transform .8s cubic-bezier(.22,1,.36,1);
   transition-delay:var(--d,0s);
 }
-.rd-fl.rd-fl-in{opacity:1;transform:translateY(0) scale(1) rotate(var(--r,0deg))}
-.rd-fl.rd-fl-out{opacity:0;transform:translateY(-8px) scale(.98) rotate(var(--r,0deg));transition-delay:0s;transition-duration:.3s}
+.rd-fl.rd-fl-in{transform:translateY(0) scale(1) rotate(var(--r,0deg))}
+.rd-fl.rd-fl-out{transform:translateY(-8px) scale(.98) rotate(var(--r,0deg));transition-delay:0s;transition-duration:.3s}
+/* [iOS] WebKit no pinta el backdrop-filter de un hijo mientras un ancestro tiene
+   opacity<1: el vidrio entraba transparente y el blur aparecía de golpe al final.
+   El fundido vive en el mismo <b> que lleva el blur. */
+.rd-fl>b{opacity:0;transition:opacity .6s ease;transition-delay:var(--d,0s)}
+.rd-fl.rd-fl-in>b{opacity:1}
+.rd-fl.rd-fl-out>b{opacity:0;transition-delay:0s;transition-duration:.3s}
 .rd-fl>b{
   display:flex;align-items:center;gap:8px;font-weight:inherit;
   padding:10px 14px 10px 11px;border-radius:999px;
@@ -26190,6 +26199,18 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
     var t=0;
     function anim(){ var v=document.getElementById('view-notificaciones'); if(!v||currentView!=='notificaciones') return; v.classList.remove('rdc-anim'); void v.offsetWidth; v.classList.add('rdc-anim'); clearTimeout(t); t=setTimeout(function(){ v.classList.remove('rdc-anim'); },1500); }
     ['showView','switchNotifTab'].forEach(function(fn){ var o=window[fn]; if(typeof o!=='function') return; window[fn]=function(){ var was=currentView; var r=o.apply(this,arguments); if(fn==='switchNotifTab'||was!=='notificaciones') anim(); return r; }; });
+  })();
+  /* Ruedda Extra al primer toque: en iOS el click sintético a veces se pierde (había que
+     tocar dos veces). Un toque limpio (sin arrastre) dispara la acción en pointerup y el
+     click que llegue después se descarta (aunque ya caiga sobre la pantalla nueva, p. ej. la
+     tarjeta de Track) para no abrir nada dos veces. */
+  (function(){
+    var SEL='#rd-extra-door,#view-ruedda-extra .rx-menu-card[onclick],#bnav-ruedda', s=null, fired=0;
+    function hit(e){ return e.target&&e.target.closest?e.target.closest(SEL):null; }
+    document.addEventListener('pointerdown',function(e){ if(e.pointerType==='mouse'||!e.isPrimary){ s=null; return; } var el=hit(e); s=el?{el:el,x:e.clientX,y:e.clientY,t:Date.now()}:null; },{passive:true,capture:true});
+    document.addEventListener('pointercancel',function(){ s=null; },{passive:true,capture:true});
+    document.addEventListener('pointerup',function(e){ var o=s; s=null; if(!o||hit(e)!==o.el) return; if(Math.abs(e.clientX-o.x)>10||Math.abs(e.clientY-o.y)>10||Date.now()-o.t>700) return; fired=Date.now(); o.el.click(); },{capture:true});
+    document.addEventListener('click',function(e){ if(e.isTrusted&&fired&&Date.now()-fired<800){ fired=0; e.stopPropagation(); e.preventDefault(); } },true);
   })();
   /* Ruedda Extra: misma entrada escalonada (rdcIn) para el encabezado y cada tarjeta al abrir */
   (function(){
