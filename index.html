@@ -854,6 +854,12 @@ html:not([data-theme="light"]) #login-progress-bar{background:#e6f03b!important}
 /* [2026-10-24] trending hoy → deslizar: después del top 4 vienen los featured (estilo Cars&Bids) */
 .trending-scroll{gap:10px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 .trending-scroll>.trending-panel{scroll-snap-stop:always}
+/* banner al final de trending (Control → Apariencia). Mismo tamaño que los paneles; sin imagen no existe */
+.trending-panel.rd-ad{display:block;position:relative;overflow:hidden;background:var(--card2)}
+.trending-panel.rd-ad img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .45s ease}
+.trending-panel.rd-ad img.ok{opacity:1}
+.trending-panel.rd-ad[data-link]{cursor:pointer}
+.trending-panel.rd-ad[data-link]:active{opacity:.88}
 .trending-panel.rd-fp{position:relative;grid-template-columns:2fr 1fr;grid-template-rows:56fr 22fr 22fr;gap:3px;background:var(--bg);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .rd-fp>i{position:relative;overflow:hidden;background:var(--surface-mid);font-style:normal}
 .rd-fp>i img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s ease}
@@ -10551,7 +10557,26 @@ function _rdFeatPanels(){
   // confiable dentro de un scroll horizontal en WebKit)
   if(!sc._rdIO&&'IntersectionObserver' in window) sc._rdIO=new IntersectionObserver(es=>es.forEach(e=>{ if(!e.isIntersecting) return; e.target.querySelectorAll('img[data-src]').forEach(i=>{ i.src=i.dataset.src; i.removeAttribute('data-src'); }); sc._rdIO.unobserve(e.target); }),{root:sc,rootMargin:'0px 110% 0px 110%'});
   sc.querySelectorAll('.rd-fp').forEach(n=>{ if(sc._rdIO) sc._rdIO.observe(n); else n.querySelectorAll('img[data-src]').forEach(i=>{ i.src=i.dataset.src; }); });
+  const ad=sc.querySelector('.rd-ad'); if(ad) sc.appendChild(ad);
   _rdTrDots();
+  _rdTrAd();
+}
+// banner de publicidad al final de trending: app_settings trending_banner_url (+ _link opcional).
+// Una sola consulta por sesión; si no hay imagen, no se agrega nada.
+let _rdTrAdAsked=false;
+function _rdTrAd(){
+  if(_rdTrAdAsked||typeof _supa==='undefined'||!_supa) return; _rdTrAdAsked=true;
+  _supa.from('app_settings').select('key,value').in('key',['trending_banner_url','trending_banner_link']).then(({data})=>{
+    const m={}; (data||[]).forEach(x=>{ if(x.value) m[x.key]=String(x.value).trim(); });
+    const sc=document.getElementById('trending-scroll'); if(!sc||!m.trending_banner_url) return;
+    const el=document.createElement('div');
+    el.className='trending-panel rd-ad';
+    if(m.trending_banner_link){ el.dataset.link=m.trending_banner_link; el.onclick=()=>window.open(m.trending_banner_link,'_blank','noopener'); }
+    el.innerHTML=`<img alt="" decoding="async" data-src="${_tImg(m.trending_banner_url,{width:900,quality:82})}" onload="this.classList.add('ok')" onerror="this.closest('.rd-ad')&&this.closest('.rd-ad').remove();_rdTrDots()">`;
+    sc.appendChild(el);
+    if(sc._rdIO) sc._rdIO.observe(el); else el.querySelectorAll('img[data-src]').forEach(i=>{ i.src=i.dataset.src; });
+    _rdTrDots();
+  },()=>{ _rdTrAdAsked=false; });
 }
 // puntos bajo trending: uno por panel, el actual se alarga
 function _rdTrDots(){
@@ -10570,8 +10595,9 @@ function _rdTrDots(){
 // autoavance de trending hoy, cada 4,2 s.
 // · corre solo con la persona en el home de verdad: sin intro, sin login ni otra hoja abierta,
 //   con el carrusel a la vista y la app en primer plano. Cuenta 4,2 s desde que todo eso se cumple.
-// · un toque lo apaga mientras sigas en el home; al salir vuelve a la primera tarjeta (la de 4 carros)
-//   sin que se vea, y al volver arranca de nuevo.
+// · al abrir la app (y tras la intro) arranca en la 1ra tarjeta, la de 4 carros.
+// · un toque lo apaga mientras sigas en el home; si sales (p. ej. a mensajes) y vuelves, el carrusel
+//   sigue en la tarjeta donde iba y el automático se reactiva desde ahí.
 // · el paso es una transición CSS de transform (en iOS la corre Core Animation, fuera del hilo de JS),
 //   con la curva de las hojas nativas; al terminar se fija scrollLeft en el mismo frame y se limpia.
 function _rdTrAuto(sc){
@@ -10584,32 +10610,39 @@ function _rdTrAuto(sc){
   const free=()=>!document.hidden&&vis&&!H.classList.contains('rd-lk')&&!document.querySelector('.modal-overlay.open,.vender-modal.open');
   const finish=()=>{ if(!anim) return; const a=anim; anim=null; clearTimeout(a.t);
     a.kids.forEach(el=>{ el.style.transition='none'; el.style.transform=''; el.style.willChange=''; });
-    sc.scrollLeft=a.to;
+    sc.scrollLeft=a.to; sc.style.scrollSnapType='';
     requestAnimationFrame(()=>a.kids.forEach(el=>{ el.style.transition=''; })); };
   const glide=(k,to)=>{
     const d=to-sc.scrollLeft; if(Math.abs(d)<1) return;
     const kids=[...sc.children], dur=Math.abs(d)>sc.clientWidth*1.5?.9:.7;
     if(dots) dots.querySelectorAll('i').forEach((e,i)=>e.classList.toggle('on',i===k));
+    // sin imán mientras se mueven: el snap seguiría a la tarjeta transformada y correría el scroll por debajo
+    sc.style.scrollSnapType='none';
     kids.forEach(el=>{ el.style.willChange='transform'; el.style.transition=`transform ${dur}s cubic-bezier(.32,.72,0,1)`; });
     sc.getBoundingClientRect();
     kids.forEach(el=>{ el.style.transform=`translate3d(${-d}px,0,0)`; });
     anim={kids,to,t:setTimeout(finish,dur*1000+40)};
   };
   const stop=()=>{ off=true; since=0; finish(); };
-  // con el home oculto el navegador ignora scrollLeft: se vuelve a la 1ra tarjeta justo al mostrarlo
-  // (dentro de showView, antes del primer pintado — no se ve el salto)
-  let reset=false;
-  const toFirst=()=>{ finish(); sc.scrollLeft=0; if(sc._rdDotsUpd) sc._rdDotsUpd(); reset=false; };
+  // con el home oculto WebKit puede perder el scroll del carrusel: se guarda la tarjeta al salir y se
+  // restaura dentro de showView, antes del primer pintado (no se ve ningún salto)
+  let keep=-1;
+  const wNow=()=>sc.clientWidth+10;
   if(typeof window.showView==='function'&&!window.showView._rdTr){
     const sv=window.showView;
-    window.showView=function(name){ const r=sv.apply(this,arguments); if(name==='home'&&reset) toFirst(); return r; };
+    window.showView=function(name){
+      const v=document.getElementById('view-home');
+      if(name!=='home'&&v&&v.classList.contains('active')){ finish(); keep=Math.round(sc.scrollLeft/wNow()); }
+      const r=sv.apply(this,arguments);
+      if(name==='home'&&keep>=0){ const n=sc.querySelectorAll('.trending-panel').length, x=Math.min(keep,n-1)*wNow(); if(Math.abs(sc.scrollLeft-x)>1) sc.scrollLeft=x; if(sc._rdDotsUpd) sc._rdDotsUpd(); keep=-1; }
+      return r;
+    };
     window.showView._rdTr=1;
   }
   ['touchstart','wheel','mousedown'].forEach(k=>sc.addEventListener(k,stop,{passive:true}));
   setInterval(()=>{
     const home=inHome();
-    if(!home){ if(wasHome){ finish(); reset=true; } wasHome=false; off=false; since=0; return; }
-    if(reset) toFirst();
+    if(!home){ if(wasHome) finish(); wasHome=false; off=false; since=0; return; }
     wasHome=true;
     if(off||anim||!free()){ since=0; return; }
     const now=Date.now(); if(!since){ since=now; return; }
