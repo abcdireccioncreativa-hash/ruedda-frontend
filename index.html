@@ -851,6 +851,29 @@ html:not([data-theme="light"]) #login-progress-bar{background:#e6f03b!important}
 .trending-shell{padding:12px 14px 0}
 .trending-scroll{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:20px}
 .trending-scroll::-webkit-scrollbar{display:none}
+/* [2026-10-24] trending hoy → deslizar: después del top 4 vienen los featured (estilo Cars&Bids) */
+.trending-scroll{gap:10px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.trending-scroll>.trending-panel{scroll-snap-stop:always}
+.trending-panel.rd-fp{position:relative;grid-template-columns:2fr 1fr;grid-template-rows:56fr 22fr 22fr;gap:3px;background:var(--bg);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.rd-fp>i{position:relative;overflow:hidden;background:var(--surface-mid);font-style:normal}
+.rd-fp>i img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s ease}
+.rd-fp>i img.ok{opacity:1}
+.rd-fp .fa{grid-column:1/-1}
+.rd-fp .fa::after{content:'';position:absolute;inset:0 0 auto;height:46%;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,0));pointer-events:none}
+.rd-fp .fb{grid-row:2/4}
+.rd-fp.one{grid-template-columns:1fr;grid-template-rows:1fr}
+.rd-fp.one .fa{grid-row:1}
+.rd-fp .fp-tag{position:absolute;top:10px;left:10px;z-index:2;padding:5px 9px;border-radius:8px;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#151515;font-size:10.5px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;line-height:1}
+.rd-fp .fp-tt{position:absolute;top:8px;right:12px;left:42%;z-index:2;text-align:right;color:#fff;font-size:15px;font-weight:700;letter-spacing:-.3px;line-height:1.2;text-shadow:0 1px 10px rgba(0,0,0,.45);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rd-fp .fp-meta{position:absolute;left:10px;bottom:10px;z-index:2;display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:10px;background:rgba(18,18,18,.74);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);color:#fff;font-size:12.5px;font-weight:600;letter-spacing:-.1px;line-height:1;white-space:nowrap}
+.rd-fp .fp-meta svg{width:13px;height:13px;opacity:.7}
+.rd-fp .fp-meta em{font-style:normal;color:rgba(255,255,255,.55);font-weight:500;margin-left:4px}
+.rd-fp .fp-meta b{font-weight:800}
+.rd-fp:active{transform:scale(.99);transition:transform .15s}
+.tr-dots{display:flex;justify-content:center;align-items:center;gap:5px;height:4px;margin-top:11px}
+.tr-dots:empty{display:none}
+.tr-dots i{display:block;width:4px;height:4px;border-radius:2px;background:var(--w20,rgba(127,127,127,.3));transition:width .4s cubic-bezier(.32,.72,0,1),background-color .4s ease}
+.tr-dots i.on{width:14px;background:var(--white)}
 .trending-panel{flex:0 0 100%;scroll-snap-align:start;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:0;aspect-ratio:4/3;background:var(--surface-mid);border-radius:20px;overflow:hidden}
 /* [V136] íconos placeholder "próximamente" (financiamiento/traslado nacional)
    son claros por diseño — invisibles sobre card blanca en modo claro */
@@ -4641,6 +4664,7 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
       <div class="trending-scroll" id="trending-scroll">
         <div class="trending-panel" id="trending-panel-1"></div>
       </div>
+      <div class="tr-dots" id="tr-dots" aria-hidden="true"></div>
     </div>
 
     <!-- [hot deals] llama retro animada + slider horizontal, debajo de trending hoy -->
@@ -10375,8 +10399,54 @@ function _trendingTop4(){
   }
   return top4;
 }
+// featured en trending: un panel por publicación destacada (foto grande arriba, tres abajo).
+// Solo se repinta si cambian los ids. La foto grande usa el mismo tamaño que las tarjetas del
+// market (900/82) para salir de caché; las chicas comparten un solo tamaño (600/82).
+let _lastFeatIds=null;
+function _rdFeatLeft(ms){ const m=Math.max(0,ms)/60000; return m>=1440?Math.floor(m/1440)+(m>=2880?' días':' día'):m>=60?Math.floor(m/60)+' h':Math.max(1,Math.floor(m))+' min'; }
+function _rdFeatPanels(){
+  const sc=document.getElementById('trending-scroll'); if(!sc) return;
+  const now=Date.now();
+  const items=[...AUCTIONS.filter(a=>a.destacado&&a.endTime>now).map(a=>({...a,_auc:1})),..._mktGen().filter(l=>l.destacado)]
+    .filter(x=>x.photoUrls&&x.photoUrls.length)
+    .sort((a,b)=>(b._auc||0)-(a._auc||0)||(b.viewCount||0)-(a.viewCount||0)).slice(0,8);
+  const ids=items.map(x=>x.id).join(',');
+  if(ids===_lastFeatIds) return;
+  _lastFeatIds=ids;
+  sc.querySelectorAll('.rd-fp').forEach(n=>n.remove());
+  const esc=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const im=(u,w)=>`<img alt="" decoding="async" data-src="${_tImg(u,{width:w,quality:82})}" onload="this.classList.add('ok')" onerror="this.remove()">`;
+  const clock='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  sc.insertAdjacentHTML('beforeend',items.map(x=>{
+    const p=x.photoUrls, one=p.length<3;
+    const meta=x._auc?`${clock}${_rdFeatLeft(x.endTime-now)}<em>puja</em><b>${fmtBid(x.currentBid||0)}</b>`:`<em style="margin:0">precio</em><b>${fmtBid(x.price||0)}</b>`;
+    return `<div class="trending-panel rd-fp${one?' one':''}" onclick="${x._auc?`openDetail('${x.id}')`:`openMarketDetail('${x.id}')`}">`
+      +`<i class="fa">${im(p[0],900)}</i>`
+      +(one?'':`<i class="fb">${im(p[1],600)}</i><i class="fc">${im(p[2],600)}</i><i class="fd">${im(p[3]||p[1],600)}</i>`)
+      +`<span class="fp-tag">featured</span><div class="fp-tt">${esc(x.title)}</div><div class="fp-meta">${meta}</div></div>`;
+  }).join(''));
+  // fotos: se piden cuando el panel está a un deslizamiento de distancia (lazy nativo no es
+  // confiable dentro de un scroll horizontal en WebKit)
+  if(!sc._rdIO&&'IntersectionObserver' in window) sc._rdIO=new IntersectionObserver(es=>es.forEach(e=>{ if(!e.isIntersecting) return; e.target.querySelectorAll('img[data-src]').forEach(i=>{ i.src=i.dataset.src; i.removeAttribute('data-src'); }); sc._rdIO.unobserve(e.target); }),{root:sc,rootMargin:'0px 110% 0px 110%'});
+  sc.querySelectorAll('.rd-fp').forEach(n=>{ if(sc._rdIO) sc._rdIO.observe(n); else n.querySelectorAll('img[data-src]').forEach(i=>{ i.src=i.dataset.src; }); });
+  _rdTrDots();
+}
+// puntos bajo trending: uno por panel, el actual se alarga
+function _rdTrDots(){
+  const sc=document.getElementById('trending-scroll'), d=document.getElementById('tr-dots'); if(!sc||!d) return;
+  const n=sc.querySelectorAll('.trending-panel').length;
+  d.innerHTML=n>1?'<i></i>'.repeat(n):'';
+  if(!sc._rdDots){
+    sc._rdDots=1; let q=0;
+    const upd=()=>{ q=0; const w=sc.clientWidth+10, k=Math.round(sc.scrollLeft/w); d.querySelectorAll('i').forEach((e,i)=>e.classList.toggle('on',i===k)); };
+    sc.addEventListener('scroll',()=>{ if(!q) q=requestAnimationFrame(upd); },{passive:true});
+    sc._rdDotsUpd=upd;
+  }
+  sc._rdDotsUpd();
+}
 let _lastTrendingIds=null;
 function renderTrendingHoy(){
+  _rdFeatPanels();
   if(typeof renderHotDeals==='function') renderHotDeals();
   if(typeof renderPriceDrops==='function') renderPriceDrops();
   if(typeof renderEncuentra==='function') renderEncuentra();
