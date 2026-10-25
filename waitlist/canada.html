@@ -54,9 +54,17 @@ a.go{display:flex;justify-content:space-between;align-items:center;width:100%;ma
 a.go i{display:block;width:28px;height:1px;background:currentColor;position:relative;transition:width .4s cubic-bezier(.32,.72,0,1)}
 a.go i:after{content:'';position:absolute;right:0;top:-3px;width:6px;height:6px;border-top:1px solid;border-right:1px solid;transform:rotate(45deg)}
 a.go:active i,a.go:hover i{width:44px}
+a.go{position:relative}
+a.go i{transition:width .4s cubic-bezier(.32,.72,0,1),opacity .35s,transform .45s cubic-bezier(.32,.72,0,1)}
+a.go .sp{position:absolute;right:2px;top:50%;width:16px;height:16px;margin-top:-8px;border-radius:50%;border:1px solid rgba(255,255,255,.18);border-top-color:#fff;
+  opacity:0;transform:scale(.6);transition:opacity .35s .1s,transform .45s .1s cubic-bezier(.32,.72,0,1);animation:sp .9s linear infinite}
+a.go.ld i{opacity:0;transform:translateX(10px)}
+a.go.ld .sp{opacity:1;transform:scale(1)}
+@keyframes sp{to{rotate:360deg}}
 a.ios{display:none;margin-top:18px;font-size:12px;color:var(--mute);text-decoration:none;letter-spacing:.01em}
 html.is-ios a.ios{display:inline-block}
 footer{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--mute);text-align:center}
+footer.lc{font-size:12px;letter-spacing:.02em;text-transform:none}
 .r{opacity:0;transform:translateY(14px);animation:up 1.2s cubic-bezier(.32,.72,0,1) forwards}
 @keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @media (min-width:900px){
@@ -89,7 +97,7 @@ footer{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--
     <div id="ok"><b class="cx">you're in.</b><p>no. <em id="n">—</em> &nbsp;·&nbsp; we'll write to you first.</p></div>
   </div>
 </main>
-<footer class="r" style="animation-delay:.9s">not everyone gets in.</footer>
+<footer class="r " style="animation-delay:.9s">not everyone gets in.</footer>
 <script>
 (function(){
   // Bandera Ruedda ondeando (mismo trazo que _rdWaveFlag de la app, a frame completo).
