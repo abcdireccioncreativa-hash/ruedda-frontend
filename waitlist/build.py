@@ -22,7 +22,7 @@ PAISES = {
     'venezuela': dict(
         lang='es-VE', title='Ruedda', pais='venezuela', place='venezuela', action=ENTER,
         desc='El mercado automotriz de Venezuela.',
-        h1='el mercado automotriz<br>de venezuela.', h2='para quien sabe.',
+        h1='el mercado automotriz<br>de venezuela.', h2='ya disponible.',
         cta='entrar', ios='descargar para iphone', foot='hecho en venezuela.', footcls='lc',
         ph='', busy='', ok='', okn='', oks='', err='', net='',
     ),
