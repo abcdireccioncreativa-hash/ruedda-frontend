@@ -2,6 +2,21 @@
 <html lang="es">
 <head>
 <script>
+/* [pre-landing VE] visitante web en móvil, sin sesión: primero /waitlist/venezuela.html
+   (una vez por sesión del navegador). Nunca en la app iOS, PWA instalada ni enlaces con parámetros. */
+(function(){try{
+  if(location.pathname!=='/'&&location.pathname!=='/index.html') return;
+  if(location.search||location.hash) return;
+  if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) return;
+  if((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone) return;
+  if(Math.min(screen.width,screen.height)>=600||!/Mobi|iPhone|iPod|Android/.test(navigator.userAgent)) return; // el viewport aún no existe aquí: se mira la pantalla
+  if(sessionStorage.getItem('rd_pre')) return;
+  for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('auth-token')>0) return;}
+  sessionStorage.setItem('rd_pre','1');
+  location.replace('/waitlist/venezuela.html');
+}catch(e){}})();
+</script>
+<script>
 /* [perf · arranque adelantado] Las 2 consultas del primer pantallazo (publicaciones y
    subastas) salen AQUÍ, apenas llega el HTML, en paralelo con todo lo demás. Cuando
    supabase-js pide exactamente lo mismo (misma URL y misma sesión), recibe esta
