@@ -3423,6 +3423,92 @@ html.rd-android-lite .bottom-nav{background:rgba(14,14,14,.94)!important}
 html.rd-android-lite[data-theme="light"] .bottom-nav{background:rgba(250,250,248,.95)!important}
 html.rd-android-lite .search-overlay.open{animation-name:rdRise}
 </style>
+<style id="rd-mp">
+/* [2026-10-24] mis publicaciones + editar: mismo lenguaje que la hoja de vender (tarjeta flotante, esquinas 40,
+   agarradera 38×5, curva .32,.72,0,1). Botón principal amarillo con relieve tipo liquid glass. */
+.rd-yb{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:8px;height:50px;border:0;border-radius:25px;background:linear-gradient(180deg,#f2f87e 0%,#e6f03b 52%,#dce62f 100%);color:#0b0b0b;font:700 15px var(--font);letter-spacing:-.2px;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 1px rgba(0,0,0,.1),0 0 0 .5px rgba(0,0,0,.1),0 6px 18px rgba(200,212,20,.22);transition:transform .18s cubic-bezier(.32,.72,0,1),filter .18s,opacity .2s}
+.rd-yb::before{content:"";position:absolute;left:8%;right:8%;top:1px;height:46%;border-radius:999px;background:linear-gradient(rgba(255,255,255,.5),rgba(255,255,255,0));pointer-events:none}
+.rd-yb:active{transform:scale(.97);filter:brightness(.96)}
+.rd-yb:disabled{opacity:.6}
+.rd-yb svg{width:16px;height:16px;position:relative}
+.rd-yb span{position:relative}
+.rd-gb{display:flex;align-items:center;justify-content:center;gap:6px;border:0;background:var(--w8);color:var(--white);font:600 13px var(--font);letter-spacing:-.1px;cursor:pointer;-webkit-tap-highlight-color:transparent;box-shadow:inset 0 .5px 0 var(--w14);transition:transform .18s cubic-bezier(.32,.72,0,1),background .2s}
+.rd-gb:active{transform:scale(.96);background:var(--w12)}
+#mis-pub-sheet{position:fixed;inset:0;z-index:9990;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0);transition:background .45s cubic-bezier(.32,.72,0,1);font-family:var(--font)}
+#mis-pub-sheet.in{background:rgba(0,0,0,.55)}
+html[data-theme="light"] #mis-pub-sheet.in{background:rgba(0,0,0,.28)}
+#mis-pub-inner{width:calc(100% - 16px);max-width:540px;margin:0 8px 8px;max-height:calc(100dvh - 20px - env(safe-area-inset-top));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:9px 14px calc(14px + env(safe-area-inset-bottom)/2);background:var(--surface-hi);border:.5px solid var(--w14);border-radius:40px;box-shadow:0 10px 30px rgba(0,0,0,.35);transform:translate3d(0,calc(100% + 40px),0);transition:transform .5s cubic-bezier(.32,.72,0,1);will-change:transform}
+html[data-theme="light"] #mis-pub-inner{border-color:rgba(0,0,0,.1);box-shadow:0 10px 30px rgba(0,0,0,.16)}
+#mis-pub-sheet.in #mis-pub-inner{transform:none}
+#mis-pub-sheet.out #mis-pub-inner{transition-duration:.3s;transition-timing-function:cubic-bezier(.4,0,1,1)}
+.mp-grab{width:38px;height:5px;border-radius:3px;background:var(--w22,rgba(127,127,127,.35));margin:0 auto 16px}
+.mp-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:0 6px 16px}
+.mp-t{font-size:24px;font-weight:700;letter-spacing:-.6px;line-height:1.1}
+.mp-s{margin-top:5px;font-size:13px;color:var(--muted);letter-spacing:-.1px}
+.mp-x{flex:none;width:32px;height:32px;border-radius:16px;padding:0}
+.mp-x svg{width:13px;height:13px}
+.mp-cta{width:100%;margin-bottom:6px}
+.mp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mp-sec{grid-column:1/-1;display:flex;align-items:baseline;gap:7px;padding:16px 6px 2px;font-size:15px;font-weight:700;letter-spacing:-.3px}
+.mp-sec span{font-size:13px;font-weight:500;color:var(--muted)}
+.mp-card{display:flex;flex-direction:column;min-width:0;background:var(--card);border:.5px solid var(--w8);border-radius:22px;overflow:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:rdRise .5s cubic-bezier(.32,.72,0,1) backwards;animation-delay:var(--d,0s);transition:transform .2s cubic-bezier(.32,.72,0,1)}
+.mp-card:active{transform:scale(.985)}
+.mp-ph{position:relative;isolation:isolate;aspect-ratio:4/3;overflow:hidden;background:var(--surface-mid)}
+.mp-ph>img:not(.rd-lq){position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s ease}
+.mp-ph>svg{position:absolute;left:50%;top:50%;width:40px;height:30px;margin:-15px 0 0 -20px}
+.mp-st{position:absolute;top:8px;left:8px;z-index:2;display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 9px 0 8px;border-radius:11px;background:rgba(10,10,10,.5);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);color:#fff;font-size:11px;font-weight:600;letter-spacing:-.1px}
+.mp-st i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+.mp-del{position:absolute;top:8px;right:8px;z-index:2;width:28px;height:28px;border-radius:14px;padding:0;background:rgba(10,10,10,.45);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);color:#fff;box-shadow:inset 0 .5px 0 rgba(255,255,255,.2)}
+.mp-del:active{background:rgba(255,59,48,.75)}
+.mp-del svg{width:13px;height:13px}
+.mp-bd{flex:1;display:flex;flex-direction:column;padding:10px 10px 10px}
+.mp-nm{font-size:13.5px;font-weight:700;line-height:1.25;letter-spacing:-.2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mp-pr{margin-top:3px;font-size:14.5px;font-weight:800;letter-spacing:-.2px;color:var(--rd-green)}
+.mp-pr.off{color:var(--w35);text-decoration:line-through;font-weight:600}
+.mp-ac{display:flex;gap:6px;margin-top:auto;padding-top:10px}
+.mp-ac>*{flex:1;min-width:0;height:34px;border-radius:17px;font-size:12.5px;font-weight:700;padding:0 8px;white-space:nowrap}
+.mp-ac .rd-yb{font-size:12.5px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 1px rgba(0,0,0,.1),0 0 0 .5px rgba(0,0,0,.1),0 3px 8px rgba(200,212,20,.2)}
+.mp-ac .mp-red{background:rgba(255,69,58,.14);color:#ff6b61;box-shadow:none}
+.mp-ac .mp-lim{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:var(--w35)}
+.mp-sk{cursor:default;animation:none}
+.mp-sk .mp-ph{background:none}
+.mp-sk b{display:block;height:10px;border-radius:5px;margin:4px 0 6px;width:80%}
+.mp-sk b+b{width:45%}
+.mp-empty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;text-align:center;padding:30px 20px 14px}
+.mp-empty .mp-ei{width:56px;height:56px;border-radius:18px;background:var(--w6);display:grid;place-items:center;margin-bottom:14px}
+.mp-empty .mp-ei svg{width:26px;height:26px;color:var(--w60)}
+.mp-empty b{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.mp-empty p{margin:6px 0 18px;font-size:13px;line-height:1.45;color:var(--muted);max-width:250px}
+.mp-empty .rd-yb{width:100%;max-width:280px}
+/* editar publicación */
+#edit-listing-modal{background:rgba(0,0,0,0);transition:background .45s cubic-bezier(.32,.72,0,1)}
+#edit-listing-modal.in{background:rgba(0,0,0,.55)}
+html[data-theme="light"] #edit-listing-modal.in{background:rgba(0,0,0,.28)}
+#edit-listing-modal>div{width:calc(100% - 16px)!important;max-width:540px!important;margin:0 8px 8px;max-height:calc(100dvh - 20px - env(safe-area-inset-top))!important;border-radius:40px!important;border:.5px solid var(--w14);box-shadow:0 10px 30px rgba(0,0,0,.35);overflow:hidden;box-sizing:border-box;animation:rdEdUp .5s cubic-bezier(.32,.72,0,1) backwards!important}
+html[data-theme="light"] #edit-listing-modal>div{border-color:rgba(0,0,0,.1);box-shadow:0 10px 30px rgba(0,0,0,.16)}
+@keyframes rdEdUp{from{transform:translate3d(0,calc(100% + 40px),0)}to{transform:none}}
+.ed-hd{flex-shrink:0;padding:9px 20px 14px}
+.ed-hd .mp-grab{margin-bottom:14px}
+.ed-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ed-row b{font-size:22px;font-weight:700;letter-spacing:-.5px}
+.rd-seg{display:flex;position:relative;margin:16px 0 0;padding:3px;border-radius:13px;background:var(--w7)}
+.rd-seg .edit-tab-btn{flex:1;position:relative;z-index:1;height:32px;display:flex;align-items:center;justify-content:center;border-radius:10px;font-size:13px;font-weight:600;letter-spacing:-.1px;color:var(--w55,rgba(255,255,255,.55));cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .25s}
+.rd-seg .edit-tab-btn.active{color:var(--white);font-weight:700}
+.rd-seg i{position:absolute;z-index:0;top:3px;bottom:3px;left:3px;width:calc((100% - 6px)/3);border-radius:10px;background:var(--surface-mid);box-shadow:0 1px 3px rgba(0,0,0,.25),inset 0 .5px 0 var(--w14);transition:transform .38s cubic-bezier(.32,.72,0,1)}
+html[data-theme="light"] .rd-seg i{background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.ed-ft{flex-shrink:0;padding:12px 18px calc(14px + env(safe-area-inset-bottom)/2)}
+.ed-ft .rd-yb{width:100%;height:52px;border-radius:26px;font-size:16px}
+#edit-current-photos>div{border-radius:14px!important}
+/* eliminar publicación: misma hoja flotante */
+#confirm-delete-overlay{align-items:flex-end!important;padding:0!important;background:rgba(0,0,0,.55)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:rdFadeBg .35s ease both}
+#confirm-delete-overlay>div{width:calc(100% - 16px)!important;max-width:540px!important;margin:0 8px 8px!important;box-sizing:border-box;background:var(--surface-hi)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;border:.5px solid var(--w14)!important;border-radius:40px!important;padding:26px 20px calc(18px + env(safe-area-inset-bottom)/2)!important;animation:rdEdUp .5s cubic-bezier(.32,.72,0,1) backwards}
+#confirm-delete-overlay .cd-ic{width:56px;height:56px;margin:0 auto 14px;border-radius:18px;background:rgba(255,69,58,.12);display:grid;place-items:center;color:#ff453a}
+#confirm-delete-overlay .cd-ic svg{width:26px;height:26px}
+#confirm-delete-overlay button{height:50px!important;padding:0!important;border-radius:25px!important;font-size:15px!important}
+#confirm-delete-overlay button+button{background:#ff453a!important;border:0!important;color:#fff!important}
+@keyframes rdFadeBg{from{background:rgba(0,0,0,0)}}
+@media (prefers-reduced-motion:reduce){#mis-pub-inner,.mp-card,#edit-listing-modal>div,#confirm-delete-overlay>div,.rd-seg i{transition-duration:.01s!important;animation:none!important}}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -15652,41 +15738,56 @@ function initCardSwipe(el, total){
 
 const MOCK_MY_LISTINGS = []; // se carga desde Supabase en _loadMyListings()
 
+const _MP_X='<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+function _mpEmpty(){
+  return `<div class="mp-empty"><div class="mp-ei"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.5-5.5A2 2 0 0 1 9.4 10h5.2a2 2 0 0 1 1.9 1.5L18 17"/><circle cx="8" cy="17.5" r="1.5"/><circle cx="16" cy="17.5" r="1.5"/></svg></div><b>Aún no tienes publicaciones</b><p>Cuando publiques tu carro en el market o en subasta, lo administras desde aquí.</p><button type="button" class="rd-yb" onclick="closeMisPub();setTimeout(()=>{if(typeof openVenderModal==='function')openVenderModal();},320)"><span>vender mi carro</span></button></div>`;
+}
 function openMisPublicaciones(){
   let sheet=document.getElementById('mis-pub-sheet');
-  if(!sheet){
-    sheet=document.createElement('div');
-    sheet.id='mis-pub-sheet';
-    sheet.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);z-index:9990;display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .25s';
-    sheet.onclick=e=>{if(e.target===sheet)closeMisPub();};
-    document.body.appendChild(sheet);
-  }
+  // ya abierta (p. ej. al volver de editar): solo refresca la lista, sin volver a animar
+  if(sheet&&sheet.classList.contains('in')&&!sheet.classList.contains('out')){ _loadMyListings(); return; }
+  if(sheet) sheet.remove();
+  sheet=document.createElement('div');
+  sheet.id='mis-pub-sheet';
+  sheet.onclick=e=>{if(e.target===sheet)closeMisPub();};
   sheet.innerHTML=`
-    <div id="mis-pub-inner" style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;overflow-y:auto;transform:translateY(40px);transition:transform .3s cubic-bezier(.34,1.56,.64,1)">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 18px 14px">
-        <button onclick="closeMisPub()" style="background:var(--w7);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--w60)"><path d="m15 18-6-6 6-6"/></svg></button>
-        <div style="font-size:13px;font-weight:700;color:var(--w40);text-transform:uppercase;letter-spacing:.5px">mis publicaciones</div>
-        <div style="width:32px"></div>
+    <div id="mis-pub-inner">
+      <div class="mp-grab"></div>
+      <div class="mp-hd">
+        <div><div class="mp-t">Mis publicaciones</div><div class="mp-s" id="mis-pub-sub">tus carros en Ruedda</div></div>
+        <button type="button" class="rd-gb mp-x" onclick="closeMisPub()" aria-label="cerrar">${_MP_X}</button>
       </div>
-      <button id="story-publish-btn" onclick="_storyPublishFlow()" style="display:flex;align-items:center;justify-content:center;gap:7px;width:calc(100% - 24px);margin:0 12px 14px;background:var(--w7);border:1px solid var(--w10);border-radius:12px;padding:12px;font-family:var(--font);font-weight:700;font-size:13px;color:var(--white);cursor:pointer">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>
+      <button type="button" id="story-publish-btn" class="rd-yb mp-cta" onclick="_storyPublishFlow()">
+        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         <span>publicar historia</span>
       </button>
-      <div id="mis-pub-grid" style="padding:0 12px 36px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:20px"><div class="save-spinner" style="border-top-color:var(--w60)"></div></div>
-      </div>
+      <div id="mis-pub-grid" class="mp-grid">${'<div class="mp-card mp-sk"><div class="mp-ph rdv-skel"></div><div class="mp-bd"><b class="rdv-skel"></b><b class="rdv-skel"></b></div></div>'.repeat(4)}</div>
     </div>`;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    sheet.style.opacity='1';
-    document.getElementById('mis-pub-inner').style.transform='translateY(0)';
-  }));
+  document.body.appendChild(sheet);
+  _mpDrag(sheet);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>sheet.classList.add('in')));
   _loadMyListings();
+}
+// deslizar hacia abajo desde arriba de la hoja la cierra (sigue el dedo, suelta con resorte)
+function _mpDrag(sheet){
+  const card=sheet.querySelector('#mis-pub-inner'); let y0=null,dy=0,t0=0,on=false;
+  card.addEventListener('touchstart',e=>{ if(card.scrollTop>0||e.touches.length!==1){y0=null;return;} y0=e.touches[0].clientY; dy=0; t0=performance.now(); on=false; },{passive:true});
+  card.addEventListener('touchmove',e=>{
+    if(y0===null) return; dy=e.touches[0].clientY-y0;
+    if(!on){ if(dy<8) { if(dy<-4) y0=null; return; } on=true; card.style.transition='none'; }
+    e.preventDefault(); card.style.transform=`translate3d(0,${Math.max(0,dy)}px,0)`;
+  },{passive:false});
+  card.addEventListener('touchend',()=>{
+    if(y0===null) return; y0=null; if(!on) return;
+    const v=dy/Math.max(1,performance.now()-t0); card.style.transition=''; card.style.transform='';
+    if(dy>120||v>.6) closeMisPub();
+  });
 }
 
 async function _loadMyListings(){
   const grid=document.getElementById('mis-pub-grid');
   if(!grid) return;
-  if(!_supa||!USER_STATE.id){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--w30);font-size:13px">sin publicaciones aún</div>'; return; }
+  if(!_supa||!USER_STATE.id){ grid.innerHTML=_mpEmpty(); return; }
   try{
     const[resListings,resAuctions]=await Promise.all([
       // [RC v8 FIX] antes NO había filtro de estado — autos ya no listados (estados
@@ -15708,7 +15809,7 @@ async function _loadMyListings(){
       return {id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status,republishCount:l.republish_count||0,daysLeft:0,fotos:0,type:'subasta',desc:'',photoUrl:(l.auction_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null};
     });
     const all=[...listings,...auctions];
-    if(!all.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--w30);font-size:13px">sin publicaciones aún</div>'; return; }
+    if(!all.length){ grid.innerHTML=_mpEmpty(); const sb=document.getElementById('mis-pub-sub'); if(sb) sb.textContent='tus carros en Ruedda'; return; }
     MOCK_MY_LISTINGS.splice(0,MOCK_MY_LISTINGS.length,...all);
     _renderMisPubGrid();
   }catch(e){ console.error('[ruedda] _loadMyListings catch:',String(e?.message||e)); }
@@ -15717,72 +15818,78 @@ async function _loadMyListings(){
 function _renderMisPubGrid(){
   const grid=document.getElementById('mis-pub-grid');
   if(!grid) return;
-  if(!MOCK_MY_LISTINGS.length){ grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--w30);font-size:13px">sin publicaciones aún</div>'; return; }
+  if(!MOCK_MY_LISTINGS.length){ grid.innerHTML=_mpEmpty(); return; }
   const markets=MOCK_MY_LISTINGS.filter(l=>l.type==='market');
   const subastas=MOCK_MY_LISTINGS.filter(l=>l.type==='subasta');
-  const sep=(label)=>`<div style="grid-column:1/-1;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px">${label}</div>`;
+  const sb=document.getElementById('mis-pub-sub');
+  if(sb) sb.textContent=[markets.length?`${markets.length} en market`:'',subastas.length?`${subastas.length} ${subastas.length===1?'subasta':'subastas'}`:''].filter(Boolean).join(' · ');
+  const sep=(label,n)=>`<div class="mp-sec">${label}<span>${n}</span></div>`;
+  let k=0;
   const renderCard=(l)=>{
     const isRevision=l.status==='revision'||l.status==='en revisión';
     const isAprobada=l.status==='aprobada';
     const isNegada=l.status==='negada'||l.status==='rechazada';
     const isFinalizada=l.status==='finalizada';
     const isVendido=l.status==='vendido'||l.vendido;
-    const badgeColor=isVendido?'var(--w40)':isAprobada?'rgba(var(--rd-green-rgb),.9)':isRevision?'rgba(255,170,0,.8)':isNegada?'rgba(255,70,70,.9)':isFinalizada?'var(--w45)':'rgba(100,220,100,.9)';
     const isPublicando=l.status==='publicando';
-    const badgeLabel=isVendido?'vendido':isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':isPublicando?'publicando...':isFinalizada?'finalizada':'activa';
-    const badgeColor2=isPublicando?'rgba(255,170,0,.8)':badgeColor;
+    const dot=isVendido?'#8e8e93':isAprobada?'#e6f03b':isRevision||isPublicando?'#ffb020':isNegada?'#ff453a':isFinalizada?'#8e8e93':'#30d158';
+    const badgeLabel=isVendido?'vendido':isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':isPublicando?'publicando…':isFinalizada?'finalizada':'activa';
     // [RC7] republicar (subastas finalizadas, máx 2) y marcar vendido (market activas)
     const republishesLeft=2-(l.republishCount||0);
     const canMarkSold=l.type==='market'&&!isVendido&&!isRevision&&!isNegada&&!isPublicando&&!isAprobada;
     let actionBtn;
     if(isVendido&&l.type==='market'){
       // [2026-10-08] vendido por error → se puede volver a publicar (confirma antes)
-      actionBtn=`<button onclick="event.stopPropagation();_desmarcarVendido('${l.id}')" style="flex:1;background:var(--lime);border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:var(--lime-ink);cursor:pointer">volver a publicar</button>`;
+      actionBtn=`<button type="button" class="rd-yb" onclick="event.stopPropagation();_desmarcarVendido('${l.id}')"><span>volver a publicar</span></button>`;
     }else if(isNegada){
-      actionBtn=`<button onclick="event.stopPropagation();_rdVerMotivo('${l.id}')" style="flex:1;background:rgba(255,70,70,.1);border:1px solid rgba(255,70,70,.28);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:#ff6b6b;cursor:pointer">ver motivo</button>`;
+      actionBtn=`<button type="button" class="rd-gb mp-red" onclick="event.stopPropagation();_rdVerMotivo('${l.id}')">ver motivo</button>`;
     }else if(isVendido||isAprobada){
       // [V126] 'aprobada' es un estado histórico — con el flujo nuevo el admin
       // aprueba y la publicación queda 'activa' directo, sin paso "subir".
       actionBtn='';
     }else if(isFinalizada){
       actionBtn=republishesLeft>0
-        ?`<button onclick="event.stopPropagation();_republishAuction('${l.id}')" style="flex:1;background:var(--lime);border:none;border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:800;color:var(--lime-ink);cursor:pointer">republicar (${republishesLeft})</button>`
-        :`<span style="flex:1;text-align:center;font-size:9px;color:var(--w30);padding:6px 0">límite de republicaciones</span>`;
+        ?`<button type="button" class="rd-yb" onclick="event.stopPropagation();_republishAuction('${l.id}')"><span>republicar (${republishesLeft})</span></button>`
+        :`<span class="mp-lim">límite alcanzado</span>`;
     }else{
-      actionBtn=`<button onclick="event.stopPropagation();openEditListingModal('${l.id}')" style="flex:1;background:var(--w7);border:1px solid var(--w10);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:var(--w70);cursor:pointer">editar</button>`;
+      actionBtn=`<button type="button" class="rd-gb" onclick="event.stopPropagation();openEditListingModal('${l.id}')">editar</button>`;
     }
-    const soldBtn=canMarkSold?`<button onclick="event.stopPropagation();_marcarVendido('${l.id}')" style="flex:1;background:var(--w7);border:1px solid rgba(var(--rd-green-rgb),.25);border-radius:8px;padding:6px;font-family:var(--font);font-size:10px;font-weight:700;color:var(--rd-green);cursor:pointer">vendido</button>`:'';
-    return `<div onclick="openEditListingModal('${l.id}')" style="background:var(--w4);border:1px solid var(--w8);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer">
-      <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a1a2e,#16213e);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+    const soldBtn=canMarkSold?`<button type="button" class="rd-yb" onclick="event.stopPropagation();_marcarVendido('${l.id}')"><span>vendido</span></button>`:'';
+    const d=Math.min(k++,8)*.04;
+    return `<div class="mp-card" style="--d:${d}s" onclick="openEditListingModal('${l.id}')">
+      <div class="mp-ph">
         ${l.photoUrl
-          ?`<img class="rd-lq" src="${_tImg(l.photoUrl,{width:40,quality:40})}" alt="" aria-hidden="true" decoding="async"><img src="${_tImg(l.photoUrl,{width:900,quality:82})}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;opacity:0;transition:opacity .4s ease" loading="lazy" decoding="async" onload="_rdShow(this);const s=this.nextElementSibling;if(s)s.style.display='none'" onerror="this.style.display='none'">
-<div style="position:absolute;inset:0;display:flex;flex-direction:column;gap:6px;padding:10px;justify-content:flex-end">${[1,2,3].map(()=>`<div style="height:6px;border-radius:3px;background:linear-gradient(90deg,var(--w6) 25%,var(--w12) 50%,var(--w6) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite linear"></div>`).join('')}</div>`
-          :`<svg fill="none" viewBox="0 0 40 30" stroke="var(--w12)" stroke-width="1.2" style="width:40px;height:30px"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
-        <span style="position:absolute;top:7px;right:7px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);color:${badgeColor2||badgeColor}">${badgeLabel}</span>
+          ?`<img class="rd-lq" src="${_tImg(l.photoUrl,{width:40,quality:40})}" alt="" aria-hidden="true" decoding="async"><img src="${_tImg(l.photoUrl,{width:900,quality:82})}" alt="" loading="lazy" decoding="async" onload="_rdShow(this)" onerror="this.style.display='none'">`
+          :`<svg fill="none" viewBox="0 0 40 30" stroke="var(--w20)" stroke-width="1.2"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
+        <span class="mp-st" style="--c:${dot}"><i></i>${badgeLabel}</span>
+        <button type="button" class="rd-gb mp-del" onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" aria-label="eliminar"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
       </div>
-      <div style="padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px">
-        <div style="font-size:11px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${l.title}</div>
-        <div style="font-size:12px;font-weight:800;color:${isVendido?'var(--w35)':'var(--rd-green)'};${isVendido?'text-decoration:line-through':''}">${l.price}</div>
-        <div style="display:flex;gap:5px;margin-top:4px">
-          ${actionBtn}${soldBtn}
-          <button onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" style="width:28px;background:rgba(0,0,0,.4);border:1px solid var(--w8);border-radius:8px;padding:6px;font-family:var(--font);font-size:13px;font-weight:700;color:var(--w50);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
-        </div>
+      <div class="mp-bd">
+        <div class="mp-nm">${l.title}</div>
+        <div class="mp-pr${isVendido?' off':''}">${l.price}</div>
+        ${actionBtn||soldBtn?`<div class="mp-ac">${actionBtn}${soldBtn}</div>`:''}
       </div>
     </div>`;
   };
   const parts=[];
-  if(markets.length){parts.push(sep('market'));parts.push(...markets.map(renderCard));}
-  if(subastas.length){parts.push(sep('subastas'));parts.push(...subastas.map(renderCard));}
+  if(markets.length){parts.push(sep('Market',markets.length));parts.push(...markets.map(renderCard));}
+  if(subastas.length){parts.push(sep('Subastas',subastas.length));parts.push(...subastas.map(renderCard));}
   grid.innerHTML=parts.join('');
 }
 
 function closeMisPub(){
   const s=document.getElementById('mis-pub-sheet');
-  const i=document.getElementById('mis-pub-inner');
-  if(!s)return;
-  s.style.opacity='0';
-  if(i)i.style.transform='translateY(40px)';
-  setTimeout(()=>s.remove(),280);
+  if(!s||s.classList.contains('out'))return;
+  s.classList.add('out'); s.classList.remove('in');
+  setTimeout(()=>s.remove(),320);
+}
+// cierre suave de la hoja de editar (mismo gesto que el resto de las hojas)
+function _rdEdClose(){
+  const m=document.getElementById('edit-listing-modal'); if(!m||m.dataset.out) return;
+  m.dataset.out='1'; m.classList.remove('in');
+  const c=m.querySelector('div');
+  if(c){ c.style.transition='transform .3s cubic-bezier(.4,0,1,1)'; c.style.transform='translate3d(0,calc(100% + 40px),0)'; }
+  setTimeout(()=>m.remove(),300);
 }
 
 // [REDISEÑO] modal de editar publicación — antes leía de un array local recortado
@@ -15795,8 +15902,9 @@ async function openEditListingModal(id){
   if(modal) modal.remove();
   modal=document.createElement('div');
   modal.id='edit-listing-modal';
-  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);z-index:9995;display:flex;align-items:flex-end;justify-content:center';
-  modal.onclick=e=>{if(e.target===modal)modal.remove();};
+  modal.style.cssText='position:fixed;inset:0;z-index:9995;display:flex;align-items:flex-end;justify-content:center;font-family:var(--font)';
+  modal.onclick=e=>{if(e.target===modal)_rdEdClose();};
+  requestAnimationFrame(()=>modal.classList.add('in'));
   modal.innerHTML=`<div style="background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;display:flex;align-items:center;justify-content:center;padding:60px 20px;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)"><div class="save-spinner"></div></div>`;
   document.body.appendChild(modal);
   if(!_supa){ modal.remove(); showToast('sin conexión a Supabase'); return; }
@@ -15823,14 +15931,14 @@ async function openEditListingModal(id){
   const inner=modal.querySelector('div');
   inner.style.padding='0';
   inner.innerHTML=`
-    <div style="padding:20px 18px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-      <div style="font-size:15px;font-weight:700">editar publicación</div>
-      <button onclick="document.getElementById('edit-listing-modal').remove()" style="background:var(--w7);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:var(--w50)">×</button>
-    </div>
-    <div style="display:flex;gap:6px;padding:0 18px 14px;flex-shrink:0">
-      <div class="edit-tab-btn active" data-t="basico" style="flex:1;text-align:center;background:rgba(var(--rd-green-rgb),.15);border:1px solid rgba(var(--rd-green-rgb),.3);border-radius:10px;padding:9px;font-size:12px;font-weight:700;color:var(--rd-green);cursor:pointer;transition:all .15s">básico</div>
-      <div class="edit-tab-btn" data-t="detalles" style="flex:1;text-align:center;background:var(--w5);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:12px;font-weight:700;color:var(--w50);cursor:pointer;transition:all .15s">detalles</div>
-      <div class="edit-tab-btn" data-t="fotos" style="flex:1;text-align:center;background:var(--w5);border:1px solid var(--border);border-radius:10px;padding:9px;font-size:12px;font-weight:700;color:var(--w50);cursor:pointer;transition:all .15s">fotos</div>
+    <div class="ed-hd">
+      <div class="mp-grab"></div>
+      <div class="ed-row"><b>Editar publicación</b><button type="button" class="rd-gb mp-x" onclick="_rdEdClose()" aria-label="cerrar">${_MP_X}</button></div>
+      <div class="rd-seg"><i></i>
+        <div class="edit-tab-btn active" data-t="basico">básico</div>
+        <div class="edit-tab-btn" data-t="detalles">detalles</div>
+        <div class="edit-tab-btn" data-t="fotos">fotos</div>
+      </div>
     </div>
     <div style="overflow-y:auto;padding:4px 18px 18px;flex:1">
 
@@ -15901,20 +16009,20 @@ async function openEditListingModal(id){
       </div>
 
     </div>
-    <div style="padding:14px 18px;border-top:1px solid var(--border);flex-shrink:0">
-      <button id="save-listing-btn" onclick="saveListingEdit('${id}')" style="width:100%;background:var(--lime);color:var(--lime-ink);border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;transition:opacity .2s">guardar cambios</button>
+    <div class="ed-ft">
+      <button type="button" id="save-listing-btn" class="rd-yb" onclick="saveListingEdit('${id}')">guardar cambios</button>
     </div>`;
-  inner.style.cssText='background:var(--surface-hi);border-radius:20px 20px 0 0;width:100%;max-width:480px;max-height:88vh;max-height:88dvh;display:flex;flex-direction:column;animation:slideUp .3s cubic-bezier(.25,.46,.45,.94)';
+  inner.style.cssText='background:var(--surface-hi);width:100%;display:flex;flex-direction:column';
 
   // tabs
   modal.querySelectorAll('.edit-tab-btn').forEach(btn=>{
     btn.onclick=()=>{
       modal.querySelectorAll('.edit-tab-btn').forEach(b=>{
         b.classList.remove('active');
-        b.style.background='var(--w5)'; b.style.borderColor='var(--border)'; b.style.color='var(--w50)';
       });
       btn.classList.add('active');
-      btn.style.background='rgba(var(--rd-green-rgb),.15)'; btn.style.borderColor='rgba(var(--rd-green-rgb),.3)'; btn.style.color='var(--rd-green)';
+      const seg=btn.parentElement.querySelector('i'), ix=['basico','detalles','fotos'].indexOf(btn.dataset.t);
+      if(seg) seg.style.transform=`translateX(${ix*100}%)`;
       ['basico','detalles','fotos'].forEach(t=>{
         const p=document.getElementById('edit-panel-'+t);
         if(p) p.style.display = t===btn.dataset.t ? 'flex' : 'none';
@@ -16159,8 +16267,8 @@ function confirmDeleteListing(id){
   overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
   overlay.innerHTML=`
     <div style="background:var(--gc10);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border:1px solid var(--w10);border-radius:24px;padding:28px 24px;max-width:320px;width:100%;text-align:center;animation:fadeInUp .25s cubic-bezier(.25,.46,.45,.94)">
-      <div style="font-size:32px;margin-bottom:12px">🗑️</div>
-      <div style="font-size:17px;font-weight:700;margin-bottom:8px;letter-spacing:-.2px">¿Eliminarás tu publicación? <span style="color:var(--w50)">:(</span></div>
+      <div class="cd-ic"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:8px;letter-spacing:-.4px">¿Eliminar tu publicación?</div>
       <div style="font-size:13px;color:var(--w40);line-height:1.6;margin-bottom:24px">Esta acción no se puede deshacer. Tu publicación desaparecerá del market.</div>
       <div style="display:flex;gap:10px">
         <button onclick="document.getElementById('confirm-delete-overlay').remove()" style="flex:1;background:var(--w7);border:1px solid var(--w10);border-radius:13px;padding:13px;font-family:var(--font);font-size:14px;font-weight:600;color:var(--w70);cursor:pointer;transition:background .15s" onmouseover="this.style.background='var(--w12)'" onmouseout="this.style.background='var(--w7)'">cancelar</button>
