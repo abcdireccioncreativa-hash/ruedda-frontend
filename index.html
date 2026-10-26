@@ -13604,8 +13604,11 @@ function _renderSearchPopMarcas(){
   const wrap=document.getElementById('search-pop-marcas');
   if(!wrap) return;
   wrap.innerHTML=_searchPopMarcasList.map(m=>{
-    const url=MARCA_LOGOS[m];
-    const avatar=url
+    const url=MARCA_LOGOS[m], sv=MARCA_SVG[m];
+    // [V153] los logos viven en el sprite assets/marcas.svg (igual que la vista Marcas)
+    const avatar=sv
+      ?`<svg aria-hidden="true" style="display:block;width:${sv[1]}%;height:${sv[2]}%;fill:currentColor;color:var(--white)"><use href="${MARCA_SVG_URL}#mk-${sv[0]}"/></svg>`
+      :url
       ?`<img src="${url}" style="width:100%;height:100%;object-fit:contain;padding:8px;box-sizing:border-box" loading="lazy" decoding="async">`
       :`<span style="font-size:15px;font-weight:800;color:var(--w40)">${_esc(m.charAt(0))}</span>`;
     return `<div onclick="closeSearch();goToMarcaFilter('${m}')" style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;width:56px">
