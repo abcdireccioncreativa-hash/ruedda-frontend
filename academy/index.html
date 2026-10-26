@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#000000">
 <title>Ruedda Academy</title>
-<meta name="description" content="La escuela automotriz de Ruedda. Mecánica, manejo y compra segura. Programas para mujeres, jóvenes y empresas. Cupos limitados.">
+<meta name="description" content="La escuela automotriz de Ruedda. Mecánica, manejo y compra segura, presencial y online, con certificado avalado. Abierta a todos.">
 <meta property="og:title" content="Ruedda Academy">
-<meta property="og:description" content="La escuela automotriz de Ruedda. Formación seria. Cupos limitados.">
+<meta property="og:description" content="La escuela automotriz de Ruedda. Presencial y online, con certificado avalado.">
 <meta property="og:image" content="https://www.ruedda.app/waitlist/ruedda.png">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="preload" href="/assets/fonts/opensauceone-300.906e8fb6.woff2" as="font" type="font/woff2" crossorigin>
@@ -98,6 +98,20 @@ section{padding:14vh 0 0}
 .cols b{display:block;font-weight:300;font-size:clamp(20px,4.6vw,28px);letter-spacing:-.03em;line-height:1.1}
 .cols p{margin-top:10px;font-size:14px;line-height:1.6;color:var(--mute)}
 .cols .lab{display:block;margin-bottom:14px}
+
+
+/* fotos */
+.ph{position:relative;overflow:hidden;background:#0d0d0d;margin:0}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transform:scale(1.035);transition:opacity 1.2s var(--ease),transform 1.8s var(--ease)}
+.ph img.ld{opacity:1;transform:none}
+.w21{aspect-ratio:4/3}.w32{aspect-ratio:3/2}.w45{aspect-ratio:4/5}.w169{aspect-ratio:16/10}.w43{aspect-ratio:4/3}
+.band{margin-top:2vh}
+.ph.in{margin-top:34px}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding-top:12vh}
+.strip .lab{display:block;margin-top:12px}
+.pd .pf{margin-bottom:6px}
+.cmf{margin-top:22px}
+.sf{display:none}
 
 /* programas (desplegables) */
 .pr details{border-bottom:1px solid var(--line)}
@@ -234,6 +248,11 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
   .pd>div:last-child{grid-column:2/4}
   .ft1{grid-template-columns:1.3fr 1fr;align-items:end;column-gap:8vw}
   .fm{grid-template-columns:repeat(5,1fr)}
+  .w21{aspect-ratio:21/9}
+  .pd .pf{grid-column:1/-1;aspect-ratio:21/8}
+  .strip{gap:20px}
+  .sf{display:block;width:100%;margin-top:30px}
+  .cm .cmf{max-width:none}
 }
 @media (prefers-reduced-motion:reduce){.r,.rv{animation:none;transition:none;opacity:1;transform:none}html{scroll-behavior:auto}}
 </style>
@@ -265,14 +284,14 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
         <a href="#jovenes"><b>ruedda jóvenes</b><span>El primer carro, con criterio.</span></a>
         <a href="#empresas"><b>empresas y concesionarios</b><span>Formación para equipos.</span></a>
       </div></div>
-    <div class="dd"><button type="button">admisión</button>
+    <div class="dd"><button type="button">inscripción</button>
       <div class="pn">
-        <a href="#admision"><b>proceso de admisión</b><span>De la solicitud al primer día.</span></a>
+        <a href="#admision"><b>cómo inscribirse</b><span>De la solicitud al certificado.</span></a>
         <a href="#requisitos"><b>requisitos</b><span>Lo que se le pedirá.</span></a>
         <a href="#preguntas"><b>preguntas frecuentes</b><span>Respuestas directas.</span></a>
         <a href="#normas"><b>normas</b><span>Conducta, seguridad y privacidad.</span></a>
       </div></div>
-    <a class="cta" href="#cupo">solicitar cupo</a>
+    <a class="cta" href="#cupo">inscribirse</a>
   </nav>
   <button class="mb" type="button" id="mbo" aria-label="abrir menú" aria-controls="mm" aria-expanded="false"><span>menú</span><i></i></button>
 </header>
@@ -290,10 +309,10 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
       <a href="#p-compra" data-c>compra inteligente</a><a href="#p-diagnostico" data-c>diagnóstico y electricidad</a><a href="#p-venta" data-c>venta profesional</a></div></div></div>
     <div class="acc"><button type="button" class="cx"><span>comunidades</span><span>+</span></button><div class="sub"><div>
       <a href="#mujeres" data-c>ruedda mujeres</a><a href="#jovenes" data-c>ruedda jóvenes</a><a href="#empresas" data-c>empresas y concesionarios</a></div></div></div>
-    <div class="acc"><button type="button" class="cx"><span>admisión</span><span>+</span></button><div class="sub"><div>
-      <a href="#admision" data-c>proceso de admisión</a><a href="#requisitos" data-c>requisitos</a><a href="#preguntas" data-c>preguntas frecuentes</a><a href="#normas" data-c>normas</a></div></div></div>
+    <div class="acc"><button type="button" class="cx"><span>inscripción</span><span>+</span></button><div class="sub"><div>
+      <a href="#admision" data-c>cómo inscribirse</a><a href="#requisitos" data-c>requisitos</a><a href="#preguntas" data-c>preguntas frecuentes</a><a href="#normas" data-c>normas</a></div></div></div>
   </div>
-  <div class="bot"><a class="go" href="#cupo" data-c><span>solicitar cupo</span><i class="ar"></i></a></div>
+  <div class="bot"><a class="go" href="#cupo" data-c><span>inscribirse</span><i class="ar"></i></a></div>
 </div>
 
 <main id="top">
@@ -301,15 +320,16 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
     <div id="flag" class="r" aria-hidden="true"></div>
     <h1 class="cx r" style="animation-delay:.35s">la escuela automotriz<br>de ruedda.</h1>
     <p class="h cx r" style="animation-delay:.5s">formación seria.</p>
-    <p class="lead r" style="animation-delay:.65s">Mecánica, manejo y compra segura, enseñados sobre carros reales. Programas para <b>mujeres</b>, para <b>jóvenes</b> y para quien vive de los carros.</p>
-    <a class="go r" href="#cupo" style="animation-delay:.8s"><span>solicitar cupo</span><i class="ar"></i></a>
+    <p class="lead r" style="animation-delay:.65s">Mecánica, manejo y compra segura, <b>presencial y online</b>. Abierta a todos: programas para <b>mujeres</b>, para <b>jóvenes</b> y para quien vive de los carros, con <b>certificado avalado</b>.</p>
+    <a class="go r" href="#cupo" style="animation-delay:.8s"><span>inscribirse</span><i class="ar"></i></a>
     <div class="facts r" style="animation-delay:.95s">
       <div><b class="cx">6 programas</b><span>del nivel básico al profesional</span></div>
-      <div><b class="cx">presencial</b><span>taller, aula y calle</span></div>
-      <div><b class="cx">por cohortes</b><span>cupos contados</span></div>
-      <div><b class="cx">con admisión</b><span>cada solicitud se revisa</span></div>
+      <div><b class="cx">presencial y online</b><span>taller, aula, calle y en línea</span></div>
+      <div><b class="cx">abierta a todos</b><span>sin experiencia previa</span></div>
+      <div><b class="cx">certificado avalado</b><span>digital, a su nombre</span></div>
     </div>
   </div>
+  <div class="band rv"><figure class="ph w21"><img src="img/taller-1200.webp" srcset="img/taller-640.webp 640w, img/taller-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Alumno trabajando bajo un carro en el taller" loading="lazy" decoding="async"></figure></div>
 
   <!-- LA ACADEMIA -->
   <section id="academia" class="split">
@@ -318,7 +338,8 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
       <p class="big">En Venezuela, la mayoría de las personas compra, maneja y mantiene un carro sin que nadie se lo haya enseñado.</p>
       <p>Ruedda Academy nace de esa realidad. Ruedda es el mercado automotriz donde miles de venezolanos compran y venden vehículos todos los días; desde ahí vemos, una y otra vez, las mismas consecuencias de la falta de formación: compras mal hechas, reparaciones innecesarias, fallas que se pudieron prevenir y conductores que dependen por completo de terceros.</p>
       <p>La academia es la respuesta institucional de Ruedda a ese problema. <b>Enseñamos a entender el carro</b>, no solo a usarlo: cómo funciona, cómo se cuida, cómo se diagnostica, cómo se compra y cómo se vende con criterio.</p>
-      <p>No somos un taller que da charlas ni un curso en línea. Somos una escuela con programas estructurados, instructores con oficio, evaluación real y un proceso de admisión que respeta el tiempo de quien entra.</p>
+      <p>No somos un taller que da charlas ni un curso en línea. Somos una escuela abierta a todos, con programas estructurados, instructores con oficio, clases presenciales y en línea, evaluación real y certificados avalados por Ruedda Academy.</p>
+      <figure class="ph w32 in"><img src="img/motor-mecanico-1200.webp" srcset="img/motor-mecanico-640.webp 640w, img/motor-mecanico-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Mecánico revisando el motor de un carro" loading="lazy" decoding="async"></figure>
     </div>
   </section>
 
@@ -326,7 +347,7 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
     <div class="sh rv"><p class="h cx">misión y visión.</p><span class="lab">propósito</span></div>
     <div class="cols c2 rv">
       <div><span class="lab">misión</span><b class="cx">Formar conductores, compradores y profesionales que entiendan el carro.</b><p>Llevar conocimiento automotriz práctico y verificable a cualquier persona, sin importar su punto de partida, con la seriedad de una institución y la exigencia de un taller.</p></div>
-      <div><span class="lab">visión</span><b class="cx">Ser la referencia de formación automotriz en Venezuela.</b><p>Que una constancia de Ruedda Academy signifique, para cualquier comprador, empleador o concesionario, que esa persona sabe lo que hace.</p></div>
+      <div><span class="lab">visión</span><b class="cx">Ser la referencia de formación automotriz en Venezuela.</b><p>Que un certificado de Ruedda Academy signifique, para cualquier comprador, empleador o concesionario, que esa persona sabe lo que hace.</p></div>
     </div>
   </section>
 
@@ -344,34 +365,40 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
     <div class="sh rv"><p class="h cx">método.</p><span class="lab">cómo se aprende</span></div>
     <div class="cols rv">
       <div><b class="cx">carros reales.</b><p>Se aprende con las manos, en el taller y en la calle. La teoría existe para explicar lo que se va a tocar.</p></div>
-      <div><b class="cx">grupos pequeños.</b><p>Cupos contados por cohorte para que cada alumno practique y reciba corrección directa del instructor.</p></div>
-      <div><b class="cx">evaluación práctica.</b><p>Cada programa cierra con una prueba sobre un vehículo. Quien la aprueba, recibe su constancia.</p></div>
-      <div><b class="cx">constancia ruedda.</b><p>La constancia queda registrada en su perfil de Ruedda, visible para compradores y concesionarios cuando usted lo autorice.</p></div>
+      <div><b class="cx">presencial u online.</b><p>Clases prácticas en taller y en la calle, y cursos en línea que usted avanza a su ritmo, desde cualquier ciudad.</p></div>
+      <div><b class="cx">evaluación práctica.</b><p>Cada programa cierra con una evaluación: práctica sobre un vehículo en los cursos presenciales y en línea en los cursos online. Quien la aprueba, recibe su certificado.</p></div>
+      <div><b class="cx">certificado avalado.</b><p>Certificado digital avalado por Ruedda Academy, a su nombre. Se descarga en línea y queda registrado en su perfil de Ruedda, visible para compradores y concesionarios cuando usted lo autorice.</p></div>
     </div>
   </section>
+
+  <div class="strip rv">
+    <div><figure class="ph w45"><img src="img/banco-taller-1200.webp" srcset="img/banco-taller-640.webp 640w, img/banco-taller-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Banco de trabajo de un taller mecánico" loading="lazy" decoding="async"></figure><span class="lab">taller</span></div>
+    <div><figure class="ph w45"><img src="img/manejo-1200.webp" srcset="img/manejo-640.webp 640w, img/manejo-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Práctica de manejo en carretera" loading="lazy" decoding="async"></figure><span class="lab">calle</span></div>
+    <div><figure class="ph w45"><img src="img/online-1200.webp" srcset="img/online-640.webp 640w, img/online-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Curso en línea desde una computadora" loading="lazy" decoding="async"></figure><span class="lab">en línea</span></div>
+  </div>
 
   <!-- PROGRAMAS -->
   <section id="programas">
     <div class="sh rv"><p class="h cx">programas.</p><span class="lab">seis</span></div>
     <div class="pr">
       <details id="p-mecanica" class="rv"><summary><span class="n cx">mecánica esencial</span><span class="t">Entienda su carro antes de que falle.</span><span class="w">para todos</span><span class="x">+</span></summary>
-        <div class="pd"><div><span class="lab">contenido</span><ol><li>Cómo funciona un carro: motor, transmisión y tren de rodaje</li><li>Fluidos, filtros y su calendario de mantenimiento</li><li>Frenos, cauchos y suspensión: señales de desgaste</li><li>Batería, arranque y luces</li><li>Qué hacer ante una falla en la vía</li><li>Cómo hablar con un mecánico y leer un presupuesto</li></ol></div>
-        <div><span class="lab">a quién va dirigido</span><p>A cualquier persona que maneje o vaya a manejar, sin conocimientos previos.</p><p>Al terminar, usted podrá hacer el mantenimiento básico de su vehículo, detectar fallas a tiempo y evitar reparaciones innecesarias.</p><button type="button" data-p="mecanica">solicitar cupo <i class="ar"></i></button></div></div></details>
+        <div class="pd"><figure class="ph w21 pf"><img src="img/motor-1200.webp" srcset="img/motor-640.webp 640w, img/motor-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Motor de un carro deportivo" loading="lazy" decoding="async"></figure><div><span class="lab">contenido</span><ol><li>Cómo funciona un carro: motor, transmisión y tren de rodaje</li><li>Fluidos, filtros y su calendario de mantenimiento</li><li>Frenos, cauchos y suspensión: señales de desgaste</li><li>Batería, arranque y luces</li><li>Qué hacer ante una falla en la vía</li><li>Cómo hablar con un mecánico y leer un presupuesto</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A cualquier persona que maneje o vaya a manejar, sin conocimientos previos.</p><p>Al terminar, usted podrá hacer el mantenimiento básico de su vehículo, detectar fallas a tiempo y evitar reparaciones innecesarias.</p><button type="button" data-p="mecanica">inscribirse <i class="ar"></i></button></div></div></details>
       <details id="p-mujeres" class="rv"><summary><span class="n cx">mujeres al volante</span><span class="t">Mecánica, manejo y compra segura, en grupos solo para mujeres.</span><span class="w">mujeres</span><span class="x">+</span></summary>
-        <div class="pd"><div><span class="lab">contenido</span><ol><li>Mecánica esencial, explicada sin tecnicismos</li><li>Cambio de caucho, batería y revisión de fluidos, en práctica</li><li>Manejo defensivo y seguridad personal en la vía</li><li>Qué hacer ante un accidente o una avería</li><li>Cómo comprar un carro sin depender de terceros</li><li>Cómo evaluar un taller y un presupuesto</li></ol></div>
-        <div><span class="lab">a quién va dirigido</span><p>A mujeres de cualquier edad y nivel, desde quien aún no maneja hasta quien maneja a diario y quiere independencia frente al carro.</p><p>Grupos exclusivos, en un ambiente de confianza y respeto.</p><button type="button" data-p="mujeres">solicitar cupo <i class="ar"></i></button></div></div></details>
+        <div class="pd"><figure class="ph w21 pf"><img src="img/mujer-volante-1200.webp" srcset="img/mujer-volante-640.webp 640w, img/mujer-volante-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Mujer al volante de un carro clásico" loading="lazy" decoding="async"></figure><div><span class="lab">contenido</span><ol><li>Mecánica esencial, explicada sin tecnicismos</li><li>Cambio de caucho, batería y revisión de fluidos, en práctica</li><li>Manejo defensivo y seguridad personal en la vía</li><li>Qué hacer ante un accidente o una avería</li><li>Cómo comprar un carro sin depender de terceros</li><li>Cómo evaluar un taller y un presupuesto</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A mujeres de cualquier edad y nivel, desde quien aún no maneja hasta quien maneja a diario y quiere independencia frente al carro.</p><p>Grupos exclusivos, en un ambiente de confianza y respeto.</p><button type="button" data-p="mujeres">inscribirse <i class="ar"></i></button></div></div></details>
       <details id="p-jovenes" class="rv"><summary><span class="n cx">jóvenes conductores</span><span class="t">Primer carro, manejo defensivo y responsabilidad.</span><span class="w">16 a 24 años</span><span class="x">+</span></summary>
-        <div class="pd"><div><span class="lab">contenido</span><ol><li>Normas de tránsito y documentos obligatorios</li><li>Manejo defensivo, distancia y velocidad</li><li>Alcohol, celular y distracciones: consecuencias reales</li><li>Mantenimiento básico del primer carro</li><li>Costos reales de tener un vehículo</li><li>Cómo comprar el primer carro con criterio</li></ol></div>
-        <div><span class="lab">a quién va dirigido</span><p>A jóvenes entre 16 y 24 años que empiezan a manejar o están por tener su primer vehículo.</p><p>Los menores de edad se inscriben con la autorización de su representante, quien recibe el seguimiento del programa.</p><button type="button" data-p="jovenes">solicitar cupo <i class="ar"></i></button></div></div></details>
+        <div class="pd"><figure class="ph w21 pf"><img src="img/llave-carro-1200.webp" srcset="img/llave-carro-640.webp 640w, img/llave-carro-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Mano entregando la llave de un carro" loading="lazy" decoding="async"></figure><div><span class="lab">contenido</span><ol><li>Normas de tránsito y documentos obligatorios</li><li>Manejo defensivo, distancia y velocidad</li><li>Alcohol, celular y distracciones: consecuencias reales</li><li>Mantenimiento básico del primer carro</li><li>Costos reales de tener un vehículo</li><li>Cómo comprar el primer carro con criterio</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A jóvenes entre 16 y 24 años que empiezan a manejar o están por tener su primer vehículo.</p><p>Los menores de edad se inscriben con la autorización de su representante, quien recibe el seguimiento del programa.</p><button type="button" data-p="jovenes">inscribirse <i class="ar"></i></button></div></div></details>
       <details id="p-compra" class="rv"><summary><span class="n cx">compra inteligente</span><span class="t">Inspección pre-compra, papeles y precio justo.</span><span class="w">compradores</span><span class="x">+</span></summary>
-        <div class="pd"><div><span class="lab">contenido</span><ol><li>Cómo leer una publicación y descartar a tiempo</li><li>Inspección visual: carrocería, choques y pintura</li><li>Inspección mecánica y prueba de manejo</li><li>Lectura básica con escáner OBD2</li><li>Documentos, traspaso y señales de fraude</li><li>Precio justo y negociación</li></ol></div>
-        <div><span class="lab">a quién va dirigido</span><p>A quien va a comprar un carro, usado o nuevo, y no quiere depender de la palabra del vendedor.</p><p>Al terminar, usted podrá inspeccionar un vehículo con método y negociar con datos.</p><button type="button" data-p="compra">solicitar cupo <i class="ar"></i></button></div></div></details>
+        <div class="pd"><figure class="ph w21 pf"><img src="img/interior-lujo-1200.webp" srcset="img/interior-lujo-640.webp 640w, img/interior-lujo-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Interior de un carro de lujo" loading="lazy" decoding="async"></figure><div><span class="lab">contenido</span><ol><li>Cómo leer una publicación y descartar a tiempo</li><li>Inspección visual: carrocería, choques y pintura</li><li>Inspección mecánica y prueba de manejo</li><li>Lectura básica con escáner OBD2</li><li>Documentos, traspaso y señales de fraude</li><li>Precio justo y negociación</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A quien va a comprar un carro, usado o nuevo, y no quiere depender de la palabra del vendedor.</p><p>Al terminar, usted podrá inspeccionar un vehículo con método y negociar con datos.</p><button type="button" data-p="compra">inscribirse <i class="ar"></i></button></div></div></details>
       <details id="p-diagnostico" class="rv"><summary><span class="n cx">diagnóstico y electricidad</span><span class="t">Escáner OBD2, sensores, códigos de falla y sistema eléctrico.</span><span class="w">nivel técnico</span><span class="x">+</span></summary>
-        <div class="pd"><div><span class="lab">contenido</span><ol><li>Fundamentos de electricidad automotriz</li><li>Uso del multímetro</li><li>Escáner OBD2: lectura e interpretación de códigos</li><li>Sensores y actuadores del motor</li><li>Diagnóstico por síntomas</li><li>Informe técnico para el cliente</li></ol></div>
-        <div><span class="lab">a quién va dirigido</span><p>A mecánicos, aprendices y aficionados con conocimientos básicos que quieren diagnosticar con método.</p><p>Se recomienda haber cursado mecánica esencial o tener experiencia equivalente.</p><button type="button" data-p="diagnostico">solicitar cupo <i class="ar"></i></button></div></div></details>
+        <div class="pd"><figure class="ph w21 pf"><img src="img/motor-bn-1200.webp" srcset="img/motor-bn-640.webp 640w, img/motor-bn-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Detalle del bloque de un motor" loading="lazy" decoding="async"></figure><div><span class="lab">contenido</span><ol><li>Fundamentos de electricidad automotriz</li><li>Uso del multímetro</li><li>Escáner OBD2: lectura e interpretación de códigos</li><li>Sensores y actuadores del motor</li><li>Diagnóstico por síntomas</li><li>Informe técnico para el cliente</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A mecánicos, aprendices y aficionados con conocimientos básicos que quieren diagnosticar con método.</p><p>Se recomienda haber cursado mecánica esencial o tener experiencia equivalente.</p><button type="button" data-p="diagnostico">inscribirse <i class="ar"></i></button></div></div></details>
       <details id="p-venta" class="rv"><summary><span class="n cx">venta profesional</span><span class="t">Tasación, fotografía, publicación y cierre.</span><span class="w">profesionales</span><span class="x">+</span></summary>
-        <div class="pd"><div><span class="lab">contenido</span><ol><li>Tasación de un vehículo con datos del mercado</li><li>Preparación y fotografía del carro</li><li>Publicación que vende: título, precio y descripción</li><li>Atención al comprador y prueba de manejo</li><li>Negociación y cierre</li><li>Documentos y entrega</li></ol></div>
-        <div><span class="lab">a quién va dirigido</span><p>A vendedores independientes, equipos de concesionarios y personas que venden vehículos con frecuencia.</p><p>Incluye práctica sobre publicaciones reales en Ruedda.</p><button type="button" data-p="venta">solicitar cupo <i class="ar"></i></button></div></div></details>
+        <div class="pd"><figure class="ph w21 pf"><img src="img/showroom-1200.webp" srcset="img/showroom-640.webp 640w, img/showroom-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Carro clásico en una sala de exhibición" loading="lazy" decoding="async"></figure><div><span class="lab">contenido</span><ol><li>Tasación de un vehículo con datos del mercado</li><li>Preparación y fotografía del carro</li><li>Publicación que vende: título, precio y descripción</li><li>Atención al comprador y prueba de manejo</li><li>Negociación y cierre</li><li>Documentos y entrega</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A vendedores independientes, equipos de concesionarios y personas que venden vehículos con frecuencia.</p><p>Incluye práctica sobre publicaciones reales en Ruedda.</p><button type="button" data-p="venta">inscribirse <i class="ar"></i></button></div></div></details>
     </div>
   </section>
 
@@ -379,15 +406,15 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
   <section id="comunidades" class="split">
     <div class="sh rv"><p class="h cx">comunidades.</p><span class="lab">para quién</span></div>
     <div class="cm">
-      <article id="mujeres" class="rv"><div class="k"><h3 class="cx">ruedda mujeres.</h3><span class="lab">autonomía</span></div>
+      <article id="mujeres" class="rv"><div class="k"><h3 class="cx">ruedda mujeres.</h3><span class="lab">autonomía</span></div><figure class="ph w169 cmf"><img src="img/mujer-piloto-1200.webp" srcset="img/mujer-piloto-640.webp 640w, img/mujer-piloto-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Pionera del automovilismo al volante" loading="lazy" decoding="async"></figure>
         <p>Durante demasiado tiempo, a muchas mujeres se les ha explicado el carro a medias, se les ha cobrado de más en el taller o se les ha dicho que eso no es para ellas. Ruedda Mujeres existe para terminar con eso.</p>
         <p>Es un espacio de formación exclusivo, con grupos solo para mujeres, donde se aprende a mantener, manejar, comprar y vender un vehículo con total independencia.</p>
         <ul><li>Grupos exclusivos para mujeres</li><li>Práctica real sobre vehículos, desde el primer día</li><li>Seguridad personal en la vía como eje del programa</li><li>Red de egresadas dentro de Ruedda</li></ul></article>
-      <article id="jovenes" class="rv"><div class="k"><h3 class="cx">ruedda jóvenes.</h3><span class="lab">criterio</span></div>
+      <article id="jovenes" class="rv"><div class="k"><h3 class="cx">ruedda jóvenes.</h3><span class="lab">criterio</span></div><figure class="ph w169 cmf"><img src="img/conductor-1200.webp" srcset="img/conductor-640.webp 640w, img/conductor-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Joven conductor al volante" loading="lazy" decoding="async"></figure>
         <p>El primer carro es una libertad y una responsabilidad. Ruedda Jóvenes prepara a quienes empiezan a manejar para hacerlo con criterio: conocer el vehículo, respetar la vía y tomar buenas decisiones cuando nadie los está viendo.</p>
         <p>Los representantes forman parte del proceso. Reciben información del avance y de los temas tratados, y pueden participar en las sesiones de cierre.</p>
         <ul><li>De 16 a 24 años</li><li>Autorización del representante para menores de edad</li><li>Manejo defensivo y prevención de riesgos</li><li>Primer carro: costos, compra y mantenimiento</li></ul></article>
-      <article id="empresas" class="rv"><div class="k"><h3 class="cx">empresas y concesionarios.</h3><span class="lab">equipos</span></div>
+      <article id="empresas" class="rv"><div class="k"><h3 class="cx">empresas y concesionarios.</h3><span class="lab">equipos</span></div><figure class="ph w169 cmf"><img src="img/concesionario-1200.webp" srcset="img/concesionario-640.webp 640w, img/concesionario-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Sala de un concesionario" loading="lazy" decoding="async"></figure>
         <p>Ruedda Academy diseña programas cerrados para concesionarios, flotas, talleres y empresas con personal que maneja o vende vehículos.</p>
         <p>El contenido se ajusta a la operación de cada organización y se puede impartir en sus instalaciones o en las de la academia.</p>
         <ul><li>Formación de equipos de venta</li><li>Manejo defensivo para conductores de flota</li><li>Diagnóstico para personal de taller</li><li>Reporte de resultados por participante</li></ul></article>
@@ -396,12 +423,12 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
 
   <!-- ADMISIÓN -->
   <section id="admision" class="split">
-    <div class="sh rv"><p class="h cx">admisión.</p><span class="lab">proceso</span></div>
+    <div class="sh rv"><p class="h cx">inscripción.</p><span class="lab">abierta a todos</span></div>
     <ol class="steps rv">
-      <li><div><b class="cx">solicitud.</b><p>Usted completa el formulario de esta página con el programa de su interés.</p></div></li>
-      <li><div><b class="cx">contacto.</b><p>Un coordinador de la academia le escribe por WhatsApp para conocer su nivel, su disponibilidad y sus objetivos.</p></div></li>
-      <li><div><b class="cx">confirmación.</b><p>Si hay cupo en la próxima cohorte, se le informan fechas, horarios, sede y arancel. Si no lo hay, queda en lista de espera con prioridad.</p></div></li>
-      <li><div><b class="cx">inicio.</b><p>Usted formaliza su inscripción y recibe la guía de bienvenida antes de la primera sesión.</p></div></li>
+      <li><div><b class="cx">solicitud.</b><p>Usted completa el formulario de esta página con el programa y la modalidad de su interés.</p></div></li>
+      <li><div><b class="cx">contacto.</b><p>Un coordinador de la academia le escribe por WhatsApp para orientarle según su nivel, su disponibilidad y sus objetivos.</p></div></li>
+      <li><div><b class="cx">confirmación.</b><p>Se le informan fechas, horarios, sede o acceso en línea, y arancel. Los cursos online se pueden empezar de inmediato.</p></div></li>
+      <li><div><b class="cx">inicio.</b><p>Usted formaliza su inscripción, recibe la guía de bienvenida y empieza. Al aprobar, descarga su certificado.</p></div></li>
     </ol>
   </section>
 
@@ -409,7 +436,8 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
     <div class="sh rv"><p class="h cx">requisitos.</p><span class="lab">lo que se pide</span></div>
     <div class="cols rv">
       <div><b class="cx">identificación.</b><p>Cédula de identidad vigente. Los menores de edad, además, la autorización firmada de su representante.</p></div>
-      <div><b class="cx">compromiso.</b><p>Asistencia a las sesiones prácticas y a la evaluación final. La constancia se otorga solo al aprobarla.</p></div>
+      <div><b class="cx">compromiso.</b><p>Completar las sesiones del programa y la evaluación final. El certificado se otorga solo al aprobarla.</p></div>
+      <div><b class="cx">cursos online.</b><p>Un teléfono o computadora con conexión a internet. Nada más.</p></div>
       <div><b class="cx">programas técnicos.</b><p>Diagnóstico y electricidad requiere conocimientos básicos de mecánica, verificados en la entrevista.</p></div>
       <div><b class="cx">ropa y seguridad.</b><p>Ropa de trabajo y calzado cerrado en las sesiones de taller. El equipo de protección lo provee la academia.</p></div>
     </div>
@@ -419,12 +447,13 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
     <div class="sh rv"><p class="h cx">preguntas frecuentes.</p><span class="lab">directo</span></div>
     <div class="faq rv">
       <details><summary>¿Necesito saber de mecánica para inscribirme?<span>+</span></summary><p>No. Todos los programas, salvo diagnóstico y electricidad, empiezan desde cero. El nivel de cada alumno se conversa en el contacto inicial.</p></details>
-      <details><summary>¿Necesito tener carro?<span>+</span></summary><p>No. Las prácticas se hacen sobre los vehículos de la academia. Si usted tiene uno, puede traerlo en las sesiones donde se indique.</p></details>
-      <details><summary>¿Cuánto cuesta y cuándo empiezan los programas?<span>+</span></summary><p>Fechas, horarios, sede y arancel se informan de forma personal al confirmar su cupo, porque dependen del programa, la ciudad y la cohorte.</p></details>
-      <details><summary>¿Por qué hay un proceso de admisión?<span>+</span></summary><p>Porque los grupos son pequeños y cada cupo cuenta. Revisar cada solicitud nos permite ubicar a cada persona en el programa y el grupo que le corresponde.</p></details>
+      <details><summary>¿Necesito tener carro?<span>+</span></summary><p>No. Las prácticas presenciales se hacen sobre los vehículos de la academia. Si usted tiene uno, puede traerlo en las sesiones donde se indique.</p></details>
+      <details><summary>¿Cuánto cuesta y cuándo empiezan los programas?<span>+</span></summary><p>Fechas, horarios, sede y arancel se informan de forma personal al confirmar su inscripción, porque dependen del programa, la modalidad y la ciudad.</p></details>
+      <details><summary>¿Quién puede inscribirse?<span>+</span></summary><p>Cualquier persona. La academia es abierta a todos: no se exige experiencia ni estudios previos, salvo en diagnóstico y electricidad, que pide conocimientos básicos de mecánica.</p></details>
+      <details><summary>¿Hay cursos online?<span>+</span></summary><p>Sí. Los programas tienen modalidad online, que usted avanza a su ritmo desde cualquier ciudad, y modalidad presencial, con práctica en taller y en la calle. Puede elegir una o combinarlas.</p></details>
       <details><summary>¿Los grupos de mujeres son realmente exclusivos?<span>+</span></summary><p>Sí. El programa mujeres al volante se imparte solo a mujeres, de principio a fin.</p></details>
       <details><summary>¿Mi hijo menor de edad puede inscribirse?<span>+</span></summary><p>Sí, en jóvenes conductores, desde los 16 años y con la autorización de su representante. Las prácticas de manejo en vía se ajustan a lo que la ley permite según la edad.</p></details>
-      <details><summary>¿La constancia tiene validez?<span>+</span></summary><p>La constancia certifica que usted aprobó la evaluación práctica de Ruedda Academy y queda registrada en su perfil de Ruedda. No sustituye la licencia de conducir ni títulos técnicos oficiales.</p></details>
+      <details><summary>¿El certificado está avalado?<span>+</span></summary><p>Sí. Al aprobar la evaluación, usted recibe un certificado digital avalado por Ruedda Academy, a su nombre, que se descarga en línea y queda registrado en su perfil de Ruedda. No sustituye la licencia de conducir ni títulos técnicos oficiales.</p></details>
       <details><summary>¿Puedo inscribir a mi equipo de trabajo?<span>+</span></summary><p>Sí. En la solicitud elija «su empresa» y cuéntenos el tamaño del equipo. Le contactaremos para diseñar un programa cerrado.</p></details>
     </div>
   </section>
@@ -435,13 +464,13 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
       <div><b class="cx">conducta.</b><p>Se espera trato respetuoso hacia alumnos, instructores y personal. El acoso, la discriminación o la burla son causa de retiro inmediato, sin reembolso.</p></div>
       <div><b class="cx">seguridad en taller.</b><p>Las instrucciones del instructor son de cumplimiento obligatorio. Nadie opera herramientas ni vehículos sin autorización.</p></div>
       <div><b class="cx">seguridad en vía.</b><p>Las prácticas de manejo se hacen con instructor a bordo y con los documentos al día. Cero alcohol, sin excepciones.</p></div>
-      <div><b class="cx">privacidad.</b><p>Sus datos se usan solo para gestionar su formación. Su constancia es visible en Ruedda únicamente si usted lo autoriza.</p></div>
+      <div><b class="cx">privacidad.</b><p>Sus datos se usan solo para gestionar su formación. Su certificado es visible en Ruedda únicamente si usted lo autoriza.</p></div>
     </div>
   </section>
 
   <!-- FORMULARIO -->
   <section id="cupo" class="split">
-    <div class="sh rv"><p class="h cx">solicitar<br>cupo.</p><span class="lab">no todos entran</span></div>
+    <div class="sh rv"><p class="h cx">inscribirse.</p><span class="lab">abierto a todos</span><figure class="ph w43 sf"><img src="img/palanca-1200.webp" srcset="img/palanca-640.webp 640w, img/palanca-1200.webp 1200w" sizes="(min-width:1000px) 50vw, 100vw" alt="Palanca de cambios de un carro" loading="lazy" decoding="async"></figure></div>
     <div id="fw">
       <form id="f" novalidate class="rv">
         <div class="f"><label>programa</label>
@@ -454,8 +483,15 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
             <button type="button" data-v="venta">venta profesional</button>
           </div>
         </div>
-        <div class="f"><label>el cupo es para</label>
-          <div class="ch" id="para" role="group" aria-label="el cupo es para">
+        <div class="f"><label>modalidad</label>
+          <div class="ch" id="moda" role="group" aria-label="modalidad">
+            <button type="button" data-v="presencial" aria-pressed="true">presencial</button>
+            <button type="button" data-v="online">online</button>
+            <button type="button" data-v="ambas">ambas</button>
+          </div>
+        </div>
+        <div class="f"><label>la inscripción es para</label>
+          <div class="ch" id="para" role="group" aria-label="la inscripción es para">
             <button type="button" data-v="yo" aria-pressed="true">usted</button>
             <button type="button" data-v="hijo">su hijo o hija</button>
             <button type="button" data-v="empresa">su empresa</button>
@@ -494,7 +530,7 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
     </div>
   </div>
   <div class="fm">
-    <div><span class="lab">academy</span><a href="#academia">quiénes somos</a><a href="#mision">misión y visión</a><a href="#principios">principios</a><a href="#metodo">método</a><a href="#admision">admisión</a><a href="#preguntas">preguntas frecuentes</a><a href="#normas">normas</a></div>
+    <div><span class="lab">academy</span><a href="#academia">quiénes somos</a><a href="#mision">misión y visión</a><a href="#principios">principios</a><a href="#metodo">método</a><a href="#admision">inscripción</a><a href="#preguntas">preguntas frecuentes</a><a href="#normas">normas</a></div>
     <div><span class="lab">programas</span><a href="#p-mecanica">mecánica esencial</a><a href="#p-mujeres">mujeres al volante</a><a href="#p-jovenes">jóvenes conductores</a><a href="#p-compra">compra inteligente</a><a href="#p-diagnostico">diagnóstico y electricidad</a><a href="#p-venta">venta profesional</a><a href="#empresas">empresas</a></div>
     <div><span class="lab">ruedda</span><a href="/market">marketplace</a><a href="/subastas">subastas</a><a href="/concesionarios">concesionarios</a><a href="/publicar">publicar un carro</a><a href="/repuestos">repuestos</a></div>
     <div><span class="lab">herramientas</span><a href="/ruedda_verificacion.html">verificación</a><a href="/ruedda_deal_meter.html">medidor de precio</a><a href="/ruedda_ob2_scanner.html">escáner obd2</a></div>
@@ -532,6 +568,9 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
   var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('on');io.unobserve(x.target);}});},{rootMargin:'0px 0px -8% 0px'});
   document.querySelectorAll('.rv').forEach(function(n){io.observe(n);});
 
+  // Fotos: fundido al decodificar.
+  document.querySelectorAll('.ph img').forEach(function(i){function on(){i.classList.add('ld');}if(i.complete&&i.naturalWidth)on();else i.addEventListener('load',on);});
+
   // Menú móvil con submenús.
   var bo=document.getElementById('mbo');
   function menu(on){document.body.classList.toggle('mo',on);bo.setAttribute('aria-expanded',on?'true':'false');}
@@ -557,7 +596,7 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
     return function(v){if(v===undefined){var on=w.querySelector('[aria-pressed="true"]');return on?on.dataset.v:'';}
       w.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x.dataset.v===v?'true':'false');});};
   }
-  var prog=group('prog'),para=group('para');
+  var prog=group('prog'),para=group('para'),moda=group('moda');
   document.querySelectorAll('.pd button[data-p]').forEach(function(b){b.addEventListener('click',function(){
     prog(b.dataset.p);document.getElementById('cupo').scrollIntoView({behavior:rm?'auto':'smooth'});});});
 
@@ -566,7 +605,7 @@ footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
   var f=document.getElementById('f'),b=document.getElementById('b'),msg=document.getElementById('msg');
   f.addEventListener('submit',function(ev){
     ev.preventDefault();
-    var d={programa:prog(),para:para(),nombre:document.getElementById('nombre').value.trim(),whatsapp:document.getElementById('wa').value.trim(),
+    var d={programa:prog(),modalidad:moda(),para:para(),nombre:document.getElementById('nombre').value.trim(),whatsapp:document.getElementById('wa').value.trim(),
       correo:document.getElementById('correo').value.trim(),ciudad:document.getElementById('ciudad').value,mensaje:ta.value.trim(),website:document.getElementById('website').value};
     if(!d.programa){msg.textContent='Elija un programa.';return;}
     if(d.nombre.length<2){msg.textContent='Escriba su nombre y apellido.';return;}

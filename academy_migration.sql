@@ -3,6 +3,7 @@ create table if not exists public.academy_solicitudes (
   id          uuid primary key default gen_random_uuid(),
   created_at  timestamptz not null default now(),
   programa    text not null check (programa in ('mecanica','mujeres','jovenes','compra','diagnostico','venta')),
+  modalidad   text not null default 'presencial' check (modalidad in ('presencial','online','ambas')),
   para        text not null default 'yo' check (para in ('yo','hijo','empresa')),
   nombre      text not null,
   whatsapp    text not null,
@@ -20,3 +21,5 @@ create policy academy_superadmin on public.academy_solicitudes
   using (exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'superadmin'))
   with check (exists (select 1 from public.users u where u.id = auth.uid() and u.role = 'superadmin'));
 create index if not exists academy_solicitudes_created_idx on public.academy_solicitudes (created_at desc);
+-- si la tabla ya existía sin modalidad:
+alter table public.academy_solicitudes add column if not exists modalidad text not null default 'presencial' check (modalidad in ('presencial','online','ambas'));
