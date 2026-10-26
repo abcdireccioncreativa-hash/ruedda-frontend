@@ -70,6 +70,7 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
 .alt u{color:var(--fg);text-underline-offset:3px}
 .cp{display:none;margin:-4px auto 12px;padding:4px 10px;font-size:13px;color:var(--m);letter-spacing:-.01em;text-decoration:underline;text-decoration-color:var(--m2);text-decoration-thickness:1px;text-underline-offset:4px;transition:opacity .2s}
 .cp.on{display:block}.cp:active{opacity:.5}
+.ft.wcp{background:linear-gradient(to bottom,var(--fade),var(--bg) 12px)}
 .s.wcp{padding-bottom:186px}
 
 /* fotos */
@@ -554,7 +555,8 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     R.bk.classList.toggle('hid', cur === 'fin' || (i <= 0 && !ret));
     R.cl.classList.toggle('hid', cur === 'fin');
     R.ft.classList.toggle('hid', (isAuto(st) && !ret) || cur === 'fin');
-    R.cp.classList.toggle('on', cur === 'fotos' && !ret && K !== 'alquiler' && PVT !== 'consesionario');
+    var cpOn = cur === 'fotos' && !ret && K !== 'alquiler' && PVT !== 'consesionario';
+    R.cp.classList.toggle('on', cpOn); R.ft.classList.toggle('wcp', cpOn);
     R.go.querySelector('span').textContent = ret ? 'listo' : (typeof st.cta === 'function' ? st.cta() : (st.cta || 'continuar'));
     refresh();
   }
