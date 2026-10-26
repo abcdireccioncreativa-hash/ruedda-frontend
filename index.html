@@ -3511,6 +3511,44 @@ html[data-theme="light"] .mp-row::after{background-image:url("data:image/svg+xml
 .mp-empty b{font-size:17px;font-weight:700;letter-spacing:-.3px}
 .mp-empty p{margin:6px 0 18px;font-size:13.5px;line-height:1.45;color:var(--muted);max-width:260px}
 .mp-empty .rd-wb{height:40px;padding:0 18px;border-radius:20px;font-size:14px}
+/* [V150] mis publicaciones a pantalla completa — mismo lenguaje que publicar paso a paso:
+   entra desde la derecha, título grande, filas con foto, borradores arriba, sale deslizando
+   desde el borde izquierdo (en la app iOS lo anima iOS: _mpLayer → RDNT.edge*). */
+#mis-pub-sheet,#mis-pub-sheet.in{align-items:stretch;background:var(--bg)!important;transform:translate3d(100%,0,0);transition:transform .5s cubic-bezier(.32,.72,0,1);will-change:transform}
+#mis-pub-sheet.in{transform:none}
+#mis-pub-sheet.out{transform:translate3d(100%,0,0);transition:transform .36s cubic-bezier(.4,0,.6,1)}
+#mis-pub-sheet.drag{transition:none;box-shadow:-10px 0 30px rgba(0,0,0,.3)}
+#mis-pub-sheet #mis-pub-inner{width:100%;max-width:560px;height:100%;max-height:none;margin:0 auto;padding:calc(env(safe-area-inset-top) + 14px) 22px calc(env(safe-area-inset-bottom) + 48px);background:none;border:0;border-radius:0;box-shadow:none;transform:none;transition:none}
+#mis-pub-sheet .mp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+#mis-pub-sheet .mp-bk{width:38px;height:38px;border-radius:50%;padding:0;background:var(--card2);color:var(--white)}
+#mis-pub-sheet .mp-bk svg{width:18px;height:18px}
+#mis-pub-sheet .mp-k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:12px}
+#mis-pub-sheet .mp-t{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
+#mis-pub-sheet .mp-s{margin:10px 0 26px;font-size:14px;font-weight:300}
+#mis-pub-sheet .mp-row{border:0;border-radius:18px;margin-bottom:0}
+#mis-pub-sheet .mp-row b{font-weight:500;letter-spacing:-.01em}
+#mis-pub-sheet .mp-grid{display:flex;flex-direction:column;gap:8px}
+#mis-pub-sheet .mp-sec{padding:26px 2px 4px;font-size:11px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+#mis-pub-sheet .mp-sec span{font-size:11px;letter-spacing:.08em}
+#mis-pub-sheet .mp-card{flex-direction:row;align-items:stretch;gap:14px;padding:10px;border:0;border-radius:18px;background:var(--card)}
+#mis-pub-sheet .mp-ph{flex:none;width:112px;aspect-ratio:auto;min-height:84px;border-radius:12px}
+#mis-pub-sheet .mp-ph>img.mp-cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1}
+#mis-pub-sheet .mp-del{top:6px;right:6px;width:24px;height:24px;border-radius:12px}
+#mis-pub-sheet .mp-del svg{width:11px;height:11px}
+#mis-pub-sheet .mp-bd{min-width:0;padding:3px 2px 2px 0}
+#mis-pub-sheet .mp-st{position:static;height:auto;padding:0;background:none;color:var(--muted);font-size:10.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px}
+#mis-pub-sheet .mp-nm{font-size:16px;font-weight:500;letter-spacing:-.01em}
+#mis-pub-sheet .mp-pr{font-size:14px;font-weight:400;color:var(--muted)}
+#mis-pub-sheet .mp-ac{padding-top:10px}
+#mis-pub-sheet .mp-ac>*{height:32px;border-radius:16px;font-size:12.5px;font-weight:500;flex:0 1 auto;padding:0 14px}
+#mis-pub-sheet .mp-pg{height:3px;border-radius:3px;background:var(--w10);margin:10px 0 7px;overflow:hidden}
+#mis-pub-sheet .mp-pg i{display:block;height:100%;background:var(--white);border-radius:3px}
+#mis-pub-sheet .mp-pc{font-size:12px;color:var(--muted)}
+#mis-pub-sheet .mp-sk .mp-ph{min-height:84px}
+#mis-pub-sheet .mp-empty{padding:40px 10px 10px;align-items:flex-start;text-align:left}
+#mis-pub-sheet .mp-empty b{font-size:20px;font-weight:500;letter-spacing:-.02em}
+#mis-pub-sheet .mp-empty p{margin:8px 0 22px;font-weight:300}
+#mis-pub-sheet .mp-empty .rd-wb{height:50px;padding:0 24px;border-radius:25px;font-size:15px;font-weight:500}
 /* editar publicación: abre a su altura final (sin saltos) y el contenido entra con un fundido */
 #edit-listing-modal{background:rgba(0,0,0,0);transition:background .5s cubic-bezier(.32,.72,0,1)}
 #edit-listing-modal.in{background:rgba(0,0,0,.55)}
@@ -3568,6 +3606,8 @@ html[data-theme="light"] .rd-seg i{background:#fff;box-shadow:0 1px 3px rgba(0,0
 @keyframes rdFadeBg{from{background:rgba(0,0,0,0)}}
 /* con la hoja abierta la página de atrás no se mueve: el scroll vive solo dentro de la hoja */
 html.rd-lk,html.rd-lk body{overflow:hidden!important;overscroll-behavior:none}
+/* [V150] con el paso a paso a pantalla completa encima, la app de abajo no se pinta */
+html.rd-pw-cover .view.active,html.rd-pw-cover .bottom-nav{visibility:hidden}
 #edit-listing-modal .ed-body{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 @media (prefers-reduced-motion:reduce){#mis-pub-inner,.mp-card,#edit-listing-modal>div,#confirm-delete-overlay>div,.rd-seg i,.ed-late #ed-main>*,.ed-sw{transition-duration:.01s!important;animation:none!important}}
 </style>
@@ -7829,7 +7869,8 @@ _updateSeoMeta(_bootIsDedicatedSectionPath ? currentSection : null);
 // propia (no es un feed), así que no toca currentSection ni SEO_COPY.
 if(_bootPath==='/publicar'){
   document.addEventListener('DOMContentLoaded',()=>{
-    setTimeout(()=>{ if(typeof showView==='function') showView('vender'); },400);
+    // [V150] la hoja de vender de siempre (lleva al paso a paso según lo que elijas)
+    setTimeout(()=>{ if(typeof openVenderModal==='function') openVenderModal(); else if(typeof showView==='function') showView('vender'); },400);
   });
 }
 
@@ -9931,7 +9972,7 @@ function openAlquilerForm(){
   ['af-marca','af-modelo','af-year','af-direccion','af-precio','af-descripcion','af-requisitos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   _afRenderPhotosGrid();
   _afCalInit();
-  showView('alquiler-form');
+  _pwLaunch('alquiler',()=>showView('alquiler-form')); // [V150]
 }
 // [disponibilidad] calendario simple mes-a-mes — toca un día para marcarlo
 // disponible. Mismo cálculo de offset/relleno que el calendario de subastas
@@ -9997,8 +10038,9 @@ function _afAddPhotos(input){
   });
 }
 function _afRemovePhoto(i){ _afPhotos.splice(i,1); _afRenderPhotosGrid(); }
-async function submitAlquilerForm(){
-  if(isGuest()){ showToast('inicia sesión para publicar'); return; }
+async function submitAlquilerForm(opts){
+  opts=opts||{}; // [V150] quiet: lo llama el paso a paso, que muestra su propia pantalla de listo
+  if(isGuest()){ showToast('inicia sesión para publicar'); return false; }
   const marca=document.getElementById('af-marca').value.trim();
   const modelo=document.getElementById('af-modelo').value.trim();
   const year=parseInt(document.getElementById('af-year').value,10)||null;
@@ -10006,8 +10048,8 @@ async function submitAlquilerForm(){
   const precio=parseFloat(document.getElementById('af-precio').value);
   const descripcion=document.getElementById('af-descripcion').value.trim();
   const requisitos=document.getElementById('af-requisitos').value.trim();
-  if(!marca||!modelo){ showToast('completa marca y modelo'); return; }
-  if(!precio||precio<=0){ showToast('coloca un precio por día válido'); return; }
+  if(!marca||!modelo){ showToast('completa marca y modelo'); return false; }
+  if(!precio||precio<=0){ showToast('coloca un precio por día válido'); return false; }
   const btn=document.getElementById('af-submit-btn');
   if(btn){ btn.disabled=true; btn.textContent='publicando...'; }
   try{
@@ -10025,18 +10067,21 @@ async function submitAlquilerForm(){
       direccion_recogida:direccion||null, precio_dia:precio,
       descripcion:descripcion||null, requisitos:requisitos||null
     }).select().single();
-    if(error){ showToast('error publicando: '+error.message); if(btn){btn.disabled=false;btn.textContent='enviar a revisión';} return; }
+    if(error){ showToast('error publicando: '+error.message); if(btn){btn.disabled=false;btn.textContent='enviar a revisión';} return false; }
     if(_afSelectedDates.size&&newRental?.id){
       const rows=[..._afSelectedDates].map(date=>({rental_id:newRental.id,date}));
       const{error:availErr}=await _supa.from('rental_availability').insert(rows);
       if(availErr) console.warn('[ruedda] rental_availability insert',availErr.message);
     }
+    if(opts.quiet){ _loadRentals().catch(()=>{}); return true; }
     showToast('vehículo publicado en alquiler',true);
     await _loadRentals();
     showView('alquileres');
+    return true;
   }catch(e){
     console.error('[ruedda] submitAlquilerForm',e?.message||e);
     showToast('error publicando');
+    return false;
   }finally{
     if(btn){ btn.disabled=false; btn.textContent='enviar a revisión'; }
   }
@@ -14398,7 +14443,8 @@ function validateVenderForm(){
   if(!marca || marca==='')          errors.push('selecciona la marca');
   if(!modelo)                       errors.push('ingresa el modelo');
   if(!year)                         errors.push('selecciona el año');
-  if(!km || parseInt(_numClean(km))===0) errors.push('ingresa el kilometraje');
+  // [V150] un carro nuevo publica con 0 km
+  if(!km || (parseInt(_numClean(km))===0 && !(window._listingCondNuevo && pendingVenderType!=='subasta'))) errors.push('ingresa el kilometraje');
   if(pendingVenderType!=='subasta' && !precioFijo) errors.push('ingresa el precio de venta');
   if(!descripcion)                  errors.push('agrega una descripción');
 
@@ -15003,8 +15049,49 @@ function openVenderForm(){
   // reset programada state on form open
   const togP=document.getElementById('programada-toggle');
   if(togP){togP.checked=false;document.getElementById('campo-fecha-programada').classList.remove('open');document.getElementById('programada-fecha').value='';document.getElementById('programada-hora').value='';}
-  showView('vender');
+  // [V150] se publica en el paso a paso de pantalla completa (/assets/rd-publicar.js), que
+  // al final llena este mismo formulario y usa su mismo envío; si no carga, queda el de siempre
+  _pwLaunch(pendingVenderType||'particular',()=>showView('vender'));
 }
+// [V150] PUBLICAR PASO A PASO — el código vive aparte y se baja en reposo (nunca en el
+// arranque): abrir el formulario no le cuesta nada a la app. Aquí solo queda lo mínimo:
+// cargarlo, el "atrás" del sistema mientras está abierto, la capa para el gesto de borde
+// nativo y la lista de borradores para Mis publicaciones (sin tener que bajar el formulario).
+const _PW_SRC='/assets/rd-publicar.js?v=1';
+let _pwP=null;
+function _pwLoad(){
+  if(window.RDPW) return Promise.resolve(window.RDPW);
+  if(_pwP) return _pwP;
+  _pwP=new Promise((ok,ko)=>{
+    const s=document.createElement('script'); s.src=_PW_SRC; s.async=true;
+    s.onload=()=>window.RDPW?ok(window.RDPW):ko(new Error('rdpw'));
+    s.onerror=()=>{ s.remove(); ko(new Error('rdpw')); };
+    document.head.appendChild(s);
+  });
+  _pwP.catch(()=>{ _pwP=null; });
+  return _pwP;
+}
+function _pwLaunch(kind,fallback){
+  _pwLoad().then(R=>R.open(kind),e=>{ console.warn('[ruedda] publicar paso a paso no cargó, se usa el formulario clásico',e&&e.message); if(fallback) fallback(); });
+}
+function _pwResume(id){
+  _pwLoad().then(R=>R.resume(id),()=>showToast('sin conexión · intenta de nuevo'));
+}
+function _pwDrafts(){
+  try{ const a=JSON.parse(localStorage.getItem('rd_pw_drafts_'+((USER_STATE&&USER_STATE.id)||'anon'))||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; }
+}
+(function(){
+  const idle=()=>(window.requestIdleCallback||(f=>setTimeout(f,1)))(()=>{ _pwLoad().catch(()=>{}); },{timeout:5000});
+  if(document.readyState==='complete') setTimeout(idle,3000); else window.addEventListener('load',()=>setTimeout(idle,3000));
+  // va primero que cualquier otro popstate: con el formulario abierto, "atrás" es un paso atrás
+  window.addEventListener('popstate',e=>{ if(window._pwPop&&window._pwPop(e)) e.stopImmediatePropagation(); },true);
+})();
+// capa de arriba para el gesto de borde nativo (rd-native-tabs.js → RDNT.edge*)
+window._rdLayer=function(){
+  const pw=window._rdPwLayer&&window._rdPwLayer();
+  if(pw) return pw;
+  return window._mpLayer&&window._mpLayer();
+};
 
 function openConfigView(){
   // pre-fill fields with current user data
@@ -15900,32 +15987,30 @@ function openMisPublicaciones(){
   if(sheet) sheet.remove();
   sheet=document.createElement('div');
   sheet.id='mis-pub-sheet';
-  sheet.onclick=e=>{if(e.target===sheet)closeMisPub();};
+  sheet.setAttribute('role','dialog'); sheet.setAttribute('aria-label','mis publicaciones');
   sheet.innerHTML=`
     <div id="mis-pub-inner">
-      <div class="mp-grab"></div>
-      <div class="mp-hd">
-        <div><div class="mp-t">mis publicaciones</div><div class="mp-s" id="mis-pub-sub">tus carros en Ruedda</div></div>
-        <button type="button" class="rd-gb mp-x" onclick="closeMisPub()" aria-label="cerrar">${_MP_X}</button>
-      </div>
+      <div class="mp-top"><button type="button" class="rd-gb mp-bk" onclick="closeMisPub()" aria-label="volver"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button></div>
+      <div class="mp-k">tu garaje</div>
+      <div class="mp-t">Mis publicaciones.</div>
+      <div class="mp-s" id="mis-pub-sub">tus carros en Ruedda</div>
       <button type="button" id="story-publish-btn" class="mp-row" onclick="_storyPublishFlow()">
         <span class="mp-ic"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" stroke-dasharray="3.2 2.4"/><path d="M12 8.5v7M8.5 12h7"/></svg></span>
         <span><b>publicar historia</b><small>muestra tu carro en historias por 24 horas</small></span>
       </button>
-      <div id="mis-pub-grid" class="mp-grid">${'<div class="mp-card mp-sk"><div class="mp-ph rdv-skel"></div><div class="mp-bd"><b class="rdv-skel"></b><b class="rdv-skel"></b></div></div>'.repeat(4)}</div>
+      <div id="mis-pub-grid" class="mp-grid">${_mpDraftsHtml()}<div class="mp-sec">publicaciones</div>${'<div class="mp-card mp-sk"><div class="mp-ph rdv-skel"></div><div class="mp-bd"><b class="rdv-skel"></b><b class="rdv-skel"></b></div></div>'.repeat(3)}</div>
     </div>`;
   document.body.appendChild(sheet);
-  _mpDrag(sheet); _rdScrollGuard(sheet,'#mis-pub-inner'); _rdLkWatch();
-  // la lista se pinta cuando la hoja terminó de subir: así la animación corre sola, sin trabajo encima
-  const card=sheet.querySelector('#mis-pub-inner');
-  window._mpEnter=new Promise(r=>{ let ok=0; const f=()=>{ if(!ok){ ok=1; r(); } }; card.addEventListener('transitionend',f,{once:true}); setTimeout(f,560); });
-  card.getBoundingClientRect();
+  _mpEdge(sheet); _rdScrollGuard(sheet,'#mis-pub-inner'); _rdLkWatch();
+  // la lista se pinta cuando la pantalla terminó de entrar: así la animación corre sola, sin trabajo encima
+  window._mpEnter=new Promise(r=>{ let ok=0; const f=()=>{ if(!ok){ ok=1; r(); } }; sheet.addEventListener('transitionend',e=>{ if(e.target===sheet) f(); }); setTimeout(f,560); });
+  sheet.getBoundingClientRect();
   requestAnimationFrame(()=>sheet.classList.add('in'));
   _loadMyListings();
 }
 // con una hoja abierta la página de atrás queda quieta; se mira solo a los hijos directos del body
 function _rdLkWatch(){
-  const sync=()=>{ const on=!!document.querySelector('body>#mis-pub-sheet:not(.out),body>#edit-listing-modal'); document.documentElement.classList.toggle('rd-lk',on); if(!on&&window._rdLkObs){ window._rdLkObs.disconnect(); window._rdLkObs=null; } };
+  const sync=()=>{ const on=!!document.querySelector('body>#mis-pub-sheet:not(.out),body>#edit-listing-modal,body>#rdpw.on'); document.documentElement.classList.toggle('rd-lk',on); if(!on&&window._rdLkObs){ window._rdLkObs.disconnect(); window._rdLkObs=null; } };
   if(!window._rdLkObs){ window._rdLkObs=new MutationObserver(sync); window._rdLkObs.observe(document.body,{childList:true}); }
   sync();
 }
@@ -15942,25 +16027,11 @@ function _rdScrollGuard(ov,sel){
     if(max<=1||(dy>0&&sc.scrollTop<=0)||(dy<0&&sc.scrollTop>=max-1)){ if(e.cancelable) e.preventDefault(); }
   },{passive:false});
 }
-function _mpDrag(sheet){
-  const card=sheet.querySelector('#mis-pub-inner'); let y0=null,dy=0,t0=0,on=false;
-  card.addEventListener('touchstart',e=>{ if(card.scrollTop>0||e.touches.length!==1){y0=null;return;} y0=e.touches[0].clientY; dy=0; t0=performance.now(); on=false; },{passive:true});
-  card.addEventListener('touchmove',e=>{
-    if(y0===null) return; dy=e.touches[0].clientY-y0;
-    if(!on){ if(dy<8) { if(dy<-4) y0=null; return; } on=true; card.style.transition='none'; }
-    e.preventDefault(); card.style.transform=`translate3d(0,${Math.max(0,dy)}px,0)`;
-  },{passive:false});
-  card.addEventListener('touchend',()=>{
-    if(y0===null) return; y0=null; if(!on) return;
-    const v=dy/Math.max(1,performance.now()-t0); card.style.transition=''; card.style.transform='';
-    if(dy>120||v>.6) closeMisPub();
-  });
-}
 
 async function _loadMyListings(){
   const grid=document.getElementById('mis-pub-grid');
   if(!grid) return;
-  if(!_supa||!USER_STATE.id){ grid.innerHTML=_mpEmpty(); return; }
+  if(!_supa||!USER_STATE.id){ grid.innerHTML=_mpDraftsHtml()+_mpEmpty(); return; }
   try{
     const[resListings,resAuctions]=await Promise.all([
       // [RC v8 FIX] antes NO había filtro de estado — autos ya no listados (estados
@@ -15985,7 +16056,7 @@ async function _loadMyListings(){
     });
     const all=[...listings,...auctions];
     if(window._mpEnter) await window._mpEnter;
-    if(!all.length){ grid.innerHTML=_mpEmpty(); const sb=document.getElementById('mis-pub-sub'); if(sb) sb.textContent='tus carros en Ruedda'; return; }
+    if(!all.length){ grid.innerHTML=_mpDraftsHtml()+_mpEmpty(); const sb=document.getElementById('mis-pub-sub'); if(sb) sb.textContent='tus carros en Ruedda'; return; }
     MOCK_MY_LISTINGS.splice(0,MOCK_MY_LISTINGS.length,...all);
     _renderMisPubGrid();
   }catch(e){ console.error('[ruedda] _loadMyListings catch:',String(e?.message||e)); }
@@ -15994,12 +16065,12 @@ async function _loadMyListings(){
 function _renderMisPubGrid(){
   const grid=document.getElementById('mis-pub-grid');
   if(!grid) return;
-  if(!MOCK_MY_LISTINGS.length){ grid.innerHTML=_mpEmpty(); return; }
+  if(!MOCK_MY_LISTINGS.length){ grid.innerHTML=_mpDraftsHtml()+_mpEmpty(); return; }
   const markets=MOCK_MY_LISTINGS.filter(l=>l.type==='market');
   const subastas=MOCK_MY_LISTINGS.filter(l=>l.type==='subasta');
   const sb=document.getElementById('mis-pub-sub');
   if(sb) sb.textContent=[markets.length?`${markets.length} en market`:'',subastas.length?`${subastas.length} ${subastas.length===1?'subasta':'subastas'}`:''].filter(Boolean).join(' · ');
-  const sep=(label,n)=>`<div class="mp-sec">${label}<span>${n}</span></div>`;
+  const sep=(label,n)=>`<div class="mp-sec">${label}<span> · ${n}</span></div>`;
   let k=0;
   const renderCard=(l)=>{
     const isRevision=l.status==='revision'||l.status==='en revisión';
@@ -16037,28 +16108,82 @@ function _renderMisPubGrid(){
         ${l.photoUrl
           ?`<img class="rd-lq" src="${_tImg(l.photoUrl,{width:40,quality:40})}" alt="" aria-hidden="true" decoding="async"><img src="${_tImg(l.photoUrl,{width:900,quality:82})}" alt="" loading="lazy" decoding="async" onload="_rdShow(this)" onerror="this.style.display='none'">`
           :`<svg fill="none" viewBox="0 0 40 30" stroke="var(--w20)" stroke-width="1.2"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
-        <span class="mp-st" style="--c:${dot}"><i></i>${badgeLabel}</span>
         <button type="button" class="rd-gb mp-del" onclick="event.stopPropagation();confirmDeleteListing('${l.id}')" aria-label="eliminar"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
       </div>
       <div class="mp-bd">
+        <span class="mp-st" style="--c:${dot}"><i></i>${badgeLabel}</span>
         <div class="mp-nm">${l.title}</div>
         <div class="mp-pr${isVendido?' off':''}">${l.price}</div>
         ${actionBtn||soldBtn?`<div class="mp-ac">${actionBtn}${soldBtn}</div>`:''}
       </div>
     </div>`;
   };
-  const parts=[];
+  const parts=[_mpDraftsHtml()];
   if(markets.length){parts.push(sep('market',markets.length));parts.push(...markets.map(renderCard));}
   if(subastas.length){parts.push(sep('subastas',subastas.length));parts.push(...subastas.map(renderCard));}
   grid.innerHTML=parts.join('');
 }
 
-function closeMisPub(){
+function closeMisPub(instant){
   const s=document.getElementById('mis-pub-sheet');
   if(!s||s.classList.contains('out'))return;
+  if(instant===true){ s.remove(); _rdLkWatch(); return; }
   s.classList.add('out'); s.classList.remove('in');
   if(window._rdLkObs) _rdLkWatch();
-  setTimeout(()=>s.remove(),320);
+  setTimeout(()=>s.remove(),380);
+}
+// [V150] borradores del paso a paso (localStorage; fotos en IndexedDB) — arriba de todo
+function _mpDraftsHtml(){
+  const a=_pwDrafts(); if(!a.length) return '';
+  const T={particular:'venta',consesionario:'vitrina',subasta:'subasta',alquiler:'alquiler'};
+  const car='<svg fill="none" viewBox="0 0 40 30" stroke="var(--w20)" stroke-width="1.2"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>';
+  return `<div class="mp-sec">borradores<span> · ${a.length}</span></div>`+a.map((x,i)=>{
+    const d=x.d||{}, t=_esc([d.marca,d.modelo].filter(Boolean).join(' ')||'sin título'), id=String(x.id).replace(/[^\w-]/g,''), pct=Math.min(99,Math.max(4,x.pct|0));
+    const cv=/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(x.cover||'')?`<img class="mp-cv" src="${x.cover}" alt="">`:car;
+    return `<div class="mp-card mp-dr" style="--d:${Math.min(i,8)*.04}s" onclick="_mpOpenDraft('${id}')">
+      <div class="mp-ph">${cv}<button type="button" class="rd-gb mp-del" onclick="event.stopPropagation();_mpDropDraft('${id}')" aria-label="descartar borrador">${_MP_X}</button></div>
+      <div class="mp-bd"><span class="mp-st" style="--c:var(--muted)"><i></i>borrador · ${T[x.pvt]||'venta'}</span><div class="mp-nm">${t}</div><div class="mp-pg"><i style="width:${pct}%"></i></div><div class="mp-pc">${pct}% · continuar</div></div>
+    </div>`;
+  }).join('');
+}
+function _mpOpenDraft(id){
+  closeMisPub();
+  setTimeout(()=>_pwResume(id),200);
+}
+function _mpDropDraft(id){
+  if(!confirm('¿Descartar este borrador?')) return;
+  if(window.RDPW) RDPW.dropDraft(id);
+  else{
+    try{ const k='rd_pw_drafts_'+((USER_STATE&&USER_STATE.id)||'anon'); localStorage.setItem(k,JSON.stringify(_pwDrafts().filter(x=>x.id!==id))); }catch(e){}
+    try{ const r=indexedDB.open('rd-pw',1); r.onupgradeneeded=()=>r.result.createObjectStore('f'); r.onsuccess=()=>{ try{ const t=r.result.transaction('f','readwrite'); t.objectStore('f').delete(id); t.objectStore('f').delete(id+':v'); }catch(e){} }; }catch(e){}
+  }
+  try{ _rdHapticNow('LIGHT'); }catch(e){}
+  if(MOCK_MY_LISTINGS.length) _renderMisPubGrid(); else { const g=document.getElementById('mis-pub-grid'); if(g) g.innerHTML=_mpDraftsHtml()+_mpEmpty(); }
+}
+// [V150] volver deslizando desde el borde izquierdo. App iOS: lo anima iOS (capa _mpLayer);
+// web: la pantalla sigue al dedo y se suelta con la velocidad del gesto.
+window._mpLayer=function(){
+  const s=document.getElementById('mis-pub-sheet');
+  if(!s||!s.classList.contains('in')||s.classList.contains('out')||document.getElementById('edit-listing-modal')) return null;
+  return { can:()=>true, begin:()=>{ s.style.visibility='hidden'; }, end:ok=>{ if(ok) closeMisPub(true); else s.style.visibility=''; } };
+};
+function _mpEdge(sheet){
+  if(window.__RD_NATIVE_TABS&&window.webkit&&webkit.messageHandlers&&webkit.messageHandlers.rdTabs) return;
+  let x0=0,y0=0,t0=0,on=false,dec=false,dx=0,W=1;
+  sheet.addEventListener('touchstart',e=>{ on=false; dec=false; if(e.touches.length!==1||e.touches[0].clientX>28||document.getElementById('edit-listing-modal')) return; x0=e.touches[0].clientX; y0=e.touches[0].clientY; t0=performance.now(); dx=0; W=innerWidth; on=true; },{passive:true});
+  sheet.addEventListener('touchmove',e=>{
+    if(!on) return; const mx=e.touches[0].clientX-x0, my=e.touches[0].clientY-y0;
+    if(!dec){ if(Math.abs(mx)<8&&Math.abs(my)<8) return; dec=true; if(mx<=0||Math.abs(my)>Math.abs(mx)){ on=false; return; } sheet.classList.add('drag'); }
+    if(e.cancelable) e.preventDefault(); dx=Math.max(0,mx); sheet.style.transform=`translate3d(${dx}px,0,0)`;
+  },{passive:false});
+  const end=()=>{
+    if(!on) return; on=false; if(!dec) return;
+    const v=dx/Math.max(1,performance.now()-t0), done=dx>W*.35||(v>.5&&dx>30);
+    sheet.classList.remove('drag'); sheet.style.transition='transform .26s cubic-bezier(.25,.8,.3,1)';
+    sheet.style.transform=done?`translate3d(${W}px,0,0)`:'';
+    setTimeout(()=>{ if(done) closeMisPub(true); else { sheet.style.transition=''; sheet.style.transform=''; } },280);
+  };
+  sheet.addEventListener('touchend',end); sheet.addEventListener('touchcancel',end);
 }
 // cierre suave de la hoja de editar (mismo gesto que el resto de las hojas)
 function _rdEdClose(){
@@ -17916,8 +18041,10 @@ function _fotografosCoverSetPhoto(url){
   if(img&&url) img.src=url;
 }
 let _fotosOrigin = 'home';
+let _fotosPwFrom=null;
 function openFotografos(origin){
   _fotosOrigin = origin || 'home';
+  if(_fotosOrigin==='pw') _fotosPwFrom=currentView;
   showView('fotografos');
   renderFotos('todas');
   if(typeof _rdEnsureFotografos==='function') _rdEnsureFotografos().then(()=>{ if(currentView==='fotografos') renderFotos('todas'); });
@@ -17927,10 +18054,12 @@ function openFotografos(origin){
   // update back button
   const backBtn = document.querySelector('#view-fotografos .detail-back');
   if(backBtn){
-    const label = _fotosOrigin==='vender' ? 'volver' : 'inicio';
+    const label = (_fotosOrigin==='vender'||_fotosOrigin==='pw') ? 'volver' : 'inicio';
     backBtn.querySelector('span').textContent = label;
     backBtn.onclick = () => {
-      if(_fotosOrigin==='vender') showView('vender');
+      // [V150] vino del paso a paso: vuelve a la pantalla de antes y retoma el formulario donde iba
+      if(_fotosOrigin==='pw'){ showView(_fotosPwFrom||'home'); if(window.RDPW) RDPW.back(); }
+      else if(_fotosOrigin==='vender') showView('vender');
       else { showView('home'); }
     };
   }
@@ -18855,7 +18984,7 @@ const MOD_ITEMS=[
 function showRevisionScreen(method){
   // cerrar el form y los modales de venta/pago
   try{document.getElementById('vender-modal').classList.remove('open');}catch(_){}
-  try{document.getElementById('checkout-modal')?.remove();}catch(_){}
+  try{document.getElementById('checkout-modal')?.classList.remove('open');}catch(_){} // [V150] antes .remove(): es fijo en el HTML y el siguiente pago de la sesión fallaba
   try{document.getElementById('pricing-sheet')?.classList.remove('open');}catch(_){}
   window._venderPhotos=[];
   const existing = document.getElementById('revision-screen-overlay');
@@ -26694,7 +26823,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
       if(name==='ruedda-extra'&&was!=='ruedda-extra'){ var v=document.getElementById('view-ruedda-extra'); if(v){ v.classList.remove('rx-anim'); void v.offsetWidth; v.classList.add('rx-anim'); clearTimeout(t); t=setTimeout(function(){ v.classList.remove('rx-anim'); },1400); } }
       return r; };
   })();
-  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=13'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
+  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=14'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
 
   /* menú hamburguesa: foto de perfil arriba */
   function paintMe(){

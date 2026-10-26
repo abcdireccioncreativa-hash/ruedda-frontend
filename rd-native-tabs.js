@@ -40,9 +40,13 @@
   // ni si un menú u hoja web tapa el borde izquierdo)
   var ROOTS = { home: 1, favoritos: 1, notificaciones: 1, cuenta: 1 };
   function sheet() { return !!(window._rdSheetOn && window._rdSheetOn()); }
+  // capa web a pantalla completa (publicar paso a paso, mis publicaciones): ella decide
+  function layer() { try { return window._rdLayer ? window._rdLayer() : null; } catch (e) { return null; } }
   function canBack() {
     try {
       if (edge) return false;
+      var L = layer();
+      if (L) return !!L.can();
       if (ROOTS[currentView] && !sheet()) return false;
       if (!sheet() && !(history.state && history.state.rueddaView)) return false;
       var v = document.getElementById('view-' + currentView);
@@ -190,13 +194,20 @@
     },
     edgeBegin: function () {
       if (!canBack()) return 'none';
+      var L = layer();
+      if (L) { try { L.begin(); edge = 'layer'; window._rdEdgeLayer = L; return edge; } catch (e) { return 'none'; } }
       if (sheet()) { window._rdSheetPeek(true); edge = 'sheet'; }
       else { edge = 'nav'; try { history.back(); } catch (e) { edge = ''; return 'none'; } }
       return edge;
     },
     edgeEnd: async function (ok) {
       var m = edge;
-      if (m === 'sheet') {
+      if (m === 'layer') {
+        var L = window._rdEdgeLayer; window._rdEdgeLayer = null;
+        try { if (L) L.end(!!ok); } catch (e) {}
+        // un cuadro para que la web pinte antes de quitar la foto
+        await new Promise(function (r) { requestAnimationFrame(function () { r(); }); });
+      } else if (m === 'sheet') {
         if (ok) window._rdSheetClose('right', 0, false, true); else window._rdSheetPeek(false);
       } else if (m === 'nav' && !ok) {
         try { history.forward(); } catch (e) {}
