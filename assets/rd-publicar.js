@@ -19,13 +19,13 @@
   if (window.RDPW) return;
 
   var CSS = `
-:host{all:initial;position:fixed;inset:0;z-index:290;display:none;contain:strict;font-family:var(--font,-apple-system,system-ui,sans-serif);
+:host{all:initial;position:fixed;inset:0;z-index:290;display:block;visibility:hidden;pointer-events:none;contain:strict;font-family:var(--font,-apple-system,system-ui,sans-serif);
   --bg:#000;--c1:#111113;--c2:#1c1c1e;--c3:#2a2a2d;--fg:#fff;--in:#000;--m:rgba(255,255,255,.5);--m2:rgba(255,255,255,.3);--ln:rgba(255,255,255,.1);
   --dash:rgba(255,255,255,.22);--phc:rgba(255,255,255,.18);--shc:#0c0c0d;--fade:rgba(0,0,0,0);
   --ez:cubic-bezier(.32,.72,0,1);--sb:env(safe-area-inset-bottom);--st:env(safe-area-inset-top);color:var(--fg);-webkit-font-smoothing:antialiased}
 :host([data-t=light]){--bg:#f6f6ef;--c1:#fff;--c2:#ebebe2;--c3:#d9d9ce;--fg:#15160e;--in:#fff;--m:rgba(21,22,14,.55);--m2:rgba(21,22,14,.34);--ln:rgba(20,22,10,.1);
   --dash:rgba(21,22,14,.24);--phc:rgba(21,22,14,.2);--shc:#fff;--fade:rgba(246,246,239,0)}
-:host(.on){display:block}
+:host(.on){visibility:visible;pointer-events:auto}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 button,input,textarea{font:inherit;color:inherit;background:none;border:0;outline:0;-webkit-appearance:none;appearance:none;border-radius:0}
 button{cursor:pointer;text-align:inherit}
@@ -68,6 +68,9 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
 @keyframes rot{to{rotate:360deg}}
 .alt{display:block;margin-top:22px;font-size:13px;color:var(--m);line-height:1.5;text-align:left}
 .alt u{color:var(--fg);text-underline-offset:3px}
+.cp{display:none;margin:-4px auto 12px;padding:4px 10px;font-size:13px;color:var(--m);letter-spacing:-.01em;text-decoration:underline;text-decoration-color:var(--m2);text-decoration-thickness:1px;text-underline-offset:4px;transition:opacity .2s}
+.cp.on{display:block}.cp:active{opacity:.5}
+.s.wcp{padding-bottom:186px}
 
 /* fotos */
 .ph{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -132,6 +135,9 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
 .big input{flex:1;min-width:0;font-size:44px;font-weight:300;letter-spacing:-.03em}
 .big input::placeholder{color:var(--phc)}
 .big .u{font-size:18px;color:var(--m)}
+.big .un{display:flex;gap:2px;align-self:center}
+.big .un button{font-size:15px;color:var(--m2);padding:6px 7px;transition:color .25s}
+.big .un button.on{color:var(--fg)}
 .big .pre{font-size:44px;font-weight:300;color:var(--m)}
 .fld{margin-top:22px}
 .fld label{display:block;font-size:13px;color:var(--m);margin-bottom:8px}
@@ -478,7 +484,8 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     R.go = h('button', { 'class': 'cta' }, [h('span', null, ['continuar']), h('i', { 'class': 'spn' })]);
     R.go.addEventListener('click', function () { if (cur === 'rev') publicar(); else next(); });
     R.ldt = h('div', { 'class': 'ldt', 'aria-live': 'polite' });
-    R.ft = h('div', { 'class': 'ft' }, [R.go, R.ldt]);
+    R.cp = h('button', { 'class': 'cp', on: { click: function () { try { openPricingSheet(true); } catch (e) {} } } }, ['Consultar precios']);
+    R.ft = h('div', { 'class': 'ft' }, [R.cp, R.go, R.ldt]);
     wrap.appendChild(R.ft);
     pg.appendChild(wrap);
     R.pg = pg;
@@ -547,6 +554,7 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     R.bk.classList.toggle('hid', cur === 'fin' || (i <= 0 && !ret));
     R.cl.classList.toggle('hid', cur === 'fin');
     R.ft.classList.toggle('hid', (isAuto(st) && !ret) || cur === 'fin');
+    R.cp.classList.toggle('on', cur === 'fotos' && !ret && K !== 'alquiler' && PVT !== 'consesionario');
     R.go.querySelector('span').textContent = ret ? 'listo' : (typeof st.cta === 'function' ? st.cta() : (st.cta || 'continuar'));
     refresh();
   }
@@ -639,18 +647,22 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
   function cover(on) { document.documentElement.classList.toggle('rd-pw-cover', on); }
   function lock(on) { document.documentElement.classList.toggle('rd-lk', on || !!document.querySelector('body>#mis-pub-sheet:not(.out),body>#edit-listing-modal')); }
   function present(startId) {
-    build(); theme();
+    var fresh1 = !host; build(); theme();
     busy = 0; ret = null; cur = null; els = {};
     R.stage.innerHTML = '';
     sheet(false); ld(false);
+    // la pantalla ya vive montada (invisible, fuera de cuadro): abrir es solo deslizarla.
+    // Nada que toque el documento de la app (bloqueo de scroll, tapar la vista) corre
+    // durante el deslizamiento: así el primer cuadro sale sin recalcular toda la app.
     host.classList.add('on');
     R.pg.classList.remove('in', 'out', 'ins'); R.pg.style.transform = '';
-    void R.pg.offsetWidth;
-    isOpen = true; lock(true);
+    isOpen = true;
     show(startId && S[startId] ? startId : flow()[0], 1, true);
-    requestAnimationFrame(function () { R.pg.classList.add('in'); });
+    // recién armada (sin precarga) necesita un cuadro en su sitio antes de deslizar
+    var go = function () { R.pg.classList.add('in'); };
+    requestAnimationFrame(fresh1 ? function () { requestAnimationFrame(go); } : go);
     clearTimeout(present._t);
-    present._t = setTimeout(function () { if (isOpen) cover(true); }, 520);
+    present._t = setTimeout(function () { if (isOpen) { lock(true); cover(true); } }, 520);
     histPush();
     try { if (typeof _rdHapticNow === 'function') _rdHapticNow('LIGHT'); } catch (e) {}
   }
@@ -841,6 +853,7 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     refresh();
   }
   function rFotos(el) {
+    if (K !== 'alquiler' && PVT !== 'consesionario') el.classList.add('wcp');
     var box = h('div', { 'class': 'blk' }); el.appendChild(box);
     function paint() {
       box.innerHTML = '';
@@ -995,7 +1008,7 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     function paint() {
       sg.innerHTML = ''; var v = norm(i.value.trim());
       list.filter(function (m) { return !v || norm(m).indexOf(v) > -1; }).slice(0, 8).forEach(function (m) {
-        sg.appendChild(h('button', { 'class': 'c' + (d.modelo === m ? ' sel' : ''), on: { click: function () { i.value = m; d.modelo = m; paint(); refresh(); buzz(); later(function () { if (ver) ver.focus(); else next(); }); } } }, [m]));
+        sg.appendChild(h('button', { 'class': 'c' + (d.modelo === m ? ' sel' : ''), on: { click: function () { i.value = m; d.modelo = m; paint(); refresh(); buzz(); if (!ver) later(next); } } }, [m]));
       });
     }
     if (list.length) { el.appendChild(sg); paint(); }
@@ -1005,7 +1018,6 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
       ver.addEventListener('input', function () { d.version = ver.value; });
     }
     [i, ver].forEach(function (x) { if (x) x.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); if (x === i && d.modelo && ver) ver.focus(); else if (d.modelo) { x.blur(); next(); } } }); });
-    if (!d.modelo) setTimeout(function () { if (isOpen) i.focus(); }, 460);
   }
   function rAnio(el) {
     var g = h('div', { 'class': 'yg blk' }), ys = years();
@@ -1030,18 +1042,23 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
   }
   function rCond(el) {
     cards(el, [['usado', 'Usado'], ['nuevo', 'Nuevo', '0 km']], 'cond', 'seg', function (v) {
-      if (v === 'nuevo') { d.km = 0; d.duenos = ''; d.duenosN = ''; d.estadoF = 'impecable'; d.choc = 'no'; d.dano = []; d.estado = ''; }
+      if (v === 'nuevo') { d.km = 0; d.kmU = ''; d.duenos = ''; d.duenosN = ''; d.estadoF = 'impecable'; d.choc = 'no'; d.dano = []; d.estado = ''; }
       else if (d.km === 0) d.km = '';
       later(next);
     });
   }
+  // km o millas: se escribe lo del tablero; si son millas se publica convertido a km
   function rKm(el) {
-    var w = h('div', { 'class': 'blk big' }), i = h('input', { type: 'text', inputmode: 'numeric', placeholder: '0', autocomplete: 'off', enterkeyhint: 'next', value: num(d.km) ? fmt(num(d.km)) : '' });
-    w.appendChild(i); w.appendChild(h('span', { 'class': 'u' }, ['km'])); el.appendChild(w);
-    el.appendChild(h('p', { 'class': 'hint' }, ['El número exacto del tablero genera confianza.']));
-    i.addEventListener('input', function () { var n = num(i.value); d.km = n || ''; i.value = n ? fmt(n) : ''; refresh(); });
+    var i = h('input', { type: 'text', inputmode: 'numeric', placeholder: '0', autocomplete: 'off', enterkeyhint: 'next', value: num(d.km) ? fmt(num(d.km)) : '' });
+    var un = h('div', { 'class': 'un' }), hint = h('p', { 'class': 'hint' });
+    function paint() {
+      [].forEach.call(un.children, function (b) { b.classList.toggle('on', b._u === (d.kmU || 'km')); });
+      hint.textContent = d.kmU === 'mi' ? (num(d.km) ? 'Se publica como ' + fmt(kmReal()) + ' km.' : 'Lo pasamos a kilómetros al publicar.') : 'El número exacto del tablero genera confianza.';
+    }
+    ['km', 'mi'].forEach(function (u) { var b = h('button', { on: { click: function () { d.kmU = u === 'mi' ? 'mi' : ''; paint(); buzz(); } } }, [u]); b._u = u; un.appendChild(b); });
+    el.appendChild(h('div', { 'class': 'blk big' }, [i, un])); el.appendChild(hint); paint();
+    i.addEventListener('input', function () { var n = num(i.value); d.km = n || ''; i.value = n ? fmt(n) : ''; paint(); refresh(); });
     i.addEventListener('keydown', function (e) { if (e.key === 'Enter' && num(d.km)) { i.blur(); next(); } });
-    setTimeout(function () { if (isOpen) i.focus(); }, 460);
   }
   /* filas que se completan en orden y avanzan solas */
   function rows(el, defs, done) {
@@ -1123,7 +1140,7 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     ex.appendChild(exi);
     var defs = [];
     if (K === 'venta' && !nuevo) defs.push({ k: 'estadoF', l: 'Estado físico', o: ESTADOF });
-    if (!nuevo) defs.push({ k: 'duenos', l: 'Dueños anteriores', o: [['1', '1'], ['2', '2'], ['3', '3'], ['4+', '4 o más']], extra: ex, after: function (v) { ex.classList.toggle('on', v === '4+'); if (v === '4+') setTimeout(function () { exi.focus(); }, 300); } });
+    if (!nuevo) defs.push({ k: 'duenos', l: 'Dueños anteriores', o: [['1', '1'], ['2', '2'], ['3', '3'], ['4+', '4 o más']], extra: ex, after: function (v) { ex.classList.toggle('on', v === '4+'); } });
     defs.push({ k: 'mod', l: '¿Tiene modificaciones?', o: MODS });
     defs.stay = function () { return d.duenos === '4+' && num(d.duenosN) < 4; };
     var Rr = rows(el, defs, next);
@@ -1173,7 +1190,6 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
       st.appendChild(b);
     });
     el.appendChild(st);
-    if (!num(d[key]) && !o.nofocus) setTimeout(function () { if (isOpen) i.focus(); }, 460);
     return i;
   }
   function rPrecio(el) { money(el, 'precio'); el.appendChild(h('p', { 'class': 'hint' }, ['Mantén presionado + o − para ir más rápido.'])); }
@@ -1187,7 +1203,7 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     var box = h('div', { 'class': 'blk' }); el.appendChild(box);
     var rv = h('div', { 'class': 'rev' + (d.finan ? ' on' : '') }), ta = h('textarea', { 'class': 'ta', placeholder: 'Explica las condiciones: inicial, cuotas, tasa, requisitos…', style: 'min-height:130px' });
     ta.value = d.finanTxt || ''; rv.appendChild(ta);
-    sw(box, 'finan', 'Ofrecer financiamiento', 'Si eres concesionario o tienes un plan propio. Los carros con financiamiento reciben más contactos.', function (on) { rv.classList.toggle('on', on); if (on) setTimeout(function () { ta.focus(); }, 350); });
+    sw(box, 'finan', 'Ofrecer financiamiento', 'Si eres concesionario o tienes un plan propio. Los carros con financiamiento reciben más contactos.', function (on) { rv.classList.toggle('on', on); });
     box.appendChild(rv);
     ta.addEventListener('input', function () { d.finanTxt = ta.value; refresh(); });
   }
@@ -1224,9 +1240,8 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     i.addEventListener('input', function () { d.dir = i.value; refresh(); });
     i.addEventListener('keydown', function (e) { if (e.key === 'Enter' && (d.dir || '').trim().length >= 4) { i.blur(); next(); } });
     var g = h('div', { 'class': 'ch sug' });
-    ['Caracas', 'Valencia', 'Maracaibo', 'Lechería', 'Barquisimeto'].forEach(function (c) { g.appendChild(h('button', { 'class': 'c', on: { click: function () { i.value = (i.value.trim() ? i.value.replace(/,?\s*$/, '') + ', ' : '') + c; d.dir = i.value; refresh(); i.focus(); } } }, [c])); });
+    ['Caracas', 'Valencia', 'Maracaibo', 'Lechería', 'Barquisimeto'].forEach(function (c) { g.appendChild(h('button', { 'class': 'c', on: { click: function () { i.value = (i.value.trim() ? i.value.replace(/,?\s*$/, '') + ', ' : '') + c; d.dir = i.value; refresh(); } } }, [c])); });
     el.appendChild(g);
-    setTimeout(function () { if (isOpen) i.focus(); }, 460);
   }
   function rPdia(el) { money(el, 'pdia', { u: '/ día', step: 5, big: 20 }); el.appendChild(h('p', { 'class': 'hint' }, ['Mantén presionado + o − para ir más rápido.'])); }
   function rDispo(el) {
@@ -1296,7 +1311,6 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     el.appendChild(h('p', { 'class': 'hint' }, ['Solo lo ven los compradores interesados.']));
     i.addEventListener('input', function () { var n = i.value.replace(/\D/g, '').replace(/^58/, '').replace(/^0/, '').slice(0, 10); i.value = waFmt(n); d.wa = n; refresh(); });
     i.addEventListener('keydown', function (e) { if (e.key === 'Enter' && String(d.wa || '').length >= 10) { i.blur(); next(); } });
-    if (!d.wa) setTimeout(function () { if (isOpen) i.focus(); }, 460);
   }
   function addVideos(files) {
     [].slice.call(files || []).forEach(function (f) {
@@ -1335,7 +1349,7 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
       else { d.avaltaCode = ''; cm.textContent = 'Código incompleto.'; cm.className = 'cmsg bad'; }
     } } }, ['aplicar'])])); cw.appendChild(cm);
     var s = h('div'); L.appendChild(s);
-    sw(s, 'avalta', 'Certificado Avalta', 'Solo con código de invitación.', function (on) { cw.classList.toggle('on', on); if (on) setTimeout(function () { ci.focus(); }, 350); else { d.avaltaCode = ''; cm.textContent = ''; ci.value = ''; } }, IC.sello);
+    sw(s, 'avalta', 'Certificado Avalta', 'Solo con código de invitación.', function (on) { cw.classList.toggle('on', on); if (!on) { d.avaltaCode = ''; cm.textContent = ''; ci.value = ''; } }, IC.sello);
     s.appendChild(cw);
     if (K !== 'alquiler') el.appendChild(h('div', { 'class': 'fot' }, [h('b', null, ['Las fotos sí importan.']), h('p', null, ['Una buena sesión puede aumentar la visibilidad de tu publicación un 60%. Contrata un fotógrafo con los estándares de Ruedda en tu ciudad.']),
       h('button', { on: { click: fotografos } }, ['ver fotógrafos disponibles'])]));
@@ -1349,17 +1363,19 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     try { openFotografos('pw'); } catch (e) {}
   }
 
+  function kmReal() { return d.kmU === 'mi' ? Math.round(num(d.km) * 1.609344) : num(d.km); }
+  function kmTxt() { return d.kmU === 'mi' ? fmt(num(d.km)) + ' mi' : fmt(num(d.km)) + ' km'; }
   function precioTxt() { return K === 'alquiler' ? '$' + fmt(num(d.pdia)) + ' / día' : K === 'subasta' ? 'Base $' + fmt(num(d.base)) + ' · ' + (d.dur || 5) + ' días' : '$' + fmt(num(d.precio)); }
   function titulo() { return [d.marca, d.modelo].filter(Boolean).join(' ') || 'tu carro'; }
   function rRev(el) {
     var f = F.fotos[0], im = h('div', { 'class': 'im' }); if (f) im.appendChild(img(f));
     var tt = [d.marca, d.modelo, d.version].filter(Boolean).join(' ');
-    var meta2 = K === 'alquiler' ? [d.dir, (d.dias || []).length + ' días disponibles'] : [K === 'venta' && d.cond === 'nuevo' ? '0 km · nuevo' : num(d.km) ? fmt(num(d.km)) + ' km' : null, d.ciudad, label(TRANS, d.trans)];
+    var meta2 = K === 'alquiler' ? [d.dir, (d.dias || []).length + ' días disponibles'] : [K === 'venta' && d.cond === 'nuevo' ? '0 km · nuevo' : num(d.km) ? kmTxt() : null, d.ciudad, label(TRANS, d.trans)];
     el.appendChild(h('div', { 'class': 'pv blk' }, [im, h('div', { 'class': 'in' }, [h('div', { 'class': 'tt' }, [tt + (d.anio ? ' · ' + d.anio : '')]),
       h('div', { 'class': 'mt' }, [meta2.filter(Boolean).join(' · ')]), h('div', { 'class': 'pr' }, [precioTxt()])])]));
     var A = {
       fotos: ['Fotos', F.fotos.length + ' fotos'], marca: ['Marca', d.marca], modelo: ['Modelo', [d.modelo, d.version].filter(Boolean).join(' · ')], anio: ['Año', d.anio],
-      cond: ['Condición', d.cond === 'nuevo' ? 'Nuevo' : d.cond === 'usado' ? 'Usado' : ''], km: ['Kilometraje', num(d.km) ? fmt(num(d.km)) + ' km' : ''],
+      cond: ['Condición', d.cond === 'nuevo' ? 'Nuevo' : d.cond === 'usado' ? 'Usado' : ''], km: ['Kilometraje', num(d.km) ? kmTxt() + (d.kmU === 'mi' ? ' · ' + fmt(kmReal()) + ' km' : '') : ''],
       meca: ['Técnico', [label(TRANS, d.trans), label(COMB, d.comb), label(MOTOR, d.motor), label(TRAC, d.trac)].filter(Boolean).join(' · ')],
       carro: ['Carrocería', label(CARROCERIA, d.carro)], color: ['Color', d.color],
       hist: ['Historia', [d.estadoF, d.duenos ? (d.duenos === '4+' ? (d.duenosN || '4+') : d.duenos) + (d.duenos === '1' ? ' dueño' : ' dueños') : null, label(MODS, d.mod)].filter(Boolean).join(' · ')],
@@ -1415,7 +1431,7 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
       try { populateYears('year-select'); } catch (e) {}
       setVal('year-select', d.anio);
       var nuevo = K === 'venta' && d.cond === 'nuevo';
-      setPH('km', nuevo ? '0' : (num(d.km) ? fmt(num(d.km)) : ''));
+      setPH('km', nuevo ? '0' : (num(d.km) ? fmt(kmReal()) : ''));
       setVal('duenos-select', nuevo ? '' : (d.duenos || ''));
       setVal('duenos-exacto-input', d.duenos === '4+' ? (d.duenosN || '') : '');
       setVal('transmision-select', d.trans); setVal('combustible-select', d.comb); setVal('motor-select', d.motor); setVal('traccion-select', d.trac);
@@ -1514,4 +1530,6 @@ h1{font-size:30px;line-height:1.08;letter-spacing:-.03em;font-weight:400}
     // vuelve al formulario después de una pantalla de la app (fotógrafos)
     back: function () { var id = window._pwResumeId; window._pwResumeId = null; if (id) return resume(id); }
   };
+  // se arma en reposo apenas baja el archivo: al tocar "vender" ya está todo listo
+  (window.requestIdleCallback || function (f) { setTimeout(f, 1); })(function () { build(); theme(); }, { timeout: 4000 });
 })();

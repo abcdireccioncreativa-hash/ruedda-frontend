@@ -9967,12 +9967,17 @@ function renderAlquilerHome(){
 // form — multi-foto simple, sube a bucket 'assets' (mismo que encuentra/patrocinantes)
 let _afPhotos=[]; // [{file, dataUrl}]
 function openAlquilerForm(){
+  // [V151] igual que vender: el paso a paso abre en el mismo toque, el formulario de abajo se prepara después
+  if(window.RDPW){ RDPW.open('alquiler'); setTimeout(_afPrep,650); return; }
+  _afPrep();
+  _pwLaunch('alquiler',()=>showView('alquiler-form')); // [V150]
+}
+function _afPrep(){
   _afPhotos=[];
   populateYears('af-year');
   ['af-marca','af-modelo','af-year','af-direccion','af-precio','af-descripcion','af-requisitos'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   _afRenderPhotosGrid();
   _afCalInit();
-  _pwLaunch('alquiler',()=>showView('alquiler-form')); // [V150]
 }
 // [disponibilidad] calendario simple mes-a-mes — toca un día para marcarlo
 // disponible. Mismo cálculo de offset/relleno que el calendario de subastas
@@ -15023,12 +15028,20 @@ function setListingCond(val){
   [btnU,btnN].forEach(b=>{ if(b){ b.style.background=''; b.style.color=''; } });
 }
 function openVenderForm(){
+  // [V151] con el paso a paso ya cargado se abre en el mismo toque, y el formulario
+  // clásico de abajo (que es el que envía) se prepara después del deslizamiento
+  const t=pendingVenderType||'particular';
+  if(window.RDPW){ RDPW.open(t); setTimeout(()=>_vfPrep(t),650); return; }
+  _vfPrep(t);
+  _pwLaunch(t,()=>showView('vender'));
+}
+function _vfPrep(t){
   const cfg={
     particular:{title:'Cuéntanos de tu vehículo.',sub:'Publica tu vehículo como clasificado en el marketplace automotriz más avanzado del país.',btn:'enviar a revisión',precioFijo:true,reserva:false,duracion:false,condicion:true,contacto:true,chocado:true,programada:false,financiamiento:true},
     subasta:{title:'¿Vas a subastar? Cuéntanos.',sub:'Tu vehículo sale a subasta en la plataforma más avanzada del país.',btn:'enviar a revisión',precioFijo:false,reserva:true,duracion:true,condicion:false,contacto:false,chocado:true,programada:true,financiamiento:false},
     consesionario:{title:'publicar inventario',sub:'Publica el inventario de tu concesionario.',btn:'publicar vehículo',precioFijo:true,reserva:false,duracion:false,condicion:true,contacto:true,chocado:true,programada:false,financiamiento:true}
   };
-  const c=cfg[pendingVenderType]||cfg.particular;
+  const c=cfg[t]||cfg.particular;
   document.getElementById('vender-hero-title').textContent=c.title;
   document.getElementById('vender-hero-sub').textContent=c.sub;
   document.getElementById('btn-submit-vender').textContent=c.btn;
@@ -15039,7 +15052,7 @@ function openVenderForm(){
   document.getElementById('field-condicion').style.display=c.condicion?'':'none';
   document.getElementById('field-contacto').style.display=c.contacto?'':'none';
   document.getElementById('field-chocado').style.display=c.chocado?'':'none';
-  { const _cs=document.getElementById('chocado-sub'); if(_cs) _cs.textContent=pendingVenderType==='subasta'?'activa si el vehículo tiene daños estructurales':'sale en la sección Chocados del market, no en el feed general'; } // [2026-10-08]
+  { const _cs=document.getElementById('chocado-sub'); if(_cs) _cs.textContent=t==='subasta'?'activa si el vehículo tiene daños estructurales':'sale en la sección Chocados del market, no en el feed general'; } // [2026-10-08]
   const _ff=document.getElementById('field-financiamiento'); if(_ff)_ff.style.display=c.financiamiento?'':'none';
   const _fp=document.getElementById('field-programada'); if(_fp)_fp.style.display=c.programada?'':'none';
   // reset chocado state on form open
@@ -15051,13 +15064,12 @@ function openVenderForm(){
   if(togP){togP.checked=false;document.getElementById('campo-fecha-programada').classList.remove('open');document.getElementById('programada-fecha').value='';document.getElementById('programada-hora').value='';}
   // [V150] se publica en el paso a paso de pantalla completa (/assets/rd-publicar.js), que
   // al final llena este mismo formulario y usa su mismo envío; si no carga, queda el de siempre
-  _pwLaunch(pendingVenderType||'particular',()=>showView('vender'));
 }
 // [V150] PUBLICAR PASO A PASO — el código vive aparte y se baja en reposo (nunca en el
 // arranque): abrir el formulario no le cuesta nada a la app. Aquí solo queda lo mínimo:
 // cargarlo, el "atrás" del sistema mientras está abierto, la capa para el gesto de borde
 // nativo y la lista de borradores para Mis publicaciones (sin tener que bajar el formulario).
-const _PW_SRC='/assets/rd-publicar.js?v=1';
+const _PW_SRC='/assets/rd-publicar.js?v=2';
 let _pwP=null;
 function _pwLoad(){
   if(window.RDPW) return Promise.resolve(window.RDPW);
@@ -16033,7 +16045,7 @@ async function _loadMyListings(){
   if(!grid) return;
   if(!_supa||!USER_STATE.id){ grid.innerHTML=_mpDraftsHtml()+_mpEmpty(); return; }
   try{
-    const[resListings,resAuctions]=await Promise.all([
+    const[resListings,resAuctions,resRentals]=await Promise.all([
       // [RC v8 FIX] antes NO había filtro de estado — autos ya no listados (estados
       // zombie: eliminada/suspendida/legacy/null) seguían apareciendo en el perfil.
       // Whitelist server-side con los ÚNICOS estados que el grid renderiza a propósito:
@@ -16041,10 +16053,13 @@ async function _loadMyListings(){
       // de activa+end_time vencido, y vendido es un flag aparte). Cualquier otro
       // estado = ya no listado → no entra. Mismo espíritu que renderVitrinavGrid.
       _supa.from('listings').select('*,listing_photos(id,url,orden)').eq('user_id',USER_STATE.id).in('estado',['activa','revision','aprobada','rechazada','negada']).order('created_at',{ascending:false}),
-      _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo,end_time,republish_count,auction_photos(url,orden)').eq('user_id',USER_STATE.id).in('estado',['activa','revision','aprobada','rechazada','negada']).order('created_at',{ascending:false})
+      _supa.from('auctions').select('id,titulo,marca,modelo,year,precio_usd,estado,tipo,end_time,republish_count,auction_photos(url,orden)').eq('user_id',USER_STATE.id).in('estado',['activa','revision','aprobada','rechazada','negada']).order('created_at',{ascending:false}),
+      // [V151] alquileres propios (tabla rentals: activa | pausada) — el dueño los ve y los pausa desde aquí
+      _supa.from('rentals').select('id,marca,modelo,year,precio_dia,estado,fotos').eq('user_id',USER_STATE.id).order('created_at',{ascending:false})
     ]);
     if(resListings.error) console.error('[ruedda] _loadMyListings listings:',resListings.error.message);
     if(resAuctions.error) console.error('[ruedda] _loadMyListings auctions:',resAuctions.error.message);
+    if(resRentals.error) console.error('[ruedda] _loadMyListings rentals:',resRentals.error.message);
     // fila completa en memoria: editar abre al instante, ya con todo adentro
     window._mpRows=new Map((resListings.data||[]).map(l=>[String(l.id),l]));
     const listings=(resListings.data||[]).map(l=>({id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'$'+Number(l.precio_usd||0).toLocaleString(),km:'—',status:l.vendido?'vendido':l.estado,vendido:!!l.vendido,daysLeft:0,fotos:0,type:'market',desc:'',photoUrl:(l.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null}));
@@ -16054,7 +16069,8 @@ async function _loadMyListings(){
       const status=(ended&&l.estado==='activa')?'finalizada':l.estado;
       return {id:l.id,title:`${l.year} ${l.marca} ${l.modelo}`,price:'subasta',km:'—',status,republishCount:l.republish_count||0,daysLeft:0,fotos:0,type:'subasta',desc:'',photoUrl:(l.auction_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url||null};
     });
-    const all=[...listings,...auctions];
+    const rentals=(resRentals.data||[]).map(r=>({id:r.id,title:[r.year,r.marca,r.modelo].filter(Boolean).join(' '),price:'$'+Number(r.precio_dia||0).toLocaleString()+' / día',status:r.estado==='pausada'?'pausada':'activa',type:'alquiler',photoUrl:(r.fotos||[])[0]||null}));
+    const all=[...listings,...auctions,...rentals];
     if(window._mpEnter) await window._mpEnter;
     if(!all.length){ grid.innerHTML=_mpDraftsHtml()+_mpEmpty(); const sb=document.getElementById('mis-pub-sub'); if(sb) sb.textContent='tus carros en Ruedda'; return; }
     MOCK_MY_LISTINGS.splice(0,MOCK_MY_LISTINGS.length,...all);
@@ -16068,8 +16084,9 @@ function _renderMisPubGrid(){
   if(!MOCK_MY_LISTINGS.length){ grid.innerHTML=_mpDraftsHtml()+_mpEmpty(); return; }
   const markets=MOCK_MY_LISTINGS.filter(l=>l.type==='market');
   const subastas=MOCK_MY_LISTINGS.filter(l=>l.type==='subasta');
+  const alquileres=MOCK_MY_LISTINGS.filter(l=>l.type==='alquiler');
   const sb=document.getElementById('mis-pub-sub');
-  if(sb) sb.textContent=[markets.length?`${markets.length} en market`:'',subastas.length?`${subastas.length} ${subastas.length===1?'subasta':'subastas'}`:''].filter(Boolean).join(' · ');
+  if(sb) sb.textContent=[markets.length?`${markets.length} en market`:'',subastas.length?`${subastas.length} ${subastas.length===1?'subasta':'subastas'}`:'',alquileres.length?`${alquileres.length} en alquiler`:''].filter(Boolean).join(' · ');
   const sep=(label,n)=>`<div class="mp-sec">${label}<span> · ${n}</span></div>`;
   let k=0;
   const renderCard=(l)=>{
@@ -16079,6 +16096,7 @@ function _renderMisPubGrid(){
     const isFinalizada=l.status==='finalizada';
     const isVendido=l.status==='vendido'||l.vendido;
     const isPublicando=l.status==='publicando';
+    if(l.type==='alquiler') return _mpRentalCard(l,Math.min(k++,8)*.04);
     const dot=isVendido?'#8e8e93':isAprobada?'#e6f03b':isRevision||isPublicando?'#ffb020':isNegada?'#ff453a':isFinalizada?'#8e8e93':'#30d158';
     const badgeLabel=isVendido?'vendido':isRevision?'en revisión':isAprobada?'aprobada':isNegada?'negada':isPublicando?'publicando…':isFinalizada?'finalizada':'activa';
     // [RC7] republicar (subastas finalizadas, máx 2) y marcar vendido (market activas)
@@ -16121,7 +16139,45 @@ function _renderMisPubGrid(){
   const parts=[_mpDraftsHtml()];
   if(markets.length){parts.push(sep('market',markets.length));parts.push(...markets.map(renderCard));}
   if(subastas.length){parts.push(sep('subastas',subastas.length));parts.push(...subastas.map(renderCard));}
+  if(alquileres.length){parts.push(sep('alquileres',alquileres.length));parts.push(...alquileres.map(renderCard));}
   grid.innerHTML=parts.join('');
+}
+
+// [V151] alquiler en Mis publicaciones: misma fila; tocar abre el post, pausar/reactivar y eliminar
+function _mpRentalCard(l,d){
+  const paused=l.status==='pausada';
+  return `<div class="mp-card" style="--d:${d}s" onclick="_mpOpenRental('${l.id}')">
+      <div class="mp-ph">
+        ${l.photoUrl
+          ?`<img class="rd-lq" src="${_tImg(l.photoUrl,{width:40,quality:40})}" alt="" aria-hidden="true" decoding="async"><img src="${_tImg(l.photoUrl,{width:900,quality:82})}" alt="" loading="lazy" decoding="async" onload="_rdShow(this)" onerror="this.style.display='none'">`
+          :`<svg fill="none" viewBox="0 0 40 30" stroke="var(--w20)" stroke-width="1.2"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>`}
+        <button type="button" class="rd-gb mp-del" onclick="event.stopPropagation();_mpDelRental('${l.id}')" aria-label="eliminar"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
+      </div>
+      <div class="mp-bd">
+        <span class="mp-st" style="--c:${paused?'#8e8e93':'#30d158'}"><i></i>${paused?'pausada':'activa'}</span>
+        <div class="mp-nm">${l.title}</div>
+        <div class="mp-pr${paused?' off':''}">${l.price}</div>
+        <div class="mp-ac"><button type="button" class="${paused?'rd-wb':'rd-gb'}" onclick="event.stopPropagation();_mpRentalEstado('${l.id}','${paused?'activa':'pausada'}',this)">${paused?'reactivar':'pausar'}</button></div>
+      </div>
+    </div>`;
+}
+function _mpOpenRental(id){ closeMisPub(true); openAlquilerDetail(id); }
+async function _mpRentalEstado(id,estado,btn){
+  if(!_supa) return;
+  if(btn) btn.disabled=true;
+  const{error}=await _supa.from('rentals').update({estado}).eq('id',id).eq('user_id',USER_STATE.id);
+  if(error){ if(btn) btn.disabled=false; showToast('no se pudo actualizar: '+error.message); return; }
+  const r=MOCK_MY_LISTINGS.find(x=>x.type==='alquiler'&&String(x.id)===String(id)); if(r) r.status=estado;
+  showToast(estado==='pausada'?'alquiler pausado':'alquiler activo de nuevo',true);
+  _renderMisPubGrid(); _loadRentals().catch(()=>{});
+}
+async function _mpDelRental(id){
+  if(!_supa||!confirm('¿Eliminar este alquiler? Esta acción no se puede deshacer.')) return;
+  const{error}=await _supa.from('rentals').delete().eq('id',id).eq('user_id',USER_STATE.id);
+  if(error){ showToast('no se pudo eliminar: '+error.message); return; }
+  const i=MOCK_MY_LISTINGS.findIndex(x=>x.type==='alquiler'&&String(x.id)===String(id)); if(i>=0) MOCK_MY_LISTINGS.splice(i,1);
+  showToast('alquiler eliminado',true);
+  _renderMisPubGrid(); _loadRentals().catch(()=>{});
 }
 
 function closeMisPub(instant){
@@ -23243,7 +23299,7 @@ async function _offerPickMyCar(){
   _rdHaptic('LIGHT');
   slot.innerHTML='<div style="display:flex;justify-content:center;padding:14px"><div class="save-spinner" style="border-top-color:var(--w60)"></div></div>';
   try{ if(!MOCK_MY_LISTINGS.length) await _loadMyListings(); }catch(e){}
-  const mine=(MOCK_MY_LISTINGS||[]).filter(x=>x.type!=='auction'&&x.status!=='vendido'&&!x.vendido);
+  const mine=(MOCK_MY_LISTINGS||[]).filter(x=>x.type!=='auction'&&x.type!=='alquiler'&&x.status!=='vendido'&&!x.vendido);
   if(!mine.length){ slot.innerHTML='<div style="font-size:12.5px;color:var(--muted);text-align:center;padding:10px">no tienes carros publicados · descríbelo abajo</div>'; return; }
   slot.innerHTML='<div style="font-size:11px;font-weight:700;letter-spacing:.4px;color:var(--muted);text-transform:uppercase;margin:2px 0 8px">elige cuál ofreces</div><div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px">'+
     mine.map((x,i)=>`<div onclick="_offerSetMyCar(${i})" style="flex:0 0 118px;cursor:pointer;border-radius:14px;overflow:hidden;background:var(--w5);border:1px solid var(--w10)"><div style="aspect-ratio:4/3;background:var(--w8)">${x.photoUrl?`<img src="${_tImg(x.photoUrl,{width:160,quality:70})}" style="width:100%;height:100%;object-fit:cover;display:block">`:''}</div><div style="padding:7px 8px"><div style="font-size:11.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(x.title||'')}</div><div style="font-size:10.5px;color:var(--muted)">${_esc(x.price||'')}</div></div></div>`).join('')+'</div>';
