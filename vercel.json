@@ -87,6 +87,14 @@
       "dest": "/api/admin-user?postulacion=1"
     },
     {
+      "src": "^/api/academy$",
+      "dest": "/api/admin-user?academy=1"
+    },
+    {
+      "src": "^/academy/?$",
+      "dest": "/academy/index.html"
+    },
+    {
       "src": "^/api/noticias$",
       "dest": "/api/admin-user?news=1"
     },

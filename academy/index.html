@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="es-VE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Ruedda Academy</title>
+<meta name="description" content="La escuela automotriz de Ruedda. Mecánica, manejo y compra segura. Programas para mujeres, jóvenes y empresas. Cupos limitados.">
+<meta property="og:title" content="Ruedda Academy">
+<meta property="og:description" content="La escuela automotriz de Ruedda. Formación seria. Cupos limitados.">
+<meta property="og:image" content="https://www.ruedda.app/waitlist/ruedda.png">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preload" href="/assets/fonts/opensauceone-300.906e8fb6.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:'OpenSauceOne';font-weight:300;font-display:swap;src:url('/assets/fonts/opensauceone-300.906e8fb6.woff2') format('woff2')}
+@font-face{font-family:'OpenSauceOne';font-weight:400;font-display:swap;src:url('/assets/fonts/opensauceone-400.d20e72bf.woff2') format('woff2')}
+@font-face{font-family:'OpenSauceOne';font-weight:500;font-display:swap;src:url('/assets/fonts/opensauceone-500.0fc79baa.woff2') format('woff2')}
+@font-face{font-family:'CodecPro';font-weight:400;font-display:swap;src:local('Codec Pro'),local('CodecPro-Regular'),url('/assets/fonts/codecpro-400.woff2') format('woff2')}
+@font-face{font-family:'CodecPro';font-weight:300;font-display:swap;src:local('Codec Pro Light'),local('CodecPro-Light'),url('/assets/fonts/codecpro-300.woff2') format('woff2')}
+:root{--bg:#000;--fg:#fff;--mute:rgba(255,255,255,.46);--dim:rgba(255,255,255,.3);--line:rgba(255,255,255,.18);--ease:cubic-bezier(.32,.72,0,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--fg);scroll-behavior:smooth;scroll-padding-top:84px}
+body{font-family:'OpenSauceOne',-apple-system,system-ui,sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  padding:0 24px max(24px,env(safe-area-inset-bottom))}
+body.mo{overflow:hidden}
+.cx{font-family:'CodecPro','OpenSauceOne',-apple-system,system-ui,sans-serif}
+.wrap{max-width:1160px;margin:0 auto}
+.lab{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--mute);font-weight:400}
+a{color:inherit}
+
+/* ───────── cabecera y menú ───────── */
+header{position:sticky;top:0;z-index:20;background:var(--bg);display:flex;justify-content:space-between;align-items:center;gap:24px;
+  padding:max(22px,env(safe-area-inset-top)) 0 16px;border-bottom:1px solid transparent;transition:border-color .4s}
+header.sc{border-color:var(--line)}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;flex-shrink:0}
+.brand img{height:15px;width:auto;display:block}
+.brand .lab{color:var(--fg)}
+nav.dk{display:none}
+.mb{background:none;border:0;color:var(--fg);font:inherit;font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;
+  display:flex;align-items:center;gap:10px;padding:6px 0;-webkit-tap-highlight-color:transparent}
+.mb i{display:block;width:18px;height:7px;border-top:1px solid;border-bottom:1px solid;transition:transform .4s var(--ease)}
+.cta{font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;text-decoration:none;padding:6px 0;border-bottom:1px solid var(--fg);white-space:nowrap}
+
+/* menú móvil a pantalla completa con submenús */
+#mm{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;flex-direction:column;
+  padding:max(22px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom));
+  opacity:0;visibility:hidden;transform:translateY(-8px);transition:opacity .35s var(--ease),transform .45s var(--ease),visibility 0s .45s}
+body.mo #mm{opacity:1;visibility:visible;transform:none;transition:opacity .35s var(--ease),transform .45s var(--ease)}
+#mm .top{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid var(--line)}
+#mm .mb i{height:0;border-bottom:0;transform:rotate(45deg);position:relative}
+#mm .mb i:after{content:'';position:absolute;left:0;top:-1px;width:18px;border-top:1px solid;transform:rotate(-90deg)}
+#mm .sc2{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-top:6px}
+.acc{border-bottom:1px solid var(--line)}
+.acc>button{width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:0;color:var(--fg);font:inherit;
+  font-size:30px;letter-spacing:-.035em;padding:18px 0;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+.acc>button span:last-child{font-size:18px;color:var(--mute);transition:transform .4s var(--ease)}
+.acc.op>button span:last-child{transform:rotate(45deg)}
+.acc .sub{display:grid;grid-template-rows:0fr;transition:grid-template-rows .45s var(--ease)}
+.acc.op .sub{grid-template-rows:1fr}
+.acc .sub>div{overflow:hidden}
+.acc .sub a{display:flex;justify-content:space-between;padding:11px 0;font-size:16px;color:var(--mute);text-decoration:none}
+.acc .sub a:last-child{padding-bottom:22px}
+.acc .sub a:active{color:var(--fg)}
+#mm .bot{padding-top:18px}
+#mm .bot a.go{margin-top:0}
+
+/* ───────── portada ───────── */
+.hero{min-height:calc(100svh - 70px);display:flex;flex-direction:column;justify-content:center;padding:6vh 0 8vh}
+#flag{width:min(40vw,190px);aspect-ratio:400/420;color:var(--fg);margin:0 0 7vh -6px}
+h1,.h{font-size:clamp(34px,9.4vw,76px);line-height:1.02;letter-spacing:-.04em;font-weight:300}
+h1 + p.h{color:var(--mute);margin-top:2px}
+.lead{max-width:32em;margin-top:5vh;font-size:15px;line-height:1.6;color:var(--mute)}
+.lead b{color:var(--fg);font-weight:400}
+a.go{display:flex;justify-content:space-between;align-items:center;max-width:520px;margin-top:6vh;padding:16px 2px 16px 0;border-bottom:1px solid var(--fg);
+  text-decoration:none;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;-webkit-tap-highlight-color:transparent}
+.ar{display:block;width:28px;height:1px;background:currentColor;position:relative;transition:width .4s var(--ease);flex-shrink:0}
+.ar:after{content:'';position:absolute;right:0;top:-3px;width:6px;height:6px;border-top:1px solid;border-right:1px solid;transform:rotate(45deg)}
+a.go:hover .ar,a.go:active .ar{width:44px}
+.facts{display:grid;grid-template-columns:1fr 1fr;margin-top:8vh;border-top:1px solid var(--line)}
+.facts div{padding:18px 0;border-bottom:1px solid var(--line)}
+.facts div:nth-child(odd){padding-right:16px;border-right:1px solid var(--line)}
+.facts div:nth-child(even){padding-left:16px}
+.facts b{display:block;font-weight:300;font-size:22px;letter-spacing:-.03em}
+.facts span{display:block;margin-top:4px;font-size:12px;color:var(--mute)}
+
+/* ───────── secciones ───────── */
+section{padding:14vh 0 0}
+.sh{display:flex;justify-content:space-between;align-items:baseline;gap:20px;padding-bottom:22px;border-bottom:1px solid var(--fg)}
+.sh .h{font-size:clamp(28px,6.4vw,52px)}
+.prose{max-width:40em;padding-top:30px}
+.prose p{font-size:16px;line-height:1.7;color:var(--mute)}
+.prose p + p{margin-top:18px}
+.prose p b{color:var(--fg);font-weight:400}
+.prose .big{font-size:clamp(20px,4.4vw,28px);line-height:1.35;letter-spacing:-.02em;color:var(--fg)}
+
+.cols{display:grid;grid-template-columns:1fr;border-bottom:1px solid var(--line);margin-top:34px}
+.cols>div{padding:26px 0;border-top:1px solid var(--line)}
+.cols b{display:block;font-weight:300;font-size:clamp(20px,4.6vw,28px);letter-spacing:-.03em;line-height:1.1}
+.cols p{margin-top:10px;font-size:14px;line-height:1.6;color:var(--mute)}
+.cols .lab{display:block;margin-bottom:14px}
+
+/* programas (desplegables) */
+.pr details{border-bottom:1px solid var(--line)}
+.pr summary{list-style:none;display:grid;grid-template-columns:1fr auto;column-gap:18px;row-gap:8px;padding:26px 0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pr summary::-webkit-details-marker{display:none}
+.pr .n{font-size:clamp(22px,5.6vw,34px);letter-spacing:-.03em;line-height:1.08}
+.pr .t{grid-column:1;font-size:14px;line-height:1.5;color:var(--mute);max-width:34em}
+.pr .w{grid-row:1;grid-column:2;align-self:start;margin-top:8px;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+.pr .x{grid-column:2;grid-row:2;justify-self:end;align-self:end;font-size:18px;color:var(--mute);transition:transform .4s var(--ease)}
+.pr details[open] .x{transform:rotate(45deg);color:var(--fg)}
+.pd{display:grid;grid-template-columns:1fr;gap:26px;padding:4px 0 34px}
+.pd .lab{display:block;margin-bottom:12px}
+.pd ol{list-style:none;counter-reset:m}
+.pd ol li{counter-increment:m;display:flex;gap:14px;padding:10px 0;border-top:1px solid var(--line);font-size:14px;line-height:1.5}
+.pd ol li:before{content:counter(m,decimal-leading-zero);font-size:11px;color:var(--dim);padding-top:3px;font-variant-numeric:tabular-nums}
+.pd p{font-size:14px;line-height:1.6;color:var(--mute)}
+.pd p + p{margin-top:10px}
+.pd button{margin-top:18px;background:none;border:0;border-bottom:1px solid var(--fg);color:var(--fg);font:inherit;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  padding:10px 0;cursor:pointer;display:inline-flex;gap:14px;align-items:center}
+
+/* comunidades */
+.cm{margin-top:34px;border-top:1px solid var(--line)}
+.cm article{padding:34px 0;border-bottom:1px solid var(--line)}
+.cm .k{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.cm h3{font-weight:300;font-size:clamp(26px,6vw,44px);letter-spacing:-.04em;line-height:1.04}
+.cm p{margin-top:16px;font-size:15px;line-height:1.7;color:var(--mute);max-width:40em}
+.cm ul{list-style:none;margin-top:18px;max-width:40em}
+.cm ul li{padding:10px 0 10px 22px;border-top:1px solid var(--line);font-size:14px;line-height:1.5;position:relative}
+.cm ul li:before{content:'';position:absolute;left:0;top:17px;width:8px;height:1px;background:var(--fg)}
+
+/* admisión */
+.steps{list-style:none;margin-top:34px;counter-reset:s;border-top:1px solid var(--line)}
+.steps li{counter-increment:s;display:grid;grid-template-columns:44px 1fr;padding:22px 0;border-bottom:1px solid var(--line)}
+.steps li:before{content:counter(s,decimal-leading-zero);font-size:11px;color:var(--dim);padding-top:8px;font-variant-numeric:tabular-nums}
+.steps b{display:block;font-weight:300;font-size:22px;letter-spacing:-.03em}
+.steps p{margin-top:6px;font-size:14px;line-height:1.6;color:var(--mute)}
+
+/* preguntas y normas */
+.faq{margin-top:34px;border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:20px 0;cursor:pointer;font-size:17px;line-height:1.4;letter-spacing:-.01em}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary span{color:var(--mute);transition:transform .4s var(--ease);flex-shrink:0}
+.faq details[open] summary span{transform:rotate(45deg);color:var(--fg)}
+.faq details p{padding:0 0 22px;font-size:14px;line-height:1.7;color:var(--mute);max-width:42em}
+
+/* formulario */
+form{max-width:640px}
+.f{position:relative;border-bottom:1px solid var(--line);transition:border-color .4s}
+.f:focus-within{border-color:var(--fg)}
+.f label{display:block;padding-top:22px;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);font-weight:400}
+.f input,.f select,.f textarea{display:block;width:100%;background:none;border:0;outline:0;border-radius:0;color:var(--fg);font:inherit;font-size:17px;font-weight:400;
+  padding:8px 0 14px;letter-spacing:-.01em;-webkit-appearance:none;appearance:none}
+.f textarea{resize:none;min-height:30px;line-height:1.45}
+.f select{cursor:pointer}
+.f select option{background:#000;color:#fff}
+.f.sel:after{content:'';position:absolute;right:4px;bottom:22px;width:6px;height:6px;border-right:1px solid var(--mute);border-bottom:1px solid var(--mute);transform:rotate(45deg);pointer-events:none}
+.f input::placeholder,.f textarea::placeholder{color:rgba(255,255,255,.26)}
+.ch{display:flex;flex-wrap:wrap;gap:8px;padding:6px 0 18px}
+.ch button{background:none;border:1px solid var(--line);color:var(--mute);font:inherit;font-size:13px;font-weight:400;padding:10px 14px;border-radius:0;cursor:pointer;
+  transition:border-color .25s,color .25s,background .25s;-webkit-tap-highlight-color:transparent}
+.ch button:hover{border-color:var(--mute);color:var(--fg)}
+.ch button[aria-pressed="true"]{background:var(--fg);border-color:var(--fg);color:#000}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.sb{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:40px;padding:18px 2px 18px 0;background:none;border:0;border-bottom:1px solid var(--fg);
+  color:var(--fg);font:inherit;font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sb:hover .ar{width:44px}
+.sb[disabled]{opacity:.4;cursor:default}
+#msg{min-height:18px;margin-top:14px;font-size:12px;color:var(--mute)}
+.legal{margin-top:6px;font-size:11px;line-height:1.5;color:var(--dim);max-width:40em}
+#ok{display:none;padding:40px 0 0}
+#ok b{display:block;font-weight:300;font-size:clamp(30px,8vw,56px);letter-spacing:-.04em;line-height:1.04}
+#ok p{margin-top:18px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.done #f{display:none}
+.done #ok{display:block;animation:up .9s var(--ease) both}
+
+/* pie */
+footer{margin-top:18vh;border-top:1px solid var(--fg);padding-top:40px}
+.ft1{display:grid;gap:34px;padding-bottom:40px;border-bottom:1px solid var(--line)}
+.ft1 p{margin-top:22px;font-size:clamp(24px,5.6vw,40px);line-height:1.06;letter-spacing:-.04em}
+.ft1 p span{color:var(--mute)}
+.ct{display:grid;border-top:1px solid var(--line)}
+.ct a{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);text-decoration:none;font-size:15px}
+.ct a:hover{color:var(--mute)}
+.fm{display:grid;grid-template-columns:1fr 1fr;gap:34px 20px;padding-top:40px}
+.fm .lab{display:block;margin-bottom:14px;color:var(--fg)}
+.fm a{display:block;padding:5px 0;font-size:14px;color:var(--mute);text-decoration:none}
+.fm a:hover{color:var(--fg)}
+.fb{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;margin-top:48px;padding-top:20px;border-top:1px solid var(--line);font-size:12px;color:var(--mute)}
+
+.r{opacity:0;transform:translateY(14px);animation:up 1.2s var(--ease) forwards}
+.rv{opacity:0;transform:translateY(18px);transition:opacity 1s var(--ease),transform 1s var(--ease)}
+.rv.on{opacity:1;transform:none}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ───────── escritorio ───────── */
+@media (min-width:1000px){
+  body{padding:0 56px 40px}
+  header{padding-top:30px}
+  .brand img{height:17px}
+  .mb{display:none}
+  nav.dk{display:flex;align-items:center;gap:34px}
+  .dd{position:relative}
+  .dd>button{background:none;border:0;color:var(--mute);font:inherit;font-size:13px;letter-spacing:-.005em;cursor:pointer;padding:10px 0;display:flex;align-items:center;gap:8px;transition:color .25s}
+  .dd>button:after{content:'';width:5px;height:5px;border-right:1px solid;border-bottom:1px solid;transform:rotate(45deg) translateY(-2px);transition:transform .3s var(--ease)}
+  .dd:hover>button,.dd:focus-within>button{color:var(--fg)}
+  .dd:hover>button:after,.dd:focus-within>button:after{transform:rotate(225deg) translateY(-1px)}
+  .dd .pn{position:absolute;top:100%;left:-24px;min-width:300px;padding:14px 24px 18px;background:var(--bg);border:1px solid var(--line);
+    opacity:0;visibility:hidden;transform:translateY(6px);transition:opacity .25s var(--ease),transform .35s var(--ease),visibility 0s .35s}
+  .dd:hover .pn,.dd:focus-within .pn{opacity:1;visibility:visible;transform:none;transition:opacity .25s var(--ease),transform .35s var(--ease)}
+  .dd .pn a{display:block;padding:10px 0;border-top:1px solid var(--line);text-decoration:none}
+  .dd .pn a:first-child{border-top:0}
+  .dd .pn a b{display:block;font-weight:400;font-size:14px}
+  .dd .pn a span{display:block;margin-top:2px;font-size:12px;color:var(--mute)}
+  .dd .pn a:hover b{text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1px}
+  .hero{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8vw}
+  #flag{grid-column:2;grid-row:1/6;width:min(24vw,320px);margin:0}
+  .hero>*:not(#flag){grid-column:1}
+  .facts{grid-template-columns:repeat(4,1fr)}
+  .facts div,.facts div:nth-child(odd),.facts div:nth-child(even){padding:22px 20px 22px 0;border-right:0;border-bottom:0}
+  .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);column-gap:8vw;align-items:start}
+  .split .sh{border:0;padding:0;flex-direction:column;gap:18px;position:sticky;top:110px}
+  .split .prose{padding-top:0}
+  .split .cols,.split .cm,.split .steps,.split .faq{margin-top:0}
+  .cols.c3{grid-template-columns:repeat(3,1fr);column-gap:40px;border-bottom:0}
+  .cols.c3>div{padding:30px 0 0}
+  .cols.c2{grid-template-columns:repeat(2,1fr);column-gap:40px}
+  .pr summary{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto 24px;align-items:baseline;padding:34px 0}
+  .pr .t{grid-column:2;grid-row:1}
+  .pr .w{grid-column:3;grid-row:1;margin:0}
+  .pr .x{grid-column:4;grid-row:1;align-self:baseline}
+  .pd{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto 24px;column-gap:18px}
+  .pd>div:first-child{grid-column:1}
+  .pd>div:last-child{grid-column:2/4}
+  .ft1{grid-template-columns:1.3fr 1fr;align-items:end;column-gap:8vw}
+  .fm{grid-template-columns:repeat(5,1fr)}
+}
+@media (prefers-reduced-motion:reduce){.r,.rv{animation:none;transition:none;opacity:1;transform:none}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header id="hd" class="r" style="animation-delay:.1s">
+  <a class="brand" href="#top" aria-label="Ruedda Academy"><img src="/waitlist/ruedda.png" alt="Ruedda" width="996" height="272"><span class="lab cx">academy</span></a>
+  <nav class="dk" aria-label="principal">
+    <div class="dd"><button type="button">la academia</button>
+      <div class="pn">
+        <a href="#academia"><b>quiénes somos</b><span>Por qué existe Ruedda Academy.</span></a>
+        <a href="#mision"><b>misión y visión</b><span>Lo que nos proponemos.</span></a>
+        <a href="#principios"><b>principios</b><span>Cómo enseñamos y cómo nos comportamos.</span></a>
+        <a href="#metodo"><b>método</b><span>Carros reales, grupos pequeños.</span></a>
+      </div></div>
+    <div class="dd"><button type="button">programas</button>
+      <div class="pn">
+        <a href="#p-mecanica"><b>mecánica esencial</b><span>Para todos.</span></a>
+        <a href="#p-mujeres"><b>mujeres al volante</b><span>Grupos solo para mujeres.</span></a>
+        <a href="#p-jovenes"><b>jóvenes conductores</b><span>De 16 a 24 años.</span></a>
+        <a href="#p-compra"><b>compra inteligente</b><span>Antes de pagar un carro.</span></a>
+        <a href="#p-diagnostico"><b>diagnóstico y electricidad</b><span>Nivel técnico.</span></a>
+        <a href="#p-venta"><b>venta profesional</b><span>Vendedores y concesionarios.</span></a>
+      </div></div>
+    <div class="dd"><button type="button">comunidades</button>
+      <div class="pn">
+        <a href="#mujeres"><b>ruedda mujeres</b><span>Autonomía frente al carro.</span></a>
+        <a href="#jovenes"><b>ruedda jóvenes</b><span>El primer carro, con criterio.</span></a>
+        <a href="#empresas"><b>empresas y concesionarios</b><span>Formación para equipos.</span></a>
+      </div></div>
+    <div class="dd"><button type="button">admisión</button>
+      <div class="pn">
+        <a href="#admision"><b>proceso de admisión</b><span>De la solicitud al primer día.</span></a>
+        <a href="#requisitos"><b>requisitos</b><span>Lo que se le pedirá.</span></a>
+        <a href="#preguntas"><b>preguntas frecuentes</b><span>Respuestas directas.</span></a>
+        <a href="#normas"><b>normas</b><span>Conducta, seguridad y privacidad.</span></a>
+      </div></div>
+    <a class="cta" href="#cupo">solicitar cupo</a>
+  </nav>
+  <button class="mb" type="button" id="mbo" aria-label="abrir menú" aria-controls="mm" aria-expanded="false"><span>menú</span><i></i></button>
+</header>
+
+<div id="mm" role="dialog" aria-modal="true" aria-label="menú">
+  <div class="top">
+    <a class="brand" href="#top" data-c><img src="/waitlist/ruedda.png" alt="Ruedda" width="996" height="272"><span class="lab cx">academy</span></a>
+    <button class="mb" type="button" id="mbc" aria-label="cerrar menú"><span>cerrar</span><i></i></button>
+  </div>
+  <div class="sc2">
+    <div class="acc"><button type="button" class="cx"><span>la academia</span><span>+</span></button><div class="sub"><div>
+      <a href="#academia" data-c>quiénes somos</a><a href="#mision" data-c>misión y visión</a><a href="#principios" data-c>principios</a><a href="#metodo" data-c>método</a></div></div></div>
+    <div class="acc"><button type="button" class="cx"><span>programas</span><span>+</span></button><div class="sub"><div>
+      <a href="#p-mecanica" data-c>mecánica esencial</a><a href="#p-mujeres" data-c>mujeres al volante</a><a href="#p-jovenes" data-c>jóvenes conductores</a>
+      <a href="#p-compra" data-c>compra inteligente</a><a href="#p-diagnostico" data-c>diagnóstico y electricidad</a><a href="#p-venta" data-c>venta profesional</a></div></div></div>
+    <div class="acc"><button type="button" class="cx"><span>comunidades</span><span>+</span></button><div class="sub"><div>
+      <a href="#mujeres" data-c>ruedda mujeres</a><a href="#jovenes" data-c>ruedda jóvenes</a><a href="#empresas" data-c>empresas y concesionarios</a></div></div></div>
+    <div class="acc"><button type="button" class="cx"><span>admisión</span><span>+</span></button><div class="sub"><div>
+      <a href="#admision" data-c>proceso de admisión</a><a href="#requisitos" data-c>requisitos</a><a href="#preguntas" data-c>preguntas frecuentes</a><a href="#normas" data-c>normas</a></div></div></div>
+  </div>
+  <div class="bot"><a class="go" href="#cupo" data-c><span>solicitar cupo</span><i class="ar"></i></a></div>
+</div>
+
+<main id="top">
+  <div class="hero">
+    <div id="flag" class="r" aria-hidden="true"></div>
+    <h1 class="cx r" style="animation-delay:.35s">la escuela automotriz<br>de ruedda.</h1>
+    <p class="h cx r" style="animation-delay:.5s">formación seria.</p>
+    <p class="lead r" style="animation-delay:.65s">Mecánica, manejo y compra segura, enseñados sobre carros reales. Programas para <b>mujeres</b>, para <b>jóvenes</b> y para quien vive de los carros.</p>
+    <a class="go r" href="#cupo" style="animation-delay:.8s"><span>solicitar cupo</span><i class="ar"></i></a>
+    <div class="facts r" style="animation-delay:.95s">
+      <div><b class="cx">6 programas</b><span>del nivel básico al profesional</span></div>
+      <div><b class="cx">presencial</b><span>taller, aula y calle</span></div>
+      <div><b class="cx">por cohortes</b><span>cupos contados</span></div>
+      <div><b class="cx">con admisión</b><span>cada solicitud se revisa</span></div>
+    </div>
+  </div>
+
+  <!-- LA ACADEMIA -->
+  <section id="academia" class="split">
+    <div class="sh rv"><p class="h cx">la academia.</p><span class="lab">quiénes somos</span></div>
+    <div class="prose rv">
+      <p class="big">En Venezuela, la mayoría de las personas compra, maneja y mantiene un carro sin que nadie se lo haya enseñado.</p>
+      <p>Ruedda Academy nace de esa realidad. Ruedda es el mercado automotriz donde miles de venezolanos compran y venden vehículos todos los días; desde ahí vemos, una y otra vez, las mismas consecuencias de la falta de formación: compras mal hechas, reparaciones innecesarias, fallas que se pudieron prevenir y conductores que dependen por completo de terceros.</p>
+      <p>La academia es la respuesta institucional de Ruedda a ese problema. <b>Enseñamos a entender el carro</b>, no solo a usarlo: cómo funciona, cómo se cuida, cómo se diagnostica, cómo se compra y cómo se vende con criterio.</p>
+      <p>No somos un taller que da charlas ni un curso en línea. Somos una escuela con programas estructurados, instructores con oficio, evaluación real y un proceso de admisión que respeta el tiempo de quien entra.</p>
+    </div>
+  </section>
+
+  <section id="mision" class="split">
+    <div class="sh rv"><p class="h cx">misión y visión.</p><span class="lab">propósito</span></div>
+    <div class="cols c2 rv">
+      <div><span class="lab">misión</span><b class="cx">Formar conductores, compradores y profesionales que entiendan el carro.</b><p>Llevar conocimiento automotriz práctico y verificable a cualquier persona, sin importar su punto de partida, con la seriedad de una institución y la exigencia de un taller.</p></div>
+      <div><span class="lab">visión</span><b class="cx">Ser la referencia de formación automotriz en Venezuela.</b><p>Que una constancia de Ruedda Academy signifique, para cualquier comprador, empleador o concesionario, que esa persona sabe lo que hace.</p></div>
+    </div>
+  </section>
+
+  <section id="principios" class="split">
+    <div class="sh rv"><p class="h cx">principios.</p><span class="lab">cuatro</span></div>
+    <div class="cols rv">
+      <div><b class="cx">rigor.</b><p>Lo que se enseña se puede comprobar. Cada módulo termina con una práctica evaluada, no con una asistencia firmada.</p></div>
+      <div><b class="cx">respeto.</b><p>Nadie llega sabiendo. En nuestras aulas no hay preguntas tontas, ni burlas, ni condescendencia, especialmente hacia quien empieza desde cero.</p></div>
+      <div><b class="cx">seguridad.</b><p>En el taller y en la calle, la seguridad está antes que la velocidad del curso. Las normas se cumplen sin excepción.</p></div>
+      <div><b class="cx">honestidad.</b><p>Enseñamos a reconocer el precio justo, la reparación necesaria y el carro que no conviene. Aunque eso no le convenga a nadie más.</p></div>
+    </div>
+  </section>
+
+  <section id="metodo" class="split">
+    <div class="sh rv"><p class="h cx">método.</p><span class="lab">cómo se aprende</span></div>
+    <div class="cols rv">
+      <div><b class="cx">carros reales.</b><p>Se aprende con las manos, en el taller y en la calle. La teoría existe para explicar lo que se va a tocar.</p></div>
+      <div><b class="cx">grupos pequeños.</b><p>Cupos contados por cohorte para que cada alumno practique y reciba corrección directa del instructor.</p></div>
+      <div><b class="cx">evaluación práctica.</b><p>Cada programa cierra con una prueba sobre un vehículo. Quien la aprueba, recibe su constancia.</p></div>
+      <div><b class="cx">constancia ruedda.</b><p>La constancia queda registrada en su perfil de Ruedda, visible para compradores y concesionarios cuando usted lo autorice.</p></div>
+    </div>
+  </section>
+
+  <!-- PROGRAMAS -->
+  <section id="programas">
+    <div class="sh rv"><p class="h cx">programas.</p><span class="lab">seis</span></div>
+    <div class="pr">
+      <details id="p-mecanica" class="rv"><summary><span class="n cx">mecánica esencial</span><span class="t">Entienda su carro antes de que falle.</span><span class="w">para todos</span><span class="x">+</span></summary>
+        <div class="pd"><div><span class="lab">contenido</span><ol><li>Cómo funciona un carro: motor, transmisión y tren de rodaje</li><li>Fluidos, filtros y su calendario de mantenimiento</li><li>Frenos, cauchos y suspensión: señales de desgaste</li><li>Batería, arranque y luces</li><li>Qué hacer ante una falla en la vía</li><li>Cómo hablar con un mecánico y leer un presupuesto</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A cualquier persona que maneje o vaya a manejar, sin conocimientos previos.</p><p>Al terminar, usted podrá hacer el mantenimiento básico de su vehículo, detectar fallas a tiempo y evitar reparaciones innecesarias.</p><button type="button" data-p="mecanica">solicitar cupo <i class="ar"></i></button></div></div></details>
+      <details id="p-mujeres" class="rv"><summary><span class="n cx">mujeres al volante</span><span class="t">Mecánica, manejo y compra segura, en grupos solo para mujeres.</span><span class="w">mujeres</span><span class="x">+</span></summary>
+        <div class="pd"><div><span class="lab">contenido</span><ol><li>Mecánica esencial, explicada sin tecnicismos</li><li>Cambio de caucho, batería y revisión de fluidos, en práctica</li><li>Manejo defensivo y seguridad personal en la vía</li><li>Qué hacer ante un accidente o una avería</li><li>Cómo comprar un carro sin depender de terceros</li><li>Cómo evaluar un taller y un presupuesto</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A mujeres de cualquier edad y nivel, desde quien aún no maneja hasta quien maneja a diario y quiere independencia frente al carro.</p><p>Grupos exclusivos, en un ambiente de confianza y respeto.</p><button type="button" data-p="mujeres">solicitar cupo <i class="ar"></i></button></div></div></details>
+      <details id="p-jovenes" class="rv"><summary><span class="n cx">jóvenes conductores</span><span class="t">Primer carro, manejo defensivo y responsabilidad.</span><span class="w">16 a 24 años</span><span class="x">+</span></summary>
+        <div class="pd"><div><span class="lab">contenido</span><ol><li>Normas de tránsito y documentos obligatorios</li><li>Manejo defensivo, distancia y velocidad</li><li>Alcohol, celular y distracciones: consecuencias reales</li><li>Mantenimiento básico del primer carro</li><li>Costos reales de tener un vehículo</li><li>Cómo comprar el primer carro con criterio</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A jóvenes entre 16 y 24 años que empiezan a manejar o están por tener su primer vehículo.</p><p>Los menores de edad se inscriben con la autorización de su representante, quien recibe el seguimiento del programa.</p><button type="button" data-p="jovenes">solicitar cupo <i class="ar"></i></button></div></div></details>
+      <details id="p-compra" class="rv"><summary><span class="n cx">compra inteligente</span><span class="t">Inspección pre-compra, papeles y precio justo.</span><span class="w">compradores</span><span class="x">+</span></summary>
+        <div class="pd"><div><span class="lab">contenido</span><ol><li>Cómo leer una publicación y descartar a tiempo</li><li>Inspección visual: carrocería, choques y pintura</li><li>Inspección mecánica y prueba de manejo</li><li>Lectura básica con escáner OBD2</li><li>Documentos, traspaso y señales de fraude</li><li>Precio justo y negociación</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A quien va a comprar un carro, usado o nuevo, y no quiere depender de la palabra del vendedor.</p><p>Al terminar, usted podrá inspeccionar un vehículo con método y negociar con datos.</p><button type="button" data-p="compra">solicitar cupo <i class="ar"></i></button></div></div></details>
+      <details id="p-diagnostico" class="rv"><summary><span class="n cx">diagnóstico y electricidad</span><span class="t">Escáner OBD2, sensores, códigos de falla y sistema eléctrico.</span><span class="w">nivel técnico</span><span class="x">+</span></summary>
+        <div class="pd"><div><span class="lab">contenido</span><ol><li>Fundamentos de electricidad automotriz</li><li>Uso del multímetro</li><li>Escáner OBD2: lectura e interpretación de códigos</li><li>Sensores y actuadores del motor</li><li>Diagnóstico por síntomas</li><li>Informe técnico para el cliente</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A mecánicos, aprendices y aficionados con conocimientos básicos que quieren diagnosticar con método.</p><p>Se recomienda haber cursado mecánica esencial o tener experiencia equivalente.</p><button type="button" data-p="diagnostico">solicitar cupo <i class="ar"></i></button></div></div></details>
+      <details id="p-venta" class="rv"><summary><span class="n cx">venta profesional</span><span class="t">Tasación, fotografía, publicación y cierre.</span><span class="w">profesionales</span><span class="x">+</span></summary>
+        <div class="pd"><div><span class="lab">contenido</span><ol><li>Tasación de un vehículo con datos del mercado</li><li>Preparación y fotografía del carro</li><li>Publicación que vende: título, precio y descripción</li><li>Atención al comprador y prueba de manejo</li><li>Negociación y cierre</li><li>Documentos y entrega</li></ol></div>
+        <div><span class="lab">a quién va dirigido</span><p>A vendedores independientes, equipos de concesionarios y personas que venden vehículos con frecuencia.</p><p>Incluye práctica sobre publicaciones reales en Ruedda.</p><button type="button" data-p="venta">solicitar cupo <i class="ar"></i></button></div></div></details>
+    </div>
+  </section>
+
+  <!-- COMUNIDADES -->
+  <section id="comunidades" class="split">
+    <div class="sh rv"><p class="h cx">comunidades.</p><span class="lab">para quién</span></div>
+    <div class="cm">
+      <article id="mujeres" class="rv"><div class="k"><h3 class="cx">ruedda mujeres.</h3><span class="lab">autonomía</span></div>
+        <p>Durante demasiado tiempo, a muchas mujeres se les ha explicado el carro a medias, se les ha cobrado de más en el taller o se les ha dicho que eso no es para ellas. Ruedda Mujeres existe para terminar con eso.</p>
+        <p>Es un espacio de formación exclusivo, con grupos solo para mujeres, donde se aprende a mantener, manejar, comprar y vender un vehículo con total independencia.</p>
+        <ul><li>Grupos exclusivos para mujeres</li><li>Práctica real sobre vehículos, desde el primer día</li><li>Seguridad personal en la vía como eje del programa</li><li>Red de egresadas dentro de Ruedda</li></ul></article>
+      <article id="jovenes" class="rv"><div class="k"><h3 class="cx">ruedda jóvenes.</h3><span class="lab">criterio</span></div>
+        <p>El primer carro es una libertad y una responsabilidad. Ruedda Jóvenes prepara a quienes empiezan a manejar para hacerlo con criterio: conocer el vehículo, respetar la vía y tomar buenas decisiones cuando nadie los está viendo.</p>
+        <p>Los representantes forman parte del proceso. Reciben información del avance y de los temas tratados, y pueden participar en las sesiones de cierre.</p>
+        <ul><li>De 16 a 24 años</li><li>Autorización del representante para menores de edad</li><li>Manejo defensivo y prevención de riesgos</li><li>Primer carro: costos, compra y mantenimiento</li></ul></article>
+      <article id="empresas" class="rv"><div class="k"><h3 class="cx">empresas y concesionarios.</h3><span class="lab">equipos</span></div>
+        <p>Ruedda Academy diseña programas cerrados para concesionarios, flotas, talleres y empresas con personal que maneja o vende vehículos.</p>
+        <p>El contenido se ajusta a la operación de cada organización y se puede impartir en sus instalaciones o en las de la academia.</p>
+        <ul><li>Formación de equipos de venta</li><li>Manejo defensivo para conductores de flota</li><li>Diagnóstico para personal de taller</li><li>Reporte de resultados por participante</li></ul></article>
+    </div>
+  </section>
+
+  <!-- ADMISIÓN -->
+  <section id="admision" class="split">
+    <div class="sh rv"><p class="h cx">admisión.</p><span class="lab">proceso</span></div>
+    <ol class="steps rv">
+      <li><div><b class="cx">solicitud.</b><p>Usted completa el formulario de esta página con el programa de su interés.</p></div></li>
+      <li><div><b class="cx">contacto.</b><p>Un coordinador de la academia le escribe por WhatsApp para conocer su nivel, su disponibilidad y sus objetivos.</p></div></li>
+      <li><div><b class="cx">confirmación.</b><p>Si hay cupo en la próxima cohorte, se le informan fechas, horarios, sede y arancel. Si no lo hay, queda en lista de espera con prioridad.</p></div></li>
+      <li><div><b class="cx">inicio.</b><p>Usted formaliza su inscripción y recibe la guía de bienvenida antes de la primera sesión.</p></div></li>
+    </ol>
+  </section>
+
+  <section id="requisitos" class="split">
+    <div class="sh rv"><p class="h cx">requisitos.</p><span class="lab">lo que se pide</span></div>
+    <div class="cols rv">
+      <div><b class="cx">identificación.</b><p>Cédula de identidad vigente. Los menores de edad, además, la autorización firmada de su representante.</p></div>
+      <div><b class="cx">compromiso.</b><p>Asistencia a las sesiones prácticas y a la evaluación final. La constancia se otorga solo al aprobarla.</p></div>
+      <div><b class="cx">programas técnicos.</b><p>Diagnóstico y electricidad requiere conocimientos básicos de mecánica, verificados en la entrevista.</p></div>
+      <div><b class="cx">ropa y seguridad.</b><p>Ropa de trabajo y calzado cerrado en las sesiones de taller. El equipo de protección lo provee la academia.</p></div>
+    </div>
+  </section>
+
+  <section id="preguntas" class="split">
+    <div class="sh rv"><p class="h cx">preguntas frecuentes.</p><span class="lab">directo</span></div>
+    <div class="faq rv">
+      <details><summary>¿Necesito saber de mecánica para inscribirme?<span>+</span></summary><p>No. Todos los programas, salvo diagnóstico y electricidad, empiezan desde cero. El nivel de cada alumno se conversa en el contacto inicial.</p></details>
+      <details><summary>¿Necesito tener carro?<span>+</span></summary><p>No. Las prácticas se hacen sobre los vehículos de la academia. Si usted tiene uno, puede traerlo en las sesiones donde se indique.</p></details>
+      <details><summary>¿Cuánto cuesta y cuándo empiezan los programas?<span>+</span></summary><p>Fechas, horarios, sede y arancel se informan de forma personal al confirmar su cupo, porque dependen del programa, la ciudad y la cohorte.</p></details>
+      <details><summary>¿Por qué hay un proceso de admisión?<span>+</span></summary><p>Porque los grupos son pequeños y cada cupo cuenta. Revisar cada solicitud nos permite ubicar a cada persona en el programa y el grupo que le corresponde.</p></details>
+      <details><summary>¿Los grupos de mujeres son realmente exclusivos?<span>+</span></summary><p>Sí. El programa mujeres al volante se imparte solo a mujeres, de principio a fin.</p></details>
+      <details><summary>¿Mi hijo menor de edad puede inscribirse?<span>+</span></summary><p>Sí, en jóvenes conductores, desde los 16 años y con la autorización de su representante. Las prácticas de manejo en vía se ajustan a lo que la ley permite según la edad.</p></details>
+      <details><summary>¿La constancia tiene validez?<span>+</span></summary><p>La constancia certifica que usted aprobó la evaluación práctica de Ruedda Academy y queda registrada en su perfil de Ruedda. No sustituye la licencia de conducir ni títulos técnicos oficiales.</p></details>
+      <details><summary>¿Puedo inscribir a mi equipo de trabajo?<span>+</span></summary><p>Sí. En la solicitud elija «su empresa» y cuéntenos el tamaño del equipo. Le contactaremos para diseñar un programa cerrado.</p></details>
+    </div>
+  </section>
+
+  <section id="normas" class="split">
+    <div class="sh rv"><p class="h cx">normas.</p><span class="lab">reglamento</span></div>
+    <div class="cols rv">
+      <div><b class="cx">conducta.</b><p>Se espera trato respetuoso hacia alumnos, instructores y personal. El acoso, la discriminación o la burla son causa de retiro inmediato, sin reembolso.</p></div>
+      <div><b class="cx">seguridad en taller.</b><p>Las instrucciones del instructor son de cumplimiento obligatorio. Nadie opera herramientas ni vehículos sin autorización.</p></div>
+      <div><b class="cx">seguridad en vía.</b><p>Las prácticas de manejo se hacen con instructor a bordo y con los documentos al día. Cero alcohol, sin excepciones.</p></div>
+      <div><b class="cx">privacidad.</b><p>Sus datos se usan solo para gestionar su formación. Su constancia es visible en Ruedda únicamente si usted lo autoriza.</p></div>
+    </div>
+  </section>
+
+  <!-- FORMULARIO -->
+  <section id="cupo" class="split">
+    <div class="sh rv"><p class="h cx">solicitar<br>cupo.</p><span class="lab">no todos entran</span></div>
+    <div id="fw">
+      <form id="f" novalidate class="rv">
+        <div class="f"><label>programa</label>
+          <div class="ch" id="prog" role="group" aria-label="programa">
+            <button type="button" data-v="mecanica">mecánica esencial</button>
+            <button type="button" data-v="mujeres">mujeres al volante</button>
+            <button type="button" data-v="jovenes">jóvenes conductores</button>
+            <button type="button" data-v="compra">compra inteligente</button>
+            <button type="button" data-v="diagnostico">diagnóstico</button>
+            <button type="button" data-v="venta">venta profesional</button>
+          </div>
+        </div>
+        <div class="f"><label>el cupo es para</label>
+          <div class="ch" id="para" role="group" aria-label="el cupo es para">
+            <button type="button" data-v="yo" aria-pressed="true">usted</button>
+            <button type="button" data-v="hijo">su hijo o hija</button>
+            <button type="button" data-v="empresa">su empresa</button>
+          </div>
+        </div>
+        <div class="f"><label for="nombre">nombre y apellido</label><input id="nombre" autocomplete="name" autocapitalize="words" required></div>
+        <div class="f"><label for="wa">whatsapp</label><input id="wa" type="tel" inputmode="tel" autocomplete="tel" placeholder="0414 000 0000" required></div>
+        <div class="f"><label for="correo">correo (opcional)</label><input id="correo" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false"></div>
+        <div class="f sel"><label for="ciudad">ciudad</label>
+          <select id="ciudad">
+            <option>Caracas</option><option>Valencia</option><option>Maracay</option><option>Barquisimeto</option>
+            <option>Maracaibo</option><option>Puerto La Cruz</option><option>Mérida</option><option>Otra</option>
+          </select>
+        </div>
+        <div class="f"><label for="msj">algo que debamos saber (opcional)</label><textarea id="msj" rows="1" placeholder="Experiencia, horario preferido, tamaño del equipo…"></textarea></div>
+        <input class="hp" id="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button class="sb" id="b" type="submit"><span>enviar solicitud</span><i class="ar"></i></button>
+        <div id="msg" role="status" aria-live="polite"></div>
+        <p class="legal">Sus datos se usan solo para contactarle sobre Ruedda Academy.</p>
+      </form>
+      <div id="ok"><b class="cx">solicitud recibida.</b><p>le escribiremos por whatsapp.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="ft1">
+    <div>
+      <a class="brand" href="#top"><img src="/waitlist/ruedda.png" alt="Ruedda" width="996" height="272"><span class="lab cx">academy</span></a>
+      <p class="cx">la escuela automotriz de ruedda.<br><span>formación seria.</span></p>
+    </div>
+    <div class="ct">
+      <a href="mailto:team@ruedda.app"><span class="lab">correo</span>team@ruedda.app</a>
+      <a href="https://wa.me/584123921048" target="_blank" rel="noopener"><span class="lab">whatsapp</span>+58 412 392 1048</a>
+      <a href="https://instagram.com/ruedda.app" target="_blank" rel="noopener"><span class="lab">instagram</span>@ruedda.app</a>
+    </div>
+  </div>
+  <div class="fm">
+    <div><span class="lab">academy</span><a href="#academia">quiénes somos</a><a href="#mision">misión y visión</a><a href="#principios">principios</a><a href="#metodo">método</a><a href="#admision">admisión</a><a href="#preguntas">preguntas frecuentes</a><a href="#normas">normas</a></div>
+    <div><span class="lab">programas</span><a href="#p-mecanica">mecánica esencial</a><a href="#p-mujeres">mujeres al volante</a><a href="#p-jovenes">jóvenes conductores</a><a href="#p-compra">compra inteligente</a><a href="#p-diagnostico">diagnóstico y electricidad</a><a href="#p-venta">venta profesional</a><a href="#empresas">empresas</a></div>
+    <div><span class="lab">ruedda</span><a href="/market">marketplace</a><a href="/subastas">subastas</a><a href="/concesionarios">concesionarios</a><a href="/publicar">publicar un carro</a><a href="/repuestos">repuestos</a></div>
+    <div><span class="lab">herramientas</span><a href="/ruedda_verificacion.html">verificación</a><a href="/ruedda_deal_meter.html">medidor de precio</a><a href="/ruedda_ob2_scanner.html">escáner obd2</a></div>
+    <div><span class="lab">ecosistema</span><a href="/hub">ruedda hub</a><a href="/colombia">ruedda colombia</a><a href="/canada">ruedda canada</a><a href="https://apps.apple.com/app/ruedda-la-app-automotriz/id6812039590" target="_blank" rel="noopener">app para iphone</a><a href="/ruedda_legal.html">términos y privacidad</a></div>
+  </div>
+  <div class="fb"><span>© 2026 Ruedda Marketplace C.A. · RIF J-50460850-9</span><span>hecho en venezuela.</span></div>
+</footer>
+</div>
+
+<script>
+(function(){
+  // Bandera Ruedda ondeando (mismo trazo que los landings de /colombia y /canada).
+  var el=document.getElementById('flag'),NS='http://www.w3.org/2000/svg';
+  var svg=document.createElementNS(NS,'svg');
+  svg.setAttribute('viewBox','-20 0 400 420');svg.setAttribute('width','100%');svg.setAttribute('height','100%');svg.style.display='block';svg.style.overflow='visible';
+  var g=document.createElementNS(NS,'g');g.style.transformOrigin='180px 200px';svg.appendChild(g);
+  var L=[[110,25,120,90,1],[0,115,110,100,.82],[230,115,120,100,.82],[110,215,120,90,.9],[230,300,120,100,.78]];
+  var P=L.map(function(p){var e=document.createElementNS(NS,'path');e.setAttribute('fill','currentColor');e.setAttribute('fill-opacity',p[4]);g.appendChild(e);return e;});
+  el.appendChild(svg);
+  var AMP=10,FREQ=.012,SP=Math.PI/4,AMP2=3,FREQ2=.025,SP2=Math.PI/2,WI=1.7,SW=1.2;
+  function wy(x,t){return WI*(AMP*Math.sin(x*FREQ-SP*SW*t)+AMP2*Math.sin(x*FREQ2-SP2*SW*t+1.3));}
+  function pp(x0,y0,w,h,t){
+    var x1=x0+w,y1=y0+h,mx=(x0+x1)/2,a=wy(x0,t),b=wy(x1,t),m=wy(mx,t);
+    var tl=y0+a,tr=y0+b,tm=y0+m,bl=y1+a,br=y1+b,bm=y1+m,tc=2*tm-(tl+tr)/2,bc=2*bm-(bl+br)/2;
+    return 'M'+x0+' '+tl+'Q'+mx+' '+tc+' '+x1+' '+tr+'L'+x1+' '+br+'Q'+mx+' '+bc+' '+x0+' '+bl+'Z';
+  }
+  function paint(t){for(var i=0;i<L.length;i++)P[i].setAttribute('d',pp(L[i][0],L[i][1],L[i][2],L[i][3],t));g.style.transform='rotate('+(Math.sin(t*(Math.PI/4)*SW)*1.4)+'deg)';}
+  paint(0);
+  var rm=false;try{rm=matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+  if(!rm){var s=null;(function f(now){if(s==null)s=now;if(!document.hidden)paint((now-s)/1000);requestAnimationFrame(f);})(performance.now());}
+
+  // Cabecera con línea al bajar; secciones que entran al verse.
+  var hd=document.getElementById('hd');
+  new IntersectionObserver(function(es){hd.classList.toggle('sc',!es[0].isIntersecting);}).observe(document.querySelector('.hero h1'));
+  var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('on');io.unobserve(x.target);}});},{rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.rv').forEach(function(n){io.observe(n);});
+
+  // Menú móvil con submenús.
+  var bo=document.getElementById('mbo');
+  function menu(on){document.body.classList.toggle('mo',on);bo.setAttribute('aria-expanded',on?'true':'false');}
+  bo.addEventListener('click',function(){menu(true);});
+  document.getElementById('mbc').addEventListener('click',function(){menu(false);});
+  document.querySelectorAll('#mm .acc>button').forEach(function(b){b.addEventListener('click',function(){
+    var a=b.parentNode,op=!a.classList.contains('op');
+    document.querySelectorAll('#mm .acc').forEach(function(x){x.classList.remove('op');});
+    a.classList.toggle('op',op);});});
+  document.querySelectorAll('[data-c]').forEach(function(a){a.addEventListener('click',function(){menu(false);});});
+  addEventListener('keydown',function(e){if(e.key==='Escape')menu(false);});
+
+  // Enlaces a un programa: abrir su desplegable.
+  function openProg(){var h=location.hash;if(h.indexOf('#p-')===0){var d=document.querySelector(h);if(d&&d.tagName==='DETAILS'){d.open=true;}}}
+  addEventListener('hashchange',openProg);openProg();
+  document.querySelectorAll('a[href^="#p-"]').forEach(function(a){a.addEventListener('click',function(){var d=document.querySelector(a.getAttribute('href'));if(d)d.open=true;});});
+
+  // Selectores de una opción.
+  function group(id){
+    var w=document.getElementById(id);
+    w.addEventListener('click',function(ev){var b=ev.target.closest('button');if(!b)return;
+      w.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});});
+    return function(v){if(v===undefined){var on=w.querySelector('[aria-pressed="true"]');return on?on.dataset.v:'';}
+      w.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x.dataset.v===v?'true':'false');});};
+  }
+  var prog=group('prog'),para=group('para');
+  document.querySelectorAll('.pd button[data-p]').forEach(function(b){b.addEventListener('click',function(){
+    prog(b.dataset.p);document.getElementById('cupo').scrollIntoView({behavior:rm?'auto':'smooth'});});});
+
+  var ta=document.getElementById('msj');ta.addEventListener('input',function(){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';});
+
+  var f=document.getElementById('f'),b=document.getElementById('b'),msg=document.getElementById('msg');
+  f.addEventListener('submit',function(ev){
+    ev.preventDefault();
+    var d={programa:prog(),para:para(),nombre:document.getElementById('nombre').value.trim(),whatsapp:document.getElementById('wa').value.trim(),
+      correo:document.getElementById('correo').value.trim(),ciudad:document.getElementById('ciudad').value,mensaje:ta.value.trim(),website:document.getElementById('website').value};
+    if(!d.programa){msg.textContent='Elija un programa.';return;}
+    if(d.nombre.length<2){msg.textContent='Escriba su nombre y apellido.';return;}
+    if(d.whatsapp.replace(/\D/g,'').length<7){msg.textContent='Revise su número de WhatsApp.';return;}
+    if(d.correo&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.correo)){msg.textContent='Revise su correo.';return;}
+    b.disabled=true;b.firstChild.textContent='enviando';msg.textContent='';
+    fetch('/api/academy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+      .then(function(r){return r.json().catch(function(){return{};}).then(function(j){if(!r.ok)throw j;return j;});})
+      .then(function(){document.getElementById('fw').classList.add('done');})
+      .catch(function(j){msg.textContent=(j&&j.error)||'Sin conexión. Intente de nuevo.';b.disabled=false;b.firstChild.textContent='enviar solicitud';});
+  });
+})();
+</script>
+</body>
+</html>
