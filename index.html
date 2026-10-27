@@ -11403,6 +11403,7 @@ async function openMarketDetail(id, origin){
   // content
   if(mktDetailOrigin!=='vitrina') _registerRealView('listings',l); // [V87] click real de comprador
   document.getElementById('mkt-badges').innerHTML='<div class="detail-badge">'+l.year+'</div>'+(l.category?'<div class="detail-badge">'+l.category+'</div>':'')+'<div class="detail-badge">'+(l.location||"").toLowerCase()+'</div><div class="detail-badge lime">market</div>'+(l.vendido?'<div class="detail-badge" style="background:var(--w12);color:var(--white);font-weight:800">vendido</div>':'')+'<span style="margin-left:10px;display:inline-flex;align-items:center;vertical-align:middle">'+_viewsChip(l.viewCount)+'</span>';
+  try{ if(window._rdSello) _rdSello(l); }catch(_){} // [V160] sello "vendido" sobre la foto
   document.getElementById('mkt-title').textContent=l.title;
   document.getElementById('mkt-subtitle').innerHTML='<span>'+fmtNum(l.km)+' km</span><span class="sep">·</span><span>'+(l.transmission||'automática')+'</span><span class="sep">·</span><span>'+(l.fuel||'gasolina')+'</span>';
   // [V87] precio en oferta: anterior tachado + nuevo resaltado
@@ -26938,5 +26939,5 @@ window.addEventListener('load',function(){setTimeout(function(){
   try{var k='rd_auto_ap',t=+localStorage.getItem(k)||0;if(Date.now()-t<120000)return;localStorage.setItem(k,Date.now());}catch(e){}
   fetch('/api/mod-listing?auto=1',{cache:'no-store'}).catch(function(){});
 },4000);});
-</script><script src="/assets/rd-crear-cuenta.js?v=2" defer></script>
+</script><script src="/assets/rd-crear-cuenta.js?v=2" defer></script><script src="/assets/rd-sello-vendido.js?v=1" defer></script>
 
