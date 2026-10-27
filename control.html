@@ -835,6 +835,7 @@ RENDER.control=async(tok,_,soft)=>{
   if(!soft) V.innerHTML=`<div class="grid g4" id="k0" style="margin-bottom:14px">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
     <div class="grid g4" id="k1">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
     <div class="grid g4" id="k2" style="margin-top:14px">${'<div class="card kpi"><div class="l skel">&nbsp;</div><div class="v skel">000</div><div class="d skel">&nbsp;</div></div>'.repeat(4)}</div>
+    <div id="kv" style="margin-top:14px"></div>
     <div class="grid g21" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Registros · últimos 30 días</h3><span class="muted" id="c1s"></span></div><div class="card-b" id="c1"><div class="skel" style="height:120px"></div></div></div>
     <div class="card"><div class="card-h"><h3>Por atender</h3><a href="#/moderacion" class="muted" style="font-size:12px">ver cola</a></div><div class="queue" id="q"></div></div></div>
     <div class="grid g21" style="margin-top:14px"><div class="card"><div class="card-h"><h3>Subastas en vivo</h3><a href="#/subastas" style="font-size:12px">ver todas</a></div><div id="live"></div></div>
@@ -876,6 +877,7 @@ RENDER.control=async(tok,_,soft)=>{
     +K('Subastas en vivo',n(live.length),live.filter(a=>a.es_chocado).length?`${live.filter(a=>a.es_chocado).length} de chocados`:'marketplace de subastas')
     +K('Pujas hoy',n(bidsToday.length),`${n(bidRows.length)} en 14 días`,spark(series(bidTs,14)))
     +K('Volumen ofertado hoy',usd(volToday),'suma de pujas del día');
+  vendidosCard($('#kv'),tok);
   $('#c1s').textContent=`${n(sU.reduce((a,b)=>a+b,0))} en 30 días`;
   $('#c1').innerHTML=barChart(sU,30);
   const sP=series([...(pubs30.data||[]),...(aucs30.data||[])].map(r=>new Date(r.created_at).getTime()),30);
@@ -1195,6 +1197,26 @@ async function ventasCanales(T,tok){
     ${otros.length?`<div class="muted" style="font-size:12px;margin-top:12px">Escribieron en "otro": ${otros.slice(0,12).map(esc).join(' · ')}</div>`:''}
   </div>`);
 }
+/* [V159] vendidos en Inicio y en Números de Ruedda: cuáles, cuándo y dónde se vendió cada uno (antes solo en Market → Vendidas) */
+function ventaTxt(x){ return (x.vendido_via?(VENTA_LBL[x.vendido_via]||x.vendido_via)+(x.vendido_detalle?' · '+x.vendido_detalle:''):'sin respuesta')+(x.vendido_at?' · '+ago(x.vendido_at):'')+(x.vendido_precio_usd?' · '+usd$(x.vendido_precio_usd):''); }
+async function vendidosCard(host,tok){
+  if(!host) return;
+  const{data,error}=await sb.from('listings').select('id,user_id,titulo,marca,modelo,year,precio_usd,vendido_at,vendido_via,vendido_detalle,vendido_precio_usd,listing_photos(url,orden)').eq('vendido',true).order('vendido_at',{ascending:false,nullsFirst:false}).limit(1000);
+  if(stale(tok)||!host.isConnected) return;
+  if(error){ host.innerHTML=card('Vendidos','',empty('No se pudo cargar',error.message)); return; }
+  const L=data||[]; const c={}; let resp=0,usdT=0,conPrecio=0;
+  L.forEach(x=>{ if(!x.vendido_via) return; resp++; c[x.vendido_via]=(c[x.vendido_via]||0)+1; if(x.vendido_precio_usd){usdT+=Number(x.vendido_precio_usd);conPrecio++;} });
+  const rows=Object.entries(c).sort((a,b)=>b[1]-a[1]); const max=rows.length?rows[0][1]:1;
+  const enR=rows.filter(([k])=>k.indexOf('ruedda')===0).reduce((s,[,v])=>s+v,0);
+  const pc=v=>resp?Math.round(v*100/resp)+'%':'—';
+  let um={}; try{ um=await usersMap(L.slice(0,12).map(x=>x.user_id)); }catch(e){} if(stale(tok)||!host.isConnected) return;
+  const ver=window.SOCIO?'':`<a href="#/publicaciones" onclick="L_F.st='vendido'" style="font-size:12px">ver todos</a>`;
+  const stat=(l,v)=>`<div><div class="muted" style="font-size:12px">${l}</div><div style="font-size:22px;font-weight:700">${v}</div></div>`;
+  host.innerHTML=card(`Vendidos · ${n(L.length)}`,`${n(resp)} dijeron dónde lo vendieron · ${n(L.length-resp)} sin respuesta (vendidos antes de la pregunta)`,
+    L.length?`<div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:14px">${stat('Dentro de Ruedda',pc(enR))}${stat('Fuera de Ruedda',pc(resp-enR))}${stat('Precio promedio declarado',conPrecio?usd$(usdT/conPrecio):'—')}</div>
+    ${rows.map(([k,v])=>`<div style="display:grid;grid-template-columns:minmax(140px,220px) 1fr 70px;gap:12px;align-items:center;margin:7px 0;font-size:13px"><div>${esc(VENTA_LBL[k]||k)}</div><div style="background:var(--hover);border-radius:6px;height:10px;overflow:hidden"><div style="width:${Math.max(3,v*100/max)}%;height:100%;background:${k.indexOf('ruedda')===0?'var(--brand)':'var(--ink2)'}"></div></div><div class="num" style="text-align:right">${n(v)} · ${pc(v)}</div></div>`).join('')}
+    <div class="tbl-wrap" style="margin-top:14px"><table class="tbl"><thead><tr><th>Vehículo</th><th>Vendedor</th><th>Dónde lo vendió</th><th class="r">Vendido</th></tr></thead><tbody>${L.slice(0,12).map(x=>{const ph=(x.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url;return `<tr${window.SOCIO?'':` class="click" onclick="openListing('${x.id}')"`}><td><div class="who"><img class="thumb" src="${esc(tImg(ph,160))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="n">${esc(carName(x))}</div><div class="u">${x.precio_usd?'publicado en '+usd$(x.precio_usd):''}${x.vendido_precio_usd?' · vendido en '+usd$(x.vendido_precio_usd):''}</div></div></div></td><td class="muted">${esc(uname(um[x.user_id]))}</td><td>${x.vendido_via?`<span class="pill ${x.vendido_via.indexOf('ruedda')===0?'g':''}">${esc(VENTA_LBL[x.vendido_via]||x.vendido_via)}</span>${x.vendido_detalle?`<div class="muted" style="font-size:11.5px;margin-top:3px">${esc(x.vendido_detalle)}</div>`:''}`:'<span class="muted">sin respuesta</span>'}</td><td class="r muted">${x.vendido_at?ago(x.vendido_at):'—'}</td></tr>`;}).join('')}</tbody></table></div>`:empty('Todavía no hay carros vendidos'),ver);
+}
 function usd$(v){ return typeof usd==='function'?usd(v):'$'+Math.round(v).toLocaleString('es'); }
 /* ── MARKET ── */
 let L_F={q:'',st:'activa'};
@@ -1203,7 +1225,7 @@ RENDER.publicaciones=async(tok,_,soft)=>{
   if(!soft||!$('#lt')) V.innerHTML=`<div class="toolbar"><input class="input" id="lq" placeholder="Buscar marca, modelo o ciudad" value="${esc(L_F.q)}"><div class="seg" id="lseg">${[['activa','Activas'],['vendido','Vendidas'],['revision','En revisión'],['rechazada','Rechazadas'],['todos','Todas']].map(([k,t])=>`<button data-k="${k}" class="${L_F.st===k?'on':''}">${t}</button>`).join('')}</div><span class="muted" id="lcount" style="margin-left:auto;font-size:12.5px"></span></div><div class="card" id="lt"></div>`;
   const qi=$('#lq'); qi.oninput=()=>{clearTimeout(qi._t);qi._t=setTimeout(()=>{L_F.q=qi.value.trim();RENDER.publicaciones(++VIEW_TOKEN,[],true);},280);};
   $('#lseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;L_F.st=b.dataset.k;document.querySelectorAll('#lseg button').forEach(x=>x.classList.toggle('on',x===b));RENDER.publicaciones(++VIEW_TOKEN,[],true);};
-  let q=sb.from('listings').select('id,user_id,titulo,marca,modelo,year,km,ciudad,precio_usd,precio_anterior,estado,vendido,es_destacado,auditado_ruedda,view_count,created_at,listing_photos(url,orden)',{count:'exact'}).order('created_at',{ascending:false}).limit(300);
+  let q=sb.from('listings').select('id,user_id,titulo,marca,modelo,year,km,ciudad,precio_usd,precio_anterior,estado,vendido,es_destacado,auditado_ruedda,view_count,created_at,vendido_at,vendido_via,vendido_detalle,vendido_precio_usd,listing_photos(url,orden)',{count:'exact'}).order('created_at',{ascending:false}).limit(300);
   if(L_F.st==='vendido') q=q.eq('vendido',true); else if(L_F.st==='activa') q=q.eq('estado','activa').not('vendido','is',true); else if(L_F.st==='revision') q=q.in('estado',['revision','pendiente_pago']); else if(L_F.st!=='todos') q=q.eq('estado',L_F.st);
   if(L_F.q){ const s=L_F.q.replace(/[%,()]/g,' ').trim(); q=q.or(`marca.ilike.%${s}%,modelo.ilike.%${s}%,ciudad.ilike.%${s}%,titulo.ilike.%${s}%`); }
   const{data,error,count}=await q; if(stale(tok)) return;
@@ -1212,7 +1234,7 @@ RENDER.publicaciones=async(tok,_,soft)=>{
   if(!data.length){ T.innerHTML=empty('Sin publicaciones en este filtro'); return; }
   $('#vcan')?.remove(); if(L_F.st==='vendido') ventasCanales(T,tok);
   const um=await usersMap(data.map(x=>x.user_id)); if(stale(tok)) return;
-  T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vehículo</th><th>Vendedor</th><th>Ciudad</th><th class="r">Precio</th><th class="r">Vistas</th><th>Estado</th><th>Publicada</th></tr></thead><tbody>${data.map(x=>{const ph=(x.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url;return `<tr class="click" onclick="openListing('${x.id}')"><td><div class="who"><img class="thumb" src="${esc(tImg(ph,160))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="n">${esc(carName(x))}</div><div class="u">${x.km!=null?n(x.km)+' km':''}${x.es_destacado?' · destacado':''}${x.auditado_ruedda?' · auditado':''}</div></div></div></td><td class="muted">${esc(uname(um[x.user_id]))}</td><td class="muted">${esc(x.ciudad||'—')}</td><td class="r num" style="font-weight:600">${usd(x.precio_usd)}${x.precio_anterior>x.precio_usd?`<div class="muted" style="text-decoration:line-through;font-weight:400;font-size:12px">${usd(x.precio_anterior)}</div>`:''}</td><td class="r num">${n(x.view_count)}</td><td>${stPill(x)}</td><td class="muted">${ago(x.created_at)}</td></tr>`;}).join('')}</tbody></table></div>`;
+  T.innerHTML=`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Vehículo</th><th>Vendedor</th><th>Ciudad</th><th class="r">Precio</th><th class="r">Vistas</th><th>Estado</th><th>Publicada</th></tr></thead><tbody>${data.map(x=>{const ph=(x.listing_photos||[]).sort((a,b)=>a.orden-b.orden)[0]?.url;return `<tr class="click" onclick="openListing('${x.id}')"><td><div class="who"><img class="thumb" src="${esc(tImg(ph,160))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><div><div class="n">${esc(carName(x))}</div><div class="u">${x.km!=null?n(x.km)+' km':''}${x.es_destacado?' · destacado':''}${x.auditado_ruedda?' · auditado':''}</div></div></div></td><td class="muted">${esc(uname(um[x.user_id]))}</td><td class="muted">${esc(x.ciudad||'—')}</td><td class="r num" style="font-weight:600">${usd(x.precio_usd)}${x.precio_anterior>x.precio_usd?`<div class="muted" style="text-decoration:line-through;font-weight:400;font-size:12px">${usd(x.precio_anterior)}</div>`:''}</td><td class="r num">${n(x.view_count)}</td><td>${stPill(x)}${x.vendido?`<div class="muted" style="font-size:11.5px;margin-top:4px;white-space:nowrap">${esc(ventaTxt(x))}</div>`:''}</td><td class="muted">${ago(x.created_at)}</td></tr>`;}).join('')}</tbody></table></div>`;
 };
 const LISTING_FIELDS=[['titulo','Título (opcional)','text'],['marca','Marca','text'],['modelo','Modelo','text'],['year','Año','number'],['km','Kilometraje','number'],['precio_usd','Precio (USD)','number'],['precio_anterior','Precio anterior (USD)','number'],['ciudad','Ciudad','text'],['color','Color','text'],['transmision','Transmisión','text'],['combustible','Combustible','text'],['motor','Motor','text'],['whatsapp','WhatsApp','text'],['descripcion','Descripción','area']];
 const AUCTION_FIELDS=[['titulo','Título (opcional)','text'],['marca','Marca','text'],['modelo','Modelo','text'],['year','Año','number'],['km','Kilometraje','number'],['precio_reserva','Precio de reserva (USD)','number'],['ciudad','Ciudad','text'],['color','Color','text'],['transmision','Transmisión','text'],['combustible','Combustible','text'],['motor','Motor','text'],['whatsapp','WhatsApp','text'],['descripcion','Descripción','area']];
@@ -2348,7 +2370,9 @@ RENDER.sapp=async(tok)=>{
   <div class="card"><div class="card-h"><h3>Embudo</h3><span class="muted" style="font-size:12px">de registro a venta</span></div><div class="card-b"><div class="sbars">${fun.map(([l,v])=>`<div class="sbar"><span class="sbar-l">${l}</span><span class="sbar-t"><i style="width:${Math.max(3,(v||0)/fmx*100)}%"></i></span><span class="sbar-n">${n(v||0)}</span></div>`).join('')}</div></div></div></div>
   <div class="grid g2" style="margin-top:14px">${card('Marcas más publicadas','market activo',listBars(s.marcas,'m','n'))}${card('Ciudades','de dónde son los usuarios',listBars(s.ciudades,'c','n'))}</div>
   ${card('Lo más visto','publicaciones activas con más vistas',listBars(s.mas_vistos,'t','v'))}
+  <div id="kv"></div>
   <div class="muted" style="font-size:11.5px;text-align:right">actualizado ${ago(s.generado)}</div>`;
+  vendidosCard($('#kv'),tok);
 };
 
 /* ── HUB ── */
