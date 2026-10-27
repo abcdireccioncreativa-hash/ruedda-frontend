@@ -3395,6 +3395,8 @@ window.RDBack=function(){
 (function(){
   function android(){ try{ return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='android'); }catch(e){ return false; } }
   var SKIP=/overlay|modal|backdrop|scrim|dim\b|-dim|veil/i;
+  // [V158] el sheet de crear cuenta / iniciar sesión conserva su vidrio en Android (igual que iOS y la web)
+  var KEEP=/^auth-sheet-inner$/;
   function boost(st){
     var c=st.backgroundColor; if(!c) return;
     var m=/^rgba\(\s*([\d.]+),\s*([\d.]+),\s*([\d.]+),\s*([\d.]+)\s*\)$/.exec(c); if(!m) return;
@@ -3416,6 +3418,7 @@ window.RDBack=function(){
   function inline(root){
     var els=root.querySelectorAll?root.querySelectorAll('[style*="backdrop-filter"]'):[];
     for(var i=0;i<els.length;i++){ var st=els[i].style; if(st.backdropFilter==='none'&&st.webkitBackdropFilter==='none') continue;
+      if(KEEP.test(els[i].id)) continue;
       st.setProperty('backdrop-filter','none','important'); st.setProperty('-webkit-backdrop-filter','none','important');
       if(!SKIP.test(els[i].id+' '+els[i].className)) boost(st); }
   }
@@ -3435,7 +3438,7 @@ window.RDBack=function(){
       }
       if(!t) t=requestAnimationFrame(function(){ t=0; var l=q.splice(0);
         for(var k=0;k<l.length;k++){ var e=l[k];
-          if(e.sheet){ try{ walk(e.sheet.cssRules); }catch(x){} } else { if(e.style&&e.getAttribute('style')&&e.getAttribute('style').indexOf('backdrop-filter')>=0){ e.style.setProperty('backdrop-filter','none','important'); boost(e.style); } inline(e); }
+          if(e.sheet){ try{ walk(e.sheet.cssRules); }catch(x){} } else { if(e.style&&e.getAttribute('style')&&e.getAttribute('style').indexOf('backdrop-filter')>=0&&!KEEP.test(e.id)){ e.style.setProperty('backdrop-filter','none','important'); boost(e.style); } inline(e); }
         } });
     }).observe(document.documentElement,{childList:true,subtree:true});
   }
