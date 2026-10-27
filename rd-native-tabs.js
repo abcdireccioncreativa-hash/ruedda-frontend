@@ -218,6 +218,8 @@
       return true;
     },
     login: function () { try { showMobileAuth('login'); } catch (e) {} return true; },
+    // hoja nativa "crear cuenta" (__RD_NATIVE_SIGNUP): los datos pasan por el registro de siempre
+    signup: function (d) { return window.RDCC ? RDCC.nativeSubmit(d) : { ok: false, err: 'actualiza la página e intenta de nuevo' }; },
     vender: function (k) { try { handleVenderClick(k); } catch (e) {} return true; },
     venderWeb: function () { try { webVender(); } catch (e) {} return true; },
     agencia: function () { try { showView('afiliate'); } catch (e) {} last = ''; state(); return true; },
