@@ -217,7 +217,12 @@
       edge = ''; last = ''; state();
       return true;
     },
-    login: function () { try { showMobileAuth('login'); } catch (e) {} return true; },
+    login: function () {
+      // encima del intro de bienvenida si sigue abierto (igual que su "o, iniciar sesión")
+      try { if (document.getElementById('rd-intro')) { var sh = document.getElementById('auth-sheet'); if (sh) sh.style.zIndex = '100010'; } } catch (e) {}
+      try { showMobileAuth('login'); } catch (e) {}
+      return true;
+    },
     // hoja nativa "crear cuenta" (__RD_NATIVE_SIGNUP): los datos pasan por el registro de siempre
     signup: function (d) { return window.RDCC ? RDCC.nativeSubmit(d) : { ok: false, err: 'actualiza la página e intenta de nuevo' }; },
     vender: function (k) { try { handleVenderClick(k); } catch (e) {} return true; },
