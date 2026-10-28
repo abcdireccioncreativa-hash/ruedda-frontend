@@ -51,8 +51,12 @@
     if (f.g) f.g.style.visibility = '';
     var rm = function () { if (f.el.parentNode) f.el.parentNode.removeChild(f.el); };
     if (!f.landed) { rm(); return; }
-    var a = f.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-out', fill: 'forwards' });
-    a.onfinish = rm;
+    // la galería ya está visible DEBAJO de la copia: se espera a que pinte (2 cuadros)
+    // antes de desvanecer la copia, así nunca queda un cuadro vacío (titileo)
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      var a = f.el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: 'ease-out', fill: 'forwards' });
+      a.onfinish = rm;
+    }); });
   }
   // arranca el vuelo desde la foto de la tarjeta hasta el rect de la galería
   function startFly(ph, gr) {
@@ -83,9 +87,12 @@
   document.addEventListener('click', function (e) {
     try {
       if (reduce) return;
-      var c = e.target.closest && e.target.closest('[onclick*="openMarketDetail("],[onclick*="openDetail("]');
+      // tarjetas con onclick en el HTML y las del feed general (.market-card / .auction-card,
+      // que traen el click asignado por JS)
+      var c = e.target.closest && e.target.closest('[onclick*="openMarketDetail("],[onclick*="openDetail("],.market-card,.auction-card');
       if (!c || on()) return;
-      var kind = /openMarketDetail\(/.test(c.getAttribute('onclick') || '') ? 'market-detail' : 'detail';
+      var oc = c.getAttribute('onclick') || '';
+      var kind = /openMarketDetail\(/.test(oc) || (!oc && c.classList.contains('market-card')) ? 'market-detail' : 'detail';
       var ph = cardPhoto(c);
       tapAt = { photo: ph, kind: kind, t: Date.now() };
       // con la galería ya medida en una apertura anterior, vuela en el acto
@@ -119,11 +126,16 @@
     f.g = g; g.style.visibility = 'hidden';
     // al aterrizar espera la primera foto grande de la galería (máx. 700 ms) y cruza
     f.onLand = function () {
-      var img = g.querySelector('img'), t0 = Date.now();
-      (function wait() {
-        if (fly !== f) return;
-        if (!img || (img.complete && img.naturalWidth) || Date.now() - t0 > 700) flyEnd(); else setTimeout(wait, 40);
-      })();
+      // la foto que se ve en la galería (la primera); se espera a que esté DECODIFICADA, no
+      // solo descargada, para que al cruzar no parpadee (máx. 900 ms)
+      var img = g.querySelector('img');
+      var go = function () { if (fly === f) flyEnd(); };
+      var cap = setTimeout(go, 900);
+      if (!img) { clearTimeout(cap); go(); return; }
+      var ready = function () { clearTimeout(cap); go(); };
+      if (img.decode) img.decode().then(ready, function () { if (img.complete) ready(); else img.addEventListener('load', ready, { once: true }); });
+      else if (img.complete && img.naturalWidth) ready();
+      else img.addEventListener('load', ready, { once: true });
     };
     if (f.done) f.onLand();
   }
