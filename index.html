@@ -3189,19 +3189,18 @@ html[data-theme="light"] .rd-ld,html[data-theme="light"] #cons-banner-placeholde
 #pricing-plans .plan-more svg{transition:transform .42s cubic-bezier(.32,.72,0,1)}
 #pricing-plans .plan-open .plan-more svg{transform:rotate(90deg)}
 /* [V163] chats: "solicitar peritaje" (abre la hoja de peritaje de las publicaciones) y burbujas que se deslizan */
-.rd-perit{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;margin:0 0 14px;padding:9px 14px 9px 9px;border-radius:16px;border:1px solid var(--w8);background:var(--w4);color:var(--white);font-family:var(--font);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .22s cubic-bezier(.32,.72,0,1),opacity .22s}
+.rd-perit{position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;width:100%;box-sizing:border-box;margin:0 0 14px;padding:15px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.08);background:radial-gradient(120% 140% at 100% 0%,#242424 0%,#131313 50%,#0b0b0b 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);color:#f4f4f2;font-family:var(--font);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .22s cubic-bezier(.32,.72,0,1),opacity .22s}
 .rd-perit:active{transform:scale(.98);opacity:.85;transition-duration:.08s}
-.rd-perit i{flex:0 0 34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#0b0b0b;background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 55%),#e6f03b;box-shadow:inset 0 0 0 1px rgba(205,215,40,.9),0 3px 10px rgba(230,240,59,.16)}
-.rd-perit i svg{width:17px;height:17px}
-.rd-perit div{flex:1;min-width:0}
-.rd-perit b{display:block;font-size:13.5px;font-weight:700;letter-spacing:-.2px;line-height:17px}
-.rd-perit span{display:block;font-size:11.5px;line-height:15px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rd-perit>svg{flex-shrink:0;width:14px;height:14px;opacity:.45}
-#thread-perit{padding:10px 18px 0;flex-shrink:0}
-#thread-perit .rd-perit{display:inline-flex;width:auto;margin:0;padding:7px 14px 7px 7px;border-radius:14px}
-#thread-perit .rd-perit i{flex-basis:28px;height:28px;border-radius:9px}
-#thread-perit .rd-perit i svg{width:15px;height:15px}
-#thread-perit .rd-perit span{display:none}
+.rd-perit-w{position:absolute;right:62px;top:-26px;width:92px;height:92px;opacity:.06;pointer-events:none}
+.rd-perit-w svg{width:100%;height:100%;display:block}
+.rd-perit div{position:relative;flex:1;min-width:0}
+.rd-perit b{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.3px;line-height:18px}
+.rd-perit span{display:block;margin-top:2px;font-size:12px;line-height:16px;color:rgba(244,244,242,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd-perit-av{position:relative;flex-shrink:0;display:flex;align-items:center;height:26px;padding-left:16px;border-left:1px solid rgba(255,255,255,.1)}
+.rd-perit-av svg{width:54px;height:18px;display:block}
+html[data-theme="light"] .rd-perit{background:#fff;border-color:rgba(0,0,0,.07);box-shadow:0 1px 0 rgba(0,0,0,.02),0 8px 24px -10px rgba(0,0,0,.12);color:#111}
+html[data-theme="light"] .rd-perit span{color:rgba(17,17,17,.5)}
+html[data-theme="light"] .rd-perit-av{border-left-color:rgba(0,0,0,.08)}
 .rd-pmq{display:flex;gap:8px;margin:0 -20px 10px;padding:0 20px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .rd-pmq::-webkit-scrollbar{display:none}
 .rd-pmq button{flex:0 0 auto!important}
@@ -6239,7 +6238,6 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     </div>
     <button id="thread-call-btn" onclick="event.stopPropagation()" style="display:none;background:none;border:none;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:6px;margin-left:auto"><svg fill="none" viewBox="0 0 24 24" stroke="var(--white)" stroke-width="1.9" style="width:20px;height:20px"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
   </div>
-  <div id="thread-perit"></div>
   <!-- MESSAGES -->
   <div id="thread-messages" style="display:flex;flex-direction:column;gap:0;padding:14px 18px 175px;overflow-y:auto;flex:1;min-height:0"></div>
   <!-- INPUT AREA -->
@@ -23237,17 +23235,17 @@ function _closePmPanel(){
 // [mensajes rápidos] arriba de la caja de texto, mismo espíritu que Facebook
 // Marketplace ("¿sigue disponible?") pero con nuestro propio texto.
 // [V163] "solicitar peritaje" en los chats: abre la misma hoja de peritaje que sale
-// en las publicaciones (desktop-popups.js → window.rdPeritaje), encima del chat
+// [V164] abre la hoja "avalta llegando" (rd-avalta.js, se descarga al tocar)
 function _rdPeritBtn(sid,st,title){
   if(!sid||st==='rental') return '';
-  return `<button type="button" class="rd-perit" data-sid="${_esc(String(sid))}" data-st="${_esc(st||'')}" data-t="${_esc(title||'vehículo')}" onclick="_rdPeritOpen(this,event)"><i><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></i><div><b>solicitar peritaje</b><span>valida el carro antes de comprarlo</span></div><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>`;
+  return `<button type="button" class="rd-perit" data-sid="${_esc(String(sid))}" data-st="${_esc(st||'')}" data-t="${_esc(title||'vehículo')}" onclick="_rdPeritOpen(this,event)"><i class="rd-perit-w" aria-hidden="true"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="12.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="30,49.6 43.6,76 70,24"/></svg></i><div><b>solicitar peritaje</b><span>valida el carro antes de comprarlo</span></div><em class="rd-perit-av" aria-label="avalta"><svg viewBox="-14 -10 371 124" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="40" cy="70" r="22"/><line x1="62" y1="48" x2="62" y2="92"/><polyline points="84,58 101,91 134,26"/><circle cx="179" cy="70" r="22"/><line x1="201" y1="48" x2="201" y2="92"/><path d="M225 12 V78 C225 88 231 92 241 92"/><path d="M259 28 V78 C259 88 265 92 275 92"/><line x1="247" y1="50" x2="277" y2="50"/><circle cx="311" cy="70" r="22"/><line x1="333" y1="48" x2="333" y2="92"/></svg></em></button>`;
 }
 function _rdPeritOpen(btn,e){
   if(e) e.stopPropagation();
-  if(typeof window.rdPeritaje!=='function') return;
   const st=btn.dataset.st, sub=st==='auction'||st==='subasta';
-  try{ window._rdHapticNow && window._rdHapticNow(); }catch(_){}
-  window.rdPeritaje({id:(sub?'a':'l')+btn.dataset.sid,rid:btn.dataset.sid,type:sub?'subasta':(st==='vitrina'?'concesionario':'market'),title:btn.dataset.t});
+  const car={rid:btn.dataset.sid,type:sub?'subasta':(st==='vitrina'?'concesionario':'market'),title:btn.dataset.t};
+  if(window.rdAvalta) return window.rdAvalta(car);
+  const sc=document.createElement('script'); sc.src='/rd-avalta.js?v=1'; sc.onload=()=>window.rdAvalta&&window.rdAvalta(car); document.head.appendChild(sc);
 }
 function _pmQuickFill(text){
   const inp=document.getElementById('pm-input');
@@ -23280,7 +23278,6 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
     <div class="rd-pmq">
       <button type="button" onclick="_pmQuickFill(&quot;¿Sigue disponible?&quot;)" style="background:var(--w5);border:1px solid var(--w10);border-radius:100px;padding:9px 10px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--white);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">¿Sigue disponible?</button>
       <button type="button" onclick="_pmQuickFill(&quot;¿Aceptas alguna oferta?&quot;)" style="background:var(--w5);border:1px solid var(--w10);border-radius:100px;padding:9px 10px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--white);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">¿Aceptas alguna oferta?</button>
-      <button type="button" onclick="_pmQuickFill(&quot;¿Tiene certificado Avalta?&quot;)" style="background:var(--w5);border:1px solid var(--w10);border-radius:100px;padding:9px 10px;font-family:var(--font);font-size:12px;font-weight:600;color:var(--white);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">¿Tiene certificado Avalta?</button>
     </div>
     <textarea id="pm-input" placeholder="escribe tu mensaje..." style="width:100%;box-sizing:border-box;background:var(--w5);border:1px solid var(--w10);border-radius:14px;padding:13px 14px;font-family:var(--font);font-size:14px;color:var(--white);outline:none;resize:none;min-height:90px;line-height:1.6" onfocus="this.style.borderColor='rgba(var(--rd-green-rgb),.35)'" onblur="this.style.borderColor='var(--w10)'"></textarea>
     <button onclick="_sendPrivateMessage('${receiverId}','${sourceId}','${sourceType}','${sourceTitle.replace(/'/g,"\'")}');event.stopPropagation()" style="margin-top:12px;width:100%;background:var(--lime);color:var(--lime-ink);border:none;border-radius:14px;padding:14px;font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;transition:opacity .15s" onmousedown="this.style.opacity='.8'" onmouseup="this.style.opacity='1'">enviar mensaje</button>
@@ -23772,9 +23769,6 @@ function openThread(id){
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
   const dealerBadge=(isDealer||currentThread.otherKyc)?' <span style="font-size:10px;color:#1d9bf0;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>':'';
   document.getElementById('thread-meta').innerHTML='conversación con '+otherName+dealerBadge;
-  // [V163] solicitar peritaje del carro de la conversación
-  const _tp=document.getElementById('thread-perit');
-  if(_tp){ _tp.innerHTML=currentThread.isPM&&!currentThread.isOfficial?_rdPeritBtn(currentThread.sourceId,currentThread.sourceType||'listing',currentThread.carTitle):''; _tp.style.display=_tp.innerHTML?'':'none'; }
   // [V87] avatar del interlocutor: inicial; si es dealer → logo de su card + clickeable a su vitrina
   const av=document.getElementById('thread-avatar');
   if(av){
