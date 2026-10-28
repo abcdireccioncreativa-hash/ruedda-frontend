@@ -114,14 +114,17 @@
       var nf = fly;
       nPost({ ev: 'postOpen', r: rectA(ph.r), g: gr ? rectA(gr) : null, rad: ph.rad || 0, topOnly: !!ph.topOnly });
       // ya pintada la tarjeta sin lo de encima (y el post aún invisible), iOS toma la foto limpia
-      // y la funde en pleno vuelo; luego todo vuelve a su sitio
-      if (ph.hid && ph.hid.length) {
-        var hid = ph.hid; ph.hid = null;
+      // y la funde en pleno vuelo. Siempre en este orden: foto limpia → (2 cuadros) → se muestra
+      // el post y la tarjeta se vacía. Si la web va lenta, el tope dispara el mismo paso.
+      var hid = ph.hid || [], stepped = false; ph.hid = null;
+      var step = function () {
+        if (stepped) return; stepped = true;
+        if (hid.length) nPost({ ev: 'postClean' });
         requestAnimationFrame(function () { requestAnimationFrame(function () {
-          nPost({ ev: 'postClean' });
-          requestAnimationFrame(function () { emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); reveal(); });
+          emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); reveal();
         }); });
-      } else requestAnimationFrame(function () { requestAnimationFrame(function () { emptyCard(ph.card); reveal(); }); });
+      };
+      requestAnimationFrame(function () { requestAnimationFrame(step); setTimeout(step, 120); });
       nf.tm = setTimeout(function () { if (fly === nf && !nf.g) flyEnd(); }, 900);
       return;
     }
@@ -195,7 +198,7 @@
     if (NH && tap && tap.flying) {
       // (app iOS: invisible hasta el cuadro siguiente a la foto limpia; tope por si acaso)
       v.style.opacity = '0'; shadeTo(0);
-      pendingReveal = show; requestAnimationFrame(function () { setTimeout(reveal, 120); });
+      pendingReveal = show; setTimeout(reveal, 500);
     } else show();
     // lo demás sube detrás de la foto, en cascada corta
     rest.forEach(function (el, i) {
