@@ -48,7 +48,7 @@
       var r = el.getBoundingClientRect(), a = r.width * r.height;
       if (a > area && r.width > 40) { area = a; best = { src: src, r: r, el: el }; }
     });
-    if (best && NH) {
+    if (best) {
       // radio visible de la foto (el suyo o el de la tarjeta que la recorta)
       var rad = 0;
       for (var n = best.el; n && n !== c.parentNode; n = n.parentNode) { rad = parseFloat(getComputedStyle(n).borderTopLeftRadius) || 0; if (rad) break; }
@@ -89,12 +89,16 @@
       nf.tm = setTimeout(function () { if (fly === nf && !nf.g) flyEnd(); }, 900);
       return;
     }
-    var W = gr.width, H = gr.height, r = ph.r, N = 18, kc = [], ki = [];
+    var W = gr.width, H = gr.height, r = ph.r, N = 18, kc = [], ki = [], kr = [];
     for (var i = 0; i <= N; i++) {
       var p = ez(i / N);
       var x = r.left + (gr.left - r.left) * p, y = r.top + (gr.top - r.top) * p;
       var w = r.width + (W - r.width) * p, h = r.height + (H - r.height) * p;
       var sx = w / W, sy = h / H, k = Math.max(sx, sy);
+      // esquinas: nace con el redondeo de la tarjeta y llega recta a la galería. El contenedor
+      // está escalado distinto en x/y, así que el radio va en sus coordenadas (elíptico).
+      var R = (ph.rad || 0) * (1 - p), rh = (R / sx).toFixed(2) + 'px', rv = (R / sy).toFixed(2) + 'px', bh = ph.topOnly ? '0px' : rh, bv = ph.topOnly ? '0px' : rv;
+      kr.push({ borderRadius: rh + ' ' + rh + ' ' + bh + ' ' + bh + ' / ' + rv + ' ' + rv + ' ' + bv + ' ' + bv });
       kc.push({ transform: 'translate3d(' + (x - gr.left).toFixed(2) + 'px,' + (y - gr.top).toFixed(2) + 'px,0) scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')' });
       ki.push({ transform: 'scale(' + (k / sx).toFixed(4) + ',' + (k / sy).toFixed(4) + ')' });
     }
@@ -106,6 +110,8 @@
     el.appendChild(im); document.body.appendChild(el);
     var opt = { duration: 420, easing: 'linear', fill: 'forwards' };
     var a = el.animate(kc, opt); im.animate(ki, opt);
+    // aparte: el radio no se acelera en GPU y no debe frenar el vuelo (transform sí va en GPU)
+    if (ph.rad) el.animate(kr, opt);
     fly = { el: el, g: null, done: false, landed: false };
     var f = fly;
     // si el post no llega a abrirse (sin conexión, otro toque), la foto no se queda pegada
