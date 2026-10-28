@@ -31,7 +31,7 @@
   // app iOS: el post se queda invisible hasta que iOS tomó la foto limpia de la tarjeta
   var pendingReveal = null;
   function reveal() { var f = pendingReveal; pendingReveal = null; if (f) f(); }
-  var revealHook = null;
+  var revealHook = null, replaying = false;
   window._rdPostReveal = function () { var f = revealHook; revealHook = null; if (f) f(); return true; };
   // [V173] app iOS 1.7 (47)+: la foto la vuela iOS (Core Animation, resorte nativo) y los
   // gestos de salida también son nativos. La web solo avisa dónde está la foto y a dónde va.
@@ -115,20 +115,12 @@
       fly = { el: null, g: null, done: false, landed: false, native: true };
       var nf = fly;
       nPost({ ev: 'postOpen', r: rectA(ph.r), g: gr ? rectA(gr) : null, rad: ph.rad || 0, topOnly: !!ph.topOnly });
-      // ya pintada la tarjeta sin lo de encima (y el post aún invisible), iOS toma la foto limpia
-      // y la funde en pleno vuelo. Siempre en este orden: foto limpia → (2 cuadros) → se muestra
-      // el post y la tarjeta se vacía. Si la web va lenta, el tope dispara el mismo paso.
-      var hid = ph.hid || [], stepped = false; ph.hid = null;
-      var step = function () {
-        if (stepped) return; stepped = true;
-        var done = function () { emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); reveal(); };
-        if (!hid.length) { done(); return; }
-        // iOS confirma la foto limpia (RDNT.postReveal) y entonces se muestra el post; tope 300 ms
-        revealHook = done;
-        nPost({ ev: 'postClean' });
-        setTimeout(function () { if (revealHook === done) { revealHook = null; done(); } }, 300);
-      };
-      requestAnimationFrame(function () { requestAnimationFrame(step); setTimeout(step, 120); });
+      // iOS ya tomó la foto (limpia: las etiquetas se escondieron un cuadro antes). Confirma con
+      // RDNT.postReveal y entonces se muestra el post y la tarjeta se vacía; tope 300 ms
+      var hid = ph.hid || []; ph.hid = null;
+      var done = function () { emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); reveal(); };
+      revealHook = done;
+      setTimeout(function () { if (revealHook === done) { revealHook = null; done(); } }, 300);
       nf.tm = setTimeout(function () { if (fly === nf && !nf.g) flyEnd(); }, 900);
       return;
     }
@@ -178,15 +170,32 @@
       // tarjetas con onclick en el HTML y las del feed general (.market-card / .auction-card,
       // que traen el click asignado por JS)
       var c = e.target.closest && e.target.closest('[onclick*="openMarketDetail("],[onclick*="openDetail("],.market-card,.auction-card');
-      if (!c || on()) return;
+      if (!c || on() || replaying) return;
+      // un botón dentro de la tarjeta (favorito, compartir…) no abre el post
+      var inner = e.target.closest('button,a,[onclick]');
+      if (inner && inner !== c && c.contains(inner)) return;
       var oc = c.getAttribute('onclick') || '';
       var kind = /openMarketDetail\(/.test(oc) || (!oc && c.classList.contains('market-card')) ? 'market-detail' : 'detail';
       var ph = cardPhoto(c);
       if (ph) ph.card = c;
-      if (ph && NH) ph.hid = hideOver(c, ph);
       tapAt = { photo: ph, kind: kind, t: Date.now() };
+      if (ph && NH) {
+        // app iOS: iOS fotografía la tarjeta, así que primero se esconde lo que va encima de la
+        // foto (#1, precio, vistas…). Un cuadro después, ya pintada limpia, iOS la toma y arranca
+        // el vuelo, y en ese mismo instante se arma el post (el mismo toque, repetido).
+        e.stopImmediatePropagation(); e.preventDefault();
+        ph.hid = hideOver(c, ph);
+        tapAt.flying = true;
+        requestAnimationFrame(function () { setTimeout(function () {
+          tapAt.t = Date.now();
+          startFly(ph, gCache[kind] || null);
+          replaying = true;
+          try { c.click(); } finally { replaying = false; }
+        }, 0); });
+        return;
+      }
       // con la galería ya medida en una apertura anterior, vuela en el acto
-      if (ph && (gCache[kind] || NH)) { startFly(ph, gCache[kind] || null); tapAt.flying = true; }
+      if (ph && gCache[kind]) { startFly(ph, gCache[kind]); tapAt.flying = true; }
     } catch (err) {}
   }, true);
   function openFx(v, tap) {
