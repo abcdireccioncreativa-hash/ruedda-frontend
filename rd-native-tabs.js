@@ -64,6 +64,47 @@
   }
   var queued = false;
   function soon() { if (queued) return; queued = true; requestAnimationFrame(function () { queued = false; state(); }); }
+
+  // [V173] gestos nativos del post (app 1.7 build 47+): iOS necesita saber si hay post abierto,
+  // si está arriba del todo (deslizar abajo cierra) y dónde está la galería (su swipe es suyo)
+  if (window.__RD_NATIVE_POST) {
+    var lastGeo = '', geoQ = false;
+    var geo = function () {
+      geoQ = false;
+      var gq = window._rdPostGeo ? window._rdPostGeo() : null;
+      var m = gq ? { ev: 'pgeo', on: true, top: gq.top, g: gq.g } : { ev: 'pgeo', on: false };
+      var k = JSON.stringify(m);
+      if (k !== lastGeo) { lastGeo = k; post(m); }
+    };
+    var geoSoon = function () { if (!geoQ) { geoQ = true; requestAnimationFrame(geo); } };
+    document.addEventListener('scroll', function (e) { if (window._rdPostScroller && e.target === window._rdPostScroller()) geoSoon(); }, { capture: true, passive: true });
+    new MutationObserver(geoSoon).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] });
+  }
+
+  // [V173] configuración nativa (app 1.7 build 47+): la pantalla la dibuja iOS bajo el navbar
+  // web; cada fila llama a las mismas funciones de siempre (RDNT.cfgDo)
+  function cfgState() {
+    var cb = document.getElementById('cfg-push-toggle');
+    var tx = function (id) { var e = document.getElementById(id); return e ? e.textContent.trim() : ''; };
+    var nb = document.querySelector('.navbar'), r = nb ? nb.getBoundingClientRect() : null;
+    var mode = 'dark'; try { mode = _rdThemeMode(); } catch (e) {}
+    return { ev: 'config', top: r ? Math.max(0, Math.round(r.bottom)) : 0, theme: theme(), mode: mode, tsub: tx('cfg-theme-sub'),
+      push: !!(cb && cb.checked), pdis: !!(cb && cb.disabled), psub: tx('cfg-push-sub'), perfil: tx('config-perfil-sub') };
+  }
+  if (window.__RD_NATIVE_CFG) {
+    var cs = document.createElement('style');
+    cs.textContent = 'html.rd-ntabs #view-configuracion>*{visibility:hidden!important}';
+    document.head.appendChild(cs);
+    var webShow = window.showView;
+    window.showView = function (name) {
+      var r = webShow.apply(this, arguments);
+      if (name === 'configuracion') {
+        post(cfgState());
+        try { Promise.resolve(_paintPushToggle()).then(function () { post(cfgState()); }); } catch (e) {}
+      }
+      return r;
+    };
+  }
   new MutationObserver(soon).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style'] });
   window.addEventListener('resize', soon);
   setInterval(state, 600);
@@ -216,6 +257,23 @@
       }
       edge = ''; last = ''; state();
       return true;
+    },
+    // iOS: la foto del post llegó a la galería → resuelve cuando la galería real ya pintó
+    postLand: function () { return window._rdPostLand ? window._rdPostLand() : true; },
+    cfg: function () { return cfgState(); },
+    cfgDo: async function (a, v) {
+      try {
+        if (a === 'back') showView('cuenta');
+        else if (a === 'tutorial') rdOpenTutorialFromConfig();
+        else if (a === 'datos') openEditProfileModal();
+        else if (a === 'perfil') openMiPerfil();
+        else if (a === 'kyc') { showView('kyc'); openKycView(); }
+        else if (a === 'theme') setTheme(v);
+        else if (a === 'push') await _togglePushNotifications(!!v);
+        else if (a === 'borrar') confirmDeleteAccount();
+      } catch (e) {}
+      last = ''; state();
+      return cfgState();
     },
     login: function () {
       // encima del intro de bienvenida si sigue abierto (igual que su "o, iniciar sesión")

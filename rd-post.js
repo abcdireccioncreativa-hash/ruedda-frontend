@@ -28,6 +28,12 @@
   // La foto vuela solo con transform (contenedor que escala + imagen que contra-escala para no
   // deformarse), así la mueve la GPU aunque el hilo principal esté ocupado armando el post.
   var tapAt = null, fly = null, gCache = {};
+  // [V173] app iOS 1.7 (47)+: la foto la vuela iOS (Core Animation, resorte nativo) y los
+  // gestos de salida también son nativos. La web solo avisa dónde está la foto y a dónde va.
+  var NH = window.__RD_NATIVE_POST && window.webkit && webkit.messageHandlers && webkit.messageHandlers.rdTabs;
+  window._rdNativePost = !!NH;
+  function nPost(m) { try { NH.postMessage(m); } catch (e) {} }
+  function rectA(r) { return [r.left, r.top, r.width, r.height]; }
   function bez(x1, y1, x2, y2) {
     function cx(t) { return 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t; }
     function cy(t) { return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t; }
@@ -40,8 +46,16 @@
       var src = el.tagName === 'IMG' ? (el.complete && el.naturalWidth ? (el.currentSrc || el.src) : '') : ((getComputedStyle(el).backgroundImage.match(/url\(["']?(.*?)["']?\)/) || [])[1]);
       if (!src) return;
       var r = el.getBoundingClientRect(), a = r.width * r.height;
-      if (a > area && r.width > 40) { area = a; best = { src: src, r: r }; }
+      if (a > area && r.width > 40) { area = a; best = { src: src, r: r, el: el }; }
     });
+    if (best && NH) {
+      // radio visible de la foto (el suyo o el de la tarjeta que la recorta)
+      var rad = 0;
+      for (var n = best.el; n && n !== c.parentNode; n = n.parentNode) { rad = parseFloat(getComputedStyle(n).borderTopLeftRadius) || 0; if (rad) break; }
+      best.rad = rad;
+      // la foto va arriba en la tarjeta y el texto debajo: solo redondea las esquinas de arriba
+      best.topOnly = best.r.bottom < c.getBoundingClientRect().bottom - 2;
+    }
     return best;
   }
   function flyEnd() {
@@ -49,6 +63,13 @@
     var f = fly; fly = null;
     clearTimeout(f.tm);
     if (f.g) f.g.style.visibility = '';
+    if (f.native) {
+      // aterrizó: la galería ya está visible debajo; se espera a que pinte (2 cuadros) y
+      // iOS desvanece su copia. Si no llegó a aterrizar, iOS la quita ya.
+      if (f.res) requestAnimationFrame(function () { requestAnimationFrame(function () { f.res(true); }); });
+      else nPost({ ev: 'postEnd' });
+      return;
+    }
     var rm = function () { if (f.el.parentNode) f.el.parentNode.removeChild(f.el); };
     if (!f.landed) { rm(); return; }
     // la galería ya está visible DEBAJO de la copia: se espera a que pinte (2 cuadros)
@@ -61,6 +82,13 @@
   // arranca el vuelo desde la foto de la tarjeta hasta el rect de la galería
   function startFly(ph, gr) {
     flyEnd();
+    if (NH) {
+      fly = { el: null, g: null, done: false, landed: false, native: true };
+      var nf = fly;
+      nPost({ ev: 'postOpen', r: rectA(ph.r), g: gr ? rectA(gr) : null, rad: ph.rad || 0, topOnly: !!ph.topOnly });
+      nf.tm = setTimeout(function () { if (fly === nf && !nf.g) flyEnd(); }, 900);
+      return;
+    }
     var W = gr.width, H = gr.height, r = ph.r, N = 18, kc = [], ki = [];
     for (var i = 0; i <= N; i++) {
       var p = ez(i / N);
@@ -84,6 +112,16 @@
     f.tm = setTimeout(function () { if (fly === f && !f.g) flyEnd(); }, 1600);
     a.onfinish = function () { f.done = true; f.landed = true; if (f.onLand) f.onLand(); };
   }
+  // iOS: la foto llegó a la galería. Resuelve cuando la galería real ya pintó debajo.
+  window._rdPostLand = function () {
+    var f = fly;
+    if (!f || !f.native) return true;
+    return new Promise(function (res) {
+      f.res = res; f.done = true; f.landed = true;
+      if (f.onLand) f.onLand();
+      setTimeout(function () { res(true); }, 1400);
+    });
+  };
   document.addEventListener('click', function (e) {
     try {
       if (reduce) return;
@@ -96,7 +134,7 @@
       var ph = cardPhoto(c);
       tapAt = { photo: ph, kind: kind, t: Date.now() };
       // con la galería ya medida en una apertura anterior, vuela en el acto
-      if (ph && gCache[kind]) { startFly(ph, gCache[kind]); tapAt.flying = true; }
+      if (ph && (gCache[kind] || NH)) { startFly(ph, gCache[kind] || null); tapAt.flying = true; }
     } catch (err) {}
   }, true);
   function openFx(v, tap) {
@@ -115,7 +153,8 @@
     if (gr.width > 40) gCache[currentView] = { left: gr.left, top: gr.top, width: gr.width, height: gr.height };
     var ph = tap && tap.photo;
     if (tap && tap.flying && fly) {
-      // ya venía volando desde el toque
+      // ya venía volando desde el toque (iOS: primera apertura, ahora sabe a dónde va)
+      if (fly.native && gCache[currentView]) nPost({ ev: 'postTarget', g: rectA(gCache[currentView]) });
     } else if (ph && gr.width > 40) {
       startFly(ph, gCache[currentView]);
     } else {
@@ -169,6 +208,12 @@
   // scroll del post (en modo capa el post scrollea solo; la página sigue en el de abajo)
   function postTop() { var v = viewEl(currentView); return on() && v ? v.scrollTop : (window.scrollY || 0); }
   window._rdPostScroller = function () { return on() ? viewEl(currentView) : null; };
+  // para el gesto nativo: ¿el post está arriba del todo? y franja de la galería (no se roba su swipe)
+  window._rdPostGeo = function () {
+    if (!on()) return null;
+    var v = viewEl(currentView), gl = v && v.querySelector('.photo-gallery'), gr = gl ? gl.getBoundingClientRect() : null;
+    return { top: postTop() <= 0, g: gr && gr.height ? [Math.round(gr.top), Math.round(gr.bottom)] : null };
+  };
   window._rdSheetOn = on;
   window._rdSheetShade = function (p) { if (on()) shadeTo(0.32 * (1 - Math.min(1, p))); };
 
@@ -235,6 +280,8 @@
       if (nv) { nv.classList.add('rd-over'); nv.scrollTop = 0; }
       return r2;
     }
+    // el post se abrió fuera del modo capa (o se fue a otra parte): la foto no se queda volando
+    if (fly) flyEnd();
     return _show.apply(this, arguments);
   };
 
@@ -329,7 +376,7 @@
   // ── gesto: deslizar hacia abajo para cerrar ──
   var g = null;
   document.addEventListener('touchstart', function (e) {
-    if (!on() || closing || e.touches.length !== 1) { g = null; return; }
+    if (NH || !on() || closing || e.touches.length !== 1) { g = null; return; }
     if (postTop() > 0) { g = null; return; }
     var t = e.touches[0];
     if (e.target.closest && e.target.closest('input,textarea,select,[contenteditable],.rd-no-sheet-drag')) { g = null; return; }
