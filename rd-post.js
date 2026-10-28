@@ -28,6 +28,10 @@
   // La foto vuela solo con transform (contenedor que escala + imagen que contra-escala para no
   // deformarse), así la mueve la GPU aunque el hilo principal esté ocupado armando el post.
   var tapAt = null, fly = null, gCache = {};
+  // [V187] dónde queda la galería, guardado entre sesiones (si la pantalla es la misma)
+  var GK = 'rd_gcache_v1', gDim = innerWidth + 'x' + innerHeight;
+  try { var gs = JSON.parse(localStorage.getItem(GK) || 'null'); if (gs && gs.d === gDim) gCache = gs.c || {}; } catch (e) {}
+  function gSave() { try { localStorage.setItem(GK, JSON.stringify({ d: gDim, c: gCache })); } catch (e) {} }
   // app iOS: el post se queda invisible hasta que iOS tomó la foto limpia de la tarjeta
   var pendingReveal = null;
   function reveal() { var f = pendingReveal; pendingReveal = null; if (f) f(); }
@@ -60,6 +64,7 @@
     if (out.length) nPost({ ev: 'pimg', srcs: out });
   }
   if (NI) {
+    setTimeout(function () { try { var c0 = document.querySelector('.market-card,[onclick*="openMarketDetail("]'); if (c0) cardPhoto(c0); } catch (e) {} }, 4000);
     var scanT = 0;
     var scanSoon = function () { clearTimeout(scanT); scanT = setTimeout(scanImgs, 160); };
     document.addEventListener('scroll', scanSoon, { capture: true, passive: true });
@@ -162,6 +167,7 @@
     }
     return best;
   }
+  function kindOf(ph) { return ph && ph.kind || 'market-detail'; }
   function flyEnd() {
     if (!fly) return;
     var f = fly; fly = null;
@@ -193,7 +199,14 @@
       var m = { ev: 'postOpen', r: rectA(ph.r), g: gr ? rectA(ph.real ? gr : landAt(ph, gr)) : null, rad: ph.rad || 0, topOnly: !!ph.topOnly };
       // foto real: la app la encuadra igual que la tarjeta (cover + object-position) y la lleva
       // al encuadre de la galería (cover centrado), con g = la galería entera
-      if (ph.real) { m.src = ph.src; m.nw = ph.nw; m.nh = ph.nh; m.px = ph.px; m.py = ph.py; }
+      if (ph.real) {
+        m.src = ph.src; m.nw = ph.nw; m.nh = ph.nh; m.px = ph.px; m.py = ph.py;
+        // [V187] la app sube una lámina del color del post junto con la foto: el post nunca cae de
+        // golpe aunque tarde en pintarse; se disuelve cuando la web avisa que ya pintó (postShown)
+        var pv = viewEl(DETAIL[currentView] ? currentView : kindOf(ph)), nb = document.querySelector('.navbar');
+        m.bg = pv ? getComputedStyle(pv).backgroundColor : '';
+        m.top = nb ? Math.max(0, nb.getBoundingClientRect().bottom) : 0;
+      }
       nPost(m);
       // iOS ya tomó la foto (limpia: las etiquetas se escondieron un cuadro antes). Confirma con
       // RDNT.postReveal y entonces se muestra el post y la tarjeta se vacía; tope 300 ms
@@ -264,7 +277,7 @@
       var oc = c.getAttribute('onclick') || '';
       var kind = /openMarketDetail\(/.test(oc) || (!oc && c.classList.contains('market-card')) ? 'market-detail' : 'detail';
       var ph = cardPhoto(c);
-      if (ph) ph.card = c;
+      if (ph) { ph.card = c; ph.kind = kind; }
       tapAt = { photo: ph, kind: kind, t: Date.now() };
       if (ph && NI && ph.nw && imgReady[ph.src] && ph.el.tagName === 'IMG') {
         // [V184] foto real ya en la app: vuela en el acto y el post se arma con este mismo toque
@@ -285,7 +298,8 @@
     var show = function () {
       if (!on()) return;
       v.style.opacity = ''; shadeTo(0.32);
-      v.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'linear' });
+      var va = v.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'linear' });
+      if (NH && tap && tap.photo && tap.photo.real) va.onfinish = function () { requestAnimationFrame(function () { nPost({ ev: 'postShown' }); }); };
       if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 200, easing: 'ease-out' });
     };
     if (NH && tap && tap.flying && tap.photo && tap.photo.nat && !tap.photo.real && !tap.photo.snapped) {
@@ -300,7 +314,11 @@
     });
     if (!g) { flyEnd(); return; }
     var gr = g.getBoundingClientRect();
-    if (gr.width > 40) gCache[currentView] = { left: gr.left, top: gr.top, width: gr.width, height: gr.height };
+    if (gr.width > 40) {
+      var gn = { left: gr.left, top: gr.top, width: gr.width, height: gr.height }, go = gCache[currentView];
+      gCache[currentView] = gn;
+      if (!go || go.top !== gn.top || go.height !== gn.height || go.width !== gn.width) { gDim = innerWidth + 'x' + innerHeight; gSave(); }
+    }
     var ph = tap && tap.photo;
     if (tap && tap.flying && fly) {
       // ya venía volando desde el toque (iOS: primera apertura, ahora sabe a dónde va)
