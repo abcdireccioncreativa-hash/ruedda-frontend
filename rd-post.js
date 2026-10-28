@@ -111,21 +111,8 @@
     var gx = G.left + (G.width - nw * sg) / 2, gy = G.top + (G.height - nh * sg) / 2;
     return { left: gx + sx * sg, top: gy + sy * sg, width: C.width / sc * sg, height: C.height / sc * sg };
   }
-  // [V183] la copia nativa es una foto de la tarjeta: solo tiene lo que la tarjeta muestra. Se usa
-  // en las 4 de trending hoy, y solo si la tarjeta enseña al menos lo que va a enseñar la galería;
-  // el resto (featured, price drops, hot deals, market, subastas…) vuela la foto real con la
-  // animación web, la misma de www.ruedda.app
-  function nativeOK(ph, kind) {
-    // solo las 4 tarjetas de trending hoy (probadas en el teléfono: perfectas)
-    if (!ph.card || !ph.card.classList.contains('trending-cell')) return false;
-    // la copia sale de la pantalla: la tarjeta tiene que estar entera a la vista (no a medio
-    // deslizar ni debajo del navbar), si no vuela la foto real con la animación web
-    var R = ph.r, nb = document.querySelector('.navbar'), top = nb ? nb.getBoundingClientRect().bottom : 0;
-    if (R.left < -1 || R.right > innerWidth + 1 || R.top < top - 1 || R.bottom > innerHeight + 1) return false;
-    var G = gCache[kind] || { left: 0, top: 0, width: innerWidth, height: innerWidth * 10 / 16 };
-    var T = fullAt(ph, G);
-    return !!T && T.left <= G.left + 2 && T.top <= G.top + 2 && T.left + T.width >= G.left + G.width - 2 && T.top + T.height >= G.top + G.height - 2;
-  }
+  // [V185] ya no se fotografía la pantalla para volar (la foto de la tarjeta armaba el post tarde y
+  // aparecía de golpe): en la app 47 todo usa la animación web; la 48+ vuela la foto real (NI)
   function landAt(ph, G) {
     var T = fullAt(ph, G);
     if (!T) return G;
@@ -279,23 +266,7 @@
       var ph = cardPhoto(c);
       if (ph) ph.card = c;
       tapAt = { photo: ph, kind: kind, t: Date.now() };
-      if (ph && NH && nativeOK(ph, kind)) {
-        ph.nat = true;
-        // app iOS: iOS fotografía la tarjeta, así que primero se esconde lo que va encima de la
-        // foto (#1, precio, vistas…). Un cuadro después, ya pintada limpia, iOS la toma y arranca
-        // el vuelo, y en ese mismo instante se arma el post (el mismo toque, repetido).
-        e.stopImmediatePropagation(); e.preventDefault();
-        ph.hid = hideOver(c, ph);
-        tapAt.flying = true;
-        // [V182] un cuadro más de margen: en el teléfono la pantalla limpia tarda en llegar a iOS
-        requestAnimationFrame(function () { requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(function () {
-          tapAt.t = Date.now();
-          ph.replay = function () { replaying = true; try { c.click(); } finally { replaying = false; } };
-          startFly(ph, gCache[kind] || null);
-        }, 0); }); }); });
-        return;
-      }
-      if (ph && NI && ph.nw && imgReady[ph.src]) {
+      if (ph && NI && ph.nw && imgReady[ph.src] && ph.el.tagName === 'IMG') {
         // [V184] foto real ya en la app: vuela en el acto y el post se arma con este mismo toque
         // (no hace falta esconder etiquetas ni esperar cuadros: la app no fotografía la pantalla)
         ph.nat = true; ph.real = true; ph.hid = [];
