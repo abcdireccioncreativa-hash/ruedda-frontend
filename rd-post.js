@@ -41,6 +41,31 @@
   // para el borde y la web sigue haciendo el arrastre hacia abajo
   window._rdNativeDrag = !!NH && !window.__RD_AND;
   function nPost(m) { try { NH.postMessage(m); } catch (e) {} }
+  // [V184] app 1.7 build 48+: la app tiene en memoria las fotos de las tarjetas que se ven y vuela
+  // la foto REAL (no una foto de la pantalla): sin pedazos, zoom ni etiquetas, y sin esperar cuadros
+  var NI = NH && window.__RD_NATIVE_IMG, imgReady = {}, imgSent = {};
+  window._rdImgReady = function (src) { imgReady[src] = 1; return true; };
+  function scanImgs() {
+    if (!NI || document.hidden || on()) return;
+    var out = [], H = innerHeight;
+    document.querySelectorAll('[onclick*="openMarketDetail("] img,[onclick*="openDetail("] img,.market-card img,.auction-card img').forEach(function (im) {
+      if (out.length >= 16 || !im.complete || !im.naturalWidth) return;
+      var src = im.currentSrc || im.src;
+      if (!src || imgSent[src] || /^data:/.test(src)) return;
+      var r = im.getBoundingClientRect();
+      // a la vista (o a media pantalla de llegar) y del tamaño de una foto, no un logo
+      if (r.width < 60 || r.height < 40 || r.bottom < -H * 0.5 || r.top > H * 1.5 || r.right < -40 || r.left > innerWidth * 1.6) return;
+      imgSent[src] = 1; out.push(src);
+    });
+    if (out.length) nPost({ ev: 'pimg', srcs: out });
+  }
+  if (NI) {
+    var scanT = 0;
+    var scanSoon = function () { clearTimeout(scanT); scanT = setTimeout(scanImgs, 160); };
+    document.addEventListener('scroll', scanSoon, { capture: true, passive: true });
+    document.addEventListener('load', function (e) { if (e.target && e.target.tagName === 'IMG') scanSoon(); }, true);
+    setInterval(scanImgs, 1500);
+  }
   function rectA(r) { return [r.left, r.top, r.width, r.height]; }
   // la foto "sale" de la tarjeta: mientras el post aparece, la tarjeta de origen (con su #1,
   // precio, vistas…) no se ve debajo; vuelve sola cuando el post ya la tapa del todo
@@ -178,7 +203,11 @@
       fly = { el: null, g: null, done: false, landed: false, native: true };
       var nf = fly;
       // g: donde aterriza la copia (los mismos píxeles de la tarjeta, ya en la galería)
-      nPost({ ev: 'postOpen', r: rectA(ph.r), g: gr ? rectA(landAt(ph, gr)) : null, rad: ph.rad || 0, topOnly: !!ph.topOnly });
+      var m = { ev: 'postOpen', r: rectA(ph.r), g: gr ? rectA(ph.real ? gr : landAt(ph, gr)) : null, rad: ph.rad || 0, topOnly: !!ph.topOnly };
+      // foto real: la app la encuadra igual que la tarjeta (cover + object-position) y la lleva
+      // al encuadre de la galería (cover centrado), con g = la galería entera
+      if (ph.real) { m.src = ph.src; m.nw = ph.nw; m.nh = ph.nh; m.px = ph.px; m.py = ph.py; }
+      nPost(m);
       // iOS ya tomó la foto (limpia: las etiquetas se escondieron un cuadro antes). Confirma con
       // RDNT.postReveal y entonces se muestra el post y la tarjeta se vacía; tope 300 ms
       var hid = ph.hid || []; ph.hid = null;
@@ -266,6 +295,14 @@
         }, 0); }); }); });
         return;
       }
+      if (ph && NI && ph.nw && imgReady[ph.src]) {
+        // [V184] foto real ya en la app: vuela en el acto y el post se arma con este mismo toque
+        // (no hace falta esconder etiquetas ni esperar cuadros: la app no fotografía la pantalla)
+        ph.nat = true; ph.real = true; ph.hid = [];
+        tapAt.flying = true;
+        startFly(ph, gCache[kind] || null);
+        return;
+      }
       // con la galería ya medida en una apertura anterior, vuela en el acto
       if (ph && gCache[kind]) { startFly(ph, gCache[kind]); tapAt.flying = true; }
     } catch (err) {}
@@ -296,7 +333,7 @@
     var ph = tap && tap.photo;
     if (tap && tap.flying && fly) {
       // ya venía volando desde el toque (iOS: primera apertura, ahora sabe a dónde va)
-      if (fly.native && gCache[currentView]) nPost({ ev: 'postTarget', g: rectA(landAt(ph, gCache[currentView])) });
+      if (fly.native && gCache[currentView]) nPost({ ev: 'postTarget', g: rectA(ph && ph.real ? gCache[currentView] : landAt(ph, gCache[currentView])) });
     } else if (ph && gr.width > 40) {
       startFly(ph, gCache[currentView]);
     } else {
