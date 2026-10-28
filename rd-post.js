@@ -126,16 +126,26 @@
     f.g = g; g.style.visibility = 'hidden';
     // al aterrizar espera la primera foto grande de la galería (máx. 700 ms) y cruza
     f.onLand = function () {
-      // la foto que se ve en la galería (la primera); se espera a que esté DECODIFICADA, no
-      // solo descargada, para que al cruzar no parpadee (máx. 900 ms)
-      var img = g.querySelector('img');
+      // la foto real de la galería (no el borroso de 40 px que la acompaña mientras carga)
+      var hd = g.querySelector('img:not(.rd-lq)'), lq = g.querySelector('img.rd-lq');
       var go = function () { if (fly === f) flyEnd(); };
-      var cap = setTimeout(go, 900);
-      if (!img) { clearTimeout(cap); go(); return; }
-      var ready = function () { clearTimeout(cap); go(); };
-      if (img.decode) img.decode().then(ready, function () { if (img.complete) ready(); else img.addEventListener('load', ready, { once: true }); });
-      else if (img.complete && img.naturalWidth) ready();
-      else img.addEventListener('load', ready, { once: true });
+      var show = function () {
+        // ya lista: se pone visible YA (sin su fundido propio) para que al irse la copia no
+        // quede un instante del borroso debajo, que se veía como si recargara
+        hd.style.transition = 'none'; hd.style.opacity = '1';
+        go();
+      };
+      if (hd && hd.complete && hd.naturalWidth) { (hd.decode ? hd.decode() : Promise.resolve()).then(show, show); return; }
+      // aún no llega la grande: debajo se pone la misma foto de la tarjeta (ya descargada),
+      // nítida, y la grande entra encima con su fundido cuando llegue. Nada parpadea.
+      if (lq && ph) {
+        lq.style.filter = 'none'; lq.style.transform = 'none'; lq.style.opacity = '1';
+        lq.src = ph.src;
+        (lq.decode ? lq.decode() : Promise.resolve()).then(go, go);
+      } else if (hd) {
+        var cap = setTimeout(go, 1200);
+        hd.addEventListener('load', function () { clearTimeout(cap); show(); }, { once: true });
+      } else go();
     };
     if (f.done) f.onLand();
   }
