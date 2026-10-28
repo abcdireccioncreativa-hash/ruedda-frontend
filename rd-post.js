@@ -37,6 +37,9 @@
   // gestos de salida también son nativos. La web solo avisa dónde está la foto y a dónde va.
   var NH = window.__RD_NATIVE_POST && window.webkit && webkit.messageHandlers && webkit.messageHandlers.rdTabs;
   window._rdNativePost = !!NH;
+  // los gestos de cerrar (bajar / borde) solo los hace nativos iOS; Android usa su atrás predictivo
+  // para el borde y la web sigue haciendo el arrastre hacia abajo
+  window._rdNativeDrag = !!NH && !window.__RD_AND;
   function nPost(m) { try { NH.postMessage(m); } catch (e) {} }
   function rectA(r) { return [r.left, r.top, r.width, r.height]; }
   // la foto "sale" de la tarjeta: mientras el post aparece, la tarjeta de origen (con su #1,
@@ -447,7 +450,7 @@
   // ── gesto: deslizar hacia abajo para cerrar ──
   var g = null;
   document.addEventListener('touchstart', function (e) {
-    if (NH || !on() || closing || e.touches.length !== 1) { g = null; return; }
+    if (window._rdNativeDrag || !on() || closing || e.touches.length !== 1) { g = null; return; }
     if (postTop() > 0) { g = null; return; }
     var t = e.touches[0];
     if (e.target.closest && e.target.closest('input,textarea,select,[contenteditable],.rd-no-sheet-drag')) { g = null; return; }

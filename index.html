@@ -2769,7 +2769,7 @@ function rdRegion(r){
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=5" defer></script>
 <script src="/rd-usa.js?v=5" defer></script>
-<script src="/rd-post.js?v=19" defer></script>
+<script src="/rd-post.js?v=20" defer></script>
 <script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=2" defer></script><script src="/rd-track.js?v=3" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
@@ -26336,7 +26336,7 @@ function _rdSetupSwipeExit(viewId,exitFn,matchView){
   function el(){ return document.getElementById(viewId); }
   document.addEventListener('touchstart',e=>{
     if(currentView!==matchView)return;
-    if(window._rdNativePost&&window._rdSheetOn&&window._rdSheetOn())return; // [V173] app 1.7 (47)+: el gesto lo hace iOS
+    if(window._rdNativeDrag&&window._rdSheetOn&&window._rdSheetOn())return; // [V173] app 1.7 (47)+: el gesto lo hace iOS
     if(e.target.closest('.photo-gallery,.photo-gallery-inner'))return; // esa ya tiene su propio swipe horizontal
     const t=e.touches[0];
     // [fix real del negro+titileo] muy cerca del borde izquierdo es territorio del
