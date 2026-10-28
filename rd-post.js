@@ -23,6 +23,16 @@
   try { reduce = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
   var st = null;        // { name, el, y, nav } pantalla congelada
+  // centro de la tarjeta tocada: de ahí nace el post al abrir
+  var tapAt = null;
+  document.addEventListener('pointerdown', function (e) {
+    try {
+      var c = e.target.closest && e.target.closest('[onclick*="openMarketDetail("],[onclick*="openDetail("]');
+      if (!c) return;
+      var r = c.getBoundingClientRect();
+      tapAt = { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2), t: Date.now() };
+    } catch (err) {}
+  }, { passive: true, capture: true });
   var closing = false;
   var ignorePop = 0;
 
@@ -81,12 +91,16 @@
         v.classList.add('rd-over');
         v.scrollTop = 0;
         if (!reduce && v.animate) {
-          // [V166] entrada nativa de iOS: el post entra deslizando desde la derecha (el mismo
-          // lado por donde se cierra con el swipe) y la pantalla de abajo se oscurece a la par.
-          // Solo transform/opacity: lo mueve la GPU, el hilo principal no se entera.
-          v.animate([{ transform: 'translate3d(' + window.innerWidth + 'px,0,0)' }, { transform: 'none' }],
-            { duration: 420, easing: 'cubic-bezier(.32,.72,0,1)' });
-          if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 420, easing: 'cubic-bezier(.32,.72,0,1)' });
+          // [V167] entrada tipo Marketplace / zoom de iOS 18: el post nace desde la tarjeta
+          // que tocaste y se expande a pantalla completa. Solo transform/opacity (GPU).
+          var o = tapAt && Date.now() - tapAt.t < 1500 ? tapAt : null;
+          v.style.transformOrigin = o ? o.x + 'px ' + (o.y + v.scrollTop) + 'px' : '50% 40%';
+          var za = v.animate([{ transform: 'scale(.9)', opacity: 0 },
+                              { opacity: 1, offset: 0.4 },
+                              { transform: 'none', opacity: 1 }],
+            { duration: 360, easing: 'cubic-bezier(.2,.9,.25,1)' });
+          za.onfinish = za.oncancel = function () { v.style.transformOrigin = ''; };
+          if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 300, easing: 'ease-out' });
         }
       }
       return r;
