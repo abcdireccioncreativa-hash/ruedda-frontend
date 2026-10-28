@@ -31,6 +31,8 @@
   // app iOS: el post se queda invisible hasta que iOS tomó la foto limpia de la tarjeta
   var pendingReveal = null;
   function reveal() { var f = pendingReveal; pendingReveal = null; if (f) f(); }
+  var revealHook = null;
+  window._rdPostReveal = function () { var f = revealHook; revealHook = null; if (f) f(); return true; };
   // [V173] app iOS 1.7 (47)+: la foto la vuela iOS (Core Animation, resorte nativo) y los
   // gestos de salida también son nativos. La web solo avisa dónde está la foto y a dónde va.
   var NH = window.__RD_NATIVE_POST && window.webkit && webkit.messageHandlers && webkit.messageHandlers.rdTabs;
@@ -119,10 +121,12 @@
       var hid = ph.hid || [], stepped = false; ph.hid = null;
       var step = function () {
         if (stepped) return; stepped = true;
-        if (hid.length) nPost({ ev: 'postClean' });
-        requestAnimationFrame(function () { requestAnimationFrame(function () {
-          emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); reveal();
-        }); });
+        var done = function () { emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); reveal(); };
+        if (!hid.length) { done(); return; }
+        // iOS confirma la foto limpia (RDNT.postReveal) y entonces se muestra el post; tope 300 ms
+        revealHook = done;
+        nPost({ ev: 'postClean' });
+        setTimeout(function () { if (revealHook === done) { revealHook = null; done(); } }, 300);
       };
       requestAnimationFrame(function () { requestAnimationFrame(step); setTimeout(step, 120); });
       nf.tm = setTimeout(function () { if (fly === nf && !nf.g) flyEnd(); }, 900);

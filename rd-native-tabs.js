@@ -260,6 +260,7 @@
     },
     // iOS: la foto del post llegó a la galería → resuelve cuando la galería real ya pintó
     postLand: function () { return window._rdPostLand ? window._rdPostLand() : true; },
+    postReveal: function () { return window._rdPostReveal ? window._rdPostReveal() : true; },
     cfg: function () { return cfgState(); },
     cfgDo: async function (a, v) {
       try {
