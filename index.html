@@ -2784,7 +2784,7 @@ function rdRegion(r){
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=5" defer></script>
 <script src="/rd-usa.js?v=5" defer></script>
-<script src="/rd-post.js?v=8" defer></script>
+<script src="/rd-post.js?v=9" defer></script>
 <script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=2" defer></script><script src="/rd-track.js?v=3" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
@@ -23251,6 +23251,28 @@ function _pmQuickFill(text){
   inp.focus();
   inp.setSelectionRange(inp.value.length,inp.value.length);
 }
+// [V168] con el teclado abierto (iOS no encoge la pantalla, solo el área visible) la hoja
+// quedaba pegada al fondo de la pantalla entera: arriba se metía bajo la hora y entre la hoja
+// y el teclado se veía la página. Ahora la hoja se ajusta al área visible, pegada al teclado.
+function _rdKbFit(panel){
+  const vv=window.visualViewport;
+  if(!vv) return;
+  if(panel._kbFit) return panel._kbFit(); // al reabrir, parte del estado actual del teclado
+  const fit=panel._kbFit=()=>{
+    if(panel.style.display==='none') return;
+    const inner=panel.firstElementChild;
+    if(window.innerHeight-vv.height>120){
+      panel.style.top=vv.offsetTop+'px'; panel.style.bottom='auto'; panel.style.height=vv.height+'px';
+      if(inner){ inner.style.maxHeight=vv.height+'px'; inner.style.overflowY='auto'; inner.style.paddingBottom='16px'; }
+    } else {
+      panel.style.top='0'; panel.style.bottom='0'; panel.style.height='';
+      if(inner){ inner.style.maxHeight=''; inner.style.overflowY=''; inner.style.paddingBottom=''; }
+    }
+  };
+  vv.addEventListener('resize',fit);
+  vv.addEventListener('scroll',fit);
+  fit();
+}
 function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,isDealer){
   let panel=document.getElementById('pm-panel');
   if(!panel){
@@ -23296,6 +23318,7 @@ function _openPmPanel(receiverId,receiverName,sourceId,sourceType,sourceTitle,is
   panel.style.background='rgba(0,0,0,0)';
   panel.style.transition='background .26s cubic-bezier(.32,.72,0,1)';
   panel.style.display='flex';
+  _rdKbFit(panel);
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     panel.style.background='rgba(0,0,0,.35)'; // mismo velo que el de iniciar sesión
     const inner=panel.querySelector('div');
