@@ -34,6 +34,30 @@
   window._rdNativePost = !!NH;
   function nPost(m) { try { NH.postMessage(m); } catch (e) {} }
   function rectA(r) { return [r.left, r.top, r.width, r.height]; }
+  // la foto "sale" de la tarjeta: mientras el post aparece, la tarjeta de origen (con su #1,
+  // precio, vistas…) no se ve debajo; vuelve sola cuando el post ya la tapa del todo
+  function emptyCard(c) {
+    if (!c || c._rdEmpty) return;
+    c._rdEmpty = 1; c.style.visibility = 'hidden'; emptied = c;
+    setTimeout(refill, 560);
+  }
+  var emptied = null;
+  function refill() { var c = emptied; emptied = null; if (c) { c.style.visibility = ''; c._rdEmpty = 0; } }
+  // lo que va ENCIMA de la foto en la tarjeta (featured, #1, precio, vistas…): iOS fotografía
+  // la tarjeta, así que se esconde un par de cuadros para que la foto vuele limpia
+  function hideOver(c, ph) {
+    var hid = [], r = ph.r;
+    var over = function (s) {
+      if (s === ph.el || s.contains(ph.el)) return;
+      var q = s.getBoundingClientRect();
+      if (q.right <= r.left || q.left >= r.right || q.bottom <= r.top || q.top >= r.bottom || !q.width) return;
+      if (getComputedStyle(s).visibility === 'hidden') return;
+      s.style.visibility = 'hidden'; hid.push(s);
+    };
+    [].forEach.call(ph.el.children, over);
+    for (var n = ph.el; n && n !== c; n = n.parentNode) [].forEach.call(n.parentNode.children, function (s) { if (s !== n) over(s); });
+    return hid;
+  }
   function bez(x1, y1, x2, y2) {
     function cx(t) { return 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t; }
     function cy(t) { return 3 * y1 * t * (1 - t) * (1 - t) + 3 * y2 * t * t * (1 - t) + t * t * t; }
@@ -86,6 +110,15 @@
       fly = { el: null, g: null, done: false, landed: false, native: true };
       var nf = fly;
       nPost({ ev: 'postOpen', r: rectA(ph.r), g: gr ? rectA(gr) : null, rad: ph.rad || 0, topOnly: !!ph.topOnly });
+      // ya pintada la tarjeta sin lo de encima (y el post aún invisible), iOS toma la foto limpia
+      // y la funde en pleno vuelo; luego todo vuelve a su sitio
+      if (ph.hid && ph.hid.length) {
+        var hid = ph.hid; ph.hid = null;
+        requestAnimationFrame(function () { requestAnimationFrame(function () {
+          nPost({ ev: 'postClean' });
+          requestAnimationFrame(function () { emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); });
+        }); });
+      } else requestAnimationFrame(function () { requestAnimationFrame(function () { emptyCard(ph.card); }); });
       nf.tm = setTimeout(function () { if (fly === nf && !nf.g) flyEnd(); }, 900);
       return;
     }
@@ -109,6 +142,7 @@
     im.style.backgroundImage = 'url("' + ph.src.replace(/"/g, '%22') + '")';
     el.appendChild(im); document.body.appendChild(el);
     var opt = { duration: 420, easing: 'linear', fill: 'forwards' };
+    emptyCard(ph.card);
     var a = el.animate(kc, opt); im.animate(ki, opt);
     // aparte: el radio no se acelera en GPU y no debe frenar el vuelo (transform sí va en GPU)
     if (ph.rad) el.animate(kr, opt);
@@ -138,6 +172,8 @@
       var oc = c.getAttribute('onclick') || '';
       var kind = /openMarketDetail\(/.test(oc) || (!oc && c.classList.contains('market-card')) ? 'market-detail' : 'detail';
       var ph = cardPhoto(c);
+      if (ph) ph.card = c;
+      if (ph && NH) ph.hid = hideOver(c, ph);
       tapAt = { photo: ph, kind: kind, t: Date.now() };
       // con la galería ya medida en una apertura anterior, vuela en el acto
       if (ph && (gCache[kind] || NH)) { startFly(ph, gCache[kind] || null); tapAt.flying = true; }
@@ -147,8 +183,10 @@
     var g = v.querySelector('.photo-gallery');
     var rest = [].slice.call(v.querySelectorAll('.gallery-dots, .detail-content > *')).slice(0, 5);
     // fondo del post: casi instantáneo
-    v.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'linear' });
-    if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 200, easing: 'ease-out' });
+    // (app iOS: espera 3 cuadros invisible, mientras iOS toma la foto limpia de la tarjeta)
+    var hold = NH ? 48 : 0;
+    v.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, delay: hold, easing: 'linear', fill: 'backwards' });
+    if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 200, delay: hold, easing: 'ease-out', fill: 'backwards' });
     // lo demás sube detrás de la foto, en cascada corta
     rest.forEach(function (el, i) {
       el.animate([{ transform: 'translate3d(0,26px,0)', opacity: 0 }, { transform: 'none', opacity: 1 }],
@@ -237,7 +275,7 @@
 
   // suelta la pantalla congelada sin animar (cuando se navega a otro lado desde el post)
   function release() {
-    flyEnd();
+    flyEnd(); refill();
     if (!st) return;
     st.el.classList.remove('rd-under');
     shadeTo(0);
@@ -294,6 +332,7 @@
   // destapa la pantalla de abajo tal cual estaba
   function restore() {
     var v = viewEl(currentView), s = st;
+    refill();
     if (!s) return;
     if (typeof _stopViewerPresence === 'function') { try { _stopViewerPresence(); } catch (e) {} }
     if (v) {
