@@ -60,11 +60,36 @@
       var q = s.getBoundingClientRect();
       if (q.right <= r.left || q.left >= r.right || q.bottom <= r.top || q.top >= r.bottom || !q.width) return;
       if (getComputedStyle(s).visibility === 'hidden') return;
-      s.style.visibility = 'hidden'; hid.push(s);
+      s.style.visibility = 'hidden'; hid.push(function () { s.style.visibility = ''; });
     };
     [].forEach.call(ph.el.children, over);
     for (var n = ph.el; n && n !== c; n = n.parentNode) [].forEach.call(n.parentNode.children, function (s) { if (s !== n) over(s); });
+    // [V182] la foto se toma con las esquinas rectas: el redondeo lo pone la copia nativa y lo
+    // endereza en el vuelo (si no, las esquinas de la tarjeta quedaban pintadas en la foto).
+    // Solo las esquinas que recortan la foto: el resto de la tarjeta no cambia.
+    var P = ['borderTopLeftRadius', 'borderTopRightRadius', 'borderBottomLeftRadius', 'borderBottomRightRadius'];
+    (ph.cut || []).forEach(function (x) {
+      var st = x.el.style, keep = P.map(function (p) { return st[p]; });
+      P.forEach(function (p, i) { if (x.k[i]) st[p] = '0px'; });
+      hid.push(function () { P.forEach(function (p, i) { st[p] = keep[i]; }); });
+    });
     return hid;
+  }
+  // [V182] dónde caen en la galería los MISMOS píxeles que se ven en la tarjeta (las dos usan
+  // object-fit: cover). La copia aterriza ahí y el resto de la foto aparece alrededor: sin zoom.
+  function landAt(ph, G) {
+    if (!G || !ph || !ph.nw || !ph.nh) return G;
+    var C = ph.r, nw = ph.nw, nh = ph.nh;
+    var sc = Math.max(C.width / nw, C.height / nh);
+    var sx = -(C.width - nw * sc) * ph.px / sc, sy = -(C.height - nh * sc) * ph.py / sc;
+    var sg = Math.max(G.width / nw, G.height / nh);
+    var gx = G.left + (G.width - nw * sg) / 2, gy = G.top + (G.height - nh * sg) / 2;
+    var T = { left: gx + sx * sg, top: gy + sy * sg, width: C.width / sc * sg, height: C.height / sc * sg };
+    // lo que cae fuera de la galería no se ve: se recorta a ella. Como las dos fotos van centradas,
+    // la copia (aspect fill) queda con los mismos píxeles que la galería en ese recuadro
+    var l = Math.max(T.left, G.left), t = Math.max(T.top, G.top), rr = Math.min(T.left + T.width, G.left + G.width), bb = Math.min(T.top + T.height, G.top + G.height);
+    if (!(rr - l > 40 && bb - t > 40)) return G;
+    return { left: l, top: t, width: rr - l, height: bb - t };
   }
   function bez(x1, y1, x2, y2) {
     function cx(t) { return 3 * x1 * t * (1 - t) * (1 - t) + 3 * x2 * t * t * (1 - t) + t * t * t; }
@@ -81,12 +106,28 @@
       if (a > area && r.width > 40) { area = a; best = { src: src, r: r, el: el }; }
     });
     if (best) {
-      // radio visible de la foto (el suyo o el de la tarjeta que la recorta)
-      var rad = 0;
-      for (var n = best.el; n && n !== c.parentNode; n = n.parentNode) { rad = parseFloat(getComputedStyle(n).borderTopLeftRadius) || 0; if (rad) break; }
-      best.rad = rad;
+      // tamaño real y encuadre de la foto (para que la copia aterrice sobre los mismos píxeles)
+      var bel = best.el;
+      if (bel.tagName === 'IMG' && bel.naturalWidth && /cover/.test(getComputedStyle(bel).objectFit)) {
+        var op = getComputedStyle(bel).objectPosition.split(' ');
+        var pc = function (v) { return /%$/.test(v || '') ? parseFloat(v) / 100 : 0.5; };
+        best.nw = bel.naturalWidth; best.nh = bel.naturalHeight; best.px = pc(op[0]); best.py = pc(op[1]);
+      }
+      // [V182] esquinas que de verdad recortan la foto: las de un contenedor (la foto misma, su
+      // marco o la tarjeta) que coinciden con la esquina de la foto
+      var R = best.r, cut = [];
+      for (var n = best.el; n && n !== c.parentNode; n = n.parentNode) {
+        var cs = getComputedStyle(n), q = n.getBoundingClientRect();
+        var L = Math.abs(q.left - R.left) < 2, Rt = Math.abs(q.right - R.right) < 2, T = Math.abs(q.top - R.top) < 2, B = Math.abs(q.bottom - R.bottom) < 2;
+        var k = [T && L && parseFloat(cs.borderTopLeftRadius), T && Rt && parseFloat(cs.borderTopRightRadius), B && L && parseFloat(cs.borderBottomLeftRadius), B && Rt && parseFloat(cs.borderBottomRightRadius)];
+        if (k.some(function (x) { return x > 0; })) cut.push({ el: n, k: k.map(function (x) { return x > 0; }) });
+        best.rad = Math.max(best.rad || 0, k[0] || 0, k[1] || 0, k[2] || 0, k[3] || 0);
+      }
+      best.cut = cut;
+      var top = cut.some(function (x) { return x.k[0] || x.k[1]; }), bot = cut.some(function (x) { return x.k[2] || x.k[3]; });
       // la foto va arriba en la tarjeta y el texto debajo: solo redondea las esquinas de arriba
-      best.topOnly = best.r.bottom < c.getBoundingClientRect().bottom - 2;
+      best.topOnly = top && !bot;
+      if (!top && !bot) best.rad = 0;
     }
     return best;
   }
@@ -117,11 +158,19 @@
     if (NH) {
       fly = { el: null, g: null, done: false, landed: false, native: true };
       var nf = fly;
-      nPost({ ev: 'postOpen', r: rectA(ph.r), g: gr ? rectA(gr) : null, rad: ph.rad || 0, topOnly: !!ph.topOnly });
+      // g: donde aterriza la copia (los mismos píxeles de la tarjeta, ya en la galería)
+      nPost({ ev: 'postOpen', r: rectA(ph.r), g: gr ? rectA(landAt(ph, gr)) : null, rad: ph.rad || 0, topOnly: !!ph.topOnly });
       // iOS ya tomó la foto (limpia: las etiquetas se escondieron un cuadro antes). Confirma con
       // RDNT.postReveal y entonces se muestra el post y la tarjeta se vacía; tope 300 ms
       var hid = ph.hid || []; ph.hid = null;
-      var done = function () { emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); reveal(); };
+      var done = function () {
+        ph.snapped = true;
+        hid.forEach(function (f) { f(); }); emptyCard(ph.card);
+        // [V182] el post se arma recién ahora: mientras iOS fotografía la tarjeta la web no
+        // trabaja, así la pantalla que fotografía es seguro la limpia
+        if (ph.replay) { var rp = ph.replay; ph.replay = null; rp(); }
+        reveal();
+      };
       revealHook = done;
       setTimeout(function () { if (revealHook === done) { revealHook = null; done(); } }, 300);
       nf.tm = setTimeout(function () { if (fly === nf && !nf.g) flyEnd(); }, 900);
@@ -189,12 +238,12 @@
         e.stopImmediatePropagation(); e.preventDefault();
         ph.hid = hideOver(c, ph);
         tapAt.flying = true;
-        requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(function () {
+        // [V182] un cuadro más de margen: en el teléfono la pantalla limpia tarda en llegar a iOS
+        requestAnimationFrame(function () { requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(function () {
           tapAt.t = Date.now();
+          ph.replay = function () { replaying = true; try { c.click(); } finally { replaying = false; } };
           startFly(ph, gCache[kind] || null);
-          replaying = true;
-          try { c.click(); } finally { replaying = false; }
-        }, 0); }); });
+        }, 0); }); }); });
         return;
       }
       // con la galería ya medida en una apertura anterior, vuela en el acto
@@ -211,7 +260,7 @@
       v.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'linear' });
       if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 200, easing: 'ease-out' });
     };
-    if (NH && tap && tap.flying) {
+    if (NH && tap && tap.flying && !(tap.photo && tap.photo.snapped)) {
       // (app iOS: invisible hasta el cuadro siguiente a la foto limpia; tope por si acaso)
       v.style.opacity = '0'; shadeTo(0);
       pendingReveal = show; setTimeout(reveal, 500);
@@ -227,7 +276,7 @@
     var ph = tap && tap.photo;
     if (tap && tap.flying && fly) {
       // ya venía volando desde el toque (iOS: primera apertura, ahora sabe a dónde va)
-      if (fly.native && gCache[currentView]) nPost({ ev: 'postTarget', g: rectA(gCache[currentView]) });
+      if (fly.native && gCache[currentView]) nPost({ ev: 'postTarget', g: rectA(landAt(ph, gCache[currentView])) });
     } else if (ph && gr.width > 40) {
       startFly(ph, gCache[currentView]);
     } else {
