@@ -186,12 +186,12 @@
         e.stopImmediatePropagation(); e.preventDefault();
         ph.hid = hideOver(c, ph);
         tapAt.flying = true;
-        requestAnimationFrame(function () { setTimeout(function () {
+        requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(function () {
           tapAt.t = Date.now();
           startFly(ph, gCache[kind] || null);
           replaying = true;
           try { c.click(); } finally { replaying = false; }
-        }, 0); });
+        }, 0); }); });
         return;
       }
       // con la galería ya medida en una apertura anterior, vuela en el acto
