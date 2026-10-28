@@ -531,7 +531,14 @@
       document.removeEventListener('keydown',onKey);
       unmount(el);
     });
+    return el;
   }
+  // [V163] "solicitar peritaje" desde los chats: la misma hoja, encima del chat (z 9000)
+  window.rdPeritaje=function(car){
+    if(!car||!car.rid) return;
+    var el=showInsp(car);
+    el.style.zIndex='10061'; if(el._bd) el._bd.style.zIndex='10060';
+  };
   (function(){
     var cur=null, since=0;
     setInterval(function(){
