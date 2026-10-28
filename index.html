@@ -2,21 +2,6 @@
 <html lang="es">
 <head>
 <script>
-/* [pre-landing VE] visitante web en móvil, sin sesión: primero /waitlist/venezuela.html
-   (una vez por sesión del navegador). Nunca en la app iOS, PWA instalada ni enlaces con parámetros. */
-(function(){try{
-  if(location.pathname!=='/'&&location.pathname!=='/index.html') return;
-  if(location.search||location.hash) return;
-  if(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()) return;
-  if((window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone) return;
-  if(Math.min(screen.width,screen.height)>=600||!/Mobi|iPhone|iPod|Android/.test(navigator.userAgent)) return; // el viewport aún no existe aquí: se mira la pantalla
-  if(sessionStorage.getItem('rd_pre')) return;
-  for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&k.indexOf('sb-')===0&&k.indexOf('auth-token')>0) return;}
-  sessionStorage.setItem('rd_pre','1');
-  location.replace('/waitlist/venezuela.html');
-}catch(e){}})();
-</script>
-<script>
 /* [perf · arranque adelantado] Las 2 consultas del primer pantallazo (publicaciones y
    subastas) salen AQUÍ, apenas llega el HTML, en paralelo con todo lo demás. Cuando
    supabase-js pide exactamente lo mismo (misma URL y misma sesión), recibe esta
@@ -3198,9 +3183,8 @@ html[data-theme="light"] .rd-ld,html[data-theme="light"] #cons-banner-placeholde
 .rd-perit-av svg{width:76px;height:26px;display:block}
 html[data-theme="light"] .rd-perit{background:#fff;border-color:rgba(0,0,0,.07);box-shadow:0 1px 0 rgba(0,0,0,.02),0 8px 24px -10px rgba(0,0,0,.12);color:#111}
 html[data-theme="light"] .rd-perit span{color:rgba(17,17,17,.5)}
-.rd-pmq{display:flex;gap:8px;margin:0 -20px 10px;padding:0 20px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.rd-pmq::-webkit-scrollbar{display:none}
-.rd-pmq button{flex:0 0 auto!important}
+.rd-pmq{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+.rd-pmq button{min-width:0;width:100%}
 #pricing-plans .plan-perks{position:relative;display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .42s cubic-bezier(.32,.72,0,1),opacity .3s}
 #pricing-plans .plan-perks>div{overflow:hidden;min-height:0}
 #pricing-plans .plan-open .plan-perks{grid-template-rows:1fr;opacity:1}
@@ -8283,7 +8267,7 @@ function showView(name,param){
   if(name==='alquileres')_loadRentals();
   if(name==='sugerencias'){/* nada que cargar */}
   if(name==='historia')loadHistoria();
-  if(name==='marcas'){_marcasRegionFilter=null;renderMarcasGrid();_loadMarcaLogos();}
+  if(name==='marcas'){_marcasRegionFilter=null;renderMarcasGrid();_loadMarcaLogos();_rdMarcasIn();}
   if(name==='configuracion'){_paintDefaultViewSlider();_paintThemeToggle();_paintPushToggle();}
   if(name==='noticia-detail')loadNoticiaDetail(param);
   if(name==='evento-detail')loadEventoDetail(param);
@@ -11181,6 +11165,24 @@ function renderMarcasGrid(filterText){
   _marcaSetAllLogos();
 }
 function filterMarcas(val){ renderMarcasGrid(val); }
+// [V172] entrada escalonada de Marcas: cabecera, buscador y filas de logos suben en
+// cascada (solo transform+opacity en GPU, WAAPI). Solo lo que se ve; lo de abajo queda quieto.
+function _rdMarcasIn(){
+  try{
+    const v=document.getElementById('view-marcas'); if(!v||!v.animate) return;
+    if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const vh=window.innerHeight, E='cubic-bezier(.2,.85,.25,1)';
+    const head=[v.querySelector('.marcas-hero h1'),v.querySelector('.marcas-search'),v.querySelector('.marcas-region-btn')?.parentElement].filter(Boolean);
+    head.forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],{duration:420,delay:i*40,easing:E,fill:'backwards'}));
+    const cards=v.querySelectorAll('#marcas-grid .marca-card'); if(!cards.length) return;
+    const cols=getComputedStyle(cards[0].parentElement).gridTemplateColumns.split(' ').length||3;
+    for(let i=0;i<cards.length;i++){
+      const r=Math.floor(i/cols), c=i%cols;
+      if(r*120>vh+120) break;
+      cards[i].animate([{opacity:0,transform:'translateY(22px) scale(.94)'},{opacity:1,transform:'none'}],{duration:480,delay:110+r*45+c*22,easing:E,fill:'backwards'});
+    }
+  }catch(e){}
+}
 // [BLOQUE 5] filtro dinámico por región — Americanas/Chinas/Europeas/Asiáticas
 function filterMarcasByRegion(region,btn){
   _marcasRegionFilter=(_marcasRegionFilter===region)?null:region;
