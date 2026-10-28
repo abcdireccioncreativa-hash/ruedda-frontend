@@ -28,6 +28,9 @@
   // La foto vuela solo con transform (contenedor que escala + imagen que contra-escala para no
   // deformarse), así la mueve la GPU aunque el hilo principal esté ocupado armando el post.
   var tapAt = null, fly = null, gCache = {};
+  // app iOS: el post se queda invisible hasta que iOS tomó la foto limpia de la tarjeta
+  var pendingReveal = null;
+  function reveal() { var f = pendingReveal; pendingReveal = null; if (f) f(); }
   // [V173] app iOS 1.7 (47)+: la foto la vuela iOS (Core Animation, resorte nativo) y los
   // gestos de salida también son nativos. La web solo avisa dónde está la foto y a dónde va.
   var NH = window.__RD_NATIVE_POST && window.webkit && webkit.messageHandlers && webkit.messageHandlers.rdTabs;
@@ -116,9 +119,9 @@
         var hid = ph.hid; ph.hid = null;
         requestAnimationFrame(function () { requestAnimationFrame(function () {
           nPost({ ev: 'postClean' });
-          requestAnimationFrame(function () { emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); });
+          requestAnimationFrame(function () { emptyCard(ph.card); hid.forEach(function (x) { x.style.visibility = ''; }); reveal(); });
         }); });
-      } else requestAnimationFrame(function () { requestAnimationFrame(function () { emptyCard(ph.card); }); });
+      } else requestAnimationFrame(function () { requestAnimationFrame(function () { emptyCard(ph.card); reveal(); }); });
       nf.tm = setTimeout(function () { if (fly === nf && !nf.g) flyEnd(); }, 900);
       return;
     }
@@ -183,10 +186,17 @@
     var g = v.querySelector('.photo-gallery');
     var rest = [].slice.call(v.querySelectorAll('.gallery-dots, .detail-content > *')).slice(0, 5);
     // fondo del post: casi instantáneo
-    // (app iOS: espera 3 cuadros invisible, mientras iOS toma la foto limpia de la tarjeta)
-    var hold = NH ? 48 : 0;
-    v.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, delay: hold, easing: 'linear', fill: 'backwards' });
-    if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 200, delay: hold, easing: 'ease-out', fill: 'backwards' });
+    var show = function () {
+      if (!on()) return;
+      v.style.opacity = ''; shadeTo(0.32);
+      v.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'linear' });
+      if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 200, easing: 'ease-out' });
+    };
+    if (NH && tap && tap.flying) {
+      // (app iOS: invisible hasta el cuadro siguiente a la foto limpia; tope por si acaso)
+      v.style.opacity = '0'; shadeTo(0);
+      pendingReveal = show; requestAnimationFrame(function () { setTimeout(reveal, 120); });
+    } else show();
     // lo demás sube detrás de la foto, en cascada corta
     rest.forEach(function (el, i) {
       el.animate([{ transform: 'translate3d(0,26px,0)', opacity: 0 }, { transform: 'none', opacity: 1 }],
