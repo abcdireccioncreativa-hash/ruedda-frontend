@@ -77,14 +77,33 @@
   }
   // [V182] dónde caen en la galería los MISMOS píxeles que se ven en la tarjeta (las dos usan
   // object-fit: cover). La copia aterriza ahí y el resto de la foto aparece alrededor: sin zoom.
-  function landAt(ph, G) {
-    if (!G || !ph || !ph.nw || !ph.nh) return G;
+  function fullAt(ph, G) {
+    if (!G || !ph || !ph.nw || !ph.nh) return null;
     var C = ph.r, nw = ph.nw, nh = ph.nh;
     var sc = Math.max(C.width / nw, C.height / nh);
     var sx = -(C.width - nw * sc) * ph.px / sc, sy = -(C.height - nh * sc) * ph.py / sc;
     var sg = Math.max(G.width / nw, G.height / nh);
     var gx = G.left + (G.width - nw * sg) / 2, gy = G.top + (G.height - nh * sg) / 2;
-    var T = { left: gx + sx * sg, top: gy + sy * sg, width: C.width / sc * sg, height: C.height / sc * sg };
+    return { left: gx + sx * sg, top: gy + sy * sg, width: C.width / sc * sg, height: C.height / sc * sg };
+  }
+  // [V183] la copia nativa es una foto de la tarjeta: solo tiene lo que la tarjeta muestra. Se usa
+  // en las 4 de trending hoy, y solo si la tarjeta enseña al menos lo que va a enseñar la galería;
+  // el resto (featured, price drops, hot deals, market, subastas…) vuela la foto real con la
+  // animación web, la misma de www.ruedda.app
+  function nativeOK(ph, kind) {
+    // solo las 4 tarjetas de trending hoy (probadas en el teléfono: perfectas)
+    if (!ph.card || !ph.card.classList.contains('trending-cell')) return false;
+    // la copia sale de la pantalla: la tarjeta tiene que estar entera a la vista (no a medio
+    // deslizar ni debajo del navbar), si no vuela la foto real con la animación web
+    var R = ph.r, nb = document.querySelector('.navbar'), top = nb ? nb.getBoundingClientRect().bottom : 0;
+    if (R.left < -1 || R.right > innerWidth + 1 || R.top < top - 1 || R.bottom > innerHeight + 1) return false;
+    var G = gCache[kind] || { left: 0, top: 0, width: innerWidth, height: innerWidth * 10 / 16 };
+    var T = fullAt(ph, G);
+    return !!T && T.left <= G.left + 2 && T.top <= G.top + 2 && T.left + T.width >= G.left + G.width - 2 && T.top + T.height >= G.top + G.height - 2;
+  }
+  function landAt(ph, G) {
+    var T = fullAt(ph, G);
+    if (!T) return G;
     // lo que cae fuera de la galería no se ve: se recorta a ella. Como las dos fotos van centradas,
     // la copia (aspect fill) queda con los mismos píxeles que la galería en ese recuadro
     var l = Math.max(T.left, G.left), t = Math.max(T.top, G.top), rr = Math.min(T.left + T.width, G.left + G.width), bb = Math.min(T.top + T.height, G.top + G.height);
@@ -155,7 +174,7 @@
   // arranca el vuelo desde la foto de la tarjeta hasta el rect de la galería
   function startFly(ph, gr) {
     flyEnd();
-    if (NH) {
+    if (NH && ph.nat) {
       fly = { el: null, g: null, done: false, landed: false, native: true };
       var nf = fly;
       // g: donde aterriza la copia (los mismos píxeles de la tarjeta, ya en la galería)
@@ -231,7 +250,8 @@
       var ph = cardPhoto(c);
       if (ph) ph.card = c;
       tapAt = { photo: ph, kind: kind, t: Date.now() };
-      if (ph && NH) {
+      if (ph && NH && nativeOK(ph, kind)) {
+        ph.nat = true;
         // app iOS: iOS fotografía la tarjeta, así que primero se esconde lo que va encima de la
         // foto (#1, precio, vistas…). Un cuadro después, ya pintada limpia, iOS la toma y arranca
         // el vuelo, y en ese mismo instante se arma el post (el mismo toque, repetido).
@@ -260,7 +280,7 @@
       v.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'linear' });
       if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 200, easing: 'ease-out' });
     };
-    if (NH && tap && tap.flying && !(tap.photo && tap.photo.snapped)) {
+    if (NH && tap && tap.flying && tap.photo && tap.photo.nat && !tap.photo.snapped) {
       // (app iOS: invisible hasta el cuadro siguiente a la foto limpia; tope por si acaso)
       v.style.opacity = '0'; shadeTo(0);
       pendingReveal = show; setTimeout(reveal, 500);
