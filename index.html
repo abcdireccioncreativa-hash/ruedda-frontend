@@ -3186,6 +3186,16 @@ html[data-theme="light"] .rd-ld,html[data-theme="light"] #cons-banner-placeholde
 #pricing-plans .plan-more{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 13px;border-radius:100px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.06);color:#f4f4f2;font-family:var(--font);font-size:12px;font-weight:600;letter-spacing:-.1px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s,background .15s}
 #pricing-plans .plan-more:active{transform:scale(.96);background:rgba(255,255,255,.1)}
 #pricing-plans .plan-more svg{width:12px;height:12px}
+#pricing-plans .plan-more svg{transition:transform .42s cubic-bezier(.32,.72,0,1)}
+#pricing-plans .plan-open .plan-more svg{transform:rotate(90deg)}
+#pricing-plans .plan-perks{position:relative;display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .42s cubic-bezier(.32,.72,0,1),opacity .3s}
+#pricing-plans .plan-perks>div{overflow:hidden;min-height:0}
+#pricing-plans .plan-open .plan-perks{grid-template-rows:1fr;opacity:1}
+#pricing-plans .plan-perks-in{display:flex;flex-direction:column;gap:10px;padding:10px 0 2px}
+#pricing-plans .plan-perk{display:flex;align-items:flex-start;gap:10px;color:#f4f4f2}
+#pricing-plans .plan-perk svg{flex-shrink:0;width:13px;height:13px;margin-top:2px}
+#pricing-plans .plan-perk b{display:block;font-size:13px;font-weight:700;line-height:17px;letter-spacing:-.2px}
+#pricing-plans .plan-perk span{display:block;font-size:12px;line-height:16px;color:rgba(244,244,242,.55)}
 #pricing-plans .plan-pop{display:inline-flex;align-items:center;height:20px;padding:0 9px;border-radius:100px;font-size:10.5px;font-weight:700;letter-spacing:-.1px;color:#000;background:linear-gradient(180deg,rgba(255,255,255,.24) 0%,rgba(255,255,255,0) 50%),#e6f03b;box-shadow:inset 0 0 0 1px rgba(250,255,170,.95),inset 0 1px 1px rgba(255,255,255,.6),inset 0 -1px 2px rgba(80,90,0,.18),0 3px 12px rgba(230,240,59,.16)}
 #pricing-plans .plan-cta{position:relative;margin-top:12px;padding:12px;font-size:13.5px;border-radius:100px}
 /* claro */
@@ -3207,6 +3217,8 @@ html[data-theme="light"] #pricing-plans .plan-card-price{color:#111!important}
 html[data-theme="light"] #pricing-plans .plan-card-desc{color:rgba(17,17,17,.58)}
 html[data-theme="light"] #pricing-plans .plan-more{height:32px;padding:0 14px;border:0;background:#111;color:#fff;font-weight:700}
 html[data-theme="light"] #pricing-plans .plan-more:active{background:#000;opacity:.85}
+html[data-theme="light"] #pricing-plans .plan-perk{color:#111}
+html[data-theme="light"] #pricing-plans .plan-perk span{color:rgba(17,17,17,.55)}
 html[data-theme="light"] #pricing-plans .plan-pop{box-shadow:inset 0 0 0 1px rgba(205,215,40,.9),inset 0 1px 1px rgba(255,255,255,.7),inset 0 -1px 2px rgba(80,90,0,.2),0 3px 10px rgba(180,190,0,.25)}
 html[data-theme="light"] #pricing-plans .plan-cta{background:#111!important;color:#fff!important}
 
@@ -13965,7 +13977,8 @@ function openPricingSheet(demo){
         </div>
       </div>
       ${p.allowCode||p.free||p.tier?`<div class="plan-card-desc">${p.desc}</div>`:''}
-      ${p.hasInfo?`<div class="plan-foot"><button type="button" class="plan-more" onclick="openPlanInfo('${type}','${p.id}',event)">ver más<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>`:''}
+      ${p.hasInfo&&PLAN_INFO[type]?.[p.id]?`<div class="plan-perks"><div><div class="plan-perks-in">${PLAN_INFO[type][p.id].perks.map(k=>`<div class="plan-perk"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><div><b>${k.label}</b>${k.detail?`<span>${k.detail}</span>`:''}</div></div>`).join('')}</div></div></div>`:''}
+      ${p.hasInfo?`<div class="plan-foot"><button type="button" class="plan-more" onclick="togglePlanMore(this,event)">ver más<svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>`:''}
       ${p.allowCode ? `
         <div class="plan-invite-wrap rd-code-ui" id="invite-wrap-${p.id}">
           <input type="text" id="invite-input-${p.id}" placeholder="código de invitación" oninput="this.value=this.value.toUpperCase()">
@@ -15924,6 +15937,18 @@ const PLAN_INFO = {
   }
 };
 
+// [V161] "ver más" del menú de pagos: la tarjeta se extiende ahí mismo con lo que
+// incluye, igual que "elige tu plan." de la hoja nativa (sin abrir otra hoja)
+function togglePlanMore(btn, e){
+  if(e) e.stopPropagation();
+  const card = btn.closest('.plan-card');
+  if(!card) return;
+  const open = !card.classList.contains('plan-open');
+  card.classList.toggle('plan-open', open);
+  btn.firstChild.textContent = open ? 'ver menos' : 'ver más';
+  try{ window._rdHapticNow && window._rdHapticNow(); }catch(_){}
+  if(open) setTimeout(()=>{ try{ card.scrollIntoView({behavior:'smooth', block:'nearest'}); }catch(_){} }, 420);
+}
 function openPlanInfo(type, planId, e){
   if(e) e.stopPropagation();
   const info = PLAN_INFO[type]?.[planId];
