@@ -263,6 +263,7 @@
     postReveal: function () { return window._rdPostReveal ? window._rdPostReveal() : true; },
     // [V184] la app ya tiene esa foto en memoria (build 48+)
     imgReady: function (src) { return window._rdImgReady ? window._rdImgReady(src) : true; },
+    postDrop: function (src) { return window._rdPostDrop ? window._rdPostDrop(src) : true; },
     cfg: function () { return cfgState(); },
     cfgDo: async function (a, v) {
       try {

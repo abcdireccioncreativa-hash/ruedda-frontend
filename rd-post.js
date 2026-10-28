@@ -288,7 +288,7 @@
       v.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'linear' });
       if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 200, easing: 'ease-out' });
     };
-    if (NH && tap && tap.flying && tap.photo && tap.photo.nat && !tap.photo.snapped) {
+    if (NH && tap && tap.flying && tap.photo && tap.photo.nat && !tap.photo.real && !tap.photo.snapped) {
       // (app iOS: invisible hasta el cuadro siguiente a la foto limpia; tope por si acaso)
       v.style.opacity = '0'; shadeTo(0);
       pendingReveal = show; setTimeout(reveal, 500);
@@ -312,6 +312,10 @@
       return;
     }
     var f = fly; if (!f) return;
+    f.ph = ph;
+    hookLand(f, g, ph);
+  }
+  function hookLand(f, g, ph) {
     f.g = g; g.style.visibility = 'hidden';
     // al aterrizar espera la primera foto grande de la galería (máx. 700 ms) y cruza
     f.onLand = function () {
@@ -338,6 +342,26 @@
     };
     if (f.done) f.onLand();
   }
+  // [V186] la app no pudo volar la foto (no la tenía en memoria, o el post tardó en armarse): la
+  // misma foto vuela con la animación web. Antes la galería se quedaba escondida esperando un
+  // aterrizaje que nunca llegaba (post con la galería negra)
+  window._rdPostDrop = function (src) {
+    if (src) { delete imgReady[src]; delete imgSent[src]; }
+    var f = fly, ph = tapAt && tapAt.photo;
+    if (ph) { ph.nat = false; ph.real = false; }
+    var h = revealHook; revealHook = null; if (h) h();
+    if (!f || !f.native || f.landed) return true;
+    fly = null; clearTimeout(f.tm);
+    var g = f.g;
+    if (!g) return true;
+    g.style.visibility = '';
+    ph = f.ph;
+    var gr = g.getBoundingClientRect();
+    if (!ph || !on() || gr.width <= 40) return true;
+    startFly(ph, { left: gr.left, top: gr.top, width: gr.width, height: gr.height });
+    if (fly) hookLand(fly, g, ph);
+    return true;
+  };
 
   var closing = false;
   var ignorePop = 0;
