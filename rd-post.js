@@ -81,8 +81,13 @@
         v.classList.add('rd-over');
         v.scrollTop = 0;
         if (!reduce && v.animate) {
-          v.animate([{ transform: 'translate3d(0,44px,0)', opacity: 0 }, { transform: 'none', opacity: 1 }],
-            { duration: 380, easing: 'cubic-bezier(.32,.72,0,1)' });
+          // [V165] entrada tipo nativa: visible desde el primer cuadro (la opacidad llega a 1
+          // en ~90 ms) y sube un poco con la curva de iOS; el velo entra en vez de saltar
+          v.animate([{ transform: 'translate3d(0,22px,0) scale(.985)', opacity: 0.35 },
+                     { opacity: 1, offset: 0.3 },
+                     { transform: 'none', opacity: 1 }],
+            { duration: 300, easing: 'cubic-bezier(.32,.72,0,1)' });
+          if (shade.animate) shade.animate([{ opacity: 0 }, { opacity: 0.32 }], { duration: 200, easing: 'ease-out' });
         }
       }
       return r;

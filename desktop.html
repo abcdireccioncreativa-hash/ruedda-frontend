@@ -2579,16 +2579,13 @@ html[data-theme="light"] #rd-extra-door .rxd-b{background:#111;color:#fff}
 /* [V163] chats: "solicitar peritaje" (abre la hoja de peritaje de las publicaciones) y burbujas que se deslizan */
 .rd-perit{position:relative;overflow:hidden;display:flex;align-items:center;gap:16px;width:100%;box-sizing:border-box;margin:0 0 14px;padding:15px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.08);background:radial-gradient(120% 140% at 100% 0%,#242424 0%,#131313 50%,#0b0b0b 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.05);color:#f4f4f2;font-family:var(--font);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .22s cubic-bezier(.32,.72,0,1),opacity .22s}
 .rd-perit:active{transform:scale(.98);opacity:.85;transition-duration:.08s}
-.rd-perit-w{position:absolute;right:62px;top:-26px;width:92px;height:92px;opacity:.06;pointer-events:none}
-.rd-perit-w svg{width:100%;height:100%;display:block}
 .rd-perit div{position:relative;flex:1;min-width:0}
 .rd-perit b{display:block;font-size:14.5px;font-weight:700;letter-spacing:-.3px;line-height:18px}
 .rd-perit span{display:block;margin-top:2px;font-size:12px;line-height:16px;color:rgba(244,244,242,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rd-perit-av{position:relative;flex-shrink:0;display:flex;align-items:center;height:26px;padding-left:16px;border-left:1px solid rgba(255,255,255,.1)}
-.rd-perit-av svg{width:54px;height:18px;display:block}
+.rd-perit-av{position:relative;flex-shrink:0;display:flex;align-items:center;height:28px}
+.rd-perit-av svg{width:76px;height:26px;display:block}
 html[data-theme="light"] .rd-perit{background:#fff;border-color:rgba(0,0,0,.07);box-shadow:0 1px 0 rgba(0,0,0,.02),0 8px 24px -10px rgba(0,0,0,.12);color:#111}
 html[data-theme="light"] .rd-perit span{color:rgba(17,17,17,.5)}
-html[data-theme="light"] .rd-perit-av{border-left-color:rgba(0,0,0,.08)}
 .rd-pmq{display:flex;gap:8px;margin:0 -20px 10px;padding:0 20px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .rd-pmq::-webkit-scrollbar{display:none}
 .rd-pmq button{flex:0 0 auto!important}
@@ -20077,14 +20074,14 @@ function _closePmPanel(){
 // [V164] abre la hoja "avalta llegando" (rd-avalta.js, se descarga al tocar)
 function _rdPeritBtn(sid,st,title){
   if(!sid||st==='rental') return '';
-  return `<button type="button" class="rd-perit" data-sid="${_esc(String(sid))}" data-st="${_esc(st||'')}" data-t="${_esc(title||'vehículo')}" onclick="_rdPeritOpen(this,event)"><i class="rd-perit-w" aria-hidden="true"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="12.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="30,49.6 43.6,76 70,24"/></svg></i><div><b>solicitar peritaje</b><span>valida el carro antes de comprarlo</span></div><em class="rd-perit-av" aria-label="avalta"><svg viewBox="-14 -10 371 124" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="40" cy="70" r="22"/><line x1="62" y1="48" x2="62" y2="92"/><polyline points="84,58 101,91 134,26"/><circle cx="179" cy="70" r="22"/><line x1="201" y1="48" x2="201" y2="92"/><path d="M225 12 V78 C225 88 231 92 241 92"/><path d="M259 28 V78 C259 88 265 92 275 92"/><line x1="247" y1="50" x2="277" y2="50"/><circle cx="311" cy="70" r="22"/><line x1="333" y1="48" x2="333" y2="92"/></svg></em></button>`;
+  return `<button type="button" class="rd-perit" data-sid="${_esc(String(sid))}" data-st="${_esc(st||'')}" data-t="${_esc(title||'vehículo')}" onclick="_rdPeritOpen(this,event)"><div><b>solicitar peritaje</b><span>valida el carro antes de comprarlo</span></div><em class="rd-perit-av" aria-label="avalta"><svg viewBox="-14 -10 371 124" fill="none" stroke="currentColor" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"><circle cx="40" cy="70" r="22"/><line x1="62" y1="48" x2="62" y2="92"/><polyline points="84,58 101,91 134,26"/><circle cx="179" cy="70" r="22"/><line x1="201" y1="48" x2="201" y2="92"/><path d="M225 12 V78 C225 88 231 92 241 92"/><path d="M259 28 V78 C259 88 265 92 275 92"/><line x1="247" y1="50" x2="277" y2="50"/><circle cx="311" cy="70" r="22"/><line x1="333" y1="48" x2="333" y2="92"/></svg></em></button>`;
 }
 function _rdPeritOpen(btn,e){
   if(e) e.stopPropagation();
   const st=btn.dataset.st, sub=st==='auction'||st==='subasta';
   const car={rid:btn.dataset.sid,type:sub?'subasta':(st==='vitrina'?'concesionario':'market'),title:btn.dataset.t};
   if(window.rdAvalta) return window.rdAvalta(car);
-  const sc=document.createElement('script'); sc.src='/rd-avalta.js?v=1'; sc.onload=()=>window.rdAvalta&&window.rdAvalta(car); document.head.appendChild(sc);
+  const sc=document.createElement('script'); sc.src='/rd-avalta.js?v=2'; sc.onload=()=>window.rdAvalta&&window.rdAvalta(car); document.head.appendChild(sc);
 }
 function _pmQuickFill(text){
   const inp=document.getElementById('pm-input');
