@@ -15316,13 +15316,22 @@ if(typeof navigator!=='undefined'&&navigator.onLine===false){
 // Apple/Google, ya esté configurado el certificado/clave APNs y el proyecto
 // Firebase (ver notas del bundle nativo) — sin eso, register() no falla acá
 // pero tampoco llega ningún push real.
+// [push] reporta al servidor cada paso del registro en el iPhone (sale en los
+// logs de Vercel como [push-diag]); sin esto un fallo dentro del teléfono no deja rastro.
+function _rdPushDiag(step,extra){
+  try{
+    fetch('/api/send-push',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({diag:{uid:(USER_STATE&&USER_STATE.id)||null,step,extra:extra==null?'':String(extra).slice(0,300)}})}).catch(()=>{});
+  }catch(e){}
+}
 async function _registerNativePush(){
   if(!_isNativeApp()) return false;
   try{
     const PushNotifications=window._rdCapPlugin('PushNotifications');
-    if(!PushNotifications) return false;
+    if(!PushNotifications){ _rdPushDiag('sin-plugin'); return false; }
     let perm=await PushNotifications.checkPermissions();
     if(perm.receive==='prompt') perm=await PushNotifications.requestPermissions();
+    _rdPushDiag('permiso',perm.receive);
     if(perm.receive!=='granted') return false;
     // los listeners van ANTES de register(): iOS puede devolver el token al
     // instante y el evento 'registration' se perdía. Se agregan una sola vez.
@@ -15330,22 +15339,26 @@ async function _registerNativePush(){
       window._rdPushListening=true;
       await PushNotifications.addListener('registration',async(token)=>{
         try{
-          if(!USER_STATE||!USER_STATE.id) return;
+          _rdPushDiag('token',(token.value||'').slice(0,8));
+          if(!USER_STATE||!USER_STATE.id){ _rdPushDiag('token-sin-sesion'); return; }
           const {error}=await _supa.from('native_push_tokens').upsert({
             user_id:USER_STATE.id,
             token:token.value,
             platform:window.Capacitor.getPlatform()
           },{onConflict:'token'});
-          if(error) console.warn('[ruedda] no se pudo guardar el token push nativo',error.message);
-        }catch(e){ console.warn('[ruedda] no se pudo guardar el token push nativo',e?.message||e); }
+          if(error){ console.warn('[ruedda] no se pudo guardar el token push nativo',error.message); _rdPushDiag('upsert-error',error.message); }
+          else _rdPushDiag('guardado');
+        }catch(e){ console.warn('[ruedda] no se pudo guardar el token push nativo',e?.message||e); _rdPushDiag('upsert-throw',e?.message||e); }
       });
       await PushNotifications.addListener('registrationError',(err)=>{
         console.warn('[ruedda] error registrando push nativo',err);
+        _rdPushDiag('registration-error',(err&&(err.error||err.message))||JSON.stringify(err));
       });
     }
     await PushNotifications.register();
+    _rdPushDiag('register-llamado');
     return true;
-  }catch(e){ console.warn('[ruedda] _registerNativePush',e?.message||e); return false; }
+  }catch(e){ console.warn('[ruedda] _registerNativePush',e?.message||e); _rdPushDiag('throw',e?.message||e); return false; }
 }
 // [push] en la app nativa, el aviso de iPhone para activar notificaciones sale
 // una sola vez, cuando la persona ya está en el inicio (sin intro, sin splash,
@@ -15357,8 +15370,9 @@ async function _rdPushSyncToken(){
     const PushNotifications=window._rdCapPlugin('PushNotifications');
     if(!PushNotifications) return;
     const perm=await PushNotifications.checkPermissions();
+    _rdPushDiag('sync',perm.receive);
     if(perm.receive==='granted') _registerNativePush();
-  }catch(e){}
+  }catch(e){ _rdPushDiag('sync-throw',e?.message||e); }
 }
 (function _rdAskPushOnHome(){
   // [fix "no sale en ajustes"] antes un flag rd_push_asked se guardaba ANTES de que iOS

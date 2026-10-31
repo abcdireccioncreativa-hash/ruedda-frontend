@@ -109,6 +109,15 @@ async function buildMessage({ user_id, titulo, body, tipo, source_id, source_typ
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
 
+  // diagnóstico del registro push del iPhone (solo deja una línea en el log)
+  let _b = req.body;
+  if (typeof _b === 'string') { try { _b = JSON.parse(_b); } catch (_) { _b = null; } }
+  if (_b && _b.diag && typeof _b.diag === 'object') {
+    const d = _b.diag;
+    console.log('[push-diag]', String(d.uid || '-').slice(0, 40), String(d.step || '').slice(0, 30), String(d.extra || '').slice(0, 300));
+    return res.status(204).end();
+  }
+
   const secret = req.headers['x-push-secret'];
   if (!process.env.PUSH_WEBHOOK_SECRET || secret !== process.env.PUSH_WEBHOOK_SECRET) {
     return res.status(401).json({ error: 'no autorizado' });
