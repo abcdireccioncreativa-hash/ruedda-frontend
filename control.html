@@ -426,6 +426,7 @@ async function usersMap(ids){
 const uname=u=>u?(u.nombre||u.username||u.email||'usuario'):'usuario';
 const I={
   upd:'<path d="M12 16V4M6.5 9.5 12 4l5.5 5.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
   home:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/>',
   mod:'<path d="M9 12l2 2 4-4"/><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/>',
   kyc:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="12" r="2.5"/><path d="M14 10h4M14 14h4"/>',
@@ -566,6 +567,7 @@ let VIEWS=[
   {h:'Ajustes'},
   {id:'apariencia',t:'Apariencia',i:'car',s:'Banners, Encuentra, intro, logos e insignias'},
   {id:'actualizacion',t:'Actualización de la app',i:'upd',s:'Aviso para que actualicen la app de iPhone, con sus novedades'},
+  {id:'halloween',t:'Modo Halloween',i:'moon',s:'Telarañas, calabaza y murciélagos en la app y la web. Se apaga y todo vuelve como estaba'},
   {id:'configuracion',t:'Configuración',i:'pay',s:'Datos de pago e historia de Ruedda'},
   {id:'office',t:'Ruedda Office',i:'users',s:'Oficina virtual del equipo: usuarios autorizados, quién está, visitas y actividad'},
   {id:'chrono',t:'Ruedda Chrono',i:'act',s:'Planner de contenido: métricas de redes del mes, pendientes, reglas, editores y el planner completo'},
@@ -1570,6 +1572,26 @@ async function updSave(active,btn){
   if(active&&!confirm(`¿Publicar el aviso? Lo verá una vez cada usuario de iPhone con una versión anterior a la ${d.version}.`)) return;
   btn.disabled=true;
   try{ await setSetting('app_update_notice',JSON.stringify(Object.assign(d,{active,at:new Date().toISOString()}))); toast(active?'aviso publicado':'aviso desactivado'); RENDER.actualizacion(++VIEW_TOKEN); }
+  catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
+}
+
+/* ── MODO HALLOWEEN (skins/halloween.js lee app_settings.skin_halloween; sin fila = encendido) ── */
+RENDER.halloween=async(tok)=>{
+  const{data:row}=await sb.from('app_settings').select('value,updated_at').eq('key','skin_halloween').maybeSingle(); if(stale(tok)) return;
+  let v=null; try{ v=row&&row.value!=null?(typeof row.value==='string'?JSON.parse(row.value):row.value):null; }catch(e){}
+  const on=!(v===false||(v&&v.active===false));
+  const when=row&&row.updated_at?` · cambiado ${new Date(row.updated_at).toLocaleString('es-VE',{dateStyle:'medium',timeStyle:'short'})}`:'';
+  $('#view').innerHTML=card('Modo Halloween',`Telaraña en cada post y en la intro, calabaza junto al logo, botón vender morado con murciélagos. Llega a la app, la web móvil y la de escritorio sin actualizar la app.`,`
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+      <div>${on?'<span class="pill g">encendido</span>':'<span class="pill">apagado</span>'}<span class="muted" style="font-size:12px">${when}</span></div>
+      <button class="btn ${on?'':'btn-primary'}" onclick="hwSave(${!on},this)">${on?'Apagar modo Halloween':'Encender modo Halloween'}</button>
+    </div>
+    <p class="muted" style="font-size:12.5px;margin:14px 0 0">Al apagarlo se quita todo y la app queda exactamente como estaba. Quien tenga la app abierta lo ve al volver a ella.</p>`);
+};
+async function hwSave(active,btn){
+  if(!confirm(active?'¿Encender el modo Halloween para todos?':'¿Apagar el modo Halloween para todos?')) return;
+  btn.disabled=true;
+  try{ await setSetting('skin_halloween',JSON.stringify({active,at:new Date().toISOString()})); toast(active?'modo Halloween encendido':'modo Halloween apagado'); RENDER.halloween(++VIEW_TOKEN); }
   catch(e){ toast('error: '+e.message,true); btn.disabled=false; }
 }
 
