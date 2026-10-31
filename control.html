@@ -539,6 +539,7 @@ let VIEWS=[
   {id:'clips',t:'Clips',i:'act',s:'Videos de la comunidad'},
   {id:'eventos',t:'Eventos',i:'home',s:'Car meets y eventos'},
   {id:'mensajes',t:'Mensajes Ruedda',i:'msg',s:'Anuncios oficiales a todos los usuarios'},
+  {id:'push',t:'Notificaciones push',i:'msg',s:'Push al celular de todos los usuarios, con prueba previa'},
   {id:'chatglobal',t:'Chat global',i:'msg',s:'Conduciendo el mercado · modera los mensajes de la comunidad'},
   {id:'sugerencias',t:'Sugerencias',i:'flag',s:'Buzón de sugerencias y reportes de bugs',b:'sug'},
   {id:'postulaciones',t:'Postulaciones',i:'msg',s:'RueddaCarreras · equipo y certificación (desde ruedda.app/hub)'},
@@ -1410,6 +1411,49 @@ async function evSave(btn){
     const{error}=await sb.from('eventos').insert({titulo:t,foto_url:url,fecha:f,hora_inicio:hi,hora_fin:hf,ubicacion:$('#ev-u').value.trim()||null,descripcion:$('#ev-d').value.trim()||null,entrada_tipo:e,link_entradas:e==='pagada'?l:null}); if(error) throw error;
     toast('evento publicado'); RENDER.eventos(++VIEW_TOKEN);
   }catch(err){ toast('error: '+err.message,true); btn.disabled=false; }
+}
+
+/* ── NOTIFICACIONES PUSH ── cada fila en notifications dispara el push real (trigger → /api/send-push) */
+RENDER.push=async(tok)=>{
+  const V=$('#view');
+  const{data:hist}=await sb.from('notifications').select('titulo,body,source_id,created_at').eq('source_type','broadcast').order('created_at',{ascending:false}).limit(3000);
+  if(stale(tok)) return;
+  const sent={}; (hist||[]).forEach(n=>{ const k=n.source_id||n.created_at; (sent[k]=sent[k]||{...n,n:0}).n++; });
+  const rows=Object.values(sent).slice(0,30);
+  V.innerHTML=`<div class="grid g21"><div>${card('Notificación a todos','Llega como push al celular y queda en las notificaciones de la app',`
+    <label class="muted" style="font-size:12px;display:block;margin-bottom:6px">Título</label>
+    <input class="input" id="pshT" maxlength="60" placeholder="recién llegados." oninput="pshPrev()">
+    <label class="muted" style="font-size:12px;display:block;margin:14px 0 6px">Mensaje</label>
+    <textarea class="input" id="pshB" rows="3" maxlength="180" placeholder="hay joyas nuevas en el market de hoy…" oninput="pshPrev()"></textarea>
+    <div id="pshP" style="margin-top:16px;display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:22px;background:#1c1c1e;color:#f4f4ef">
+      <div style="width:38px;height:38px;border-radius:9px;background:#000;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:13px">rd</div>
+      <div style="min-width:0;flex:1"><div style="display:flex;justify-content:space-between;font-size:13px"><b id="pshPT" style="font-weight:600">título</b><span style="opacity:.5">ahora</span></div><div id="pshPB" style="font-size:13px;opacity:.85;margin-top:2px;line-height:1.35">mensaje</div></div></div>
+    <div id="pshS" class="muted" style="font-size:12px;margin-top:12px;min-height:16px"></div>
+    <div style="margin-top:10px;display:flex;gap:10px;justify-content:flex-end"><button class="btn" onclick="pshSend(this,true)">Enviarme una prueba</button><button class="btn btn-primary" onclick="pshSend(this,false)">Enviar a todos</button></div>`)}</div>
+    <div>${card('Enviadas',rows.length+'',rowList(rows.map(r=>`<tr><td><b>${esc(r.titulo)}</b><div class="muted" style="font-size:12px;white-space:pre-wrap">${esc(r.body)}</div></td><td class="muted" style="white-space:nowrap">${r.n} · ${ago(r.created_at)}</td></tr>`)))}</div></div>`;
+  pshPrev();
+};
+function pshPrev(){ $('#pshPT').textContent=$('#pshT').value.trim()||'título'; $('#pshPB').textContent=$('#pshB').value.trim()||'mensaje'; }
+async function pshSend(btn,test){
+  const titulo=$('#pshT').value.trim(), body=$('#pshB').value.trim(), st=$('#pshS');
+  if(!titulo||!body) return toast('falta título o mensaje',true);
+  const bid='bc_'+Date.now().toString(36);
+  let ids=[];
+  if(test) ids=[ME.id];
+  else{
+    st.textContent='contando usuarios…';
+    for(let from=0;;from+=1000){ const{data,error}=await sb.from('users').select('id').range(from,from+999); if(error){ st.textContent=''; return toast('error: '+error.message,true); } ids.push(...data.map(u=>u.id)); if(data.length<1000) break; }
+    if(!confirm(`¿Enviar esta notificación a ${ids.length} usuarios? No se puede deshacer.`)){ st.textContent=''; return; }
+  }
+  btn.disabled=true; let ok=0;
+  for(let i=0;i<ids.length;i+=400){
+    const lote=ids.slice(i,i+400).map(user_id=>({user_id,tipo:'system',titulo,body,icon:'lime',source_type:test?'broadcast_test':'broadcast',source_id:bid}));
+    const{error}=await sb.from('notifications').insert(lote);
+    if(error){ btn.disabled=false; st.textContent=`se enviaron ${ok} de ${ids.length}`; return toast('error: '+error.message,true); }
+    ok+=lote.length; st.textContent=`enviando… ${ok} de ${ids.length}`;
+  }
+  btn.disabled=false; st.textContent=test?'prueba enviada a tu cuenta':`enviada a ${ok} usuarios`; toast(test?'prueba enviada':'notificación enviada');
+  if(!test) RENDER.push(++VIEW_TOKEN);
 }
 
 /* ── MENSAJES RUEDDA ── */
