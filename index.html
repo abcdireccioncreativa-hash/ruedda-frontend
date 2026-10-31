@@ -15320,7 +15320,7 @@ if(typeof navigator!=='undefined'&&navigator.onLine===false){
 // logs de Vercel como [push-diag]); sin esto un fallo dentro del teléfono no deja rastro.
 function _rdPushDiag(step,extra){
   try{
-    fetch('/api/send-push',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},
+    fetch('https://www.ruedda.app/api/send-push',{method:'POST',keepalive:true,headers:{'Content-Type':'application/json'},
       body:JSON.stringify({diag:{uid:(USER_STATE&&USER_STATE.id)||null,step,extra:extra==null?'':String(extra).slice(0,300)}})}).catch(()=>{});
   }catch(e){}
 }
@@ -15366,9 +15366,10 @@ async function _registerNativePush(){
 // si no, se guarda apenas inicie sesión (_rdPushSyncToken en _rueddaApplySession).
 async function _rdPushSyncToken(){
   try{
-    if(!_isNativeApp()||!USER_STATE||!USER_STATE.id) return;
+    if(!_isNativeApp()) return;
+    if(!USER_STATE||!USER_STATE.id){ _rdPushDiag('sync-sin-sesion'); return; }
     const PushNotifications=window._rdCapPlugin('PushNotifications');
-    if(!PushNotifications) return;
+    if(!PushNotifications){ _rdPushDiag('sync-sin-plugin'); return; }
     const perm=await PushNotifications.checkPermissions();
     _rdPushDiag('sync',perm.receive);
     if(perm.receive==='granted') _registerNativePush();
@@ -15380,8 +15381,9 @@ async function _rdPushSyncToken(){
   // no aparecía en Ajustes → Notificaciones. Ahora se decide solo por el estado real:
   // mientras sea 'prompt' se pide (iOS lo muestra una sola vez; luego queda granted/denied).
   let tries=0;
+  try{ if(_isNativeApp()) _rdPushDiag('arranque',(window.__RD_APP_VERSION||'?')+' '+(window.Capacitor&&window.Capacitor.getPlatform&&window.Capacitor.getPlatform())+' plugin:'+!!window._rdCapPlugin('PushNotifications')); }catch(e){}
   const iv=setInterval(async()=>{
-    if(++tries>180){ clearInterval(iv); return; } // 3 min máximo esperando el momento
+    if(++tries>180){ clearInterval(iv); try{ _rdPushDiag('aviso-timeout',typeof currentView!=='undefined'?currentView:'-'); }catch(e){} return; } // 3 min máximo esperando el momento
     try{
       if(typeof _isNativeApp!=='function'||!_isNativeApp()) { clearInterval(iv); return; }
       if(typeof currentView==='undefined'||currentView!=='home') return;
@@ -15394,8 +15396,9 @@ async function _rdPushSyncToken(){
       if(!PushNotifications) return;
       let perm=await PushNotifications.checkPermissions();
       if(perm.receive==='prompt'||perm.receive==='prompt-with-rationale') perm=await PushNotifications.requestPermissions();
+      _rdPushDiag('aviso',perm.receive);
       if(perm.receive==='granted') _rdPushSyncToken();
-    }catch(e){ clearInterval(iv); }
+    }catch(e){ clearInterval(iv); _rdPushDiag('aviso-throw',e?.message||e); }
   },1000);
 })();
 // [push] tocar una notificación en la app abre lo que corresponde: el chat con
