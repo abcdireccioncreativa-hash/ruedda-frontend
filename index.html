@@ -15324,19 +15324,26 @@ async function _registerNativePush(){
     let perm=await PushNotifications.checkPermissions();
     if(perm.receive==='prompt') perm=await PushNotifications.requestPermissions();
     if(perm.receive!=='granted') return false;
+    // los listeners van ANTES de register(): iOS puede devolver el token al
+    // instante y el evento 'registration' se perdía. Se agregan una sola vez.
+    if(!window._rdPushListening){
+      window._rdPushListening=true;
+      await PushNotifications.addListener('registration',async(token)=>{
+        try{
+          if(!USER_STATE||!USER_STATE.id) return;
+          const {error}=await _supa.from('native_push_tokens').upsert({
+            user_id:USER_STATE.id,
+            token:token.value,
+            platform:window.Capacitor.getPlatform()
+          },{onConflict:'token'});
+          if(error) console.warn('[ruedda] no se pudo guardar el token push nativo',error.message);
+        }catch(e){ console.warn('[ruedda] no se pudo guardar el token push nativo',e?.message||e); }
+      });
+      await PushNotifications.addListener('registrationError',(err)=>{
+        console.warn('[ruedda] error registrando push nativo',err);
+      });
+    }
     await PushNotifications.register();
-    PushNotifications.addListener('registration',async(token)=>{
-      try{
-        await _supa.from('native_push_tokens').upsert({
-          user_id:USER_STATE.id,
-          token:token.value,
-          platform:window.Capacitor.getPlatform()
-        },{onConflict:'token'});
-      }catch(e){ console.warn('[ruedda] no se pudo guardar el token push nativo',e?.message||e); }
-    });
-    PushNotifications.addListener('registrationError',(err)=>{
-      console.warn('[ruedda] error registrando push nativo',err);
-    });
     return true;
   }catch(e){ console.warn('[ruedda] _registerNativePush',e?.message||e); return false; }
 }

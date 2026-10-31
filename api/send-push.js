@@ -155,16 +155,32 @@ module.exports = async function handler(req, res) {
         const payload = { aps, tipo: tipo || '', source_id: source_id || '', source_type: source_type || '' };
         const session = http2.connect(APNS_HOST);
         session.on('error', (e) => console.warn('[send-push] apns session', e.message));
+        // un token de build de Xcode (development) da BadDeviceToken en producción:
+        // antes de borrarlo se prueba en el host del otro ambiente.
+        let alt = null;
+        const altSession = () => {
+          if (!alt) {
+            alt = http2.connect(APNS_HOST.includes('sandbox') ? 'https://api.push.apple.com' : 'https://api.sandbox.push.apple.com');
+            alt.on('error', (e) => console.warn('[send-push] apns alt session', e.message));
+          }
+          return alt;
+        };
         try {
           await Promise.all(ios_toks.map(async (t) => {
-            const r = await apnsSend(session, t.token, payload);
+            let r = await apnsSend(session, t.token, payload);
+            if (r.reason === 'BadDeviceToken') {
+              const r2 = await apnsSend(altSession(), t.token, payload);
+              if (r2.status === 200) { console.warn('[send-push] apns token de otro ambiente', t.id); r = r2; }
+            }
             if (r.status === 200) ios++;
             else if (r.status === 410 || r.reason === 'BadDeviceToken' || r.reason === 'Unregistered') {
+              console.warn('[send-push] apns token borrado', t.id, r.status, r.reason);
               await supabaseAdmin.from('native_push_tokens').delete().eq('id', t.id);
             } else console.warn('[send-push] apns', t.id, r.status, r.reason);
           }));
-        } finally { session.close(); }
+        } finally { session.close(); if (alt) alt.close(); }
       }
+      console.log('[send-push]', user_id, 'ios tokens', ios_toks.length, 'ios ok', ios, 'web', web);
     }
 
     return res.status(200).json({ ok: true, sent: web + ios, web, ios, apns: apnsReady() });
