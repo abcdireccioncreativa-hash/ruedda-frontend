@@ -13,7 +13,21 @@ const VM_MIN=6;                       // carros mínimos para que la vitrina cue
 let VM={q:'',sel:null};
 const vmApi=b=>api('/api/admin-user?vitrina=1',b);
 const vmPickMany=accept=>new Promise(r=>{ const i=document.createElement('input'); i.type='file'; i.multiple=true; i.accept=accept||'image/*'; i.onchange=()=>r(Array.from(i.files||[])); i.click(); });
-const vmUp=(f,prefix,dim)=>upload('assets',f,prefix,{compress:dim||2000,q:0.86});
+// la imagen se reduce en el navegador y se sube por el servidor (service key). PNG con transparencia se queda en PNG.
+function vmShrink(f,dim){ return new Promise((res,rej)=>{ const url=URL.createObjectURL(f), img=new Image();
+  img.onload=()=>{ URL.revokeObjectURL(url); let w=img.naturalWidth,h=img.naturalHeight; const s=Math.min(1,dim/Math.max(w,h)); w=Math.round(w*s); h=Math.round(h*s);
+    const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+    const png=/png|webp/i.test(f.type); const t=png?'image/png':'image/jpeg';
+    c.toBlob(b=>b?res(b):rej(new Error('no se pudo procesar la imagen')),t,png?undefined:0.86); };
+  img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('formato no soportado: usa JPG o PNG (las fotos HEIC del iPhone, expórtalas como JPG)')); };
+  img.src=url; }); }
+const vmB64=b=>new Promise((r,j)=>{ const fr=new FileReader(); fr.onload=()=>r(String(fr.result).split(',')[1]); fr.onerror=()=>j(new Error('no se pudo leer la imagen')); fr.readAsDataURL(b); });
+async function vmUp(f,prefix,dim){
+  let b=await vmShrink(f,dim||2000);
+  if(b.size>2.8*1024*1024) b=await vmShrink(new File([b],'x.jpg',{type:'image/jpeg'}),1400);
+  const r=await vmApi({action:'upload',type:b.type,data:await vmB64(b),prefix});
+  return r.url;
+}
 const vmIsImg=u=>u&&/\/storage\//.test(u);
 
 if(!document.getElementById('vm-css')){ const st=document.createElement('style'); st.id='vm-css'; st.textContent=`
@@ -43,6 +57,9 @@ if(!document.getElementById('vm-css')){ const st=document.createElement('style')
 .vm-ph .it .ac button.r{background:#ef4444;color:#fff}
 .vm-ph .add{border:1.5px dashed var(--line2,#ccc);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mute,#888);font-size:13px;border-radius:10px;aspect-ratio:4/3}
 `; document.head.appendChild(st); }
+
+// también lo usa la sección Concesionarios (concImg) para que cambiar logo/portada no dependa de la RLS
+window.vmUpload=vmUp; window.vmDealer=(id,patch)=>vmApi({action:'dealer',id,patch});
 
 /* ── lista de vitrinas ── */
 RENDER.vitrinas=async(tok,_,soft)=>{
@@ -98,7 +115,7 @@ window.vmImg=async(id,col)=>{
   const f=(await vmPickMany('image/*'))[0]; if(!f) return;
   toast('subiendo…');
   try{ const url=await vmUp(f,'dealer_'+col.replace(/_url$/,''),col==='logo_url'?600:2000);
-    const{error}=await sb.from('concesionarios').update({[col]:url}).eq('id',id); if(error) throw error;
+    await vmApi({action:'dealer',id,patch:{[col]:url}});
     toast(col==='logo_url'?'logo actualizado':'banner actualizado'); vmOpen(id,VIEW_TOKEN);
   }catch(e){ toast('error: '+e.message,true); }
 };
@@ -107,9 +124,9 @@ window.vmSave=async(id,btn)=>{
   patch.tipo=root.querySelector('[data-f="tipo"]').value; patch.activo=$('#vm-act').checked;
   if(patch.instagram) patch.instagram=patch.instagram.replace(/^@/,'');
   if(!patch.nombre){ toast('el nombre es obligatorio',true); return; }
-  btn.disabled=true; const{error}=await sb.from('concesionarios').update(patch).eq('id',id); btn.disabled=false;
-  if(error){ toast('error: '+error.message,true); return; }
-  toast('vitrina guardada'); vmOpen(id,VIEW_TOKEN);
+  btn.disabled=true;
+  try{ await vmApi({action:'dealer',id,patch}); }catch(e){ btn.disabled=false; toast('error: '+e.message,true); return; }
+  btn.disabled=false; toast('vitrina guardada'); vmOpen(id,VIEW_TOKEN);
 };
 
 /* ── un carro: fotos + datos ── */

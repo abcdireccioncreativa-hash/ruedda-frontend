@@ -1887,8 +1887,8 @@ async function concPlan(id,dias){
 }
 async function concImg(id,col){
   const f=await pickFile('image/*'); if(!f) return;
-  try{ const url=await upload('assets',f,'dealer_'+col.replace(/_url$/,''),{compress:col==='logo_url'?600:1800,q:0.85});
-    const{error}=await sb.from('concesionarios').update({[col]:url}).eq('id',id); if(error) throw error;
+  try{ toast('subiendo…'); const url=await vmUpload(f,'dealer_'+col.replace(/_url$/,''),col==='logo_url'?600:2000); // por el servidor (control-vitrinas.js)
+    await vmDealer(id,{[col]:url});
     toast(col==='logo_url'?'logo actualizado':'portada actualizada'); openConc(id); if(CUR==='concesionarios') RENDER.concesionarios(VIEW_TOKEN,[],true);
   }catch(e){ toast('error: '+e.message,true); }
 }
@@ -2923,6 +2923,6 @@ function socioOfficeBtn(){
 })();
 
 </script>
-<script src="/control-vitrinas.js?v=1"></script>
+<script src="/control-vitrinas.js?v=2"></script>
 </body>
 </html>
