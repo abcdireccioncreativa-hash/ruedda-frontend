@@ -34,6 +34,8 @@ module.exports = async (req, res) => {
   if (req.query && req.query.og) return require('../lib/og.js')(req, res);
   // Comunidad → "Noticias by Motorpasión": RSS en español leído del lado del servidor (/api/noticias)
   if (req.query && req.query.news) return require('../lib/news.js')(req, res);
+  // Control → Master de vitrinas: fotos de publicaciones de cualquier concesionario (service key, solo superadmin)
+  if (req.query && req.query.vitrina) return require('../lib/vitrina-admin.js')(req, res);
 
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'method not allowed' });
