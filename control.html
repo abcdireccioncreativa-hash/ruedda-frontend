@@ -561,6 +561,8 @@ let VIEWS=[
   {id:'rherr',t:'Alquiler de herramientas',i:'key',s:'Herramientas que las tiendas alquilan por día'},
   {id:'rmar',t:'Marcas y búsquedas',i:'flag',s:'Marcas por aprobar, importaciones y demanda sin cubrir'},
   {id:'ravalta',t:'AVALTA',i:'kyc',s:'Certificación del historial del vehículo · próximamente'},
+  {h:'Cúbica'},
+  {id:'cubica',t:'Solicitudes Cúbica',i:'msg',s:'Proyectos pedidos desde la web de Cúbica (cubica-group.vercel.app)'},
   {h:'Precios'},
   {id:'criterio',t:'Criterio Ruedda',i:'bid',s:'Precio justo manual por publicación'},
   {id:'comparativa',t:'Comparativa',i:'act',s:'Histórico de precios por modelo'},
@@ -1626,6 +1628,27 @@ RENDER.postulaciones=async(tok)=>{
 };
 async function posSet(id,estado){ const{error}=await sb.from('postulaciones').update({estado}).eq('id',id); if(error) return toast('error: '+error.message,true); toast('estado actualizado'); RENDER.postulaciones(++VIEW_TOKEN); }
 async function posNota(id,notas){ const{error}=await sb.from('postulaciones').update({notas:notas.trim()||null}).eq('id',id); if(error) return toast('error: '+error.message,true); toast('nota guardada'); }
+
+/* ── CÚBICA · solicitudes de proyecto desde cubica-group.vercel.app (lib/cubica.js) ── */
+const CUB_EST=[['nueva','Nueva','b'],['en conversacion','En conversación','o'],['propuesta','Propuesta enviada','o'],['cerrada','Cerrada','g'],['descartada','Descartada','r']];
+let CUB_F='activas';
+RENDER.cubica=async(tok)=>{
+  const{data,error}=await sb.from('cubica_solicitudes').select('*').order('created_at',{ascending:false}).limit(300); if(stale(tok)) return;
+  const V=$('#view');
+  if(error){ V.innerHTML=`<div class="card">${empty(/cubica_solicitudes/.test(error.message)?'Falta crear la tabla':'No se pudo cargar',/cubica_solicitudes/.test(error.message)?'Corre cubica_migration.sql en Supabase → SQL Editor.':error.message)}</div>`; return; }
+  const all=data||[]; const nuevas=all.filter(p=>p.estado==='nueva').length;
+  const rows=all.filter(p=>CUB_F==='todas'?true:!['cerrada','descartada'].includes(p.estado));
+  const link=c=>{c=String(c||'').trim(); if(/@/.test(c)) return `mailto:${c}?subject=${encodeURIComponent('Cúbica · tu proyecto')}`; const d=c.replace(/[^0-9]/g,''); return d.length>=7?'https://wa.me/'+d.replace(/^0/,'58'):''; };
+  V.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">${[['activas','Activas'],['todas','Todas']].map(([k,t])=>`<button class="btn ${CUB_F===k?'btn-primary':'btn-soft'}" style="height:32px" onclick="CUB_F='${k}';RENDER.cubica(++VIEW_TOKEN)">${t}</button>`).join('')}<span class="muted" style="font-size:12.5px;margin-left:6px">${all.length} en total · ${nuevas} nueva${nuevas===1?'':'s'}</span></div>`+
+  (rows.length?`<div class="items">${rows.map(p=>{const e=CUB_EST.find(x=>x[0]===p.estado)||CUB_EST[0];const l=link(p.contacto);return `<div class="card" style="padding:16px">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="min-width:0"><div style="font-weight:700;font-size:15px">${esc(p.nombre)} · ${esc(p.empresa)}</div><div class="muted" style="font-size:12.5px;margin-top:2px">${p.plan?'Plan '+esc(p.plan)+' · ':''}${ago(p.created_at)}</div></div><span class="pill ${e[2]}">${e[1]}</span></div>
+    ${p.mensaje?`<div style="white-space:pre-wrap;font-size:13.5px;line-height:1.55;margin-top:10px">${esc(p.mensaje)}</div>`:''}
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:12px">${l?`<a class="btn btn-soft" style="height:30px" target="_blank" rel="noopener" href="${esc(l)}">${esc(p.contacto)}</a>`:`<span class="muted" style="font-size:13px">${esc(p.contacto)}</span>`}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px;border-top:1px solid var(--line);padding-top:10px"><select class="input" style="height:32px;max-width:190px" onchange="cubSet('${p.id}',this.value)">${CUB_EST.map(([k,t])=>`<option value="${k}" ${p.estado===k?'selected':''}>${t}</option>`).join('')}</select><input class="input" style="height:32px;flex:1;min-width:160px" placeholder="Notas internas" value="${esc(p.notas||'')}" onchange="cubNota('${p.id}',this.value)">${delBtn(`delRow('cubica_solicitudes','${p.id}','cubica')`)}</div>
+  </div>`;}).join('')}</div>`:`<div class="card">${empty('Sin solicitudes','Las solicitudes de proyecto de la web de Cúbica (cubica-group.vercel.app) llegan aquí.')}</div>`);
+};
+async function cubSet(id,estado){ const{error}=await sb.from('cubica_solicitudes').update({estado}).eq('id',id); if(error) return toast('error: '+error.message,true); toast('estado actualizado'); RENDER.cubica(++VIEW_TOKEN); }
+async function cubNota(id,notas){ const{error}=await sb.from('cubica_solicitudes').update({notas:notas.trim()||null}).eq('id',id); if(error) return toast('error: '+error.message,true); toast('nota guardada'); }
 
 /* ── PATROCINANTES ── */
 const PAT_CATS=['market','promo grande','mini banner detalle','chocados','chocados market','busqueda','financiamientos','aseguradoras','gestoria','inspeccion','detailing','mecanicos','asistencia vial','socios petrolheads','movilidad por el pais','financiamiento','hobbie rc'];

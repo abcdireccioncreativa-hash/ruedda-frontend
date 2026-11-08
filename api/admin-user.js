@@ -28,6 +28,8 @@ module.exports = async (req, res) => {
   if (req.query && req.query.postulacion) return require('../lib/postulacion.js')(req, res);
   // Ruedda Academy: solicitudes de cupo desde ruedda.app/academy
   if (req.query && req.query.academy) return require('../lib/academy.js')(req, res);
+  // Cúbica: solicitudes de proyecto desde cubica-group.vercel.app (se ven en Control → Cúbica)
+  if (req.query && req.query.cubica) return require('../lib/cubica.js')(req, res);
   // RueddaCarreras · Partners: web de los Dealer Partnerships Managers y su gestión en Control
   if (req.query && req.query.partner) return require('../lib/partner.js')(req, res);
   // Vista previa al compartir (/?market=ID y /?auction=ID pedidos por WhatsApp y otros bots, ver vercel.json)

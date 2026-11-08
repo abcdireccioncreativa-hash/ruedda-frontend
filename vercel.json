@@ -91,6 +91,10 @@
       "dest": "/api/admin-user?academy=1"
     },
     {
+      "src": "^/api/cubica$",
+      "dest": "/api/admin-user?cubica=1"
+    },
+    {
       "src": "^/academy/?$",
       "dest": "/academy/index.html"
     },
