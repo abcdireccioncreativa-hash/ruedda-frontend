@@ -23737,7 +23737,7 @@ function rdRegion(r){
   }
   window._rdHeroApplyPos=apply;
   function load(){
-    if(!window._supa) return setTimeout(load,600);
+    if(typeof _supa==='undefined'||!_supa) return setTimeout(load,600);
     _supa.from('app_settings').select('value').eq('key',KEY).maybeSingle().then(function(r){
       try{ var v=r&&r.data&&r.data.value; window._RD_HERO_POS=v?(typeof v==='string'?JSON.parse(v):v):{}; }catch(e){ window._RD_HERO_POS={}; }
       apply();
