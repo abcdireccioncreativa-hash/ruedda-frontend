@@ -2631,6 +2631,29 @@ html[data-theme="light"] .marcas-hero{background:#fff;border-bottom:1px solid rg
 </style>
 <!-- skin de temporada: se apaga desde Control → Modo Halloween; borrar esta línea lo quita del todo -->
 <script src="/skins/halloween.js?v=1" defer></script>
+<style id="rd-cons-v200">
+/* [V200] concesionarios en escritorio: todo al mismo ancho que el título y la grilla
+   de agencias (antes una columna de 760px centrada), textos legibles (subtítulos de 5px)
+   y post-venta / manual en tarjetas horizontales en vez de cuadrados de 500px. */
+@media (min-width:900px){
+  #concesionarios-section .cons-wide-block{max-width:none;margin-left:0;margin-right:0;padding-left:0!important;padding-right:0!important}
+  #concesionarios-section #cons-banner{aspect-ratio:auto;height:clamp(220px,24vw,340px);border-radius:22px}
+  #concesionarios-section .cons-hero-card{padding:22px 24px!important;border-radius:18px!important;gap:6px}
+  #concesionarios-section .cons-hero-card>div:first-child,#concesionarios-section .cons-hero-card>div:first-child>div{font-size:16px!important}
+  #concesionarios-section .cons-hero-card .hd-subtitle{font-size:13px!important;line-height:1.45;margin-top:4px!important;max-width:42ch}
+  #concesionarios-section .cons-sq-card{aspect-ratio:auto;height:clamp(200px,20vw,280px);border-radius:20px;justify-content:space-between;padding:22px 24px}
+  #concesionarios-section .cons-sq-card .enc-title{font-size:15px;font-weight:700}
+  #concesionarios-section .cons-sq-card .enc-icon-wrap{flex:1;display:flex;align-items:center;justify-content:center}
+  #concesionarios-section>.rdv:not(.cons-wide-block){padding-left:0!important;padding-right:0!important}
+  #concesionarios-section #cons-grid-title{font-size:24px!important;letter-spacing:-.5px!important}
+  /* la foto de post-venta es cuadrada: entera, sin agrandarse ni tapar el título */
+  #concesionarios-section #cons-postventa-photo{background-color:#313230}
+  #concesionarios-section #cons-postventa-photo .cons-photo-img-clone{object-fit:contain!important;object-position:center bottom!important;padding:58px 0 0;box-sizing:border-box;-webkit-mask-image:radial-gradient(closest-side,#000 62%,transparent);mask-image:radial-gradient(closest-side,#000 62%,transparent)}
+  #concesionarios-section .cons-sq-card .enc-title{position:relative;z-index:3}
+}
+/* agencias sin logo: la inicial va en blanco (el fondo siempre es un degradado oscuro; en claro salía negra sobre azul marino) */
+.dealer-logo{color:#fff}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
