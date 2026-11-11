@@ -10632,7 +10632,7 @@ function _rdFeatPanels(){
   sc.insertAdjacentHTML('beforeend',items.map(x=>{
     const p=x.photoUrls, one=p.length<3;
     const meta=x._auc?`${clock}${_rdFeatLeft(x.endTime-now)}<em>puja</em><b>${fmtBid(x.currentBid||0)}</b>`:`<em style="margin:0">precio</em><b>${fmtBid(x.price||0)}</b>`;
-    return `<div class="trending-panel rd-fp${one?' one':''}" onclick="${x._auc?`openDetail('${x.id}')`:`openMarketDetail('${x.id}')`}">`
+    return `<div class="trending-panel rd-fp${one?' one':''}" data-hid="${x.id}" onclick="${x._auc?`openDetail('${x.id}')`:`openMarketDetail('${x.id}')`}">`
       +`<i class="fa">${im(p[0],900)}</i>`
       +(one?'':`<i class="fb">${im(p[1],600)}</i><i class="fc">${im(p[2],600)}</i><i class="fd">${im(p[3]||p[1],600)}</i>`)
       +`<span class="fp-tag">featured</span><div class="fp-tt">${esc(x.title)}</div><div class="fp-meta">${meta}</div></div>`;
@@ -10642,8 +10642,24 @@ function _rdFeatPanels(){
   if(!sc._rdIO&&'IntersectionObserver' in window) sc._rdIO=new IntersectionObserver(es=>es.forEach(e=>{ if(!e.isIntersecting) return; e.target.querySelectorAll('img[data-src]').forEach(i=>{ i.src=i.dataset.src; i.removeAttribute('data-src'); }); sc._rdIO.unobserve(e.target); }),{root:sc,rootMargin:'0px 110% 0px 110%'});
   sc.querySelectorAll('.rd-fp').forEach(n=>{ if(sc._rdIO) sc._rdIO.observe(n); else n.querySelectorAll('img[data-src]').forEach(i=>{ i.src=i.dataset.src; }); });
   const ad=sc.querySelector('.rd-ad'); if(ad) sc.appendChild(ad);
+  _rdFpPos();
   _rdTrDots();
   _rdTrAd();
+}
+// [V204] encuadre de la foto grande: el mismo que el superadmin ajusta en la portada del
+// destacado en escritorio (app_settings.market_hero_pos = {"<id>":"50% 30%"}).
+let _rdFpPosMap=null;
+function _rdFpPos(){
+  const put=()=>document.querySelectorAll('#trending-scroll .rd-fp[data-hid]').forEach(n=>{
+    const im=n.querySelector('.fa img'); if(im) im.style.objectPosition=(_rdFpPosMap&&_rdFpPosMap[n.getAttribute('data-hid')])||'';
+  });
+  if(_rdFpPosMap){ put(); return; }
+  if(typeof _supa==='undefined'||!_supa){ setTimeout(_rdFpPos,800); return; }
+  _rdFpPosMap={};
+  _supa.from('app_settings').select('value').eq('key','market_hero_pos').maybeSingle().then(r=>{
+    try{ const v=r&&r.data&&r.data.value; _rdFpPosMap=v?(typeof v==='string'?JSON.parse(v):v):{}; }catch(e){ _rdFpPosMap={}; }
+    put();
+  },()=>{});
 }
 // banner de publicidad al final de trending: app_settings trending_banner_url (+ _link opcional).
 // Una sola consulta por sesión; si no hay imagen, no se agrega nada.
