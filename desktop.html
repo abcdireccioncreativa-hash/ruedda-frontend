@@ -17360,12 +17360,18 @@ async function _rdAdminPrivate(ids){
 // y salían como "usuario"/"Vendedor" para siempre. Ahora se les vuelve a mostrar la misma pantalla,
 // cuando ya no hay intro encima. A las cuentas con nombre no les cambia nada.
 function _rdPerfilVacio(p){ return !!p && !String(p.nombre||'').trim() && !String(p.username||'').trim(); }
+// Google/Apple sin cédula = nunca terminó "ya casi" (por correo la cédula se pide antes de crear la cuenta).
+// Solo cuentas particulares, y solo si el perfil trae la columna (get_my_profile): si no, no se molesta a nadie.
+function _rdOAuthSinCedula(p,user){
+  const prov=String((user&&user.app_metadata&&user.app_metadata.provider)||'');
+  return !!p && (prov==='google'||prov==='apple') && (p.role||'particular')==='particular' && ('cedula' in p) && !String(p.cedula||'').trim();
+}
 function _rdPedirPerfilSiFalta(p,user,delay){
-  if(!_rdPerfilVacio(p)||!user) return;
+  if(!user||!(_rdPerfilVacio(p)||_rdOAuthSinCedula(p,user))) return;
   setTimeout(()=>{ let n=0; const t=setInterval(()=>{
     if((document.getElementById('boot-splash')||window._rdIntroActive)&&++n<40) return;
     clearInterval(t);
-    if(!document.getElementById('google-complete-sheet')) _showGoogleCompleteProfile(user);
+    if(!document.getElementById('google-complete-sheet')) _showGoogleCompleteProfile(user,p);
   },300); },delay||0);
 }
 async function _handleGoogleSignIn(user){
@@ -17379,13 +17385,13 @@ async function _handleGoogleSignIn(user){
       _rueddaLoadUserData(user.id,profile.role==='concesionario'?'consesionario':(profile.role||'particular'));
       return;
     }
-    _showGoogleCompleteProfile(user);
+    _showGoogleCompleteProfile(user,profile);
   }catch(e){
     console.warn('[ruedda] _handleGoogleSignIn',e?.message||e);
     _showGoogleCompleteProfile(user);
   }
 }
-function _showGoogleCompleteProfile(user){
+function _showGoogleCompleteProfile(user,prof){
   closeAuthSheet();
   { const ls=document.getElementById('login-splash'); if(ls) ls.remove(); }
   let m=document.getElementById('google-complete-sheet'); if(m) m.remove();
@@ -17393,7 +17399,8 @@ function _showGoogleCompleteProfile(user){
   m.id='google-complete-sheet';
   // [pedido explícito] flota centrado, no como bottom sheet — mismo blur de fondo.
   m.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;transition:opacity .3s ease';
-  const fullName=(user.user_metadata&&(user.user_metadata.full_name||user.user_metadata.name))||'';
+  // [2026-11-11] se rellena con lo que ya tenga la cuenta (nombre/usuario puestos al crearla) o lo de Google/Apple
+  const fullName=(prof&&String(prof.nombre||'').trim())||(user.user_metadata&&(user.user_metadata.full_name||user.user_metadata.name))||'';
   m.innerHTML=`
   <div id="gcp-inner" style="background:var(--surface-hi);border:1px solid var(--w8);border-radius:24px;width:100%;max-width:400px;padding:28px 24px;transform:scale(.94);opacity:0;transition:transform .32s cubic-bezier(.22,1,.36,1),opacity .28s ease;font-family:var(--font);max-height:85vh;max-height:85dvh;overflow-y:auto">
     <div style="width:54px;height:54px;border-radius:50%;background:var(--w6);border:1px solid var(--w12);display:flex;align-items:center;justify-content:center;margin:0 auto 18px">
@@ -17402,7 +17409,7 @@ function _showGoogleCompleteProfile(user){
     <div style="font-size:21px;font-weight:800;letter-spacing:-.4px;text-align:center;color:var(--white)">ya casi</div>
     <div style="font-size:13px;font-weight:300;color:var(--w55);text-align:center;margin-top:10px;line-height:1.6;max-width:340px;margin-left:auto;margin-right:auto">Completa tu perfil de Ruedda. Necesitamos tu cédula para poder dejarte participar en subastas.</div>
     <input id="gcp-nombre" type="text" placeholder="nombre" value="${_esc(fullName)}" style="width:100%;margin-top:22px;background:var(--surface-mid);border:1px solid var(--w10);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box">
-    <input id="gcp-user" type="text" placeholder="@usuario" style="width:100%;margin-top:10px;background:var(--surface-mid);border:1px solid var(--w10);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box">
+    <input id="gcp-user" type="text" placeholder="@usuario" value="${_esc((prof&&prof.username)||'')}" style="width:100%;margin-top:10px;background:var(--surface-mid);border:1px solid var(--w10);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box">
     <div style="display:flex;gap:8px;margin-top:10px">
       <select id="gcp-cedula-tipo" style="background:var(--surface-mid);border:1px solid var(--w10);border-radius:14px;padding:0 12px;font-family:var(--font);font-size:15px;color:var(--white);outline:none"><option value="V">V</option><option value="E">E</option></select>
       <input id="gcp-cedula" type="tel" placeholder="cédula" style="flex:1;background:var(--surface-mid);border:1px solid var(--w10);border-radius:14px;padding:16px;font-family:var(--font);font-size:15px;color:var(--white);outline:none;box-sizing:border-box">
