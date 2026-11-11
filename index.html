@@ -7248,10 +7248,10 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     <div class="sb-budget-title">Buscar por precio</div>
     <div class="sb-budget-row">
       <span class="sb-budget-sub">Tengo:</span>
-      <span class="sb-budget-amt" id="sb-budget-amt">$12.000</span>
+      <span class="sb-budget-amt" id="sb-budget-amt">$0</span>
     </div>
-    <input type="range" min="0" max="1000" step="1" value="279" style="--sb-p:27.9%" id="sb-budget-range" class="sb-budget-range" oninput="_onSearchBudget(this.value)" aria-label="presupuesto máximo">
-    <div class="sb-budget-scale"><span>$100</span><span>$550.000+</span></div>
+    <input type="range" min="0" max="1000" step="1" value="0" style="--sb-p:0%" id="sb-budget-range" class="sb-budget-range" oninput="_onSearchBudget(this.value)" aria-label="presupuesto máximo">
+    <div class="sb-budget-scale"><span>$0</span><span>$550.000+</span></div>
   </div>
   <div id="search-results">
     <div class="search-cat-label" style="margin-bottom:8px">categorías rápidas</div>
@@ -13686,25 +13686,25 @@ function _searchDealerHtml(d){
 function goToVitrinaFromSearch(id){ showView('home');selectSection('consesionarios');setTimeout(()=>openVitrina(id),0); }
 // presupuesto de la búsqueda: el slider va de 0 a 1000 en curva cúbica
 // ($100 a $550.000). En el tope no filtra (null).
-// [pedido] arranca en $12.000 (posición 279 de la curva).
-const _SB_START=279;
-let _searchBudget=12000;
+// [V202] arranca en $0 = sin filtro: abajo se ven los carros de siempre; al subirlo filtra en vivo.
+const _SB_START=0;
+let _searchBudget=null;
 let _sbTouched=false; // la lista solo-presupuesto aparece cuando el usuario mueve el slider
 function _budgetFromSlider(v){
   v=Math.max(0,Math.min(1000,Number(v)||0));
-  if(v>=1000) return null;
+  if(v<=0||v>=1000) return null;
   const raw=100+(550000-100)*Math.pow(v/1000,3);
   const step=raw<1000?50:raw<10000?100:raw<100000?1000:5000;
   return Math.max(100,Math.round(raw/step)*step);
 }
 function _fmtBudget(n){ return '$'+String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
 function _onSearchBudget(v){
-  _sbTouched=true;
+  _sbTouched=Number(v)>0;
   _searchBudget=_budgetFromSlider(v);
   const r=document.getElementById('sb-budget-range');
   if(r) r.style.setProperty('--sb-p',(v/10)+'%');
   const amt=document.getElementById('sb-budget-amt');
-  if(amt) amt.textContent=_searchBudget==null?'$550.000+':_fmtBudget(_searchBudget);
+  if(amt) amt.textContent=Number(v)<=0?'$0':_searchBudget==null?'$550.000+':_fmtBudget(_searchBudget);
   doSearch(document.getElementById('search-input').value);
 }
 function _resetSearchBudget(){
@@ -13713,7 +13713,7 @@ function _resetSearchBudget(){
   const r=document.getElementById('sb-budget-range');
   if(r){ r.value=_SB_START; r.style.setProperty('--sb-p',(_SB_START/10)+'%'); }
   const amt=document.getElementById('sb-budget-amt');
-  if(amt) amt.textContent=_fmtBudget(_searchBudget);
+  if(amt) amt.textContent='$0';
 }
 function _withinBudget(a,isAuction){
   if(_searchBudget==null) return true;
