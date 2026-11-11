@@ -1357,6 +1357,8 @@ html[data-theme="light"] .trending-cell::after{background:linear-gradient(to bot
 /* SEARCH OVERLAY */
 .search-overlay{display:none;position:fixed;inset:0;background:var(--bg);z-index:200;padding:18px;flex-direction:column;gap:16px;color:var(--white)}
 .search-overlay.open{display:flex;animation:fadeIn .2s ease}
+/* [V199] la lupa de escritorio no tenía scroll propio: con muchos resultados (ej. una marca con 11) la capa fija cortaba la lista y la rueda movía la página de atrás */
+#search-results{flex:1;min-height:0;width:100%;overflow-y:auto;overscroll-behavior:contain;padding-bottom:40px}
 .search-top{display:flex;align-items:center;gap:10px}
 .search-bar{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px 14px;flex:1}
 .search-bar input{flex:1;background:none;border:none;outline:none;font-family:var(--font);font-size:16px;color:var(--white)}
