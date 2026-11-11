@@ -17355,6 +17355,19 @@ async function _rdAdminPrivate(ids){
   try{ const r=await _supa.rpc('admin_users_private',{p_ids:ids}); if(!r.error){ (r.data||[]).forEach(x=>m[x.id]=x); return m; } }catch(e){}
   const{data}=await _supa.from('users').select('id,email,cedula,cedula_tipo,telefono,celular').in('id',ids); (data||[]).forEach(x=>m[x.id]=x); return m;
 }
+// [2026-11-11] cuentas que quedaron sin nombre NI usuario (Google/Apple que no terminó "ya casi":
+// la marca rd_oauth_pending se pierde en el viaje o cerraron la app). Antes entraban con la fila vacía
+// y salían como "usuario"/"Vendedor" para siempre. Ahora se les vuelve a mostrar la misma pantalla,
+// cuando ya no hay intro encima. A las cuentas con nombre no les cambia nada.
+function _rdPerfilVacio(p){ return !!p && !String(p.nombre||'').trim() && !String(p.username||'').trim(); }
+function _rdPedirPerfilSiFalta(p,user,delay){
+  if(!_rdPerfilVacio(p)||!user) return;
+  setTimeout(()=>{ let n=0; const t=setInterval(()=>{
+    if((document.getElementById('boot-splash')||window._rdIntroActive)&&++n<40) return;
+    clearInterval(t);
+    if(!document.getElementById('google-complete-sheet')) _showGoogleCompleteProfile(user);
+  },300); },delay||0);
+}
 async function _handleGoogleSignIn(user){
   try{
     const{data:profile}=await _rdMyProfile(user.id);
@@ -17531,6 +17544,7 @@ async function _rueddaLogin(identifier,pass){
     },1200);
   }
   _rueddaLoadUserData(data.user.id,profile.role);
+  _rdPedirPerfilSiFalta(profile,data.user,1400); // [2026-11-11] cuenta sin nombre: pedirlo tras el splash de bienvenida
 }
 
 async function _rueddaRegister(email,pass){
@@ -18486,6 +18500,7 @@ window._rueddaBootPromise = (async function _rueddaInit(){
         }
         _rueddaApplySession(profile);
         _rueddaLoadUserData(session.user.id,profile.role);
+        _rdPedirPerfilSiFalta(profile,session.user);
       }
     }
   })().catch(e=>console.error('[ruedda] auth boot chain:',String(e?.message||e)));
