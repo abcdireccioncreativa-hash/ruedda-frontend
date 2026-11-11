@@ -9430,7 +9430,7 @@ async function openMarketDetail(id, origin){
       if(!sec||!grid) return;
       if(!vids?.length){ sec.style.display='none'; grid.innerHTML=''; return; }
       sec.style.display='block';
-      grid.innerHTML=vids.map(v=>`<video src="${v.url}" controls playsinline style="width:100%;border-radius:14px;background:#000;max-height:420px"></video>`).join('');
+      _rdVids(grid,vids);
     }).catch(()=>{});
   }
   // gallery
@@ -9901,7 +9901,7 @@ function openDetail(id,origin){
       if(!sec||!grid) return;
       if(!vids?.length){ sec.style.display='none'; grid.innerHTML=''; return; }
       sec.style.display='block';
-      grid.innerHTML=vids.map(v=>`<video src="${v.url}" controls playsinline style="width:100%;border-radius:14px;background:#000;max-height:420px"></video>`).join('');
+      _rdVids(grid,vids);
     }).catch(()=>{});
   }
   _renderDetailStatsCard(a);
@@ -23823,4 +23823,55 @@ function rdRegion(r){
   document.addEventListener('click',function(e){ if(ed&&e.target.closest&&e.target.closest('#market-hero')&&!e.target.closest('#rd-hero-bar')) stop(e); },true);
   document.addEventListener('keydown',function(e){ if(!ed) return; if(e.key==='Escape') end(true); else if(e.key==='Enter') save(); });
 })();
+</script>
+<style id="rd-vids-css">
+/* [V207] videos del vehículo: cada video en su card. Vertical = card 9:16 como los clips de
+   comunidad; horizontal = card 16:9. Varios se deslizan de lado. */
+.rd-vrow{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;padding:2px 0 4px}
+.rd-vrow::-webkit-scrollbar{display:none}
+.rd-vrow>.rd-vc:first-child{margin-left:auto}.rd-vrow>.rd-vc:last-child{margin-right:auto}
+.rd-vc{position:relative;flex:0 0 100%;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:var(--card,#141414);border:1px solid var(--border,rgba(255,255,255,.08));scroll-snap-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .18s ease}
+.rd-vc.v{flex-basis:min(64%,320px);aspect-ratio:9/16}
+.rd-vrow.multi>.rd-vc:not(.v){flex-basis:88%}
+.rd-vc:active{transform:scale(.985)}
+.rd-vc video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#000;opacity:0;transition:opacity .35s ease}
+.rd-vc.ok video{opacity:1}
+.rd-vc.on video{object-fit:contain}
+.rd-vc .rd-vp{position:absolute;left:50%;top:50%;width:58px;height:58px;margin:-29px 0 0 -29px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(18,18,18,.5);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.22);pointer-events:none;transition:opacity .2s,transform .2s}
+.rd-vc .rd-vp svg{width:22px;height:22px;margin-left:3px;fill:#fff}
+.rd-vc .rd-vd{position:absolute;left:10px;bottom:10px;padding:5px 9px;border-radius:100px;background:rgba(18,18,18,.66);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#fff;font:700 11.5px/1 var(--font,system-ui);font-variant-numeric:tabular-nums;pointer-events:none;opacity:0;transition:opacity .2s}
+.rd-vc.ok .rd-vd{opacity:1}
+.rd-vc.on .rd-vp,.rd-vc.on .rd-vd{opacity:0}
+.rd-vc.on{cursor:default}
+@media(min-width:900px){.rd-vc.v{flex-basis:min(46%,300px)}}
+</style>
+<script>
+/* [V207] pinta los videos de una publicación (market o subasta) en cards */
+function _rdVids(grid,vids){
+  if(!grid) return;
+  grid.style.display='block';
+  const esc=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  grid.innerHTML='<div class="rd-vrow'+(vids.length>1?' multi':'')+'">'+vids.map(v=>
+    '<div class="rd-vc" onclick="_rdVidPlay(this)"><video src="'+esc(v.url)+'#t=0.1" playsinline webkit-playsinline preload="metadata"></video>'
+    +'<span class="rd-vp"><svg viewBox="0 0 24 24"><path d="M7 4.8v14.4L19 12z"/></svg></span><span class="rd-vd"></span></div>').join('')+'</div>';
+  grid.querySelectorAll('.rd-vc video').forEach(m=>{
+    const c=m.parentElement;
+    const meta=()=>{
+      if(m.videoWidth&&m.videoHeight&&m.videoHeight>m.videoWidth*1.05) c.classList.add('v');
+      const d=Math.round(m.duration||0);
+      if(isFinite(d)&&d>0) c.querySelector('.rd-vd').textContent=Math.floor(d/60)+':'+String(d%60).padStart(2,'0');
+    };
+    m.addEventListener('loadedmetadata',meta);
+    m.addEventListener('loadeddata',()=>c.classList.add('ok'));
+    m.addEventListener('error',()=>c.classList.add('ok'));
+    if(m.readyState>=1) meta();
+  });
+}
+function _rdVidPlay(c){
+  if(c.classList.contains('on')) return;
+  const m=c.querySelector('video'); if(!m) return;
+  c.closest('.rd-vrow').querySelectorAll('.rd-vc.on video').forEach(o=>{ if(o!==m) try{o.pause()}catch(e){} });
+  c.classList.add('on','ok'); m.controls=true;
+  const p=m.play(); if(p&&p.catch) p.catch(()=>{});
+}
 </script>
