@@ -138,6 +138,25 @@
     if(st==='listing'||st==='market'||!st) return await RDNC.post(sid);
     return null;
   };
+  // respuestas rápidas del chat privado: el vendedor no recibe las mismas del interesado.
+  // Vendedor = la publicación es suya, o el otro fue quien escribió primero.
+  var Q_INTERESADO=['¿Sigue disponible?','¿Aceptas alguna oferta?','¿Dónde se puede ver?'];
+  var Q_VENDEDOR=['¡Hola! Sí, sigue disponible.','¿Cuándo te gustaría verlo?','¿Qué oferta tienes en mente?','Te paso más fotos y detalles.'];
+  RDNC.pmQuick=async function(o,sid,st){
+    var yo=me(); if(!yo||!o) return Q_INTERESADO;
+    try{
+      if(sid&&(st==='listing'||st==='market'||!st)){
+        var l=(typeof MARKET_LISTINGS!=='undefined'?MARKET_LISTINGS:[]).find(function(x){ return String(x.id)===String(sid); });
+        var dueno=l&&(l.user_id||l.sellerId||l.ownerId);
+        if(dueno) return String(dueno)===String(yo)?Q_VENDEDOR:Q_INTERESADO;
+      }
+      var r=await _supa.from('private_messages').select('sender_id')
+        .or('and(sender_id.eq.'+yo+',receiver_id.eq.'+o+'),and(sender_id.eq.'+o+',receiver_id.eq.'+yo+')')
+        .order('created_at',{ascending:true}).limit(1);
+      var p=r.data&&r.data[0];
+      return p&&String(p.sender_id)===String(o)?Q_VENDEDOR:Q_INTERESADO;
+    }catch(e){ return Q_INTERESADO; }
+  };
   RDNC.story=async function(id){
     var r=await _supa.from('stories').select('media_url').eq('id',id).maybeSingle();
     return r.data&&r.data.media_url?img(r.data.media_url,120,70):'';
