@@ -2770,7 +2770,7 @@ function rdRegion(r){
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=5" defer></script>
 <script src="/rd-usa.js?v=5" defer></script>
-<script src="/rd-post.js?v=27" defer></script>
+<script src="/rd-post.js?v=28" defer></script>
 <script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=3" defer></script><script src="/rd-track.js?v=3" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
@@ -7390,11 +7390,11 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
   <div class="drawer-bottom">
     <!-- [V219] tema claro/oscuro en el menú (mismo control que escritorio) -->
     <div class="rd-dtheme">
-      <span class="rd-dtheme-l">apariencia</span>
+      <span class="rd-dtheme-l">tema</span>
       <div class="rd-dtheme-sw" role="group" aria-label="tema">
         <i class="rd-dtheme-th" aria-hidden="true"></i>
-        <button type="button" class="rd-dtheme-b" data-mode="light" onclick="setTheme('light')" aria-label="modo claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg><span>claro</span></button>
-        <button type="button" class="rd-dtheme-b" data-mode="dark" onclick="setTheme('dark')" aria-label="modo oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>oscuro</span></button>
+        <button type="button" class="rd-dtheme-b" data-mode="light" onclick="setTheme('light')" aria-label="modo claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg></button>
+        <button type="button" class="rd-dtheme-b" data-mode="dark" onclick="setTheme('dark')" aria-label="modo oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
       </div>
     </div>
     <div onclick="closeDrawer();showView('afiliate')" style="cursor:pointer;padding:3px 0 25px;margin-bottom:10px;border-bottom:1px solid var(--border)">
@@ -27099,7 +27099,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
       if(name==='ruedda-extra'&&was!=='ruedda-extra'){ var v=document.getElementById('view-ruedda-extra'); if(v){ v.classList.remove('rx-anim'); void v.offsetWidth; v.classList.add('rx-anim'); clearTimeout(t); t=setTimeout(function(){ v.classList.remove('rx-anim'); },1400); } }
       return r; };
   })();
-  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=21'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
+  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=22'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
 
   /* menú hamburguesa: foto de perfil arriba */
   function paintMe(){
@@ -27332,12 +27332,26 @@ html[data-theme="light"] .rd-dtheme-th{transform:none;background:#fff;box-shadow
 /* [V219] lupa: fotos de los 4 accesos, categorías desplegables; Mini Rueddas como capa */
 (function(){
   var used={};
+  // [V221] fotos subidas en Control › Fotos de la lupa (app_settings lupa_<tarjeta>_url) van primero
+  var LK='rd_lupa_cfg', cfg=null, cfgAt=0;
+  try{ cfg=JSON.parse(localStorage.getItem(LK)||'null'); }catch(e){}
+  function loadCfg(){
+    if(Date.now()-cfgAt<60000||typeof _supa==='undefined'||!_supa) return; cfgAt=Date.now();
+    _supa.from('app_settings').select('key,value').like('key','lupa_%_url').then(function(r){
+      if(!r||r.error) return;
+      var m={}; (r.data||[]).forEach(function(x){ if(x.value) m[String(x.key).slice(5,-4)]=x.value; });
+      var was=JSON.stringify(cfg||{}), now=JSON.stringify(m); cfg=m;
+      try{ localStorage.setItem(LK,now); }catch(e){}
+      if(was!==now){ used={}; var g=document.getElementById('rd-sq'); if(g){ g.querySelectorAll('.ph').forEach(function(x){ x.remove(); }); window._rdSqPaint(); } }
+    },function(){});
+  }
   function encPhoto(slot){ var i=document.querySelector('#enc-'+slot+'-photo .enc-photo-img'); return i&&i.src||''; }
   function listPhoto(list,skip){
     for(var i=0;i<(list||[]).length;i++){ var a=list[i], u=a&&a.photoUrls&&a.photoUrls[0]; if(u&&!skip[u]) return u; }
     return '';
   }
   function src(k,skip){
+    if(cfg&&cfg[k]) return cfg[k];
     var mk=[], au=[];
     try{ mk=(typeof _mktGen==='function'?_mktGen():(window.MARKET_LISTINGS||[])).filter(function(l){return !l.vendido;}).slice().sort(function(x,y){return (y.viewCount||0)-(x.viewCount||0);}); }catch(e){}
     try{ au=(window.AUCTIONS||[]).slice(); }catch(e){}
@@ -27347,6 +27361,7 @@ html[data-theme="light"] .rd-dtheme-th{transform:none;background:#fff;box-shadow
   }
   window._rdSqPaint=function(){
     var g=document.getElementById('rd-sq'); if(!g) return;
+    loadCfg();
     var skip={}, miss=0;
     ['subastas','marcas','cat','extra'].forEach(function(k){
       var t=g.querySelector('[data-k="'+k+'"]'); if(!t) return;

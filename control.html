@@ -533,6 +533,7 @@ let VIEWS=[
   {id:'solicitudes',t:'Solicitudes',i:'msg',s:'Vitrinas de concesionarios, buscan carro y publicar por ellos',b:'sol'},
   {id:'documentos',t:'Documentos',i:'kyc',s:'Papeles para el sello "auditado por Ruedda"'},
   {id:'patrocinantes',t:'Patrocinantes y banners',i:'offer',s:'Banner grande del market, banners de la app y aliados'},
+  {id:'lupa',t:'Fotos de la lupa',i:'offer',s:'Las 4 tarjetas con foto de la búsqueda: categorías, marcas, subastas y ruedda extra'},
   {id:'fotografos',t:'Fotógrafos',i:'user',s:'Directorio de fotógrafos'},
   {id:'codigos',t:'Códigos',i:'key',s:'Códigos de publicación gratis'},
   {id:'partners',t:'Partners',i:'users',s:'RueddaCarreras · códigos de los Dealer Partnerships Managers y sus concesionarios'},
@@ -1475,6 +1476,21 @@ async function rtmSend(btn){
   const{error}=await sb.from('ruedda_team_messages').insert({body:b,created_by:ME.id});
   if(error){ toast('error: '+error.message,true); btn.disabled=false; return; } toast('anuncio enviado'); RENDER.mensajes(++VIEW_TOKEN);
 }
+/* ── LUPA: fotos de las 4 tarjetas de la búsqueda (app y web) [V221] ──
+   app_settings lupa_<tarjeta>_url. Sin foto cargada, la app usa una foto real del market. */
+const LUPA_T=[['cat','Categorías'],['marcas','Marcas'],['subastas','Subastas'],['extra','Ruedda Extra']];
+RENDER.lupa=async(tok)=>{
+  const V=$('#view');
+  const{data}=await sb.from('app_settings').select('key,value').in('key',LUPA_T.map(t=>'lupa_'+t[0]+'_url'));
+  if(stale(tok)) return;
+  const m={}; (data||[]).forEach(r=>{ if(r.value) m[r.key]=r.value; });
+  V.innerHTML=card('Fotos de la lupa','Toca una tarjeta para subir su foto (horizontal 16:10, mínimo 1040 px de ancho). Se ve en la búsqueda de la app y la web apenas la subes. Sin foto, la app pone una foto real del market.',
+    `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">${LUPA_T.map(([k,t])=>{ const key='lupa_'+k+'_url', u=m[key];
+      return `<div><div style="font-size:13px;font-weight:600;margin-bottom:6px">${t}</div>${imgSlot(u,"setImageSetting('${key}','lupa',{compress:1600,q:.86})",'16/10')}
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn" style="height:30px;padding:0 12px" onclick="setImageSetting('${key}','lupa',{compress:1600,q:.86})">${u?'Cambiar':'Subir foto'}</button>${u?`<button class="btn btn-red" style="height:30px;padding:0 12px" onclick="lupaQuitar('${key}')">Quitar</button>`:''}</div></div>`; }).join('')}</div>`);
+};
+async function lupaQuitar(key){ try{ await setSetting(key,''); toast('foto quitada: vuelve la automática'); RENDER.lupa(++VIEW_TOKEN); }catch(e){ toast('error: '+e.message,true); } }
+
 async function setImageSetting(key,view,opt){
   const f=await pickFile(); if(!f) return; toast('subiendo…');
   try{ const url=await upload('assets',f,key.replace(/_url$/,''),opt||{}); await setSetting(key,url); toast('imagen actualizada'); RENDER[view](++VIEW_TOKEN); }catch(e){ toast('error: '+e.message,true); }

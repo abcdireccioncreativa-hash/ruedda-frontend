@@ -451,16 +451,63 @@
   }
   window._rdPostCtx = function () { return ctx; };
 
+  // [V221] post ↔ perfil con transición de navegación iOS (antes cambiaba de golpe):
+  // el perfil entra desde la derecha encima del post, y al volver sale hacia la derecha
+  // destapando el post. Con el gesto de borde nativo de iOS no se anima: ya lo anima iOS.
+  var NAV_EASE = 'cubic-bezier(.32,.72,0,1)', NAV_MS = 420;
+  function navFx() { return !reduce && !window._rdEdgeNow && !!document.body.animate; }
+  function clearFx(el) {
+    if (!el) return;
+    el.style.position = ''; el.style.top = ''; el.style.left = ''; el.style.right = ''; el.style.zIndex = '';
+    el.style.boxShadow = ''; el.style.pointerEvents = ''; el.style.transform = ''; el.style.willChange = '';
+  }
+  // el perfil (en el flujo de la página) entra encima del post, que se queda de fondo
+  function pushProfile(post, prof, y) {
+    if (!post || !prof) return;
+    post.classList.add('active', 'rd-over');
+    post.scrollTop = y || 0;
+    post.style.pointerEvents = 'none';
+    prof.style.position = 'relative'; prof.style.zIndex = '62'; prof.style.willChange = 'transform';
+    prof.style.boxShadow = '-14px 0 40px rgba(0,0,0,.28)';
+    var a = prof.animate([{ transform: 'translate3d(100%,0,0)' }, { transform: 'translate3d(0,0,0)' }], { duration: NAV_MS, easing: NAV_EASE });
+    post.animate([{ transform: 'translate3d(0,0,0)', opacity: 1 }, { transform: 'translate3d(-28%,0,0)', opacity: .55 }], { duration: NAV_MS, easing: NAV_EASE, fill: 'forwards' });
+    a.onfinish = a.oncancel = function () {
+      if (currentView !== DETAIL_OF(post)) post.classList.remove('active', 'rd-over');
+      post.getAnimations && post.getAnimations().forEach(function (x) { x.cancel(); });
+      post.style.pointerEvents = '';
+      clearFx(prof);
+    };
+  }
+  function DETAIL_OF(el) { return el && el.id ? el.id.replace(/^view-/, '') : ''; }
+  // al volver: el perfil sale hacia la derecha y el post (ya encima de su pantalla de origen) regresa
+  function popProfile(prof, y, post) {
+    if (!prof || !post) return;
+    prof.classList.add('active');
+    prof.style.position = 'fixed'; prof.style.top = (-y) + 'px'; prof.style.left = '0'; prof.style.right = '0';
+    prof.style.zIndex = '62'; prof.style.pointerEvents = 'none'; prof.style.willChange = 'transform';
+    prof.style.boxShadow = '-14px 0 40px rgba(0,0,0,.28)';
+    var a = prof.animate([{ transform: 'translate3d(0,0,0)' }, { transform: 'translate3d(100%,0,0)' }], { duration: NAV_MS, easing: NAV_EASE, fill: 'forwards' });
+    post.animate([{ transform: 'translate3d(-28%,0,0)', opacity: .55 }, { transform: 'translate3d(0,0,0)', opacity: 1 }], { duration: NAV_MS, easing: NAV_EASE });
+    a.onfinish = a.oncancel = function () {
+      if (currentView !== 'perfil-publico') prof.classList.remove('active');
+      a.cancel(); clearFx(prof);
+    };
+  }
+
   var _show = window.showView;
   window.showView = function (name) {
     var from = currentView;
     if (!DETAIL[name] && name !== 'perfil-publico' && !(st && DETAIL[from])) ctx = null;
-    if (DETAIL[name] && from === 'perfil-publico' && ctx && !st && popNav() && freezeCtx()) {
-      var r0 = _show.apply(this, arguments);
-      var v0 = viewEl(name);
-      keepY(st.y);
-      if (v0) { v0.classList.add('rd-over'); v0.scrollTop = 0; }
-      return r0;
+    if (DETAIL[name] && from === 'perfil-publico' && ctx && !st && popNav()) {
+      var pe0 = viewEl('perfil-publico'), py0 = window.scrollY || 0, fx0 = navFx();
+      if (freezeCtx()) {
+        var r0 = _show.apply(this, arguments);
+        var v0 = viewEl(name);
+        keepY(st.y);
+        if (v0) { v0.classList.add('rd-over'); v0.scrollTop = 0; }
+        if (fx0) popProfile(pe0, py0, v0);
+        return r0;
+      }
     }
     document.querySelectorAll('.view.rd-calm').forEach(function (v) { if (v.id !== 'view-' + name) v.classList.remove('rd-calm'); });
     if (DETAIL[name] && !DETAIL[from] && !st && UNDER_OK[from] && freeze(from)) {
@@ -480,7 +527,13 @@
       ctx = name === 'perfil-publico' ? { name: st.name, y: st.y, nav: st.nav } : null;
       var dv = viewEl(from);
       if (dv) { dv.classList.remove('rd-over'); dv.style.transform = ''; dv.style.borderRadius = ''; }
+      var fx1 = name === 'perfil-publico' && DETAIL[from] && !popNav() && navFx(), py1 = dv ? dv.scrollTop : 0;
       release();
+      if (fx1) {
+        var r1 = _show.apply(this, arguments);
+        pushProfile(dv, viewEl('perfil-publico'), py1);
+        return r1;
+      }
     }
     // de un post a otro (similares, subasta ↔ market): sigue siendo capa
     if (st && DETAIL[name] && DETAIL[from]) {

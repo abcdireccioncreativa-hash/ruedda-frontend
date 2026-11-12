@@ -239,7 +239,11 @@
       var L = layer();
       if (L) { try { L.begin(); edge = 'layer'; window._rdEdgeLayer = L; return edge; } catch (e) { return 'none'; } }
       if (sheet()) { window._rdSheetPeek(true); edge = 'sheet'; }
-      else { edge = 'nav'; try { history.back(); } catch (e) { edge = ''; return 'none'; } }
+      else {
+        // [V221] iOS anima con su foto: la web no anima debajo (post ↔ perfil)
+        edge = 'nav'; window._rdEdgeNow = 1; setTimeout(function () { window._rdEdgeNow = 0; }, 4000);
+        try { history.back(); } catch (e) { edge = ''; window._rdEdgeNow = 0; return 'none'; }
+      }
       return edge;
     },
     edgeEnd: async function (ok) {
@@ -256,7 +260,7 @@
         // que la pantalla vuelva a estar armada antes de quitar la foto
         await new Promise(function (r) { setTimeout(r, 420); });
       }
-      edge = ''; last = ''; state();
+      edge = ''; last = ''; state(); window._rdEdgeNow = 0;
       return true;
     },
     // iOS: la foto del post llegó a la galería → resuelve cuando la galería real ya pintó
