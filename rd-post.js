@@ -434,9 +434,34 @@
     if ((window.scrollY || 0) !== y) { document.documentElement.scrollTop = y; document.body.scrollTop = y; }
   }
 
+  // [V219] post → perfil → atrás: el post vuelve encima de la pantalla de ORIGEN (home…),
+  // no encima del perfil. Antes al cerrar ese post volvías al perfil, y del perfil al post: un bucle.
+  var ctx = null;
+  function popNav() { try { return !!_navigatingFromPopstate; } catch (e) { return false; } }
+  function freezeCtx() {
+    var el = viewEl(ctx.name), pe = viewEl('perfil-publico');
+    if (!el) { ctx = null; return false; }
+    if (pe) pe.classList.remove('active');
+    el.classList.add('rd-under');
+    if (!shade.parentNode) document.body.appendChild(shade);
+    shadeTo(0.32);
+    st = { name: ctx.name, el: el, y: ctx.y, nav: ctx.nav };
+    ctx = null;
+    return true;
+  }
+  window._rdPostCtx = function () { return ctx; };
+
   var _show = window.showView;
   window.showView = function (name) {
     var from = currentView;
+    if (!DETAIL[name] && name !== 'perfil-publico' && !(st && DETAIL[from])) ctx = null;
+    if (DETAIL[name] && from === 'perfil-publico' && ctx && !st && popNav() && freezeCtx()) {
+      var r0 = _show.apply(this, arguments);
+      var v0 = viewEl(name);
+      keepY(st.y);
+      if (v0) { v0.classList.add('rd-over'); v0.scrollTop = 0; }
+      return r0;
+    }
     document.querySelectorAll('.view.rd-calm').forEach(function (v) { if (v.id !== 'view-' + name) v.classList.remove('rd-calm'); });
     if (DETAIL[name] && !DETAIL[from] && !st && UNDER_OK[from] && freeze(from)) {
       var r = _show.apply(this, arguments);
@@ -452,6 +477,7 @@
       return r;
     }
     if (st && !DETAIL[name]) {
+      ctx = name === 'perfil-publico' ? { name: st.name, y: st.y, nav: st.nav } : null;
       var dv = viewEl(from);
       if (dv) { dv.classList.remove('rd-over'); dv.style.transform = ''; dv.style.borderRadius = ''; }
       release();
@@ -538,7 +564,7 @@
     if (typeof orig !== 'function') return;
     window[name] = function (afterNav) {
       if (on()) {
-        close(window._rdSheetDir || 'down', window._rdSheetVel || 0, !!window._rdSheetFromPop);
+        close(window._rdSheetDir || 'down', window._rdSheetVel || 0, (!!window._rdSheetFromPop || popNav()));
         window._rdSheetDir = null; window._rdSheetVel = 0;
         if (typeof afterNav === 'function') setTimeout(afterNav, 0);
         return;
@@ -560,7 +586,9 @@
   }, { passive: true, capture: true });
   window.addEventListener('popstate', function (e) {
     if (ignorePop > 0) { ignorePop--; e.stopImmediatePropagation(); return; }
-    if (on()) {
+    // [V219] si el atrás LLEGA a un post (perfil → post), es ese post el que se abre: no se cierra
+    var to = e.state && e.state.rueddaView;
+    if (on() && !DETAIL[to]) {
       e.stopImmediatePropagation();
       close('right', 0, true, performance.now() - edgeAt < 1800);
     }

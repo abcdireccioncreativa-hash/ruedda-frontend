@@ -2770,7 +2770,7 @@ function rdRegion(r){
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=5" defer></script>
 <script src="/rd-usa.js?v=5" defer></script>
-<script src="/rd-post.js?v=26" defer></script>
+<script src="/rd-post.js?v=27" defer></script>
 <script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=2" defer></script><script src="/rd-track.js?v=3" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
@@ -4985,7 +4985,7 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
         <span class="enc-bodas-tag">pronto</span>
       </div>
       <!-- [V214] MINI RUEDDAS (próximamente): el mercado diecast de Venezuela. Ilustración propia (svg) -->
-      <div class="enc-card enc-fullphoto enc-bodas enc-mini" data-enc="minirueddas" onclick="showSoonPill('Mini Rueddas llega pronto')">
+      <div class="enc-card enc-fullphoto enc-bodas enc-mini" data-enc="minirueddas" onclick="_rdMiniOpen()">
         <img class="enc-bodas-img" src="/assets/inline/mini-rueddas-card.svg" alt="" loading="lazy" decoding="async">
         <div class="enc-title">Mini Rueddas</div>
         <span class="enc-bodas-tag">pronto</span>
@@ -7262,7 +7262,7 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
   <div class="search-top">
     <div class="search-bar">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;flex-shrink:0;color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="text" id="search-input" placeholder="marca, modelo, año..." oninput="doSearch(this.value)">
+      <input type="text" id="search-input" placeholder="marca, modelo o año" oninput="doSearch(this.value)">
     </div>
     <button class="search-cancel" onclick="closeSearch()">cancelar</button>
   </div>
@@ -7280,8 +7280,13 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     <div class="sb-budget-scale"><span>$0</span><span>$550.000+</span></div>
   </div>
   <div id="search-results">
-    <div class="search-cat-label" style="margin-bottom:8px">categorías rápidas</div>
-    <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:20px">
+    <div class="rd-sq" id="rd-sq">
+      <button type="button" class="rd-sq-t" data-k="cat" onclick="_rdSqGo('cat')"><b>categorías</b><i class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></i></button>
+      <button type="button" class="rd-sq-t" data-k="marcas" onclick="_rdSqGo('marcas')"><b>marcas</b><i class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></i></button>
+      <button type="button" class="rd-sq-t" data-k="subastas" onclick="_rdSqGo('subastas')"><b>subastas</b><i class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></i></button>
+      <button type="button" class="rd-sq-t" data-k="extra" onclick="_rdSqGo('extra')"><b>ruedda extra</b><i class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></i></button>
+    </div>
+    <div class="rd-sq-cats" id="rd-sq-cats">
       <button class="mkt-pill" onclick="applySearch('SUV')">SUV</button>
       <button class="mkt-pill" onclick="applySearch('Pickup')">Pickup</button>
       <button class="mkt-pill" onclick="applySearch('Sedán')">Sedán</button>
@@ -7289,8 +7294,6 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
       <button class="mkt-pill" onclick="applySearch('0km')">0km</button>
       <button class="mkt-pill" onclick="applySearch('chocado')">Chocados</button>
     </div>
-    <div class="search-cat-label" style="margin-bottom:8px">marcas populares</div>
-    <div id="search-pop-marcas" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:22px"></div>
     <!-- [mock] banner patrocinante — placeholder estático, sin llamadas ni imágenes nuevas -->
     <div class="rd-search-ad" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
       <div style="width:38px;height:38px;border-radius:10px;background:var(--w8);display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -7385,6 +7388,15 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
   </div>
   </div>
   <div class="drawer-bottom">
+    <!-- [V219] tema claro/oscuro en el menú (mismo control que escritorio) -->
+    <div class="rd-dtheme">
+      <span class="rd-dtheme-l">apariencia</span>
+      <div class="rd-dtheme-sw" role="group" aria-label="tema">
+        <i class="rd-dtheme-th" aria-hidden="true"></i>
+        <button type="button" class="rd-dtheme-b" data-mode="light" onclick="setTheme('light')" aria-label="modo claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg><span>claro</span></button>
+        <button type="button" class="rd-dtheme-b" data-mode="dark" onclick="setTheme('dark')" aria-label="modo oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>oscuro</span></button>
+      </div>
+    </div>
     <div onclick="closeDrawer();showView('afiliate')" style="cursor:pointer;padding:3px 0 25px;margin-bottom:10px;border-bottom:1px solid var(--border)">
       <span style="font-size:14px;font-weight:300;color:var(--w60)">¿eres concesionario? </span><span style="font-size:14px;font-weight:700;color:var(--white)">afíliate</span>
     </div>
@@ -13604,11 +13616,16 @@ async function _rdAgencySubmit(){
   ['agx-agencia'].forEach(id=>{document.getElementById(id).value='';});
 }
 // [v40] la lupa entra como hoja nativa: primero arranca la animación, el pintado pesado va en el cuadro siguiente
-function openSearch(){const o=document.getElementById('search-overlay');clearTimeout(o._rdOut);o.classList.remove('closing');o.classList.add('open');requestAnimationFrame(()=>requestAnimationFrame(()=>{if(typeof _rdSearchPopular==='function')_rdSearchPopular();if(typeof _rdEnsureConcesionarios==='function')_rdEnsureConcesionarios();/* sin autofocus: el teclado sale solo al tocar el campo */_loadMarcaLogos().then(_renderSearchPopMarcas);}));}
+function openSearch(){const o=document.getElementById('search-overlay');clearTimeout(o._rdOut);o.classList.remove('closing');o.classList.add('open');requestAnimationFrame(()=>requestAnimationFrame(()=>{if(typeof _rdSearchPopular==='function')_rdSearchPopular();if(typeof _rdEnsureConcesionarios==='function')_rdEnsureConcesionarios();/* sin autofocus: el teclado sale solo al tocar el campo */if(typeof _rdSqPaint==='function')_rdSqPaint();}));}
 function closeSearch(){const o=document.getElementById('search-overlay');const fin=()=>{o.classList.remove('open','closing');document.getElementById('search-input').value='';_resetSearchBudget();resetSearchResults()};if(!o.classList.contains('open')||matchMedia('(prefers-reduced-motion:reduce)').matches||innerWidth>899){fin();return}document.activeElement&&document.activeElement.blur&&document.activeElement.blur();o.classList.add('closing');clearTimeout(o._rdOut);o._rdOut=setTimeout(fin,240)}
 function resetSearchResults(){
-  document.getElementById('search-results').innerHTML=`<div class="search-cat-label" style="margin-bottom:8px">categorías rápidas</div>
-    <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:20px">
+  document.getElementById('search-results').innerHTML=`<div class="rd-sq" id="rd-sq">
+      <button type="button" class="rd-sq-t" data-k="cat" onclick="_rdSqGo('cat')"><b>categorías</b><i class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></i></button>
+      <button type="button" class="rd-sq-t" data-k="marcas" onclick="_rdSqGo('marcas')"><b>marcas</b><i class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></i></button>
+      <button type="button" class="rd-sq-t" data-k="subastas" onclick="_rdSqGo('subastas')"><b>subastas</b><i class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></i></button>
+      <button type="button" class="rd-sq-t" data-k="extra" onclick="_rdSqGo('extra')"><b>ruedda extra</b><i class="ar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg></i></button>
+    </div>
+    <div class="rd-sq-cats" id="rd-sq-cats">
       <button class="mkt-pill" onclick="applySearch('SUV')">SUV</button>
       <button class="mkt-pill" onclick="applySearch('Pickup')">Pickup</button>
       <button class="mkt-pill" onclick="applySearch('Sedán')">Sedán</button>
@@ -13616,8 +13633,6 @@ function resetSearchResults(){
       <button class="mkt-pill" onclick="applySearch('0km')">0km</button>
       <button class="mkt-pill" onclick="applySearch('chocado')">Chocados</button>
     </div>
-    <div class="search-cat-label" style="margin-bottom:8px">marcas populares</div>
-    <div id="search-pop-marcas" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin-bottom:22px"></div>
     <div class="rd-search-ad" style="display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:20px">
       <div style="width:38px;height:38px;border-radius:10px;background:var(--w8);display:flex;align-items:center;justify-content:center;flex-shrink:0">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="1.6" style="width:18px;height:18px"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
@@ -13628,7 +13643,7 @@ function resetSearchResults(){
       </div>
       <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0">ad</span>
     </div>`;
-  _renderSearchPopMarcas();
+  if(typeof _rdSqPaint==='function') _rdSqPaint();
 }
 // [FIX] búsqueda premium — chips de marcas populares con logo real (reusa
 // MARCA_LOGOS de la vista Marcas, misma fuente de datos, cero duplicación).
@@ -13638,7 +13653,7 @@ const _searchPopMarcasList=['Toyota','Chevrolet','Ford','Jeep','Hyundai','Kia','
 // Solo en la vista inicial de la búsqueda: al escribir o mover el precio, doSearch pinta las cards de siempre.
 function _rdSearchPopular(){
   const res=document.getElementById('search-results');
-  if(!res||!res.querySelector('#search-pop-marcas')) return;
+  if(!res||!res.querySelector('#rd-sq')) return;
   const now=Date.now();
   const items=[..._mktGen().filter(l=>!l.vendido).map(a=>({a,k:'market'})),...AUCTIONS.filter(a=>!a.programada&&a.endTime>now).map(a=>({a,k:'subasta'}))]
     .sort((x,y)=>(y.a.viewCount||0)-(x.a.viewCount||0));
@@ -13659,7 +13674,7 @@ function _rdSpWatch(){
     if(!g||n>=all.length) return;
     const nx=Math.min(all.length,n+12); window._rdSpN=nx;
     g.insertAdjacentHTML('beforeend',_rdSpHtml(all.slice(n,nx)));
-  },{root:res,rootMargin:'0px 0px 600px 0px'});
+  },{root:document.getElementById('search-overlay'),rootMargin:'0px 0px 600px 0px'});
   window._rdSpIO.observe(m);
 }
 function _rdSpHtml(items){
@@ -22595,7 +22610,11 @@ async function openUserProfile(userId){
 }
 
 function _backFromProfile(){
-  showView(window._profileBackView||'home');
+  // [V219] si se llegó desde un post, "volver" es el atrás del historial: el post vuelve encima
+  // de la pantalla de donde se abrió (rd-post.js) y al cerrarlo se llega ahí, no otra vez al perfil
+  const b=window._profileBackView||'home';
+  if((b==='market-detail'||b==='detail')&&history.state&&history.state.rueddaView==='perfil-publico'&&window._rdPostCtx&&window._rdPostCtx()){ try{ history.back(); return; }catch(e){} }
+  showView(b);
 }
 
 async function _followToggle(userId,btn){
@@ -27240,4 +27259,129 @@ function _sbHint(){
   try{ n=AUCTIONS.filter(function(a){return _withinBudget(a,true);}).length+MARKET_LISTINGS.filter(function(a){return _withinBudget(a,false);}).length; }catch(e){}
   h.textContent=n+(n===1?' carro':' carros');
 }
+</script>
+
+<style id="rd-v219">
+/* [V219] lupa: todo se desliza junto (el filtro de precio ya no se queda fijo); solo la barra de búsqueda queda arriba */
+#search-overlay{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#search-overlay>.search-top{position:sticky;top:calc(-18px - env(safe-area-inset-top));z-index:5;margin:calc(-18px - env(safe-area-inset-top)) -18px 0;padding:calc(18px + env(safe-area-inset-top)) 18px 10px;background:var(--bg)}
+#search-overlay>#search-results{flex:none;min-height:auto;overflow:visible}
+/* buscador minimal, letra del linktree (Open Sauce One 300) */
+#search-overlay .search-bar{background:transparent;border:1px solid var(--w12);border-radius:100px;padding:12px 16px}
+#search-overlay .search-bar input{font-family:'OpenSauceOne',-apple-system,system-ui,sans-serif;font-weight:300;font-size:16px;letter-spacing:-.01em}
+#search-overlay .search-bar input::placeholder{color:var(--w40);font-weight:300}
+#search-overlay .search-cancel{font-weight:300;letter-spacing:-.01em}
+#search-overlay .search-cat-label{font-size:10px;font-weight:400;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
+/* 4 accesos con foto */
+.rd-sq{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0 12px}
+.rd-sq-t{position:relative;display:block;width:100%;aspect-ratio:16/10;border:0;padding:0;border-radius:18px;overflow:hidden;background:var(--card);box-shadow:inset 0 0 0 1px var(--w8);cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:var(--font);text-align:left;transition:transform .22s cubic-bezier(.32,.72,0,1)}
+.rd-sq-t:active{transform:scale(.97)}
+.rd-sq-t .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transform:scale(1.04);transition:opacity .5s ease,transform .9s cubic-bezier(.22,1,.36,1)}
+.rd-sq-t .ph.in{opacity:1;transform:none}
+.rd-sq-t::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 38%,rgba(0,0,0,.62) 100%);pointer-events:none}
+.rd-sq-t b{position:absolute;left:13px;bottom:11px;z-index:2;color:#fff;font-weight:500;font-size:14.5px;letter-spacing:-.02em;text-shadow:0 1px 10px rgba(0,0,0,.35)}
+.rd-sq-t .ar{position:absolute;top:9px;right:9px;z-index:2;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(10,10,10,.38);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.rd-sq-t .ar svg{width:13px;height:13px}
+.rd-sq-t[data-k="cat"].on .ar{transform:rotate(90deg)}
+.rd-sq-t .ar{transition:transform .3s cubic-bezier(.32,.72,0,1)}
+.rd-sq-cats{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;max-height:0;opacity:0;margin-bottom:8px;transition:max-height .35s cubic-bezier(.32,.72,0,1),opacity .25s ease,margin .35s ease}
+.rd-sq-cats::-webkit-scrollbar{display:none}
+.rd-sq-cats.on{max-height:60px;opacity:1;margin-bottom:20px}
+/* menú: apariencia */
+.rd-dtheme{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 0 20px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.rd-dtheme-l{font-size:13px;font-weight:400;color:var(--muted);letter-spacing:-.1px}
+.rd-dtheme-sw{position:relative;display:grid;grid-template-columns:1fr 1fr;padding:3px;border-radius:100px;background:var(--w6);border:1px solid var(--w10)}
+.rd-dtheme-b{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;border:0;background:none;padding:7px 12px;border-radius:100px;font:500 12.5px var(--font);letter-spacing:-.1px;color:var(--w50);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:color .25s ease}
+.rd-dtheme-b svg{width:13px;height:13px}
+html:not([data-theme="light"]) .rd-dtheme-b[data-mode="dark"],html[data-theme="light"] .rd-dtheme-b[data-mode="light"]{color:var(--white)}
+.rd-dtheme-th{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:100px;background:var(--w14);box-shadow:0 1px 2px rgba(0,0,0,.18),inset 0 0 0 1px var(--w8);transform:translateX(100%);transition:transform .38s cubic-bezier(.32,.72,0,1)}
+html[data-theme="light"] .rd-dtheme-th{transform:none;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.06)}
+/* Mini Rueddas: capa a pantalla completa */
+#rd-mini{position:fixed;inset:0;z-index:2147483000;background:#0f1530;transform:translate3d(0,100%,0);transition:transform .5s cubic-bezier(.32,.72,0,1)}
+#rd-mini.in{transform:none}
+#rd-mini iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#0f1530}
+#rd-mini .x{position:absolute;top:calc(12px + env(safe-area-inset-top));right:14px;z-index:2;width:36px;height:36px;border-radius:50%;border:0;display:grid;place-items:center;color:#f4ecd6;background:rgba(15,21,48,.45);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 0 0 1px rgba(244,236,214,.18);cursor:pointer}
+#rd-mini .x svg{width:16px;height:16px}
+@media (prefers-reduced-motion:reduce){#rd-mini{transition:none}.rd-sq-t .ph{transition:none}}
+</style>
+<script>
+/* [V219] lupa: fotos de los 4 accesos, categorías desplegables; Mini Rueddas como capa */
+(function(){
+  var used={};
+  function encPhoto(slot){ var i=document.querySelector('#enc-'+slot+'-photo .enc-photo-img'); return i&&i.src||''; }
+  function listPhoto(list,skip){
+    for(var i=0;i<(list||[]).length;i++){ var a=list[i], u=a&&a.photoUrls&&a.photoUrls[0]; if(u&&!skip[u]) return u; }
+    return '';
+  }
+  function src(k,skip){
+    var mk=[], au=[];
+    try{ mk=(typeof _mktGen==='function'?_mktGen():(window.MARKET_LISTINGS||[])).filter(function(l){return !l.vendido;}).slice().sort(function(x,y){return (y.viewCount||0)-(x.viewCount||0);}); }catch(e){}
+    try{ au=(window.AUCTIONS||[]).slice(); }catch(e){}
+    if(k==='subastas') return encPhoto('subastas')||listPhoto(au,skip)||listPhoto(mk,skip);
+    if(k==='marcas') return encPhoto('marcas')||listPhoto(mk,skip);
+    return listPhoto(mk,skip);
+  }
+  window._rdSqPaint=function(){
+    var g=document.getElementById('rd-sq'); if(!g) return;
+    var skip={}, miss=0;
+    ['subastas','marcas','cat','extra'].forEach(function(k){
+      var t=g.querySelector('[data-k="'+k+'"]'); if(!t) return;
+      var cur=t.querySelector('.ph');
+      if(cur){ skip[cur.getAttribute('data-u')]=1; return; }
+      var u=used[k]&&!skip[used[k]]?used[k]:src(k,skip);
+      if(!u){ miss++; return; }
+      skip[u]=1; used[k]=u;
+      var im=document.createElement('img'); im.className='ph'; im.alt=''; im.decoding='async'; im.setAttribute('data-u',u);
+      im.onload=function(){ requestAnimationFrame(function(){ im.classList.add('in'); }); };
+      im.onerror=function(){ im.remove(); };
+      im.src=(typeof _tImg==='function')?_tImg(u,{width:520,quality:78}):u;
+      t.insertBefore(im,t.firstChild);
+    });
+    // los datos del market llegan después de abrir la app: reintenta una vez
+    if(miss&&!g._rdRetry){ g._rdRetry=1; setTimeout(function(){ g._rdRetry=0; window._rdSqPaint(); },1800); }
+  };
+  window._rdSqGo=function(k){
+    try{ window._rdHapticNow&&window._rdHapticNow('LIGHT'); }catch(e){}
+    if(k==='cat'){
+      var c=document.getElementById('rd-sq-cats'), t=document.querySelector('#rd-sq [data-k="cat"]');
+      var on=c&&c.classList.toggle('on'); if(t) t.classList.toggle('on',!!on); return;
+    }
+    if(typeof closeSearch==='function') closeSearch();
+    setTimeout(function(){
+      if(k==='marcas') showView('marcas');
+      else if(k==='subastas'){ showView('home'); if(typeof selectSection==='function') selectSection('subastas'); }
+      else if(k==='extra'){ if(typeof _toggleRueddaExtra==='function') _toggleRueddaExtra(); else showView('ruedda-extra'); }
+    },60);
+  };
+
+  // ── Mini Rueddas ──
+  var mini=null, ignore=0;
+  function close(fromPop){
+    if(!mini) return;
+    var m=mini; mini=null;
+    m.classList.remove('in');
+    setTimeout(function(){ if(m.parentNode) m.remove(); },520);
+    if(!fromPop){ ignore++; try{ history.back(); }catch(e){ ignore--; } }
+  }
+  window._rdMiniOpen=function(){
+    if(mini) return;
+    try{ window._rdHapticNow&&window._rdHapticNow('LIGHT'); }catch(e){}
+    mini=document.createElement('div'); mini.id='rd-mini';
+    mini.innerHTML='<iframe src="/mini-rueddas.html" title="Mini Rueddas"></iframe><button type="button" class="x" aria-label="cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
+    mini.querySelector('.x').onclick=function(){ close(false); };
+    document.body.appendChild(mini);
+    try{ history.pushState(Object.assign({},history.state||{},{rdMini:1}),'',location.href); }catch(e){}
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ if(mini) mini.classList.add('in'); }); });
+  };
+  window.addEventListener('popstate',function(e){
+    if(ignore>0){ ignore--; e.stopImmediatePropagation(); return; }
+    if(mini){ e.stopImmediatePropagation(); close(true); }
+  },true);
+  // gesto de borde nativo (iOS/Android): la capa de Mini Rueddas va primero
+  var _L=window._rdLayer;
+  window._rdLayer=function(){
+    if(mini) return { can:function(){return true;}, begin:function(){}, end:function(ok){ if(ok) close(false); } };
+    return typeof _L==='function'?_L():null;
+  };
+})();
 </script>

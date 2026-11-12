@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1530">
+<meta name="robots" content="noindex">
+<title>Mini Rueddas</title>
+<!-- [V219] Mini Rueddas (próximamente): se abre como capa desde "encuentra" en la app -->
+<style>
+@font-face{font-family:'OpenSauceOne';font-weight:300;font-display:swap;src:url('/assets/fonts/opensauceone-300.906e8fb6.woff2') format('woff2')}
+@font-face{font-family:'OpenSauceOne';font-weight:400;font-display:swap;src:url('/assets/fonts/opensauceone-400.d20e72bf.woff2') format('woff2')}
+@font-face{font-family:'OpenSauceOne';font-weight:500;font-display:swap;src:url('/assets/fonts/opensauceone-500.0fc79baa.woff2') format('woff2')}
+:root{--bg:#0f1530;--fg:#f4ecd6;--mute:rgba(244,236,214,.58);--line:rgba(244,236,214,.12)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--fg)}
+body{font-family:'OpenSauceOne',-apple-system,system-ui,sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;min-height:100vh;overflow-x:hidden}
+.hero{position:relative;width:100%;max-width:560px;margin:0 auto;aspect-ratio:240/236;overflow:hidden}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.06);opacity:0;animation:hero 1.4s cubic-bezier(.22,1,.36,1) .05s forwards}
+.hero::after{content:'';position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(to bottom,rgba(15,21,48,0),var(--bg))}
+@keyframes hero{to{opacity:1;transform:none}}
+main{position:relative;max-width:560px;margin:-56px auto 0;padding:0 24px calc(56px + env(safe-area-inset-bottom))}
+.up{opacity:0;transform:translateY(14px);animation:up .8s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes up{to{opacity:1;transform:none}}
+.tag{display:inline-block;font-size:10px;letter-spacing:.32em;text-transform:uppercase;font-weight:400;color:#1c2547;background:var(--fg);border-radius:100px;padding:6px 11px 5px;animation-delay:.35s}
+h1{margin-top:18px;font-size:clamp(40px,12vw,64px);line-height:.98;letter-spacing:-.05em;font-weight:300;animation-delay:.45s}
+.sub{margin-top:12px;font-size:clamp(19px,5.2vw,24px);line-height:1.25;letter-spacing:-.025em;color:var(--mute);max-width:16em;animation-delay:.55s}
+ol{list-style:none;margin-top:38px;border-top:1px solid var(--line)}
+li{display:grid;grid-template-columns:34px 1fr;gap:6px;padding:20px 0;border-bottom:1px solid var(--line)}
+li:nth-child(1){animation-delay:.7s}li:nth-child(2){animation-delay:.8s}li:nth-child(3){animation-delay:.9s}
+li span{font-size:11px;letter-spacing:.12em;color:var(--mute);font-variant-numeric:tabular-nums;padding-top:4px}
+li b{display:block;font-weight:400;font-size:18px;letter-spacing:-.02em}
+li p{margin-top:5px;font-size:14px;line-height:1.5;color:var(--mute)}
+.foot{margin-top:34px;font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--mute);animation-delay:1s}
+@media (prefers-reduced-motion:reduce){.hero img,.up{animation-duration:.01s!important;animation-delay:0s!important}}
+</style>
+</head>
+<body>
+<div class="hero"><img src="/assets/inline/mini-rueddas-card.svg" alt="un niño jugando con carritos en su cuarto, de noche"></div>
+<main>
+  <span class="tag up">pronto</span>
+  <h1 class="up">Mini Rueddas</h1>
+  <p class="sub up">el mercado de coleccionables del país.</p>
+  <ol>
+    <li class="up"><span>01</span><div><b>carritos a escala</b><p>Hot Wheels, Matchbox, Mini GT y más, de 1:64 a 1:18.</p></div></li>
+    <li class="up"><span>02</span><div><b>de coleccionista a coleccionista</b><p>publica tus piezas y encuentra las que le faltan a tu colección.</p></div></li>
+    <li class="up"><span>03</span><div><b>dentro de ruedda</b><p>la misma cuenta, el mismo chat, la misma confianza.</p></div></li>
+  </ol>
+  <div class="foot up">mini rueddas · llega pronto</div>
+</main>
+</body>
+</html>
