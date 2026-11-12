@@ -51,6 +51,7 @@
 @keyframes rdccShk{20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
 #rdcc .hint{font-size:13px;color:var(--w50);line-height:1.5;font-weight:300;margin-top:-10px;min-height:20px}
 #rdcc .hint.bad{color:#ff5a4e}
+#rdcc .terms+.hint{margin-top:10px}
 #rdcc .ch{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
 #rdcc .c{height:44px;padding:0 18px;border-radius:22px;background:var(--w8);font-size:15px;display:inline-flex;align-items:center;transition:background .25s,color .25s,transform .25s var(--ez)}
 #rdcc .c:active{transform:scale(.96)}
@@ -135,7 +136,7 @@
     function () {
       return '<div class="k">7 de 7</div><h2>¿cómo te enteraste de Ruedda?</h2>' +
         '<div class="ch">' + FUENTES.map(function (f) { return '<button class="c' + (v.fuente === f ? ' sel' : '') + '" data-f="' + esc(f) + '">' + esc(f) + '</button>'; }).join('') + '</div>' +
-        '<div class="terms"></div>' + btn('crear cuenta y entrar');
+        '<div class="terms"></div><div class="hint" id="rdcc-h"></div>' + btn('crear cuenta y entrar');
     }
   ];
 
@@ -174,7 +175,9 @@
   }
   function fmtTel(d) { return [d.slice(0, 3), d.slice(3, 6), d.slice(6)].filter(Boolean).join(' '); }
 
+  var quiet = false;
   function bad(id, msg) {
+    if (quiet) return false;
     var el = $('rdcc-' + id), b = el && el.closest('.big');
     if (b) { b.classList.remove('shk'); void b.offsetWidth; b.classList.add('shk', 'err'); setTimeout(function () { b.classList.remove('err'); }, 1400); }
     var h = $('rdcc-h');
@@ -195,6 +198,7 @@
   function go(d) {
     var n = Math.max(0, Math.min(Q, i + d));
     if (n === i) return;
+    if (d > 0) pull();
     if (d > 0 && OK[i] && !OK[i]()) return;
     if (d > 0) tap();
     i = n; render(d);
@@ -205,9 +209,18 @@
     if (busy) return;
     var tc = $('auth-terms-check');
     if (tc && !tc.checked) {
-      var l = $('auth-terms-wrap'); if (l) { l.classList.remove('shk'); void l.offsetWidth; l.classList.add('shk'); }
+      // [V217] antes solo temblaba la casilla y parecía que el botón no hacía nada
+      var l = $('auth-terms-wrap'); if (l) { l.classList.remove('shk'); void l.offsetWidth; l.classList.add('shk', 'rdcc-need'); try { l.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }
+      var h = $('rdcc-h'); if (h) { h.textContent = 'marca la casilla para aceptar los términos y crear tu cuenta.'; h.classList.add('bad'); }
       try { navigator.vibrate && navigator.vibrate([10, 40, 10]); } catch (e) {}
       return;
+    }
+    var h0 = $('rdcc-h'); if (h0) { h0.textContent = ''; h0.classList.remove('bad'); }
+    pull();
+    // por si algo quedó mal en un paso anterior: volver a ese paso en vez de fallar en silencio
+    for (var s = 1; s < Q; s++) {
+      quiet = true; var ok = !OK[s] || OK[s](); quiet = false;
+      if (!ok) { i = s; render(-1); OK[s](); return; }
     }
     toForm(v);
     busy = true;
@@ -252,12 +265,30 @@
     }
   });
 
-  root.addEventListener('input', function (e) {
-    var el = e.target, k = (el.id || '').replace('rdcc-', '');
+  // [V217] lee el valor del campo tal cual está. Antes v[k] solo se actualizaba con 'input':
+  // la sugerencia @gmail.com (desktop-popups.js) y el autocompletar de Android cambian el
+  // campo sin ese evento, y el paso validaba el texto viejo ("parece incompleto.").
+  function take(el, typing) {
+    var k = (el.id || '').replace('rdcc-', '');
     if (k === 'ced') { v.ced = el.value.replace(/\D/g, '').slice(0, 9); el.value = v.ced.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
     else if (k === 'tel') { v.tel = el.value.replace(/\D/g, '').replace(/^0/, '').slice(0, 10); el.value = fmtTel(v.tel); }
-    else if (k === 'user') { v.userTouched = true; v.user = el.value.toLowerCase().replace(/[^a-z0-9._]/g, '').slice(0, 24); el.value = v.user; }
+    else if (k === 'user') { if (typing) v.userTouched = true; v.user = el.value.toLowerCase().replace(/[^a-z0-9._]/g, '').slice(0, 24); el.value = v.user; }
+    else if (k === 'mail') v.mail = el.value.replace(/\s+/g, '');
     else if (k in v) v[k] = el.value;
+    return k;
+  }
+  function pull() { [].forEach.call(stage.querySelectorAll('input[id^="rdcc-"]'), function (el) { take(el); }); }
+
+  root.addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.id === 'auth-terms-check' && t.checked) {
+      var l = $('auth-terms-wrap'), h = $('rdcc-h');
+      if (l) l.classList.remove('rdcc-need');
+      if (h) { h.textContent = ''; h.classList.remove('bad'); }
+    } else if (t.id && t.id.indexOf('rdcc-') === 0) take(t);
+  });
+  root.addEventListener('input', function (e) {
+    var el = e.target, k = take(el, true);
     var h = $('rdcc-h');
     if (h) {
       h.classList.remove('bad');
@@ -285,6 +316,7 @@
     hide.forEach(function (el) { el.classList.remove('rdcc-hide'); });
     // términos de vuelta a su sitio
     var tw = $('auth-terms-wrap'), host = $('auth-cedula-wrap');
+    if (tw) tw.classList.remove('rdcc-need');
     if (tw && host && host.parentNode) host.parentNode.appendChild(tw);
   }
 

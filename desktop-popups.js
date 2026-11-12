@@ -703,6 +703,9 @@
     t.value=val;
     try{ t.setSelectionRange(val.length,val.length); }catch(e){}
     acHide();
+    // [V217] 'input' también: los formularios que escuchan input (crear cuenta) no veían el correo elegido
+    try{ t.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){}
+    acHide();
     try{ t.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
   }
   function acUpdate(t){
