@@ -5408,14 +5408,14 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
 <div class="vender-modal" id="vender-modal" onclick="closeVenderModalOutside(event)">
   <div class="vender-sheet">
     <div class="vender-handle"></div>
-    <div class="vender-sheet-title">¿cómo quieres vender?</div>
+    <div class="vender-sheet-title">¿cómo quieres publicar?</div>
     <div class="vender-sheet-sub">Selecciona el tipo de cuenta para continuar</div>
     <div class="vender-type-btn" id="vender-btn-particular" onclick="handleVenderClick('particular')">
       <div class="vender-type-icon">
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       </div>
       <div class="vender-type-info">
-        <h3>particular</h3>
+        <h3>venta normal</h3>
         <p class="vt-sub">vendo mi vehículo personal en el market</p>
       </div>
     </div>
@@ -11367,7 +11367,7 @@ function closePartnersModal(){const m=document.getElementById('partners-modal');
 function closePartnersModalOutside(e){if(e.target.id==='partners-modal')closePartnersModal()}
 const PLANS = {
   particular: {
-    badge:'particular', badgeColor:'var(--w7)', badgeText:'var(--w50)',
+    badge:'venta normal', badgeColor:'var(--w7)', badgeText:'var(--w50)',
     title:'publicación<br>en el market',
     subtitle:'Tu vehículo visible para compradores en Venezuela.',
     price:'$5', priceSub:'USD por publicación',
