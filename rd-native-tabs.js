@@ -23,7 +23,7 @@
   function theme() { return root.getAttribute('data-theme') === 'light' ? 'light' : 'dark'; }
   function vis(id) { var d = document.getElementById(id); return !!d && d.style.display === 'block'; }
   function img(u, w) { try { return u ? _tImg(u, { width: w, quality: 78 }) : ''; } catch (e) { return u || ''; } }
-  var SEL = { 'bnav-home': 'home', 'bnav-notificaciones': 'notifs', 'bnav-favoritos': 'comunidad', 'bnav-mensajes': 'msgs', 'bnav-cuenta': 'cuenta' };
+  var SEL = { 'bnav-home': 'home', 'bnav-buscar': 'search', 'bnav-notificaciones': 'notifs', 'bnav-favoritos': 'comunidad', 'bnav-mensajes': 'msgs', 'bnav-cuenta': 'cuenta' };
 
   // ¿algo (buscador, menú, hojas, splash, intro) tapa la barra? entonces la nativa se esconde
   function covered() {
@@ -171,6 +171,7 @@
       try {
         if (tab === 'home') goHome();
         else if (tab === 'notifs') _rdOpenNotifs();
+        else if (tab === 'search') openSearch(); // [V216] build 49+: la lupa vive en la barra nativa
         else if (tab === 'msgs') _rdOpenMensajes();
         else if (tab === 'comunidad') showView('favoritos');
         else if (tab === 'cuenta') showView('cuenta');
