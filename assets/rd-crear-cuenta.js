@@ -97,7 +97,7 @@
   var STEPS = [
     function () {
       return '<div class="k lc">menos de 1 minuto</div>' +
-        '<h2>crea tu cuenta y comienza a comerciar vehículos.</h2>' +
+        '<h2>crea tu cuenta y empieza a comerciar vehículos.</h2>' +
         '<p class="sub">publica gratis, habla directo con compradores y vendedores, y cierra el trato más rápido.</p>' +
         btn('crear cuenta') +
         (socialOk() ? '<div class="soc"><div class="dv"><i></i><span>o continúa con</span><i></i></div><div class="socb"></div></div>' : '') +
