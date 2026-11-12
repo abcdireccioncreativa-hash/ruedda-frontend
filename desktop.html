@@ -1417,6 +1417,22 @@ html.rd-safari-tab .modal-overlay>div{padding-bottom:calc(env(safe-area-inset-bo
 .drawer-soon svg{width:14px;height:14px;flex-shrink:0;color:var(--lime)}
 .drawer-item:hover{color:var(--lime)}
 .drawer-bottom{margin-top:auto;font-size:12px;color:var(--muted2);padding-top:20px;padding-bottom:40px;border-top:1px solid var(--border)}
+/* [V218] menú: foto de perfil arriba, igual que en la app */
+#rd-drw-me{display:flex;align-items:center;gap:14px;padding:6px 0 22px 2px;margin-bottom:10px;border-bottom:1px solid var(--border);cursor:pointer;transition:opacity .15s}
+#rd-drw-me:hover{opacity:.8}
+#rd-drw-me .av{width:56px;height:56px;border-radius:50%;flex-shrink:0;background:var(--card2);box-shadow:0 0 0 1px var(--w12);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;color:var(--white)}
+#rd-drw-me .av img{width:100%;height:100%;object-fit:cover;display:block}
+#rd-drw-me .nm{font-size:17px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#rd-drw-me .sb{font-size:12.5px;color:var(--muted);margin-top:3px}
+.rd-dtheme{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 0 20px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.rd-dtheme-l{font-size:13px;font-weight:400;color:var(--muted);letter-spacing:-.1px}
+.rd-dtheme .theme-switch{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:0;padding:3px;border-radius:100px;background:var(--w6);border:1px solid var(--w10)}
+.rd-dtheme .theme-switch-btn{position:relative;z-index:1;gap:6px;padding:7px 12px;border-radius:100px;font:500 12.5px var(--font);letter-spacing:-.1px;color:var(--w50);transition:color .25s ease}
+.rd-dtheme .theme-switch-btn svg{width:13px;height:13px}
+.rd-dtheme .theme-switch-btn:hover{color:var(--w80)}
+.rd-dtheme .theme-switch-btn.active{background:none;color:var(--white)}
+.rd-dtheme-th{position:absolute;top:3px;bottom:3px;left:3px;width:calc(50% - 3px);border-radius:100px;background:var(--w14);box-shadow:0 1px 2px rgba(0,0,0,.18),inset 0 0 0 1px var(--w8);transform:translateX(100%);transition:transform .38s cubic-bezier(.32,.72,0,1)}
+html[data-theme="light"] .rd-dtheme-th{transform:none;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.06)}
 
 /* TOAST */
 .toast{position:fixed;top:76px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--surface-mid);border:1px solid var(--border);border-radius:100px;padding:11px 22px;font-size:14px;font-weight:500;z-index:10000;opacity:0;transition:all .28s;white-space:nowrap;pointer-events:none}
@@ -2753,14 +2769,6 @@ html[data-theme="light"] .marcas-hero{background:#fff;border-bottom:1px solid rg
     <span class="navbar-link" onclick="showView('favoritos')">comunidad</span>
   </div>
   <div class="nav-right">
-    <div class="theme-switch" role="group" aria-label="tema">
-      <button class="theme-switch-btn" data-mode="light" onclick="setTheme('light')" title="modo claro" aria-label="modo claro">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
-      </button>
-      <button class="theme-switch-btn" data-mode="dark" onclick="setTheme('dark')" title="modo oscuro" aria-label="modo oscuro">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-      </button>
-    </div>
     <span id="nav-auth-text" onclick="showLandingAuth('login')" style="font-size:13.5px;font-weight:400;color:var(--white);cursor:pointer;white-space:nowrap;margin-right:4px;transition:color .15s">inicia sesión</span>
     <!-- [2026-10-08] lupa que se despliega en "Buscar un carro ⌘K" al acercarse -->
     <button class="rd-qs" id="rd-qs" onclick="openSearch()" aria-label="buscar un carro">
@@ -5639,6 +5647,7 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
 <div class="drawer" id="drawer">
   <button class="drawer-close" onclick="closeDrawer()"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   <div class="drawer-scroll">
+  <div id="rd-drw-me" onclick="_rdDrawerMe()"><div class="av"></div><div style="min-width:0"><div class="nm"></div><div class="sb"></div></div></div>
   <div class="drawer-item" onclick="closeDrawer();showView('home')"><img data-rdimg="gavel" style="width:20px;height:20px;flex-shrink:0;opacity:.7;object-fit:contain" alt="">subastas</div>
   <!-- [TODO] ícono temporal de garaje/taller — reemplazar por el ícono definitivo de Market cuando esté listo -->
   <div class="drawer-item" onclick="closeDrawer();showView('home');selectSection('market')"><span class="icon-mask icon-mask-market" style="width:20px;height:20px"></span>market</div>
@@ -5665,6 +5674,15 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
   </div>
   </div>
   <div class="drawer-bottom">
+    <!-- [V218] tema claro/oscuro: antes en la barra de arriba, ahora en el menú -->
+    <div class="rd-dtheme">
+      <span class="rd-dtheme-l">apariencia</span>
+      <div class="theme-switch" role="group" aria-label="tema">
+        <i class="rd-dtheme-th" aria-hidden="true"></i>
+        <button class="theme-switch-btn" data-mode="light" onclick="setTheme('light')" aria-label="modo claro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg><span>claro</span></button>
+        <button class="theme-switch-btn" data-mode="dark" onclick="setTheme('dark')" aria-label="modo oscuro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><span>oscuro</span></button>
+      </div>
+    </div>
     <div onclick="closeDrawer();showView('afiliate')" style="cursor:pointer;padding:3px 0 25px;margin-bottom:10px;border-bottom:1px solid var(--border)">
       <span style="font-size:14px;font-weight:300;color:var(--w60)">¿eres concesionario? </span><span style="font-size:14px;font-weight:700;color:var(--white)">afíliate</span>
     </div>
@@ -24204,3 +24222,31 @@ function _rdNearestCity(btn){
 .marca-card{--ko:var(--card2)}
 .marca-card .mk{display:block;fill:currentColor;color:var(--white);pointer-events:none}
 </style>
+
+<script>
+/* [V218] menú hamburguesa: foto de perfil arriba (misma lógica que index.html) */
+(function(){
+  function paintMe(){
+    var w=document.getElementById('rd-drw-me'); if(!w) return;
+    var g=(typeof isGuest==='function')?isGuest():true, U=(typeof USER_STATE!=='undefined')?USER_STATE:{};
+    var nm=g?'invitado':(U.nombre||U.username||'mi perfil');
+    var av=w.querySelector('.av');
+    if(!g&&U.avatar){ var src=(typeof _tImg==='function')?_tImg(U.avatar,{width:360,quality:85}):U.avatar; av.innerHTML='<img alt="" decoding="async" src="'+String(src).replace(/"/g,'&quot;')+'">'; }
+    else if(g) av.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:26px;height:26px;opacity:.75"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    else av.textContent=(nm||'?').charAt(0).toUpperCase();
+    w.querySelector('.nm').textContent=nm;
+    w.querySelector('.sb').textContent=g?'inicia sesión':'ver mi perfil';
+  }
+  window._rdDrawerMe=function(){
+    if(typeof closeDrawer==='function') closeDrawer();
+    var g=(typeof isGuest==='function')?isGuest():true;
+    if(g){ if(typeof showLandingAuth==='function') showLandingAuth('login'); return; }
+    if(typeof openUserProfile==='function'&&USER_STATE&&USER_STATE.id) openUserProfile(USER_STATE.id); else showView('cuenta');
+  };
+  function hook(){
+    var od=window.openDrawer; if(typeof od!=='function'||od._rdMe) return;
+    var w=function(){ try{ paintMe(); }catch(e){} return od.apply(this,arguments); }; w._rdMe=1; window.openDrawer=w;
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',hook); else hook();
+})();
+</script>
