@@ -3324,8 +3324,9 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
           <div class="mkt-cond-toggle show" id="mkt-cond-toggle" role="switch" aria-label="filtrar por condición">
             <div class="mkt-cond-thumb" id="mkt-cond-thumb"></div>
             <div class="mkt-cond-track">
-              <div class="mkt-cond-tab active" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
-              <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')" style="padding-left:20px">nuevos</div>
+              <div class="mkt-cond-tab active" id="mkt-tab-todos" onclick="setMktCond('todos')">todos</div>
+              <div class="mkt-cond-tab" id="mkt-tab-usados" onclick="setMktCond('usados')">usados</div>
+              <div class="mkt-cond-tab" id="mkt-tab-nuevos" onclick="setMktCond('nuevos')">nuevos</div>
             </div>
           </div>
           <div class="mkt-view-toggle" role="group" aria-label="vista de resultados">
@@ -3347,6 +3348,11 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
           <button class="filter-btn" id="market-filter-btn" onclick="toggleFilterPanel('market')">
             <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
             <span id="market-filter-count"></span>
+          </button>
+          <button type="button" class="rd-city-btn" id="rd-city-btn" onpointerdown="window.RDMap&&RDMap.preload()" onclick="openCitySheet()" aria-label="buscar por ciudad">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+            <span id="rd-city-label">ciudad</span>
+            <i id="rd-city-clear" onclick="event.stopPropagation();setMarketCity(null)" hidden>×</i>
           </button>
           <div class="mkt-pill active" onclick="mktPill(this,'todos')">todos</div>
           <div class="mkt-pill" onclick="mktPill(this,'comercial')">comerciales</div>
@@ -5535,6 +5541,19 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     </div>
     <button class="search-cancel" onclick="closeSearch()">cancelar</button>
   </div>
+  <div class="rd-ne"><p>el nuevo estándar<br><span>en la compra y venta.</span></p></div>
+  <div class="sb-budget">
+    <div class="sb-budget-head">
+      <span class="sb-budget-title">buscar por precio</span>
+      <button type="button" class="sb-budget-map" onpointerdown="window.RDMap&&RDMap.preload()" onclick="_rdSbMap()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>ver mapa</button>
+    </div>
+    <div class="sb-budget-row">
+      <span class="sb-budget-amt" id="sb-budget-amt">$0</span>
+      <span class="sb-budget-hint" id="sb-budget-hint">sin límite</span>
+    </div>
+    <input type="range" min="0" max="1000" step="1" value="0" style="--sb-p:0%" id="sb-budget-range" class="sb-budget-range" oninput="_onSearchBudget(this.value)" aria-label="presupuesto máximo">
+    <div class="sb-budget-scale"><span>$0</span><span>$550.000+</span></div>
+  </div>
   <div id="search-results">
     <div class="search-cat-label" style="margin-bottom:8px">categorías rápidas</div>
     <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:20px">
@@ -7460,22 +7479,14 @@ async function toggleWatchlist(id,btn){
   }
 }
 // ── MARKET CONDITION FILTER ──
-let mktCond='usados';
+let mktCond='todos';
 function setMktCond(cond){
   if(mktCond===cond) return;
   mktCond=cond;
+  const order=['todos','usados','nuevos'], i=Math.max(0,order.indexOf(cond));
   const thumb=document.getElementById('mkt-cond-thumb');
-  const tabU=document.getElementById('mkt-tab-usados');
-  const tabN=document.getElementById('mkt-tab-nuevos');
-  if(cond==='nuevos'){
-    if(thumb) thumb.style.transform='translateX(100%)';
-    if(tabU){tabU.classList.remove('active');}
-    if(tabN){tabN.classList.add('active');}
-  } else {
-    if(thumb) thumb.style.transform='translateX(0)';
-    if(tabU){tabU.classList.add('active');}
-    if(tabN){tabN.classList.remove('active');}
-  }
+  if(thumb) thumb.style.transform='translateX('+(i*100)+'%)';
+  order.forEach(k=>document.getElementById('mkt-tab-'+k)?.classList.toggle('active',k===cond));
   renderMarket();
 }
 // ── MARKET VIEW MODE (grid/lista) ── [RC] toggle puramente visual: mismo template
@@ -7521,7 +7532,7 @@ function renderMarket(){
   if(typeof _mcbSync==='function') _mcbSync(mFilters.cat==='chocados');
   // filtro condicion (usados/nuevos) — campo condicion en listings
   if(mktCond==='usados') data=data.filter(l=>!l.condicion||l.condicion!=='nuevo'&&l.condicion!=='0km');
-  else data=data.filter(l=>l.condicion==='nuevo'||l.condicion==='0km');
+  else if(mktCond==='nuevos') data=data.filter(l=>l.condicion==='nuevo'||l.condicion==='0km');
   if(mFilters.cat&&mFilters.cat!=='todos'&&mFilters.cat!=='chocados'){
     // [V103] cada pill matchea su campo real: clasificacion (comercial/deportivo/clasico), carroceria (camioneta/pickup), oferta (precio rebajado)
     const _c=mFilters.cat;
@@ -7529,7 +7540,7 @@ function renderMarket(){
     else if(_c==='camioneta'||_c==='pickup') data=data.filter(l=>(l.tipoVehiculo||'').toLowerCase()===_c);
     else data=data.filter(l=>(l.clasificacion||'').toLowerCase()===_c||l.category===_c);
   }
-  if(mFilters.city&&mFilters.city!=='todas')data=data.filter(l=>l.location===mFilters.city);
+  if(mFilters.city&&mFilters.city!=='todas')data=data.filter(l=>_rdCityKey(l.location)===_rdCityKey(mFilters.city));
   if(mFilters.price&&mFilters.price!=='todas'){
     const [mn,mx]=mFilters.price.split('-').map(Number);
     data=data.filter(l=>l.price>=mn&&l.price<=mx);
@@ -11117,8 +11128,8 @@ function markNotifRead(id){
   // ⌘K / Ctrl+K abre el buscador desde cualquier parte
   document.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&!e.shiftKey&&!e.altKey&&e.key.toLowerCase()==='k'){ e.preventDefault(); openSearch(); } });
 })();
-function openSearch(){document.getElementById('search-overlay').classList.add('open');if(typeof _rdEnsureConcesionarios==='function')_rdEnsureConcesionarios();setTimeout(()=>document.getElementById('search-input').focus(),150);_loadMarcaLogos().then(_renderSearchPopMarcas);}
-function closeSearch(){document.getElementById('search-overlay').classList.remove('open');document.getElementById('search-input').value='';resetSearchResults()}
+function openSearch(){const o=document.getElementById('search-overlay');clearTimeout(o._rdOut);o.classList.remove('closing');o.classList.add('open');requestAnimationFrame(()=>requestAnimationFrame(()=>{if(typeof _rdSearchPopular==='function')_rdSearchPopular();if(typeof _rdEnsureConcesionarios==='function')_rdEnsureConcesionarios();/* sin autofocus: el teclado sale solo al tocar el campo */_loadMarcaLogos().then(_renderSearchPopMarcas);}));}
+function closeSearch(){const o=document.getElementById('search-overlay');const fin=()=>{o.classList.remove('open','closing');document.getElementById('search-input').value='';_resetSearchBudget();resetSearchResults()};if(!o.classList.contains('open')||matchMedia('(prefers-reduced-motion:reduce)').matches||innerWidth>899){fin();return}document.activeElement&&document.activeElement.blur&&document.activeElement.blur();o.classList.add('closing');clearTimeout(o._rdOut);o._rdOut=setTimeout(fin,240)}
 function resetSearchResults(){
   document.getElementById('search-results').innerHTML=`<div class="search-cat-label" style="margin-bottom:8px">categorías rápidas</div>
     <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:20px">
@@ -11140,18 +11151,55 @@ function resetSearchResults(){
         <div style="font-size:11.5px;color:var(--muted);margin-top:1px">revisión pre-compra en 24h · espacio patrocinado</div>
       </div>
       <span style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0">ad</span>
-    </div>
-    <div class="search-cat-label">búsquedas recientes</div>
-    <div class="search-cat-item" onclick="applySearch('BMW M5')">BMW M5</div>
-    <div class="search-cat-item" onclick="applySearch('Toyota Land Cruiser')">Toyota Land Cruiser</div>
-    <div class="search-cat-item" onclick="applySearch('Ford Mustang')">Ford Mustang</div>`;
+    </div>`;
   _renderSearchPopMarcas();
 }
 // [FIX] búsqueda premium — chips de marcas populares con logo real (reusa
 // MARCA_LOGOS de la vista Marcas, misma fuente de datos, cero duplicación).
 // Fallback a inicial si el logo no ha cargado todavía — no rompe nada.
 const _searchPopMarcasList=['Toyota','Chevrolet','Ford','Jeep','Hyundai','Kia','Honda','Nissan'];
+// [2026-10-21] debajo del banner de la lupa: las ~10 publicaciones más vistas, estilo marketplace.
+// Solo en la vista inicial de la búsqueda: al escribir o mover el precio, doSearch pinta las cards de siempre.
+function _rdSearchPopular(){
+  const res=document.getElementById('search-results');
+  if(!res||!res.querySelector('#search-pop-marcas')) return;
+  const now=Date.now();
+  const items=[..._mktGen().filter(l=>!l.vendido).map(a=>({a,k:'market'})),...AUCTIONS.filter(a=>!a.programada&&a.endTime>now).map(a=>({a,k:'subasta'}))]
+    .sort((x,y)=>(y.a.viewCount||0)-(x.a.viewCount||0));
+  window._rdSpAll=items; window._rdSpN=Math.min(10,items.length);
+  let w=res.querySelector('#rd-search-pop');
+  if(!items.length){ if(w) w.remove(); return; }
+  if(!w){ w=document.createElement('div'); w.id='rd-search-pop'; res.appendChild(w); }
+  w.innerHTML='<div class="search-cat-label" style="margin-bottom:10px">más populares</div><div class="rsp-g">'+_rdSpHtml(items.slice(0,window._rdSpN))+'</div><div id="rd-search-more"></div>';
+  _rdSpWatch();
+}
+function _rdSpWatch(){
+  const res=document.getElementById('search-results'), m=document.getElementById('rd-search-more');
+  if(!res||!m||!('IntersectionObserver' in window)) return;
+  if(window._rdSpIO) window._rdSpIO.disconnect();
+  window._rdSpIO=new IntersectionObserver(es=>{
+    if(!es.some(x=>x.isIntersecting)) return;
+    const all=window._rdSpAll||[], n=window._rdSpN||0, g=document.querySelector('#rd-search-pop .rsp-g');
+    if(!g||n>=all.length) return;
+    const nx=Math.min(all.length,n+12); window._rdSpN=nx;
+    g.insertAdjacentHTML('beforeend',_rdSpHtml(all.slice(n,nx)));
+  },{root:res,rootMargin:'0px 0px 600px 0px'});
+  window._rdSpIO.observe(m);
+}
+function _rdSpHtml(items){
+  return items.map(({a,k})=>{
+    const sub=k==='subasta';
+    const ph=a.photoUrls&&a.photoUrls[0];
+    const precio=sub?fmtBid(a.currentBid):fmtBid(a.price);
+    const antes=!sub&&a.precioAnterior>Number(a.price||0)?`<s>${fmtBid(a.precioAnterior)}</s>`:'';
+    const tag=sub?'subasta':a.destacado?'featured':antes?'bajó de precio':'';
+    return `<div class="rsp-i" onclick="closeSearch();${sub?`openDetail('${a.id}')`:`openMarketDetail('${a.id}')`}">
+      <div class="rsp-ph" style="background:linear-gradient(${grads[_gidx(a.id)]})">${ph?`<img src="${_tImg(ph,{width:600,quality:80})}" alt="" loading="lazy" decoding="async" onload="this.style.opacity=1" onerror="this.remove()">`:''}${tag?`<span class="rsp-tag">${tag}</span>`:''}</div>
+      <div class="rsp-t"><b>${precio}</b>${antes} · ${_esc(a.title)}</div></div>`;
+  }).join('');
+}
 function _renderSearchPopMarcas(){
+  setTimeout(_rdSearchPopular,0);
   const wrap=document.getElementById('search-pop-marcas');
   if(!wrap) return;
   wrap.innerHTML=_searchPopMarcasList.map(m=>{
@@ -11199,9 +11247,48 @@ function _searchDealerHtml(d){
   </div>`;
 }
 function goToVitrinaFromSearch(id){ showView('home');selectSection('consesionarios');setTimeout(()=>openVitrina(id),0); }
+// presupuesto de la búsqueda: el slider va de 0 a 1000 en curva cúbica
+// ($100 a $550.000). En el tope no filtra (null).
+// [V202] arranca en $0 = sin filtro: abajo se ven los carros de siempre; al subirlo filtra en vivo.
+const _SB_START=0;
+let _searchBudget=null;
+let _sbTouched=false; // la lista solo-presupuesto aparece cuando el usuario mueve el slider
+function _budgetFromSlider(v){
+  v=Math.max(0,Math.min(1000,Number(v)||0));
+  if(v<=0||v>=1000) return null;
+  const raw=100+(550000-100)*Math.pow(v/1000,3);
+  const step=raw<1000?50:raw<10000?100:raw<100000?1000:5000;
+  return Math.max(100,Math.round(raw/step)*step);
+}
+function _fmtBudget(n){ return '$'+String(n).replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+function _onSearchBudget(v){
+  _sbTouched=Number(v)>0;
+  _searchBudget=_budgetFromSlider(v);
+  const r=document.getElementById('sb-budget-range');
+  if(r) r.style.setProperty('--sb-p',(v/10)+'%');
+  const amt=document.getElementById('sb-budget-amt');
+  if(amt) amt.textContent=Number(v)<=0?'$0':_searchBudget==null?'$550.000+':_fmtBudget(_searchBudget);
+  if(typeof _sbHint==='function') _sbHint();
+  doSearch(document.getElementById('search-input').value);
+}
+function _resetSearchBudget(){
+  _sbTouched=false;
+  _searchBudget=_budgetFromSlider(_SB_START);
+  const r=document.getElementById('sb-budget-range');
+  if(r){ r.value=_SB_START; r.style.setProperty('--sb-p',(_SB_START/10)+'%'); }
+  const amt=document.getElementById('sb-budget-amt');
+  if(amt) amt.textContent='$0';
+  if(typeof _sbHint==='function') _sbHint();
+}
+function _withinBudget(a,isAuction){
+  if(_searchBudget==null) return true;
+  const p=Number(isAuction?a.currentBid:a.price)||0;
+  return p<=_searchBudget;
+}
 function doSearch(q){
   const query=(q||'').trim();
-  if(!query){resetSearchResults();return;}
+  if(!query&&(_searchBudget==null||!_sbTouched)){resetSearchResults();return;}
+  if(!query){ _renderBudgetOnly(); return; }
   const ql=query.toLowerCase();
   const el=document.getElementById('search-results');
 
@@ -11226,8 +11313,8 @@ function doSearch(q){
   };
   const matchDealer=d=>!catMatch&&!isKm0Pill&&!isChocadoPill&&((d.nombre||'').toLowerCase().includes(ql)||(d.tag||'').toLowerCase().includes(ql)||(d.ciudad||'').toLowerCase().includes(ql));
 
-  const auctionResults=isChocadoPill?(typeof AUCTIONS_CHOCADOS!=='undefined'?AUCTIONS_CHOCADOS.slice():[]):AUCTIONS.filter(matchListing);
-  const marketResults=isChocadoPill?MARKET_LISTINGS.filter(l=>l.chocado):_mktGen().filter(matchListing);
+  const auctionResults=(isChocadoPill?(typeof AUCTIONS_CHOCADOS!=='undefined'?AUCTIONS_CHOCADOS.slice():[]):AUCTIONS.filter(matchListing)).filter(a=>_withinBudget(a,true));
+  const marketResults=(isChocadoPill?MARKET_LISTINGS.filter(l=>l.chocado):_mktGen().filter(matchListing)).filter(a=>_withinBudget(a,false));
   const dealerResults=(typeof CONCESIONARIOS!=='undefined'?CONCESIONARIOS:[]).filter(matchDealer);
 
   const total=auctionResults.length+marketResults.length+dealerResults.length;
@@ -11252,6 +11339,19 @@ function doSearch(q){
   el.innerHTML=html;
 }
 function applySearch(q){document.getElementById('search-input').value=q;doSearch(q)}
+// solo presupuesto, sin texto: todo lo que alcanza, de lo más caro a lo más barato
+function _renderBudgetOnly(){
+  const el=document.getElementById('search-results');
+  const au=AUCTIONS.filter(a=>_withinBudget(a,true)).sort((x,y)=>(Number(y.currentBid)||0)-(Number(x.currentBid)||0));
+  const mk=MARKET_LISTINGS.filter(a=>_withinBudget(a,false)).sort((x,y)=>(Number(y.price)||0)-(Number(x.price)||0));
+  const total=au.length+mk.length;
+  if(!total){ el.innerHTML='<div class="search-cat-label">nada por debajo de '+_fmtBudget(_searchBudget)+' todavía</div>'; return; }
+  el.innerHTML=`<div class="search-cat-label">hasta ${_fmtBudget(_searchBudget)} (${total})</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px">`
+    +au.map(a=>_searchCardHtml(a,'subasta')).join('')
+    +mk.map(a=>_searchCardHtml(a,'market')).join('')
+    +`</div>`;
+}
 
 // ===================== VENDER =====================
 function openVenderModal(){updateVenderModal();const m=document.getElementById('vender-modal');m.style.display='flex';requestAnimationFrame(()=>m.classList.add('open'));}
@@ -23985,4 +24085,105 @@ function _rdVidPlay(c){
   document.addEventListener('click',function(e){ if(ed&&ed.main.contains(e.target)&&!e.target.closest('#rd-det-bar')){ e.stopPropagation(); e.preventDefault(); } },true);
   document.addEventListener('keydown',function(e){ if(!ed) return; if(e.key==='Escape'){ e.stopImmediatePropagation(); end(true); } else if(e.key==='Enter') save(); else if(/^Arrow/.test(e.key)){ e.stopImmediatePropagation(); e.preventDefault(); } },true);
 })();
+</script>
+<style id="rd-sb-v209">
+/* [V209] lupa: "el nuevo estándar" + tarjeta de precio minimalista (app y escritorio iguales) */
+.rd-ne{padding:4px 2px 20px}
+.rd-ne p{font-weight:300;font-size:clamp(24px,6.4vw,44px);line-height:1.04;letter-spacing:-.04em;color:var(--white)}
+.rd-ne p span{color:var(--muted)}
+.sb-budget{margin:0 0 18px;padding:18px 18px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px}
+.sb-budget-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sb-budget-title{font-size:12.5px;font-weight:400;letter-spacing:-.05px;color:var(--muted)}
+.sb-budget-map{display:inline-flex;align-items:center;gap:5px;border:0;background:none;padding:4px 0;margin:-4px 0;font-family:var(--font);font-size:12.5px;font-weight:600;letter-spacing:-.05px;color:var(--white);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sb-budget-map svg{width:14px;height:14px}
+.sb-budget-map:active{opacity:.6}
+.sb-budget-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:7px 0 14px}
+.sb-budget-sub{display:none}
+.sb-budget-amt{font-size:32px;font-weight:700;letter-spacing:-1.4px;line-height:1.05;color:var(--white);font-variant-numeric:tabular-nums}
+.sb-budget-hint{font-size:12px;color:var(--muted);letter-spacing:-.05px;white-space:nowrap}
+.sb-budget-range{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:99px;margin:6px 0 11px;outline:none;background:linear-gradient(to right,var(--white) 0,var(--white) var(--sb-p,0%),var(--w12) var(--sb-p,0%),var(--w12) 100%)}
+.sb-budget-range::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.14);box-shadow:0 2px 10px rgba(0,0,0,.16);cursor:pointer}
+.sb-budget-range::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.14);box-shadow:0 2px 10px rgba(0,0,0,.16);cursor:pointer}
+.sb-budget-scale{display:flex;justify-content:space-between;font-size:11px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.search-overlay.open>.rd-ne{animation:rdRise .55s cubic-bezier(.32,.72,0,1) .05s both}
+@media(min-width:900px){
+  #search-overlay>.rd-ne,#search-overlay>.sb-budget{width:100%;max-width:700px;margin-left:auto;margin-right:auto}
+  #search-overlay>.rd-ne{padding:18px 2px 6px}
+  #search-results>*{max-width:700px;margin-left:auto!important;margin-right:auto!important}
+}
+</style>
+<script>
+/* [V209] "ver mapa" desde la lupa: cierra la búsqueda y abre el mapa de ciudades del market */
+function _rdSbMap(){
+  try{ closeSearch(); }catch(e){}
+  try{ showView('home'); selectSection('market'); }catch(e){}
+  setTimeout(function(){ if(typeof openCitySheet==='function') openCitySheet(); else if(window.RDMap) RDMap.open('market'); },280);
+}
+/* cuántos carros entran en el presupuesto (o "sin límite") */
+function _sbHint(){
+  var h=document.getElementById('sb-budget-hint'); if(!h) return;
+  if(_searchBudget==null){ h.textContent='sin límite'; return; }
+  var n=0;
+  try{ n=AUCTIONS.filter(function(a){return _withinBudget(a,true);}).length+MARKET_LISTINGS.filter(function(a){return _withinBudget(a,false);}).length; }catch(e){}
+  h.textContent=n+(n===1?' carro':' carros');
+}
+</script>
+<style id="rd-desk-v209">
+/* [V209] escritorio igual que la app: todos/usados/nuevos y botón ciudad con mapa */
+.mkt-cond-toggle{width:228px}
+.mkt-cond-track{grid-template-columns:1fr 1fr 1fr}
+.mkt-cond-tab{padding:7px 6px}
+.mkt-cond-thumb{top:3px;bottom:3px;left:3px;height:auto;width:calc((100% - 6px) / 3);transition:transform .34s cubic-bezier(.32,.72,0,1);box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.rd-city-btn{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;height:34px;padding:0 13px;border-radius:100px;border:1px solid var(--w12);background:var(--w5);color:var(--white);font-family:var(--font);font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.rd-city-btn svg{width:15px;height:15px}
+.rd-city-btn.on{background:var(--white);color:var(--bg);border-color:transparent}
+.rd-city-btn i{font-style:normal;font-size:15px;line-height:1;margin-left:2px;opacity:.7}
+</style>
+<script>
+/* [V209] buscar por ciudad en escritorio (misma lógica que la app; el mapa lo pinta rd-map.js) */
+var RD_CITY_ALIAS={'puerto ordaz':'ciudad guayana','san felix':'ciudad guayana','pto ordaz':'ciudad guayana','lecheria':'barcelona','margarita':'porlamar','isla de margarita':'porlamar'};
+function _rdCityKey(c){
+  var k=String(c||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();
+  return RD_CITY_ALIAS[k]||k;
+}
+window._rdCityKey=_rdCityKey;
+function _rdCityCounts(){
+  var cnt={};
+  (typeof MARKET_LISTINGS!=='undefined'?MARKET_LISTINGS:[]).forEach(function(l){ if(l.vendido) return; var k=_rdCityKey(l.location); if(k) cnt[k]=(cnt[k]||0)+1; });
+  return cnt;
+}
+function _rdCityName(k){
+  var n={'ciudad guayana':'Ciudad Guayana','san cristobal':'San Cristóbal','maturin':'Maturín','merida':'Mérida','cumana':'Cumaná','ciudad bolivar':'Ciudad Bolívar','el vigia':'El Vigía','san fernando de apure':'San Fernando'}[k];
+  return n||String(k||'').replace(/\b\w/g,function(c){return c.toUpperCase();});
+}
+function setMarketCity(key){
+  var lbl=document.getElementById('rd-city-label'), clr=document.getElementById('rd-city-clear'), btn=document.getElementById('rd-city-btn');
+  if(key){ mFilters.city=key; if(lbl) lbl.textContent=_rdCityName(key); if(clr) clr.hidden=false; if(btn) btn.classList.add('on'); }
+  else { mFilters.city='todas'; if(lbl) lbl.textContent='ciudad'; if(clr) clr.hidden=true; if(btn) btn.classList.remove('on'); }
+  renderMarket();
+  closeCitySheet();
+  try{ var g=document.getElementById('market-grid'); if(g&&key) g.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
+}
+function openCitySheet(){ if(window.RDMap) RDMap.open('market'); }
+function closeCitySheet(){ if(window.RDMap&&document.getElementById('rd-city-sheet')) RDMap.close(); }
+function _rdNearestCity(btn){
+  if(!btn||btn.disabled) return;
+  if(!navigator.geolocation){ if(typeof showToast==='function') showToast('tu navegador no comparte ubicación'); return; }
+  var orig=btn.innerHTML, done=false;
+  var reset=function(msg){ if(done) return; done=true; clearTimeout(guard); btn.disabled=false; btn.innerHTML=orig; if(msg&&typeof showToast==='function') showToast(msg); };
+  btn.disabled=true; btn.textContent='buscando tu ubicación…';
+  var guard=setTimeout(function(){ reset('no pudimos obtener tu ubicación · elige tu ciudad en la lista'); },9000);
+  navigator.geolocation.getCurrentPosition(function(pos){
+    if(done) return; done=true; clearTimeout(guard);
+    var lat=pos.coords.latitude, lng=pos.coords.longitude;
+    try{ if(window.RDMap&&RDMap.map()) RDMap.me(lng,lat); }catch(e){}
+    var C={'caracas':[10.49,-66.88],'maracaibo':[10.65,-71.64],'valencia':[10.16,-68.0],'barquisimeto':[10.07,-69.32],'maracay':[10.25,-67.6],'ciudad guayana':[8.3,-62.72],'barcelona':[10.13,-64.69],'puerto la cruz':[10.21,-64.63],'maturin':[9.75,-63.18],'merida':[8.59,-71.14],'san cristobal':[7.77,-72.23],'cumana':[10.46,-64.17],'barinas':[8.62,-70.21],'ciudad bolivar':[8.12,-63.55],'cabimas':[10.4,-71.45],'punto fijo':[11.7,-70.2],'coro':[11.4,-69.67],'valera':[9.32,-70.6],'acarigua':[9.55,-69.2],'los teques':[10.34,-67.04],'guarenas':[10.47,-66.54],'guatire':[10.47,-66.54],'porlamar':[10.95,-63.85],'puerto cabello':[10.47,-68.01],'guanare':[9.04,-69.74],'la guaira':[10.6,-66.93],'san felipe':[10.34,-68.74],'tovar':[8.33,-71.75]};
+    var cnt=_rdCityCounts(), best=null, bd=1e9;
+    Object.keys(cnt).forEach(function(k){ var c=C[k]; if(!c) return; var d=Math.pow(c[0]-lat,2)+Math.pow(c[1]-lng,2); if(d<bd){bd=d;best=k;} });
+    if(!best){ btn.disabled=false; btn.innerHTML=orig; if(typeof showToast==='function') showToast('no hay carros cerca todavía'); return; }
+    document.querySelectorAll('.rd-city-row').forEach(function(r){ r.classList.toggle('sel',r.getAttribute('data-city')===best); });
+    btn.textContent='más cerca: '+_rdCityName(best);
+    setTimeout(function(){ setMarketCity(best); },1500);
+  },function(err){ reset(err&&err.code===1?'permite la ubicación para Ruedda en tu navegador':'no pudimos obtener tu ubicación · elige tu ciudad en la lista'); },{enableHighAccuracy:false,timeout:8000,maximumAge:600000});
+}
 </script>

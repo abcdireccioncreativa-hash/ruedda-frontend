@@ -7244,11 +7244,15 @@ fetch('https://ltodsegzbbdcaublkgtp.supabase.co/rest/v1/app_settings?select=valu
     </div>
     <button class="search-cancel" onclick="closeSearch()">cancelar</button>
   </div>
+  <div class="rd-ne"><p>el nuevo estándar<br><span>en la compra y venta.</span></p></div>
   <div class="sb-budget">
-    <div class="sb-budget-title">Buscar por precio</div>
+    <div class="sb-budget-head">
+      <span class="sb-budget-title">buscar por precio</span>
+      <button type="button" class="sb-budget-map" onpointerdown="window.RDMap&&RDMap.preload()" onclick="_rdSbMap()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6.5v13.5l6-2.5 6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5M15 6.5V20"/></svg>ver mapa</button>
+    </div>
     <div class="sb-budget-row">
-      <span class="sb-budget-sub">Tengo:</span>
       <span class="sb-budget-amt" id="sb-budget-amt">$0</span>
+      <span class="sb-budget-hint" id="sb-budget-hint">sin límite</span>
     </div>
     <input type="range" min="0" max="1000" step="1" value="0" style="--sb-p:0%" id="sb-budget-range" class="sb-budget-range" oninput="_onSearchBudget(this.value)" aria-label="presupuesto máximo">
     <div class="sb-budget-scale"><span>$0</span><span>$550.000+</span></div>
@@ -13721,6 +13725,7 @@ function _onSearchBudget(v){
   if(r) r.style.setProperty('--sb-p',(v/10)+'%');
   const amt=document.getElementById('sb-budget-amt');
   if(amt) amt.textContent=Number(v)<=0?'$0':_searchBudget==null?'$550.000+':_fmtBudget(_searchBudget);
+  if(typeof _sbHint==='function') _sbHint();
   doSearch(document.getElementById('search-input').value);
 }
 function _resetSearchBudget(){
@@ -13730,6 +13735,7 @@ function _resetSearchBudget(){
   if(r){ r.value=_SB_START; r.style.setProperty('--sb-p',(_SB_START/10)+'%'); }
   const amt=document.getElementById('sb-budget-amt');
   if(amt) amt.textContent='$0';
+  if(typeof _sbHint==='function') _sbHint();
 }
 function _withinBudget(a,isAuction){
   if(_searchBudget==null) return true;
@@ -27170,4 +27176,46 @@ function _rdVidPlay(c){
   }
   load();
 })();
+</script>
+<style id="rd-sb-v209">
+/* [V209] lupa: "el nuevo estándar" + tarjeta de precio minimalista (app y escritorio iguales) */
+.rd-ne{padding:4px 2px 20px}
+.rd-ne p{font-weight:300;font-size:clamp(24px,6.4vw,44px);line-height:1.04;letter-spacing:-.04em;color:var(--white)}
+.rd-ne p span{color:var(--muted)}
+.sb-budget{margin:0 0 18px;padding:18px 18px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px}
+.sb-budget-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sb-budget-title{font-size:12.5px;font-weight:400;letter-spacing:-.05px;color:var(--muted)}
+.sb-budget-map{display:inline-flex;align-items:center;gap:5px;border:0;background:none;padding:4px 0;margin:-4px 0;font-family:var(--font);font-size:12.5px;font-weight:600;letter-spacing:-.05px;color:var(--white);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sb-budget-map svg{width:14px;height:14px}
+.sb-budget-map:active{opacity:.6}
+.sb-budget-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:7px 0 14px}
+.sb-budget-sub{display:none}
+.sb-budget-amt{font-size:32px;font-weight:700;letter-spacing:-1.4px;line-height:1.05;color:var(--white);font-variant-numeric:tabular-nums}
+.sb-budget-hint{font-size:12px;color:var(--muted);letter-spacing:-.05px;white-space:nowrap}
+.sb-budget-range{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:99px;margin:6px 0 11px;outline:none;background:linear-gradient(to right,var(--white) 0,var(--white) var(--sb-p,0%),var(--w12) var(--sb-p,0%),var(--w12) 100%)}
+.sb-budget-range::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.14);box-shadow:0 2px 10px rgba(0,0,0,.16);cursor:pointer}
+.sb-budget-range::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.14);box-shadow:0 2px 10px rgba(0,0,0,.16);cursor:pointer}
+.sb-budget-scale{display:flex;justify-content:space-between;font-size:11px;font-weight:400;color:var(--muted);font-variant-numeric:tabular-nums}
+.search-overlay.open>.rd-ne{animation:rdRise .55s cubic-bezier(.32,.72,0,1) .05s both}
+@media(min-width:900px){
+  #search-overlay>.rd-ne,#search-overlay>.sb-budget{width:100%;max-width:700px;margin-left:auto;margin-right:auto}
+  #search-overlay>.rd-ne{padding:18px 2px 6px}
+  #search-results>*{max-width:700px;margin-left:auto!important;margin-right:auto!important}
+}
+</style>
+<script>
+/* [V209] "ver mapa" desde la lupa: cierra la búsqueda y abre el mapa de ciudades del market */
+function _rdSbMap(){
+  try{ closeSearch(); }catch(e){}
+  try{ showView('home'); selectSection('market'); }catch(e){}
+  setTimeout(function(){ if(typeof openCitySheet==='function') openCitySheet(); else if(window.RDMap) RDMap.open('market'); },280);
+}
+/* cuántos carros entran en el presupuesto (o "sin límite") */
+function _sbHint(){
+  var h=document.getElementById('sb-budget-hint'); if(!h) return;
+  if(_searchBudget==null){ h.textContent='sin límite'; return; }
+  var n=0;
+  try{ n=AUCTIONS.filter(function(a){return _withinBudget(a,true);}).length+MARKET_LISTINGS.filter(function(a){return _withinBudget(a,false);}).length; }catch(e){}
+  h.textContent=n+(n===1?' carro':' carros');
+}
 </script>
