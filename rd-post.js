@@ -494,17 +494,22 @@
     };
   }
 
+  // [V222] cada pantalla recuerda a qué altura la dejaste: el atrás/adelante (gesto de borde,
+  // botón volver, deslizar y arrepentirse) la devuelve ahí, no arriba del todo
+  var Y = {};
   var _show = window.showView;
   window.showView = function (name) {
     var from = currentView;
+    if (!st && !DETAIL[from] && from !== name) Y[from] = window.scrollY || 0;
     if (!DETAIL[name] && name !== 'perfil-publico' && !(st && DETAIL[from])) ctx = null;
     if (DETAIL[name] && from === 'perfil-publico' && ctx && !st && popNav()) {
-      var pe0 = viewEl('perfil-publico'), py0 = window.scrollY || 0, fx0 = navFx();
+      var pe0 = viewEl('perfil-publico'), py0 = window.scrollY || 0, fx0 = navFx(), pp0 = ctx.py || 0;
       if (freezeCtx()) {
         var r0 = _show.apply(this, arguments);
         var v0 = viewEl(name);
         keepY(st.y);
-        if (v0) { v0.classList.add('rd-over'); v0.scrollTop = 0; }
+        // el post vuelve a la altura donde lo dejaste al abrir el perfil
+        if (v0) { v0.classList.add('rd-over'); v0.scrollTop = pp0; }
         if (fx0) popProfile(pe0, py0, v0);
         return r0;
       }
@@ -524,8 +529,8 @@
       return r;
     }
     if (st && !DETAIL[name]) {
-      ctx = name === 'perfil-publico' ? { name: st.name, y: st.y, nav: st.nav } : null;
       var dv = viewEl(from);
+      ctx = name === 'perfil-publico' ? { name: st.name, y: st.y, nav: st.nav, py: dv ? dv.scrollTop : 0 } : null;
       if (dv) { dv.classList.remove('rd-over'); dv.style.transform = ''; dv.style.borderRadius = ''; }
       var fx1 = name === 'perfil-publico' && DETAIL[from] && !popNav() && navFx(), py1 = dv ? dv.scrollTop : 0;
       release();
@@ -553,6 +558,11 @@
     }
     // el post se abrió fuera del modo capa (o se fue a otra parte): la foto no se queda volando
     if (fly) flyEnd();
+    if (popNav() && !DETAIL[name] && Y[name] != null) {
+      var r3 = _show.apply(this, arguments);
+      keepY(Y[name]);
+      return r3;
+    }
     return _show.apply(this, arguments);
   };
 
@@ -590,12 +600,16 @@
     if (!v || reduce || instant || !v.animate) { done(); return true; }
     var cur = getComputedStyle(v).transform;
     var H = window.innerHeight, W = window.innerWidth;
+    // [V222] botón volver: el post sale hacia la derecha como una pantalla de iOS (solo
+    // transform; antes bajaba encogiéndose y escalar una capa con scroll trababa cuadros)
+    var back = dir === 'back';
+    if (back) dir = 'right';
     var to = dir === 'right' ? 'translate3d(' + W + 'px,0,0)' : 'translate3d(0,' + H + 'px,0) scale(.92)';
     var dist = dir === 'right' ? W : H;
-    var dur = Math.max(170, Math.min(330, dist / Math.max(vel || 0, 2.2)));
+    var dur = back ? 380 : Math.max(170, Math.min(330, dist / Math.max(vel || 0, 2.2)));
     v.style.willChange = 'transform';
     var a = v.animate([{ transform: cur === 'none' ? 'none' : cur }, { transform: to }],
-      { duration: dur, easing: 'cubic-bezier(.25,.8,.3,1)', fill: 'forwards' });
+      { duration: dur, easing: back ? NAV_EASE : 'cubic-bezier(.25,.8,.3,1)', fill: 'forwards' });
     if (shade.animate) shade.animate([{ opacity: shade.style.opacity || 0.32 }, { opacity: 0 }], { duration: dur, fill: 'forwards' });
     a.onfinish = function () { done(); a.cancel(); shade.getAnimations && shade.getAnimations().forEach(function (x) { x.cancel(); }); };
     return true;
@@ -617,7 +631,7 @@
     if (typeof orig !== 'function') return;
     window[name] = function (afterNav) {
       if (on()) {
-        close(window._rdSheetDir || 'down', window._rdSheetVel || 0, (!!window._rdSheetFromPop || popNav()));
+        close(window._rdSheetDir || 'back', window._rdSheetVel || 0, (!!window._rdSheetFromPop || popNav()));
         window._rdSheetDir = null; window._rdSheetVel = 0;
         if (typeof afterNav === 'function') setTimeout(afterNav, 0);
         return;
@@ -641,6 +655,16 @@
     if (ignorePop > 0) { ignorePop--; e.stopImmediatePropagation(); return; }
     // [V219] si el atrás LLEGA a un post (perfil → post), es ese post el que se abre: no se cierra
     var to = e.state && e.state.rueddaView;
+    // [V222] adelante hacia el perfil (deslizar desde el perfil y arrepentirse) no cierra el
+    // post: vuelve al perfil. Antes cerraba la capa y terminabas en el inicio
+    if (on() && to === 'perfil-publico' && st.name !== 'perfil-publico') {
+      e.stopImmediatePropagation();
+      var nf = false;
+      try { nf = _navigatingFromPopstate; _navigatingFromPopstate = true; } catch (x) {}
+      try { window.showView('perfil-publico', e.state.param); } catch (x) {}
+      finally { try { _navigatingFromPopstate = nf; } catch (x) {} }
+      return;
+    }
     if (on() && !DETAIL[to]) {
       e.stopImmediatePropagation();
       close('right', 0, true, performance.now() - edgeAt < 1800);
