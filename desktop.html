@@ -9081,6 +9081,8 @@ function renderPriceDrops(){
 // ───────────────────────────────────────────
 // MARCAS — grid (solo nombre por ahora, logos van después)
 // ───────────────────────────────────────────
+const MARCA_SVG={"BAIC":["baic",46.9,42.6],"Bera":["bera",78.0,13.5],"GAC":["gac",78.0,25.6],"GMC":["gmc",78.0,16.4],"JAC":["jac",72.0,27.8],"Zotye":["zotye",78.0,13.5],"Alfa Romeo":["alfaromeo",44.7,44.7],"Audi":["audi",76.0,26.3],"Bentley":["bentley",78.0,25.2],"BMW":["bmw",44.7,44.7],"BYD":["byd",78.0,15.0],"Cadillac":["cadillac",71.6,28.0],"Changan":["changan",54.2,36.9],"Chery":["chery",72.1,27.7],"Chevrolet":["chevrolet",78.0,25.4],"Chrysler":["chrysler",78.0,12.3],"Citroën":["citroen",40.2,49.7],"Dodge":["dodge",78.0,13.6],"Ferrari":["ferrari",36.0,50.0],"Fiat":["fiat",44.7,44.7],"Ford":["ford",73.1,27.4],"Geely":["geely",61.0,32.8],"Great Wall":["greatwall",78.0,14.4],"Honda":["honda",49.6,40.3],"Hummer":["hummer",78.0,8.0],"Hyundai":["hyundai",62.4,32.0],"Infiniti":["infiniti",65.9,30.4],"Jaguar":["jaguar",66.8,29.9],"Jeep":["jeep",70.4,28.4],"Kia":["kia",78.0,18.4],"Lamborghini":["lamborghini",41.5,48.2],"Land Rover":["landrover",61.6,32.4],"Lexus":["lexus",52.2,38.3],"Lincoln":["lincoln",72.8,27.5],"Maserati":["maserati",35.5,50.0],"Mazda":["mazda",50.0,40.0],"Mercedes-Benz":["mercedes",44.7,44.7],"MINI":["mini",67.5,29.6],"Mitsubishi":["mitsubishi",48.2,41.5],"Nissan":["nissan",49.0,40.8],"Peugeot":["peugeot",42.7,46.9],"Pontiac":["pontiac",26.5,50.0],"Porsche":["porsche",39.0,50.0],"Ram":["ram",43.6,45.9],"Renault":["renault",38.0,50.0],"Rolls-Royce":["rollsroyce",38.0,50.0],"SAIC":["saic",44.7,44.7],"Seat":["seat",47.3,42.3],"Skoda":["skoda",44.7,44.7],"Subaru":["subaru",58.5,34.2],"Suzuki":["suzuki",44.5,44.9],"Tesla":["tesla",44.7,44.7],"Toyota":["toyota",54.2,36.9],"Volkswagen":["volkswagen",44.7,44.7],"Volvo":["volvo",44.7,44.7]};
+const MARCA_SVG_URL='/assets/marcas.svg?v=de25afd6';
 const MARCAS_LIST=['Alfa Romeo','Audi','BAIC','Bentley','Bera','BMW','BYD','Cadillac','Changan','Chery','Chevrolet','Chrysler','Citroën','Dodge','Ferrari','Fiat','Ford','GAC','Geely','GMC','Great Wall','Honda','Hummer','Hyundai','Infiniti','JAC','Jaguar','Jeep','Kia','Lamborghini','Land Rover','Lexus','Lincoln','Maserati','Mazda','Mercedes-Benz','MINI','Mitsubishi','Nissan','Peugeot','Pontiac','Porsche','Ram','Renault','Rolls-Royce','SAIC','Seat','Skoda','SsangYong','Subaru','Suzuki','Tesla','Toyota','Volkswagen','Volvo','Zotye'];
 // [BLOQUE 5] clasificación por región para los filtros dinámicos de la vista Marcas
 const MARCAS_REGIONS={
@@ -9091,7 +9093,7 @@ const MARCAS_REGIONS={
 };
 let _marcasRegionFilter=null;
 // [FIX] cada card cuadrada de Marcas ahora es un contenedor de foto real —
-// mismo crossfade que Encuentra/Concesionarios (<img decoding="async"> absoluto en opacity:0,
+// mismo crossfade que Encuentra/Concesionarios (<img> absoluto en opacity:0,
 // fade a 1 solo al decodificar). Sin logo todavía, se ve el nombre de la
 // marca (mismo look de siempre) como placeholder.
 function _marcaSlug(m){ return String(m).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-'); }
@@ -9128,7 +9130,7 @@ function _marcaSetAllLogos(){
   const cards=document.querySelectorAll('#marcas-grid .marca-card');
   if(!cards.length) return;
   if(typeof IntersectionObserver==='undefined'){
-    Object.keys(MARCA_LOGOS).forEach((m,i)=>setTimeout(()=>_marcaSetLogo(m,MARCA_LOGOS[m]),i*18));
+    Object.keys(MARCA_LOGOS).filter(m=>!MARCA_SVG[m]).forEach((m,i)=>setTimeout(()=>_marcaSetLogo(m,MARCA_LOGOS[m]),i*18));
     return;
   }
   _marcaLogoIO=new IntersectionObserver(entries=>{
@@ -9139,7 +9141,7 @@ function _marcaSetAllLogos(){
       if(marca&&MARCA_LOGOS[marca]) _marcaSetLogo(marca,MARCA_LOGOS[marca]);
     });
   },{rootMargin:'250px 0px'});
-  cards.forEach(card=>{ if(card.dataset.marca&&MARCA_LOGOS[card.dataset.marca]) _marcaLogoIO.observe(card); });
+  cards.forEach(card=>{ if(!card.dataset.svg&&card.dataset.marca&&MARCA_LOGOS[card.dataset.marca]) _marcaLogoIO.observe(card); });
 }
 function _marcaSetLogo(marca,url){
   if(!url) return;
@@ -9170,6 +9172,8 @@ function renderMarcasGrid(filterText){
   if(_marcasRegionFilter) list=list.filter(m=>MARCAS_REGIONS[m]===_marcasRegionFilter);
   grid.innerHTML=list.length?list.map(m=>{
     const slug=_marcaSlug(m);
+    const sv=MARCA_SVG[m];
+    if(sv) return `<div class="marca-card" id="marca-card-${slug}" data-marca="${_esc(m)}" data-svg="1" role="button" aria-label="${_esc(m)}" onclick="goToMarcaFilter('${m.replace(/'/g,"\\'")}')"><svg class="mk" style="width:${sv[1]}%;height:${sv[2]}%" aria-hidden="true"><use href="${MARCA_SVG_URL}#mk-${sv[0]}"/></svg></div>`;
     return `<div class="marca-card" id="marca-card-${slug}" data-marca="${_esc(m)}" onclick="goToMarcaFilter('${m.replace(/'/g,"\\'")}')"><span id="marca-ph-${slug}" style="position:relative;z-index:1;transition:opacity .35s ease">${_esc(m)}</span></div>`;
   }).join(''):'<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:13px;padding:30px 0">sin resultados</div>';
   // repinta logos ya cargados en memoria (si el usuario re-filtra, vuelve a construir el DOM)
@@ -24187,3 +24191,9 @@ function _rdNearestCity(btn){
   },function(err){ reset(err&&err.code===1?'permite la ubicación para Ruedda en tu navegador':'no pudimos obtener tu ubicación · elige tu ciudad en la lista'); },{enableHighAccuracy:false,timeout:8000,maximumAge:600000});
 }
 </script>
+
+<style id="rd-marcas-v210">
+/* [V210] Marcas en escritorio igual que la app: logos SVG monocromo (assets/marcas.svg) */
+.marca-card{--ko:var(--card2)}
+.marca-card .mk{display:block;fill:currentColor;color:var(--white);pointer-events:none}
+</style>
