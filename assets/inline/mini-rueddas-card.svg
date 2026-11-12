@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 236">
+  <!-- Mini Rueddas: un chamito jugando carritos en su cuarto, de noche.
+       Composición en proporción áurea: el niño en x≈92 (0.382), la ventana en x≈148 (0.618),
+       el piso en y≈146 (0.618). Pocos colores, sin trazos. -->
+  <defs>
+    <linearGradient id="w" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c2547"/>
+      <stop offset="1" stop-color="#131a35"/>
+    </linearGradient>
+    <linearGradient id="f" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#10152b"/>
+      <stop offset="1" stop-color="#0a0e1e"/>
+    </linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3a6e"/>
+      <stop offset="1" stop-color="#3d4f86"/>
+    </linearGradient>
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b9c6f0" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#b9c6f0" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="lamp" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(36 150) scale(110 90)">
+      <stop offset="0" stop-color="#ffc677" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#ffc677" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="240" height="236" fill="url(#w)"/>
+  <rect y="146" width="240" height="90" fill="url(#f)"/>
+  <rect y="145" width="240" height="1.4" fill="#2a3459"/>
+
+  <!-- ventana con luna -->
+  <rect x="148" y="62" width="62" height="66" rx="3" fill="url(#sky)"/>
+  <circle cx="190" cy="82" r="10" fill="#f4ecd6"/>
+  <circle cx="195" cy="78" r="9" fill="#33457b"/>
+  <circle cx="162" cy="74" r="1.1" fill="#f4ecd6"/>
+  <circle cx="172" cy="104" r="0.9" fill="#f4ecd6" opacity=".8"/>
+  <circle cx="200" cy="112" r="1" fill="#f4ecd6" opacity=".7"/>
+  <circle cx="158" cy="118" r="0.8" fill="#f4ecd6" opacity=".6"/>
+  <rect x="178.2" y="62" width="1.8" height="66" fill="#131a35"/>
+  <rect x="148" y="94.2" width="62" height="1.8" fill="#131a35"/>
+  <rect x="144" y="127" width="70" height="4" rx="1.5" fill="#222b50"/>
+  <!-- luz de luna en el piso -->
+  <path d="M146 146h66l26 90H124z" fill="url(#beam)"/>
+
+  <!-- lámpara cálida -->
+  <rect width="240" height="236" fill="url(#lamp)"/>
+  <rect x="22" y="118" width="3" height="28" rx="1.5" fill="#262f55"/>
+  <path d="M12 104h24l-5 15H17z" fill="#f2b766"/>
+  <rect x="14" y="145" width="20" height="3" rx="1.5" fill="#262f55"/>
+
+  <!-- alfombra -->
+  <ellipse cx="98" cy="196" rx="78" ry="17" fill="#18203d"/>
+  <ellipse cx="98" cy="196" rx="62" ry="12" fill="none" stroke="#222c52" stroke-width="1.4"/>
+
+  <!-- pista curva -->
+  <path d="M30 214c30-12 62-12 96-4s66 6 92-6" fill="none" stroke="#2a3560" stroke-width="7" stroke-linecap="round"/>
+  <path d="M30 214c30-12 62-12 96-4s66 6 92-6" fill="none" stroke="#3a4777" stroke-width="1" stroke-dasharray="4 5" stroke-linecap="round"/>
+
+  <!-- chamito sentado (silueta con borde de luz de la lámpara) -->
+  <g>
+    <!-- piernas cruzadas -->
+    <path d="M66 196c2-8 12-11 26-11s25 3 27 11c-8 3-20 4-27 4s-19-1-26-4z" fill="#0b0f22"/>
+    <!-- torso -->
+    <path d="M76 190c-1-16 3-30 15-33 12-3 20 6 21 18l1 15z" fill="#0d1226"/>
+    <!-- cabeza y pelo -->
+    <circle cx="91" cy="144" r="12" fill="#0d1226"/>
+    <path d="M79 142c0-9 6-14 13-14 8 0 13 5 12 11-4-4-9-5-14-4-4 1-8 4-11 7z" fill="#070a18"/>
+    <!-- brazo hacia el carrito -->
+    <path d="M106 167c6 6 12 14 18 22l-5 3c-6-7-12-14-17-20z" fill="#0d1226"/>
+    <!-- borde cálido (luz de lámpara a la izquierda) -->
+    <path d="M80 148a12 12 0 0 1 4-12" fill="none" stroke="#ffc677" stroke-width="1.4" stroke-linecap="round" opacity=".7"/>
+    <path d="M77 186c-1-12 2-23 9-28" fill="none" stroke="#ffc677" stroke-width="1.2" stroke-linecap="round" opacity=".45"/>
+  </g>
+
+  <!-- carritos -->
+  <g transform="translate(118 188)">
+    <path d="M0 6c1-3 3-4 6-4l4-3h8l5 3c3 0 5 1 5 4v2H0z" fill="#e2462f"/>
+    <circle cx="6" cy="8.5" r="2.4" fill="#0a0e1e"/><circle cx="22" cy="8.5" r="2.4" fill="#0a0e1e"/>
+  </g>
+  <g transform="translate(150 203) scale(.9)">
+    <path d="M0 6c1-3 3-4 6-4l4-3h8l5 3c3 0 5 1 5 4v2H0z" fill="#eef0f6"/>
+    <circle cx="6" cy="8.5" r="2.4" fill="#0a0e1e"/><circle cx="22" cy="8.5" r="2.4" fill="#0a0e1e"/>
+  </g>
+  <g transform="translate(40 200) scale(.85)">
+    <path d="M0 6c1-3 3-4 6-4l4-3h8l5 3c3 0 5 1 5 4v2H0z" fill="#5fb3c9"/>
+    <circle cx="6" cy="8.5" r="2.4" fill="#0a0e1e"/><circle cx="22" cy="8.5" r="2.4" fill="#0a0e1e"/>
+  </g>
+</svg>
