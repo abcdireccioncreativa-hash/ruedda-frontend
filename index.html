@@ -22642,9 +22642,9 @@ function _updateMktFinanciamientoCard(l){
     // más opacidad — a simple vista no se notaba la diferencia. Ahora el
     // estado activo tiene un ícono propio (tarjeta, en lima), texto "financiamiento
     // activo" y el mismo sello azul verificado que ya se usa en perfiles.
-    card.innerHTML=`<svg fill="none" viewBox="0 0 24 24" stroke="#e6f03b" stroke-width="1.8" style="width:20px;height:20px"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
+    card.innerHTML=`<svg fill="none" viewBox="0 0 24 24" stroke="var(--white)" stroke-width="1.8" style="width:20px;height:20px"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/><path d="M6 15h4"/></svg>
       <div style="font-size:14px;font-weight:700;color:var(--white)">financiamiento</div>
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--rd-green);display:flex;align-items:center;gap:5px">financiamiento activo<svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--white);display:flex;align-items:center;gap:5px">financiamiento activo<svg viewBox="0 0 24 24" style="width:12px;height:12px;flex-shrink:0"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg></div>
       <div onclick="openFinanciamientoPopup()" style="font-size:11px;font-weight:600;color:var(--w50);text-decoration:underline;cursor:pointer;margin-top:1px">ver más</div>`;
   } else {
     card.innerHTML=`<img src="${RD_IMG.fin}" alt="" style="width:20px;height:20px;opacity:.25;object-fit:contain">
