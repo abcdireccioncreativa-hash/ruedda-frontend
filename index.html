@@ -2771,7 +2771,7 @@ function rdRegion(r){
 <script src="/rd-servicios.js?v=5" defer></script>
 <script src="/rd-usa.js?v=5" defer></script>
 <script src="/rd-post.js?v=27" defer></script>
-<script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=2" defer></script><script src="/rd-track.js?v=3" defer></script>
+<script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=3" defer></script><script src="/rd-track.js?v=3" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
 <script src="/rd-mark.js?v=2" defer></script><!-- aviso crear cuenta en web móvil (no corre en la app nativa) -->
@@ -10347,14 +10347,14 @@ function renderGlobalChatMessages(){
     const name=_globalChatSenderName(m.user_id);
     const time=m.created_at?new Date(m.created_at).toLocaleTimeString('es-VE',{hour:'2-digit',minute:'2-digit'}):'';
     const av=_globalChatUsersCache[m.user_id]?.avatar_url;
-    const avatarHtml=`<div style="width:26px;height:26px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;overflow:hidden;flex-shrink:0">${av?`<img src="${av}" style="width:100%;height:100%;object-fit:cover">`:_esc(name).charAt(0).toUpperCase()}</div>`;
+    const avatarHtml=`<div onclick="event.stopPropagation();_rdGcProfile('${_esc(String(m.user_id||''))}')" style="cursor:pointer;width:26px;height:26px;border-radius:50%;background:var(--card2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;overflow:hidden;flex-shrink:0">${av?`<img src="${av}" style="width:100%;height:100%;object-fit:cover">`:_esc(name).charAt(0).toUpperCase()}</div>`;
     const imgHtml=m.image_url?`<img src="${_tImg(m.image_url,{width:500,quality:75})}" data-full="${_esc(m.image_url)}" onclick="openPhotoViewer([this.dataset.full],0)" loading="lazy" decoding="async" style="width:100%;max-width:220px;border-radius:10px;display:block;cursor:pointer;${m.text?'margin-bottom:6px':''}">`:'';
     const _x=window.RDRX?RDRX.gcBits(m):{a:'',c:'',q:'',p:'',h:'',text:m.text};
     return `<div class="thread-bubble ${mine?'mine':'theirs'}${_x.c}"${_x.a}>
       <div style="display:flex;gap:8px;align-items:flex-end;flex-direction:${mine?'row-reverse':'row'}">
         ${!mine?avatarHtml:''}
         <div style="display:flex;flex-direction:column;${mine?'align-items:flex-end':'align-items:flex-start'}">
-          ${!mine?`<div style="font-size:11.5px;font-weight:700;color:var(--rd-green);margin-bottom:3px;padding:0 4px;display:flex;align-items:center">${_esc(name)}${_rdLvlTag(m.user_id)}</div>`:''}
+          ${!mine?`<div onclick="event.stopPropagation();_rdGcProfile('${_esc(String(m.user_id||''))}')" style="cursor:pointer;font-size:11.5px;font-weight:700;color:var(--rd-green);margin-bottom:3px;padding:0 4px;display:flex;align-items:center">${_esc(name)}${_rdLvlTag(m.user_id)}</div>`:''}
           <div class="bubble-body">${_x.q}${imgHtml}${_x.text?_esc(_x.text):''}${_x.p}${_x.h}</div>
           <div class="bubble-time">${time}</div>
         </div>
@@ -13451,6 +13451,15 @@ function _notifClick(id){
       const _o=n.sourceId||n.source_id;
       if(_o&&(n.sourceType||n.source_type||'pm')==='pm') _openPmThreadFrom(String(_o),n.pmSourceId||'');
       else { showView('notificaciones'); if(typeof switchNotifTab==='function') switchNotifTab('mensajes'); }
+    }
+    else if((n.sourceType||n.source_type)==='user'&&(n.sourceId||n.source_id)){
+      // [V220] te siguió / le gustó tu historia o comentario → el perfil de esa persona
+      openUserProfile(String(n.sourceId||n.source_id));
+    }
+    else if((n.sourceType||n.source_type)==='carspotting'){ showView('carspotting'); }
+    else if((n.type==='vistas'||n.type==='like'||n.type==='system')&&(n.sourceId||n.source_id)&&/^(listing|auction|market|subasta)$/.test(n.sourceType||n.source_type||'')){
+      // [V220] vistas (3, 10, 30…) y me gusta → la publicación o subasta
+      _goToSource(String(n.sourceId||n.source_id),n.sourceType||n.source_type);
     }
     else if(n.type==='aprobacion'||n.type==='market'||n.type==='subasta'||n.type==='reserva'||n.type==='offer'){
       // si la notif trae fuente, ir a la publicación; si no, a mis publicaciones
@@ -20745,6 +20754,14 @@ async function _rueddaLogin(identifier,pass){
   _rdPedirPerfilSiFalta(profile,data.user,1400); // [2026-11-11] cuenta sin nombre: pedirlo tras el splash de bienvenida
 }
 
+// [V220] correo / usuario repetidos: true = ya existe, false = libre, null = no se pudo revisar
+// (sin red o sin la función SQL todavía → no se bloquea a nadie por un chequeo fallido)
+window._rdTaken=async function(kind,val){
+  val=String(val||'').trim().replace(/^@/,''); if(!val||!_supa) return null;
+  try{ const r=await _supa.rpc(kind==='email'?'email_en_uso':'username_en_uso',kind==='email'?{p_email:val}:{p_username:val}); if(!r.error) return !!r.data; }catch(e){}
+  if(kind==='user'){ try{ const{data,error}=await _supa.from('users').select('id').ilike('username',val.replace(/[%_\\]/g,m=>'\\'+m)).limit(1); if(!error) return !!(data&&data.length); }catch(e){} }
+  return null;
+};
 async function _rueddaRegister(email,pass){
   if(!_supa) throw new Error('Supabase no disponible');
   try{ sessionStorage.removeItem('rd_oauth_pending'); }catch(e){}
@@ -20765,9 +20782,7 @@ async function _rueddaRegister(email,pass){
   // lado y se creaba la cuenta igual con un username repetido sin avisar. Ahora se
   // revisa ANTES de tocar auth.signUp, así que si está tomado no se crea nada todavía.
   try{
-    const _escLike=username.replace(/[%_\\]/g,m=>'\\'+m);
-    const{data:_existingUser}=await _supa.from('users').select('id').ilike('username',_escLike).maybeSingle();
-    if(_existingUser) throw new Error('ese nombre de usuario ya existe — elige otro');
+    if(await window._rdTaken('user',username)===true) throw new Error('ese nombre de usuario ya existe — elige otro');
   }catch(_checkErr){
     if(_checkErr.message==='ese nombre de usuario ya existe — elige otro') throw _checkErr;
     console.warn('[ruedda register] no se pudo verificar username duplicado, se continúa:',_checkErr.message);
@@ -20787,6 +20802,8 @@ async function _rueddaRegister(email,pass){
     if(_cedErr.message==='ya existe una cuenta registrada con esta cédula') throw _cedErr;
     console.warn('[ruedda register] no se pudo verificar cédula duplicada, se continúa:',_cedErr.message);
   }
+  // [V220] correo repetido: se revisa ANTES de crear la cuenta
+  if(await window._rdTaken('email',email)===true) throw new Error('ya existe una cuenta con este correo — inicia sesión en vez de registrarte');
   const{data,error}=await _supa.auth.signUp({email,password:pass,options:{data:{role}}});
   if(error){
     // [FIX V127] mensaje más claro si el correo ya tiene cuenta — antes mostraba el error
@@ -20797,6 +20814,10 @@ async function _rueddaRegister(email,pass){
     throw new Error(error.message);
   }
   if(!data.user) throw new Error('no se pudo crear la cuenta');
+  // [V220] con confirmación de correo activa, Supabase NO da error si el correo ya existe:
+  // devuelve un usuario "fantasma" sin identidades. Antes eso se tomaba como cuenta nueva
+  // (el perfil no se podía guardar y la persona quedaba trancada). Ahora se le dice qué pasa.
+  if(Array.isArray(data.user.identities)&&data.user.identities.length===0) throw new Error('ya existe una cuenta con este correo — inicia sesión en vez de registrarte');
   // [FIX V119] antes este upsert no revisaba si fallaba (ej: username duplicado) — la cuenta
   // quedaba creada en auth pero sin fila completa en users, mostrando "usuario" para siempre
   // en comentarios y perfil. Ahora se revisa el error y, si es por username repetido, se
@@ -23869,6 +23890,7 @@ function openRueddaTeamThread(){
   const title=document.getElementById('thread-car-title');
   if(title){title.textContent='Ruedda Team';title.onclick=null;title.style.cursor='default';}
   const meta=document.getElementById('thread-meta');
+  if(meta){ meta.onclick=null; meta.style.cursor='default'; }
   if(meta) meta.innerHTML='canal oficial <span style="color:rgba(var(--rd-green-rgb),.85);display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px" fill="currentColor"><path d="M16 9V4h1a1 1 0 0 0 0-2H7a1 1 0 0 0 0 2h1v5a3 3 0 0 1-3 3 1 1 0 0 0 0 2h5v5a1 1 0 0 0 2 0v-5h5a1 1 0 0 0 0-2 3 3 0 0 1-3-3z"/></svg></span>';
   const av=document.getElementById('thread-avatar');
   if(av){
@@ -23901,7 +23923,9 @@ function openThread(id){
   const otherName=currentThread.isPM?currentThread.otherName:((currentThread.participants||[]).find(p=>!p.isSeller)||{user:'usuario'}).user;
   const isDealer=currentThread.otherRole==='concesionario'||currentThread.otherRole==='consesionario';
   const dealerBadge=(isDealer||currentThread.otherKyc)?' <span style="font-size:10px;color:#1d9bf0;display:inline-flex;align-items:center;gap:3px;vertical-align:middle"><svg viewBox="0 0 24 24" style="width:11px;height:11px;flex-shrink:0;vertical-align:-1.5px"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M7.5 12.3l3 3 6-6.5"/></svg><span style="position:relative;top:-0.5px">verificado</span></span>':'';
-  document.getElementById('thread-meta').innerHTML='conversación con '+otherName+dealerBadge;
+  document.getElementById('thread-meta').innerHTML='conversación con <span style="color:var(--white);font-weight:600">'+_esc(otherName||'usuario')+'</span>'+dealerBadge;
+  { const _tm=document.getElementById('thread-meta'), _ok=!currentThread.isOfficial&&!!currentThread.otherId;
+    if(_tm){ _tm.style.cursor=_ok?'pointer':'default'; _tm.onclick=_ok?()=>_openThreadCounterpartProfile(currentThread.otherId,isDealer):null; } }
   // [V87] avatar del interlocutor: inicial; si es dealer → logo de su card + clickeable a su vitrina
   const av=document.getElementById('thread-avatar');
   if(av){
@@ -27128,7 +27152,7 @@ window.addEventListener('load',function(){setTimeout(function(){
   try{var k='rd_auto_ap',t=+localStorage.getItem(k)||0;if(Date.now()-t<120000)return;localStorage.setItem(k,Date.now());}catch(e){}
   fetch('/api/mod-listing?auto=1',{cache:'no-store'}).catch(function(){});
 },4000);});
-</script><script src="/assets/rd-crear-cuenta.js?v=4" defer></script><script src="/assets/rd-sello-vendido.js?v=1" defer></script>
+</script><script src="/assets/rd-crear-cuenta.js?v=5" defer></script><script src="/assets/rd-sello-vendido.js?v=1" defer></script>
 <style id="rd-vids-css">
 /* [V207] videos del vehículo: cada video en su card. Vertical = card 9:16 como los clips de
    comunidad; horizontal = card 16:9. Varios se deslizan de lado. */
@@ -27382,6 +27406,17 @@ html[data-theme="light"] .rd-dtheme-th{transform:none;background:#fff;box-shadow
   window._rdLayer=function(){
     if(mini) return { can:function(){return true;}, begin:function(){}, end:function(ok){ if(ok) close(false); } };
     return typeof _L==='function'?_L():null;
+  };
+})();
+</script>
+<script>
+/* [V220] chat global: perfil al tocar foto o nombre */
+(function(){
+  window._rdGcProfile=function(id){
+    if(!id) return;
+    var u=(typeof _globalChatUsersCache!=='undefined'&&_globalChatUsersCache[id])||{};
+    var dealer=u.role==='concesionario'||u.role==='consesionario';
+    try{ _openThreadCounterpartProfile(id,dealer); }catch(e){}
   };
 })();
 </script>

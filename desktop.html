@@ -2344,7 +2344,7 @@ html[data-theme="light"] .pj-tooltip-foot{border-top-color:rgba(0,0,0,.08);color
 <script src="/rd-servicios.js?v=5" defer></script>
 <script src="/rd-usa.js?v=4" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
-<script src="/rd-mark.js?v=3" defer></script><script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=2" defer></script><script src="/rd-track.js?v=3" defer></script><!-- [2026-10-04] resaltador amarillo de "price drops" al hacer scroll (mismo módulo que móvil) --><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
+<script src="/rd-mark.js?v=3" defer></script><script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=3" defer></script><script src="/rd-track.js?v=3" defer></script><!-- [2026-10-04] resaltador amarillo de "price drops" al hacer scroll (mismo módulo que móvil) --><!-- popups cookies + crear cuenta (se apagan en desktop-popups.js) -->
 <style id="rd-ajustes-2026-10-12">
 /* [2026-10-12] "vender": amarillo featured literal (igual en ambos temas), un poquito más grande (interletrado original) */
 .btn-vender,html:not([data-theme="light"]) .btn-vender{background:#e6f03b;color:#0a0a0a}
@@ -17709,6 +17709,14 @@ async function _rueddaLogin(identifier,pass){
   _rdPedirPerfilSiFalta(profile,data.user,1400); // [2026-11-11] cuenta sin nombre: pedirlo tras el splash de bienvenida
 }
 
+// [V220] correo / usuario repetidos: true = ya existe, false = libre, null = no se pudo revisar
+// (sin red o sin la función SQL todavía → no se bloquea a nadie por un chequeo fallido)
+window._rdTaken=async function(kind,val){
+  val=String(val||'').trim().replace(/^@/,''); if(!val||!_supa) return null;
+  try{ const r=await _supa.rpc(kind==='email'?'email_en_uso':'username_en_uso',kind==='email'?{p_email:val}:{p_username:val}); if(!r.error) return !!r.data; }catch(e){}
+  if(kind==='user'){ try{ const{data,error}=await _supa.from('users').select('id').ilike('username',val.replace(/[%_\\]/g,m=>'\\'+m)).limit(1); if(!error) return !!(data&&data.length); }catch(e){} }
+  return null;
+};
 async function _rueddaRegister(email,pass){
   if(!_supa) throw new Error('Supabase no disponible');
   const terms=document.getElementById('auth-terms-check');
@@ -17728,9 +17736,7 @@ async function _rueddaRegister(email,pass){
   // lado y se creaba la cuenta igual con un username repetido sin avisar. Ahora se
   // revisa ANTES de tocar auth.signUp, así que si está tomado no se crea nada todavía.
   try{
-    const _escLike=username.replace(/[%_\\]/g,m=>'\\'+m);
-    const{data:_existingUser}=await _supa.from('users').select('id').ilike('username',_escLike).maybeSingle();
-    if(_existingUser) throw new Error('ese nombre de usuario ya existe — elige otro');
+    if(await window._rdTaken('user',username)===true) throw new Error('ese nombre de usuario ya existe — elige otro');
   }catch(_checkErr){
     if(_checkErr.message==='ese nombre de usuario ya existe — elige otro') throw _checkErr;
     console.warn('[ruedda register] no se pudo verificar username duplicado, se continúa:',_checkErr.message);
@@ -17746,6 +17752,8 @@ async function _rueddaRegister(email,pass){
     if(_cedErr.message==='ya existe una cuenta registrada con esta cédula') throw _cedErr;
     console.warn('[ruedda register] no se pudo verificar cédula duplicada, se continúa:',_cedErr.message);
   }
+  // [V220] correo repetido: se revisa ANTES de crear la cuenta
+  if(await window._rdTaken('email',email)===true) throw new Error('ya existe una cuenta con este correo — inicia sesión en vez de registrarte');
   const{data,error}=await _supa.auth.signUp({email,password:pass,options:{data:{role}}});
   if(error){
     // [FIX V127] mensaje más claro si el correo ya tiene cuenta — antes mostraba el error
@@ -17756,6 +17764,10 @@ async function _rueddaRegister(email,pass){
     throw new Error(error.message);
   }
   if(!data.user) throw new Error('no se pudo crear la cuenta');
+  // [V220] con confirmación de correo activa, Supabase NO da error si el correo ya existe:
+  // devuelve un usuario "fantasma" sin identidades. Antes eso se tomaba como cuenta nueva
+  // (el perfil no se podía guardar y la persona quedaba trancada). Ahora se le dice qué pasa.
+  if(Array.isArray(data.user.identities)&&data.user.identities.length===0) throw new Error('ya existe una cuenta con este correo — inicia sesión en vez de registrarte');
   // [FIX V119] antes este upsert no revisaba si fallaba (ej: username duplicado) — la cuenta
   // quedaba creada en auth pero sin fila completa en users, mostrando "usuario" para siempre
   // en comentarios y perfil. Ahora se revisa el error y, si es por username repetido, se
@@ -23833,7 +23845,7 @@ function rdRegion(r){
   function start(){ (window.requestIdleCallback||function(f){ setTimeout(f,1500); })(beat,{timeout:5000}); setInterval(beat,60000); document.addEventListener('visibilitychange',function(){ if(document.hidden) leave(); else beat(); }); window.addEventListener('pagehide',leave); }
   if(document.readyState==='complete') start(); else window.addEventListener('load',start,{once:true});
 })();
-</script><script src="/assets/rd-crear-cuenta.js?v=4" defer></script><script src="/assets/rd-sello-vendido.js?v=1" defer></script>
+</script><script src="/assets/rd-crear-cuenta.js?v=5" defer></script><script src="/assets/rd-sello-vendido.js?v=1" defer></script>
 <style id="rd-hero-adj-css">
 /* [V201] superadmin: ajustar el encuadre de la foto portada del destacado (market, escritorio) */
 .rd-hero-adj{position:absolute;top:14px;right:14px;z-index:4;display:none;align-items:center;gap:7px;padding:8px 13px;border:0;border-radius:100px;background:rgba(18,18,18,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font:700 12px var(--font);cursor:pointer}

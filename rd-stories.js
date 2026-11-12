@@ -150,6 +150,10 @@
   '#story-viewer .stv-like{width:44px;height:44px;border:0;background:none;padding:0;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;-webkit-tap-highlight-color:transparent}'+
   '#story-viewer .stv-like svg{width:28px;height:28px}'+
   '#story-viewer .stv-like.on{color:#ff3b5c}'+
+  '#story-viewer .stv-likes{display:inline-flex;align-items:center;gap:6px;margin-right:auto;color:#fff;font-size:14px;letter-spacing:-.01em}'+
+  '#story-viewer .stv-likes[hidden]{display:none}'+
+  '#story-viewer .stv-likes svg{width:18px;height:18px;color:#ff3b5c}'+
+  '#story-viewer .stv-likes b{font-weight:500}'+
   '#story-viewer .stv-burst{position:absolute;left:50%;top:45%;width:110px;height:110px;margin:-55px 0 0 -55px;color:#ff3b5c;z-index:4;pointer-events:none;filter:drop-shadow(0 6px 20px rgba(0,0,0,.35))}'+
   '#story-viewer .stv-burst svg{width:100%;height:100%}'+
   '#rd-st-tray .rdst-wait{flex-shrink:0;align-self:center;width:22px;height:22px;margin:0 0 18px 26px;border-radius:50%;border:2px solid rgba(255,255,255,.18);border-top-color:#fff;animation:rdstSpin .8s linear infinite}'+
@@ -358,12 +362,14 @@
     V.el.querySelector('.stv-t').textContent=(typeof _storyTimeAgo==='function'?_storyTimeAgo(s.created_at):'').replace(/^Hace /,'').replace('min',' min');
     var foot=V.el.querySelector('.stv-foot');
     if(s.user_id===me()){
-      foot.innerHTML='<button type="button" class="stv-del">'+ICON_TRASH+'eliminar historia</button>';
+      foot.innerHTML='<span class="stv-likes" hidden></span><button type="button" class="stv-del">'+ICON_TRASH+'eliminar historia</button>';
       foot.querySelector('.stv-del').onclick=function(e){ e.stopPropagation(); delStory(s); };
+      likeCount(s,foot.querySelector('.stv-likes'));
     }else{
       var lk=liked().has(s.id);
       foot.innerHTML='<input id="story-reply-input" class="stv-in" placeholder="enviar mensaje" enterkeyhint="send" autocomplete="off"><button type="button" class="stv-like'+(lk?' on':'')+'" aria-label="me gusta">'+(lk?ICON_HEART_F:ICON_HEART)+'</button><button type="button" class="stv-send" aria-label="enviar">'+ICON_SEND+'</button>';
       foot.querySelector('.stv-like').onclick=function(e){ e.stopPropagation(); toggleLike(s,this); };
+      if(!lk) likedRemote(s,foot.querySelector('.stv-like'));
       var inp=foot.querySelector('input');
       inp.addEventListener('focus',function(){ if(typeof isGuest==='function'&&isGuest()){ toast('inicia sesión para enviar mensajes'); inp.blur(); return; } pause(); });
       inp.addEventListener('blur',function(){ setTimeout(function(){ if(V&&!V.holding) resume(); },60); });
@@ -529,13 +535,44 @@
     btn.classList.toggle('on',on); btn.innerHTML=on?ICON_HEART_F:ICON_HEART;
     var ic=btn.querySelector('svg');
     if(ic&&ic.animate) ic.animate(on?[{transform:'scale(1)'},{transform:'scale(1.35)'},{transform:'scale(.92)'},{transform:'scale(1)'}]:[{transform:'scale(1)'},{transform:'scale(.8)'},{transform:'scale(1)'}],{duration:on?420:220,easing:'cubic-bezier(.34,1.45,.64,1)'});
-    if(!on){ haptic(); return; }
+    if(!on){ haptic(); persistLike(s,false); return; }
     try{ if(typeof _rdHapticSuccess==='function') _rdHapticSuccess(); else haptic('MEDIUM'); }catch(e){}
     if(V){
       var b=document.createElement('div'); b.className='stv-burst'; b.innerHTML=ICON_HEART_F; V.stage.appendChild(b);
       if(b.animate) b.animate([{transform:'scale(.2)',opacity:0},{transform:'scale(1.12)',opacity:1,offset:.35},{transform:'scale(.96)',opacity:1,offset:.6},{transform:'scale(1.05) translateY(-30px)',opacity:0}],{duration:900,easing:'cubic-bezier(.22,.9,.3,1)',fill:'forwards'});
       setTimeout(function(){ b.remove(); },950);
     }
+    persistLike(s,true);
+  }
+  /* [V220] el me gusta se guarda en story_likes: así se ve en cualquier teléfono, el dueño ve
+     cuántos tiene y la base de datos le manda la notificación (y el push) una sola vez.
+     Si la tabla todavía no existe (falta correr el SQL), se avisa como antes. */
+  function persistLike(s,on){
+    var S=supa(), U=US(); if(!S||!U.id) return;
+    var q=on?S.from('story_likes').insert({story_id:s.id,user_id:U.id})
+            :S.from('story_likes').delete().eq('story_id',s.id).eq('user_id',U.id);
+    q.then(function(r){
+      if(!r||!r.error||(on&&r.error.code==='23505')) return;
+      if(on) legacyNotify(s);
+    },function(){ if(on) legacyNotify(s); });
+  }
+  function likedRemote(s,btn){
+    var S=supa(), id=me(); if(!S||!id||!btn) return;
+    S.from('story_likes').select('story_id').eq('story_id',s.id).eq('user_id',id).limit(1).then(function(r){
+      if(!r||r.error||!r.data||!r.data.length||!document.body.contains(btn)) return;
+      var set=liked(); set.add(s.id); saveLiked(set);
+      btn.classList.add('on'); btn.innerHTML=ICON_HEART_F;
+    },function(){});
+  }
+  function likeCount(s,el){
+    var S=supa(); if(!S||!el) return;
+    S.from('story_likes').select('user_id',{count:'exact',head:true}).eq('story_id',s.id).then(function(r){
+      var n=r&&!r.error?(r.count||0):0;
+      if(!n||!document.body.contains(el)) return;
+      el.innerHTML=ICON_HEART_F+'<b>'+n+'</b>'; el.hidden=false;
+    },function(){});
+  }
+  function legacyNotify(s){
     var sent; try{ sent=new Set(JSON.parse(localStorage.getItem(LIKE_KEY+'_n')||'[]')); }catch(e){ sent=new Set(); }
     if(sent.has(s.id)||s.user_id===me()) return;
     sent.add(s.id); try{ localStorage.setItem(LIKE_KEY+'_n',JSON.stringify([...sent].slice(-300))); }catch(e){}

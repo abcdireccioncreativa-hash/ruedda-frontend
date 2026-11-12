@@ -59,6 +59,7 @@
 #rdcc .cta{width:100%;height:56px;border-radius:28px;background:var(--white);color:var(--bg);font-size:16px;font-weight:500;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center;margin-top:34px;transition:opacity .3s,transform .2s var(--ez)}
 #rdcc .cta:active{transform:scale(.98)}
 #rdcc .cta[disabled]{opacity:.5;pointer-events:none}
+#rdcc .cta.wait{opacity:.55;pointer-events:none;transition:opacity .2s ease}
 #rdcc .alt{margin-top:18px;font-size:13px;color:var(--w50);text-align:center}
 #rdcc .alt u{color:var(--white);text-underline-offset:3px;cursor:pointer}
 #rdcc .soc{margin-top:22px}
@@ -112,7 +113,7 @@
     function () {
       var un = '<span class="un">' + ['V', 'E', 'J'].map(function (t) { return '<button type="button" data-ct="' + t + '"' + (v.ct === t ? ' class="on"' : '') + '>' + t + '</button>'; }).join('') + '</span>';
       return '<div class="k">2 de 7</div><h2>tu cédula</h2><p class="sub">solo para verificar que eres tú.</p>' +
-        '<div class="blk">' + big('ced', '12.345.678', 'type="tel" inputmode="numeric" maxlength="11"', un) + '</div>' + btn();
+        '<div class="blk">' + big('ced', '12.345.678', 'type="tel" inputmode="numeric" maxlength="11"', un) + '<div class="hint" id="rdcc-h"></div></div>' + btn();
     },
     function () {
       return '<div class="k">3 de 7</div><h2>tu correo</h2><p class="sub">te avisamos ahí cuando te escriban.</p>' +
@@ -131,7 +132,7 @@
     function () {
       return '<div class="k">6 de 7</div><h2>tu @usuario</h2>' +
         '<p class="sub">somos permisivos con la creatividad, destácate. un usuario ofensivo o +18 podría banear tu cuenta de Ruedda.</p>' +
-        '<div class="blk">' + big('user', 'usuario', 'autocapitalize="off" autocorrect="off" spellcheck="false"', '<span class="pre">@</span>') + '</div>' + btn();
+        '<div class="blk">' + big('user', 'usuario', 'autocapitalize="off" autocorrect="off" spellcheck="false"', '<span class="pre">@</span>') + '<div class="hint" id="rdcc-h"></div></div>' + btn();
     },
     function () {
       return '<div class="k">7 de 7</div><h2>¿cómo te enteraste de Ruedda?</h2>' +
@@ -195,11 +196,35 @@
     function () { return v.user.length >= 3 || bad('user'); }
   ];
 
+  // [V220] cédula, correo y usuario repetidos: se avisa en ese mismo paso, no al final.
+  // Si el chequeo no responde (sin red, o falta la función SQL) se deja seguir: el
+  // registro vuelve a revisar todo antes de crear la cuenta.
+  var TAKEN = {
+    2: ['ced', function () { return typeof window._rdCedulaTaken === 'function' ? window._rdCedulaTaken(v.ced, v.ct || 'V', null) : null; }, 'ya existe una cuenta con esta cédula.'],
+    3: ['mail', function () { return window._rdTaken ? window._rdTaken('email', v.mail) : null; }, 'este correo ya tiene cuenta. inicia sesión.'],
+    6: ['user', function () { return window._rdTaken ? window._rdTaken('user', v.user) : null; }, 'ese usuario ya existe. prueba otro.']
+  };
+  var checking = false;
   function go(d) {
     var n = Math.max(0, Math.min(Q, i + d));
-    if (n === i) return;
+    if (n === i || checking) return;
     if (d > 0) pull();
     if (d > 0 && OK[i] && !OK[i]()) return;
+    var t = d > 0 && TAKEN[i], p = null;
+    try { p = t && t[1](); } catch (e) { p = null; }
+    if (p && typeof p.then === 'function') {
+      var at = i, b = stage.querySelector('[data-a=next]'), done = false;
+      checking = true; if (b) b.classList.add('wait');
+      var fin = function (taken) {
+        if (done) return; done = true; checking = false; if (b) b.classList.remove('wait');
+        if (i !== at) return;
+        if (taken === true) { bad(t[0], t[2]); return; }
+        tap(); i = n; render(d);
+      };
+      setTimeout(function () { fin(null); }, 4000);
+      p.then(fin, function () { fin(null); });
+      return;
+    }
     if (d > 0) tap();
     i = n; render(d);
   }
