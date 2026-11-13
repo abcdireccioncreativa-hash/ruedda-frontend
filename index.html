@@ -3923,7 +3923,11 @@ function _rdThemeStep(root, done){
   // la primera vez. La sesión de Supabase vive en localStorage ('ruedda-auth').
   var hasSession = false;
   try{ hasSession = !!localStorage.getItem('ruedda-auth'); }catch(e){}
-  if(!forced && ((seen() && hasSession) || window._rdOAuthReturn || !eligible)) return;
+  // [V225] quien entró al market sin cuenta queda guardado: no vuelve a ver el intro
+  // hasta que cierre sesión (se borra la marca) o borre y reinstale la app.
+  var guest = false;
+  try{ guest = localStorage.getItem('rd_intro_guest') === '1'; }catch(e){}
+  if(!forced && ((seen() && (hasSession || guest)) || window._rdOAuthReturn || !eligible)) return;
   // el intro se va a mostrar: su pantalla de carga usa el splash negro, y el
   // boot-splash de abajo no carga el suyo (así no corren dos a la vez).
   window._rdIntroActive = true;
@@ -4170,6 +4174,7 @@ function _rdThemeStep(root, done){
       var vh = document.getElementById('view-home');
       if(vh && typeof window._prepCascade === 'function'){ kids = window._prepCascade(vh); void vh.offsetHeight; }
     }catch(e){ kids = null; }
+    try{ localStorage.setItem('rd_intro_guest','1'); }catch(e){}
     dismiss(function(){});
     setTimeout(function(){
       try{ if(kids && typeof window._playCascade === 'function') window._playCascade(kids); }catch(e){}
@@ -20039,7 +20044,7 @@ function logOut(){
       _inApp=!!(C&&C.isNativePlatform&&C.isNativePlatform())||window.navigator.standalone===true||!!(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);
     }catch(e){}
     if(_inApp){
-      try{ localStorage.removeItem('rd_intro_v1'); }catch(e){}
+      try{ localStorage.removeItem('rd_intro_v1'); localStorage.removeItem('rd_intro_guest'); }catch(e){}
       _signOutP.finally(()=>{ window.location.replace(window.location.pathname); });
       return;
     }
