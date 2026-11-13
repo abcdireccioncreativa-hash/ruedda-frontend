@@ -47,6 +47,8 @@
       if (edge) return false;
       var L = layer();
       if (L) return !!L.can();
+      // [V224] en perfiles no se sale deslizando: solo con el botón volver
+      if (currentView === 'perfil-publico') return false;
       if (ROOTS[currentView] && !sheet()) return false;
       if (!sheet() && !(history.state && history.state.rueddaView)) return false;
       var v = document.getElementById('view-' + currentView);
