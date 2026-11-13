@@ -107,13 +107,20 @@
   }
   // [V182] dónde caen en la galería los MISMOS píxeles que se ven en la tarjeta (las dos usan
   // object-fit: cover). La copia aterriza ahí y el resto de la foto aparece alrededor: sin zoom.
+  // [V223] encuadre de la primera foto en la galería (el que el admin ajusta: _RD_HERO_POS)
+  function gpos(id) {
+    var m = window._RD_HERO_POS, v = id && m && m[id], a = v ? String(v).split(/\s+/) : [];
+    var f = function (x) { var n = parseFloat(x); return isFinite(n) ? Math.max(0, Math.min(1, n / 100)) : 0.5; };
+    return [f(a[0]), f(a[1])];
+  }
   function fullAt(ph, G) {
     if (!G || !ph || !ph.nw || !ph.nh) return null;
     var C = ph.r, nw = ph.nw, nh = ph.nh;
     var sc = Math.max(C.width / nw, C.height / nh);
     var sx = -(C.width - nw * sc) * ph.px / sc, sy = -(C.height - nh * sc) * ph.py / sc;
     var sg = Math.max(G.width / nw, G.height / nh);
-    var gx = G.left + (G.width - nw * sg) / 2, gy = G.top + (G.height - nh * sg) / 2;
+    var gp = ph.gp || [0.5, 0.5];
+    var gx = G.left + (G.width - nw * sg) * gp[0], gy = G.top + (G.height - nh * sg) * gp[1];
     return { left: gx + sx * sg, top: gy + sy * sg, width: C.width / sc * sg, height: C.height / sc * sg };
   }
   // [V185] ya no se fotografía la pantalla para volar (la foto de la tarjeta armaba el post tarde y
@@ -201,6 +208,8 @@
       // al encuadre de la galería (cover centrado), con g = la galería entera
       if (ph.real) {
         m.src = ph.src; m.nw = ph.nw; m.nh = ph.nh; m.px = ph.px; m.py = ph.py;
+        // [V223] app 1.8 (51)+: aterriza con el encuadre de la galería, no centrada
+        var gp = ph.gp || [0.5, 0.5]; m.gpx = gp[0]; m.gpy = gp[1];
         // [V187] la app sube una lámina del color del post junto con la foto: el post nunca cae de
         // golpe aunque tarde en pintarse; se disuelve cuando la web avisa que ya pintó (postShown)
         var pv = viewEl(DETAIL[currentView] ? currentView : kindOf(ph)), nb = document.querySelector('.navbar');
@@ -242,6 +251,7 @@
     el.style.cssText = 'position:fixed;z-index:61;pointer-events:none;overflow:hidden;transform-origin:0 0;left:' + gr.left + 'px;top:' + gr.top + 'px;width:' + W + 'px;height:' + H + 'px';
     im.style.cssText = 'position:absolute;inset:0;background:#111 center/cover no-repeat';
     im.style.backgroundImage = 'url("' + ph.src.replace(/"/g, '%22') + '")';
+    if (ph.gp) im.style.backgroundPosition = (ph.gp[0] * 100) + '% ' + (ph.gp[1] * 100) + '%';
     el.appendChild(im); document.body.appendChild(el);
     var opt = { duration: 420, easing: 'linear', fill: 'forwards' };
     emptyCard(ph.card);
@@ -277,7 +287,11 @@
       var oc = c.getAttribute('onclick') || '';
       var kind = /openMarketDetail\(/.test(oc) || (!oc && c.classList.contains('market-card')) ? 'market-detail' : 'detail';
       var ph = cardPhoto(c);
-      if (ph) { ph.card = c; ph.kind = kind; }
+      if (ph) {
+        ph.card = c; ph.kind = kind;
+        var lid = (oc.match(/open(?:Market)?Detail\('([0-9a-f-]{36})'/) || [])[1] || c.getAttribute('data-lid') || '';
+        ph.gp = gpos(lid);
+      }
       tapAt = { photo: ph, kind: kind, t: Date.now() };
       if (ph && NI && ph.nw && imgReady[ph.src] && ph.el.tagName === 'IMG') {
         // [V184] foto real ya en la app: vuela en el acto y el post se arma con este mismo toque

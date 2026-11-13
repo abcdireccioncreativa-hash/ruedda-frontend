@@ -316,5 +316,50 @@
       } catch (e) { return { ok: false, err: 'no se pudo enviar' }; }
     }
   };
+  // [V223] app 1.8 (51)+: entrar y salir de un perfil lo anima iOS, como una pantalla nativa.
+  // Al tocar, iOS fotografía la pantalla; la web cambia debajo sin animar (RDNT.navRun) y
+  // iOS desliza las dos con Core Animation, con la cabecera y la barra quietas.
+  if (window.__RD_NATIVE_NAV) {
+    var navQ = {}, navN = 0, navBusy = 0;
+    var navTop = function () { var nb = document.querySelector('.navbar'); return nb ? Math.max(0, Math.round(nb.getBoundingClientRect().bottom)) : 0; };
+    var nativeNav = function (dir, run) {
+      if (navBusy || edge) return run();
+      var id = ++navN; navQ[id] = run; navBusy = 1;
+      post({ ev: 'navFx', dir: dir, id: id, top: navTop() });
+      // si iOS no contesta, se navega igual
+      setTimeout(function () { var f = navQ[id]; if (f) { delete navQ[id]; navBusy = 0; f(); } }, 700);
+    };
+    RDNT.navRun = async function (id) {
+      var f = navQ[id];
+      if (!f) return false;
+      delete navQ[id];
+      var from = currentView;
+      window._rdEdgeNow = 1;
+      try { f(); } catch (e) {}
+      // el atrás llega con popstate: espera a que la pantalla cambie y pinte
+      for (var i = 0; i < 40 && currentView === from; i++) await new Promise(function (r) { setTimeout(r, 10); });
+      await new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+      window._rdEdgeNow = 0; navBusy = 0;
+      last = ''; state();
+      return currentView !== from;
+    };
+    var webProf = window.openUserProfile;
+    if (typeof webProf === 'function') {
+      window.openUserProfile = function () {
+        var a = arguments, self = this;
+        if (currentView === 'perfil-publico') return webProf.apply(self, a);
+        return new Promise(function (res) {
+          nativeNav('push', function () { var r; try { r = webProf.apply(self, a); } catch (e) {} Promise.resolve(r).then(res, res); });
+        });
+      };
+    }
+    var webBack = window._backFromProfile;
+    if (typeof webBack === 'function') {
+      window._backFromProfile = function () {
+        var a = arguments, self = this;
+        nativeNav('pop', function () { return webBack.apply(self, a); });
+      };
+    }
+  }
   if (document.readyState === 'complete') state(); else window.addEventListener('load', state);
 })();

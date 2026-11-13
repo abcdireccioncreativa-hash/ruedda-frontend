@@ -2770,7 +2770,7 @@ function rdRegion(r){
 <script src="/rd-ai.js?v=2" defer></script>
 <script src="/rd-servicios.js?v=5" defer></script>
 <script src="/rd-usa.js?v=5" defer></script>
-<script src="/rd-post.js?v=29" defer></script>
+<script src="/rd-post.js?v=30" defer></script>
 <script src="/rd-chatrx.js?v=1" defer></script><script src="/rd-stories.js?v=3" defer></script><script src="/rd-track.js?v=3" defer></script>
 <script src="/rd-search-ad.js?v=1" defer></script>
 <!-- [opcional] resaltador amarillo animado en "price drops". Para quitarlo, borrar la línea de abajo. -->
@@ -10659,7 +10659,7 @@ function _rdFeatPanels(){
   const now=Date.now();
   const items=[...AUCTIONS.filter(a=>a.destacado&&a.endTime>now).map(a=>({...a,_auc:1})),..._mktGen().filter(l=>l.destacado)]
     .filter(x=>x.photoUrls&&x.photoUrls.length)
-    .sort((a,b)=>(b._auc||0)-(a._auc||0)||(b.viewCount||0)-(a.viewCount||0)).slice(0,8);
+    .sort((a,b)=>(b._auc||0)-(a._auc||0)).slice(0,8); // [V223] en el orden del market (el mismo del escritorio), no por vistas
   const ids=items.map(x=>x.id).join(',');
   if(ids===_lastFeatIds) return;
   _lastFeatIds=ids;
@@ -27099,7 +27099,7 @@ html:not([data-theme="light"]) .toggle-switch input:checked+.toggle-track{backgr
       if(name==='ruedda-extra'&&was!=='ruedda-extra'){ var v=document.getElementById('view-ruedda-extra'); if(v){ v.classList.remove('rx-anim'); void v.offsetWidth; v.classList.add('rx-anim'); clearTimeout(t); t=setTimeout(function(){ v.classList.remove('rx-anim'); },1400); } }
       return r; };
   })();
-  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=22'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
+  if(window.__RD_NATIVE_TABS){ var go=function(){ var s=document.createElement('script'); s.src='/rd-native-tabs.js?v=23'; document.head.appendChild(s); }; if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); }
 
   /* menú hamburguesa: foto de perfil arriba */
   function paintMe(){
@@ -27226,6 +27226,18 @@ function _rdVidPlay(c){
     });
   }
   window._rdPosPaint=paint;
+  /* [V223] la galería del post usa el mismo encuadre que la tarjeta (antes solo la tarjeta) */
+  function det(){
+    var m=window._RD_HERO_POS||{};
+    [['mkt-gallery-inner',typeof currentMarketListing!=='undefined'&&currentMarketListing&&currentMarketListing.id],
+     ['gallery-inner',typeof currentAuction!=='undefined'&&currentAuction&&currentAuction.id]].forEach(function(g){
+      var inner=document.getElementById(g[0]), s=inner&&inner.querySelector('.photo-slide'); if(!s) return;
+      var p=(g[1]&&m[g[1]])||'';
+      s.querySelectorAll('img').forEach(function(im){ if(im.style.objectPosition!==p) im.style.objectPosition=p; });
+    });
+  }
+  window._rdDetPos=det;
+  var _paint0=paint; paint=function(r){ det(); return _paint0(r); }; window._rdPosPaint=paint;
   var q=false;
   function soon(){ if(q) return; q=true; requestAnimationFrame(function(){ q=false; paint(); }); }
   new MutationObserver(function(rs){
