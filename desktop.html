@@ -24282,3 +24282,117 @@ function _rdNearestCity(btn){
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',hook); else hook();
 })();
 </script>
+<style>
+/* [V227] publicar paso a paso en escritorio: el fondo no se mueve mientras está abierto */
+html.rd-lk,html.rd-lk body{overflow:hidden!important;overscroll-behavior:none}
+html.rd-pw-cover .view.active,html.rd-pw-cover .navbar{visibility:hidden}
+.rd-dk-dr{position:relative;border-radius:14px;overflow:hidden;background:var(--w5);border:1px solid var(--w8);cursor:pointer;transition:transform .25s cubic-bezier(.32,.72,0,1),border-color .2s}
+.rd-dk-dr:hover{transform:translateY(-2px);border-color:var(--w20)}
+.rd-dk-dr .cv{aspect-ratio:4/3;background:var(--w7);display:grid;place-items:center}
+.rd-dk-dr .cv img{width:100%;height:100%;object-fit:cover;display:block}
+.rd-dk-dr .cv svg{width:44px;height:34px}
+.rd-dk-dr .bd{padding:10px 12px 12px}
+.rd-dk-dr .st{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700}
+.rd-dk-dr .nm{margin-top:4px;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd-dk-dr .pg{margin-top:9px;height:3px;border-radius:3px;background:var(--w10);overflow:hidden}
+.rd-dk-dr .pg i{display:block;height:100%;background:var(--white);border-radius:3px}
+.rd-dk-dr .pc{margin-top:6px;font-size:11px;color:var(--muted)}
+.rd-dk-dr .x{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center;cursor:pointer}
+.rd-dk-dr .x svg{width:11px;height:11px}
+</style>
+<script>
+/* [V227] PUBLICAR PASO A PASO EN ESCRITORIO — el mismo /assets/rd-publicar.js de la app (en pantallas
+   grandes se arma con la vista previa del anuncio en vivo y se pueden soltar fotos desde el computador).
+   Al final llena el formulario de siempre de esta página y usa su mismo envío (handlePublicar). Si el
+   archivo no carga, queda el formulario clásico. Alquiler sigue con su formulario propio. */
+(function(){
+  var SRC='/assets/rd-publicar.js?v=4', P=null;
+  function load(){
+    if(window.RDPW) return Promise.resolve(window.RDPW);
+    if(P) return P;
+    P=new Promise(function(ok,ko){
+      var s=document.createElement('script'); s.src=SRC; s.async=true;
+      s.onload=function(){ window.RDPW?ok(window.RDPW):ko(new Error('rdpw')); };
+      s.onerror=function(){ s.remove(); ko(new Error('rdpw')); };
+      document.head.appendChild(s);
+    });
+    P.catch(function(){ P=null; });
+    return P;
+  }
+  window._pwLoad=load;
+  function drafts(){ try{ var a=JSON.parse(localStorage.getItem('rd_pw_drafts_'+((typeof USER_STATE!=='undefined'&&USER_STATE.id)||'anon'))||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+  window._pwDrafts=drafts;
+  window._pwResume=function(id){ load().then(function(R){ R.resume(id); },function(){ try{ showToast('sin conexión · intenta de nuevo'); }catch(e){} }); };
+
+  // vender: el paso a paso abre en el mismo clic; el formulario clásico (oculto) se prepara detrás
+  var classic=window.openVenderForm;
+  function prep(){
+    var sv=window.showView;
+    window.showView=function(n){ if(n==='vender') return; return sv.apply(this,arguments); };
+    try{ classic(); }catch(e){ console.warn('[ruedda] preparar formulario',e); }
+    finally{ window.showView=sv; }
+  }
+  if(typeof classic==='function'){
+    window.openVenderForm=function(){
+      var t=(typeof pendingVenderType!=='undefined'&&pendingVenderType)||'particular';
+      if(window.RDPW){ RDPW.open(t); setTimeout(prep,650); return; }
+      load().then(function(R){ R.open(t); setTimeout(prep,650); },function(e){ console.warn('[ruedda] publicar paso a paso no cargó, se usa el formulario clásico',e&&e.message); classic(); });
+    };
+  }
+  // /publicar entra directo al paso a paso (antes abría el formulario clásico)
+  if(location.pathname.replace(/\/$/,'')==='/publicar'){
+    document.addEventListener('DOMContentLoaded',function(){ setTimeout(function(){
+      try{ if(currentView==='vender'&&!isGuest()){ showView('home'); openVenderForm(); } }catch(e){}
+    },700); });
+  }
+  // fotógrafos desde el paso a paso: "volver" regresa al formulario donde iba
+  var of=window.openFotografos;
+  if(typeof of==='function') window.openFotografos=function(o){
+    var from=typeof currentView!=='undefined'?currentView:'home';
+    var r=of.apply(this,arguments);
+    if(o==='pw'){
+      var b=document.querySelector('#view-fotografos .detail-back');
+      if(b){ var sp=b.querySelector('span'); if(sp) sp.textContent='volver'; b.onclick=function(){ showView(from&&from!=='fotografos'?from:'home'); if(window.RDPW) RDPW.back(); }; }
+    }
+    return r;
+  };
+  // "atrás" del navegador con el formulario abierto = un paso atrás
+  window.addEventListener('popstate',function(e){ if(window._pwPop&&window._pwPop(e)) e.stopImmediatePropagation(); },true);
+  // se baja en reposo: al hacer clic en vender ya está listo
+  function idle(){ (window.requestIdleCallback||function(f){ setTimeout(f,1); })(function(){ load().catch(function(){}); },{timeout:5000}); }
+  if(document.readyState==='complete') setTimeout(idle,3000); else window.addEventListener('load',function(){ setTimeout(idle,3000); });
+
+  // borradores arriba de Mis publicaciones
+  var X='<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 2l8 8M10 2l-8 8"/></svg>';
+  var CAR='<svg fill="none" viewBox="0 0 40 30" stroke="var(--w20)" stroke-width="1.2"><rect x="1" y="8" width="38" height="20" rx="4"/><path d="M8 8c0-4 3-6 6-6h12c3 0 6 2 6 6"/><circle cx="12" cy="22" r="3"/><circle cx="28" cy="22" r="3"/></svg>';
+  function paintDrafts(){
+    var g=document.getElementById('mis-pub-grid'); if(!g) return;
+    var old=g.querySelectorAll('[data-rd-dr]'); [].forEach.call(old,function(n){ n.remove(); });
+    var a=drafts(); if(!a.length) return;
+    var T={particular:'venta',consesionario:'vitrina',subasta:'subasta',alquiler:'alquiler'};
+    var html='<div data-rd-dr style="grid-column:1/-1;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);padding:4px 0 8px;border-bottom:1px solid var(--border)">borradores · '+a.length+'</div>'+a.map(function(x){
+      var d=x.d||{}, t=_esc([d.marca,d.modelo].filter(Boolean).join(' ')||'sin título'), id=String(x.id).replace(/[^\w-]/g,''), pct=Math.min(99,Math.max(4,x.pct|0));
+      var cv=/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/.test(x.cover||'')?'<img src="'+x.cover+'" alt="">':CAR;
+      return '<div data-rd-dr class="rd-dk-dr" onclick="_mpOpenDraft(\''+id+'\')"><div class="cv">'+cv+'</div><button type="button" class="x" aria-label="descartar borrador" onclick="event.stopPropagation();_mpDropDraft(\''+id+'\')">'+X+'</button>'
+        +'<div class="bd"><div class="st">borrador · '+(T[x.pvt]||'venta')+'</div><div class="nm">'+t+'</div><div class="pg"><i style="width:'+pct+'%"></i></div><div class="pc">'+pct+'% · continuar</div></div></div>';
+    }).join('')+'<div data-rd-dr style="grid-column:1/-1;height:6px"></div>';
+    g.insertAdjacentHTML('afterbegin',html);
+  }
+  window._mpOpenDraft=function(id){ try{ closeMisPub(); }catch(e){} setTimeout(function(){ window._pwResume(id); },220); };
+  window._mpDropDraft=function(id){
+    if(!confirm('¿Descartar este borrador?')) return;
+    if(window.RDPW) RDPW.dropDraft(id);
+    else{
+      try{ var k='rd_pw_drafts_'+((typeof USER_STATE!=='undefined'&&USER_STATE.id)||'anon'); localStorage.setItem(k,JSON.stringify(drafts().filter(function(x){ return x.id!==id; }))); }catch(e){}
+      try{ var r=indexedDB.open('rd-pw',1); r.onupgradeneeded=function(){ r.result.createObjectStore('f'); }; r.onsuccess=function(){ try{ var t=r.result.transaction('f','readwrite'); t.objectStore('f').delete(id); t.objectStore('f').delete(id+':v'); }catch(e){} }; }catch(e){}
+    }
+    paintDrafts();
+  };
+  function wrap(name,async){
+    var f=window[name]; if(typeof f!=='function') return;
+    window[name]=function(){ var r=f.apply(this,arguments); if(async&&r&&r.then) r.then(paintDrafts,paintDrafts); else paintDrafts(); return r; };
+  }
+  wrap('_renderMisPubGrid'); wrap('_loadMyListings',true);
+})();
+</script>
+
