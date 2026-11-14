@@ -6143,7 +6143,7 @@ var _bootPath=(location.pathname||'').replace(/\/+$/,'');
 // vender directo (ver el setTimeout más abajo, después de _updateSeoMeta).
 var _bootIsDedicatedSectionPath=(_bootPath==='/subastas'||_bootPath==='/market'||_bootPath==='/concesionarios'||_bootPath==='/vehiculos');
 let currentView='home', currentTab='pronto', currentSection=(function(){
-  if(_bootPath==='/subastas') return 'subastas';
+  if(_bootPath==='/subastas'||_bootPath.indexOf('/subastas/')===0) return 'subastas';
   if(_bootPath==='/market'||_bootPath==='/vehiculos') return 'market';
   if(_bootPath==='/concesionarios') return 'consesionarios';
   return 'market';
@@ -6414,6 +6414,36 @@ function _rdLoadSupport(){
   s.onerror=()=>{ window._rdSupLoading=false; };
   document.head.appendChild(s);
 }
+// [URL limpias] la barra del navegador muestra la dirección real de cada vista:
+//   publicación → /vehiculos/<año-marca-modelo-ciudad>-<id8>   subasta → /subastas/<...>-<id8>
+// Misma forma que arma el servidor (lib/seo.js urlSlug/shortId). Solo cosmético
+// (history API): nunca recarga ni hace pedidos de red.
+function _rdSlug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').split('-').filter(function(t,i,a){return t&&t!=='otro'&&t!=='null'&&t!=='undefined'&&t!==a[i-1];}).join('-');}
+function _rdPrettyPath(kind,o){if(!o||!o.id)return null;var b=_rdSlug((o.title||'')+' '+(o.location||''));return '/'+(kind==='auction'?'subastas':'vehiculos')+'/'+(b?b+'-':'')+String(o.id).slice(0,8);}
+var _RD_DETAIL_PATH=/^\/(vehiculos|subastas)\/[^/]+\/?$/;
+function _rdViewUrl(name){
+  try{
+    var o=name==='market-detail'?currentMarketListing:name==='detail'?currentAuction:null;
+    var pp=o?_rdPrettyPath(name==='detail'?'auction':'market',o):null;
+    if(pp){document.title=(o.title||'Vehículo')+(o.location?' en '+o.location:'')+' | Ruedda';return pp;}
+    if(_RD_DETAIL_PATH.test(location.pathname)){
+      if(typeof _updateSeoMeta==='function')_updateSeoMeta(currentSection);
+      return '/'+(currentSection==='consesionarios'?'concesionarios':(currentSection||'market'));
+    }
+  }catch(e){}
+  return location.href;
+}
+// /vehiculos/<...>-<id8> o /subastas/<...>-<id8> → id completo (busca en lo cargado y, si no, por rango de uuid)
+async function _rdResolveShortId(kind,p){
+  try{
+    var arr=kind==='auction'?AUCTIONS.concat(AUCTIONS_CHOCADOS):MARKET_LISTINGS;
+    var f=arr.find(function(x){return String(x.id).indexOf(p)===0;});
+    if(f)return f.id;
+    if(typeof _supa==='undefined'||!_supa)return null;
+    var r=await _supa.from(kind==='auction'?'auctions':'listings').select('id').gte('id',p+'-0000-0000-0000-000000000000').lte('id',p+'-ffff-ffff-ffff-ffffffffffff').limit(1);
+    return r&&r.data&&r.data[0]?r.data[0].id:null;
+  }catch(e){return null;}
+}
 function showView(name,param){
   document.documentElement.scrollTop=0;document.body.scrollTop=0;
   // [pedido explícito] al salir de una publicación/subasta por CUALQUIER
@@ -6513,11 +6543,12 @@ function showView(name,param){
   if(name==='superadmin'){
     _loadSuperadminPanel();
   }
+  if(_navigatingFromPopstate&&(name==='market-detail'||name==='detail'))_rdViewUrl(name); // título de la pestaña al ir adelante/atrás
   if(!_navigatingFromPopstate){
     // [FIX] Android PWA: sin esto, el botón atrás del sistema no tiene historial
     // dentro del WebView y cierra la app entera en vez de regresar a la vista anterior.
-    if(name==='home'){ var _hs=(history.state&&typeof history.state==='object')?history.state:{}; history.replaceState(Object.assign({},_hs,{rueddaView:'home'}),'',location.href); }
-    else history.pushState({rueddaView:name,param:param!==undefined?param:null},'',location.href);
+    if(name==='home'){ var _hs=(history.state&&typeof history.state==='object')?history.state:{}; history.replaceState(Object.assign({},_hs,{rueddaView:'home'}),'',_rdViewUrl('home')); }
+    else history.pushState({rueddaView:name,param:param!==undefined?param:null},'',_rdViewUrl(name));
   }
 }
 let _navigatingFromPopstate=false;
@@ -18708,6 +18739,17 @@ window._rueddaBootPromise = (async function _rueddaInit(){
     const _mId=_params.get('market');
     if(_aId&&typeof openDetail==='function') setTimeout(()=>openDetail(_aId),300);
     else if(_mId&&typeof openMarketDetail==='function') setTimeout(()=>openMarketDetail(_mId),300);
+    else{
+      // [URL limpias] /vehiculos/2005-subaru-impreza-caracas-1a2b3c4d (id corto o uuid completo)
+      const _pm=(location.pathname||'').match(/^\/(vehiculos|subastas)\/(?:[^/]*-)?([0-9a-f]{8})(?:-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?\/?$/i);
+      if(_pm){
+        const _k=_pm[1]==='subastas'?'auction':'market';
+        _rdResolveShortId(_k,_pm[2].toLowerCase()).then(id=>{
+          if(!id){ try{history.replaceState(history.state,'','/'+(_k==='auction'?'subastas':'market'));}catch(e){} return; }
+          setTimeout(()=>{ if(_k==='auction'&&typeof openDetail==='function') openDetail(id); else if(typeof openMarketDetail==='function') openMarketDetail(id); },300);
+        });
+      }
+    }
   }catch(e){}
 })();
 

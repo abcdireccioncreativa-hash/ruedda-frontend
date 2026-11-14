@@ -162,6 +162,24 @@
       }
     },
     {
+      "src": "^/(vehiculos|subastas)/([A-Za-z0-9_.-]+\\.html)$",
+      "dest": "/$2"
+    },
+    {
+      "src": "^/(vehiculos|subastas)/(?:[^/]*-)?[0-9a-f]{8}(?:-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?/?$",
+      "missing": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Mobile|iPhone|iPad|iPod|Android|BlackBerry|IEMobile|Opera Mini|bot|Bot|crawler|spider|Googlebot|Google-InspectionTool|GoogleOther|bingbot|DuckDuckBot|YandexBot|Baiduspider|Applebot|GPTBot|OAI-SearchBot|ChatGPT-User|PerplexityBot|ClaudeBot|Claude-SearchBot|Claude-User|Amazonbot|WhatsApp|facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|LinkedInBot|Discordbot|SkypeUriPreview|Pinterest|redditbot|Iframely|Embedly|vkShare|SignalBot|Viber|Lighthouse|Chrome-Lighthouse).*"
+        }
+      ],
+      "headers": {
+        "Vary": "User-Agent"
+      },
+      "dest": "/desktop.html"
+    },
+    {
       "src": "^/sitemap\\.xml$",
       "dest": "/api/admin-user?seo=sitemap"
     },
