@@ -34,6 +34,8 @@ module.exports = async (req, res) => {
   if (req.query && req.query.partner) return require('../lib/partner.js')(req, res);
   // Vista previa al compartir (/?market=ID y /?auction=ID pedidos por WhatsApp y otros bots, ver vercel.json)
   if (req.query && req.query.og) return require('../lib/og.js')(req, res);
+  // SEO: páginas indexables por carro/marca/ciudad/subasta, sitemap vivo y llms.txt (ver lib/seo.js y vercel.json)
+  if (req.query && req.query.seo) return require('../lib/seo.js')(req, res);
   // Comunidad → "Noticias by Motorpasión": RSS en español leído del lado del servidor (/api/noticias)
   if (req.query && req.query.news) return require('../lib/news.js')(req, res);
   // Control → Master de vitrinas: fotos de publicaciones de cualquier concesionario (service key, solo superadmin)

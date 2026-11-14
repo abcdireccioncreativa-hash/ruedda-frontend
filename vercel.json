@@ -162,6 +162,66 @@
       }
     },
     {
+      "src": "^/sitemap\\.xml$",
+      "dest": "/api/admin-user?seo=sitemap"
+    },
+    {
+      "src": "^/llms\\.txt$",
+      "dest": "/api/admin-user?seo=llms"
+    },
+    {
+      "src": "^/carros/?$",
+      "dest": "/api/admin-user?seo=hub"
+    },
+    {
+      "src": "^/carros/([^/]+)/([^/]+)/?$",
+      "dest": "/api/admin-user?seo=hub&a=$1&b=$2"
+    },
+    {
+      "src": "^/carros/([^/]+)/?$",
+      "dest": "/api/admin-user?seo=car&p=$1"
+    },
+    {
+      "src": "^/subastas/([^/]+)/?$",
+      "dest": "/api/admin-user?seo=sub&p=$1"
+    },
+    {
+      "src": "^/(index\\.html|desktop\\.html)?$",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Google-InspectionTool|GoogleOther|bingbot|DuckDuckBot|YandexBot|Baiduspider|Applebot|GPTBot|OAI-SearchBot|ChatGPT-User|PerplexityBot|ClaudeBot|Claude-SearchBot|Claude-User|Amazonbot).*"
+        },
+        {
+          "type": "query",
+          "key": "market"
+        }
+      ],
+      "headers": {
+        "Vary": "User-Agent"
+      },
+      "dest": "/api/admin-user?seo=go"
+    },
+    {
+      "src": "^/(index\\.html|desktop\\.html)?$",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(Googlebot|Google-InspectionTool|GoogleOther|bingbot|DuckDuckBot|YandexBot|Baiduspider|Applebot|GPTBot|OAI-SearchBot|ChatGPT-User|PerplexityBot|ClaudeBot|Claude-SearchBot|Claude-User|Amazonbot).*"
+        },
+        {
+          "type": "query",
+          "key": "auction"
+        }
+      ],
+      "headers": {
+        "Vary": "User-Agent"
+      },
+      "dest": "/api/admin-user?seo=go"
+    },
+    {
       "src": "^/(index\\.html|desktop\\.html)?$",
       "has": [
         {
