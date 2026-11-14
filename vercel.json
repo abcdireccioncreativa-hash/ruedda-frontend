@@ -184,6 +184,10 @@
       "dest": "/api/admin-user?seo=sitemap"
     },
     {
+      "src": "^/somosruedda/?$",
+      "dest": "/api/admin-user?seo=somos"
+    },
+    {
       "src": "^/llms\\.txt$",
       "dest": "/api/admin-user?seo=llms"
     },
