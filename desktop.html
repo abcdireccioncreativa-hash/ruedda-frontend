@@ -299,39 +299,70 @@ document.addEventListener('DOMContentLoaded', function(){
   }catch(e){}
 })();
 </script>
-<title>Ruedda | Vende o subasta tu carro</title>
-<meta name="description" content="El mercado de vehículos en Venezuela. El nuevo estándar en la compra y venta. Regístrate y empieza.">
+<title>Ruedda | Vende o subasta tu vehículo</title>
+<meta name="description" content="Ruedda es el mercado de vehículos de Venezuela. Compra, vende y subasta tu carro con fotos reales, precio en dólares y gente verificada.">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <link rel="canonical" href="https://www.ruedda.app/">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ruedda">
-<meta property="og:title" content="Ruedda | Vende o subasta tu carro">
-<meta property="og:description" content="El mercado de vehículos en Venezuela. El nuevo estándar en la compra y venta. Regístrate y empieza.">
+<meta property="og:title" content="Ruedda | Vende o subasta tu vehículo">
+<meta property="og:description" content="El mercado de vehículos de Venezuela. Compra, vende y subasta tu carro con gente verificada.">
 <meta property="og:url" content="https://www.ruedda.app/">
-<meta property="og:image" content="https://www.ruedda.app/icon-192.png">
+<meta property="og:image" content="https://www.ruedda.app/assets/og/ruedda.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Ruedda, el mercado de vehículos de Venezuela">
 <meta property="og:locale" content="es_VE">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Ruedda | Vende o subasta tu carro">
-<meta name="twitter:description" content="El mercado de vehículos en Venezuela. El nuevo estándar en la compra y venta. Regístrate y empieza.">
-<meta name="twitter:image" content="https://www.ruedda.app/icon-192.png">
+<meta name="twitter:title" content="Ruedda | Vende o subasta tu vehículo">
+<meta name="twitter:description" content="El mercado de vehículos de Venezuela. Compra, vende y subasta tu carro con gente verificada.">
+<meta name="twitter:image" content="https://www.ruedda.app/assets/og/ruedda.jpg">
 
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Ruedda",
-  "legalName": "RUEDDA MARKETPLACE C.A.",
-  "alternateName": ["Ruedda Marketplace", "Ruedda Marketplace C.A.", "ruedda.app"],
-  "taxID": "J-50460850-9",
-  "identifier": {"@type": "PropertyValue", "propertyID": "RIF", "name": "Registro de Información Fiscal (SENIAT)", "value": "J-50460850-9"},
-  "url": "https://www.ruedda.app/",
-  "logo": "https://www.ruedda.app/icon-192.png",
-  "description": "Ruedda es el estándar tecnológico para comprar, vender y subastar vehículos en Venezuela. Ruedda es operada por RUEDDA MARKETPLACE C.A., RIF J-50460850-9.",
-  "address": {"@type": "PostalAddress", "addressLocality": "Caracas", "addressCountry": "VE"},
-  "areaServed": "VE",
-  "sameAs": [
-    "https://www.instagram.com/ruedda.app"
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://www.ruedda.app/#organization",
+      "name": "Ruedda",
+      "legalName": "RUEDDA MARKETPLACE C.A.",
+      "alternateName": ["Ruedda Marketplace", "Ruedda Marketplace C.A.", "ruedda.app", "Ruedda app"],
+      "taxID": "J-50460850-9",
+      "identifier": {"@type": "PropertyValue", "propertyID": "RIF", "name": "Registro de Información Fiscal (SENIAT)", "value": "J-50460850-9"},
+      "url": "https://www.ruedda.app/",
+      "logo": {"@type": "ImageObject", "url": "https://www.ruedda.app/icon-512.png", "width": 512, "height": 512},
+      "image": "https://www.ruedda.app/assets/og/ruedda.jpg",
+      "description": "Ruedda es el mercado de vehículos de Venezuela: compra, venta y subastas de carros. Operada por RUEDDA MARKETPLACE C.A., RIF J-50460850-9.",
+      "slogan": "El mercado de vehículos de Venezuela.",
+      "address": {"@type": "PostalAddress", "addressLocality": "Caracas", "addressCountry": "VE"},
+      "areaServed": {"@type": "Country", "name": "Venezuela"},
+      "sameAs": [
+        "https://www.instagram.com/ruedda.app",
+        "https://apps.apple.com/app/ruedda-la-app-automotriz/id6812039590"
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.ruedda.app/#website",
+      "url": "https://www.ruedda.app/",
+      "name": "Ruedda",
+      "alternateName": ["ruedda.app", "Ruedda Venezuela"],
+      "inLanguage": "es-VE",
+      "publisher": {"@id": "https://www.ruedda.app/#organization"}
+    },
+    {
+      "@type": "MobileApplication",
+      "@id": "https://www.ruedda.app/#app",
+      "name": "Ruedda",
+      "operatingSystem": "iOS, Android",
+      "applicationCategory": "ShoppingApplication",
+      "installUrl": "https://apps.apple.com/app/ruedda-la-app-automotriz/id6812039590",
+      "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+      "publisher": {"@id": "https://www.ruedda.app/#organization"}
+    }
   ]
 }
 </script>
@@ -6154,17 +6185,25 @@ let currentView='home', currentTab='pronto', currentSection=(function(){
 // copy propio en vez de repetir el de home. OG/twitter quedan estáticos
 // (los crawlers de redes sociales no ejecutan JS, así que no vale la pena).
 var SEO_COPY={
-  subastas:{title:'Ruedda: Subastas',desc:'Subasta tu vehículo hoy en Venezuela desde tu celular o web. Con estándares élite.'},
-  market:{title:'Ruedda: Market',desc:'Compra y vende vehículos verificados.'},
-  consesionarios:{title:'Ruedda: Concesionarios',desc:'Los mejores concesionarios de Venezuela, verificados por Ruedda.'}
+  subastas:{title:'Subastas de vehículos en Venezuela | Ruedda',desc:'Subastas de carros en vivo en Venezuela. Oferta desde tu celular o la web, gana y llévatelo, con vendedores verificados.'},
+  market:{title:'Vehículos en venta en Venezuela | Ruedda',desc:'Carros en venta en Venezuela con fotos reales, precio en dólares y trato directo con el vendedor.'},
+  consesionarios:{title:'Concesionarios en Venezuela | Ruedda',desc:'Concesionarios verificados de Venezuela y todo su inventario, en un solo lugar.'}
 };
-var SEO_HOME={title:'Ruedda | Vende o subasta tu carro',desc:'El mercado de vehículos en Venezuela. El nuevo estándar en la compra y venta. Regístrate y empieza.'};
+var SEO_HOME={title:'Ruedda | Vende o subasta tu vehículo',desc:'Ruedda es el mercado de vehículos de Venezuela. Compra, vende y subasta tu carro con fotos reales, precio en dólares y gente verificada.'};
+// [SEO] cada sección dedicada es su propia URL canónica (antes /subastas, /market y
+// /concesionarios decían canonical "/" y Google las trataba como copia de la portada).
+var SEO_PATH={subastas:'/subastas',market:'/market',consesionarios:'/concesionarios'};
 function _updateSeoMeta(section){
   try{
     var copy=SEO_COPY[section]||SEO_HOME;
     document.title=copy.title;
     var m=document.querySelector('meta[name="description"]');
     if(m) m.setAttribute('content',copy.desc);
+    var p=SEO_PATH[section]||((location.pathname||'').replace(/\/+$/,'')==='/publicar'?'/publicar':'/');
+    var c=document.querySelector('link[rel="canonical"]');
+    if(c) c.setAttribute('href','https://www.ruedda.app'+p);
+    var u=document.querySelector('meta[property="og:url"]');
+    if(u) u.setAttribute('content','https://www.ruedda.app'+p);
   }catch(e){}
 }
 // en "/" (o cualquier path no dedicado) el título queda "Inicio" aunque la

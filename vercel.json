@@ -184,8 +184,13 @@
       "dest": "/api/admin-user?seo=sitemap"
     },
     {
-      "src": "^/somosruedda/?$",
+      "src": "^/conoceruedda/?$",
       "dest": "/api/admin-user?seo=somos"
+    },
+    {
+      "src": "^/somosruedda/?$",
+      "status": 301,
+      "headers": { "Location": "/conoceruedda" }
     },
     {
       "src": "^/llms\\.txt$",
