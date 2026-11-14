@@ -171,14 +171,24 @@
     },
     {
       "src": "^/carros/?$",
-      "dest": "/api/admin-user?seo=hub"
+      "status": 301,
+      "headers": {
+        "Location": "/vehiculos/venezuela"
+      }
     },
     {
-      "src": "^/carros/([^/]+)/([^/]+)/?$",
+      "src": "^/carros/(.+)$",
+      "status": 301,
+      "headers": {
+        "Location": "/vehiculos/$1"
+      }
+    },
+    {
+      "src": "^/vehiculos/([^/]+)/([^/]+)/?$",
       "dest": "/api/admin-user?seo=hub&a=$1&b=$2"
     },
     {
-      "src": "^/carros/([^/]+)/?$",
+      "src": "^/vehiculos/([^/]+)/?$",
       "dest": "/api/admin-user?seo=car&p=$1"
     },
     {
