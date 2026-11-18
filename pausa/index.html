@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex">
+<title>Ruedda | Ya volvemos</title>
+<meta name="description" content="Estamos haciendo unos ajustes en Ruedda. Ya volvemos.">
+<link rel="icon" href="https://www.ruedda.app/favicon.png">
+<style>
+/* Ruedda · ya volvemos. Pantalla de pausa: la monta /pausa.js encima de cada página (se apaga allí).
+   La carrocería en blanco (sin marcas) se arma pieza por pieza y vuelve a empezar. */
+html,body{margin:0;height:100%;background:#000;color:#fff}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+.rd{position:relative;min-height:100%;min-height:100dvh;display:grid;grid-template-rows:auto 1fr auto;padding:calc(env(safe-area-inset-top) + 7vh) 24px calc(env(safe-area-inset-bottom) + 5.6vh);box-sizing:border-box;text-align:center}
+
+/* arriba: logo pequeño, título y descripción */
+.top img{display:block;width:92px;height:auto;margin:0 auto;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;cursor:default}
+.top h1{margin:clamp(28px,5vh,44px) 0 0;font-size:clamp(28px,7.4vw,40px);font-weight:600;letter-spacing:-.035em;line-height:1.05}
+.top p{margin:12px auto 0;max-width:330px;font-size:15px;line-height:1.5;color:#8c8c8c;letter-spacing:-.005em}
+.top a{color:#fff;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3)}
+
+/* centro: el carro 3D */
+.stage{align-self:center;justify-self:center;margin:0;width:min(100vw,760px);margin-inline:-24px;display:grid;justify-items:center}
+.stage canvas{display:block;width:100%;aspect-ratio:2.5/1;opacity:0;transition:opacity 1s ease}
+.stage canvas.ok{opacity:1}
+.tag{height:16px;margin-top:2px;font-size:12px;color:#5c5c5c;letter-spacing:.01em}
+
+/* abajo: igual que la intro "consiguiendo…", con "ajustando" */
+.bot{display:grid;justify-items:center;gap:calc(11.5vh - 5.6vh - 20px)}
+.line{height:calc(clamp(15px,3.75vw,22px)*1.43);overflow:hidden;font-size:clamp(15px,3.75vw,22px);line-height:1.35;color:#8c8c8c;letter-spacing:-.005em;white-space:nowrap}
+.rise{display:flex;transform:translateY(105%);opacity:0;animation:rise .8s cubic-bezier(.22,1,.36,1) .5s forwards}
+@keyframes rise{to{transform:none;opacity:1}}
+.word{position:relative;display:inline-block;overflow:hidden;transition:width .55s cubic-bezier(.22,1,.36,1);height:1.35em}
+.word span{position:absolute;left:0;top:0;opacity:0;transform:translateY(105%)}
+.word span.in{opacity:1;transform:none;transition:transform .6s cubic-bezier(.22,1,.36,1) .2s,opacity .6s ease .2s}
+.word span.out{opacity:0;transform:translateY(-105%);transition:transform .3s cubic-bezier(.55,0,.75,.2),opacity .18s cubic-bezier(.55,0,.75,.2)}
+.spin{width:20px;height:20px;animation:sp 1s linear infinite}
+.spin circle{fill:none;stroke-width:1.6}
+.spin .tr{stroke:rgba(255,255,255,.14)}
+.spin .ar{stroke:#fff;stroke-linecap:round;stroke-dasharray:50.3;animation:arc 1.5s cubic-bezier(.45,0,.55,1) infinite;transform-origin:10px 10px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes arc{0%{stroke-dashoffset:45}50%{stroke-dashoffset:14}100%{stroke-dashoffset:45;transform:rotate(180deg)}}
+
+@media (prefers-reduced-motion:reduce){
+  .rise{animation:none;transform:none;opacity:1}
+  .spin,.spin .ar{animation-duration:4s}
+}
+@media (min-width:900px){.top img{width:104px}.top p{max-width:380px}}
+</style>
+</head>
+<body>
+<main class="rd">
+  <header class="top">
+    <img src="logo-blanco.png" width="330" height="90" alt="Ruedda" data-logo>
+    <h1>ya volvemos.</h1>
+    <p>estamos haciendo unos ajustes en ruedda. tus publicaciones y tu cuenta siguen aquí. ¿dudas? <a href="https://wa.me/584241399589" target="_blank" rel="noopener" data-wa>escríbenos</a></p>
+  </header>
+
+  <!-- carrocería 3D en blanco que se arma por piezas (car.min.js). Mientras carga, el espacio queda reservado -->
+  <figure class="stage" aria-label="la carrocería de un carro armándose pieza por pieza">
+    <canvas data-car></canvas>
+    <figcaption class="tag" data-tag></figcaption>
+  </figure>
+
+  <footer class="bot" aria-hidden="true">
+    <div class="line"><div class="rise">ajustando&nbsp;<span class="word" data-word><span class="in">subastas</span><span>vehículos</span><span>concesionarios</span></span></div></div>
+    <svg class="spin" viewBox="0 0 20 20"><circle class="tr" cx="10" cy="10" r="8"/><circle class="ar" cx="10" cy="10" r="8"/></svg>
+  </footer>
+</main>
+<script>
+(function(){
+  var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // pase secreto: 5 toques al logo en menos de 3 s, sin ninguna señal visible (solo una vibración mínima donde exista).
+  // Dentro de la capa (iframe de /pausa.js) le avisa a la página de abajo, que recuerda el pase y quita la capa.
+  var dentro=window.parent!==window;
+  var logo=document.querySelector('[data-logo]'),taps=[];
+  logo.addEventListener('pointerup',function(){
+    var now=Date.now();taps=taps.filter(function(t){return now-t<3000});taps.push(now);
+    if(taps.length<5)return;
+    taps=[];try{navigator.vibrate&&navigator.vibrate(12)}catch(e){}
+    try{localStorage.setItem('rd_pausa_pase','1')}catch(e){}
+    if(dentro)parent.postMessage({rdPausa:'entrar'},'*');else location.href='/';
+  });
+  logo.addEventListener('contextmenu',function(e){e.preventDefault()});
+  // WhatsApp: en la app (Capacitor) se abre con el navegador del sistema; en web, pestaña nueva
+  var wa=document.querySelector('[data-wa]');
+  wa.addEventListener('click',function(e){
+    try{var C=parent.Capacitor;if(C&&C.Plugins&&C.Plugins.Browser){e.preventDefault();C.Plugins.Browser.open({url:wa.href});}}catch(_){}
+  });
+
+  // abajo: cambia la palabra a los 2,3 s y luego cada 1,5 s; la caja anima su ancho
+  var box=document.querySelector('[data-word]'),ws=[].slice.call(box.children),c=0;
+  function fit(){box.style.width=(ws[c].getBoundingClientRect().width+2)+'px'}
+  fit();addEventListener('resize',fit);
+  if(!reduce)setTimeout(function n(){
+    if(!document.hidden){var p=ws[c];c=(c+1)%ws.length;p.className='out';ws[c].className='in';fit();setTimeout(function(){p.className=''},320)}
+    setTimeout(n,1500);
+  },2300);
+})();
+</script>
+<script type="module">
+  // el 3D llega después del texto: si falla (sin WebGL), la página sigue completa sin carro
+  const cv = document.querySelector('[data-car]'), tag = document.querySelector('[data-tag]');
+  import('./car.min.js').then(({ mount }) => {
+    mount(cv, { onPiece: (n) => { tag.textContent = n === 'listo' ? 'listo' : n ? 'instalando ' + n : ''; } });
+    requestAnimationFrame(() => cv.classList.add('ok'));
+  }).catch(() => { cv.parentNode.remove(); });
+</script>
+</body>
+</html>
