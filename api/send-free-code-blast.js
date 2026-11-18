@@ -53,6 +53,7 @@ module.exports = async function handler(req, res) {
     appDisponible: (u) => templates.appDisponible({ nombre: u.nombre }),
     appDisponibleCarta: (u) => templates.appDisponibleCarta({ nombre: u.nombre }),
     relanzamiento1Dic: (u) => templates.relanzamiento1Dic({ nombre: u.nombre }),
+    relanzamientoFomo: (u) => templates.relanzamientoFomo({ nombre: u.nombre }),
   };
   const templateName = body.template || 'codigoPublicacionGratis';
   const render = TEMPLATES[templateName];
