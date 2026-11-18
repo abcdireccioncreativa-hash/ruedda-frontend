@@ -52,10 +52,18 @@ module.exports = async function handler(req, res) {
     codigoPublicacionGratis: (u) => templates.codigoPublicacionGratis({ nombre: u.nombre, codigo: 'RU3DDA' }),
     appDisponible: (u) => templates.appDisponible({ nombre: u.nombre }),
     appDisponibleCarta: (u) => templates.appDisponibleCarta({ nombre: u.nombre }),
+    relanzamiento1Dic: (u) => templates.relanzamiento1Dic({ nombre: u.nombre }),
   };
   const templateName = body.template || 'codigoPublicacionGratis';
   const render = TEMPLATES[templateName];
   if (!render) return res.status(400).json({ error: 'template desconocido' });
+
+  // prueba: un solo correo a una dirección dada, sin tocar la lista de usuarios
+  if (typeof body.testTo === 'string' && body.testTo.includes('@') && body.dryRun === false) {
+    const r = render({ email: body.testTo, nombre: body.testNombre || '' });
+    const ok = await sendEmail({ to: body.testTo, subject: r.subject, html: r.html, headers: r.headers, text: r.text, from: r.from, replyTo: r.replyTo });
+    return res.status(ok ? 200 : 502).json({ ok, test: true, template: templateName, subject: r.subject });
+  }
 
   try {
     const { data: users, error } = await supabaseAdmin
