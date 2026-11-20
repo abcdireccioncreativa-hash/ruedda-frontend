@@ -147,7 +147,9 @@ fieldset.q{border:0}
 
 footer{margin-top:clamp(120px,14vw,180px);border-top:1px solid var(--line)}
 .ft{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:28px 24px max(28px,env(safe-area-inset-bottom));flex-wrap:wrap;font-size:13.5px;color:var(--dim)}
-.ft img{height:15px;opacity:.9}
+.ft img{height:17px;width:auto;max-width:none;opacity:.9;display:block}
+.ft small{flex-basis:100%;font-size:12.5px;color:var(--dim);opacity:.7}
+@media (max-width:600px){.ft{flex-direction:column;align-items:flex-start;gap:18px;padding-top:36px}.ft nav{gap:20px}}
 .ft nav{display:flex;gap:22px}.ft nav a{text-decoration:none;transition:color .2s}.ft nav a:hover{color:var(--fg)}
 
 @media (prefers-reduced-motion:no-preference){
@@ -361,8 +363,9 @@ footer{margin-top:clamp(120px,14vw,180px);border-top:1px solid var(--line)}
 </main>
 
 <footer><div class="w ft">
-  <img src="/waitlist/ruedda.png" width="996" height="272" alt="ruedda">
+  <a href="https://www.ruedda.app" aria-label="Ruedda"><img src="/waitlist/ruedda.png" width="996" height="272" alt="ruedda"></a>
   <nav><a href="https://www.ruedda.app">ruedda.app</a><a href="https://instagram.com/ruedda.app" target="_blank" rel="noopener noreferrer">Instagram</a><a href="https://wa.me/584241399589" target="_blank" rel="noopener noreferrer">WhatsApp</a></nav>
+  <small>© 2026 Ruedda · Caracas, Venezuela</small>
 </div></footer>
 
 <script>
