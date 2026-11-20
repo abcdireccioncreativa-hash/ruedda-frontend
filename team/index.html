@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="es-VE">
+<head>
+<!-- /team: equipo fundador. SIN pausa.js a propósito: tiene que poder llenarse aunque Ruedda esté en pausa. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<title>Ruedda · Equipo fundador</title>
+<meta name="description" content="Ruedda arma su equipo fundador. Operaciones, marketing, comunidad y tecnología. Si es contigo, aplica aquí.">
+<meta property="og:title" content="Buscamos copiloto · Ruedda">
+<meta property="og:description" content="Ruedda arma su equipo fundador. Si es contigo, aplica aquí.">
+<meta property="og:image" content="https://www.ruedda.app/team/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://www.ruedda.app/team">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="preload" href="/assets/fonts/opensauceone-300.906e8fb6.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:'OpenSauceOne';font-weight:300;font-display:swap;src:url('/assets/fonts/opensauceone-300.906e8fb6.woff2') format('woff2')}
+@font-face{font-family:'OpenSauceOne';font-weight:400;font-display:swap;src:url('/assets/fonts/opensauceone-400.d20e72bf.woff2') format('woff2')}
+@font-face{font-family:'OpenSauceOne';font-weight:500;font-display:swap;src:url('/assets/fonts/opensauceone-500.0fc79baa.woff2') format('woff2')}
+:root{--bg:#0a0a0b;--bg2:#121214;--fg:#f4f4f2;--mute:rgba(244,244,242,.6);--dim:rgba(244,244,242,.4);--line:rgba(244,244,242,.12);--line2:rgba(244,244,242,.22);
+  --y:#e6f03b;--err:#ff8a7a;--ease:cubic-bezier(.16,1,.3,1);--w:1160px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--bg);color:var(--fg);scroll-behavior:smooth;scroll-padding-top:88px;-webkit-text-size-adjust:100%}
+body{font-family:'OpenSauceOne',-apple-system,system-ui,sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden;background:var(--bg)}
+a{color:inherit}
+.w{max-width:var(--w);margin:0 auto;padding:0 24px}
+::selection{background:var(--y);color:#0a0a0b}
+:focus-visible{outline:2px solid var(--y);outline-offset:3px;border-radius:6px}
+
+/* cabecera */
+header{position:sticky;top:0;z-index:20;background:rgba(10,10,11,.86);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border-bottom:1px solid transparent;transition:border-color .4s}
+header.sc{border-color:var(--line)}
+.hd{height:68px;display:flex;align-items:center;justify-content:space-between;padding-top:env(safe-area-inset-top)}
+.br{display:flex;align-items:center;gap:14px;text-decoration:none}
+.br img{height:17px;width:auto;display:block}
+.br span{font-size:13px;color:var(--mute);padding-left:14px;border-left:1px solid var(--line2)}
+.hd-a{font-size:14px;font-weight:400;text-decoration:none;height:38px;display:inline-flex;align-items:center;padding:0 18px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line2);transition:box-shadow .3s}
+.hd-a:hover{box-shadow:inset 0 0 0 1px var(--fg)}
+
+/* portada */
+.hero{padding:clamp(56px,9vw,112px) 0 0}
+.k{font-size:14px;font-weight:400;color:var(--mute)}
+h1{font-weight:500;font-size:clamp(46px,7.4vw,104px);letter-spacing:-.05em;line-height:.98;margin-top:22px;max-width:11ch}
+mark{background:linear-gradient(transparent 12%,var(--y) 12%,var(--y) 92%,transparent 92%);color:#0a0a0b;padding:0 .08em;margin:0 -.03em}
+.lead{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;margin-top:clamp(36px,5vw,56px);align-items:end}
+.lead p{font-size:clamp(18px,1.6vw,22px);line-height:1.5;letter-spacing:-.015em;color:var(--mute);max-width:52ch}
+.lead p b{font-weight:400;color:var(--fg)}
+.lead-c{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
+.bt{display:inline-flex;align-items:center;gap:12px;height:52px;padding:0 26px;border-radius:999px;font:inherit;font-size:16px;font-weight:500;border:0;cursor:pointer;text-decoration:none;transition:opacity .25s,transform .2s,box-shadow .3s;white-space:nowrap}
+.bt:active{transform:translateY(1px)}
+.bt svg{width:18px;height:18px;transition:transform .3s var(--ease)}.bt:hover svg{transform:translateX(3px)}
+.bt-p{background:var(--fg);color:#0a0a0b}.bt-p:hover{opacity:.88}
+.bt-o{background:none;color:var(--fg);box-shadow:inset 0 0 0 1px var(--line2)}.bt-o:hover{box-shadow:inset 0 0 0 1px var(--fg)}
+.ph{margin-top:clamp(48px,6vw,72px);border-radius:24px;overflow:hidden;aspect-ratio:21/8;background:#141416;position:relative}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:50% 72%;display:block;filter:saturate(.8) brightness(.86)}
+
+/* secciones */
+.sec{padding-top:clamp(96px,12vw,150px)}
+h2{font-weight:400;font-size:clamp(32px,4.2vw,56px);letter-spacing:-.045em;line-height:1.02;max-width:18ch}
+.sub{font-size:17px;line-height:1.55;color:var(--mute);margin-top:18px;max-width:58ch}
+
+/* áreas: índice con detalle */
+.ar{list-style:none;margin-top:48px;border-top:1px solid var(--line)}
+.ar li{display:grid;grid-template-columns:200px minmax(0,1fr) minmax(0,1.1fr);gap:32px;padding:30px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.ar .t{font-size:13px;color:var(--dim);font-weight:400}
+.ar h3{font-weight:400;font-size:clamp(22px,2.2vw,28px);letter-spacing:-.03em}
+.ar p{font-size:16px;line-height:1.55;color:var(--mute)}
+
+/* cómo funciona */
+.pz{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:48px}
+.pz div{padding:28px;border-radius:20px;background:var(--bg2);box-shadow:inset 0 0 0 1px var(--line)}
+.pz b{display:block;font-weight:400;font-size:21px;letter-spacing:-.025em}
+.pz p{font-size:15.5px;line-height:1.55;color:var(--mute);margin-top:10px}
+.pz .y{background:var(--y);color:#0a0a0b;box-shadow:none}.pz .y p{color:rgba(10,10,11,.7)}
+
+/* formulario */
+.fm{margin-top:56px;display:grid;grid-template-columns:260px minmax(0,1fr);gap:64px;align-items:start}
+.fm-n{position:sticky;top:104px}
+.fm-n ol{list-style:none;display:flex;flex-direction:column;gap:4px}
+.fm-n a{display:flex;justify-content:space-between;align-items:center;text-decoration:none;font-size:15px;color:var(--mute);padding:10px 0;border-bottom:1px solid var(--line);transition:color .25s}
+.fm-n a:hover,.fm-n a.on{color:var(--fg)}
+.fm-n a small{font-size:12.5px;color:var(--dim)}
+.pr{margin-top:22px;height:2px;background:var(--line);border-radius:2px;overflow:hidden}
+.pr i{display:block;height:100%;width:0;background:var(--y);transition:width .5s var(--ease)}
+.pr-t{font-size:13px;color:var(--dim);margin-top:10px}
+.blk+.blk{margin-top:88px}
+.blk>h3{font-weight:400;font-size:clamp(26px,2.6vw,34px);letter-spacing:-.04em}
+.blk>p{font-size:15.5px;color:var(--mute);margin-top:10px;line-height:1.5;max-width:56ch}
+.q{margin-top:36px}
+.q>label,.q>legend,.ql{display:block;font-size:16.5px;font-weight:400;letter-spacing:-.01em;line-height:1.4;color:var(--fg)}
+.q .hp{display:block;font-size:13.5px;color:var(--dim);margin-top:4px;font-weight:300}
+.q .rq{color:var(--y);margin-left:4px}
+fieldset.q{border:0}
+.in,.ta{display:block;width:100%;margin-top:12px;background:var(--bg2);color:var(--fg);border:0;border-radius:14px;box-shadow:inset 0 0 0 1px var(--line);
+  font:inherit;font-size:16px;font-weight:300;padding:15px 16px;transition:box-shadow .25s;-webkit-appearance:none;appearance:none}
+.ta{min-height:112px;resize:vertical;line-height:1.5}
+.in::placeholder,.ta::placeholder{color:rgba(244,244,242,.42)}
+.in:hover,.ta:hover{box-shadow:inset 0 0 0 1px var(--line2)}
+.in:focus,.ta:focus{outline:0;box-shadow:inset 0 0 0 1px var(--fg)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}
+.cnt{display:block;text-align:right;font-size:12px;color:var(--dim);margin-top:6px}
+.er{display:none;font-size:13.5px;color:var(--err);margin-top:8px}
+.q.bad .er{display:block}
+.q.bad .in,.q.bad .ta,.q.bad .ops{box-shadow:inset 0 0 0 1px var(--err);border-radius:14px}
+
+/* áreas como tarjetas seleccionables */
+.ops{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.op{position:relative;display:block;cursor:pointer}
+.op input{position:absolute;opacity:0;pointer-events:none}
+.op span{display:flex;flex-direction:column;gap:6px;height:100%;padding:18px 18px 18px 52px;border-radius:16px;background:var(--bg2);box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow .25s,background .25s}
+.op span:before{content:"";position:absolute;left:18px;top:20px;width:20px;height:20px;border-radius:6px;box-shadow:inset 0 0 0 1px var(--line2);transition:background .2s,box-shadow .2s}
+.op span:after{content:"";position:absolute;left:25px;top:24px;width:5px;height:10px;border:solid #0a0a0b;border-width:0 2px 2px 0;transform:rotate(45deg);opacity:0;transition:opacity .2s}
+.op b{font-weight:400;font-size:16.5px;letter-spacing:-.015em}
+.op em{font-style:normal;font-size:14px;line-height:1.45;color:var(--mute)}
+.op:hover span{box-shadow:inset 0 0 0 1px var(--line2)}
+.op input:checked+span{box-shadow:inset 0 0 0 1px var(--fg);background:#17171a}
+.op input:checked+span:before{background:var(--y);box-shadow:none}
+.op input:checked+span:after{opacity:1}
+.op input:focus-visible+span{outline:2px solid var(--y);outline-offset:3px}
+.otra{display:none}.otra.on{display:block}
+.sa{display:none;margin-top:22px;padding:20px 20px 22px;border-radius:16px;box-shadow:inset 0 0 0 1px var(--line)}.sa.on{display:block}
+.sa-t{font-size:14.5px;color:var(--mute)}.sa .ch{margin-top:12px}
+
+/* chips */
+.ch{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.c{position:relative;cursor:pointer}
+.c input{position:absolute;opacity:0;pointer-events:none}
+.c span{display:inline-flex;align-items:center;height:42px;padding:0 18px;border-radius:999px;font-size:15px;box-shadow:inset 0 0 0 1px var(--line2);transition:background .2s,color .2s,box-shadow .2s;user-select:none}
+.c:hover span{box-shadow:inset 0 0 0 1px var(--fg)}
+.c input:checked+span{background:var(--fg);color:#0a0a0b;box-shadow:none}
+.c input:focus-visible+span{outline:2px solid var(--y);outline-offset:3px}
+
+.ex{margin-top:56px;border-top:1px solid var(--line);padding-top:32px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.ex p{font-size:14px;color:var(--dim);max-width:46ch;line-height:1.5}
+.hny{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
+.msg{display:none;margin-top:18px;font-size:15px;color:var(--err)}
+.msg.on{display:block}
+.bt[disabled]{opacity:.5;pointer-events:none}
+
+/* listo */
+.ok{display:none;padding:64px 0 24px}
+.ok.on{display:block}
+.ok h3{font-weight:500;font-size:clamp(40px,5.4vw,72px);letter-spacing:-.05em;line-height:1}
+.ok p{font-size:18px;color:var(--mute);margin-top:20px;max-width:46ch;line-height:1.5}
+.sent .fm-b{display:none}
+
+footer{margin-top:clamp(120px,14vw,180px);border-top:1px solid var(--line)}
+.ft{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:28px 24px max(28px,env(safe-area-inset-bottom));flex-wrap:wrap;font-size:13.5px;color:var(--dim)}
+.ft img{height:15px;opacity:.9}
+.ft nav{display:flex;gap:22px}.ft nav a{text-decoration:none;transition:color .2s}.ft nav a:hover{color:var(--fg)}
+
+@media (prefers-reduced-motion:no-preference){
+  .rv{opacity:0;transform:translateY(16px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+  .rv.in-v{opacity:1;transform:none}
+}
+@media (max-width:900px){
+  .lead{grid-template-columns:1fr;gap:28px}
+  .lead-c{justify-content:flex-start}
+  .ph{aspect-ratio:4/3;border-radius:18px}
+  .ar li{grid-template-columns:1fr;gap:8px;padding:24px 0}
+  .pz{grid-template-columns:1fr}
+  .fm{grid-template-columns:1fr;gap:0}
+  .fm-n{display:none}
+  .ops,.g2{grid-template-columns:1fr}
+  .br span{display:none}
+  .ex{flex-direction:column-reverse;align-items:stretch}
+  .ex .bt{justify-content:center}
+}
+</style>
+</head>
+<body>
+<header id="hd"><div class="w hd">
+  <a class="br" href="https://www.ruedda.app" aria-label="Ruedda"><img src="/waitlist/ruedda.png" width="996" height="272" alt="ruedda"><span>equipo fundador</span></a>
+  <a class="hd-a" href="#aplicar">Aplicar</a>
+</div></header>
+
+<main>
+  <section class="hero w">
+    <p class="k rv">Equipo fundador</p>
+    <h1 class="rv">buscamos copiloto.</h1>
+    <div class="lead rv">
+      <p>Ruedda es el mercado de vehículos de Venezuela: subastas en tiempo real, un market donde solo hay carros y presencia en Colombia y Canadá. <b>Hasta hoy la construyó una sola persona. Con el relanzamiento del 1 de diciembre y la expansión, hacen falta más cabezas y más manos.</b></p>
+      <div class="lead-c"><a class="bt bt-p" href="#aplicar">Aplicar <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a><a class="bt bt-o" href="#areas">Ver las áreas</a></div>
+    </div>
+    <figure class="ph rv"><img src="/assets/somos/caracas-2000.webp" srcset="/assets/somos/caracas-1200.webp 1200w, /assets/somos/caracas-2000.webp 2000w" sizes="(max-width:1160px) 100vw, 1112px" width="2000" height="1333" alt="Tres carros frente al Ávila al atardecer, en Caracas" fetchpriority="high"></figure>
+  </section>
+
+  <section class="sec w" id="areas">
+    <h2 class="rv">Más que un puesto, un lugar en el equipo fundador.</h2>
+    <p class="sub rv">No buscamos a quién delegarle tareas. Buscamos uno o dos panas que piensen el producto con el fundador, vayan juntos a los eventos y sientan Ruedda como suya. Estas son las áreas donde hoy hace más falta.</p>
+    <ul class="ar">
+      <li class="rv"><span class="t">COO</span><h3>Operaciones y finanzas</h3><p>Ordenas la casa: estructura de la empresa, documentos, legal, números y la conversación con inversionistas.</p></li>
+      <li class="rv"><span class="t">CMO</span><h3>Marketing y marca</h3><p>Haces que todo el país se entere: desarrollo creativo, contenido, foto y video, campañas, prensa y el relanzamiento del 1 de diciembre.</p></li>
+      <li class="rv"><span class="t">Calle</span><h3>Comunidad y eventos</h3><p>Llevas Ruedda a donde están los carros: eventos, clubes, crews y alianzas con la cultura petrolhead.</p></li>
+      <li class="rv"><span class="t">CTO</span><h3>Tecnología y producto</h3><p>Construyes la app al lado del fundador: lo que se diseña, se programa y se lanza en web, iOS y Android.</p></li>
+      <li class="rv"><span class="t">Otra</span><h3>Lo que nadie nombró</h3><p>Si ves un hueco que no está en esta lista, cuéntanos qué construirías.</p></li>
+    </ul>
+  </section>
+
+  <section class="sec w">
+    <h2 class="rv">Cómo sigue esto.</h2>
+    <div class="pz">
+      <div class="rv"><b>Llenas esto</b><p>Lo esencial toma unos cinco minutos. La segunda parte es opcional y nos ayuda a conocerte de verdad.</p></div>
+      <div class="rv"><b>Lo leemos todo</b><p>Cada respuesta la lee el fundador. Si hay match, te escribimos por el contacto que nos dejes.</p></div>
+      <div class="y rv"><b>Café y carros</b><p>Una conversación sin formalidades: qué quieres construir, cómo trabajas y si vamos en la misma dirección.</p></div>
+    </div>
+  </section>
+
+  <section class="sec w" id="aplicar">
+    <h2 class="rv">Cuéntanos quién eres.</h2>
+    <p class="sub rv">Los campos con <span style="color:var(--y)">*</span> son obligatorios. Lo que escribas se guarda en este dispositivo mientras llenas.</p>
+
+    <div class="fm" id="fm">
+      <aside class="fm-n" aria-label="Partes del formulario">
+        <ol>
+          <li><a href="#p1" class="on">Lo esencial <small>9</small></a></li>
+          <li><a href="#p2">Tú y los carros <small>8</small></a></li>
+          <li><a href="#p3">Cómo construyes <small>8</small></a></li>
+          <li><a href="#p4">Logística <small>6</small></a></li>
+        </ol>
+        <div class="pr" aria-hidden="true"><i id="pri"></i></div>
+        <p class="pr-t" id="prt">0 de 31 respondidas</p>
+      </aside>
+
+      <div class="fm-c">
+        <form id="f" novalidate class="fm-b">
+          <input class="hny" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+          <div class="blk" id="p1">
+            <h3>Lo esencial</h3>
+            <p>Con esto ya sabemos quién eres y dónde quieres construir.</p>
+            <div class="g2">
+              <div class="q" data-req><label for="nombre">Nombre<span class="rq">*</span></label><input class="in" id="nombre" name="nombre" autocomplete="name" maxlength="120" required><span class="er">Escribe tu nombre.</span></div>
+              <div class="q" data-req><label for="contacto">Instagram o WhatsApp<span class="rq">*</span><span class="hp">Por aquí te escribimos.</span></label><input class="in" id="contacto" name="contacto" maxlength="80" placeholder="@usuario o +58 412 000 0000" required><span class="er">Déjanos un @ o un número.</span></div>
+            </div>
+            <div class="q" data-req><label for="ciudad">Ciudad<span class="rq">*</span></label><input class="in" id="ciudad" name="ciudad" autocomplete="address-level2" maxlength="80" placeholder="Caracas, Valencia, Bogotá, Toronto..." required><span class="er">¿Desde dónde construirías?</span></div>
+
+            <fieldset class="q" data-req="areas">
+              <legend class="ql">¿En qué área quieres construir?<span class="rq">*</span><span class="hp">Puedes marcar más de una.</span></legend>
+              <div class="ops">
+                <label class="op"><input type="checkbox" name="areas" value="operaciones"><span><b>Operaciones y finanzas (COO)</b><em>Estructura de la empresa, documentos, legal, finanzas y relación con inversionistas.</em></span></label>
+                <label class="op"><input type="checkbox" name="areas" value="marketing"><span><b>Marketing y marca (CMO)</b><em>Contenido, redes, campañas y el relanzamiento.</em></span></label>
+                <label class="op"><input type="checkbox" name="areas" value="comunidad"><span><b>Comunidad y eventos</b><em>Eventos automotrices, alianzas con la cultura petrolhead y presencia en la calle.</em></span></label>
+                <label class="op"><input type="checkbox" name="areas" value="tecnologia"><span><b>Tecnología y producto (CTO)</b><em>Construir la app junto al fundador.</em></span></label>
+                <label class="op"><input type="checkbox" name="areas" value="otra" id="a-otra"><span><b>Otra</b><em>Cuéntanos qué te gustaría construir.</em></span></label>
+              </div>
+              <span class="er">Elige al menos un área.</span>
+              <div class="sa" data-sa="operaciones"><p class="sa-t">Operaciones y finanzas: ¿qué parte te llama más?</p><div class="ch"><label class="c"><input type="checkbox" name="r_sub_operaciones" value="finanzas_y_proyecciones"><span>Finanzas y proyecciones</span></label><label class="c"><input type="checkbox" name="r_sub_operaciones" value="legal_y_cumplimiento"><span>Legal y cumplimiento</span></label><label class="c"><input type="checkbox" name="r_sub_operaciones" value="administracion"><span>Administración</span></label><label class="c"><input type="checkbox" name="r_sub_operaciones" value="inversionistas_y_fundraising"><span>Inversionistas y fundraising</span></label><label class="c"><input type="checkbox" name="r_sub_operaciones" value="talento_y_cultura"><span>Talento y cultura</span></label></div></div>
+              <div class="sa" data-sa="marketing"><p class="sa-t">Marketing y marca: ¿qué parte te llama más?</p><div class="ch"><label class="c"><input type="checkbox" name="r_sub_marketing" value="desarrollo_creativo"><span>Desarrollo creativo</span></label><label class="c"><input type="checkbox" name="r_sub_marketing" value="contenido_y_redes"><span>Contenido y redes</span></label><label class="c"><input type="checkbox" name="r_sub_marketing" value="foto_y_video"><span>Foto y video</span></label><label class="c"><input type="checkbox" name="r_sub_marketing" value="diseno_y_marca"><span>Diseño y marca</span></label><label class="c"><input type="checkbox" name="r_sub_marketing" value="campanas_y_pauta"><span>Campañas y pauta</span></label><label class="c"><input type="checkbox" name="r_sub_marketing" value="prensa_y_relaciones_publicas"><span>Prensa y relaciones públicas</span></label><label class="c"><input type="checkbox" name="r_sub_marketing" value="influencers_y_creadores"><span>Influencers y creadores</span></label><label class="c"><input type="checkbox" name="r_sub_marketing" value="growth_y_analitica"><span>Growth y analítica</span></label></div></div>
+              <div class="sa" data-sa="comunidad"><p class="sa-t">Comunidad y eventos: ¿qué parte te llama más?</p><div class="ch"><label class="c"><input type="checkbox" name="r_sub_comunidad" value="eventos_y_activaciones"><span>Eventos y activaciones</span></label><label class="c"><input type="checkbox" name="r_sub_comunidad" value="clubes_y_crews"><span>Clubes y crews</span></label><label class="c"><input type="checkbox" name="r_sub_comunidad" value="alianzas_con_marcas"><span>Alianzas con marcas</span></label><label class="c"><input type="checkbox" name="r_sub_comunidad" value="concesionarios_y_talleres"><span>Concesionarios y talleres</span></label><label class="c"><input type="checkbox" name="r_sub_comunidad" value="expansion_a_otras_ciudades"><span>Expansión a otras ciudades</span></label></div></div>
+              <div class="sa" data-sa="tecnologia"><p class="sa-t">Tecnología y producto: ¿qué parte te llama más?</p><div class="ch"><label class="c"><input type="checkbox" name="r_sub_tecnologia" value="diseno_de_producto_ux_ui"><span>Diseño de producto (UX/UI)</span></label><label class="c"><input type="checkbox" name="r_sub_tecnologia" value="web"><span>Web</span></label><label class="c"><input type="checkbox" name="r_sub_tecnologia" value="ios_y_android"><span>iOS y Android</span></label><label class="c"><input type="checkbox" name="r_sub_tecnologia" value="backend_y_datos"><span>Backend y datos</span></label><label class="c"><input type="checkbox" name="r_sub_tecnologia" value="ia_y_automatizacion"><span>IA y automatización</span></label></div></div>
+              <div class="otra" id="otra-w"><input class="in" name="area_otra" maxlength="200" placeholder="¿Qué te gustaría construir en Ruedda?" aria-label="Otra área"></div>
+            </fieldset>
+
+            <div class="q" data-req><label for="logros">¿Qué has construido o logrado antes?<span class="rq">*</span><span class="hp">Un proyecto, un negocio, un equipo, una comunidad. Lo que sea tuyo.</span></label><textarea class="ta" id="logros" name="logros" maxlength="800" data-cnt required></textarea><span class="cnt"></span><span class="er">Cuéntanos al menos una cosa.</span></div>
+            <div class="q" data-req><label for="motivo">¿Por qué te mueve Ruedda?<span class="rq">*</span></label><textarea class="ta" id="motivo" name="motivo" maxlength="800" data-cnt required></textarea><span class="cnt"></span><span class="er">Esta es la que más leemos.</span></div>
+
+            <fieldset class="q" data-req="disponibilidad">
+              <legend class="ql">Disponibilidad<span class="rq">*</span></legend>
+              <div class="ch">
+                <label class="c"><input type="radio" name="disponibilidad" value="completo"><span>Tiempo completo</span></label>
+                <label class="c"><input type="radio" name="disponibilidad" value="medio"><span>Medio tiempo</span></label>
+                <label class="c"><input type="radio" name="disponibilidad" value="proyecto"><span>Por proyecto</span></label>
+              </div>
+              <span class="er">Elige una.</span>
+            </fieldset>
+            <div class="g2">
+              <div class="q"><label for="linkedin">Perfil de LinkedIn<span class="hp">Opcional, pero ayuda mucho.</span></label><input class="in" id="linkedin" name="linkedin" type="url" inputmode="url" maxlength="200" placeholder="linkedin.com/in/tu-perfil"></div>
+              <div class="q"><label for="portafolio">Portafolio o web<span class="hp">Opcional.</span></label><input class="in" id="portafolio" name="portafolio" type="url" inputmode="url" maxlength="200" placeholder="https://"></div>
+            </div>
+          </div>
+
+          <div class="blk" id="p2">
+            <h3>Tú y los carros</h3>
+            <p>Opcional. No hace falta ser mecánico; sí ayuda saber de qué se habla en la calle.</p>
+            <div class="q"><label for="r1">¿Cuál fue tu primer carro, o el que siempre quisiste?</label><input class="in" id="r1" name="r_primer_carro" maxlength="160"></div>
+            <fieldset class="q"><legend class="ql">¿Sincrónico o automático?</legend><div class="ch">
+              <label class="c"><input type="radio" name="r_caja" value="sincronico"><span>Sincrónico, siempre</span></label>
+              <label class="c"><input type="radio" name="r_caja" value="automatico"><span>Automático y en paz</span></label>
+              <label class="c"><input type="radio" name="r_caja" value="igual"><span>Me da igual si prende</span></label></div></fieldset>
+            <div class="q"><label for="r3">Si Ruedda fuera un carro hoy, ¿cuál sería y por qué?</label><input class="in" id="r3" name="r_ruedda_carro" maxlength="200"></div>
+            <fieldset class="q"><legend class="ql">¿Cada cuánto vas a eventos de carros?</legend><div class="ch">
+              <label class="c"><input type="radio" name="r_eventos" value="siempre"><span>Casi todos los fines de semana</span></label>
+              <label class="c"><input type="radio" name="r_eventos" value="aveces"><span>De vez en cuando</span></label>
+              <label class="c"><input type="radio" name="r_eventos" value="quiero"><span>Casi nunca, pero quiero</span></label></div></fieldset>
+            <fieldset class="q"><legend class="ql">¿Tienes red en alguno de estos mundos?<span class="hp">Marca los que apliquen.</span></legend><div class="ch">
+              <label class="c"><input type="checkbox" name="r_red" value="concesionarios"><span>Concesionarios</span></label>
+              <label class="c"><input type="checkbox" name="r_red" value="talleres"><span>Talleres</span></label>
+              <label class="c"><input type="checkbox" name="r_red" value="clubes"><span>Clubes y crews</span></label>
+              <label class="c"><input type="checkbox" name="r_red" value="creadores"><span>Fotógrafos y creadores</span></label>
+              <label class="c"><input type="checkbox" name="r_red" value="medios"><span>Medios</span></label>
+              <label class="c"><input type="checkbox" name="r_red" value="inversion"><span>Inversión</span></label></div></fieldset>
+            <div class="q"><label for="r6">¿Qué parte de comprar o vender un carro en Venezuela está más rota?</label><textarea class="ta" id="r6" name="r_roto" maxlength="600" data-cnt></textarea><span class="cnt"></span></div>
+            <div class="q"><label for="r7">¿Qué evento, club o crew no se puede perder Ruedda?</label><input class="in" id="r7" name="r_evento_clave" maxlength="200"></div>
+            <div class="q"><label for="r8">¿Qué carro venderías primero en una subasta para que el país hable?</label><input class="in" id="r8" name="r_subasta" maxlength="200"></div>
+          </div>
+
+          <div class="blk" id="p3">
+            <h3>Cómo construyes</h3>
+            <p>Opcional. Sin respuestas correctas: queremos ver cómo piensas.</p>
+            <fieldset class="q"><legend class="ql">¿Has emprendido antes?</legend><div class="ch">
+              <label class="c"><input type="radio" name="r_emprendido" value="exito"><span>Sí, y salió bien</span></label>
+              <label class="c"><input type="radio" name="r_emprendido" value="aprendi"><span>Sí, y aprendí bastante</span></label>
+              <label class="c"><input type="radio" name="r_emprendido" value="no"><span>Todavía no</span></label></div></fieldset>
+            <div class="q"><label for="r10">¿Qué haces cuando nadie te dice qué hacer?</label><textarea class="ta" id="r10" name="r_autonomia" maxlength="600" data-cnt></textarea><span class="cnt"></span></div>
+            <div class="q"><label for="r11">Cuéntanos una decisión difícil que tomaste con poca información.</label><textarea class="ta" id="r11" name="r_decision" maxlength="600" data-cnt></textarea><span class="cnt"></span></div>
+            <fieldset class="q"><legend class="ql">¿Qué número de Ruedda mirarías primero cada mañana?</legend><div class="ch">
+              <label class="c"><input type="radio" name="r_metrica" value="activos"><span>Usuarios activos</span></label>
+              <label class="c"><input type="radio" name="r_metrica" value="publicados"><span>Carros publicados</span></label>
+              <label class="c"><input type="radio" name="r_metrica" value="subastas"><span>Subastas cerradas</span></label>
+              <label class="c"><input type="radio" name="r_metrica" value="chats"><span>Conversaciones entre compradores y vendedores</span></label></div></fieldset>
+            <div class="q"><label for="r13">¿Qué harías en tus primeros 30 días?</label><textarea class="ta" id="r13" name="r_30dias" maxlength="800" data-cnt></textarea><span class="cnt"></span></div>
+            <div class="q"><label for="r14">¿Qué app usas todos los días y qué le copiarías?</label><input class="in" id="r14" name="r_app" maxlength="200"></div>
+            <div class="q"><label for="r15">Un error tuyo del que aprendiste algo que hoy aplicas.</label><textarea class="ta" id="r15" name="r_error" maxlength="600" data-cnt></textarea><span class="cnt"></span></div>
+            <div class="q"><label for="r16">¿Qué no te gusta hacer? Sé honesto, nos ahorra tiempo a los dos.</label><input class="in" id="r16" name="r_no_gusta" maxlength="200"></div>
+          </div>
+
+          <div class="blk" id="p4">
+            <h3>Logística</h3>
+            <p>Opcional. Lo práctico, para saber cómo arrancar.</p>
+            <fieldset class="q"><legend class="ql">¿Cómo prefieres trabajar?</legend><div class="ch">
+              <label class="c"><input type="radio" name="r_modo" value="presencial"><span>En persona</span></label>
+              <label class="c"><input type="radio" name="r_modo" value="remoto"><span>Remoto</span></label>
+              <label class="c"><input type="radio" name="r_modo" value="mixto"><span>Mixto</span></label></div></fieldset>
+            <fieldset class="q"><legend class="ql">¿Desde cuándo podrías empezar?</legend><div class="ch">
+              <label class="c"><input type="radio" name="r_inicio" value="ya"><span>Ya</span></label>
+              <label class="c"><input type="radio" name="r_inicio" value="1mes"><span>En un mes</span></label>
+              <label class="c"><input type="radio" name="r_inicio" value="3meses"><span>En tres meses</span></label></div></fieldset>
+            <fieldset class="q"><legend class="ql">¿Te ves viajando por Ruedda a Colombia o Canadá?</legend><div class="ch">
+              <label class="c"><input type="radio" name="r_viajar" value="si"><span>Sí, cuando sea</span></label>
+              <label class="c"><input type="radio" name="r_viajar" value="depende"><span>Depende</span></label>
+              <label class="c"><input type="radio" name="r_viajar" value="no"><span>Por ahora no</span></label></div></fieldset>
+            <fieldset class="q"><legend class="ql">Idiomas que manejas</legend><div class="ch">
+              <label class="c"><input type="checkbox" name="r_idiomas" value="es"><span>Español</span></label>
+              <label class="c"><input type="checkbox" name="r_idiomas" value="en"><span>Inglés</span></label>
+              <label class="c"><input type="checkbox" name="r_idiomas" value="fr"><span>Francés</span></label>
+              <label class="c"><input type="checkbox" name="r_idiomas" value="pt"><span>Portugués</span></label></div></fieldset>
+            <fieldset class="q"><legend class="ql">¿Cómo te enteraste de esto?</legend><div class="ch">
+              <label class="c"><input type="radio" name="r_origen" value="instagram"><span>Instagram</span></label>
+              <label class="c"><input type="radio" name="r_origen" value="pana"><span>Un pana</span></label>
+              <label class="c"><input type="radio" name="r_origen" value="founders"><span>Grupo de founders</span></label>
+              <label class="c"><input type="radio" name="r_origen" value="app"><span>La app</span></label></div></fieldset>
+            <div class="q"><label for="r22">Algo que quieras que el fundador sepa de ti.</label><textarea class="ta" id="r22" name="r_extra" maxlength="800" data-cnt></textarea><span class="cnt"></span></div>
+          </div>
+
+          <div class="ex">
+            <p>Al enviar aceptas que Ruedda guarde estas respuestas solo para evaluar tu aplicación. No las compartimos con nadie.</p>
+            <button class="bt bt-p" type="submit" id="send">Enviar aplicación <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          </div>
+          <p class="msg" id="msg" role="alert"></p>
+        </form>
+
+        <div class="ok" id="ok" role="status" tabindex="-1">
+          <h3>Recibido.</h3>
+          <p>Lo va a leer el fundador. Si es contigo, te escribimos por el contacto que dejaste. Mientras tanto, nos vemos el 1 de diciembre.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="w ft">
+  <img src="/waitlist/ruedda.png" width="996" height="272" alt="ruedda">
+  <nav><a href="https://www.ruedda.app">ruedda.app</a><a href="https://instagram.com/ruedda.app" target="_blank" rel="noopener noreferrer">Instagram</a><a href="https://wa.me/584241399589" target="_blank" rel="noopener noreferrer">WhatsApp</a></nav>
+</div></footer>
+
+<script>
+(function(){
+  var f=document.getElementById('f'), K='rd_team_v1';
+  var TOTAL=31;
+  // borrador local (comodidad: si recarga, no pierde lo escrito)
+  function guardar(){ try{ var o={}; new FormData(f).forEach(function(v,k){ if(k==='website')return; (o[k]=o[k]||[]).push(v); }); localStorage.setItem(K,JSON.stringify(o)); }catch(e){} }
+  function cargar(){ try{ var o=JSON.parse(localStorage.getItem(K)||'null'); if(!o)return;
+    Object.keys(o).forEach(function(k){ var els=f.querySelectorAll('[name="'+k+'"]'); els.forEach(function(el){
+      if(el.type==='checkbox'||el.type==='radio') el.checked=o[k].indexOf(el.value)>-1; else el.value=o[k][0]||''; }); }); }catch(e){} }
+  // progreso: cuenta preguntas respondidas (cada .q es una)
+  function progreso(){
+    var n=0; f.querySelectorAll('.q').forEach(function(q){
+      var ok=[].some.call(q.querySelectorAll('input,textarea'),function(el){ return (el.type==='checkbox'||el.type==='radio')?el.checked:(el.name!=='area_otra'&&el.value.trim()!==''); });
+      if(ok)n++; });
+    document.getElementById('pri').style.width=(n/TOTAL*100)+'%';
+    document.getElementById('prt').textContent=n+' de '+TOTAL+' respondidas';
+  }
+  function contar(){ f.querySelectorAll('[data-cnt]').forEach(function(t){ var c=t.parentNode.querySelector('.cnt'); if(c) c.textContent=t.value.length?t.value.length+' / '+t.maxLength:''; }); }
+  function otra(){ document.getElementById('otra-w').classList.toggle('on',document.getElementById('a-otra').checked);
+    f.querySelectorAll('[data-sa]').forEach(function(d){ var on=!!f.querySelector('[name="areas"][value="'+d.getAttribute('data-sa')+'"]:checked'); d.classList.toggle('on',on); if(!on) d.querySelectorAll('input').forEach(function(i){ i.checked=false; }); }); }
+  cargar(); otra(); progreso(); contar();
+  f.addEventListener('input',function(e){ var q=e.target.closest('.q'); if(q)q.classList.remove('bad'); otra(); progreso(); contar(); guardar(); });
+  f.addEventListener('change',function(e){ var q=e.target.closest('.q'); if(q)q.classList.remove('bad'); otra(); progreso(); guardar(); });
+
+  function valido(){
+    var primero=null;
+    f.querySelectorAll('[data-req]').forEach(function(q){
+      var r=q.getAttribute('data-req'), ok;
+      if(r){ ok=!!f.querySelector('[name="'+r+'"]:checked'); }
+      else { var el=q.querySelector('input,textarea'); ok=el.value.trim().length>=(el.name==='contacto'?3:2); }
+      q.classList.toggle('bad',!ok); if(!ok&&!primero)primero=q;
+    });
+    if(primero){ primero.scrollIntoView({behavior:'smooth',block:'center'}); var el=primero.querySelector('input,textarea'); if(el) setTimeout(function(){ el.focus({preventScroll:true}); },350); }
+    return !primero;
+  }
+
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var msg=document.getElementById('msg'); msg.classList.remove('on');
+    if(!valido())return;
+    var fd=new FormData(f), body={respuestas:{}}, base=['nombre','contacto','ciudad','area_otra','logros','motivo','disponibilidad','linkedin','portafolio','website'];
+    fd.forEach(function(v,k){
+      if(k==='areas'){ (body.areas=body.areas||[]).push(v); return; }
+      if(base.indexOf(k)>-1){ body[k]=v; return; }
+      if(String(v).trim()==='')return;
+      var r=body.respuestas; if(r[k]!==undefined){ r[k]=[].concat(r[k],v); } else r[k]=v;
+    });
+    // las de selección múltiple siempre como lista
+    ['r_red','r_idiomas','r_sub_operaciones','r_sub_marketing','r_sub_comunidad','r_sub_tecnologia'].forEach(function(k){ if(body.respuestas[k]!==undefined) body.respuestas[k]=[].concat(body.respuestas[k]); });
+    var b=document.getElementById('send'); b.disabled=true;
+    fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      .then(function(r){ return r.json().catch(function(){return{};}).then(function(j){ if(!r.ok) throw new Error(j.error||'No se pudo enviar. Intenta de nuevo.'); }); })
+      .then(function(){ try{localStorage.removeItem(K);}catch(e){} document.getElementById('fm').classList.add('sent'); var ok=document.getElementById('ok'); ok.classList.add('on'); ok.focus(); ok.scrollIntoView({behavior:'smooth',block:'center'}); })
+      .catch(function(err){ msg.textContent=err.message; msg.classList.add('on'); b.disabled=false; });
+  });
+
+  // índice lateral: marca la parte visible
+  var links=[].slice.call(document.querySelectorAll('.fm-n a'));
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting){ links.forEach(function(a){ a.classList.toggle('on',a.getAttribute('href')==='#'+en.target.id); }); } }); },{rootMargin:'-40% 0px -55% 0px'});
+    ['p1','p2','p3','p4'].forEach(function(id){ io.observe(document.getElementById(id)); });
+    var rv=new IntersectionObserver(function(es){ es.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in-v'); rv.unobserve(en.target); } }); },{rootMargin:'0px 0px -8% 0px'});
+    document.querySelectorAll('.rv').forEach(function(el){ rv.observe(el); });
+    var sen=document.createElement('div'); sen.style.cssText='position:absolute;top:0;height:8px;width:1px'; document.body.prepend(sen);
+    new IntersectionObserver(function(es){ document.getElementById('hd').classList.toggle('sc',!es[0].isIntersecting); }).observe(sen);
+  } else document.querySelectorAll('.rv').forEach(function(el){ el.classList.add('in-v'); });
+})();
+</script>
+</body>
+</html>
